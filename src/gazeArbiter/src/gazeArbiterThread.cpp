@@ -287,6 +287,7 @@ void gazeArbiterThread::run() {
                 double errory = 120 - point.y;
                 printf ("error %f,%f \n",errorx, errory);
                 Vector px(2);
+                //TODO : removing this awful hardcoded lines cointaing fixed dimension of the imag
                 px(0) = 160.0 - errorx;
                 px(1) = 120.0 - errory;
                 error = sqrt(errorx * errorx + errory * errory);
@@ -381,9 +382,32 @@ void gazeArbiterThread::run() {
             
 
             if((mono)) {
+                // working out correction tilt. tilt necessary to have perp. plane intersecating object in both eyes
+                // extracting the colour in the log polar image of the left cam
+                imgLeftIn = inLeftPort.read(false);
+                imgRightIn = inRightPort.read(false);
+                unsigned char* pLeftIn = imgLeftIn->getRawImage();
+                pLeftIn += (int) (floor((double)imgLeftIn->width()/ 2)) * 3; // poiting the center of fovea pixel.
+                unsigned char colourRed = *pLeftIn++;
+                unsigned char colourGreen = *pLeftIn++;
+                unsigned char colourBlue = *pLeftIn;
+                printf ("colour in the center fovea left eye  %d,%d,%d \n");
+                //looking for the same which was as close as possible to the left eye fovea
+                unsigned char* pRightIn = imgRightIn->getRawImage();
+                int r,c;
+                for (r = 0 ; r < imgRightIn->height() ; r++) {
+                     for (c = 0 ; c < imgRightIn->width() ; r++) {
+                         if ((*pRightIn == colourRed) && (*(pRightIn + 1) == colourGreen)&& (*(pRightIn + 2) == colourBlue)) {
+                            break;
+                         }
+                     }
+                }
+                printf(" distance from fovea along rho dimension %d \n", r);
+
                 printf("------------- VERGENCE   ----------------- \n");
-                //anticipatory vergence ( vergence variance worked out from disparity)
-                gazeVect[0] = 0 ;                //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
+                // anticipatory vergence ( vergence variance worked out from disparity)
+                // in addition: tilt must be corrected in order to have perpediculat plane intersecating the object in both eyes
+                gazeVect[0] = 0 ;               //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
                 gazeVect[1] = 0 ;               //tilt
                 gazeVect[2] = phi;              //vergence  
                 igaze->lookAtRelAngles(gazeVect);
