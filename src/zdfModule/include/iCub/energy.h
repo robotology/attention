@@ -1,4 +1,18 @@
-/* Vladimir Kolmogorov (vnk@cs.cornell.edu), 2003. */
+/* 
+* Copyright (C) Vladimir Kolmogorov (vnk@cs.cornell.edu), 2003.
+*
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * GNU General Public License can be found at http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+ *
+*/
 
 /*
 	This software implements an energy minimization technique described in

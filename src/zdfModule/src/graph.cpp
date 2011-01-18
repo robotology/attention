@@ -1,20 +1,42 @@
-/* 
- * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Vladimir Kolmogorov, Andrew Dankers, maintainer Vadim Tikhanoff
- * email:   vadim.tikhanoff@iit.it
- * website: www.robotcub.org 
- * Permission is granted to copy, distribute, and/or modify this program
- * under the terms of the GNU General Public License, version 2 or any
- * later version published by the Free Software Foundation.
- *
- * A copy of the license can be found at
- * http://www.robotcub.org/icub/license/gpl.txt
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details
- */
+/*
+* ###################################################################
+* #                                                                 #
+* #    MAXFLOW - software for computing mincut/maxflow in a graph   #
+* #                        Version 2.21                             #
+* #    http://www.cs.ucl.ac.uk/staff/V.Kolmogorov/software.html     #
+* #                                                                 #
+* #    Yuri Boykov (yuri@csd.uwo.ca)                                #
+* #    Vladimir Kolmogorov (v.kolmogorov@cs.ucl.ac.uk)              #
+* #    2001                                                         #
+* #                                                                 #
+* ###################################################################
+*
+* This software library implements the maxflow algorithm
+* described in
+*
+*	An Experimental Comparison of Min-Cut/Max-Flow Algorithms
+*	for Energy Minimization in Vision.
+*	Yuri Boykov and Vladimir Kolmogorov.
+*	In IEEE Transactions on Pattern Analysis and Machine Intelligence (PAMI), 
+*	September 2004
+*
+* This algorithm was developed by Yuri Boykov and Vladimir Kolmogorov
+* at Siemens Corporate Research. To make it available for public use,
+* it was later reimplemented by Vladimir Kolmogorov based on open publications.
+* 
+* If you use this software for research purposes, you should cite
+* the aforementioned paper in any resulting publication.
+* 
+* Copyright UCL Business PLC
+*
+* This program is available under dual licence:
+*   
+* 1) Under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+* Note that any program that incorporates the code under this licence must, under the terms of the GNU GPL, be released under a licence compatible with the GPL. GNU GPL does not permit incorporating this program into proprietary programs. If you wish to do this, please see the alternative licence available below.
+* GNU General Public License can be found at http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+* 2) Proprietary Licence from UCL Business PLC. To enable programers to include the MaxFlow software in a proprietary system (which is not allowed by the GNU GPL), this licence gives you the right to incorporate the software in your program and distribute under any licence of your choosing. The full terms of the licence and applicable fee, are available from the Licensors at: http://www.uclb-elicensing.com/optimisation_software/maxflow_computervision.html
+*
+*/
 
 #include <stdio.h>
 #include "iCub/graph.h"
