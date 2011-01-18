@@ -1,0 +1,164 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
+/* 
+ * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
+ * Authors: Rea Francesco
+ * email:   francesco.rea@iit.it
+ * website: www.robotcub.org 
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+ */
+
+/**
+ * @file gazeArbiterThread.h
+ * @brief Definition of a thread that every time constant sends commands to the 
+ * kinematic gaze controller based on the prioritise requests that have arrived
+ * (see gazeArbiterModule.h).
+ */
+
+#ifndef _GAZE_ARBITER_THREAD_H_
+#define _GAZE_ARBITER_THREAD_H_
+
+#include <yarp/os/BufferedPort.h>
+#include <yarp/os/RateThread.h>
+#include <yarp/os/Bottle.h>
+#include <yarp/sig/all.h>
+#include <yarp/dev/PolyDriver.h>
+#include <yarp/dev/all.h>
+#include <iostream>
+#include <yarp/sig/Matrix.h>
+#include <yarp/sig/Vector.h>
+#include <yarp/sig/all.h>
+#include <string>
+
+#include <cv.h>
+#include <highgui.h>
+
+//within project includes
+#include <iCub/trackerThread.h>
+#include <iCub/observer.h>
+#include <iCub/observable.h>
+
+
+class gazeArbiterThread : public yarp::os::RateThread, public observer{
+private:
+    std::string name;                       // rootname of all the ports opened by this thread
+    yarp::sig::Matrix stateTransition;      // matrix of the state transition; weights of the transition
+    yarp::sig::Vector stateRequest;         // buffer of requests  (vergence, smooth pursuit, saccade)
+    yarp::sig::Vector state;                // vector where just one element can be 1 indicating the state in which the system is
+    yarp::sig::Vector allowedTransitions;   // vector of allowed transitions
+    yarp::sig::Vector xFix;                 // fixation coordinates
+    short numberState;                      // stores the number of the state in which the control can be
+    bool done;                              // flag set to true when an gaze action is completed
+    bool executing;                         // flag that is set during the execution of motion
+    bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
+    int u,v;                                // values passed for saccades
+    double x,y,z;                           // coordinates of the object 
+    double phi;                             // value passed for vergence
+    double phiTOT;                          // accumulator of increments of vergence angles
+    bool mono;                              // flag that indicates whether the saccade is mono or not
+    bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
+    double timeoutStart,timeoutStop;        // start and stop timing to avoid that saccadic event can stuck
+    double timeout;                         // actual timer of the saccadic action\
+
+    int template_size;                      // size of the template
+    int search_size;                        // area over the search is performed
+
+    CvRect  template_roi;                   // region of interest of the template
+    CvRect  search_roi;                     // region of interest of the search
+    CvPoint point;                          // point result of the search
+    
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  imgRgbIn;            // input image 3 channel
+    yarp::sig::ImageOf<yarp::sig::PixelMono> imgMonoIn;           // input mono image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> imgMonoPrev;         // mono image of the previous step
+    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > inPort;// input image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > outPort;//output image port
+    yarp::os::Property optionsHead;
+    yarp::dev::IGazeControl *igaze;         // Ikin controller of the gaze
+    yarp::dev::PolyDriver* clientGazeCtrl;  // polydriver for the gaze controller
+    yarp::dev::PolyDriver *robotHead;
+    yarp::dev::IEncoders *encHead;
+    yarp::os::Semaphore mutex;              // semaphore on the resource stateRequest
+
+    trackerThread* tracker;                  //reference to the object in charge of tracking a tamplete surrounding a point
+public:
+    /**
+
+    * default constructor
+    */
+    gazeArbiterThread();
+
+    /**
+     * destructor
+     */
+    ~gazeArbiterThread();
+
+    /**
+    * function that initialise the thread
+    */
+    bool threadInit();
+
+    /**
+    * function called when the thread is stopped
+    */
+    void threadRelease();
+
+    /**
+    * function called every time constant defined by rateThread
+    */
+    void run(); 
+
+    /**
+    * function called when the module is poked with an interrupt command
+    */
+    void interrupt();
+
+    /**
+    * function that set the rootname for the ports that will be opened
+    * @param str rootname as a string
+    */
+    void setName(std::string str);
+    
+    /**
+    * function that returns the original root name and appends another string iff passed as parameter
+    * @param p pointer to the string that has to be added
+    * @return rootname 
+    */
+    std::string getName(const char* p);
+
+    /**
+    * function that defines what has to be done once any observeble interrupts
+    * @param o observable that has just interrupted the observer
+    * @param arg Bottle that has passed from the observable to the observer
+    */
+    void update(observable* o, yarp::os::Bottle * arg);
+ 
+
+    void getPoint(CvPoint& p);
+
+    /**
+     * initialise the process of tracking with the coordinates of the initial point
+     */
+    void init(int x, int y);
+
+    /**
+     * function that performs tracking of a point and its surroundings
+     */
+    void sqDiff(CvPoint &minloc);
+
+};
+
+#endif  //_GAZE_ARBITER_THREAD_H_
+
+//----- end-of-file --- ( next line intentionally left blank ) ------------------
+
