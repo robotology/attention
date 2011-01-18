@@ -77,12 +77,11 @@ private:
     CvRect  search_roi;                     // region of interest of the search
     CvPoint point;                          // point result of the search
     
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>  imgRgbIn;            // input image 3 channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> imgMonoIn;           // input mono image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> imgMonoPrev;         // mono image of the previous step
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  imgLeftIn;            // input image 3 channel
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  imgRightIn;           // input mono image
     
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > inPort;// input image port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > outPort;//output image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > inLeftPort;// input image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > inRightPort;//output image port
     yarp::os::Property optionsHead;
     yarp::dev::IGazeControl *igaze;         // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;  // polydriver for the gaze controller

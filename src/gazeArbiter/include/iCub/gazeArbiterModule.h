@@ -130,11 +130,12 @@
  */
 
 /* CHANGE LOG
- * 21/12/10 : vergence only after the robot has kept the fixation point with the cyclopic eye   @author Rea
- * 04/01/11 : changed the algorithm that translates the vergence event into a saccadic event    @author Rea 
- * 04/01/11 : added flag that discriminates between vergence after a mono saccadic event        @author Rea 
- * 06/01/11 : added new check to avoid situation in which the saccadic event stuck              @author Rea
- * 10/01/11 : changed the fixation command after monoLeft from absolute to monoLeft fixed image @author Rea
+ * 21/12/10 : vergence only after the robot has kept the fixation point with the cyclopic eye       @author Rea
+ * 04/01/11 : changed the algorithm that translates the vergence event into a saccadic event        @author Rea 
+ * 04/01/11 : added flag that discriminates between vergence after a mono saccadic event            @author Rea 
+ * 06/01/11 : added new check to avoid situation in which the saccadic event stuck                  @author Rea
+ * 10/01/11 : changed the fixation command after monoLeft from absolute to monoLeft fixed image     @author Rea
+ * 18/01/11 : introduced the right eye image as input of the vergence algorithm                     @author Rea
  */
 
 #include <iostream>

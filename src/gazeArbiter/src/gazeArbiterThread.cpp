@@ -122,14 +122,14 @@ bool gazeArbiterThread::threadInit() {
     
     string headPort = "/icub/head";
     optionsHead.put("device", "remote_controlboard");
-	optionsHead.put("local", "/localhead");
-	optionsHead.put("remote", headPort.c_str());
+    optionsHead.put("local", "/localhead");
+    optionsHead.put("remote", headPort.c_str());
     robotHead = new PolyDriver (optionsHead);
 
-	if (!robotHead->isValid()){
-		printf("cannot connect to robot head\n");
-	}
-	robotHead->view(encHead);
+    if (!robotHead->isValid()){
+        printf("cannot connect to robot head\n");
+    }
+    robotHead->view(encHead);
 
     name="matchTracker";
     template_size = 20;
@@ -141,8 +141,8 @@ bool gazeArbiterThread::threadInit() {
     template_roi.width=template_roi.height=template_size;
     search_roi.width=search_roi.height=search_size;
 
-    //inPort.open(("/gazeArbiter/"+name+"/img:i").c_str());
-    //outPort.open(("/gazeArbiter/"+name+"/img:o").c_str());
+    inLeftPort.open(getName("/matchTracker/img:i").c_str());
+    inRightPort.open(getName("/matchTracker/img:o").c_str());
     firstConsistencyCheck=true;
 
     return true;
@@ -150,8 +150,8 @@ bool gazeArbiterThread::threadInit() {
 
 void gazeArbiterThread::interrupt() {
     //inCommandPort
-    inPort.interrupt();
-    outPort.interrupt();
+    inLeftPort.interrupt();
+    inRightPort.interrupt();
 }
 
 void gazeArbiterThread::setName(string str) {
@@ -178,7 +178,7 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
     //tracker->getPoint(p);
 }
 
-
+/*
 void gazeArbiterThread::sqDiff(CvPoint &minloc) {
     int size = search_size - template_size + 1;
     bool firstCheck = true;
@@ -206,6 +206,7 @@ void gazeArbiterThread::sqDiff(CvPoint &minloc) {
         }
     }
 }
+*/
 
 void gazeArbiterThread::run() {
     
@@ -274,60 +275,6 @@ void gazeArbiterThread::run() {
                     timeout = 0;
                 }
             }
-
-            
-            /*
-            // acquire new image
-            ImageOf<PixelBgr> *pImgBgrIn=inPort.read(true);
-
-            if (pImgBgrIn==NULL)
-                return;
-
-            // consistency check
-            if (firstConsistencyCheck)
-            {
-                printf("firstConsistencyCheck \n");
-                imgMonoIn.resize(*pImgBgrIn);
-                firstConsistencyCheck=false;
-                imgMonoPrev=imgMonoIn;
-            }
-            // convert the input image to gray-scale
-            cvCvtColor(pImgBgrIn->getIplImage(),imgMonoIn.getIplImage(),CV_BGR2GRAY);
-            // copy input image into output image
-            ImageOf<PixelBgr> &imgBgrOut=outPort.prepare();
-            imgBgrOut=*pImgBgrIn;
-            //check on the position where the fixation point ended up
-            template_roi.x=max(0 , min( imgMonoPrev.width() - template_size , point.x - (template_size>>1)) );
-            template_roi.y=max(0 , min( imgMonoPrev.height() - template_size , point.y - (template_size>>1)) );
-            search_roi.x=max(0 , min( imgMonoIn.width() - search_size , point.x - (search_size>>1)) );
-            search_roi.y=max(0 , min( imgMonoIn.height() - search_size , point.y - (search_size>>1)) );
-
-            // perform tracking with template matching
-            CvPoint minloc;
-            sqDiff(minloc);
-            
-            point.x = search_roi.x + minloc.x + (template_size>>1);
-            point.y = search_roi.y + minloc.y + (template_size>>1);
-            
-
-            // draw results on the output-image
-            CvPoint p0, p1;
-            p0.x = point.x - (template_size>>1);
-            p0.y = point.y - (template_size>>1);
-            p1.x = p0.x + template_size;
-            p1.y = p0.y + template_size;
-            cvRectangle(imgBgrOut.getIplImage(),p0,p1,cvScalar(0,0,255),1);            
-            cvRectangle(imgBgrOut.getIplImage(),cvPoint(search_roi.x,search_roi.y),
-                        cvPoint(search_roi.x + search_roi.width , search_roi.y + search_roi.height),
-                        cvScalar(255,0,0),2);
-                        
-            
-            // send out output-image
-            outPort.write();
-
-            // save data for next cycle
-            imgMonoPrev=imgMonoIn; 
-            */
 
             CvPoint point;
             tracker->getPoint(point);
@@ -618,8 +565,8 @@ void gazeArbiterThread::run() {
 }
 
 void gazeArbiterThread::threadRelease() {
-    inPort.close();
-    outPort.close();
+    inLeftPort.close();
+    inRightPort.close();
     
     delete clientGazeCtrl;
 }
