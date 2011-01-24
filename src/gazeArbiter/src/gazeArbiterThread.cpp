@@ -230,7 +230,7 @@ void gazeArbiterThread::run() {
     
     if(allowedTransitions(3)>0) {
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
-        
+        // ----------------  SACCADE -----------------------
         if(!executing) {
             //needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
@@ -308,6 +308,8 @@ void gazeArbiterThread::run() {
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
+        // ----------------  VERGENCE -----------------------
+        printf("Entering in VERGENCE \n");
         if(!executing) {
             Vector gazeVect(3);
             Vector objectVect(3);
@@ -327,7 +329,7 @@ void gazeArbiterThread::run() {
             double b, ipLeft;
             
             double alfa, h, leftHat, rightHat;
-            //printf("leftAngle:%f  ,  rightAngle:%f \n", (leftAngle*180)/PI, (rightAngle*180)/PI);
+            printf("leftAngle:%f  ,  rightAngle:%f \n", (leftAngle*180)/PI, (rightAngle*180)/PI);
             if(leftAngle >= 0) {
                 if(rightAngle >= 0) {
                     rightHat = PI / 2 - rightAngle;
@@ -378,10 +380,11 @@ void gazeArbiterThread::run() {
                 ipLeft = sqrt ( h * h + b * b);
             }
             
-            //printf("h %f",h);
+            printf("h %f",h);
             
 
             if((mono)) {
+                /*
                 // working out correction tilt. tilt necessary to have perp. plane intersecating object in both eyes
                 // extracting the colour in the log polar image of the left cam
                 imgLeftIn = inLeftPort.read(false);
@@ -403,14 +406,17 @@ void gazeArbiterThread::run() {
                      }
                 }
                 printf(" distance from fovea along rho dimension %d \n", r);
+                */
 
                 printf("------------- VERGENCE   ----------------- \n");
                 // anticipatory vergence ( vergence variance worked out from disparity)
-                // in addition: tilt must be corrected in order to have perpediculat plane intersecating the object in both eyes
-                gazeVect[0] = 0 ;               //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
-                gazeVect[1] = 0 ;               //tilt
-                gazeVect[2] = phi;              //vergence  
-                igaze->lookAtRelAngles(gazeVect);
+                // in addition: tilt must be corrected in order to have perpediculat plane intersecating the object in both eyes\
+
+                //gazeVect[0] = 0 ;               //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
+                //gazeVect[1] = 0 ;               //tilt
+                //gazeVect[2] = phi;              //vergence  
+                // igaze->lookAtRelAngles(gazeVect);
+
                 Vector _head(6);
                 encHead->getEncoders( _head.data() );
                 
@@ -427,14 +433,16 @@ void gazeArbiterThread::run() {
                 
                 double distance = 0.2;
 
-                for( int i = 0; i< 100 ; i ++) {
+                printf("STARTING sequence of commands \n");
+
+                for( int i = 0; i< 1 ; i ++) {
                     
                     //calculating the magnitude of the 3d vector
                     igaze->getAngles(anglesVect);
                     phiTOT = (anglesVect[2]  * PI) / 180;
                     //phiTOT = phiTOT + phi;
                     double magnitude = sqrt ( x1 * x1 + y1 * y1 + z1 * z1);
-                    double varDistance = BASELINE / (2 * sin (phiTOT / 2));     //in m after it is fixation state
+                    double varDistance = BASELINE / (2 * sin (phi / 2));     //in m after it is fixation state
                     //double varDistance = (BASELINE /  sin (phiTOT / 2)) * sin (leftHat);     //in m after it is fixation state
                     //double varDistance = h * 1.5 * sqrt(1 + tan(elevation) * tan(elevation)) ;
                     //double varDistance = sqrt (h * h + (BASELINE + b) * (BASELINE + b)) ;
@@ -452,26 +460,21 @@ void gazeArbiterThread::run() {
 
                       
                       tracker->getPoint(point);
-                      //printf("the point ended up in %d  %d \n",point.x, point.y);
+                      printf("the point ended up in %d  %d \n",point.x, point.y);
                       double error;
                       //corrected the error
                       double errorx = 160 - point.x;
                       double errory = 120 - point.y;
-                      //printf ("error %f,%f \n",errorx, errory);
+                      printf ("error %f,%f \n",errorx, errory);
                       Vector px(2);
                       error = sqrt(errorx * errorx + errory * errory);
                       //printf("norm error %f \n", error);
                       int camSel = 0;
-                      if (error > 3 ) {
-                          px(0) = 160.0 - errorx;
-                          px(1) = 120.0 - errory;
-                          igaze->lookAtMonoPixel(camSel,px,distance);
-                      }
-                      else {
-                          px(0) = 160.0;
-                          px(1) = 120.0 ;
-                          igaze->lookAtMonoPixel(camSel,px,distance);
-                      }
+                     
+                      px(0) = 160.0 - errorx;
+                      px(1) = 120.0 - errory;
+                      igaze->lookAtMonoPixel(camSel,px,varDistance);
+                      
 
                       
                       distance += 0.01;
