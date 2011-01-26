@@ -143,6 +143,7 @@ bool gazeArbiterThread::threadInit() {
 
     inLeftPort.open(getName("/matchTracker/img:i").c_str());
     inRightPort.open(getName("/matchTracker/img:o").c_str());
+    statusPort.open(getName("/status:o").c_str());
     firstConsistencyCheck=true;
 
     return true;
@@ -152,6 +153,7 @@ void gazeArbiterThread::interrupt() {
     //inCommandPort
     inLeftPort.interrupt();
     inRightPort.interrupt();
+    statusPort.interrupt();
 }
 
 void gazeArbiterThread::setName(string str) {
@@ -169,7 +171,6 @@ std::string gazeArbiterThread::getName(const char* p) {
 void gazeArbiterThread::init(const int x, const int y) {
     point.x=x;
     point.y=y;
-    
     template_roi.width=template_roi.height=template_size;
     search_roi.width=search_roi.height=search_size;
 }
@@ -209,7 +210,7 @@ void gazeArbiterThread::sqDiff(CvPoint &minloc) {
 */
 
 void gazeArbiterThread::run() {
-    
+    Bottle& status = statusPort.prepare();
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
@@ -232,7 +233,8 @@ void gazeArbiterThread::run() {
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  SACCADE -----------------------
         if(!executing) {
-            //needed timeout because controller kept stucking whenever a difficult position could not be reached
+            // starting saccade toward the direction of the required position
+            // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
             if(mono) {
                 tracker->init(u,v);
@@ -251,10 +253,12 @@ void gazeArbiterThread::run() {
                 igaze->lookAtFixationPoint(px);
                 printf("saccadic event : started \n",x,y,z);
             }
+
             executing = true;
             Time::delay(0.05);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
+
             //constant time of 10 sec after which the action is considered not performed
             while ((!done)&&(timeout < 10.0)) {
                 while((!done)&&(timeout < 10.0)) {
@@ -291,7 +295,6 @@ void gazeArbiterThread::run() {
                         //igaze->waitMotionDone();
                         tracker->getPoint(point);
                         printf("the point ended up in %d  %d \n",point.x, point.y);
-                        
                     }
                 }
                 if(timeout >= 10.0) {
@@ -301,10 +304,16 @@ void gazeArbiterThread::run() {
                     igaze->lookAtFixationPoint(v);
                     timeoutStart = Time::now();
                     timeout = 0;
+                    status.clear();
+                    status.addString("saccade_unreachable");
+                    statusPort.write();
+                }
+                else {
+                    status.clear();
+                    status.addString("saccade_accomplished");
+                    statusPort.write();
                 }
             }
-
-            
         }
     }
     else if(allowedTransitions(2)>0) {
@@ -481,6 +490,10 @@ void gazeArbiterThread::run() {
                 igaze->lookAtMonoPixel(camSel,px,varDistance);
                 tracker->getPoint(point);
                 
+                status.clear();
+                status.addString("vergence_accomplished");
+                statusPort.write();
+
 
                 /* 
                 Time::delay(0.05); 
@@ -491,8 +504,6 @@ void gazeArbiterThread::run() {
                     igaze->checkMotionDone(&done);
                 }
                 */
-                printf("\n");
-
                 /*
                   printf("x1 %f y1 %f z1 %f", x1, y1, z1);
                   double s = sin(theta);
@@ -547,8 +558,10 @@ void gazeArbiterThread::run() {
                 gazeVect[2] = phi;              //vergence  
                 //igaze->lookAtRelAngles(gazeVect);
                 printf("vergence event : started %f\n", phi);
-                
                 executing = true;
+                status.clear();
+                status.addString("vergence_accomplished");
+                statusPort.write();
             }
         }
     }
@@ -594,7 +607,7 @@ void gazeArbiterThread::run() {
 void gazeArbiterThread::threadRelease() {
     inLeftPort.close();
     inRightPort.close();
-    
+    statusPort.close();
     delete clientGazeCtrl;
 }
 

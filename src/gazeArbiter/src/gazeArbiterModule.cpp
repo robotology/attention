@@ -121,6 +121,14 @@ bool gazeArbiterModule::respond(const Bottle& command, Bottle& reply) {
         cout << helpMessage;
         reply.addString("ok");
     }
+    else if (command.get(0).asString()=="sus") {
+        arbiter->suspend();
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString()=="res") {
+        arbiter->resume();
+        reply.addString("ok");
+    }
     
     return true;
 }

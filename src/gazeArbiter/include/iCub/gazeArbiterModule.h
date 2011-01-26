@@ -91,12 +91,19 @@
  *    The port can be used by other modules but also interactively by a user through the yarp rpc directive, viz.: \c yarp \c rpc \c /visualFilter
  *    This opens a connection from a terminal to the port and allows the user to then type in commands and receive replies.
  *       
-
+ *  - \c /gazeArbiter/matchTracker/img:i
+ *      port where the input image for imageTracking is sent
  *
  * <b>Output ports</b>
  *
  *  - \c /gazeArbiter \n
  *    see above
+ * 
+ *  - \c /gazeArbiter/status:o 
+ *    port where the status of the controller is communicated
+ *
+ *  - \c /gazeArbiter/matchTracker/img:o
+ *      port where the result of the tracking is sent
  *
  * <b>Port types</b>
  *
@@ -136,6 +143,7 @@
  * 06/01/11 : added new check to avoid situation in which the saccadic event stuck                  @author Rea
  * 10/01/11 : changed the fixation command after monoLeft from absolute to monoLeft fixed image     @author Rea
  * 18/01/11 : introduced the right eye image as input of the vergence algorithm                     @author Rea
+ * 26/01/11 : added resume/suspend and port for status communication                                @author Rea
  */
 
 #include <iostream>
