@@ -235,7 +235,6 @@ void gazeArbiterThread::run() {
             //needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
             if(mono) {
-                printf("Before Track \n");
                 tracker->init(u,v);
                 Vector px(2);
                 px(0) = u;
@@ -259,12 +258,41 @@ void gazeArbiterThread::run() {
             //constant time of 10 sec after which the action is considered not performed
             while ((!done)&&(timeout < 10.0)) {
                 while((!done)&&(timeout < 10.0)) {
-                    printf("time . %f",timeout);
+                    
                     timeoutStop = Time::now();
                     timeout =timeoutStop - timeoutStart;
                     
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);
+
+                    CvPoint point;
+                    tracker->getPoint(point);
+                    printf("the point ended up in %d  %d \n",point.x, point.y);
+                    
+                    double error = 1000.0;
+                    while(( error > 3)&&(timeout < 10.0)) {
+                        timeoutStop = Time::now();
+                        timeout =timeoutStop - timeoutStart;
+
+                        //corrected the error
+                        double errorx = 160  - point.x;
+                        double errory = 120 - point.y;
+                        //printf ("error %f,%f \n",errorx, errory);
+                        Vector px(2);
+                        //TODO : removing this awful hardcoded lines cointaing fixed dimension of the imag
+                        px(0) = 160.0 - errorx;
+                        px(1) = 120.0 - errory;
+                        error = sqrt(errorx * errorx + errory * errory);
+                        //printf("norm error %f \n", error);
+                        int camSel = 0;
+                        igaze->lookAtMonoPixel(camSel,px,z);
+                        //printf("saccadic event : started %f %f  \n",px(0),px(1));
+                        //Time::delay(0.05);
+                        //igaze->waitMotionDone();
+                        tracker->getPoint(point);
+                        printf("the point ended up in %d  %d \n",point.x, point.y);
+                        
+                    }
                 }
                 if(timeout >= 10.0) {
                     Vector v(3);
@@ -276,31 +304,7 @@ void gazeArbiterThread::run() {
                 }
             }
 
-            CvPoint point;
-            tracker->getPoint(point);
-            printf("the point ended up in %d  %d \n",point.x, point.y);
-
-            double error = 1000.0;
-            while( error > 3) {
-                //corrected the error
-                double errorx = 160  - point.x;
-                double errory = 120 - point.y;
-                printf ("error %f,%f \n",errorx, errory);
-                Vector px(2);
-                //TODO : removing this awful hardcoded lines cointaing fixed dimension of the imag
-                px(0) = 160.0 - errorx;
-                px(1) = 120.0 - errory;
-                error = sqrt(errorx * errorx + errory * errory);
-                printf("norm error %f \n", error);
-                int camSel = 0;
-                igaze->lookAtMonoPixel(camSel,px,z);
-                printf("saccadic event : started %f %f  \n",px(0),px(1));
-                Time::delay(0.05);
-                //igaze->waitMotionDone();
-                tracker->getPoint(point);
-                printf("the point ended up in %d  %d \n",point.x, point.y);
-                
-            }
+            
         }
     }
     else if(allowedTransitions(2)>0) {
@@ -435,51 +439,47 @@ void gazeArbiterThread::run() {
 
                 printf("STARTING sequence of commands \n");
 
-                for( int i = 0; i< 1 ; i ++) {
+                
                     
-                    //calculating the magnitude of the 3d vector
-                    igaze->getAngles(anglesVect);
-                    phiTOT = (anglesVect[2]  * PI) / 180;
-                    //phiTOT = phiTOT + phi;
-                    double magnitude = sqrt ( x1 * x1 + y1 * y1 + z1 * z1);
-                    double varDistance = BASELINE / (2 * sin (phi / 2));     //in m after it is fixation state
-                    //double varDistance = (BASELINE /  sin (phiTOT / 2)) * sin (leftHat);     //in m after it is fixation state
-                    //double varDistance = h * 1.5 * sqrt(1 + tan(elevation) * tan(elevation)) ;
-                    //double varDistance = sqrt (h * h + (BASELINE + b) * (BASELINE + b)) ;
-                    //double varDistance = ipLeft;
-                    printf("varDistance %f distance %f of vergence angle tot %f enc %f \n",varDistance,distance, (phiTOT * 180)/PI, _head(5));
+                //calculating the magnitude of the 3d vector
+                igaze->getAngles(anglesVect);
+                phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
+                //phiTOT = phiTOT + phi;
+                double magnitude = sqrt ( x1 * x1 + y1 * y1 + z1 * z1);
+                double varDistance = BASELINE / (2 * sin (phiTOT / 2));     //in m after it is fixation state
+                //double varDistance = (BASELINE /  sin (phiTOT / 2)) * sin (leftHat);     //in m after it is fixation state
+                //double varDistance = h * 1.5 * sqrt(1 + tan(elevation) * tan(elevation)) ;
+                //double varDistance = sqrt (h * h + (BASELINE + b) * (BASELINE + b)) ;
+                //double varDistance = ipLeft;
+                printf("varDistance %f distance %f of vergence angle tot %f enc %f \n",varDistance,distance, (phiTOT * 180)/PI, _head(5));
                 
 
-                    
-                    /*objectVect(0) = l[0] + varDistance  * (x1 / magnitude); 
-                      objectVect(1) = l[1] + varDistance  * (y1 / magnitude); 
-                      objectVect(2) = l[2] + varDistance  * (z1 / magnitude); 
-                      igaze->lookAtFixationPoint(objectVect);
-                    */
-                    
+                
+                /*objectVect(0) = l[0] + varDistance  * (x1 / magnitude); 
+                  objectVect(1) = l[1] + varDistance  * (y1 / magnitude); 
+                  objectVect(2) = l[2] + varDistance  * (z1 / magnitude); 
+                  igaze->lookAtFixationPoint(objectVect);
+                */
 
+                tracker->getPoint(point);
+                double error = 1000;
                       
-                      tracker->getPoint(point);
-                      printf("the point ended up in %d  %d \n",point.x, point.y);
-                      double error;
-                      //corrected the error
-                      double errorx = 160 - point.x;
-                      double errory = 120 - point.y;
-                      printf ("error %f,%f \n",errorx, errory);
-                      Vector px(2);
-                      error = sqrt(errorx * errorx + errory * errory);
-                      //printf("norm error %f \n", error);
-                      int camSel = 0;
-                     
-                      px(0) = 160.0 - errorx;
-                      px(1) = 120.0 - errory;
-                      igaze->lookAtMonoPixel(camSel,px,varDistance);
-                      
-
-                      
-                      distance += 0.01;
-                      Time::delay(0.1);
-                }
+                    
+                printf("VERGENCE the point ended up in %d  %d \n",point.x, point.y);
+                
+                //corrected the error
+                double errorx = 160 - point.x;
+                double errory = 120 - point.y;
+                printf ("error %f,%f \n",errorx, errory);
+                Vector px(2);
+                error = sqrt(errorx * errorx + errory * errory);
+                printf("norm error %f \n", error);
+                int camSel = 0;
+                    
+                px(0) = 160.0 - errorx + 3;
+                px(1) = 120.0 - errory + 1;
+                igaze->lookAtMonoPixel(camSel,px,varDistance);
+                tracker->getPoint(point);
                 
 
                 /* 
