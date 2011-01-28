@@ -143,7 +143,7 @@ bool gazeArbiterThread::threadInit() {
 
     inLeftPort.open(getName("/matchTracker/img:i").c_str());
     inRightPort.open(getName("/matchTracker/img:o").c_str());
-    statusPort.open(getName("/status:o").c_str());
+    statusPort.open("/gazeArbiter/status:o");
     firstConsistencyCheck=true;
 
     return true;
@@ -260,42 +260,25 @@ void gazeArbiterThread::run() {
             timeout =timeoutStop - timeoutStart;
 
             //constant time of 10 sec after which the action is considered not performed
+            timeoutStart=Time::now();
             while ((!done)&&(timeout < 10.0)) {
                 while((!done)&&(timeout < 10.0)) {
                     
                     timeoutStop = Time::now();
                     timeout =timeoutStop - timeoutStart;
+                    status = statusPort.prepare();
+                    status.clear();
+                    status.addString("saccade_incontrol");
+                    statusPort.write(true);
                     
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);
 
                     CvPoint point;
                     tracker->getPoint(point);
-                    printf("the point ended up in %d  %d \n",point.x, point.y);
+                    //printf("the point ended up in %d  %d \n",point.x, point.y);
                     
-                    double error = 1000.0;
-                    while(( error > 3)&&(timeout < 10.0)) {
-                        timeoutStop = Time::now();
-                        timeout =timeoutStop - timeoutStart;
-
-                        //corrected the error
-                        double errorx = 160  - point.x;
-                        double errory = 120 - point.y;
-                        //printf ("error %f,%f \n",errorx, errory);
-                        Vector px(2);
-                        //TODO : removing this awful hardcoded lines cointaing fixed dimension of the imag
-                        px(0) = 160.0 - errorx;
-                        px(1) = 120.0 - errory;
-                        error = sqrt(errorx * errorx + errory * errory);
-                        //printf("norm error %f \n", error);
-                        int camSel = 0;
-                        igaze->lookAtMonoPixel(camSel,px,z);
-                        //printf("saccadic event : started %f %f  \n",px(0),px(1));
-                        //Time::delay(0.05);
-                        //igaze->waitMotionDone();
-                        tracker->getPoint(point);
-                        printf("the point ended up in %d  %d \n",point.x, point.y);
-                    }
+                    
                 }
                 if(timeout >= 10.0) {
                     Vector v(3);
@@ -304,16 +287,49 @@ void gazeArbiterThread::run() {
                     igaze->lookAtFixationPoint(v);
                     timeoutStart = Time::now();
                     timeout = 0;
+                    
                     status.clear();
                     status.addString("saccade_unreachable");
                     statusPort.write();
+                    status.clear();
                 }
                 else {
-                    status.clear();
-                    status.addString("saccade_accomplished");
-                    statusPort.write();
+                    printf("saccade_accomplished \n");
                 }
             }
+
+            double error = 1000.0;
+            while(( error > 3)&&(timeout < 10.0)) {
+                timeoutStop = Time::now();
+                timeout =timeoutStop - timeoutStart;
+                status = statusPort.prepare();
+                status.clear();
+                status.addString("saccade_incontrol");
+                statusPort.write();
+                //corrected the error
+                double errorx = 160  - point.x;
+                double errory = 120 - point.y;
+                //printf ("error %f,%f \n",errorx, errory);
+                Vector px(2);
+                //TODO : removing this awful hardcoded lines cointaing fixed dimension of the imag
+                px(0) = 160.0 - errorx;
+                px(1) = 120.0 - errory;
+                error = sqrt(errorx * errorx + errory * errory);
+                //printf("norm error %f \n", error);
+                int camSel = 0;
+                igaze->lookAtMonoPixel(camSel,px,z);
+                //printf("saccadic event : started %f %f  \n",px(0),px(1));
+                //Time::delay(0.05);
+                //igaze->waitMotionDone();
+                tracker->getPoint(point);
+                //printf("the point ended up in %d  %d \n",point.x, point.y);
+            }
+            printf("saccade_accomplished");
+            status = statusPort.prepare();
+            status.clear();
+            status.addString("saccade_accomplished");
+            statusPort.write(true);
+            
         }
     }
     else if(allowedTransitions(2)>0) {
@@ -342,7 +358,7 @@ void gazeArbiterThread::run() {
             double b, ipLeft;
             
             double alfa, h, leftHat, rightHat;
-            printf("leftAngle:%f  ,  rightAngle:%f \n", (leftAngle*180)/PI, (rightAngle*180)/PI);
+            //printf("leftAngle:%f  ,  rightAngle:%f \n", (leftAngle*180)/PI, (rightAngle*180)/PI);
             if(leftAngle >= 0) {
                 if(rightAngle >= 0) {
                     rightHat = PI / 2 - rightAngle;
@@ -393,10 +409,20 @@ void gazeArbiterThread::run() {
                 ipLeft = sqrt ( h * h + b * b);
             }
             
-            printf("h %f",h);
+            
             
 
             if((mono)) {
+                
+                if(phi == 0) {
+                    status = statusPort.prepare();
+                    status.clear();
+                    status.addString("vergence_accomplished");
+                    statusPort.write();
+                    return;
+                }
+                
+
                 /*
                 // working out correction tilt. tilt necessary to have perp. plane intersecating object in both eyes
                 // extracting the colour in the log polar image of the left cam
@@ -422,6 +448,10 @@ void gazeArbiterThread::run() {
                 */
 
                 printf("------------- VERGENCE   ----------------- \n");
+                status.clear();
+                status.addString("vergence_incontrol");
+                statusPort.write();
+                
                 // anticipatory vergence ( vergence variance worked out from disparity)
                 // in addition: tilt must be corrected in order to have perpediculat plane intersecating the object in both eyes\
 
@@ -446,7 +476,7 @@ void gazeArbiterThread::run() {
                 
                 double distance = 0.2;
 
-                printf("STARTING sequence of commands \n");
+                //printf("STARTING sequence of commands \n");
 
                 
                     
@@ -490,9 +520,7 @@ void gazeArbiterThread::run() {
                 igaze->lookAtMonoPixel(camSel,px,varDistance);
                 tracker->getPoint(point);
                 
-                status.clear();
-                status.addString("vergence_accomplished");
-                statusPort.write();
+                
 
 
                 /* 
@@ -559,6 +587,7 @@ void gazeArbiterThread::run() {
                 //igaze->lookAtRelAngles(gazeVect);
                 printf("vergence event : started %f\n", phi);
                 executing = true;
+                status = statusPort.prepare();
                 status.clear();
                 status.addString("vergence_accomplished");
                 statusPort.write();
