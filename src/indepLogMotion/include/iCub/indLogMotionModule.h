@@ -27,10 +27,6 @@
 #define _INDLOG_MOTION_MODULE_H_
 
 /** 
- * @ingroup icub_module
- *
- * \defgroup icub_independentLogMotion independentLogMotion
- *
  * This is a module that applies independent motion detector on log polar images
  *
  * 
