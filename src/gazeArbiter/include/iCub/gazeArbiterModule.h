@@ -144,6 +144,7 @@
  * 10/01/11 : changed the fixation command after monoLeft from absolute to monoLeft fixed image     @author Rea
  * 18/01/11 : introduced the right eye image as input of the vergence algorithm                     @author Rea
  * 26/01/11 : added resume/suspend and port for status communication                                @author Rea
+ * 31/01/11 : checkpoint that controls whether there is a action performing and waits till not      @author Rea
  */
 
 #include <iostream>

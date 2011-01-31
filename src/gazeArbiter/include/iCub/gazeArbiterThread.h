@@ -84,13 +84,13 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
     
     yarp::os::Property optionsHead;
-    yarp::dev::IGazeControl *igaze;         // Ikin controller of the gaze
-    yarp::dev::PolyDriver* clientGazeCtrl;  // polydriver for the gaze controller
-    yarp::dev::PolyDriver *robotHead;
-    yarp::dev::IEncoders *encHead;
-    yarp::os::Semaphore mutex;              // semaphore on the resource stateRequest
+    yarp::dev::IGazeControl *igaze;             // Ikin controller of the gaze
+    yarp::dev::PolyDriver* clientGazeCtrl;      // polydriver for the gaze controller
+    yarp::dev::PolyDriver *robotHead;           // polydriver for the control of the head
+    yarp::dev::IEncoders *encHead;              // measure of the encoder of the head
+    yarp::os::Semaphore mutex;                  // semaphore on the resource stateRequest
 
-    trackerThread* tracker;                  //reference to the object in charge of tracking a tamplete surrounding a point
+    trackerThread* tracker;                     //reference to the object in charge of tracking a tamplete surrounding a point
 public:
     /**
 
@@ -155,6 +155,13 @@ public:
      * function that performs tracking of a point and its surroundings
      */
     void sqDiff(CvPoint &minloc);
+
+    /**
+    * function that returns only when the last action is ended
+    */
+    void waitMotionDone() {
+        igaze->waitMotionDone();
+    }
 
 };
 

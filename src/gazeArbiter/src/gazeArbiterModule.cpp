@@ -122,6 +122,7 @@ bool gazeArbiterModule::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ok");
     }
     else if (command.get(0).asString()=="sus") {
+        arbiter->waitMotionDone();
         arbiter->suspend();
         reply.addString("ok");
     }
