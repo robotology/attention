@@ -1,6 +1,7 @@
 add_subdirectory(colourSaliency)
 add_subdirectory(gazeArbiter)
 add_subdirectory(iCubGuiPopulator)
+#add_subdirectory(indepLogMotion)
 add_subdirectory(selectiveAttentionEngine)
 add_subdirectory(selAttentionInterface)
 add_subdirectory(saliencyBlobFinder)
