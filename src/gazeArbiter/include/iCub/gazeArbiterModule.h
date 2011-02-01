@@ -145,6 +145,7 @@
  * 18/01/11 : introduced the right eye image as input of the vergence algorithm                     @author Rea
  * 26/01/11 : added resume/suspend and port for status communication                                @author Rea
  * 31/01/11 : checkpoint that controls whether there is a action performing and waits till not      @author Rea
+ * 01/02/11 : added xoffset, yoffset and zoffset for 3D target                                  @author Rea
  */
 
 #include <iostream>
@@ -166,7 +167,9 @@ class gazeArbiterModule:public yarp::os::RFModule {
     std::string robotPortName;                  //reference to the head of the robot
     std::string handlerPortName;                //name of the handler port (comunication with respond function)
     int ratethread;                             //time constant for ratethread
-
+    int xoffset;                                // offset for the 3D point along x
+    int yoffset;                                // offset for the 3D point along y
+    int zoffset;                                // offset for the 3D point along z
     yarp::os::Port handlerPort;                 // a port to handle messages 
 
     gazeArbiterThread* arbiter;               //agent that sends commands to the gaze interface

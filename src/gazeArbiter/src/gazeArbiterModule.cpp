@@ -64,12 +64,28 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     
     arbiter=new gazeArbiterThread();
     arbiter->setName(getName().c_str());
-    
+
+    /* offset for 3d position along x axis */
+    this->xoffset       = rf.check("xoffset", 
+                           Value(0), 
+                           "offset for 3D fixation point x").asInt();
+    arbiter->setXOffset(xoffset);
+
+    /* offset for 3d position along y axis */
+    this->yoffset       = rf.check("yoffset", 
+                           Value(0), 
+                           "offset for 3D fixation point y").asInt();
+    arbiter->setYOffset(yoffset);
+
+    /* offset for 3d position along z axis */
+    this->zoffset       = rf.check("zoffset", 
+                           Value(0), 
+                           "offset for 3D fixation point z").asInt();
+
     collector->addObserver(*arbiter);
 
     arbiter->start();
     collector->start();
-
 
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module

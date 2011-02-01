@@ -207,21 +207,68 @@ void gazeArbiterThread::run() {
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
             if(mono) {
-                if(tracker->getInputCount()) {
-                    tracker->init(u,v);
-                    Vector px(2);
-                    px(0) = u;
-                    px(1) = v;
-                    int camSel = 0;
-                    igaze->lookAtMonoPixel(camSel,px,z);
-                    printf("saccadic event : started \n",u,v,z);
+                if ((xOffset != 0) && (xOffset != 0) && (xOffset != 0)) {
+                    if(tracker->getInputCount()) {
+                        tracker->init(u,v);
+                        Vector px(2);
+                        px(0) = u;
+                        px(1) = v;
+                        int camSel = 0;
+                        igaze->lookAtMonoPixel(camSel,px,z);
+                        printf("saccadic event : started \n",u,v,z);
+                    }
                 }
+                else {
+                    Matrix *invPrjL, *invPrjR;
+                    bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
+                    Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
+                    iCubEye *eye=(isLeft?eyeL:eyeR);
+                    //function that calculates the 3DPoint where to redirect saccade and add the offset
+                    Vector torso(3);
+                    Vector fp(3);
+                    igaze->getAngles(torso);
+                    Vector head(4);
+                    igaze->getAngles(head);
+
+                    Vector q(8);
+                    q[0]=torso[0];
+                    q[1]=torso[1];
+                    q[2]=torso[2];
+                    q[3]=head[0];
+                    q[4]=head[1];
+                    q[5]=head[2];
+                    q[6]=head[3];
+
+                    
+                    if (leftDrive)
+                        q[7]=head[4]+head[5]/2.0;
+                    else
+                        q[7]=head[4]-head[5]/2.0;
+
+                    Vector x(3);
+                    x[0]=z*u;
+                    x[1]=z*v;
+                    x[2]=z;
+
+                    // find the 3D position from the 2D projection,
+                    // knowing the distance z from the camera
+                    Vector xe = yarp::math::operator *(*invPrj, x);
+                    xe[3]=1.0;  // impose homogeneous coordinates                
+
+                    // update position wrt the root frame
+                    Vector xo = yarp::math::operator *(eye->getH(q),xe);
+                    fp.resize(3,0.0);
+                    fp[0]=xo[0];
+                    fp[1]=xo[1];
+                    fp[2]=xo[2];
+                }
+
             }
             else {
                 Vector px(3);
-                px(0) = x;
-                px(1) = y;
-                px(2) = z;
+                px(0) = x + xOffset;
+                px(1) = y + yOffset;
+                px(2) = z + zOffset;
                 igaze->lookAtFixationPoint(px);
                 printf("saccadic event : started \n",x,y,z);
             }

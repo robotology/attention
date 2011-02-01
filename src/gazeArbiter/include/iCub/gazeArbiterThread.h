@@ -63,6 +63,9 @@ private:
     bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
     int u,v;                                // values passed for saccades
     double x,y,z;                           // coordinates of the object 
+    int xOffset;                            // offset for the 3D point along x
+    int yOffset;                            // offset for the 3D point along y
+    int zOffset;                            // offset for the 3D point along z
     double phi;                             // value passed for vergence
     double phiTOT;                          // accumulator of increments of vergence angles
     bool mono;                              // flag that indicates whether the saccade is mono or not
@@ -72,6 +75,9 @@ private:
 
     int template_size;                      // size of the template
     int search_size;                        // area over the search is performed
+
+    iCub::iKin::iCubEye *eyeL;
+    iCub::iKin::iCubEye *eyeR;
 
     CvRect  template_roi;                   // region of interest of the template
     CvRect  search_roi;                     // region of interest of the search
@@ -155,6 +161,22 @@ public:
      * function that performs tracking of a point and its surroundings
      */
     void sqDiff(CvPoint &minloc);
+
+
+    /**
+    * function that sets the value of the parameter xOffset
+    */
+    void setXOffset(int  value) { xOffset = value; };
+
+    /**
+    * function that sets the value of the parameter yOffset
+    */
+    void setYOffset(int  value) { yOffset = value; };
+
+    /**
+    * function that sets the value of the parameter zOffset
+    */
+    void setZOffset(int  value) { zOffset = value; };
 
     /**
     * function that returns only when the last action is ended
