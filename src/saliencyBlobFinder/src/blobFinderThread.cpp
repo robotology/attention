@@ -33,15 +33,65 @@ using namespace std;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace iCub::iKin;
 
 const int DEFAULT_THREAD_RATE = 100;
 
-blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE) : RateThread(rateThread)
+/************************************************************************/
+bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 {
+    *Prj=NULL;
+
+    if (configFile.size())
+    {
+        Property par;
+        par.fromConfigFile(configFile.c_str());
+
+        Bottle parType=par.findGroup(type.c_str());
+        string warning="Intrinsic parameters for "+type+" group not found";
+
+        if (parType.size())
+        {
+            if (parType.check("w") && parType.check("h") &&
+                parType.check("fx") && parType.check("fy"))
+            {
+                // we suppose that the center distorsion is already compensated
+                double cx=parType.find("w").asDouble()/2.0;
+                double cy=parType.find("h").asDouble()/2.0;
+                double fx=parType.find("fx").asDouble();
+                double fy=parType.find("fy").asDouble();
+
+                Matrix K=eye(3,3);
+                Matrix Pi=zeros(3,4);
+
+                K(0,0)=fx; K(1,1)=fy;
+                K(0,2)=cx; K(1,2)=cy; 
+                
+                Pi(0,0)=Pi(1,1)=Pi(2,2)=1.0; 
+
+                *Prj=new Matrix;
+                **Prj=K*Pi;
+
+                return true;
+            }
+            else
+                fprintf(stdout,"%s\n",warning.c_str());
+        }
+        else
+            fprintf(stdout,"%s\n",warning.c_str());
+    }
+
+    return false;
+}
+
+/**********************************************************************************/
+
+blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string _configFile) : RateThread(rateThread){
     saddleThreshold = 10;
     reinit_flag = false;
     resized_flag = false;
+    configFile = _configFile;
 
     outContrastLP=new ImageOf<PixelMono>;
     outMeanColourLP=new ImageOf<PixelBgr>;
@@ -201,6 +251,32 @@ bool blobFinderThread::threadInit() {
 
     polyTorso->view(encTorso);
 
+    eyeL=new iCubEye("left");
+    eyeR=new iCubEye("right");    
+
+    // remove constraints on the links
+    // we use the chains for logging purpose
+    eyeL->setAllConstraints(false);
+    eyeR->setAllConstraints(false);
+
+    // release links
+    eyeL->releaseLink(0);
+    //eyeC.releaseLink(0);
+    eyeR->releaseLink(0);
+    eyeL->releaseLink(1);
+    //eyeC.releaseLink(1);
+    eyeR->releaseLink(1);
+    eyeL->releaseLink(2);
+    //eyeC.releaseLink(2);
+    eyeR->releaseLink(2);
+
+    // get camera projection matrix from the configFile
+    if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
+        Matrix &Prj=*PrjL;
+        //cxl=Prj(0,2);
+        //cyl=Prj(1,2);
+        invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
+    }
 
     return true;
 }
@@ -271,7 +347,7 @@ void blobFinderThread::run() {
         }
 
         if(blobDatabasePort.getOutputCount()) {
-            Matrix *invPrjL, *invPrjR;
+            
             
             Vector fp;
             YARPBox* pBlob = salience->getBlobList();
@@ -282,6 +358,7 @@ void blobFinderThread::run() {
                     u = pBlob[i].centroid_x;
                     v = pBlob[i].centroid_y;
                     z = 0.5;
+
                     Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
                     iCubEye *eye=(isLeft?eyeL:eyeR);
 

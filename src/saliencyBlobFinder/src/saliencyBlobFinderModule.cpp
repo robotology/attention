@@ -62,8 +62,17 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
         cout << getName() << ": Unable to open port " << endl;
         return false;
     }
-
     attach(cmdPort);                  // attach to port
+
+    if (rf.check("config")) {
+        configFile=rf.findFile(rf.find("config").asString().c_str());
+        if (configFile=="") {
+            return false;
+        }
+    }
+    else {
+        configFile.clear();
+    }
 
     //initialization of the main thread
     blobFinder = new blobFinderThread(threadRate);

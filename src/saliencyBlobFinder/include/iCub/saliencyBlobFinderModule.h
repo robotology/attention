@@ -155,6 +155,7 @@
 * 21/12/10 : added the formulas and kinematic constraints necessary to work out the 3D point where the protoobject is seen  @author Rea
 * 05/01/11 : kinamatic calculus for 3d position of the blob in the virtual word                                             @author Rea
 * 12/01/11 : added lifeTimer property for correct forgetness of the object                                                  @author Rea
+* 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 @author Rea
 */
 
 #include <iostream>
@@ -194,7 +195,7 @@ private:
     blobFinderThread* blobFinder; //main thread responsable to process the input images and produce an output
     Bottle* command;            // bottle where the command received is saved ready for the respond
     Bottle* reply;              // bottle where the reply will be stored for further purpose
-
+    std::string configFile;     // file representing characteristic of the camera
     std::string moduleName;     // name of the module read from configuration 
 
 public:

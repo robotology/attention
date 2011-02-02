@@ -66,6 +66,7 @@ private:
     int height;                                         // height of the input image
     int nBlobs;                                         // number of blobs extracted
     
+    std::string configFile;                             // configuration file of both the cameras
     std::string name;                                   // name of the module and rootname of the connection
     std::string robot;                                  // name of the robot for connecting polydrive
     bool reinit_flag;                                   // flag that indicates when the reinitiazation has already be done
@@ -89,6 +90,9 @@ private:
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
     yarp::dev::IEncoders   *encTorso;                       // encoders of the torso
+    yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
+    yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
+
 
     SalienceOperator *salience;                             // reference to the salience operator
     YARPBox* max_boxes;                                     // pointer to the most salient blob
@@ -135,7 +139,7 @@ public:
     * constructor
     * param rateThread period of the processing thread
     */
-    blobFinderThread(int rateThread);
+    blobFinderThread(int rateThread, std::string configFile);
 
     /**
     * destructor
