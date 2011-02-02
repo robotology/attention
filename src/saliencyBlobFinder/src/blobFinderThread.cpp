@@ -252,7 +252,7 @@ bool blobFinderThread::threadInit() {
     polyTorso->view(encTorso);
 
     eyeL=new iCubEye("left");
-    eyeR=new iCubEye("right");    
+    eyeR=new iCubEye("right");
 
     // remove constraints on the links
     // we use the chains for logging purpose
@@ -367,6 +367,7 @@ void blobFinderThread::run() {
                     iCubEye *eye=(isLeft?eyeL:eyeR);
 
                     if (invPrj) {
+                        /*
                         Vector torso(3);
                         igaze->getAngles(torso);
                         Vector head(4);
@@ -385,6 +386,7 @@ void blobFinderThread::run() {
                             q[7]=head[4]+head[5]/2.0;
                         else
                             q[7]=head[4]-head[5]/2.0;
+                            */
 
                         Vector x(3);
                         x[0]=z*u;
