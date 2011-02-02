@@ -75,7 +75,7 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
     }
 
     //initialization of the main thread
-    blobFinder = new blobFinderThread(threadRate);
+    blobFinder = new blobFinderThread(threadRate,configFile);
     blobFinder->setName(this->getName().c_str());
     blobFinder->setMinBoundingArea(minBoundingArea);
     blobFinder->start();

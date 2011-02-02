@@ -87,7 +87,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 /**********************************************************************************/
 
-blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string _configFile) : RateThread(rateThread){
+blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string _configFile = "") : RateThread(rateThread){
     saddleThreshold = 10;
     reinit_flag = false;
     resized_flag = false;
@@ -276,6 +276,7 @@ bool blobFinderThread::threadInit() {
         //cxl=Prj(0,2);
         //cyl=Prj(1,2);
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
+        printf("found the matrix of projection of left %f %f %f", Prj(0,0),Prj(1,1),Prj(2,2));
     }
 
     return true;
@@ -352,9 +353,12 @@ void blobFinderThread::run() {
             Vector fp;
             YARPBox* pBlob = salience->getBlobList();
             int u, v, z;
+            bool onlyOne = true;
             bool isLeft = true;             //TODO :  remove hardcoded here!
             for (int i = 1; i < nBlobs; i++) {
-                if (pBlob[i].valid) {
+                if ((pBlob[i].valid)&&(onlyOne)) {
+                    onlyOne = false;
+                    
                     u = pBlob[i].centroid_x;
                     v = pBlob[i].centroid_y;
                     z = 0.5;
@@ -402,23 +406,24 @@ void blobFinderThread::run() {
                     }
                     printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
 
+                    
                     Bottle request, reply;
                     request.clear(); reply.clear();
                     request.addVocab(VOCAB3('a','d','d'));
                     Bottle& listAttr=request.addList();
                     Bottle& sublist=listAttr.addList();
                     sublist.addString("x");
-                    sublist.addDouble(fp[0]*1000);
+                    sublist.addDouble(1.0 * 1000);
                     sublist=listAttr.addList();
                     sublist.clear();
 
                     sublist.addString("y");
-                    sublist.addDouble(fp[1]*1000);
+                    sublist.addDouble(1.0 * 1000);
                     sublist=listAttr.addList();
                     sublist.clear();
 
                     sublist.addString("z");
-                    sublist.addDouble(fp[2]*1000);
+                    sublist.addDouble(1.0 * 1000);
                     sublist=listAttr.addList();
                     sublist.clear();
 
@@ -436,14 +441,23 @@ void blobFinderThread::run() {
                     sublist.addDouble(pBlob[i].meanColors.b);
                     sublist=listAttr.addList();
                     sublist.clear();
+
+                    sublist.addString("lifeTimer");
+                    sublist.addInt(3);
+                    sublist=listAttr.addList();
+                    sublist.clear();
+                    
+                    
                     //listAttr.add(sublist);
                     blobDatabasePort.write(request, reply);
-
                     //extract ID of the object added
-                    int id = reply.get(1).asList()->get(1).asInt();
-
+                    //int id = reply.get(1).asList()->get(1).asInt();
+                    //printf("id of the object properties %d", id);
+                    
+                    
                     // set the lifetime
-                    request.clear(); reply.clear(); listAttr.clear(); sublist.clear();
+                    /*
+                    printf("cleared");
                     request.addVocab(VOCAB3('s','e','t'));
                     listAttr=request.addList();
                     sublist=listAttr.addList();
@@ -451,10 +465,16 @@ void blobFinderThread::run() {
                     sublist.addInt(id);
                     sublist=listAttr.addList();
                     sublist.clear();
+
                     sublist.addString("lifeTimer");
                     sublist.addInt(100);
                     sublist=listAttr.addList();
-                    blobDatabasePort.write(request, reply);
+                    sublist.clear();
+                    */
+
+                    //blobDatabasePort.write(request, reply);
+                    
+                   
                 }
             }
         }
