@@ -58,11 +58,20 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
                            "Robot name (string)").asString();
     robotPortName         = "/" + robotName + "/head";
 
+    if (rf.check("config")) {
+        configFile=rf.findFile(rf.find("config").asString().c_str());
+        if (configFile=="") {
+            return false;
+        }
+    }
+    else {
+        configFile.clear();
+    }
 
     collector=new gazeCollectorThread();
     collector->setName(getName().c_str());
     
-    arbiter=new gazeArbiterThread();
+    arbiter=new gazeArbiterThread(configFile);
     arbiter->setName(getName().c_str());
 
     /* offset for 3d position along x axis */
@@ -98,9 +107,8 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
         cout << getName() << ": Unable to open port " << handlerPortName << endl;  
         return false;
     }
-
     attach(handlerPort);                  // attach to port
-
+    //attach(Port);                  // attach to port
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module

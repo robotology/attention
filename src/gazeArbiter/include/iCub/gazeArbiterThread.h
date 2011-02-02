@@ -56,6 +56,7 @@
 class gazeArbiterThread : public yarp::os::RateThread, public observer{
 private:
     std::string name;                       // rootname of all the ports opened by this thread
+    std::string configFile;                 // configuration file of cameras (LEFT RIGHT)
     yarp::sig::Matrix stateTransition;      // matrix of the state transition; weights of the transition
     yarp::sig::Vector stateRequest;         // buffer of requests  (vergence, smooth pursuit, saccade)
     yarp::sig::Vector state;                // vector where just one element can be 1 indicating the state in which the system is
@@ -82,6 +83,9 @@ private:
 
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
+    yarp::sig::Matrix *invPrjL, *invPrjR;   // inverse of prjection matrix
+    yarp::sig::Matrix *PrjL, *PrjR;         // projection matrix
+
 
     CvRect  template_roi;                   // region of interest of the template
     CvRect  search_roi;                     // region of interest of the search
@@ -103,10 +107,9 @@ private:
     trackerThread* tracker;                     //reference to the object in charge of tracking a tamplete surrounding a point
 public:
     /**
-
     * default constructor
     */
-    gazeArbiterThread();
+    gazeArbiterThread(std::string configFile);
 
     /**
      * destructor

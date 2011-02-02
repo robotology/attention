@@ -162,18 +162,19 @@
 
 
 class gazeArbiterModule:public yarp::os::RFModule {
-    std::string moduleName;                     //name of the module (rootname of ports)
-    std::string robotName;                      //name of the robot
-    std::string robotPortName;                  //reference to the head of the robot
-    std::string handlerPortName;                //name of the handler port (comunication with respond function)
-    int ratethread;                             //time constant for ratethread
+    std::string moduleName;                     // name of the module (rootname of ports)
+    std::string robotName;                      // name of the robot
+    std::string robotPortName;                  // reference to the head of the robot
+    std::string handlerPortName;                // name of the handler port (comunication with respond function)
+    std::string configFile;                     // configuration file of cameras
+    int ratethread;                             // time constant for ratethread
     int xoffset;                                // offset for the 3D point along x
     int yoffset;                                // offset for the 3D point along y
     int zoffset;                                // offset for the 3D point along z
     yarp::os::Port handlerPort;                 // a port to handle messages 
 
-    gazeArbiterThread* arbiter;               //agent that sends commands to the gaze interface
-    gazeCollectorThread* collector;              //agent that collects commands from the lower level
+    gazeArbiterThread* arbiter;                 //agent that sends commands to the gaze interface
+    gazeCollectorThread* collector;             //agent that collects commands from the lower level
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful

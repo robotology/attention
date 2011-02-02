@@ -26,6 +26,7 @@
 
 #include <iCub/gazeArbiterThread.h>
 #include <yarp/math/Math.h>
+#include <yarp/math/SVD.h>
 #include <cstring>
 
 
@@ -35,6 +36,7 @@ using namespace yarp::dev;
 using namespace std;
 using namespace yarp::math;
 using namespace iCub::iKin;
+
 
 #define THRATE 10
 #define PI  3.14159265
@@ -54,9 +56,60 @@ static Vector orVector (Vector &a, Vector &b) {
     return res;
 }
 
+/************************************************************************/
 
-gazeArbiterThread::gazeArbiterThread() : RateThread(THRATE) {
+bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
+{
+    *Prj=NULL;
+
+    if (configFile.size())
+    {
+        Property par;
+        par.fromConfigFile(configFile.c_str());
+
+        Bottle parType=par.findGroup(type.c_str());
+        string warning="Intrinsic parameters for "+type+" group not found";
+
+        if (parType.size())
+        {
+            if (parType.check("w") && parType.check("h") &&
+                parType.check("fx") && parType.check("fy"))
+            {
+                // we suppose that the center distorsion is already compensated
+                double cx=parType.find("w").asDouble()/2.0;
+                double cy=parType.find("h").asDouble()/2.0;
+                double fx=parType.find("fx").asDouble();
+                double fy=parType.find("fy").asDouble();
+
+                Matrix K=eye(3,3);
+                Matrix Pi=zeros(3,4);
+
+                K(0,0)=fx; K(1,1)=fy;
+                K(0,2)=cx; K(1,2)=cy; 
+                
+                Pi(0,0)=Pi(1,1)=Pi(2,2)=1.0; 
+
+                *Prj=new Matrix;
+                **Prj=K*Pi;
+
+                return true;
+            }
+            else
+                fprintf(stdout,"%s\n",warning.c_str());
+        }
+        else
+            fprintf(stdout,"%s\n",warning.c_str());
+    }
+
+    return false;
+}
+
+/**********************************************************************************/
+
+
+gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     numberState = 4; //null, vergence, smooth pursuit, saccade
+    configFile = _configFile;
     firstVer = false;
     phiTOT = 0;
     Matrix trans(4,4);
@@ -86,6 +139,35 @@ gazeArbiterThread::gazeArbiterThread() : RateThread(THRATE) {
     t(1) = 0;
     t(2) = 0.6;
     xFix = t;
+
+    eyeL=new iCubEye("left");
+    eyeR=new iCubEye("right");    
+
+    // remove constraints on the links
+    // we use the chains for logging purpose
+    eyeL->setAllConstraints(false);
+    eyeR->setAllConstraints(false);
+
+    // release links
+    eyeL->releaseLink(0);
+    //eyeC.releaseLink(0);
+    eyeR->releaseLink(0);
+    eyeL->releaseLink(1);
+    //eyeC.releaseLink(1);
+    eyeR->releaseLink(1);
+    eyeL->releaseLink(2);
+    //eyeC.releaseLink(2);
+    eyeR->releaseLink(2);
+
+    // get camera projection matrix from the configFile
+    if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
+        Matrix &Prj = *PrjL;
+        //cxl=Prj(0,2);
+        //cyl=Prj(1,2);
+        Matrix a = Prj.transposed();
+        Matrix b =  pinv(a);
+        invPrjL = new Matrix(b.transposed() );
+    }
 
     printf("starting the tracker.... \n");
     ResourceFinder* rf = new ResourceFinder();
