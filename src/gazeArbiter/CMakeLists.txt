@@ -14,6 +14,7 @@ FIND_PACKAGE(OpenCV)
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
+    ${ICUB_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 )
 
@@ -34,6 +35,7 @@ IF (folder_source)
 			${YARP_LIBRARIES}
 			icubmod 
 			${OpenCV_LIBRARIES}
+			iKin
 			)	
 
     INSTALL_TARGETS(/bin ${KEYWORD})

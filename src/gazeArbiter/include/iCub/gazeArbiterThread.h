@@ -39,6 +39,10 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/sig/all.h>
 #include <string>
+#include <iCub/iKin/iKinInv.h>
+#include <iCub/iKin/iKinIpOpt.h>
+#include <iCub/iKin/iKinFwd.h>
+#include <iCub/ctrl/pids.h>
 
 #include <cv.h>
 #include <highgui.h>

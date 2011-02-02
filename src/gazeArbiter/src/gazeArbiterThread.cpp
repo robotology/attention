@@ -34,6 +34,7 @@ using namespace yarp::sig;
 using namespace yarp::dev;
 using namespace std;
 using namespace yarp::math;
+using namespace iCub::iKin;
 
 #define THRATE 10
 #define PI  3.14159265
@@ -221,8 +222,8 @@ void gazeArbiterThread::run() {
                 else {
                     Matrix *invPrjL, *invPrjR;
                     bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
-                    Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
-                    iCubEye *eye=(isLeft?eyeL:eyeR);
+                    Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
+                    iCubEye *eye = (isLeft?eyeL:eyeR);
                     //function that calculates the 3DPoint where to redirect saccade and add the offset
                     Vector torso(3);
                     Vector fp(3);
@@ -240,7 +241,7 @@ void gazeArbiterThread::run() {
                     q[6]=head[3];
 
                     
-                    if (leftDrive)
+                    if (isLeft)
                         q[7]=head[4]+head[5]/2.0;
                     else
                         q[7]=head[4]-head[5]/2.0;
