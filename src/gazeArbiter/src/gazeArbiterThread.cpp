@@ -114,6 +114,8 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     configFile = _configFile;
     firstVer = false;
     phiTOT = 0;
+    xOffset = yOffset = zOffset = 0;
+
     Matrix trans(4,4);
     trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0;
     trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0;
@@ -141,6 +143,8 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     t(1) = 0;
     t(2) = 0.6;
     xFix = t;
+
+    printf("extracting kinematic informations \n");
 
     eyeL = new iCubEye("left");
     eyeR = new iCubEye("right");    
@@ -263,6 +267,7 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 
 
 void gazeArbiterThread::run() {
+    printf(".");
     Bottle& status = statusPort.prepare();
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
@@ -289,8 +294,10 @@ void gazeArbiterThread::run() {
             // starting saccade toward the direction of the required position
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
-            if(mono) {
-                if ((xOffset != 0) && (xOffset != 0) && (xOffset != 0)) {
+            if(mono){
+                printf("offset: %d, %d,%d \n", xOffset, yOffset, zOffset );
+                if ((xOffset == 0) && (xOffset == 0) && (xOffset == 0)) {
+                    printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
                         tracker->init(u,v);
                         Vector px(2);
@@ -302,7 +309,7 @@ void gazeArbiterThread::run() {
                     }
                 }
                 else {
-                    
+                    printf("monocular with stereo \n");
                     Matrix *invPrjL, *invPrjR;
                     bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
                     Matrix  *invPrj = (isLeft?invPrjL:invPrjR);

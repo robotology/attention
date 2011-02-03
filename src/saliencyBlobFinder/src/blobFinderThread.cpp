@@ -450,7 +450,7 @@ void blobFinderThread::run() {
                     
                     
                     //listAttr.add(sublist);
-                    blobDatabasePort.write(request, reply);
+                    //blobDatabasePort.write(request, reply);
                     //extract ID of the object added
                     //int id = reply.get(1).asList()->get(1).asInt();
                     //printf("id of the object properties %d", id);
