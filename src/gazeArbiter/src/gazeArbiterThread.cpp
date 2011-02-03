@@ -76,21 +76,23 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 parType.check("fx") && parType.check("fy"))
             {
                 // we suppose that the center distorsion is already compensated
-                double cx=parType.find("w").asDouble()/2.0;
-                double cy=parType.find("h").asDouble()/2.0;
-                double fx=parType.find("fx").asDouble();
-                double fy=parType.find("fy").asDouble();
+                double cx = parType.find("w").asDouble() / 2.0;
+                double cy = parType.find("h").asDouble() / 2.0;
+                double fx = parType.find("fx").asDouble();
+                double fy = parType.find("fy").asDouble();
 
-                Matrix K=eye(3,3);
-                Matrix Pi=zeros(3,4);
+                Matrix K  = eye(3,3);
+                Matrix Pi = zeros(3,4);
 
-                K(0,0)=fx; K(1,1)=fy;
-                K(0,2)=cx; K(1,2)=cy; 
+                K(0,0) = fx;
+                K(1,1) = fy;
+                K(0,2) = cx;
+                K(1,2) = cy; 
                 
-                Pi(0,0)=Pi(1,1)=Pi(2,2)=1.0; 
+                Pi(0,0) = Pi(1,1) = Pi(2,2) = 1.0;
 
-                *Prj=new Matrix;
-                **Prj=K*Pi;
+                *Prj = new Matrix;
+                **Prj = K * Pi;
 
                 return true;
             }
@@ -140,8 +142,8 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     t(2) = 0.6;
     xFix = t;
 
-    eyeL=new iCubEye("left");
-    eyeR=new iCubEye("right");    
+    eyeL = new iCubEye("left");
+    eyeR = new iCubEye("right");    
 
     // remove constraints on the links
     // we use the chains for logging purpose
@@ -164,9 +166,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
         Matrix &Prj = *PrjL;
         //cxl=Prj(0,2);
         //cyl=Prj(1,2);
-        Matrix a = Prj.transposed();
-        Matrix b =  pinv(a);
-        invPrjL = new Matrix(b.transposed() );
+        invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
     }
 
     printf("starting the tracker.... \n");
@@ -217,8 +217,8 @@ bool gazeArbiterThread::threadInit() {
     //name="matchTracker";
     template_size = 20;
     search_size = 100;
-    point.x=320;
-    point.y=240;
+    point.x = 320;
+    point.y = 240;
 
     template_roi.width=template_roi.height=template_size;
     search_roi.width=search_roi.height=search_size;
@@ -302,6 +302,7 @@ void gazeArbiterThread::run() {
                     }
                 }
                 else {
+                    
                     Matrix *invPrjL, *invPrjR;
                     bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
                     Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
@@ -329,9 +330,9 @@ void gazeArbiterThread::run() {
                         q[7]=head[4]-head[5]/2.0;
 
                     Vector x(3);
-                    x[0]=z*u;
-                    x[1]=z*v;
-                    x[2]=z;
+                    x[0] = z * u;
+                    x[1] = z * v;
+                    x[2] = z;
 
                     // find the 3D position from the 2D projection,
                     // knowing the distance z from the camera

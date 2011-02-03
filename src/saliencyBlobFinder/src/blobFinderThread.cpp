@@ -37,7 +37,7 @@ using namespace yarp::math;
 using namespace iCub::iKin;
 
 const int DEFAULT_THREAD_RATE = 100;
-
+#define thresholdDB 0
 /************************************************************************/
 bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 {
@@ -57,10 +57,10 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 parType.check("fx") && parType.check("fy"))
             {
                 // we suppose that the center distorsion is already compensated
-                double cx=parType.find("w").asDouble()/2.0;
-                double cy=parType.find("h").asDouble()/2.0;
-                double fx=parType.find("fx").asDouble();
-                double fy=parType.find("fy").asDouble();
+                double cx = parType.find("w").asDouble() / 2.0;
+                double cy = parType.find("h").asDouble() / 2.0;
+                double fx = parType.find("fx").asDouble();
+                double fy = parType.find("fy").asDouble();
 
                 Matrix K=eye(3,3);
                 Matrix Pi=zeros(3,4);
@@ -353,14 +353,13 @@ void blobFinderThread::run() {
             Vector fp;
             YARPBox* pBlob = salience->getBlobList();
             int u, v, z;
-            bool onlyOne = true;
             bool isLeft = true;             //TODO :  remove hardcoded here!
             for (int i = 1; i < nBlobs; i++) {
-                if ((pBlob[i].valid)&&(onlyOne)) {
-                    onlyOne = false;
+                if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
+                    printf("areaLP:", pBlob[i].areaLP);
                     
-                    u = pBlob[i].centroid_x;
-                    v = pBlob[i].centroid_y;
+                    u = 160; //pBlob[i].centroid_x;
+                    v = 120; //pBlob[i].centroid_y;
                     z = 0.5;
 
                     Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
@@ -383,14 +382,14 @@ void blobFinderThread::run() {
                         q[6]=head[3];
 
                         if (isLeft)
-                            q[7]=head[4]+head[5]/2.0;
+                            q[7]=head[4]+head[5] / 2.0;
                         else
-                            q[7]=head[4]-head[5]/2.0;
+                            q[7]=head[4]-head[5] / 2.0;
                             
 
                         Vector x(3);
-                        x[0]=z*u;
-                        x[1]=z*v;
+                        x[0]=z * u;
+                        x[1]=z * v;
                         x[2]=z;
 
                         // find the 3D position from the 2D projection,
