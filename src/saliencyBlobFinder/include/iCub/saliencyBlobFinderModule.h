@@ -156,6 +156,7 @@
 * 05/01/11 : kinamatic calculus for 3d position of the blob in the virtual word                                             @author Rea
 * 12/01/11 : added lifeTimer property for correct forgetness of the object                                                  @author Rea
 * 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 @author Rea
+* 05/02/11 : filtered blob with a nbivariate normal                                                                         @author Rea
 */
 
 #include <iostream>

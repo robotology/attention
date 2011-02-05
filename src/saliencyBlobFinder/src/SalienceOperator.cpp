@@ -577,6 +577,9 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
     //creates the image composed of the value of saliency of every blob
     for (int i = 1; i < numBlob; i++) {
         if (m_boxes[i].valid) {
+            double vx, vy, ux, uy, sx, sy, dx, dy, rho;
+            double a, b, c, d, e, z, k;
+
             //__OLD//if ((m_boxes[i].salienceBU==maxSalienceBU && pBU==1) || (m_boxes[i].salienceTD==maxSalienceTD && pTD==1))
             //if ((m_boxes[i].salienceBU==maxSalienceBU && pBU==1)||(m_boxes[i].salienceTD==maxSalienceTD && pTD==1))
             if (m_boxes[i].salienceTotal==maxSalienceTot)
@@ -584,19 +587,54 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             else 
                 m_boxes[i].salienceTotal=a3*m_boxes[i].salienceTotal+b3;
             
-            //m_boxes[i].salienceTotal=m_boxes[i].salienceTotal;
+            //calculating the peek value
+            dx = m_boxes[i].cmax - m_boxes[i].cmin;
+            dy = m_boxes[i].rmax - m_boxes[i].rmin;
+            sx = dx / 3; //0.99 percentile
+            sy = dy / 3;
+            vx = sx * sx; // variance
+            vy = sy * sy;
+            rho = 0;
+            ux = m_boxes[i].centroid_x;
+            uy = m_boxes[i].centroid_y;
+            a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+            b = -0.5 /(1 - rho * rho);
+            k = a * exp (b);
 
+            
+            //m_boxes[i].salienceTotal=m_boxes[i].salienceTotal;
+            
             //for the whole blob in this loop
-            for (int r=m_boxes[i].rmin; r<=m_boxes[i].rmax; r++)
+            for (int r=m_boxes[i].rmin; r<=m_boxes[i].rmax; r++) {
                 for (int c=m_boxes[i].cmin; c<=m_boxes[i].cmax; c++){
                     int tag=tagged(c,r);
                     if (tag==m_boxes[i].id) {
                         //__OLD//if (sal>th) dst(c ,r)=sal;
                         //__OLD//else dst(c ,r)=0;
+                        //calculates the bivariate normal
+                        dx = m_boxes[i].cmax - m_boxes[i].cmin;
+                        dy = m_boxes[i].rmax - m_boxes[i].rmin;
+                        sx = dx / 3; //0.99 percentile
+                        sy = dy / 3;
+                        vx = sx * sx; // variance
+                        vy = sy * sy;
+                        rho = 0;
+                        ux = m_boxes[i].centroid_x;
+                        uy = m_boxes[i].centroid_y;
+                        
+                        a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+                        b = -0.5 /(1 - rho * rho);
+                        c = ((c - ux) * (c - ux)) /(vx * vx);
+                        d = ((r - uy) * (r - uy)) /(vy * vy);
+                        e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
+                        z = a * exp ( b * (c + d - e) );
+                        z = z * k;
+                        // z is a value in the interval [0, 1]
                         //set the image outContrastLP with the value salienceTotal
                         dst(c ,r)=(PixelMono)m_boxes[i].salienceTotal;
                     }
                 }
+            }
         }
     }
     
