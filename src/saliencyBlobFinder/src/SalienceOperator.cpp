@@ -614,10 +614,10 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                         //calculates the bivariate normal
                         dx = m_boxes[i].cmax - m_boxes[i].cmin;
                         dy = m_boxes[i].rmax - m_boxes[i].rmin;
-                        sx = dx / 3; //0.99 percentile
-                        sy = dy / 3;
-                        vx = sx * sx; // variance
-                        vy = sy * sy;
+                        sx = dx / 6; //0.99 percentile ( +3sx/-3xs )
+                        sy = dy / 6; //0.99 percentile ( +3sx/-3xs )
+                        vx = sx * sx; // variance along x
+                        vy = sy * sy; // variance along y
                         rho = 0;
                         ux = m_boxes[i].centroid_x;
                         uy = m_boxes[i].centroid_y;
