@@ -354,6 +354,7 @@ void blobFinderThread::run() {
             YARPBox* pBlob = salience->getBlobList();
             int u, v, z;
             bool isLeft = true;             //TODO :  remove hardcoded here!
+            /*
             for (int i = 1; i < nBlobs; i++) {
                 if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
                     printf("areaLP:", pBlob[i].areaLP);
@@ -457,27 +458,26 @@ void blobFinderThread::run() {
                     
                     
                     // set the lifetime
-                    /*
-                    printf("cleared");
-                    request.addVocab(VOCAB3('s','e','t'));
-                    listAttr=request.addList();
-                    sublist=listAttr.addList();
-                    sublist.addString("id");
-                    sublist.addInt(id);
-                    sublist=listAttr.addList();
-                    sublist.clear();
+                    //printf("cleared");
+                    //request.addVocab(VOCAB3('s','e','t'));
+                    //listAttr=request.addList();
+                    //sublist=listAttr.addList();
+                    //sublist.addString("id");
+                    //sublist.addInt(id);
+                    //sublist=listAttr.addList();
+                    //sublist.clear();
 
-                    sublist.addString("lifeTimer");
-                    sublist.addInt(100);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-                    */
+                    //sublist.addString("lifeTimer");
+                    //sublist.addInt(100);
+                    //sublist=listAttr.addList();
+                    //sublist.clear();
+                    
 
                     //blobDatabasePort.write(request, reply);
                     
                    
                 }
-            }
+            }*/
         }
     }
 }

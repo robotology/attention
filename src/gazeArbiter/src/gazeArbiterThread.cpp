@@ -407,7 +407,7 @@ void gazeArbiterThread::run() {
             }
             //correcting the macrosaccade using the visual feedback
             double error = 1000.0;
-            while(( error > 3)&&(timeout < 10.0)&&(tracker->getInputCount())) {
+            while(( error > 2.0)&&(timeout < 10.0)&&(tracker->getInputCount())) {
                 timeoutStop = Time::now();
                 timeout =timeoutStop - timeoutStart;
                 
@@ -443,7 +443,7 @@ void gazeArbiterThread::run() {
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
-        // ----------------  VERGENCE -----------------------
+        // ----------------  VERGENCE -----------------------       
         //printf("Entering in VERGENCE \n");
         if(!executing) {
             Vector gazeVect(3);
@@ -556,34 +556,6 @@ void gazeArbiterThread::run() {
 
                 printf("------------- VERGENCE   ----------------- \n");
                 
-                
-                // anticipatory vergence ( vergence variance worked out from disparity)
-                // in addition: tilt must be corrected in order to have perpediculat plane intersecating the object in both eyes\
-
-                //gazeVect[0] = 0 ;               //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
-                //gazeVect[1] = 0 ;               //tilt
-                //gazeVect[2] = phi;              //vergence  
-                // igaze->lookAtRelAngles(gazeVect);
-
-                //Vector _head(6);
-                //encHead->getEncoders( _head.data() );
-                
-                
-                //firstVer = false;
-                //extracting the head pose and fixation point
-                //igaze->getLeftEyePose(l,o);
-                //printf("headPose X %f Y %f Z %f \n",x[0],x[1],x[2]);
-                //printf("headPose orientX %f orientY %f orientZ %f theta %f \n",o[0],o[1],o[2],o[3]);
-                //l(0) = x(0); l(1) = x(1) - BASELINE / 2; l(2) = x(2); 
-                //igaze->getFixationPoint(objectVect);
-                //calculating the vector that goes from the head pose to the object
-                //double x1 = objectVect[0]-l(0); double y1 = objectVect[1]-l(1); double z1 = objectVect[2]-l(2); theta = o[3]; \
-                
-                //double distance = 0.2;
-
-                //printf("STARTING sequence of commands \n");
-
-                
                     
                 //calculating the magnitude of the 3d vector
                 igaze->getAngles(anglesVect);
@@ -606,11 +578,11 @@ void gazeArbiterThread::run() {
                 */
 
                 tracker->getPoint(point);
-                double error = 1000;
-                      
+                double error = 1000;                     
                     
-                printf("VERGENCE the point ended up in %d  %d \n",point.x, point.y);
-                while (error > 3) {
+                
+                while (error > 2.0) {
+                    printf("VERGENCE the point ended up in %d  %d \n",point.x, point.y);
                     //corrected the error
                     double errorx = 160 - point.x;
                     double errory = 120 - point.y;
@@ -623,6 +595,7 @@ void gazeArbiterThread::run() {
                     px(0) = 160.0 - errorx;
                     px(1) = 120.0 - errory;
                     igaze->lookAtMonoPixel(camSel,px,varDistance);
+                    Time::delay(0.05);
                     tracker->getPoint(point);
                 }
                 

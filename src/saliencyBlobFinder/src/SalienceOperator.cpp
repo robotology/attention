@@ -28,6 +28,7 @@
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <assert.h>
 
 #define TH_AREA 10
 
@@ -533,7 +534,7 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
         }
     }
 
-    printf("salienceBU_max %d \n", salienceBU_max);
+    //printf("salienceBU_max %d \n", salienceBU_max);
 
     if (maxSalienceBU!=minSalienceBU) {
         a1=254./(maxSalienceBU-minSalienceBU);
@@ -578,7 +579,7 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
     for (int i = 1; i < numBlob; i++) {
         if (m_boxes[i].valid) {
             double vx, vy, ux, uy, sx, sy, dx, dy, rho;
-            double a, b, c, d, e, z, k;
+            double a, b, f, d, e, z, k;
 
             //__OLD//if ((m_boxes[i].salienceBU==maxSalienceBU && pBU==1) || (m_boxes[i].salienceTD==maxSalienceTD && pTD==1))
             //if ((m_boxes[i].salienceBU==maxSalienceBU && pBU==1)||(m_boxes[i].salienceTD==maxSalienceTD && pTD==1))
@@ -590,16 +591,19 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             //calculating the peek value
             dx = m_boxes[i].cmax - m_boxes[i].cmin;
             dy = m_boxes[i].rmax - m_boxes[i].rmin;
-            sx = dx / 3; //0.99 percentile
-            sy = dy / 3;
-            vx = sx * sx; // variance
-            vy = sy * sy;
+            sx = (dx/2) / 3 ; //0.99 percentile
+            sy = (dy/2) / 3 ;
+            vx = 5; //sx * sx; // variance          
+            vy = 5; //sy * sy;
+            //printf("vx = %f  vy = %f", vx,vy);
             rho = 0;
-            ux = m_boxes[i].centroid_x;
-            uy = m_boxes[i].centroid_y;
+            
             a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
             b = -0.5 /(1 - rho * rho);
-            k = a * exp (b);
+            k = 1 / (a * exp (b));
+                           
+            uy = (int)ceil((m_boxes[i].rmax + m_boxes[i].rmin) / 2.0 );
+            ux = (int)ceil((m_boxes[i].cmax + m_boxes[i].cmin) / 2.0 );
 
             
             //m_boxes[i].salienceTotal=m_boxes[i].salienceTotal;
@@ -612,26 +616,44 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                         //__OLD//if (sal>th) dst(c ,r)=sal;
                         //__OLD//else dst(c ,r)=0;
                         //calculates the bivariate normal
-                        dx = m_boxes[i].cmax - m_boxes[i].cmin;
-                        dy = m_boxes[i].rmax - m_boxes[i].rmin;
-                        sx = dx / 6; //0.99 percentile ( +3sx/-3xs )
-                        sy = dy / 6; //0.99 percentile ( +3sx/-3xs )
-                        vx = sx * sx; // variance along x
-                        vy = sy * sy; // variance along y
-                        rho = 0;
-                        ux = m_boxes[i].centroid_x;
-                        uy = m_boxes[i].centroid_y;
+                        //dx = m_boxes[i].cmax - m_boxes[i].cmin;
+                        //dy = m_boxes[i].rmax - m_boxes[i].rmin;
+                        //sx = dx / 6; //0.99 percentile ( +3sx/-3xs )
+                        //sy = dy / 6; //0.99 percentile ( +3sx/-3xs )
+                        //vx = sx * sx; // variance along x
+                        //vy = sy * sy; // variance along y
+                        //rho = 0;
                         
-                        a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
-                        b = -0.5 /(1 - rho * rho);
-                        c = ((c - ux) * (c - ux)) /(vx * vx);
-                        d = ((r - uy) * (r - uy)) /(vy * vy);
-                        e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
-                        z = a * exp ( b * (c + d - e) );
-                        z = z * k;
+                       
+
+                        //a = 0.5 / (3.14159 * vx * vy * sqrt(1 - rho * rho));
+                        //b = -0.5 /(1 - rho * rho);
+                        
+                        
+                        if((c == ux)&&(r == uy)) { 
+                            z = a * exp (b);
+                            z = z * k;
+                            z = 1;
+                        }
+                        else {    
+                            f = ((c - ux) * (c - ux)) /(vx * vx);
+                            d = ((r - uy)  * (r - uy)) /(vy * vy);
+                            //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
+                            e = 0;
+                            z = a * exp ( b * (f + d - e) );
+                            z = z * k;
+                            //z = 0.5;
+                        }
+
+                        //printf("z:%f ",z);
+                        if (z>1) z=1;
+                        
+                        
+
+                        
                         // z is a value in the interval [0, 1]
                         //set the image outContrastLP with the value salienceTotal
-                        dst(c ,r)=(PixelMono)m_boxes[i].salienceTotal;
+                        dst(c ,r)=(PixelMono)m_boxes[i].salienceTotal * z;
                     }
                 }
             }
@@ -713,7 +735,7 @@ void SalienceOperator::centerOfMassAndMass(ImageOf<PixelInt> &in, PixelInt tag, 
                 int tmpX;
                 int tmpY;
 
-                this->logPolar2Cartesian(r, t, tmpX, tmpY);
+                logPolar2Cartesian(r, t, tmpX, tmpY);
 
                 sumTmpX += tmpX;
                 sumTmpY += tmpY;
@@ -776,6 +798,7 @@ void SalienceOperator::maxSalienceBlob(ImageOf<PixelInt>& tagged, int max_tag, Y
             box.centroid_y=ycart;
             this->centroid_x=xcart;
             this->centroid_y=ycart;
+            printf("%d", ycart);
             this->maxc=(box.cmax+box.cmin)/2;
             this->maxr=(box.rmax+box.rmin)/2;
         }
