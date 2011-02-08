@@ -615,19 +615,6 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                     if (tag==m_boxes[i].id) {
                         //__OLD//if (sal>th) dst(c ,r)=sal;
                         //__OLD//else dst(c ,r)=0;
-                        //calculates the bivariate normal
-                        //dx = m_boxes[i].cmax - m_boxes[i].cmin;
-                        //dy = m_boxes[i].rmax - m_boxes[i].rmin;
-                        //sx = dx / 6; //0.99 percentile ( +3sx/-3xs )
-                        //sy = dy / 6; //0.99 percentile ( +3sx/-3xs )
-                        //vx = sx * sx; // variance along x
-                        //vy = sy * sy; // variance along y
-                        //rho = 0;
-                        
-                       
-
-                        //a = 0.5 / (3.14159 * vx * vy * sqrt(1 - rho * rho));
-                        //b = -0.5 /(1 - rho * rho);
                         
                         
                         if((c == ux)&&(r == uy)) { 
@@ -645,9 +632,13 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                             //z = 0.5;
                         }
 
-                        //printf("z:%f ",z);
-                        if (z>1) z=1;
-                        
+                        // restrincting the z gain between two thresholds
+                        if (z > 1) {
+                            z = 1;
+                        }
+                        if (z < 0.3) {
+                            z = 0.3;
+                        }
                         
 
                         
