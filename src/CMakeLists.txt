@@ -1,4 +1,5 @@
 add_subdirectory(colourSaliency)
+add_subdirectory(eyePathFinder)
 add_subdirectory(gazeArbiter)
 add_subdirectory(iCubGuiPopulator)
 #add_subdirectory(indepLogMotion)
