@@ -30,7 +30,7 @@
 /** 
  *
  * \defgroup icub_stereoAttModule stereoAttModule
- * @ingroup icub_logPolarAttentionSystem
+ * @ingroup icub_logpolarAttentionSystem
  *
  * This is a module that puts together left attentive system with the right attentive system
  *

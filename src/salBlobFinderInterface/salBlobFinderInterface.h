@@ -21,7 +21,7 @@
 
 /**
 *
-* @ingroup icub_logPolarAttentionSystem
+* @ingroup icub_logpolarAttentionSystem
 \defgroup salBlobFinderInterface salBlobFinderInterface
 
 Module graphical interface for saliencyBlobFinder

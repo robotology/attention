@@ -30,7 +30,7 @@
 /** 
  *
  * \defgroup icub_visualFilter visualFilter
- * @ingroup icub_logPolarAttentionSystem
+ * @ingroup icub_logpolarAttentionSystem
  *
  * This is a module that correctly applies filters to the input logpolar image:
  *

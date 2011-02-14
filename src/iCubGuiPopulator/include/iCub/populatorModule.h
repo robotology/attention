@@ -29,7 +29,7 @@
 /** 
  *
  * \defgroup icub_populatorModule populatorModule
- * @ingroup icub_logPolarAttentionSystem
+ * @ingroup icub_logpolarAttentionSystem
  *
  * This is a module that defines querief for the module objectPropertiesCollector and populates the artificial representation of the 3D world icubGUI
  * 
