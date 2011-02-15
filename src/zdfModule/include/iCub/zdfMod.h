@@ -75,6 +75,7 @@ private:
 	std::string outputNameDog;           //string containing the difference of gaussian output port name
     std::string outputNameTemp;          //string containing the segmented template output port name
     std::string outputNameCog;
+    std::string inputCheckArbiter;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *img_out_prob;   //probability image
 	yarp::sig::ImageOf<yarp::sig::PixelMono> *img_out_seg;    //segmentation image
@@ -89,8 +90,11 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >  imageOutTemp;     //output port template image
 
     yarp::os::BufferedPort < yarp::sig::Vector >    cogPort;
-
+    yarp::os::Port inputCheckStatus;
+    
 	bool allocated; // flag to check if the variables have been already allocated
+    bool withArbiter;
+    bool startProcessing;
 	int psb_in, t_lock_lr, t_lock_ud;
 	//Sizes:
 	IppiSize srcsize, msize, tsize, tisize, trsize; //ippi variables containing all different sizes
@@ -157,7 +161,7 @@ public:
     /**
     * constructor
     */
-    ZDFThread( MultiClass::Parameters *parameters );
+    ZDFThread( MultiClass::Parameters *parameters, std::string workWith);
     /**
      * destructor
      */
@@ -189,6 +193,7 @@ class zdfMod:public yarp::os::RFModule
     /* module parameters */
     std::string moduleName; 
     std::string handlerName;
+    std::string workWith;
 	
     yarp::os::Port handlerPort;      //a port to handle messages 
     

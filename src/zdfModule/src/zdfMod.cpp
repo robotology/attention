@@ -55,6 +55,9 @@ bool zdfMod::configure(yarp::os::ResourceFinder &rf)
     * so that messages received from the port are redirected to the respond method
     */
 
+    workWith                  = rf.check("with", Value("nothing"), "work with arbiter (string)").asString();      
+
+
     handlerName =  "/";
     handlerName += getName();         // use getName() rather than a literal 
  
@@ -67,7 +70,7 @@ bool zdfMod::configure(yarp::os::ResourceFinder &rf)
     //attachTerminal();                // attach to terminal (maybe not such a good thing...)
 
     /* create the thread and pass pointers to the module parameters */
-    zdfThread = new ZDFThread( &parameters );
+    zdfThread = new ZDFThread( &parameters, workWith );
 
     /*pass the name of the module in order to create ports*/
     zdfThread->setName(moduleName);
@@ -129,14 +132,6 @@ bool zdfMod::respond(const Bottle& command, Bottle& reply)
         ok = true;
     } 
     break;
-
-/*  cvNamedWindow( "Settings", 0) ; 
-    cvCreateTrackbar( "DATA_PENALTY", "Settings", &params->data_penalty, 255, 0 );
-    cvCreateTrackbar( "SMOOTHNESS_PENALTY_BASE", "Settings", &params->smoothness_penalty_base, 255, 0 );
-    cvCreateTrackbar( "SMOOTHNESS_PENALTY", "Settings", &params->smoothness_penalty, 1000, 0 );
-    cvCreateTrackbar( "RADIAL_PENALTY", "Settings", &params->radial_penalty, 255, 0 );
-    cvCreateTrackbar( "SMOOTHNESS_3SIGMAON2", "Settings", &params->smoothness_3sigmaon2, 255, 0 );
-    cvCreateTrackbar( "BLAND_DOG_THRESH", "Settings", &params->bland_dog_thresh, 255, 0 );*/
 
     case COMMAND_VOCAB_SET:
         rec = true;
@@ -254,9 +249,17 @@ bool zdfMod::respond(const Bottle& command, Bottle& reply)
     return true;
 }
 
-ZDFThread::ZDFThread( MultiClass::Parameters *parameters ) 
+ZDFThread::ZDFThread( MultiClass::Parameters *parameters, string workWith ) 
 {
-    
+    if (workWith == "arbiter" || workWith == "ARBITER") {
+        withArbiter = true;
+        cout << "will now wait for the vergence module to finish motion" << endl;
+    }    
+    else{
+       withArbiter = false;
+       cout << "running normally without attention system" << endl;
+    }
+
     params = parameters;
     img_out_prob = NULL;    
 	img_out_seg = NULL;
@@ -286,6 +289,8 @@ ZDFThread::ZDFThread( MultiClass::Parameters *parameters )
 	m = NULL;
     l_orig = NULL, r_orig = NULL;
     allocated = false;
+    withArbiter = false;
+    startProcessing = false;
 }
 
 ZDFThread::~ZDFThread( )
@@ -339,6 +344,9 @@ bool ZDFThread::threadInit()
     inputNameRight = "/" + moduleName + "/imageRight:i";
     imageInRight.open( inputNameRight.c_str() );
 
+    inputCheckArbiter = "/" + moduleName + "/status:i";
+    inputCheckStatus.open( inputCheckArbiter.c_str() );
+
     outputNameProb = "/" + moduleName + "/imageProb:o";
     imageOutProb.open( outputNameProb.c_str() );
 
@@ -367,298 +375,307 @@ void ZDFThread::run()
 
         if(img_in_left != NULL && img_in_right != NULL) {
 
-            if( !allocated || img_in_left->width() != insize.width || img_in_left->height() != insize.height) {
-                deallocate();
-                allocate(img_in_left);
+            Bottle check;
+            check.clear();
+            if (withArbiter){
+                inputCheckStatus.read(check, false);
+                if (check=="vergence_accomplished"){
+                    startProcessing = true; 
+                }
+                else{
+                    startProcessing = false;  
+                }
             }
-
-		    //processing for zdf
-		    if (scale==1.0){ //resize the images if needed
-			    //copy yarp image to IPP
-			    //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), l_orig, psb, srcsize);
-			    //ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
-                //test with YUV images instead of grayscale left
-                ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
-                //and right
-                ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
-          	}else{
-			    //scale to width,height:
-                ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
-                Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
-                ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);   
-                ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);     
-                ippsFree(pBuffer);
-                //the following is deprecated...use previous
-			    //ippiResize_8u_C3R( img_in_left->getRawImage(), insize, img_in_left->width() * 3, inroi, l_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
-			    //ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
-		    }
-
-		    //copy to grayscale
-		    //ippiRGBToGray_8u_C3C1R( l_orig, psb , rec_im_ly, psb_in, srcsize );
-		    //ippiRGBToGray_8u_C3C1R( r_orig, psb , rec_im_ry, psb_in, srcsize );
-            //extract yuv plane
-            ippiRGBToYUV_8u_AC4R( l_orig, psb4, yuva_orig_l, psb4, srcsize );
-            //extract planes
-            pyuva_l[0]= first_plane_l; //Y or H
-            pyuva_l[1]= second_plane_l;//U or S
-            pyuva_l[2]= third_plane_l; //V or V
-            pyuva_l[3]= tmp; 
-            ippiCopy_8u_C4P4R( yuva_orig_l, psb4, pyuva_l, psb, srcsize );
-
-            ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
-            pyuva_r[0]= first_plane_r; //Y or H
-            pyuva_r[1]= second_plane_r;//U or S
-            pyuva_r[2]= third_plane_r; //V or V
-            pyuva_r[3]= tmp; 
-            ippiCopy_8u_C4P4R( yuva_orig_r, psb4, pyuva_r, psb, srcsize );
+            else{
+                startProcessing = true;  
+            }    
             
-            ippiCopy_8u_C1R( first_plane_l, f_psb,  rec_im_ly, psb_in, srcsize);
-            ippiCopy_8u_C1R( first_plane_r, f_psb,  rec_im_ry, psb_in, srcsize);
+            if(startProcessing){            
 
-		    if (acquire){
-			    ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);			
-			    ippiCopy_8u_C1R(&rec_im_ry [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_r, psb_t, tsize);
-		    }
+                if( !allocated || img_in_left->width() != insize.width || img_in_left->height() != insize.height) {
+                    deallocate();
+                    allocate(img_in_left);
+                }
 
-		    //Create left fovea and find left template in left image
-		    ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ly[(( srcsize.height - tisize.height )/2)*psb_in + ( srcsize.width - tisize.width )/2],
-				           psb_in, tisize,
-				           temp_l,
-				           psb_t, tsize,
-				           res_t, psb_rest);
+		        //processing for zdf
+		        if (scale==1.0){ //resize the images if needed
+			        //copy yarp image to IPP
+			        //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), l_orig, psb, srcsize);
+			        //ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
+                    //test with YUV images instead of grayscale left
+                    ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
+                    //and right
+                    ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
+              	}else{
+			        //scale to width,height:
+                    ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
+                    Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
+                    ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);   
+                    ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);     
+                    ippsFree(pBuffer);
+                    //the following is deprecated...use previous
+			        //ippiResize_8u_C3R( img_in_left->getRawImage(), insize, img_in_left->width() * 3, inroi, l_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
+			        //ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
+		        }
 
-		    ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
-		    ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
+                //extract yuv plane
+                ippiRGBToYUV_8u_AC4R( l_orig, psb4, yuva_orig_l, psb4, srcsize );
+                //extract planes
+                pyuva_l[0]= first_plane_l; //Y
+                pyuva_l[1]= second_plane_l;//U
+                pyuva_l[2]= third_plane_l; //V
+                pyuva_l[3]= tmp; 
+                ippiCopy_8u_C4P4R( yuva_orig_l, psb4, pyuva_l, psb, srcsize );
 
-		    //**************************
-		    //Create right fovea and find right template in right image:
-		    ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ry[((srcsize.height-tisize.height)/2 + dpix_y )*psb_in + (srcsize.width-tisize.width)/2],
-					    psb_in,tisize,
-					    temp_r,
-					    psb_t,tsize,
-					    res_t, psb_rest);
-
-		    ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
-		    ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
-
-            //Star diffence of gaussian on foveated images
-		    dl->proc( fov_l, psb_m );
-		    dr->proc( fov_r, psb_m );
-
-		    //**************************
-		    //SPATIAL ZD probability map from fov_l and fov_r:
-		    //perform RANK or NDT kernel comparison:	            	
-		    for (int j=koffsety;j<msize.height-koffsety;j++){
-      			c.y=j;
-      			for (int i=koffsetx;i<msize.width-koffsetx;i++){
-	        			c.x=i;
-	        			//if either l or r textured at this retinal location: 
-	        		if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
-	          			if (RANK0_NDT1==0){
-						    //use RANK:
-						    get_rank(c,fov_l,psb_m,rank1);
-						    get_rank(c,fov_r,psb_m,rank2);
-						    cmp_res = cmp_rank(rank1,rank2);
-	          			}
-	        			else{ 
-						    //use NDT:
-						    get_ndt(c,fov_l,psb_m,ndt1);
-						    get_ndt(c,fov_r,psb_m,ndt2);
-						    cmp_res = cmp_ndt( ndt1, ndt2 );
-	          			}
-	          			zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
-	        		}
-	        		else{
-	          				//untextured in both l & r, so set to bland prob (ZD):
-	          			zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
-	        		} 
-
-	        		//RADIAL PENALTY:
-	        		//The further from the origin, less likely it's ZD, so reduce zd_prob radially:
-	        		//current radius:
-	        		r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
-	        		rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
-	        		max_rad_pen = zd_prob_8u[j*psb_m+i];
-	        		if(max_rad_pen < rad_pen) {
-	          			rad_pen=max_rad_pen;
-	        		}
-	        		//apply radial penalty
-	        		zd_prob_8u[j*psb_m+i]-= rad_pen;
-	        
-	        		//manufacture NZD prob (other):
-	        		o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
-	      		}
-		    }
-
-		    //Do MRF optimization:
-		    m->proc( fov_r, p_prob ); //provide edge map and probability map
-		    //cache for distribution:
-		    ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
-		
-		    //evaluate result:
-		    getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
-	
-		    cog_x_send = cog_x;
-		    cog_y_send = cog_y;
-		
-		    //we have mask and image  (out)   [0/255]
-		    //construct masked image  (fov_l) [0..255]
-		    for (int j=0;j<msize.height;j++){
-      			for (int i=0;i<msize.width;i++){
-        			if (out[i + j*psb_m  ]==0){
-          				seg_im[ j * psb_m + i] = 0;
-          				seg_dog[ j * psb_m + i] = 0;
-        			}
-        			else{
-						    //cout << "here also " << endl;
-         				seg_dog [ j * psb_m + i] = dr->get_dog_onoff()[j*psb_m + i];
-          				seg_im [ j * psb_m + i] = fov_r[j * psb_m + i];
-        			}
-      			}
-		    }
-			
-		    //If nice segmentation:
-		    if (area >= params->min_area && area <= params->max_area && spread<= params->max_spread){ 
-      			//don't update templates to image centre any more as we have a nice target
-       			acquire = false;
-                //update templates towards segmentation CoG:
-      			printf("area:%d spread:%f cogx:%f cogy:%f - UPDATING TEMPLATE\n",area,spread,cog_x,cog_y);
-      			//Bring cog of target towards centre of fovea://SNAP GAZE TO OBJECT:
-      			cog_x*= params->cog_snap;
-      			cog_y*= params->cog_snap;
-			    //floor(val + 0.5) instead of round
-			    ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
-			    ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
-			    //ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) round ( cog_x ) ) ) + ( mid_y_m + ( ( int ) round ( cog_y) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
-      			//ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) round ( cog_x ) ) ) + ( mid_y_m + ( ( int ) round ( cog_y) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
+                ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
+                pyuva_r[0]= first_plane_r; //Y
+                pyuva_r[1]= second_plane_r;//U
+                pyuva_r[2]= third_plane_r; //V
+                pyuva_r[3]= tmp; 
+                ippiCopy_8u_C4P4R( yuva_orig_r, psb4, pyuva_r, psb, srcsize );
                 
-                //We've updated, so reset waiting:
-     			waiting=0;
-       			//report that we-ve updated templates:
-      			update = true;
-		    }
-		    //Otherwise, just keep previous templates:
-		    else{
-      			printf("area:%d spread:%f cogx:%f cogy:%f\n",area,spread,cog_x,cog_y);	
-      			waiting++;
-       			//report that we didn't update template:
-      			update = false;
-                //retreive only the segmented object in order to send as template
-		    }
-	
-		    if(waiting >= 25 ){ //acquire_wait
-      			printf("Acquiring new target until nice seg (waiting:%d >= acquire_wait:%d)\n",waiting, params->acquire_wait );//acquire_wait
-      			acquire = true;
-		    }
+                ippiCopy_8u_C1R( first_plane_l, f_psb,  rec_im_ly, psb_in, srcsize);
+                ippiCopy_8u_C1R( first_plane_r, f_psb,  rec_im_ry, psb_in, srcsize);
 
-            Vector& target = cogPort.prepare();
+		        if (acquire){
+			        ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);			
+			        ippiCopy_8u_C1R(&rec_im_ry [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_r, psb_t, tsize);
+		        }
+
+		        //Create left fovea and find left template in left image
+		        ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ly[(( srcsize.height - tisize.height )/2)*psb_in + ( srcsize.width - tisize.width )/2],
+				               psb_in, tisize,
+				               temp_l,
+				               psb_t, tsize,
+				               res_t, psb_rest);
+
+		        ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
+		        ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
+
+		        //**************************
+		        //Create right fovea and find right template in right image:
+		        ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ry[((srcsize.height-tisize.height)/2 + dpix_y )*psb_in + (srcsize.width-tisize.width)/2],
+					        psb_in,tisize,
+					        temp_r,
+					        psb_t,tsize,
+					        res_t, psb_rest);
+
+		        ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
+		        ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
+
+                //Star diffence of gaussian on foveated images
+		        dl->proc( fov_l, psb_m );
+		        dr->proc( fov_r, psb_m );
+
+		        //**************************
+		        //SPATIAL ZD probability map from fov_l and fov_r:
+		        //perform RANK or NDT kernel comparison:	            	
+		        for (int j=koffsety;j<msize.height-koffsety;j++){
+          			c.y=j;
+          			for (int i=koffsetx;i<msize.width-koffsetx;i++){
+	            			c.x=i;
+	            			//if either l or r textured at this retinal location: 
+	            		if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
+	              			if (RANK0_NDT1==0){
+						        //use RANK:
+						        get_rank(c,fov_l,psb_m,rank1);
+						        get_rank(c,fov_r,psb_m,rank2);
+						        cmp_res = cmp_rank(rank1,rank2);
+	              			}
+	            			else{ 
+						        //use NDT:
+						        get_ndt(c,fov_l,psb_m,ndt1);
+						        get_ndt(c,fov_r,psb_m,ndt2);
+						        cmp_res = cmp_ndt( ndt1, ndt2 );
+	              			}
+	              			zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
+	            		}
+	            		else{
+	              				//untextured in both l & r, so set to bland prob (ZD):
+	              			zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
+	            		} 
+
+	            		//RADIAL PENALTY:
+	            		//The further from the origin, less likely it's ZD, so reduce zd_prob radially:
+	            		//current radius:
+	            		r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
+	            		rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
+	            		max_rad_pen = zd_prob_8u[j*psb_m+i];
+	            		if(max_rad_pen < rad_pen) {
+	              			rad_pen=max_rad_pen;
+	            		}
+	            		//apply radial penalty
+	            		zd_prob_8u[j*psb_m+i]-= rad_pen;
+	            
+	            		//manufacture NZD prob (other):
+	            		o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
+	          		}
+		        }
+
+		        //Do MRF optimization:
+		        m->proc( fov_r, p_prob ); //provide edge map and probability map
+		        //cache for distribution:
+		        ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
+		
+		        //evaluate result:
+		        getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
+	
+		        cog_x_send = cog_x;
+		        cog_y_send = cog_y;
+		
+		        //we have mask and image  (out)   [0/255]
+		        //construct masked image  (fov_l) [0..255]
+		        for (int j=0;j<msize.height;j++){
+          			for (int i=0;i<msize.width;i++){
+            			if (out[i + j*psb_m  ]==0){
+              				seg_im[ j * psb_m + i] = 0;
+              				seg_dog[ j * psb_m + i] = 0;
+            			}
+            			else{
+						        //cout << "here also " << endl;
+             				seg_dog [ j * psb_m + i] = dr->get_dog_onoff()[j*psb_m + i];
+              				seg_im [ j * psb_m + i] = fov_r[j * psb_m + i];
+            			}
+          			}
+		        }
+			
+		        //If nice segmentation:
+		        if (area >= params->min_area && area <= params->max_area && spread<= params->max_spread){ 
+          			//don't update templates to image centre any more as we have a nice target
+           			acquire = false;
+                    //update templates towards segmentation CoG:
+          			printf("area:%d spread:%f cogx:%f cogy:%f - UPDATING TEMPLATE\n",area,spread,cog_x,cog_y);
+          			//Bring cog of target towards centre of fovea://SNAP GAZE TO OBJECT:
+          			cog_x*= params->cog_snap;
+          			cog_y*= params->cog_snap;
+			        //floor(val + 0.5) instead of round
+			        ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
+			        ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
+
+                    //-----------------------------------------------extract just template
+
+                    if (imageOutTemp.getOutputCount()>0){ 
+
+                        int top = -1;
+                        int left = -1;
+                        int right = -1;
+                        int bottom = -1;
+                     
+                        for (int j=0;j<msize.height * psb_m;j++){
+                            
+                            if ( (int)seg_im[ j ] > 0){
+                                top = j/psb_m; 
+                                break;
+                            }
+                        }
+                        for (int j=msize.height * psb_m;j >0; j--){
+
+                            if ( (int)seg_im[ j ] > 0){
+                                bottom = j/psb_m; 
+                                break;
+                            }
+                        }
+                        bool out = false;
+                        for (int i=0;i<msize.width;i++){
+                            for (int j=0;j<msize.height;j++){
+                                if ( (int)seg_im[i + j *psb_m] > 0){
+                                    left = i; 
+                                    out = true;
+                                    break;
+                                }
+                            }
+                            if (out)break;
+                        }
+                        out = false;
+                        for (int i=msize.width;i >0; i--){
+                            for (int j=0;j<msize.height;j++){
+                                if ( (int)seg_im[i + j *psb_m] > 0){
+                                    right = i; 
+                                    out = true;
+                                    break;
+                                }
+                            }
+                            if (out)break;
+                        }
+
+                        int u = 0;
+                        int v = 0;
+                        tempSize.width = right-left + 1;
+                        tempSize.height = bottom-top + 1;
+                        tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
+                        img_out_temp = new ImageOf<PixelBgr>;
+                        img_out_temp->resize(tempSize.width, tempSize.height);
+                         
+                        for (int j = top; j < bottom +1;j++){
+          			        for (int i = left; i < right + 1;i++){
+                                if ( (int)seg_im[i + j *psb_m] > 0){
+                                    int x = srcsize.width/2 - msize.width/2 + i;
+                                    int y = srcsize.height/2 - msize.height/2 + j; 
+                                    tempImg[u*3 + v * psbtemp] = r_orig[x*3 + y * psb];
+                                    tempImg[u*3 + v * psbtemp + 1] = r_orig[x*3 + y * psb + 1];
+                                    tempImg[u*3 + v * psbtemp + 2] = r_orig[x*3 + y * psb + 2];    
+                                }else{
+                                    tempImg[u*3 + v * psbtemp] = 0;
+                                    tempImg[u*3 + v * psbtemp + 1] = 0;
+                                    tempImg[u*3 + v * psbtemp + 2] = 0;
+                                }
+                                u ++; 
+                            }     
+                            u = 0;
+                            v ++;
+                        }
+                        ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
+                        imageOutTemp.prepare() = *img_out_temp;	
+                   	    imageOutTemp.write();
+                        delete img_out_temp;
+                        ippiFree (tempImg);
+                    }
+
+
+                    //-----------------------------------------------finished extracting
+                    //We've updated, so reset waiting:
+         			waiting=0;
+           			//report that we-ve updated templates:
+          			update = true;
+		        }
+		        //Otherwise, just keep previous templates:
+		        else{
+          			printf("area:%d spread:%f cogx:%f cogy:%f\n",area,spread,cog_x,cog_y);	
+          			waiting++;
+           			//report that we didn't update template:
+          			update = false;
+                    //retreive only the segmented object in order to send as template
+		        }
+	
+		        if(waiting >= 25 ){ //acquire_wait
+          			printf("Acquiring new target until nice seg (waiting:%d >= acquire_wait:%d)\n",waiting, params->acquire_wait );//acquire_wait
+          			acquire = true;
+		        }
+
+                Vector& target = cogPort.prepare();
 		        target.resize(2);
 		        target[0]=cog_x_send;
 		        target[1]=cog_y_send;
 		        cogPort.write();
 
-            if (imageOutTemp.getOutputCount()>0){ 
-
-                int top = -1;
-                int left = -1;
-                int right = -1;
-                int bottom = -1;
-             
-                for (int j=0;j<msize.height * psb_m;j++){
-                    
-                    if ( (int)seg_im[ j ] > 0){
-                        top = j/psb_m; 
-                        break;
-                    }
-            
-                }
-                for (int j=msize.height * psb_m;j >0; j--){
-
-                    if ( (int)seg_im[ j ] > 0){
-                        bottom = j/psb_m; 
-                        break;
-                    }
-                }
-                bool out = false;
-                for (int i=0;i<msize.width;i++){
-                    for (int j=0;j<msize.height;j++){
-                        if ( (int)seg_im[i + j *psb_m] > 0){
-                            left = i; 
-                            out = true;
-                            break;
-                        }
-                    }
-                    if (out)break;
-                }
-                out = false;
-                for (int i=msize.width;i >0; i--){
-                    for (int j=0;j<msize.height;j++){
-                        if ( (int)seg_im[i + j *psb_m] > 0){
-                            right = i; 
-                            out = true;
-                            break;
-                        }
-                    }
-                    if (out)break;
-                }
-
-                int u = 0;
-                int v = 0;
-                tempSize.width = right-left + 1;
-                tempSize.height = bottom-top + 1;
-
-                tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
-              
-                img_out_temp = new ImageOf<PixelBgr>;
-                img_out_temp->resize(tempSize.width, tempSize.height);
-                 
-                for (int j = top; j < bottom +1;j++){
-  			        for (int i = left; i < right + 1;i++){
-                        
-                        if ( (int)seg_im[i + j *psb_m] > 0){
-                            int x = srcsize.width/2 - msize.width/2 + i;
-                            int y = srcsize.height/2 - msize.height/2 + j; 
-                            
-                            tempImg[u*3 + v * psbtemp] = r_orig[x*3 + y * psb];
-                            tempImg[u*3 + v * psbtemp + 1] = r_orig[x*3 + y * psb + 1];
-                            tempImg[u*3 + v * psbtemp + 2] = r_orig[x*3 + y * psb + 2];    
-                        }else{
-                            tempImg[u*3 + v * psbtemp] = 0;
-                            tempImg[u*3 + v * psbtemp + 1] = 0;
-                            tempImg[u*3 + v * psbtemp + 2] = 0;
-                        }
-                        u ++; 
-                        
-                    }     
-                    u = 0;
-                    v ++;
-                }
-                
-                ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
-
-                imageOutTemp.prepare() = *img_out_temp;	
-           	    imageOutTemp.write();
-
-                delete img_out_temp;
-                ippiFree (tempImg);
-            }
 		
-		    //send it all when connections are established
-		    if (imageOutProb.getOutputCount()>0){ 
-                ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
-			    imageOutProb.prepare() = *img_out_prob;	
-               	imageOutProb.write();
-            }
+		        //send it all when connections are established
+		        if (imageOutProb.getOutputCount()>0){ 
+                    ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
+			        imageOutProb.prepare() = *img_out_prob;	
+                   	imageOutProb.write();
+                }
 
-		    if (imageOutSeg.getOutputCount()>0){
-                ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
-               	imageOutSeg.prepare() = *img_out_seg;	
-               	imageOutSeg.write();
-            }
-		    if (imageOutDog.getOutputCount()>0){
-                ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
-               	imageOutDog.prepare() = *img_out_dog;	
-               	imageOutDog.write();
+		        if (imageOutSeg.getOutputCount()>0){
+                    ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
+                   	imageOutSeg.prepare() = *img_out_seg;	
+                   	imageOutSeg.write();
+                }
+		        if (imageOutDog.getOutputCount()>0){
+                    ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
+                   	imageOutDog.prepare() = *img_out_dog;	
+                   	imageOutDog.write();
+                }
             }
 		}
 	}
