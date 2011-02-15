@@ -266,13 +266,14 @@ ZDFThread::ZDFThread( MultiClass::Parameters *parameters, string workWith )
 	img_out_dog = NULL;
     img_out_temp = NULL;
     res_t = NULL; 
-  	out= NULL, seg_im = NULL, seg_dog = NULL, fov_l = NULL, fov_r = NULL, zd_prob_8u = NULL, o_prob_8u = NULL, tempImg = NULL;
+  	out= NULL, seg_im = NULL, seg_dog = NULL, fov_l = NULL, fov_r = NULL, zd_prob_8u = NULL, o_prob_8u = NULL, tempImg = NULL, copyImg = NULL;
 	p_prob = NULL;
   	//templates:
   	temp_l = NULL, temp_r = NULL;
   	//input:
   	rec_im_ly = NULL;
   	rec_im_ry = NULL;
+    yuva_orig_l = NULL;
     yuva_orig_r= NULL;
     tmp= NULL;
     first_plane_l= NULL;
@@ -289,7 +290,6 @@ ZDFThread::ZDFThread( MultiClass::Parameters *parameters, string workWith )
 	m = NULL;
     l_orig = NULL, r_orig = NULL;
     allocated = false;
-    withArbiter = false;
     startProcessing = false;
 }
 
@@ -298,8 +298,10 @@ ZDFThread::~ZDFThread( )
     delete dl;
     delete dr;
     delete m;
+    ippiFree(copyImg);
     ippiFree(l_orig);
     ippiFree(r_orig);
+    ippiFree(yuva_orig_l);
     ippiFree(yuva_orig_r);
     ippiFree(tmp);
     ippiFree(first_plane_l);
@@ -377,9 +379,10 @@ void ZDFThread::run()
 
             Bottle check;
             check.clear();
+
             if (withArbiter){
                 inputCheckStatus.read(check, false);
-                if (check=="vergence_accomplished"){
+                if (check.get(0).asString()=="vergence_accomplished"){
                     startProcessing = true; 
                 }
                 else{
@@ -396,11 +399,10 @@ void ZDFThread::run()
                     deallocate();
                     allocate(img_in_left);
                 }
-
 		        //processing for zdf
 		        if (scale==1.0){ //resize the images if needed
 			        //copy yarp image to IPP
-			        //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), l_orig, psb, srcsize);
+			        ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
 			        //ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
                     //test with YUV images instead of grayscale left
                     ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
@@ -532,7 +534,6 @@ void ZDFThread::run()
               				seg_dog[ j * psb_m + i] = 0;
             			}
             			else{
-						        //cout << "here also " << endl;
              				seg_dog [ j * psb_m + i] = dr->get_dog_onoff()[j*psb_m + i];
               				seg_im [ j * psb_m + i] = fov_r[j * psb_m + i];
             			}
@@ -540,7 +541,7 @@ void ZDFThread::run()
 		        }
 			
 		        //If nice segmentation:
-		        if (area >= params->min_area && area <= params->max_area && spread<= params->max_spread){ 
+		        if (area >= params->min_area && area <= params->max_area && spread <= params->max_spread){ 
           			//don't update templates to image centre any more as we have a nice target
            			acquire = false;
                     //update templates towards segmentation CoG:
@@ -552,19 +553,30 @@ void ZDFThread::run()
 			        ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
 			        ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
 
-                    //-----------------------------------------------extract just template
+                    //We've updated, so reset waiting:
+         			waiting=0;
+           			//report that we-ve updated templates:
+          			update = true;
+		        }
+		        //Otherwise, just keep previous templates:
+		        else{
+          			printf("area:%d spread:%f cogx:%f cogy:%f\n",area,spread,cog_x,cog_y);	
+          			waiting++;
+           			//report that we didn't update template:
+                                        //-----------------------------------------------extract just template
 
                     if (imageOutTemp.getOutputCount()>0){ 
-
+                        cout << " sending template " << endl;
                         int top = -1;
                         int left = -1;
                         int right = -1;
                         int bottom = -1;
                      
-                        for (int j=0;j<msize.height * psb_m;j++){
+                        for (int j=0;j<msize.height* psb_m;j++){
                             
                             if ( (int)seg_im[ j ] > 0){
                                 top = j/psb_m; 
+                                //cout << "top : " << top << endl;
                                 break;
                             }
                         }
@@ -572,6 +584,7 @@ void ZDFThread::run()
 
                             if ( (int)seg_im[ j ] > 0){
                                 bottom = j/psb_m; 
+                                //cout << "bottom : " << bottom << endl;
                                 break;
                             }
                         }
@@ -580,6 +593,7 @@ void ZDFThread::run()
                             for (int j=0;j<msize.height;j++){
                                 if ( (int)seg_im[i + j *psb_m] > 0){
                                     left = i; 
+                                    //cout << "left : " << left << endl;
                                     out = true;
                                     break;
                                 }
@@ -591,6 +605,7 @@ void ZDFThread::run()
                             for (int j=0;j<msize.height;j++){
                                 if ( (int)seg_im[i + j *psb_m] > 0){
                                     right = i; 
+                                    //cout << "right : " << right << endl;
                                     out = true;
                                     break;
                                 }
@@ -611,9 +626,9 @@ void ZDFThread::run()
                                 if ( (int)seg_im[i + j *psb_m] > 0){
                                     int x = srcsize.width/2 - msize.width/2 + i;
                                     int y = srcsize.height/2 - msize.height/2 + j; 
-                                    tempImg[u*3 + v * psbtemp] = r_orig[x*3 + y * psb];
-                                    tempImg[u*3 + v * psbtemp + 1] = r_orig[x*3 + y * psb + 1];
-                                    tempImg[u*3 + v * psbtemp + 2] = r_orig[x*3 + y * psb + 2];    
+                                    tempImg[u*3 + v * psbtemp]     = copyImg[x*3 + y * psbCopy];
+                                    tempImg[u*3 + v * psbtemp + 1] = copyImg[x*3 + y * psbCopy + 1];
+                                    tempImg[u*3 + v * psbtemp + 2] = copyImg[x*3 + y * psbCopy + 2];    
                                 }else{
                                     tempImg[u*3 + v * psbtemp] = 0;
                                     tempImg[u*3 + v * psbtemp + 1] = 0;
@@ -633,16 +648,6 @@ void ZDFThread::run()
 
 
                     //-----------------------------------------------finished extracting
-                    //We've updated, so reset waiting:
-         			waiting=0;
-           			//report that we-ve updated templates:
-          			update = true;
-		        }
-		        //Otherwise, just keep previous templates:
-		        else{
-          			printf("area:%d spread:%f cogx:%f cogy:%f\n",area,spread,cog_x,cog_y);	
-          			waiting++;
-           			//report that we didn't update template:
           			update = false;
                     //retreive only the segmented object in order to send as template
 		        }
@@ -689,21 +694,29 @@ void ZDFThread::threadRelease()
 void ZDFThread::onStop()
 {
     cout << "closing ports.." << endl;
+    imageInLeft.interrupt();
+    imageInRight.interrupt();
+    imageOutProb.interrupt();
+    imageOutSeg.interrupt();
+    imageOutDog.interrupt();
+    imageOutTemp.interrupt();
+    inputCheckStatus.interrupt(); 
     imageInLeft.close();
     imageInRight.close();
     imageOutProb.close();
     imageOutSeg.close();
     imageOutDog.close();
-    imageOutTemp.close(); 
+    imageOutTemp.close();
+    inputCheckStatus.close(); 
     cout << "finished cleaning.." << endl;
 }
 
 void ZDFThread::deallocate() {
 
-    cout << "cleaning up dynamically created objects" << endl;
     delete dl;
     delete dr;
     delete m;
+    ippiFree(copyImg);
     ippiFree(l_orig);
     ippiFree(r_orig);
     ippiFree(yuva_orig_l);
@@ -733,7 +746,6 @@ void ZDFThread::deallocate() {
     delete img_out_prob;
     delete img_out_seg;
     delete img_out_dog;
-
     allocated = false;
 }
 
@@ -796,13 +808,14 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     nclasses = 2;
     dpix_y = 0;
 
+    copyImg     = ippiMalloc_8u_C3( srcsize.width, srcsize.height, &psbCopy);
     l_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
     r_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
 
     rec_im_ly   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
     rec_im_ry   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
 
-    res_t     = ippiMalloc_32f_C1(trsize.width,trsize.height,&psb_rest);
+    res_t      = ippiMalloc_32f_C1(trsize.width,trsize.height,&psb_rest);
     out        = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
     seg_im     = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
     seg_dog    = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
@@ -813,11 +826,10 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     o_prob_8u  = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
     p_prob    = (Ipp8u**) malloc(sizeof(Ipp8u*)*nclasses);
 
-
     yuva_orig_l = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
     yuva_orig_r = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
 
-    tmp     = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb );
+    tmp             = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb );
     first_plane_l    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
     second_plane_l    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
     third_plane_l   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);

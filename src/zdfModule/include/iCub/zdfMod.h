@@ -111,11 +111,11 @@ private:
 
 	Coord c;
 
-	int psb_m,psb_t,psb_rest,psb_resv, psb_trgb, psbtemp;
+	int psb_m,psb_t,psb_rest,psb_resv, psb_trgb, psbtemp, psbCopy;
 	int nclasses, dpix_y;
 
 	Ipp32f *res_t; 
-  	Ipp8u *out, *seg_im, *seg_dog, *fov_l, *fov_r, *zd_prob_8u, *o_prob_8u, *tempImg;
+  	Ipp8u *out, *seg_im, *seg_dog, *fov_l, *fov_r, *zd_prob_8u, *o_prob_8u, *tempImg, *copyImg;
 	Ipp8u **p_prob;
   	//templates:
   	Ipp8u *temp_l, *temp_r;
