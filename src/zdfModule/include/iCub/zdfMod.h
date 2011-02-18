@@ -16,6 +16,12 @@
  * Public License for more details
  */
 
+/**
+*
+* @ingroup icub_logpolarAttention
+\defgroup zdfMod zdfMod
+*/
+
 #ifndef __ICUB_ZDFMODULE_H__
 #define __ICUB_ZDFMODULE_H__
 

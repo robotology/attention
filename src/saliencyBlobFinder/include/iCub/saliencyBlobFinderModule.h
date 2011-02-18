@@ -29,7 +29,7 @@
 /** 
  *
  * \defgroup icub_saliencyBlobFinder saliencyBlobFinder
- * @ingroup icub_logpolarAttentionSystem
+ * @ingroup icub_logpolarAttention
  *
  * This is a a blob finder module that works on logpolar images. It takes an edge image as input (e.g. as produced by the
  * visualFilter module), runs the watershed operator (to find blobs), quantizes the colors and then computes a measure

@@ -19,6 +19,12 @@
  */
 
 /**
+*
+* @ingroup icub_logpolarAttention
+\defgroup selAttentionInterface selAttentionInterface
+*/
+
+/**
 * CHANGE LOG
 * 24/12/2010 Removed callbacks of unallocated controls                          @author Rea
 */

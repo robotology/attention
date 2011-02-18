@@ -29,7 +29,7 @@
 /** 
  *
  * \defgroup icub_gazeArbiter gazeArbiter
- * @ingroup icub_logpolarAttentionSystem
+ * @ingroup icub_logpolarAttention
  *
  * This is a module that creates the infrastructure Observer-Observables in order to handle a state machine for gaze control.
  * 

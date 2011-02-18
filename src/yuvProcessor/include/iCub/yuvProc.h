@@ -16,6 +16,12 @@
  * Public License for more details
  */
 
+/**
+*
+* @ingroup icub_logpolarAttention
+\defgroup yuvProcessor yuvProcessor
+*/
+
 #ifndef __ICUB_YUV_PROC_H__
 #define __ICUB_YUV_PROC_H__
 

@@ -29,7 +29,7 @@
 /** 
  *
  * \defgroup icub_colourSaliency colourSaliency
- * @ingroup icub_logpolarAttentionSystem
+ * @ingroup icub_logpolarAttention
  *
  *
  * This is a module that reads from a source of images, makes a statistics of the most frequent colour received.
