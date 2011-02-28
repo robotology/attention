@@ -419,7 +419,7 @@ void gazeArbiterThread::run() {
                 px(0) = 160.0 - errorx;
                 px(1) = 120.0 - errory;
                 error = sqrt(errorx * errorx + errory * errory);
-                //printf("norm error %f \n", error);
+                printf("norm error %f \n", error);
                 int camSel = 0;
                 igaze->lookAtMonoPixel(camSel,px,z);
                 //printf("saccadic event : started %f %f  \n",px(0),px(1));
@@ -428,7 +428,8 @@ void gazeArbiterThread::run() {
                 tracker->getPoint(point);
                 //printf("the point ended up in %d  %d \n",point.x, point.y);
             }
-
+            Time::delay(0.05);
+            igaze->waitMotionDone();
             status = statusPort.prepare();
             status.clear();
             status.addString("saccade_accomplished");
@@ -510,14 +511,14 @@ void gazeArbiterThread::run() {
 
             if((mono)) {
                 
-                /*if(phi == 0) {
+                if((phi < 0.1)&&(phi>-0.1)) {
                     status = statusPort.prepare();
                     status.clear();
                     status.addString("vergence_accomplished");
                     statusPort.write();
                     return;
                 }
-                */
+                
 
                 //printf("------------- VERGENCE   ----------------- \n");
                 
