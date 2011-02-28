@@ -1,13 +1,10 @@
+# Copyright: (C) 2010 RobotCub Consortium
+# Authors: Giorgio Metta
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 SET(KEYWORD "saliencyBlobFinder")
-
 PROJECT(${KEYWORD})
-
-FIND_PACKAGE(YARP)
-FIND_PACKAGE(ICUB)
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
-FIND_PACKAGE(IPP)
 
 #search for includes
 INCLUDE_DIRECTORIES(
@@ -18,13 +15,11 @@ INCLUDE_DIRECTORIES(
     ${logpolar_INCLUDE_DIRS}
 )
 
-
 # Search for source code.
 FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
 FILE(GLOB folder_header include/iCub/*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
-
 
 # Set up our main executable
 IF (folder_source)
@@ -44,7 +39,6 @@ IF (folder_source)
 ELSE (folder_source)
     MESSAGE( "No source code files found. Please add something")
 ENDIF (folder_source)
-
 
 INSTALL_TARGETS(/bin ${KEYWORD})
 

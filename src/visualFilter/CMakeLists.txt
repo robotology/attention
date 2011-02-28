@@ -1,11 +1,9 @@
+# Copyright: (C) 2010 RobotCub Consortium
+# Authors: Giorgio Metta
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(KEYWORD "visualFilter")
 PROJECT(${KEYWORD})
-
-FIND_PACKAGE(ICUB)
-FIND_PACKAGE(YARP)
-SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
-FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(IPP REQUIRED)
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include

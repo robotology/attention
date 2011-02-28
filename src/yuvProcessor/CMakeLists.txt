@@ -1,10 +1,9 @@
+# Copyright: (C) 2010 RobotCub Consortium
+# Authors: Giorgio Metta
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 set(PROJECTNAME yuvProcessor)
 project(${PROJECTNAME})
-
-FIND_PACKAGE(ICUB)
-FIND_PACKAGE(YARP REQUIRED)
-SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
-FIND_PACKAGE(IPP)
 
 # Search for source code.
 file(GLOB folder_source src/*.cpp src/*.cc src/*.c)

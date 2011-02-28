@@ -1,14 +1,10 @@
+# Copyright: (C) 2010 RobotCub Consortium
+# Authors: Giorgio Metta
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
 SET(KEYWORD "selectiveAttentionEngine")
 
 PROJECT(${KEYWORD})
-
-FIND_PACKAGE(ICUB)
-FIND_PACKAGE(YARP)
-SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
-FIND_PACKAGE(OpenCV REQUIRED)
-#FIND_PACKAGE(IPP REQUIRED)
-
 
 #search for includes
 INCLUDE_DIRECTORIES(
@@ -17,12 +13,7 @@ INCLUDE_DIRECTORIES(
     ${ICUB_INCLUDE_DIRS}
     ${OPENCV_INCLUDE_DIR}    
     ${logpolar_INCLUDE_DIRS}	
-    #${IPP_INCLUDE_DIRS}	
 )
-
-#IF(NOT IPP_INCLUDE_DIRS)
-#	MESSAGE(ERROR ": No IPP_INCLUDE_DIR found. Please check it out")	
-#ENDIF(NOT IPP_INCLUDE_DIRS)
 
 # Search for source code.
 FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
@@ -39,7 +30,6 @@ IF (folder_source)
     TARGET_LINK_LIBRARIES( ${KEYWORD}
       ${YARP_LIBRARIES} 
       ${OPENCV_LIBRARIES}  
-      #${IPP_LIBRARIES}
  	  icubmod
 	  logpolar
      )	
