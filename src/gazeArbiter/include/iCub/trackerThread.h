@@ -148,6 +148,10 @@ public:
                 cvRectangle(imgBgrOut.getIplImage(),cvPoint(search_roi.x,search_roi.y),
                             cvPoint(search_roi.x+search_roi.width,search_roi.y+search_roi.height),
                             cvScalar(255,0,0),2);
+
+                cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
+                            cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
+                            cvScalar(0,255,0),2);
             }
 
             // send out output-image
