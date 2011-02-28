@@ -590,7 +590,7 @@ void selectiveAttentionProcessor::run(){
                     *pImage = value;
                     if(*pImage == 255) {
                         maxResponse = true;
-                        xm = x; ym = y;
+                        xm = (float) x; ym = (float) y;
                         startInt = 0;      // forces the immediate saccade to the very salient object
                         break;
                     }
@@ -741,8 +741,6 @@ void selectiveAttentionProcessor::run(){
                                     );
                         }
                         */
-                        
-                        printf("h %f",z);
                     }
 
                     if(directSaccade) {
@@ -955,7 +953,6 @@ void selectiveAttentionProcessor::setHueMap(int p) {
                 }
             break;
     }
-    printf("HUE map %0x \n", hueMap);
 }
 
 
@@ -990,7 +987,6 @@ void selectiveAttentionProcessor::setSatMap(int p) {
                 }
             break;
     }
-    printf("HUE map %0x \n", hueMap);
 }
 
 
