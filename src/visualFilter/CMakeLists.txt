@@ -25,10 +25,10 @@ IF (folder_source)
         ${folder_header}
     )
 
-    TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${IPP_LIBRARIES}
-                                     ${YARP_LIBRARIES})	
-
+    TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${IPP_LIBRARIES} ${YARP_LIBRARIES})	
     INSTALL_TARGETS(/bin ${KEYWORD})
+	
 ELSE (folder_source)
     MESSAGE(FATAL_ERROR "No source code files found. Please add something")
+	
 ENDIF (folder_source)

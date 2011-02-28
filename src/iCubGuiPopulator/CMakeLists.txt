@@ -2,7 +2,6 @@
 # Authors: Giorgio Metta
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
 SET(KEYWORD "iCubGuiPopulator")
 PROJECT(${KEYWORD})
 
@@ -24,9 +23,10 @@ IF (folder_source)
         ${folder_header}
     )
 
-    TARGET_LINK_LIBRARIES(${KEYWORD}                                     	${YARP_LIBRARIES})	
-
+    TARGET_LINK_LIBRARIES(${KEYWORD} ${YARP_LIBRARIES})	
     INSTALL_TARGETS(/bin ${KEYWORD})
+	
 ELSE (folder_source)
     MESSAGE(FATAL_ERROR "No source code files found. Please add something")
+	
 ENDIF (folder_source)

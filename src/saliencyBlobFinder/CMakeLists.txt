@@ -2,7 +2,6 @@
 # Authors: Giorgio Metta
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
 SET(KEYWORD "saliencyBlobFinder")
 PROJECT(${KEYWORD})
 
@@ -35,10 +34,12 @@ IF (folder_source)
 		icubmod
 		iKin
     )
+    
+	INSTALL_TARGETS(/bin ${KEYWORD})
 
 ELSE (folder_source)
     MESSAGE( "No source code files found. Please add something")
+	
 ENDIF (folder_source)
 
-INSTALL_TARGETS(/bin ${KEYWORD})
 
