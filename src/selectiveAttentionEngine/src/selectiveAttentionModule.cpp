@@ -188,7 +188,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     /* parses the value of the coefficient map1 */
     k1       = rf.check("k1", 
-                           Value(0.5), 
+                           Value(0.1), 
                            "coefficient map1 (double)").asDouble();
     currentProcessor->setK1(k1);
 
@@ -206,7 +206,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     /* parses the value of the coefficient map4 */
     k4       = rf.check("k4", 
-                           Value(0.1), 
+                           Value(0.5), 
                            "coefficient map4 (double)").asDouble();
     currentProcessor->setK4(k4);
 
@@ -217,7 +217,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     currentProcessor->setK5(k5);
 
     /* parses the value of the coefficient map6 */
-    k6       = rf.check("k6", 
+    k6       = rf.check("k6",  
                            Value(1.0), 
                            "coefficient map6 (double)").asDouble();
     currentProcessor->setK6(k6);

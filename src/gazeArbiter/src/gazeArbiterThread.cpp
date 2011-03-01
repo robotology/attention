@@ -300,6 +300,7 @@ void gazeArbiterThread::run() {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
                         tracker->init(u,v);
+                        Time::delay(0.05);
                         Vector px(2);
                         px(0) = u;
                         px(1) = v;
@@ -365,7 +366,7 @@ void gazeArbiterThread::run() {
             }
 
             executing = true;
-            Time::delay(0.05);
+            Time::delay(0.5);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
 
@@ -396,10 +397,10 @@ void gazeArbiterThread::run() {
                     timeoutStart = Time::now();
                     timeout = 0;
                     
-                    status.clear();
-                    status.addString("saccade_unreachable");
-                    statusPort.write();
-                    status.clear();
+                    //status.clear();
+                    //status.addString("saccade_unreachable");
+                    //statusPort.write();
+                    //status.clear();
                 }
                 else {
                     printf("saccade_accomplished \n");
@@ -431,9 +432,9 @@ void gazeArbiterThread::run() {
             Time::delay(0.05);
             igaze->waitMotionDone();
             status = statusPort.prepare();
-            status.clear();
-            status.addString("saccade_accomplished");
-            statusPort.write(true);
+            //status.clear();
+            //status.addString("saccade_accomplished");
+            //statusPort.write(true);
             
         }
     }
@@ -442,7 +443,8 @@ void gazeArbiterThread::run() {
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
-        // ----------------  VERGENCE -----------------------       
+        // ----------------  VERGENCE -----------------------     
+        
         //printf("Entering in VERGENCE \n");
         if(!executing) {
             Vector gazeVect(3);
@@ -511,12 +513,21 @@ void gazeArbiterThread::run() {
 
             if((mono)) {
                 
-                if((phi < 0.1)&&(phi>-0.1)) {
+                if((phi < 0.1)&&(phi>-0.1)&&(!accomplished_flag)) {
                     status = statusPort.prepare();
                     status.clear();
                     status.addString("vergence_accomplished");
                     statusPort.write();
+                    printf("************ \n");
+                    accomplished_flag = true;
                     return;
+                }
+                
+                if(accomplished_flag){
+                    if((phi>0.4)||(phi<-0.4))
+                        accomplished_flag = false;
+                    else
+                        return;
                 }
                 
 
@@ -635,10 +646,10 @@ void gazeArbiterThread::run() {
                 gazeVect[2] = phi;              //vergence  
                 //igaze->lookAtRelAngles(gazeVect);
                 executing = true;
-                status = statusPort.prepare();
-                status.clear();
-                status.addString("vergence_accomplished");
-                statusPort.write();
+                //status = statusPort.prepare();
+                //status.clear();
+                //status.addString("vergence_accomplished");
+                //statusPort.write();
             }
         }
     }

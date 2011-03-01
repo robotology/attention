@@ -75,6 +75,7 @@ private:
     double phiTOT;                          // accumulator of increments of vergence angles
     bool mono;                              // flag that indicates whether the saccade is mono or not
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
+    bool accomplished_flag;                 // flag for the accomplished vergence
     double timeoutStart,timeoutStop;        // start and stop timing to avoid that saccadic event can stuck
     double timeout;                         // actual timer of the saccadic action\
 
