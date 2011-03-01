@@ -786,7 +786,7 @@ GtkWidget* createMainWindow(void) {
     GtkWidget *hscale, *vscale;
 
     // value, lower, upper, step_increment, page_increment, page_size 
-    adj1 = gtk_adjustment_new (0.0, 0.0, 1.0, 0.01, 1.0, 1.0);
+    adj1 = gtk_adjustment_new (0.0, 0.0, 0.5, 0.01, 1.0, 1.0);
     vscale = gtk_vscale_new (GTK_ADJUSTMENT (adj1));
     scale_set_default_values (GTK_SCALE (vscale));
     gtk_box_pack_start (GTK_BOX (boxSliders), vscale, TRUE, TRUE, 0);
@@ -816,7 +816,7 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
-    adj1 = gtk_adjustment_new (1.0, 0.0,1.0,0.01, 0.0, 0.0);
+    adj1 = gtk_adjustment_new (0.5, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj1));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
     scale_set_default_values (GTK_SCALE (hscale));
@@ -844,7 +844,7 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
-    adj3 = gtk_adjustment_new (0.5, 0.0,1.0,0.01, 0.0, 0.0);
+    adj3 = gtk_adjustment_new (0.1, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj3));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
     scale_set_default_values (GTK_SCALE (hscale));
@@ -884,7 +884,7 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
-    adj6 = gtk_adjustment_new (0.5, 0.0,1.0,0.01, 0.0, 0.0);
+    adj6 = gtk_adjustment_new (1.0, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj6));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
     scale_set_default_values (GTK_SCALE (hscale));
@@ -1029,7 +1029,7 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box2), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
-    adjMotion = gtk_adjustment_new (0.5, 0.0,1.0,0.01, 0.0, 0.0);
+    adjMotion = gtk_adjustment_new (0.3, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adjMotion));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
     scale_set_default_values (GTK_SCALE (hscale));
