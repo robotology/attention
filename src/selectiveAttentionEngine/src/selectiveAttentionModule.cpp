@@ -218,7 +218,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     /* parses the value of the coefficient map6 */
     k6       = rf.check("k6", 
-                           Value(0.5), 
+                           Value(1.0), 
                            "coefficient map6 (double)").asDouble();
     currentProcessor->setK6(k6);
 
