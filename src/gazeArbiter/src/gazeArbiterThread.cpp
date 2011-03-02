@@ -218,7 +218,7 @@ bool gazeArbiterThread::threadInit() {
     }
     robotHead->view(encHead);
 
-    //name="matchTracker";
+    
     template_size = 20;
     search_size = 100;
     point.x = 320;
@@ -240,6 +240,11 @@ void gazeArbiterThread::interrupt() {
     inLeftPort.interrupt();
     inRightPort.interrupt();
     statusPort.interrupt();
+}
+
+void gazeArbiterThread::setDimension(int w, int h) {
+    width = w;
+    height = h;
 }
 
 void gazeArbiterThread::setName(string str) {
@@ -299,13 +304,23 @@ void gazeArbiterThread::run() {
                 if ((xOffset == 0) && (xOffset == 0) && (xOffset == 0)) {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
-                        tracker->init(u,v);
-                        Time::delay(0.05);
-                        Vector px(2);
-                        px(0) = u;
-                        px(1) = v;
-                        int camSel = 0;
-                        igaze->lookAtMonoPixel(camSel,px,z);
+                        int dx = 100 , dy = 100;
+                        double dist = sqrt(dx * dx + dy * dy);
+                        while (dist > 10) {
+                            tracker->init(u,v);
+                            tracker->waitInitTracker();
+                            Vector px(2);
+                            px(0) = u;
+                            px(1) = v;
+                            int camSel = 0;
+                            igaze->lookAtMonoPixel(camSel,px,z);
+                            tracker->getPoint(point);
+                            dx = point.x - px(0);
+                            dy = point.y - px(1);
+                            dist = sqrt(dx * dx + dy * dy);
+                            u = width / 2;
+                            v = height / 2;
+                        }
                         printf("saccadic event : started \n",u,v,z);
                     }
                 }
@@ -366,7 +381,7 @@ void gazeArbiterThread::run() {
             }
 
             executing = true;
-            Time::delay(0.5);
+            Time::delay(0.05);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
 
@@ -376,17 +391,10 @@ void gazeArbiterThread::run() {
             timeoutStart=Time::now();
             while ((!done)&&(timeout < 10.0)) {
                 while((!done)&&(timeout < 10.0)) {
-                    
                     timeoutStop = Time::now();
                     timeout =timeoutStop - timeoutStart;
-                    
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);
-
-                    //CvPoint point;
-                    //tracker->getPoint(point);
-
-                    
                     
                 }
                 if(timeout >= 10.0) {
@@ -408,30 +416,34 @@ void gazeArbiterThread::run() {
             }
             //correcting the macrosaccade using the visual feedback
             double error = 1000.0;
-            while(( error > 1.5)&&(timeout < 10.0)&&(tracker->getInputCount())) {
+            while(( error > 1)&&(timeout < 10.0)&&(tracker->getInputCount())) {
                 timeoutStop = Time::now();
                 timeout =timeoutStop - timeoutStart;
                 //corrected the error
-                double errorx = 160  - point.x;
-                double errory = 120 - point.y;
-                //printf ("error %f,%f \n",errorx, errory);
+                double errorx = (width / 2.0)  - point.x;
+                double errory = (height / 2.0) - point.y;
                 Vector px(2);
-                //TODO : removing this awful hardcoded lines cointaing fixed dimension of the imag
-                px(0) = 160.0 - errorx;
-                px(1) = 120.0 - errory;
+                px(0) = (width / 2.0) - errorx;
+                px(1) = (height / 2.0) - errory;
                 error = sqrt(errorx * errorx + errory * errory);
                 printf("norm error %f \n", error);
                 int camSel = 0;
                 igaze->lookAtMonoPixel(camSel,px,z);
-                //printf("saccadic event : started %f %f  \n",px(0),px(1));
-                //Time::delay(0.05);
-                //igaze->waitMotionDone();
                 tracker->getPoint(point);
                 //printf("the point ended up in %d  %d \n",point.x, point.y);
             }
             Time::delay(0.05);
-            igaze->waitMotionDone();
-            status = statusPort.prepare();
+            igaze->checkMotionDone(&done);
+            while((!done)&&(timeout < 10.0)) {
+                
+                timeoutStop = Time::now();
+                timeout =timeoutStop - timeoutStart;
+                printf("f");
+                Time::delay(0.005);
+                igaze->checkMotionDone(&done);
+                
+            }
+            //status = statusPort.prepare();
             //status.clear();
             //status.addString("saccade_accomplished");
             //statusPort.write(true);
@@ -548,12 +560,6 @@ void gazeArbiterThread::run() {
                 //printf("varDistance %f distance %f of vergence angle tot %f enc %f \n",varDistance,distance, (phiTOT * 180)/PI, _head(5));
                 
 
-                
-                /*objectVect(0) = l[0] + varDistance  * (x1 / magnitude); 
-                  objectVect(1) = l[1] + varDistance  * (y1 / magnitude); 
-                  objectVect(2) = l[2] + varDistance  * (z1 / magnitude); 
-                  igaze->lookAtFixationPoint(objectVect);
-                */
 
                 //tracker->getPoint(point);
                 double error = 1000;                                         
@@ -571,8 +577,8 @@ void gazeArbiterThread::run() {
                     //printf("norm error %f \n", error);
                     int camSel = 0;
                     
-                    px(0) = 160.0;
-                    px(1) = 120.0;
+                    px(0) = (width / 2.0);
+                    px(1) = (height / 2.0);
 
                     printf("----------------------------------varDistance %f \n", varDistance);
                     igaze->lookAtMonoPixel(camSel,px,varDistance);
@@ -580,18 +586,7 @@ void gazeArbiterThread::run() {
                     //tracker->getPoint(point);
                     //}
                 
-                
-
-
-                /* 
-                Time::delay(0.05); 
-                igaze->checkMotionDone(&done);
-                while(!done) {
-                    printf("#");
-                    Time::delay(0.005);
-                    igaze->checkMotionDone(&done);
-                }
-                */
+               
                 /*
                   printf("x1 %f y1 %f z1 %f", x1, y1, z1);
                   double s = sin(theta);

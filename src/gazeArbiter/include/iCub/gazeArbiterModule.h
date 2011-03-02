@@ -62,7 +62,12 @@
  *
  * - \c robot \c icub \n 
  *   specifies the name of the robot (used to form the root of robot port names)
- *
+ * 
+ * - \c width \c 320 \n
+ *   specifies the dimension width of the input image
+ * 
+ * - \c height \c 240 \n
+ *   specifies the dimension height of the input image
  *
  * <b>Configuration File Parameters</b>
  *
@@ -145,7 +150,9 @@
  * 18/01/11 : introduced the right eye image as input of the vergence algorithm                     @author Rea
  * 26/01/11 : added resume/suspend and port for status communication                                @author Rea
  * 31/01/11 : checkpoint that controls whether there is a action performing and waits till not      @author Rea
- * 01/02/11 : added xoffset, yoffset and zoffset for 3D target                                  @author Rea
+ * 01/02/11 : added xoffset, yoffset and zoffset for 3D target                                      @author Rea
+ * 30/02/11 : added new parameters for input image dimensioning                                     @author Rea 
+ * 30/02/11 : removed imprecision in the case the tracker does not initialise                       @author Rea  
  */
 
 #include <iostream>
@@ -171,6 +178,7 @@ class gazeArbiterModule:public yarp::os::RFModule {
     int xoffset;                                // offset for the 3D point along x
     int yoffset;                                // offset for the 3D point along y
     int zoffset;                                // offset for the 3D point along z
+    int width, height;                          // parameter set by user dimensioning input image
     yarp::os::Port handlerPort;                 // a port to handle messages 
 
     gazeArbiterThread* arbiter;                 //agent that sends commands to the gaze interface

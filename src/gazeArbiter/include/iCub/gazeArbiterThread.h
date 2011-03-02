@@ -71,6 +71,7 @@ private:
     int xOffset;                            // offset for the 3D point along x
     int yOffset;                            // offset for the 3D point along y
     int zOffset;                            // offset for the 3D point along z
+    int width, height;                      // dimension of the image
     double phi;                             // value passed for vergence
     double phiTOT;                          // accumulator of increments of vergence angles
     bool mono;                              // flag that indicates whether the saccade is mono or not
@@ -142,6 +143,13 @@ public:
     * @param str rootname as a string
     */
     void setName(std::string str);
+
+    /**
+    * function that set the variable needed for image dimension
+    * @param width set the dimension width of the input image
+    * @param height set the dimension height of the input image
+    */
+    void setDimension(int width, int height);
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter

@@ -40,9 +40,13 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
 
     /* get the module name which will form the stem of all module port names */
-    moduleName            = rf.check("name", 
+    moduleName             = rf.check("name", 
                            Value("/gazeArbiter"), 
                            "module name (string)").asString();
+
+
+   
+
     /*
     * before continuing, set the module name before getting any other parameters, 
     * specifically the port names which are dependent on the module name
@@ -73,6 +77,18 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     
     arbiter=new gazeArbiterThread(configFile);
     arbiter->setName(getName().c_str());
+
+    /* get the dimension of the image for the thread parametric control */
+    width                  = rf.check("width", 
+                           Value("320"), 
+                           "width of the image (int)").asInt();
+
+    height                 = rf.check("height", 
+                           Value("240"), 
+                           "height of the image (int)").asInt();
+    width = 320; height = 240;
+    printf("\n width: %d  height:%d \n", width, height);
+    arbiter->setDimension(width,height);
 
     /* offset for 3d position along x axis */
     this->xoffset       = rf.check("xoffset", 

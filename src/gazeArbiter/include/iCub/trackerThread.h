@@ -59,6 +59,7 @@ protected:
 
     bool firstConsistencyCheck;
     bool running;
+    bool init_success;                           //flag that check whether initialisation was successful
 
     ImageOf<PixelMono> imgMonoIn;
     ImageOf<PixelMono> imgMonoPrev;
@@ -80,8 +81,9 @@ public:
         inPort.open(("/"+name+"/img:i").c_str());
         outPort.open(("/"+name+"/img:o").c_str());
 
-        firstConsistencyCheck=true;
-        running=false;
+        firstConsistencyCheck = true;
+        running = false;
+        init_success = false;
 
         return true;
     }
@@ -152,6 +154,8 @@ public:
                 cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
                             cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
                             cvScalar(0,255,0),2);
+                
+                init_success = true; // considering init success at the end of the first loop
             }
 
             // send out output-image
@@ -184,14 +188,23 @@ public:
 
     /************************************************************************/
     void init(const int x, const int y){
-        point.x=x;
-        point.y=y;
+        init_success = false;
+        point.x = x;
+        point.y = y;
 
-        search_roi.width=search_roi.height=search_size;
-        template_roi.width=template_roi.height=template_size;
+        search_roi.width = search_roi.height=search_size;
+        template_roi.width = template_roi.height=template_size;
 
-        running=true;
+        running = true;
     }
+    /*****************************************************************************/
+    
+    void waitInitTracker() {
+        while (!init_success) {
+            Time::delay(0.005);
+        }
+    }
+
 
     /*****************************************************************************/
 
