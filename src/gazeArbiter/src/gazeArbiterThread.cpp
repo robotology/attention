@@ -304,7 +304,7 @@ void gazeArbiterThread::run() {
                 if ((xOffset == 0) && (xOffset == 0) && (xOffset == 0)) {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
-                        int dx = 100 , dy = 100;
+                        double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
                         while (dist > 10) {
                             tracker->init(u,v);
@@ -315,8 +315,8 @@ void gazeArbiterThread::run() {
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,z);
                             tracker->getPoint(point);
-                            dx = point.x - px(0);
-                            dy = point.y - px(1);
+                            dx = (double) (point.x - px(0));
+                            dy = (double) (point.y - px(1));
                             dist = sqrt(dx * dx + dy * dy);
                             u = width / 2;
                             v = height / 2;

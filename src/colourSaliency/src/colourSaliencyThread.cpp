@@ -126,8 +126,6 @@ void colourSaliencyThread::training(ImageOf<PixelRgb>* trainingImage) {
     int padding=trainingImage->getPadding();
     int rowsize=trainingImage->getRowSize();
     unsigned char trainRed, trainGreen, trainBlue;
-    unsigned char trainU, trainV;
-    float y,u,v;
 
     const float ul = 1.0f - lambda;
     //mean values
@@ -155,9 +153,9 @@ void colourSaliencyThread::training(ImageOf<PixelRgb>* trainingImage) {
             pixel++;
             trainBlue=*pixel;
             pixel++;
-            int posRed=floor((double)trainRed/16.0);
-            int posGreen=floor((double)trainGreen/16.0);
-            int posBlue=floor((double)trainBlue/16.0);
+            int posRed=(int)floor((double)trainRed/16.0);
+            int posGreen=(int)floor((double)trainGreen/16.0);
+            int posBlue=(int)floor((double)trainBlue/16.0);
             if (trainingVector[posRed * 256 + posGreen * 16 + posBlue]<100) {
                 trainingVector[posRed * 256 + posGreen * 16 + posBlue]+=1;
             }
@@ -175,54 +173,53 @@ void colourSaliencyThread::bucketLeak(){
 }
 
 void colourSaliencyThread::makeProbImage(ImageOf<PixelRgb> imageIn, ImageOf<PixelMono>* imageOut) {
-    unsigned char* pixel;//=imageIn.getRawImage();
-    unsigned char* pixelOut;//=imageOut->getRawImage();
-    int padding=imageIn.getPadding();
-    int paddingOut=imageOut->getPadding();
-    int rowsize=imageIn.getRowSize();
-    int rowsizeOut=imageOut->getRowSize();
+    unsigned char* pixel;
+    unsigned char* pixelOut;
+    int padding = imageIn.getPadding();
+    int paddingOut = imageOut->getPadding();
+    int rowsize = imageIn.getRowSize();
+    int rowsizeOut = imageOut->getRowSize();
     unsigned char trainRed, trainGreen, trainBlue;
-    unsigned char trainU, trainV;
-    float y,u,v;
-    double sumProb=0;
-    const int particleX=4;
-    const int particleY=4;
+
+    double sumProb = 0;
+    const int particleX = 4;
+    const int particleY = 4;
     unsigned char* baseline = imageIn.getRawImage();
     unsigned char* baselineOut = imageOut->getRawImage();
-    int maxjr=floor((double)imageIn.height()/particleY);
-    int maxjc=floor((double)imageIn.width()/particleX);
+    int maxjr=(int) floor((double)imageIn.height()/particleY);
+    int maxjc=(int) floor((double)imageIn.width()/particleX);
     for (int jr=0;jr<maxjr;jr++) {
-        for (int jc=0;jc<maxjc;jc++) {
-            pixel=baseline+jc*particleX*3;
-            for(int r=0;r<particleX;r++) {
-                for(int c=0;c<particleY;c++) {
-                    trainRed=*pixel;
+        for (int jc = 0 ; jc < maxjc ; jc++) {
+            pixel = baseline + jc*particleX*3;
+            for(int r = 0 ; r < particleX ; r++) {
+                for(int c = 0;c < particleY ; c++) {
+                    trainRed = *pixel;
                     pixel++;
-                    trainGreen=*pixel;
+                    trainGreen = *pixel;
                     pixel++;
-                    trainBlue=*pixel;
+                    trainBlue = *pixel;
                     pixel++;
-                    int posRed=floor((double)trainRed/16.0);
-                    int posGreen=floor((double)trainGreen/16.0);
-                    int posBlue=floor((double)trainBlue/16.0);
-                    double den=(trainingX * trainingY);
-                    sumProb+=(double)(trainingVector[posRed * 256 + posGreen * 16 + posBlue]/den);
+                    int posRed = (int) floor((double)trainRed / 16.0);
+                    int posGreen = (int) floor((double)trainGreen / 16.0);
+                    int posBlue = (int) floor((double)trainBlue / 16.0);
+                    double den = (trainingX * trainingY);
+                    sumProb += (double)(trainingVector[posRed * 256 + posGreen * 16 + posBlue] / den);
                 }
-                pixel+=(rowsize-particleX*3);
+                pixel += (rowsize - particleX * 3);
             }
             //printf("%f ", sumProb);
-            pixelOut=baselineOut+jc*particleX;
-            for(int r=0;r<particleY;r++) {
-                for(int c=0;c<particleX;c++) {
-                    *pixelOut=sumProb*255;
+            pixelOut = baselineOut + jc * particleX;
+            for(int r = 0 ; r < particleY ; r++) {
+                for(int c = 0 ; c < particleX ; c++) {
+                    *pixelOut = (int) floor(sumProb * 255);
                     pixelOut++;
                 }
-                pixelOut+=(rowsizeOut-particleX);
+                pixelOut += (rowsizeOut - particleX);
             }
-            sumProb=0;
+            sumProb = 0;
         }
-        baseline+=rowsize * particleY;
-        baselineOut+=rowsizeOut * particleY;
+        baseline += rowsize * particleY;
+        baselineOut += rowsizeOut * particleY;
     }
 }
 

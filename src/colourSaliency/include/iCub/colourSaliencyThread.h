@@ -42,7 +42,7 @@ private:
     int count;                                  // loop counter of the thread
     int width, height;                          // dimension of the extended input image (extending)
     int height_orig, width_orig;                // original dimension of the input and output images
-    double lambda;                              // coefficient for temporal filtering
+    float lambda;                              // coefficient for temporal filtering
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inPort;        // port where the input image is received
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > outPort;      // port where the output is sent
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > trainingPort;  // port where the images for learning are sent
