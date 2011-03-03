@@ -190,7 +190,7 @@ void colourSaliencyThread::makeProbImage(ImageOf<PixelRgb> imageIn, ImageOf<Pixe
     int maxjc=(int) floor((double)imageIn.width()/particleX);
     for (int jr=0;jr<maxjr;jr++) {
         for (int jc = 0 ; jc < maxjc ; jc++) {
-            pixel = baseline + jc*particleX*3;
+            pixel = baseline + jc * particleX * 3;
             for(int r = 0 ; r < particleX ; r++) {
                 for(int c = 0;c < particleY ; c++) {
                     trainRed = *pixel;
