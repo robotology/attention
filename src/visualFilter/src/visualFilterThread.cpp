@@ -74,14 +74,14 @@ visualFilterThread::visualFilterThread() {
     blueYellow=new ImageOf<PixelMono>;
     edges=new ImageOf<PixelMono>;
 
-    buffer=0;
-    redGreenH16s=0;
-    greenRedH16s=0;
-    blueYellowH16s=0;
-    redGreenV16s=0;
-    greenRedV16s=0;
-    blueYellowV16s=0;
-    lambda=0.1;
+    buffer =0 ;
+    redGreenH16s   = 0;
+    greenRedH16s   = 0;
+    blueYellowH16s = 0;
+    redGreenV16s   = 0;
+    greenRedV16s   = 0;
+    blueYellowV16s = 0;
+    lambda = 0.1f;
 
     resized=false;
 }

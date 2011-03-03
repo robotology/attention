@@ -93,7 +93,8 @@ void populatorThread::run() {
             cout<<"list size:"<<size<<endl;
             // list of ids
             int j = 0;
-            double posX, posY, posZ, r, g, b, lifeTimer;
+            double posX, posY, posZ, lifeTimer;
+            int r, g, b;
             //starting for the list of ids, extract properties of all the object
             while( j < size) {
                 int id = list->get(j++).asInt();
@@ -117,10 +118,10 @@ void populatorThread::run() {
                     posZ = list->find("z").asDouble();
                     printf("position: %f,%f,%f \n", posX,posY,posZ);
                     
-                    r = list->find("r").asDouble();
-                    g = list->find("g").asDouble();
-                    b = list->find("b").asDouble();
-                    printf("colour: %f,%f,%f \n", r,g,b);
+                    r = list->find("r").asInt();
+                    g = list->find("g").asInt();
+                    b = list->find("b").asInt();
+                    printf("colour: %d,%d,%d \n", r,g,b);
 
                     lifeTimer = list->find("lifeTimer").asDouble();
                     printf("lifeTimer %f \n",lifeTimer);

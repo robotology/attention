@@ -93,17 +93,16 @@ SalienceOperator::~SalienceOperator() {
     free(_angShiftMap);
 }
 
-void SalienceOperator::DrawVQColor(ImageOf<PixelBgr>& id, ImageOf<PixelInt>& tagged)
-{
-    for (int r=0; r<height; r++)
-        for (int c=0; c<width; c++)
-            colorVQ->DominantQuantization(m_boxes[tagged(c, r)].meanColors, id(c,r), 0.3*255);
+void SalienceOperator::DrawVQColor(ImageOf<PixelBgr>& id, ImageOf<PixelInt>& tagged) {
+    for (int r = 0 ; r < height; r++)
+        for (int c = 0; c < width; c++)
+            colorVQ->DominantQuantization(m_boxes[tagged(c, r)].meanColors, id(c,r), (unsigned char)floor(0.3 * 255));
 }
 
 /**
 * Defines Valid and not valid boxes
 */
-void SalienceOperator::ComputeSalienceAll(int num_blob, int last_tag) {	
+void SalienceOperator::ComputeSalienceAll(int num_blob, int last_tag) {
     for (int i = 1; i <= last_tag; i++) {
         if (m_boxes[i].areaLP) {
             m_boxes[i].areaCart = TotalArea(m_boxes[i]);
@@ -147,9 +146,9 @@ PixelBgr SalienceOperator::varBlob(ImageOf<PixelInt>& tagged, ImageOf<PixelMono>
     tmpg = tmpg / m_boxes[tag].areaLP;
     tmpb = tmpb / m_boxes[tag].areaLP;
 
-    tmp.r = floor(sqrt((double)tmpr - m_boxes[tag].meanRG*m_boxes[tag].meanRG));
-    tmp.g = floor(sqrt((double)tmpg - m_boxes[tag].meanGR*m_boxes[tag].meanGR));
-    tmp.b = floor(sqrt((double)tmpb - m_boxes[tag].meanBY*m_boxes[tag].meanBY));
+    tmp.r = (unsigned char) floor(sqrt((double)tmpr - m_boxes[tag].meanRG*m_boxes[tag].meanRG));
+    tmp.g = (unsigned char) floor(sqrt((double)tmpg - m_boxes[tag].meanGR*m_boxes[tag].meanGR));
+    tmp.b = (unsigned char) floor(sqrt((double)tmpb - m_boxes[tag].meanBY*m_boxes[tag].meanBY));
 
     if (tmp.r==0) tmp.r=1;
     if (tmp.g==0) tmp.g=1;
@@ -439,15 +438,15 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
         // I could not change the scale of the salience and change only the color of the
         // most salient blob
         if (m_boxes[i].valid) {
-            int tmp,t,t_abs;
+            int tmp,t;
             double mlp;
             
             //__OLD//int rdim=(double)(m_boxes[i].rmax-m_boxes[i].rmin+1)*.75;
             //__OLD//int cdim=(double)(m_boxes[i].cmax-m_boxes[i].cmin+1)*.75;
             //int rdim=(double)(m_boxes[i].rmax-m_boxes[i].rmin+1)*1; //surrounding area coeff 1
             //int cdim=(double)(m_boxes[i].cmax-m_boxes[i].cmin+1)*1; //surrounding area coeff 1
-            int rdim=(double)(m_boxes[i].rmax-m_boxes[i].rmin+1)*pArea; //surrounding area coeff 1
-            int cdim=(double)(m_boxes[i].cmax-m_boxes[i].cmin+1)*pArea; //surrounding area coeff 1
+            int rdim=(int) floor((double)(m_boxes[i].rmax - m_boxes[i].rmin + 1) * pArea); //surrounding area coeff 1
+            int cdim=(int) floor((double)(m_boxes[i].cmax - m_boxes[i].cmin + 1) * pArea); //surrounding area coeff 1
 
 
             int a,b,c,d;
@@ -498,12 +497,12 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             
 
             /*__OLD*/
-            salienceBU=sqrt((double)m_boxes[i].cRG*m_boxes[i].cRG+
+            salienceBU=(int) floor(sqrt((double)m_boxes[i].cRG*m_boxes[i].cRG+
                             m_boxes[i].cGR*m_boxes[i].cGR+
-                            m_boxes[i].cBY*m_boxes[i].cBY);
+                            m_boxes[i].cBY*m_boxes[i].cBY));
             if(salienceBU>salienceBU_max)
                 salienceBU_max=salienceBU;
-            salienceBU=0-salienceBU/sqrt(3.0);
+            salienceBU=(int) floor(-salienceBU / sqrt(3.0));
 
             // CALCULATE THE TOP-DOWN SALIENCY 
             // as the euclidian distance between the colour of the blob and the colour of the target
@@ -513,11 +512,11 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             double GRdistance=m_boxes[i].meanGR-pgr;
             double BYdistance=m_boxes[i].meanBY-pby;
            
-            salienceTD=sqrt((double)RGdistance*RGdistance+
+            salienceTD= (int) floor(sqrt((double)RGdistance*RGdistance+
                             GRdistance*GRdistance+
-                            BYdistance*BYdistance);
+                            BYdistance*BYdistance));
 
-            salienceTD=255-salienceTD/sqrt(3.0);
+            salienceTD= (int) floor(255-salienceTD/sqrt(3.0));
             m_boxes[i].salienceBU=salienceBU;
             m_boxes[i].salienceTD=salienceTD;
 
@@ -561,9 +560,9 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             m_boxes[i].salienceTotal=pBU*saliencyBU_norm+pTD*saliencyTD_norm;
             //correction between salience interval
             if (m_boxes[i].salienceTotal<minSalienceTot)
-                minSalienceTot=m_boxes[i].salienceTotal;
+                minSalienceTot= (int) floor(m_boxes[i].salienceTotal);
             else if (m_boxes[i].salienceTotal>maxSalienceTot)
-                maxSalienceTot=m_boxes[i].salienceTotal;
+                maxSalienceTot= (int) floor(m_boxes[i].salienceTotal);
         }
     }
     //printf("maxSalienceTOT:%d minSalienceTOT:%d \n",maxSalienceTot,minSalienceTot);
@@ -644,7 +643,7 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                         
                         // z is a value in the interval [0, 1]
                         //set the image outContrastLP with the value salienceTotal
-                        dst(c ,r)=(PixelMono)m_boxes[i].salienceTotal * z;
+                        dst(c ,r)=(PixelMono)floor((double) m_boxes[i].salienceTotal * z);
                     }
                 }
             }

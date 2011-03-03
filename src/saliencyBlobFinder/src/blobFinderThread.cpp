@@ -352,7 +352,6 @@ void blobFinderThread::run() {
             
             Vector fp;
             YARPBox* pBlob = salience->getBlobList();
-            int u, v, z;
             bool isLeft = true;             //TODO :  remove hardcoded here!
             /*
             for (int i = 1; i < nBlobs; i++) {

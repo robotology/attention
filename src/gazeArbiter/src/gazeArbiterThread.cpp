@@ -326,7 +326,7 @@ void gazeArbiterThread::run() {
                 }
                 else {
                     //printf("monocular with stereo \n");
-                    Matrix *invPrjL, *invPrjR;
+                    Matrix *invPrjL = 0, *invPrjR = 0;
                     bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
                     Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
                     iCubEye *eye = (isLeft?eyeL:eyeR);
@@ -465,10 +465,8 @@ void gazeArbiterThread::run() {
             Vector o(4);
             Vector x(3);
             Vector l(3);
-            double theta = 0 ;
+            double theta = 0;
             
-            
-            double alfa, h, leftHat, rightHat;
             //printf("leftAngle:%f  ,  rightAngle:%f \n", (leftAngle*180)/PI, (rightAngle*180)/PI);
             /*
             if(leftAngle >= 0) {
