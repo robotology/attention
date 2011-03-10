@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
     ${ICUB_INCLUDE_DIRS}
-    ${OPENCV_INCLUDE_DIR}    
+    ${OpenCV_INCLUDE_DIR}    
     ${logpolar_INCLUDE_DIRS}	
 )
 
@@ -28,7 +28,7 @@ IF (folder_source)
     )
     TARGET_LINK_LIBRARIES( ${KEYWORD}
       ${YARP_LIBRARIES} 
-      ${OPENCV_LIBRARIES}  
+      ${OpenCV_LIBRARIES}  
  	  icubmod
 	  logpolar
     )	
