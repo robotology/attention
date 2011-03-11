@@ -16,7 +16,7 @@ set(CMAKE_MODULE_PATH ${YARP_MODULE_PATH} ${ICUB_MODULE_PATH} ${CMAKE_MODULE_PAT
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
 
 find_package(IPP REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OPENCV REQUIRED)
 find_package(GtkPlus REQUIRED)
 find_package(IPOPT)
 

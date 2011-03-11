@@ -1,5 +1,5 @@
 # Copyright: (C) 2010 RobotCub Consortium
-# Authors: Giorgio Metta
+# Authors: Giorgio Metta, Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
 SET(KEYWORD "selectiveAttentionEngine")
@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
     ${ICUB_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIR}    
+    ${OPENCV_INCLUDE_DIR}    
     ${logpolar_INCLUDE_DIRS}	
 )
 
@@ -28,7 +28,7 @@ IF (folder_source)
     )
     TARGET_LINK_LIBRARIES( ${KEYWORD}
       ${YARP_LIBRARIES} 
-      ${OpenCV_LIBRARIES}  
+      ${OPENCV_LIBRARIES}  
  	  icubmod
 	  logpolar
     )	

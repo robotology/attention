@@ -1,5 +1,5 @@
 # Copyright: (C) 2010 RobotCub Consortium
-# Authors: Giorgio Metta
+# Authors: Giorgio Metta, Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(KEYWORD "gazeArbiter")
@@ -9,7 +9,7 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
     ${ICUB_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIRS}
+    ${OPENCV_INCLUDE_DIRS}
     ${iKin_INCLUDE_DIRS}
 )
 
