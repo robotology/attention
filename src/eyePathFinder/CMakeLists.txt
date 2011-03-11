@@ -6,7 +6,7 @@ SET(PROJECTNAME eyePathFinder)
 PROJECT(${PROJECTNAME})
 
 INCLUDE_DIRECTORIES(${ICUB_INCLUDE_DIRS}
-                    ${OPENCV_INCLUDE_DIRS}
+                    ${OpenCV_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
 )
 					
