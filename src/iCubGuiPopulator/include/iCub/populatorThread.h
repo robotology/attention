@@ -37,6 +37,7 @@
 class populatorThread : public yarp::os::RateThread {
 private:
     std::string name;               //name of this module
+    int count;                      //counter of the cycle
     yarp::os::Port databasePort;    //rpc the remote procedure call port used to send requests to the database and receive replies
     yarp::os::BufferedPort< yarp::os::Bottle> guiPort;        //port of the gui that receives commands for the object populating process
 public:

@@ -36,6 +36,7 @@ using namespace std;
 #define OBLIVIONFACTOR 100
 
 populatorThread::populatorThread() : RateThread(THRATE) {
+    count = 0;
     
 }
 
@@ -65,6 +66,8 @@ std::string populatorThread::getName(const char* p) {
 }
 
 void populatorThread::run() {
+    count ++;
+    
     if(guiPort.getOutputCount()) {
         Bottle writer, reader;
         Bottle writer2, reader2;
@@ -76,6 +79,7 @@ void populatorThread::run() {
         obj.clear();
         obj.addString("reset");
         guiPort.write();
+        
         //asking for the list of all the object in the objectsPropertiesCollector
         writer.addVocab(VOCAB3('a','s','k'));
         Bottle& listAttr=writer.addList();
@@ -85,7 +89,11 @@ void populatorThread::run() {
         //int v = reader.pop().asVocab();
         cout<<"reader:"<<reader.toString()<<endl;
         if(reader.get(0).asVocab()==VOCAB3('a','c','k')) {
-            cout<<"reader:"<<reader.toString()<<endl;
+            cout<<"reader:"<<reader.toString()<<"size:"<<reader.size()<<endl;
+            if(reader.size()<=1) {
+                printf("No Objects Found \n");
+                return;
+            }
             Bottle* completeList=reader.get(1).asList();
             Bottle* list = completeList->get(1).asList();
             cout<<"list:"<<list->toString()<<endl;

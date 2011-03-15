@@ -37,7 +37,7 @@ using namespace yarp::math;
 using namespace iCub::iKin;
 
 const int DEFAULT_THREAD_RATE = 100;
-#define thresholdDB 0
+#define thresholdDB 50
 /************************************************************************/
 bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 {
@@ -228,6 +228,7 @@ bool blobFinderThread::threadInit() {
     localCon.append(getName(""));
     option.put("local",localCon.c_str());
 
+    printf("starting the interface with the iKinGazeCtrl \n");
     clientGazeCtrl=new PolyDriver();
     clientGazeCtrl->open(option);
     igaze=NULL;
@@ -238,6 +239,7 @@ bool blobFinderThread::threadInit() {
     else
         return false;
 
+    printf("starting the polydrive for the torso.... \n");
     string robot("icub");
     Property optPolyTorso("(device remote_controlboard)");
     optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
@@ -270,8 +272,10 @@ bool blobFinderThread::threadInit() {
     //eyeC.releaseLink(2);
     eyeR->releaseLink(2);
 
+    printf("trying to CAMERA projection from %s.......... ", configFile.c_str());
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
+        printf("SUCCESS \n");
         Matrix &Prj=*PrjL;
         //cxl=Prj(0,2);
         //cyl=Prj(1,2);
@@ -352,11 +356,13 @@ void blobFinderThread::run() {
             
             Vector fp;
             YARPBox* pBlob = salience->getBlobList();
-            bool isLeft = true;             //TODO :  remove hardcoded here!
-            /*
+            bool isLeft = true;            
+            int u, v; //cordinate in the image plane
+            double z; //distance from the eye
+            
             for (int i = 1; i < nBlobs; i++) {
                 if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
-                    printf("areaLP:", pBlob[i].areaLP);
+                    printf("areaLP: %d \n", pBlob[i].areaLP);
                     
                     u = 160; //pBlob[i].centroid_x;
                     v = 120; //pBlob[i].centroid_y;
@@ -364,7 +370,8 @@ void blobFinderThread::run() {
 
                     Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
                     iCubEye *eye=(isLeft?eyeL:eyeR);
-
+                    printf("getting angles \n");
+                    
                     if (invPrj) {
                         
                         Vector torso(3);
@@ -392,6 +399,7 @@ void blobFinderThread::run() {
                         x[1]=z * v;
                         x[2]=z;
 
+                        printf("applying the inverse projection \n");
                         // find the 3D position from the 2D projection,
                         // knowing the distance z from the camera
                         Vector xe = yarp::math::operator *(*invPrj, x);
@@ -404,8 +412,10 @@ void blobFinderThread::run() {
                         fp[0]=xo[0];
                         fp[1]=xo[1];
                         fp[2]=xo[2];
+                        printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
                     }
-                    printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
+                    
+                    
 
                     
                     Bottle request, reply;
@@ -414,32 +424,32 @@ void blobFinderThread::run() {
                     Bottle& listAttr=request.addList();
                     Bottle& sublist=listAttr.addList();
                     sublist.addString("x");
-                    sublist.addDouble(1.0 * 1000);
+                    sublist.addInt(1000);
                     sublist=listAttr.addList();
                     sublist.clear();
 
                     sublist.addString("y");
-                    sublist.addDouble(1.0 * 1000);
+                    sublist.addInt(1000);
                     sublist=listAttr.addList();
                     sublist.clear();
 
                     sublist.addString("z");
-                    sublist.addDouble(1.0 * 1000);
+                    sublist.addInt(1000);
                     sublist=listAttr.addList();
                     sublist.clear();
 
                     sublist.addString("r");
-                    sublist.addDouble(pBlob[i].meanColors.r);
+                    sublist.addInt(pBlob[i].meanColors.r);
                     sublist=listAttr.addList();
                     sublist.clear();
 
                     sublist.addString("g");
-                    sublist.addDouble(pBlob[i].meanColors.g);
+                    sublist.addInt(pBlob[i].meanColors.g);
                     sublist=listAttr.addList();
                     sublist.clear();
 
                     sublist.addString("b");
-                    sublist.addDouble(pBlob[i].meanColors.b);
+                    sublist.addInt(pBlob[i].meanColors.b);
                     sublist=listAttr.addList();
                     sublist.clear();
 
@@ -448,35 +458,14 @@ void blobFinderThread::run() {
                     sublist=listAttr.addList();
                     sublist.clear();
                     
-                    
-                    //listAttr.add(sublist);
-                    //blobDatabasePort.write(request, reply);
-                    //extract ID of the object added
-                    //int id = reply.get(1).asList()->get(1).asInt();
-                    //printf("id of the object properties %d", id);
-                    
-                    
-                    // set the lifetime
-                    //printf("cleared");
-                    //request.addVocab(VOCAB3('s','e','t'));
-                    //listAttr=request.addList();
-                    //sublist=listAttr.addList();
-                    //sublist.addString("id");
-                    //sublist.addInt(id);
-                    //sublist=listAttr.addList();
-                    //sublist.clear();
+                                     
 
-                    //sublist.addString("lifeTimer");
-                    //sublist.addInt(100);
-                    //sublist=listAttr.addList();
-                    //sublist.clear();
+                    blobDatabasePort.write(request, reply);
                     
-
-                    //blobDatabasePort.write(request, reply);
                     
                    
                 }
-            }*/
+            }
         }
     }
 }
