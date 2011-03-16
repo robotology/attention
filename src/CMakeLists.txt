@@ -1,5 +1,5 @@
 # Copyright: (C) 2010 RobotCub Consortium
-# Authors: Giorgio Metta
+# Authors: Giorgio Metta, Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 add_subdirectory(colourSaliency)
@@ -10,7 +10,9 @@ add_subdirectory(selAttentionInterface)
 add_subdirectory(salBlobFinderInterface)
 
 if(IPP_FOUND)
-    add_subdirectory(saliencyBlobFinder)
+    if(IPOPT_FOUND)
+      add_subdirectory(saliencyBlobFinder)
+    endif(IPOPT_FOUND)  
     add_subdirectory(stereoAttentiveSelector)
     add_subdirectory(visualFilter)
     add_subdirectory(yuvProcessor)
@@ -29,6 +31,3 @@ else(IPOPT_FOUND)
     message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
 endif(IPOPT_FOUND)
 
-# some garbage?
-#add_subdirectory(indepLogMotion)
-#add_subdirectory(zdfControl)
