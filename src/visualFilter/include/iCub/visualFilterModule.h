@@ -142,6 +142,8 @@
  * 16/03/11 : changed the max method for optimization                                                                       @author Shashank  
  * 16/03/11 : changed to a more efficient filter type (with in IPP library)
 @author Shashank  
+ * 16/03/11 : pulling out couple of float calculations into look up tables to boost performance
+@author Shashank
 */
 
 #include <iostream>
