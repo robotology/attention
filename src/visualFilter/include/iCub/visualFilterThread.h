@@ -89,9 +89,9 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // Colour opponency map G+R-
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // Colour opponency map B+Y-
 
-    Ipp16s* redGreenH16s, *redGreenV16s;                            // memory allocated for redGreen edges
-    Ipp16s* greenRedH16s, *greenRedV16s;                            // memory allocated for greenRed edges
-    Ipp16s* blueYellowH16s, *blueYellowV16s;                        // memory allocated for blueYellow edges
+    Ipp8s* redGreenH16s, *redGreenV16s;                            // memory allocated for redGreen edges
+    Ipp8s* greenRedH16s, *greenRedV16s;                            // memory allocated for greenRed edges
+    Ipp8s* blueYellowH16s, *blueYellowV16s;                        // memory allocated for blueYellow edges
     Ipp8u* buffer;                                                  // buffer necessary for the sobel operation
 
     std::string name;       // rootname of all the ports opened by this thread

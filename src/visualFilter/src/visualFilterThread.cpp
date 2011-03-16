@@ -110,17 +110,17 @@ visualFilterThread::~visualFilterThread() {
     if(buffer!=0)
         ippsFree(buffer);
     if(redGreenH16s!=0)
-        ippiFree(redGreenH16s);
+        ippsFree(redGreenH16s);
     if(greenRedH16s!=0)
-        ippiFree(greenRedH16s);
+        ippsFree(greenRedH16s);
     if(blueYellowH16s!=0)
-        ippiFree(blueYellowH16s);
+        ippsFree(blueYellowH16s);
     if(redGreenV16s!=0)
-        ippiFree(redGreenV16s);
+        ippsFree(redGreenV16s);
     if(greenRedV16s!=0)
-        ippiFree(greenRedV16s);
+        ippsFree(greenRedV16s);
     if(blueYellowV16s!=0)
-        ippiFree(blueYellowV16s);
+        ippsFree(blueYellowV16s);
 }
 
 bool visualFilterThread::threadInit() {
@@ -258,12 +258,12 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
 
     ippiFilterSobelHorizGetBufferSize_8u16s_C1R(srcsize, ippMskSize3x3, &size1);
     buffer = ippsMalloc_8u(size1);
-    redGreenH16s= ippiMalloc_16s_C1(width,height,&psb16s);
-    greenRedH16s= ippiMalloc_16s_C1(width,height,&psb16s);
-    blueYellowH16s= ippiMalloc_16s_C1(width,height,&psb16s);
-    redGreenV16s= ippiMalloc_16s_C1(width,height,&psb16s);
-    greenRedV16s= ippiMalloc_16s_C1(width,height,&psb16s);
-    blueYellowV16s= ippiMalloc_16s_C1(width,height,&psb16s);
+    redGreenH16s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
+    greenRedH16s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
+    blueYellowH16s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
+    redGreenV16s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
+    greenRedV16s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
+    blueYellowV16s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);    
 }
 
 void visualFilterThread::filterInputImage() {
@@ -371,18 +371,19 @@ void visualFilterThread::colourOpponency() {
 
 
 void visualFilterThread::edgesExtract() {
-    ippiFilterSobelHorizBorder_8u16s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
-    ippiFilterSobelHorizBorder_8u16s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
-    ippiFilterSobelHorizBorder_8u16s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
-    ippiFilterSobelVertBorder_8u16s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
-    ippiFilterSobelVertBorder_8u16s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
-    ippiFilterSobelVertBorder_8u16s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);    
+    psb16s = redGreen->getRowSize() * sizeof(Ipp8s);
+    ippiFilterSobelHorizBorder_8u8s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
+    ippiFilterSobelHorizBorder_8u8s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
+    ippiFilterSobelHorizBorder_8u8s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
+    ippiFilterSobelVertBorder_8u8s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
+    ippiFilterSobelVertBorder_8u8s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
+    ippiFilterSobelVertBorder_8u8s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);    
 
     unsigned char* pedges=edges->getRawImage();
     const int pad_edges = edges->getPadding();
-    const int pad_16s = (psb16s / sizeof(signed short)) - width_orig;
+    const int pad_16s = (psb16s / sizeof(Ipp8s)) - width_orig;
 
-    int j = maxKernelSize*(psb16s/sizeof(signed short))+maxKernelSize;
+    int j = maxKernelSize*(psb16s/sizeof(Ipp8s))+maxKernelSize;
     redGreenH16s+=j;redGreenV16s+=j;
     greenRedH16s+=j;greenRedV16s+=j;
     blueYellowH16s+=j;blueYellowV16s+=j;
@@ -412,7 +413,7 @@ void visualFilterThread::edgesExtract() {
         greenRedH16s+=pad_16s;greenRedV16s+=pad_16s;
         blueYellowH16s+=pad_16s;blueYellowV16s+=pad_16s;
     }
-    int r=height*(psb16s/sizeof(signed short))+maxKernelSize;
+    int r=height*(psb16s/sizeof(Ipp8s))+maxKernelSize;
     redGreenH16s-=r;redGreenV16s-=r;
     greenRedH16s-=r;greenRedV16s-=r;
     blueYellowH16s-=r;blueYellowV16s-=r;

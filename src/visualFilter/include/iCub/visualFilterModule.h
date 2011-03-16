@@ -139,7 +139,9 @@
 
 /**
  * CHANGE LOG
- * 16/03/11 : changed the max method for optimisation                                                                       @author Shashank    
+ * 16/03/11 : changed the max method for optimization                                                                       @author Shashank  
+ * 16/03/11 : changed to a more efficient filter type (with in IPP library)
+@author Shashank  
 */
 
 #include <iostream>
