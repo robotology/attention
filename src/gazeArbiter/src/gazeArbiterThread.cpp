@@ -301,7 +301,7 @@ void gazeArbiterThread::run() {
             timeoutStart=Time::now();
             if(mono){
                 //printf("offset: %d, %d,%d \n", xOffset, yOffset, zOffset );
-                if ((xOffset == 0) && (xOffset == 0) && (xOffset == 0)) {
+                if ((xOffset == 0) && (yOffset == 0) && (zOffset == 0)) {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
                         double dx = 100.0 , dy = 100;
@@ -365,11 +365,10 @@ void gazeArbiterThread::run() {
                     // update position wrt the root frame
                     Vector xo = yarp::math::operator *(eye->getH(q),xe);
                     fp.resize(3,0.0);
-                    fp[0]=xo[0];
-                    fp[1]=xo[1];
-                    fp[2]=xo[2];
+                    fp[0]=xo[0] + xOffset;
+                    fp[1]=xo[1] + yOffset;
+                    fp[2]=xo[2] + zOffset;
                 }
-
             }
             else {
                 Vector px(3);
