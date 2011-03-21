@@ -35,48 +35,48 @@ const int maxKernelSize = 5;
 
 template<class T>
 inline T max(T a, T b, T c) {    
-    if(b>a) a=b;
-    if(c>a) a=c;
+    if(b > a) a = b;
+    if(c > a) a = c;
     return a;
 }
 
 visualFilterThread::visualFilterThread() {
-    redPlane=new ImageOf<PixelMono>;
-    redPlane2=new ImageOf<PixelMono>;
-    redPlane3=new ImageOf<PixelMono>;
-    greenPlane=new ImageOf<PixelMono>;
-    greenPlane2=new ImageOf<PixelMono>;
-    greenPlane3=new ImageOf<PixelMono>;
-    bluePlane=new ImageOf<PixelMono>;
-    bluePlane2=new ImageOf<PixelMono>;
-    bluePlane3=new ImageOf<PixelMono>;
-    yellowPlane=new ImageOf<PixelMono>;
-    yellowPlane2=new ImageOf<PixelMono>;
-    inputExtImage=new ImageOf<PixelRgb>;
-    inputImageFiltered=new ImageOf<PixelRgb>;
+    redPlane = new ImageOf<PixelMono>;
+    redPlane2 = new ImageOf<PixelMono>;
+    redPlane3 = new ImageOf<PixelMono>;
+    greenPlane = new ImageOf<PixelMono>;
+    greenPlane2 = new ImageOf<PixelMono>;
+    greenPlane3 = new ImageOf<PixelMono>;
+    bluePlane = new ImageOf<PixelMono>;
+    bluePlane2 = new ImageOf<PixelMono>;
+    bluePlane3 = new ImageOf<PixelMono>;
+    yellowPlane = new ImageOf<PixelMono>;
+    yellowPlane2 = new ImageOf<PixelMono>;
+    inputExtImage = new ImageOf<PixelRgb>;
+    inputImageFiltered = new ImageOf<PixelRgb>;
 
-    redPlus=new ImageOf<PixelMono>;
-    redMinus=new ImageOf<PixelMono>;
-    greenPlus=new ImageOf<PixelMono>;
-    greenMinus=new ImageOf<PixelMono>;
-    bluePlus=new ImageOf<PixelMono>;
-    yellowMinus=new ImageOf<PixelMono>;
+    redPlus = new ImageOf<PixelMono>;
+    redMinus = new ImageOf<PixelMono>;
+    greenPlus = new ImageOf<PixelMono>;
+    greenMinus = new ImageOf<PixelMono>;
+    bluePlus = new ImageOf<PixelMono>;
+    yellowMinus = new ImageOf<PixelMono>;
 
-    redGreen=new ImageOf<PixelMono>;
-    greenRed=new ImageOf<PixelMono>;
-    blueYellow=new ImageOf<PixelMono>;
-    edges=new ImageOf<PixelMono>;
+    redGreen = new ImageOf<PixelMono>;
+    greenRed = new ImageOf<PixelMono>;
+    blueYellow = new ImageOf<PixelMono>;
+    edges = new ImageOf<PixelMono>;
 
     buffer =0 ;
-    redGreenH8s   = 0;
-    greenRedH8s   = 0;
-    blueYellowH8s = 0;
-    redGreenV8s   = 0;
-    greenRedV8s   = 0;
-    blueYellowV8s = 0;
+    redGreenH16s   = 0;
+    greenRedH16s   = 0;
+    blueYellowH16s = 0;
+    redGreenV16s   = 0;
+    greenRedV16s   = 0;
+    blueYellowV16s = 0;
     lambda = 0.1f;
 
-    resized=false;
+    resized = false;
 }
 
 visualFilterThread::~visualFilterThread() {
@@ -109,18 +109,18 @@ visualFilterThread::~visualFilterThread() {
 
     if(buffer!=0)
         ippsFree(buffer);
-    if(redGreenH8s!=0)
-        ippsFree(redGreenH8s);
-    if(greenRedH8s!=0)
-        ippsFree(greenRedH8s);
-    if(blueYellowH8s!=0)
-        ippsFree(blueYellowH8s);
-    if(redGreenV8s!=0)
-        ippsFree(redGreenV8s);
-    if(greenRedV8s!=0)
-        ippsFree(greenRedV8s);
-    if(blueYellowV8s!=0)
-        ippsFree(blueYellowV8s);
+    if(redGreenH16s!=0)
+        ippiFree(redGreenH16s);
+    if(greenRedH16s!=0)
+        ippiFree(greenRedH16s);
+    if(blueYellowH16s!=0)
+        ippiFree(blueYellowH16s);
+    if(redGreenV16s!=0)
+        ippiFree(redGreenV16s);
+    if(greenRedV16s!=0)
+        ippiFree(greenRedV16s);
+    if(blueYellowV16s!=0)
+        ippiFree(blueYellowV16s);
 }
 
 bool visualFilterThread::threadInit() {
@@ -216,16 +216,16 @@ void visualFilterThread::run() {
 }
 
 void visualFilterThread::resize(int width_orig,int height_orig) {
-    this->width_orig=width_orig;
-    this->height_orig=height_orig;
-    this->width=width_orig+2*maxKernelSize;
-    this->height=height_orig+maxKernelSize;
+    this->width_orig = width_orig;
+    this->height_orig = height_orig;
+    this->width = width_orig+2*maxKernelSize;
+    this->height = height_orig+maxKernelSize;
 
     // resizing the ROI
-    originalSrcsize.height=height_orig;
-    originalSrcsize.width=width_orig;
-    srcsize.width=width;
-    srcsize.height=height;
+    originalSrcsize.height = height_orig;
+    originalSrcsize.width = width_orig;
+    srcsize.width = width;
+    srcsize.height = height;
 
     // resizing plane images
     edges->resize(width_orig, height_orig);
@@ -258,22 +258,12 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
 
     ippiFilterSobelHorizGetBufferSize_8u16s_C1R(srcsize, ippMskSize3x3, &size1);
     buffer = ippsMalloc_8u(size1);
-    redGreenH8s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
-    greenRedH8s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
-    blueYellowH8s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
-    redGreenV8s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
-    greenRedV8s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
-    blueYellowV8s= ippsMalloc_8s(width*height*sizeof(Ipp8s)*2);
-
-    // populating once and for all the look up tables to avoid costly float calculations with in the loop
-    float ul = 1.0f - lambda;
-    for(int i=0;i<CHAR_LIMIT;++i) {
-        for(int j=0;j<CHAR_LIMIT;++j) {
-           edges_LUT[i*CHAR_LIMIT+j]=(unsigned char)( sqrt((i-CHAR_LIMIT/2.0)*(i-CHAR_LIMIT/2.0) 
-                                        +(j-CHAR_LIMIT/2.0)*(j-CHAR_LIMIT/2.0))*(255.0/1024));
-           filter_LUT[i*CHAR_LIMIT+j]=(unsigned char)(lambda * i + ul * j + .5f);
-        }
-    }    
+    redGreenH16s = ippiMalloc_16s_C1(width,height,&psb16s);
+    greenRedH16s = ippiMalloc_16s_C1(width,height,&psb16s);
+    blueYellowH16s = ippiMalloc_16s_C1(width,height,&psb16s);
+    redGreenV16s = ippiMalloc_16s_C1(width,height,&psb16s);
+    greenRedV16s = ippiMalloc_16s_C1(width,height,&psb16s);
+    blueYellowV16s = ippiMalloc_16s_C1(width,height,&psb16s);
 }
 
 void visualFilterThread::filterInputImage() {
@@ -283,10 +273,7 @@ void visualFilterThread::filterInputImage() {
     unsigned char * pCurr = inputImageFiltered->getRawImage();
     const float ul = 1.0f - lambda;
     for (i = 0; i < sz; i++) {
-        pCurr++;
-        int k= *pCurr; k *= CHAR_LIMIT; k += *pFiltered;
-        *pFiltered = filter_LUT[k];
-        //*pFiltered = (unsigned char)(lambda * *pCurr++ + ul * *pFiltered + .5f);
+        *pFiltered = (unsigned char)(lambda * *pCurr++ + ul * *pFiltered + .5f);
         pFiltered ++;
     }
 }
@@ -339,7 +326,7 @@ void visualFilterThread::filtering() {
     IppiSize srcPlusSize = { 5, 5 };    // variance = 1
     IppiSize srcMinusSize = { 7, 7 };   // variance = 3 which is 3 times the variance 1
     const int halfSize = 3;             // 7/3 (square kernel always)
-    IppiSize gaussRoi = { width_orig+4, height_orig+2 };    // the size of the Roi is determined by the remainder of the border (5-halfSize)
+    IppiSize gaussRoi = { width_orig + 4, height_orig + 2 };    // the size of the Roi is determined by the remainder of the border (5-halfSize)
 
     static Ipp32f srcMinus[7*7] = {
         0.0113f, 0.0149f, 0.0176f, 0.0186f, 0.0176f, 0.0149f, 0.0113f,
@@ -353,7 +340,7 @@ void visualFilterThread::filtering() {
 
     IppiPoint anchor = {3,3};
     
-    /* gaussian is separable and therefore it's cheaper to comput by row and then by columns  */
+    /* gaussian is separable and therefore it's cheaper to comput by row and then by columns rather than using this one! */
     ippiFilter32f_8u_C1R(redPlane->getPixelAddress(halfSize,halfSize), redPlane->getRowSize(), redMinus->getPixelAddress(halfSize,halfSize), redMinus->getRowSize(), gaussRoi, srcMinus, srcMinusSize, anchor);
     ippiFilter32f_8u_C1R(yellowPlane->getPixelAddress(halfSize,halfSize), yellowPlane->getRowSize(), yellowMinus->getPixelAddress(halfSize,halfSize), yellowMinus->getRowSize(), gaussRoi, srcMinus, srcMinusSize, anchor);
     ippiFilter32f_8u_C1R(greenPlane->getPixelAddress(halfSize,halfSize), greenPlane->getRowSize(), greenMinus->getPixelAddress(halfSize,halfSize), greenMinus->getRowSize(), gaussRoi, srcMinus, srcMinusSize, anchor);
@@ -384,55 +371,64 @@ void visualFilterThread::colourOpponency() {
 
 
 void visualFilterThread::edgesExtract() {
-    psb16s = redGreen->getRowSize() * sizeof(Ipp8s);
-    ippiFilterSobelHorizBorder_8u8s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenH8s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
-    ippiFilterSobelHorizBorder_8u8s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedH8s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
-    ippiFilterSobelHorizBorder_8u8s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowH8s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
-    ippiFilterSobelVertBorder_8u8s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenV8s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
-    ippiFilterSobelVertBorder_8u8s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedV8s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);
-    ippiFilterSobelVertBorder_8u8s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowV8s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, 1, buffer);    
+    ippiFilterSobelHorizBorder_8u16s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
+    ippiFilterSobelHorizBorder_8u16s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
+    ippiFilterSobelHorizBorder_8u16s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowH16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
+    ippiFilterSobelVertBorder_8u16s_C1R(redGreen->getRawImage(), redGreen->getRowSize(), redGreenV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
+    ippiFilterSobelVertBorder_8u16s_C1R(greenRed->getRawImage(), greenRed->getRowSize(), greenRedV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);
+    ippiFilterSobelVertBorder_8u16s_C1R(blueYellow->getRawImage(), blueYellow->getRowSize(), blueYellowV16s, psb16s, srcsize, ippMskSize3x3, ippBorderRepl, 0, buffer);    
 
     unsigned char* pedges=edges->getRawImage();
     const int pad_edges = edges->getPadding();
-    const int pad_16s = (psb16s / sizeof(Ipp8s)) - width_orig;
+    const int pad_16s = (psb16s / sizeof(signed short)) - width_orig;
 
-    int j = maxKernelSize*(psb16s/sizeof(Ipp8s))+maxKernelSize;
-    redGreenH8s+=j;redGreenV8s+=j;
-    greenRedH8s+=j;greenRedV8s+=j;
-    blueYellowH8s+=j;blueYellowV8s+=j;
+    int j = maxKernelSize*(psb16s/sizeof(signed short))+maxKernelSize;
+    redGreenH16s += j; redGreenV16s += j;
+    greenRedH16s += j; greenRedV16s += j;
+    blueYellowH16s += j; blueYellowV16s += j;
     // edges extraction
     for (int row = 0; row < height_orig; row++) {
         for (int col = 0; col < width_orig; col++) {
-            double rg = *redGreenH8s * *redGreenH8s + *redGreenV8s * *redGreenV8s;
-            double gr = *greenRedH8s * *greenRedH8s + *greenRedV8s * *greenRedV8s;
-            double by = *blueYellowH8s * *blueYellowH8s + *blueYellowV8s * *blueYellowV8s;            
+            double rg = *redGreenH16s * *redGreenH16s + *redGreenV16s * *redGreenV16s;
+            double gr = *greenRedH16s * *greenRedH16s + *greenRedV16s * *greenRedV16s;
+            double by = *blueYellowH16s * *blueYellowH16s + *blueYellowV16s * *blueYellowV16s;
             if (row < height_orig - 2) {
-               
-                *pedges = max<unsigned char> (edges_LUT[(*redGreenH8s+CHAR_LIMIT/2)*CHAR_LIMIT + *redGreenV8s 
-                        +CHAR_LIMIT/2],edges_LUT[(*greenRedH8s+CHAR_LIMIT/2)*CHAR_LIMIT + *greenRedV8s
-                        +CHAR_LIMIT/2],edges_LUT[(*blueYellowH8s+CHAR_LIMIT/2)*CHAR_LIMIT + *blueYellowV8s+CHAR_LIMIT/2]);
-                
+                *pedges = (unsigned char)(sqrt(max<double> (rg, gr, by)) * (255.0 / 1024)); //normalised with theoric max-response 1448.16, 362.03
             }
             else
                 *pedges = 0;
-            
+            /*
+            if(*pedges>edgesmax)
+                    edgesmax=*pedges;
+            */
             pedges++;
-            redGreenH8s++;redGreenV8s++;
-            greenRedH8s++;greenRedV8s++;
-            blueYellowH8s++;blueYellowV8s++;
+            redGreenH16s++; redGreenV16s++;
+            greenRedH16s++; greenRedV16s++;
+            blueYellowH16s++; blueYellowV16s++;
         }
         // padding
         pedges += pad_edges;
-        redGreenH8s+=pad_16s;redGreenV8s+=pad_16s;
-        greenRedH8s+=pad_16s;greenRedV8s+=pad_16s;
-        blueYellowH8s+=pad_16s;blueYellowV8s+=pad_16s;
+        redGreenH16s += pad_16s; redGreenV16s += pad_16s;
+        greenRedH16s += pad_16s; greenRedV16s += pad_16s;
+        blueYellowH16s += pad_16s; blueYellowV16s += pad_16s;
     }
-    int r=height*(psb16s/sizeof(Ipp8s))+maxKernelSize;
-    redGreenH8s-=r;redGreenV8s-=r;
-    greenRedH8s-=r;greenRedV8s-=r;
-    blueYellowH8s-=r;blueYellowV8s-=r;
+    int r = height*(psb16s / sizeof(signed short)) + maxKernelSize;
+    redGreenH16s -= r; redGreenV16s -= r;
+    greenRedH16s -= r; greenRedV16s -= r;
+    blueYellowH16s -= r; blueYellowV16s -= r;
     
-    
+    //normalisation
+    /*
+    for (int row = 0; row < height_orig; row++) {
+        for (int col = 0; col < width_orig; col++) {
+                *pedges++=*pedges * (255/edgesmax); //normalised with actual max-response
+        }
+        if(*pedges>edgesmax)
+            edgesmax=*pedges;
+        // padding
+        pedges += pad_edges;
+    }
+    */
 }
 
 void visualFilterThread::threadRelease() {
