@@ -157,6 +157,7 @@
 * 12/01/11 : added lifeTimer property for correct forgetness of the object                                                  @author Rea
 * 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 @author Rea
 * 05/02/11 : filtered blob with a nbivariate normal                                                                         @author Rea
+* 21/03/11 : added list of the attended locations in the 3D space                                                           @author Rea
 */
 
 #include <iostream>

@@ -38,6 +38,8 @@ using namespace iCub::iKin;
 
 const int DEFAULT_THREAD_RATE = 100;
 #define thresholdDB 50
+#define MAXMEMORY 100
+
 /************************************************************************/
 bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 {
@@ -115,6 +117,9 @@ blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string 
     _inputImgGRS = new ImageOf<PixelMono>;
     _inputImgBYS = new ImageOf<PixelMono>;
 
+    memory = new char[3 * MAXMEMORY ];
+    memset(memory,0, 3 * MAXMEMORY);
+
     // some standard parameters on the blob search.
     maxBLOB = 4096;
     minBLOB = 100;
@@ -146,6 +151,8 @@ blobFinderThread::~blobFinderThread() {
     delete wOperator;
     delete salience;
     delete ptr_tagged;
+
+    delete[] memory;
 }
 
 void blobFinderThread::setName(std::string str) {
@@ -194,6 +201,7 @@ void blobFinderThread::resizeImages(int width, int height) {
     _inputImgBYS->resize(width, height);
 
     blobList = new char [width*height+1];
+    
 
     ptr_inputImg->resize(width, height);
     ptr_inputImgRed->resize(width, height);
@@ -359,111 +367,141 @@ void blobFinderThread::run() {
             bool isLeft = true;            
             int u, v; //cordinate in the image plane
             double z; //distance from the eye
+
+
+            u = 160; //pBlob[i].centroid_x;
+            v = 120; //pBlob[i].centroid_y;
+            z = 0.5;
+            
+            Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
+            iCubEye *eye=(isLeft?eyeL:eyeR);
+            printf("getting angles \n");
+            
+            if (invPrj) {
+                
+                Vector torso(3);
+                igaze->getAngles(torso);
+                Vector head(4);
+                igaze->getAngles(head);
+                
+                Vector q(8);
+                q[0]=torso[0];
+                q[1]=torso[1];
+                q[2]=torso[2];
+                q[3]=head[0];
+                q[4]=head[1];
+                q[5]=head[2];
+                q[6]=head[3];
+
+                if (isLeft)
+                    q[7]=head[4]+head[5] / 2.0;
+                else
+                    q[7]=head[4]-head[5] / 2.0;
+                            
+
+                Vector x(3);
+                x[0]=z * u;
+                x[1]=z * v;
+                x[2]=z;
+                
+                printf("applying the inverse projection \n");
+                // find the 3D position from the 2D projection,
+                // knowing the distance z from the camera
+                Vector xe = yarp::math::operator *(*invPrj, x);
+                xe[3]=1.0;  // impose homogeneous coordinates                
+                
+                // update position wrt the root frame
+                Vector xo = yarp::math::operator *(eye->getH(q),xe);
+
+                fp.resize(3,0.0);
+                fp[0]=xo[0];
+                fp[1]=xo[1];
+                fp[2]=xo[2];
+                printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
+                char* pointer = memory;
+                if ((memoryPos != 0)&&(memoryPos < MAXMEMORY)) {
+                    //checking the distance with the previously memorised 3D locations
+                    
+                    for (int j = 0; j < memoryPos; j++) {
+                        int x = *pointer++; 
+                        int y = *pointer++;
+                        int z = *pointer++;
+                        
+                        double distance = sqrt((fp[0] - x) * (fp[0] - x) + (fp[1] - y) * (fp[1] - y) + (fp[2] - z) * (fp[2] - z));
+
+                        if( distance > 0.5 ) {
+                            pointer = memory;
+                            *pointer = fp[0]; pointer++;
+                            *pointer = fp[1]; pointer++;
+                            *pointer = fp[2];
+                            memoryPos++;
+                            //new object adding it to the list, sending it to the GUI
+                            break;
+                        }
+
+                    }
+                }
+                else {
+                    memoryPos = 1; 
+                    pointer = memory;
+                    *pointer = fp[0]; pointer++;
+                    *pointer = fp[1]; pointer++;
+                    *pointer = fp[2];
+                }
+                
+            }
+                    
+                    
+
+            /*
+            Bottle request, reply;
+            request.clear(); reply.clear();
+            request.addVocab(VOCAB3('a','d','d'));
+            Bottle& listAttr=request.addList();
+            Bottle& sublist=listAttr.addList();
+            sublist.addString("x");
+            sublist.addInt(1000);
+            sublist=listAttr.addList();
+            sublist.clear();
+            
+            sublist.addString("y");
+            sublist.addInt(1000);
+            sublist=listAttr.addList();
+            sublist.clear();
+            
+            sublist.addString("z");
+            sublist.addInt(1000);
+            sublist=listAttr.addList();
+            sublist.clear();
+            
+            sublist.addString("r");
+            sublist.addInt(pBlob[i].meanColors.r);
+            sublist=listAttr.addList();
+            sublist.clear();
+            
+            sublist.addString("g");
+            sublist.addInt(pBlob[i].meanColors.g);
+            sublist=listAttr.addList();
+            sublist.clear();
+            
+            sublist.addString("b");
+            sublist.addInt(pBlob[i].meanColors.b);
+            sublist=listAttr.addList();
+            sublist.clear();
+            
+            sublist.addString("lifeTimer");
+            sublist.addInt(3);
+            sublist=listAttr.addList();
+            sublist.clear();
+            
+                                     
+            
+            blobDatabasePort.write(request, reply);
+            */
             
             for (int i = 1; i < nBlobs; i++) {
                 if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
                     printf("areaLP: %d \n", pBlob[i].areaLP);
-                    
-                    u = 160; //pBlob[i].centroid_x;
-                    v = 120; //pBlob[i].centroid_y;
-                    z = 0.5;
-
-                    Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
-                    iCubEye *eye=(isLeft?eyeL:eyeR);
-                    printf("getting angles \n");
-                    
-                    if (invPrj) {
-                        
-                        Vector torso(3);
-                        igaze->getAngles(torso);
-                        Vector head(4);
-                        igaze->getAngles(head);
-
-                        Vector q(8);
-                        q[0]=torso[0];
-                        q[1]=torso[1];
-                        q[2]=torso[2];
-                        q[3]=head[0];
-                        q[4]=head[1];
-                        q[5]=head[2];
-                        q[6]=head[3];
-
-                        if (isLeft)
-                            q[7]=head[4]+head[5] / 2.0;
-                        else
-                            q[7]=head[4]-head[5] / 2.0;
-                            
-
-                        Vector x(3);
-                        x[0]=z * u;
-                        x[1]=z * v;
-                        x[2]=z;
-
-                        printf("applying the inverse projection \n");
-                        // find the 3D position from the 2D projection,
-                        // knowing the distance z from the camera
-                        Vector xe = yarp::math::operator *(*invPrj, x);
-                        xe[3]=1.0;  // impose homogeneous coordinates                
-
-                        // update position wrt the root frame
-                        Vector xo = yarp::math::operator *(eye->getH(q),xe);
-
-                        fp.resize(3,0.0);
-                        fp[0]=xo[0];
-                        fp[1]=xo[1];
-                        fp[2]=xo[2];
-                        printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
-                    }
-                    
-                    
-
-                    
-                    Bottle request, reply;
-                    request.clear(); reply.clear();
-                    request.addVocab(VOCAB3('a','d','d'));
-                    Bottle& listAttr=request.addList();
-                    Bottle& sublist=listAttr.addList();
-                    sublist.addString("x");
-                    sublist.addInt(1000);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-
-                    sublist.addString("y");
-                    sublist.addInt(1000);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-
-                    sublist.addString("z");
-                    sublist.addInt(1000);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-
-                    sublist.addString("r");
-                    sublist.addInt(pBlob[i].meanColors.r);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-
-                    sublist.addString("g");
-                    sublist.addInt(pBlob[i].meanColors.g);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-
-                    sublist.addString("b");
-                    sublist.addInt(pBlob[i].meanColors.b);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-
-                    sublist.addString("lifeTimer");
-                    sublist.addInt(3);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-                    
-                                     
-
-                    blobDatabasePort.write(request, reply);
-                    
-                    
-                   
                 }
             }
         }

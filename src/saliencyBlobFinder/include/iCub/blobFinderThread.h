@@ -65,6 +65,7 @@ private:
     int width;                                          // width of the input image
     int height;                                         // height of the input image
     int nBlobs;                                         // number of blobs extracted
+    int memoryPos;                                      // number of saved positions
     
     std::string configFile;                             // configuration file of both the cameras
     std::string name;                                   // name of the module and rootname of the connection
@@ -77,6 +78,7 @@ private:
    
     WatershedOperator *wOperator;                       // pointer to the watershed operator
     char* blobList;                                     // vector of boolean which tells whether there is a blob or not
+    char* memory;                                       // memory of the 3d locations attemded
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *_outputImage3;                  // pointer to the 3 channels output image of the watershed algorithm
     yarp::sig::ImageOf<yarp::sig::PixelMono> *_inputImgRGS;                   // input image of the opponency R+G-
