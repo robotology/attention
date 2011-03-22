@@ -365,7 +365,7 @@ void blobFinderThread::run() {
             Vector fp;
             YARPBox* pBlob = salience->getBlobList();
             bool isLeft = true;            
-            int u, v; //cordinate in the image plane
+            int u, v; //coordinate in the image plane
             double z; //distance from the eye
 
 
@@ -400,7 +400,7 @@ void blobFinderThread::run() {
                             
 
                 Vector x(3);
-                x[0]=z * u;
+                x[0]=z * u;   //epipolar correction excluded the focal lenght
                 x[1]=z * v;
                 x[2]=z;
                 
@@ -429,7 +429,7 @@ void blobFinderThread::run() {
                         
                         double distance = sqrt((fp[0] - x) * (fp[0] - x) + (fp[1] - y) * (fp[1] - y) + (fp[2] - z) * (fp[2] - z));
 
-                        if( distance > 0.5 ) {
+                        if( distance > 2 ) {
                             pointer = memory;
                             *pointer = fp[0]; pointer++;
                             *pointer = fp[1]; pointer++;
@@ -441,7 +441,7 @@ void blobFinderThread::run() {
 
                     }
                 }
-                else {
+                else {  //case where the element is either the first of the list or the last of the list
                     memoryPos = 1; 
                     pointer = memory;
                     *pointer = fp[0]; pointer++;
