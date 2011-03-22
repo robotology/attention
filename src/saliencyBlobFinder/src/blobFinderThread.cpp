@@ -462,69 +462,118 @@ void blobFinderThread::run() {
                             *pointer = fp[1]; pointer++;
                             *pointer = fp[2];
                             memoryPos++;
+
                             //new object adding it to the list, sending it to the GUI
+                            Bottle request, reply;
+                            request.clear(); reply.clear();
+                            request.addVocab(VOCAB3('a','d','d'));
+                            Bottle& listAttr=request.addList();
+                            Bottle& sublist=listAttr.addList();
+                            sublist.addString("x");
+                            sublist.addDouble(fp[0]*1000);
+                            sublist=listAttr.addList();
+                            sublist.clear();
+                    
+                            sublist.addString("y");
+                            sublist.addDouble(fp[1]*1000);
+                            sublist=listAttr.addList();
+                            sublist.clear();
+                    
+                            sublist.addString("z");
+                            sublist.addDouble(fp[2]*1000);
+                            sublist=listAttr.addList();
+                            sublist.clear();
+                    
+                            sublist.addString("r");
+                            sublist.addDouble(255.0);
+                            sublist=listAttr.addList();
+                            sublist.clear();
+                    
+                            sublist.addString("g");
+                            sublist.addDouble(0.0);
+                            sublist=listAttr.addList();
+                            sublist.clear();
+                            
+                            sublist.addString("b");
+                            sublist.addDouble(0.0);
+                            sublist=listAttr.addList();
+                            sublist.clear();
+                    
+                            //sublist.addString("lifeTimer");
+                            //sublist.addInt(3);
+                            //sublist=listAttr.addList();
+                            //sublist.clear();
+            
+                                     
+                            blobDatabasePort.write(request, reply);
                             break;
                         }
 
                     }
                 }
                 else {  //case where the element is either the first of the list or the last of the list
-                    memoryPos = 1; 
+                    //memoryPos = 1; 
                     pointer = memory;
                     *pointer = fp[0]; pointer++;
                     *pointer = fp[1]; pointer++;
                     *pointer = fp[2];
+
+                    Bottle request, reply;
+                    request.clear(); reply.clear();
+                    request.addVocab(VOCAB3('a','d','d'));
+                    Bottle& listAttr=request.addList();
+                   
+                    Bottle& sublist = listAttr.addList();
+                    sublist.addString("x");
+                    sublist.addDouble(fp[0]*1000);
+                    listAttr.append(sublist);
+
+                    //sublist=listAttr.addList();
+                    //sublist.clear();
+                    sublist.addString("y");
+                    sublist.addDouble(fp[1]*1000);
+                    listAttr.append(sublist);
+
+                    //sublist=listAttr.addList();
+                    //sublist.clear();              
+                    sublist.addString("z");
+                    sublist.addDouble(fp[2]*1000);
+                    listAttr.append(sublist);
+
+                    /*
+                    //sublist=listAttr.addList();
+                    sublist.clear();
+                    sublist.addString("r");
+                    sublist.addDouble(255.0);
+                    listAttr.append(sublist);
+
+                    //sublist=listAttr.addList();
+                    sublist.clear();
+                    sublist.addString("g");
+                    sublist.addDouble(0.0);
+                    
+
+                    //sublist=listAttr.addList();
+                    sublist.clear();
+                    sublist.addString("b");
+                    sublist.addDouble(0.0);
+                    sublist=listAttr.addList();
+                    sublist.clear();
+                    
+                    //sublist.addString("lifeTimer");
+                    //sublist.addInt();
+                    //sublist=listAttr.addList();
+                    //sublist.clear();
+                    */
+            
+                                     
+                    blobDatabasePort.write(request, reply);
+                    memoryPos++;
                 }
                 
             }
-                    
-                    
-
-            /*
-            Bottle request, reply;
-            request.clear(); reply.clear();
-            request.addVocab(VOCAB3('a','d','d'));
-            Bottle& listAttr=request.addList();
-            Bottle& sublist=listAttr.addList();
-            sublist.addString("x");
-            sublist.addInt(1000);
-            sublist=listAttr.addList();
-            sublist.clear();
             
-            sublist.addString("y");
-            sublist.addInt(1000);
-            sublist=listAttr.addList();
-            sublist.clear();
             
-            sublist.addString("z");
-            sublist.addInt(1000);
-            sublist=listAttr.addList();
-            sublist.clear();
-            
-            sublist.addString("r");
-            sublist.addInt(pBlob[i].meanColors.r);
-            sublist=listAttr.addList();
-            sublist.clear();
-            
-            sublist.addString("g");
-            sublist.addInt(pBlob[i].meanColors.g);
-            sublist=listAttr.addList();
-            sublist.clear();
-            
-            sublist.addString("b");
-            sublist.addInt(pBlob[i].meanColors.b);
-            sublist=listAttr.addList();
-            sublist.clear();
-            
-            sublist.addString("lifeTimer");
-            sublist.addInt(3);
-            sublist=listAttr.addList();
-            sublist.clear();
-            
-                                     
-            
-            blobDatabasePort.write(request, reply);
-            */
             
             for (int i = 1; i < nBlobs; i++) {
                 if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
