@@ -90,9 +90,9 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // Colour opponency map G+R-
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // Colour opponency map B+Y-
 
-    Ipp8s* redGreenH8s, *redGreenV8s;                            // memory allocated for redGreen edges
-    Ipp8s* greenRedH8s, *greenRedV8s;                            // memory allocated for greenRed edges
-    Ipp8s* blueYellowH8s, *blueYellowV8s;                        // memory allocated for blueYellow edges
+    Ipp16s* redGreenH16s, *redGreenV16s;                            // memory allocated for redGreen edges
+    Ipp16s* greenRedH16s, *greenRedV16s;                            // memory allocated for greenRed edges
+    Ipp16s* blueYellowH16s, *blueYellowV16s;                        // memory allocated for blueYellow edges
     Ipp8u* buffer;                                                  // buffer necessary for the sobel operation
 
     Ipp8u edges_LUT[CHAR_LIMIT*CHAR_LIMIT];                        // a look up table to calculate edges (to optimize)
