@@ -88,10 +88,10 @@ private:
 
     yarp::dev::IGazeControl *igaze;                         // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;                  // polydriver for the gaze controller
-    yarp::dev::PolyDriver* polyTorso;                       // polydriver for the control of the torso
+    yarp::dev::PolyDriver *polyTorso, *drvHead;              // polydriver for the control of the torso and head
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
-    yarp::dev::IEncoders   *encTorso;                       // encoders of the torso
+    yarp::dev::IEncoders   *encTorso,*encHead;              // encoders of the torso and head
     yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
     yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
 

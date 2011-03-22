@@ -247,9 +247,27 @@ bool blobFinderThread::threadInit() {
     else
         return false;
 
+
+    string robot("icub"); //<<--------- hard coded here remove asap
+
+
+    printf("starting the polydrive for the head.... \n");
+    Property optHead("(device remote_controlboard)");
+    string remoteHeadName="/"+robot+"/head";
+    string localHeadName="/"+name+"/head";
+    optHead.put("remote",remoteHeadName.c_str());
+    optHead.put("local",localHeadName.c_str());
+    drvHead =new PolyDriver(optHead);
+    if (!drvHead->isValid()) {
+        fprintf(stdout,"Head device driver not available!\n");
+        
+        delete drvHead;
+        return false;
+    }
+    drvHead->view(encHead);
+
     printf("starting the polydrive for the torso.... \n");
-    string robot("icub");
-    Property optPolyTorso("(device remote_controlboard)");
+        Property optPolyTorso("(device remote_controlboard)");
     optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
     optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
 
@@ -258,7 +276,6 @@ bool blobFinderThread::threadInit() {
     {
         return false;
     }
-
     polyTorso->view(encTorso);
 
     eyeL=new iCubEye("left");
@@ -380,9 +397,16 @@ void blobFinderThread::run() {
             if (invPrj) {
                 
                 Vector torso(3);
-                igaze->getAngles(torso);
-                Vector head(4);
-                igaze->getAngles(head);
+                encTorso->getEncoder(0,&torso[0]);
+                encTorso->getEncoder(1,&torso[1]);
+                encTorso->getEncoder(2,&torso[2]);
+                Vector head(5);
+                encHead->getEncoder(0,&head[0]);
+                encHead->getEncoder(1,&head[1]);
+                encHead->getEncoder(2,&head[2]);
+                encHead->getEncoder(3,&head[3]);
+                encHead->getEncoder(4,&head[4]);
+                
                 
                 Vector q(8);
                 q[0]=torso[0];
@@ -392,6 +416,9 @@ void blobFinderThread::run() {
                 q[4]=head[1];
                 q[5]=head[2];
                 q[6]=head[3];
+                q[7]=head[4];
+                double ver = head[5];
+                printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
 
                 if (isLeft)
                     q[7]=head[4]+head[5] / 2.0;
