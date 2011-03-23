@@ -159,6 +159,10 @@ void blobFinderThread::setName(std::string str) {
     this->name=str; 
 }
 
+void blobFinderThread::setRobotName(std::string str) {
+    this->robot=str; 
+}
+
 std::string blobFinderThread::getName(const char* p) {
     string str(name);
     str.append(p);
@@ -250,7 +254,7 @@ bool blobFinderThread::threadInit() {
 
     string robot("icub"); //<<--------- hard coded here remove asap
 
-
+    //initialising the head polydriver
     printf("starting the polydrive for the head.... \n");
     Property optHead("(device remote_controlboard)");
     string remoteHeadName="/"+robot+"/head";
@@ -266,10 +270,12 @@ bool blobFinderThread::threadInit() {
     }
     drvHead->view(encHead);
 
+    //initialising the torso polydriver
     printf("starting the polydrive for the torso.... \n");
-        Property optPolyTorso("(device remote_controlboard)");
+    Property optPolyTorso("(device remote_controlboard)");
     optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
     optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
+
 
     polyTorso=new PolyDriver;
     if (!polyTorso->open(optPolyTorso))
@@ -430,7 +436,6 @@ void blobFinderThread::run() {
                 x[1]=z * v;
                 x[2]=z;
                 
-                printf("applying the inverse projection \n");
                 // find the 3D position from the 2D projection,
                 // knowing the distance z from the camera
                 Vector xe = yarp::math::operator *(*invPrj, x);
@@ -438,7 +443,7 @@ void blobFinderThread::run() {
                 
                 // update position wrt the root frame
                 Matrix eyeH = eye->getH(q);
-                printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
+                //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
                 Vector xo = yarp::math::operator *(eyeH,xe);
 
                 fp.resize(3,0.0);
