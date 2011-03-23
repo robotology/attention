@@ -37,18 +37,6 @@ mosaicThread::mosaicThread() {
 
     inputImage = new ImageOf<PixelRgb>;
     outputImageMosaic = new ImageOf<PixelRgb>;
-
-    //input image default size
-    width_orig = 320;
-    height_orig = 240;
-    
-    //mosaic image default size
-    width = 640;
-    height = 480;
-
-    //default position of input image's center
-    xcoord = width/2;
-    ycoord = height/2;
     
     resized = false;
 
@@ -81,11 +69,25 @@ void mosaicThread::setName(string str) {
 }
 
 
-
 std::string mosaicThread::getName(const char* p) {
     string str(name);
     str.append(p);
     return str;
+}
+
+void mosaicThread::setMosaicDim(int w, int h) {
+    //mosaic image default size
+    width = w;
+    height = h;
+    //default position of input image's center
+    xcoord = width/2;
+    ycoord = height/2;
+}
+
+void mosaicThread::setInputDim(int w, int h) {
+    //input image default size
+    width_orig = w;
+    height_orig = h;
 }
 
 void mosaicThread::run() {
@@ -94,8 +96,7 @@ void mosaicThread::run() {
     outputImageMosaic->zero();
     while (isStopping() != true)  {                
         
-        inputImage = imagePortIn.read(false); // do not wait                           
-
+        inputImage = imagePortIn.read(false); // do not wait                          
         if (inputImage != NULL ) {            
             if(!resized) {
                 resize(inputImage->width(),inputImage->height());

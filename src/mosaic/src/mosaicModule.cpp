@@ -55,7 +55,31 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
                            Value("icub"), 
                            "Robot name (string)").asString();
     robotPortName         = "/" + robotName + "/head";
-
+    
+    /*
+    * get the original width of the input image
+    */
+    width_orig            = rf.check("widthOrig", 
+                           Value(320), 
+                           "width original (int)").asInt();
+    /*
+    * get the original height of the input image
+    */
+    height_orig            = rf.check("heightOrig", 
+                           Value(240), 
+                           "height original (int)").asInt();
+    /*
+    * get the width of the mosaic image
+    */
+    width            = rf.check("width", 
+                           Value(640), 
+                           "width mosaic (int)").asInt();
+    /*
+    * get the original height of the mosaic image
+    */
+    height            = rf.check("height", 
+                           Value(480), 
+                           "height mosaic (int)").asInt();
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method

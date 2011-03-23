@@ -149,6 +149,9 @@
 #include <iCub/mosaicThread.h>
 
 class mosaicModule:public yarp::os::RFModule {
+    int width_orig, height_orig;             // dimension of the input image
+    int width, height;                       // dimension of the mosaic image
+
     std::string moduleName;                  // name of the module
     std::string robotName;                   // name of the robot 
     std::string robotPortName;               // name of robot port
@@ -190,6 +193,8 @@ public:
     *  unimplemented
     */
     double getPeriod();
+
+    
 
     /**
     *  unimplemented

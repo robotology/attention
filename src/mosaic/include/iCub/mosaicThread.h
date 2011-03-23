@@ -69,10 +69,35 @@ public:
      */
     ~mosaicThread();
 
+    /**
+    *  initialises the thread
+    */
     bool threadInit();     
+
+    /**
+    *  correctly releases the thread
+    */
     void threadRelease();
+
+    /**
+    *  active part of the thread
+    */
     void run(); 
+
+    /**
+    *  on stopping of the thread
+    */
     void onStop();
+
+    /**
+    *  set the dimension of the mosaic image
+    */
+    void setMosaicDim(int width, int height);
+
+    /**
+    *  set the dimension of the input image
+    */
+    void setInputDim(int width, int height);
 
     /**
     * function that set the rootname for the ports that will be opened
