@@ -93,9 +93,19 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
     }
 
     attach(handlerPort);                  // attach to port
+    if (rf.check("config")) {
+        configFile=rf.findFile(rf.find("config").asString().c_str());
+        if (configFile=="") {
+            return false;
+        }
+    }
+    else {
+        configFile.clear();
+    }
+
 
     /* create the thread and pass pointers to the module parameters */
-    mThread = new mosaicThread();
+    mThread = new mosaicThread(robotName, configFile);
     mThread->setName(getName().c_str());
     
     /* now start the thread to do the work */

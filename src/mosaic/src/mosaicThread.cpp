@@ -24,22 +24,77 @@
  */
 
 #include <iCub/mosaicThread.h>
+#include <yarp/math/SVD.h>
 #include <cstring>
 
-
+using namespace yarp::dev;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
+using namespace yarp::math;
+using namespace iCub::iKin;
 
+/************************************************************************/
+bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
+{
+    *Prj=NULL;
 
+    if (configFile.size())
+    {
+        Property par;
+        par.fromConfigFile(configFile.c_str());
 
+        Bottle parType=par.findGroup(type.c_str());
+        string warning="Intrinsic parameters for "+type+" group not found";
+
+        if (parType.size())
+        {
+            if (parType.check("w") && parType.check("h") &&
+                parType.check("fx") && parType.check("fy"))
+            {
+                // we suppose that the center distorsion is already compensated
+                double cx = parType.find("w").asDouble() / 2.0;
+                double cy = parType.find("h").asDouble() / 2.0;
+                double fx = parType.find("fx").asDouble();
+                double fy = parType.find("fy").asDouble();
+
+                Matrix K=eye(3,3);
+                Matrix Pi=zeros(3,4);
+
+                K(0,0)=fx; K(1,1)=fy;
+                K(0,2)=cx; K(1,2)=cy; 
+                
+                Pi(0,0)=Pi(1,1)=Pi(2,2)=1.0; 
+
+                *Prj=new Matrix;
+                **Prj=K*Pi;
+
+                return true;
+            }
+            else
+                fprintf(stdout,"%s\n",warning.c_str());
+        }
+        else
+            fprintf(stdout,"%s\n",warning.c_str());
+    }
+
+    return false;
+}
+
+/**************************************************************************/
 mosaicThread::mosaicThread() {
-
     inputImage = new ImageOf<PixelRgb>;
     outputImageMosaic = new ImageOf<PixelRgb>;
-    
+    robot = "icub";
     resized = false;
+}
 
+mosaicThread::mosaicThread(string _robot, string _configFile) {
+    inputImage = new ImageOf<PixelRgb>;
+    outputImageMosaic = new ImageOf<PixelRgb>;
+    robot = _robot;
+    configFile = _configFile;
+    resized = false;
 }
 
 mosaicThread::~mosaicThread() {
@@ -59,6 +114,55 @@ bool mosaicThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
     
+    //initialising the head polydriver
+    printf("starting the polydrive for the head.... \n");
+    Property optHead("(device remote_controlboard)");
+    string remoteHeadName="/"+robot+"/head";
+    string localHeadName="/"+name+"/head";
+    optHead.put("remote",remoteHeadName.c_str());
+    optHead.put("local",localHeadName.c_str());
+    drvHead =new PolyDriver(optHead);
+    if (!drvHead->isValid()) {
+        fprintf(stdout,"Head device driver not available!\n");        
+        delete drvHead;
+        return false;
+    }
+    drvHead->view(encHead);
+
+    //initialising the torso polydriver
+    printf("starting the polydrive for the torso.... \n");
+    Property optPolyTorso("(device remote_controlboard)");
+    optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
+    optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
+
+    polyTorso=new PolyDriver;
+    if (!polyTorso->open(optPolyTorso))
+    {
+        return false;
+    }
+    polyTorso->view(encTorso);
+
+    eyeL=new iCubEye("left");
+    eyeR=new iCubEye("right");
+
+    // release links
+    eyeL->releaseLink(0);
+    eyeR->releaseLink(0);
+    eyeL->releaseLink(1);
+    eyeR->releaseLink(1);
+    eyeL->releaseLink(2);
+    eyeR->releaseLink(2);
+
+    printf("trying to CAMERA projection from %s.......... ", configFile.c_str());
+    // get camera projection matrix from the configFile
+    if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
+        printf("SUCCESS in finding configuaraion of camera param \n");
+        Matrix &Prj=*PrjL;
+        //cxl=Prj(0,2);
+        //cyl=Prj(1,2);
+        invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
+    }
+
     return true;
 }
 

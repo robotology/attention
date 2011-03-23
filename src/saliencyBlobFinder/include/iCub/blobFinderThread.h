@@ -43,7 +43,10 @@
 
 
 /*
- * LATER: add proper Doxygen documentation here.
+ * This a class that actually reads the input from the input image (edges),
+ * performs in sequence watershed, blob extraction, colour quantization.
+ * Finally it builds a feature map of the proto-objects defined and sends it
+ * to the output image
  */
 class blobFinderThread : public yarp::os::RateThread {
 private:

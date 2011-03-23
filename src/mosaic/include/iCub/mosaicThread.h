@@ -29,7 +29,12 @@
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
+#include <yarp/dev/all.h>
 #include <yarp/os/RateThread.h>
+#include <iCub/iKin/iKinInv.h>
+#include <iCub/iKin/iKinIpOpt.h>
+#include <iCub/iKin/iKinFwd.h>
+#include <iCub/ctrl/pids.h>
 
 #include <iostream>
 
@@ -45,8 +50,10 @@ private:
     int width_orig, height_orig;    // dimension of the input image (original)
     int width, height;              // dimension of the mosaic image 
     int xcoord, ycoord;             // position of input image's center in mosaic reference frame
-    
+    std::string robot;              // name of the robot
+    std::string configFile;         // name of the configFile where the parameter of the camera are set
 
+    
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image from camera
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *outputImageMosaic;     // output image (mosaic)
     
@@ -54,15 +61,29 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port for camera 1
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;      // output port for overlapped monochromised image
     
+    yarp::dev::PolyDriver *polyTorso, *drvHead;              // polydriver for the control of the torso and head
+    iCub::iKin::iCubEye *eyeL;
+    iCub::iKin::iCubEye *eyeR;
+    yarp::dev::IEncoders   *encTorso,*encHead;              // encoders of the torso and head
+    yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
+    yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
+
+
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
     
 public:
     /**
-    * constructor
+    * constructor default
     */
     mosaicThread();
+
+    /**
+    * constructor 
+    * @param robotname name of the robot
+    */
+    mosaicThread(std::string robotname,std::string configFile);
 
     /**
      * destructor
