@@ -5,9 +5,11 @@
 add_subdirectory(colourSaliency)
 add_subdirectory(eyePathFinder)
 add_subdirectory(iCubGuiPopulator)
+add_subdirectory(mosaic)
 add_subdirectory(selectiveAttentionEngine)
 add_subdirectory(selAttentionInterface)
 add_subdirectory(salBlobFinderInterface)
+
 
 if(IPP_FOUND)
     if(IPOPT_FOUND)

@@ -174,10 +174,16 @@ public:
     * function called when the module is poked with an interrupt command
     */
     void interrupt();
+
+    /**
+    * function that defines the name of the robot
+    * @param name  name of the robot
+    */
+    void setRobotName(std::string name);
     
     /**
     * function that gives reference to the name of the module
-    * @param name of the module
+    * @param name name of the module
     */
     void setName(std::string name);
     
