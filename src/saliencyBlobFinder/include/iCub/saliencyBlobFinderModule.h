@@ -158,6 +158,8 @@
 * 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 @author Rea
 * 05/02/11 : filtered blob with a nbivariate normal                                                                         @author Rea
 * 21/03/11 : added list of the attended locations in the 3D space                                                           @author Rea
+* 22/03/11 : added the correct procedure to represent the blob in the GUI                                                   @author Rea
+* 23/03/11 : procedure to correctly populate the list of attended locations                                                 @author Rea       
 */
 
 #include <iostream>

@@ -448,67 +448,73 @@ void blobFinderThread::run() {
                 char* pointer = memory;
                 if ((memoryPos != 0)&&(memoryPos < MAXMEMORY)) {
                     //checking the distance with the previously memorised 3D locations
-                    
-                    for (int j = 0; j < memoryPos; j++) {
+                    int j;
+                    for (j = 0; j < memoryPos; j++) {
                         int x = *pointer++; 
                         int y = *pointer++;
                         int z = *pointer++;
                         
                         double distance = sqrt((fp[0] - x) * (fp[0] - x) + (fp[1] - y) * (fp[1] - y) + (fp[2] - z) * (fp[2] - z));
 
-                        if( distance > 2 ) {
-                            pointer = memory;
-                            *pointer = fp[0]; pointer++;
-                            *pointer = fp[1]; pointer++;
-                            *pointer = fp[2];
-                            memoryPos++;
-
-                            //new object adding it to the list, sending it to the GUI
-                            Bottle request, reply;
-                            request.clear(); reply.clear();
-                            request.addVocab(VOCAB3('a','d','d'));
-                            Bottle& listAttr=request.addList();
-                            Bottle& sublist=listAttr.addList();
-                            sublist.addString("x");
-                            sublist.addDouble(fp[0]*1000);
-                            sublist=listAttr.addList();
-                            sublist.clear();
-                    
-                            sublist.addString("y");
-                            sublist.addDouble(fp[1]*1000);
-                            sublist=listAttr.addList();
-                            sublist.clear();
-                    
-                            sublist.addString("z");
-                            sublist.addDouble(fp[2]*1000);
-                            sublist=listAttr.addList();
-                            sublist.clear();
-                    
-                            sublist.addString("r");
-                            sublist.addDouble(255.0);
-                            sublist=listAttr.addList();
-                            sublist.clear();
-                    
-                            sublist.addString("g");
-                            sublist.addDouble(0.0);
-                            sublist=listAttr.addList();
-                            sublist.clear();
-                            
-                            sublist.addString("b");
-                            sublist.addDouble(0.0);
-                            sublist=listAttr.addList();
-                            sublist.clear();
-                    
-                            //sublist.addString("lifeTimer");
-                            //sublist.addInt(3);
-                            //sublist=listAttr.addList();
-                            //sublist.clear();
-            
-                                     
-                            blobDatabasePort.write(request, reply);
+                        if( distance < 3 ) {
+                            printf("already saved position \n");
                             break;
                         }
-
+                    }
+                    if( j >= memoryPos) {
+                        //need to add a new position
+                        pointer++;
+                        *pointer = fp[0];
+                        pointer++;
+                        *pointer = fp[1];
+                        pointer++;
+                        *pointer = fp[2];
+                        memoryPos++;
+                        
+                        //adding novel position to the GUI
+                        Bottle request, reply;
+                        request.clear(); reply.clear();
+                        request.addVocab(VOCAB3('a','d','d'));
+                        Bottle& listAttr=request.addList();
+                        
+                        Bottle& sublistX = listAttr.addList();
+                            
+                        sublistX.addString("x");
+                        sublistX.addDouble(fp[0] * -1000);       // adding rotation of the axis X
+                        listAttr.append(sublistX);
+                            
+                        Bottle& sublistY = listAttr.addList();
+                        sublistY.addString("y");
+                        sublistY.addDouble(fp[1] * -1000);       // adding rotation of the axis Y
+                        listAttr.append(sublistY);
+                            
+                        Bottle& sublistZ = listAttr.addList();            
+                        sublistZ.addString("z");
+                        sublistZ.addDouble(fp[2] * 1000 + 640);   //adding the height of the support as well
+                        listAttr.append(sublistZ);
+                        
+                        Bottle& sublistR = listAttr.addList();
+                        sublistR.addString("r");
+                        sublistR.addDouble(255.0);
+                        listAttr.append(sublistR);
+                            
+                        Bottle& sublistG = listAttr.addList();
+                        sublistG.addString("g");
+                        sublistG.addDouble(0.0);
+                        listAttr.append(sublistG);
+                            
+                        Bottle& sublistB = listAttr.addList();
+                        sublistB.addString("b");
+                        sublistB.addDouble(0.0);
+                        listAttr.append(sublistB);
+                            
+                        Bottle& sublistLife = listAttr.addList();
+                        sublistLife.addString("lifeTimer");
+                        sublistLife.addDouble(60.0);
+                        listAttr.append(sublistLife);          
+                   
+                                     
+                        blobDatabasePort.write(request, reply);
                     }
                 }
                 else {  //case where the element is either the first of the list or the last of the list
@@ -523,49 +529,42 @@ void blobFinderThread::run() {
                     request.addVocab(VOCAB3('a','d','d'));
                     Bottle& listAttr=request.addList();
                    
-                    Bottle& sublist = listAttr.addList();
-                    sublist.addString("x");
-                    sublist.addDouble(fp[0]*1000);
-                    listAttr.append(sublist);
-
-                    //sublist=listAttr.addList();
-                    //sublist.clear();
-                    sublist.addString("y");
-                    sublist.addDouble(fp[1]*1000);
-                    listAttr.append(sublist);
-
-                    //sublist=listAttr.addList();
-                    //sublist.clear();              
-                    sublist.addString("z");
-                    sublist.addDouble(fp[2]*1000);
-                    listAttr.append(sublist);
-
-                    /*
-                    //sublist=listAttr.addList();
-                    sublist.clear();
-                    sublist.addString("r");
-                    sublist.addDouble(255.0);
-                    listAttr.append(sublist);
-
-                    //sublist=listAttr.addList();
-                    sublist.clear();
-                    sublist.addString("g");
-                    sublist.addDouble(0.0);
+                    Bottle& sublistX = listAttr.addList();
                     
+                    sublistX.addString("x");
+                    sublistX.addDouble(fp[0] * -1000);       // adding rotation of the axis X
+                    listAttr.append(sublistX);
 
-                    //sublist=listAttr.addList();
-                    sublist.clear();
-                    sublist.addString("b");
-                    sublist.addDouble(0.0);
-                    sublist=listAttr.addList();
-                    sublist.clear();
-                    
-                    //sublist.addString("lifeTimer");
-                    //sublist.addInt();
-                    //sublist=listAttr.addList();
-                    //sublist.clear();
-                    */
-            
+                    Bottle& sublistY = listAttr.addList();
+                    sublistY.addString("y");
+                    sublistY.addDouble(fp[1] * -1000);       // adding rotation of the axis Y
+                    listAttr.append(sublistY);
+
+                    Bottle& sublistZ = listAttr.addList();            
+                    sublistZ.addString("z");
+                    sublistZ.addDouble(fp[2] * 1000 + 640);   //adding the height of the support as well
+                    listAttr.append(sublistZ);
+
+                    Bottle& sublistR = listAttr.addList();
+                    sublistR.addString("r");
+                    sublistR.addDouble(255.0);
+                    listAttr.append(sublistR);
+
+                    Bottle& sublistG = listAttr.addList();
+                    sublistG.addString("g");
+                    sublistG.addDouble(0.0);
+                    listAttr.append(sublistG);
+
+                    Bottle& sublistB = listAttr.addList();
+                    sublistB.addString("b");
+                    sublistB.addDouble(0.0);
+                    listAttr.append(sublistB);
+
+                    Bottle& sublistLife = listAttr.addList();
+                    sublistLife.addString("lifeTimer");
+                    sublistLife.addDouble(60.0);
+                    listAttr.append(sublistLife);          
+                   
                                      
                     blobDatabasePort.write(request, reply);
                     memoryPos++;
