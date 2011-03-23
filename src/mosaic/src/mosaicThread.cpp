@@ -139,7 +139,6 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     int iW = inputImage->width();
     int iH = inputImage->height();
     int mPad = outputImageMosaic->getPadding();
-    float lambda = .8;
     
     for(i = 0 ; i < iH ; ++i) {
         for(j = 0 ; j < iW ; ++j) {
@@ -147,13 +146,13 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
             int mosaicY = j; mosaicY -= iW / 2 ; mosaicY += xcoord;
             if(mosaicX < height && mosaicY < width) {
                 int index = mosaicX; index *= width * 3 + mPad; index += 3 * mosaicY;
-                *(outTemp + index) *= lambda; 
+                 
                 *(outTemp + index) += *inpTemp;
                 inpTemp++;
-                *(outTemp + index + 1) *= lambda;
+                
                 *(outTemp + index + 1) += *inpTemp;
                 inpTemp++;
-                *(outTemp + index + 2) *= lambda;
+                
                 *(outTemp + index + 2) += *inpTemp;
                 inpTemp++;
             }
