@@ -283,24 +283,21 @@ bool blobFinderThread::threadInit() {
 
     // remove constraints on the links
     // we use the chains for logging purpose
-    eyeL->setAllConstraints(false);
-    eyeR->setAllConstraints(false);
+    //eyeL->setAllConstraints(false);
+    //eyeR->setAllConstraints(false);
 
     // release links
     eyeL->releaseLink(0);
-    //eyeC.releaseLink(0);
     eyeR->releaseLink(0);
     eyeL->releaseLink(1);
-    //eyeC.releaseLink(1);
     eyeR->releaseLink(1);
     eyeL->releaseLink(2);
-    //eyeC.releaseLink(2);
     eyeR->releaseLink(2);
 
     printf("trying to CAMERA projection from %s.......... ", configFile.c_str());
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
-        printf("SUCCESS \n");
+        printf("SUCCESS in finding configuaraion of camera param \n");
         Matrix &Prj=*PrjL;
         //cxl=Prj(0,2);
         //cyl=Prj(1,2);
@@ -420,10 +417,12 @@ void blobFinderThread::run() {
                 double ver = head[5];
                 printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
 
-                if (isLeft)
-                    q[7]=head[4]+head[5] / 2.0;
-                else
-                    q[7]=head[4]-head[5] / 2.0;
+                //if (isLeft) {
+                //    q[7]=head[4]+head[5] / 2.0;
+                //}
+                //else {
+                //    q[7]=head[4]-head[5] / 2.0;
+                //}
                             
 
                 Vector x(3);
@@ -438,13 +437,16 @@ void blobFinderThread::run() {
                 xe[3]=1.0;  // impose homogeneous coordinates                
                 
                 // update position wrt the root frame
-                Vector xo = yarp::math::operator *(eye->getH(q),xe);
+                Matrix eyeH = eye->getH(q);
+                printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
+                Vector xo = yarp::math::operator *(eyeH,xe);
 
                 fp.resize(3,0.0);
                 fp[0]=xo[0];
                 fp[1]=xo[1];
                 fp[2]=xo[2];
                 printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
+
                 char* pointer = memory;
                 if ((memoryPos != 0)&&(memoryPos < MAXMEMORY)) {
                     //checking the distance with the previously memorised 3D locations
