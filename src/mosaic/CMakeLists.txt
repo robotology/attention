@@ -1,3 +1,7 @@
+# Copyright: (C) 2010 RobotCub Consortium
+# Authors: Francesco Rea, Shashank Pathak
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
+
 SET(KEYWORD "mosaic")
 PROJECT(${KEYWORD})
 cmake_minimum_required(VERSION 2.6)
@@ -6,13 +10,11 @@ FIND_PACKAGE(ICUB)
 FIND_PACKAGE(YARP)
 SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(IPP REQUIRED)
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
-    ${logpolar_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS} 	
-    ${IPP_INCLUDE_DIRS}	
+    ${ICUB_INCLUDE_DIRS}	
 )
 
 # Search for source code.
@@ -28,8 +30,11 @@ IF (folder_source)
         ${folder_header}
     )
 
-    TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${IPP_LIBRARIES}
-                                     ${YARP_LIBRARIES})	
+    TARGET_LINK_LIBRARIES(${KEYWORD}        
+      icubmod 
+      iKin 
+      ${YARP_LIBRARIES}
+      )	
 
     INSTALL_TARGETS(/bin ${KEYWORD})
 ELSE (folder_source)
