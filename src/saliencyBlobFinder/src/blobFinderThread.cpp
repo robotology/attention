@@ -414,13 +414,13 @@ void blobFinderThread::run() {
                 Vector q(8);
                 double ratio = M_PI /180;
                 q[0]=torso[0] * ratio;
-                q[1]=torso[1]* ratio;
-                q[2]=torso[2]* ratio;
-                q[3]=head[0]* ratio;
-                q[4]=head[1]* ratio;
-                q[5]=head[2]* ratio;
-                q[6]=head[3]* ratio;
-                q[7]=head[4]* ratio;
+                q[1]=torso[1] * ratio;
+                q[2]=torso[2] * ratio;
+                q[3]=head[0] * ratio;
+                q[4]=head[1] * ratio;
+                q[5]=head[2] * ratio;
+                q[6]=head[3] * ratio;
+                q[7]=head[4] * ratio;
                 double ver = head[5];
                 printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
                
