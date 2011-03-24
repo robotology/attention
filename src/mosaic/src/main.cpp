@@ -38,7 +38,9 @@ int main(int argc, char * argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.configure("ICUB_ROOT", argc, argv);  // no default config and context
+    rf.setDefaultConfigFile("mosaic.ini");      //overridden by --from parameter
+    rf.setDefaultContext("logpolarAttention/conf");    //overridden by --context parameter
+    rf.configure("ICUB_ROOT", argc, argv);  
  
     module.runModule(rf);
     return 0;

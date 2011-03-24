@@ -115,7 +115,7 @@ bool mosaicThread::threadInit() {
     }
     
     //initialising the head polydriver
-    printf("starting the polydrive for the head.... \n");
+    printf("starting the polydrive for the head.... of the robot %s \n", robot.c_str());
     Property optHead("(device remote_controlboard)");
     string remoteHeadName="/"+robot+"/head";
     string localHeadName="/"+name+"/head";
@@ -215,6 +215,7 @@ void mosaicThread::run() {
 
 void mosaicThread::resize(int width_orig,int height_orig) {        
     inputImage->resize(width_orig,height_orig);
+    printf("resizing using %d %d",width_orig,height_orig);
     this->width_orig = width_orig;
     this->height_orig = height_orig;
     
@@ -244,13 +245,93 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     int iW = inputImage->width();
     int iH = inputImage->height();
     int mPad = outputImageMosaic->getPadding();
+    int inputPadding = inputImage->getPadding();
     
+    //recalculing the position in the space
+    double u = 160;
+    double v = 120;
+    double z = 0.5;
+    
+    bool isLeft = true;
+    Vector fp(3);
+    Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
+    iCubEye *eye=(isLeft?eyeL:eyeR);
+    //printf("getting angles \n");
+    
+    if (invPrj) {
+        
+        Vector torso(3);
+        encTorso->getEncoder(0,&torso[0]);
+        encTorso->getEncoder(1,&torso[1]);
+        encTorso->getEncoder(2,&torso[2]);
+        Vector head(5);
+        encHead->getEncoder(0,&head[0]);
+        encHead->getEncoder(1,&head[1]);
+        encHead->getEncoder(2,&head[2]);
+        encHead->getEncoder(3,&head[3]);
+        encHead->getEncoder(4,&head[4]);
+                
+        
+        Vector q(8);
+        double ratio = M_PI /180;
+        q[0]=torso[0] * ratio;
+        q[1]=torso[1] * ratio;
+        q[2]=torso[2] * ratio;
+        q[3]=head[0] * ratio;
+        q[4]=head[1] * ratio;
+        q[5]=head[2] * ratio;
+        q[6]=head[3] * ratio;
+        q[7]=head[4] * ratio;
+        double ver = head[5];
+        printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+               
+                        
+        Vector x(3);
+        x[0]=z * u;   //epipolar correction excluded the focal lenght
+        x[1]=z * v;
+        x[2]=z;
+                
+        // find the 3D position from the 2D projection,
+        // knowing the distance z from the camera
+        Vector xe = yarp::math::operator *(*invPrj, x);
+        xe[3]=1.0;  // impose homogeneous coordinates                
+                
+                        // update position wrt the root frame
+        Matrix eyeH = eye->getH(q);
+        //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
+        Vector xo = yarp::math::operator *(eyeH,xe);
+        
+        fp.resize(3,0.0);
+        fp[0]=xo[0];
+        fp[1]=xo[1];
+        fp[2]=xo[2];
+        printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
+    }
+
+    //calculating the shift in pixels
+    double focalLenght = 0.1;
+    double distance = z;
+    double shift = fp[1] * ( focalLenght / distance );
+    printf("shift %f \n", shift);
+
+
+    /*
+    printf("iH %d, iW %d height %d width %d \n", iH, iW, height, width );
     for(i = 0 ; i < iH ; ++i) {
-        for(j = 0 ; j < iW ; ++j) {
-            int mosaicX = i; mosaicX -= iH / 2 ; mosaicX += ycoord; 
-            int mosaicY = j; mosaicY -= iW / 2 ; mosaicY += xcoord;
+        for(j = 0 ; j < iW ; ++j) {   
+            int mosaicX = i; 
+            mosaicX -= iH / 2;
+            mosaicX += ycoord; 
+            int mosaicY = j;
+            mosaicY -= iW / 2;
+            mosaicY += xcoord;
+
+           
+            
             if(mosaicX < height && mosaicY < width) {
-                int index = mosaicX; index *= width * 3 + mPad; index += 3 * mosaicY;
+                int index = mosaicX;
+                index = index *(width * 3 + mPad);
+                index += 3 * mosaicY;
                  
                 *(outTemp + index) += *inpTemp;
                 inpTemp++;
@@ -261,9 +342,16 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
                 *(outTemp + index + 2) += *inpTemp;
                 inpTemp++;
             }
-            else inpTemp +=3;
+            else {
+                inpTemp +=3;
+            }
+            
         }
+        //inpTemp += inputPadding;
     }
+
+    */
+    
 }
 
 

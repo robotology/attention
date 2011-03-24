@@ -106,6 +106,8 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* create the thread and pass pointers to the module parameters */
     mThread = new mosaicThread(robotName, configFile);
+    mThread->setMosaicSize(width, height);
+    mThread->setInputDim(width_orig, height_orig);
     mThread->setName(getName().c_str());
     
     /* now start the thread to do the work */
