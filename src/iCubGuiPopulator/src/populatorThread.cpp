@@ -120,7 +120,6 @@ void populatorThread::run() {
                     cout << "reader:" << reader2.toString() << endl;
                     Bottle* list = reader2.get(1).asList();
                     cout << "list:" << list->toString() << endl;
-                    //TODO list->find
                     posX = list->find("x").asDouble();
                     posY = list->find("y").asDouble();
                     posZ = list->find("z").asDouble();
@@ -142,27 +141,30 @@ void populatorThread::run() {
                     obj.addString("object"); // comando
                     obj.addString(name.c_str()); // nome dell'oggetto
                     
-                    // dimensioni dell'oggetto (viene visualizzato come un ellissoide con il nome accanto) 
-                    // in millimetri 
+                    // object dimension in millimeters 
+                    // it draws an ellips with a the name close by
+                    // pay attention to the order!!!!!!!
                     obj.addDouble(55.0); 
                     obj.addDouble(55.0); 
                     obj.addDouble(55.0);
-                    // posizione dell'oggetto
-                    // in millimetri
-                    // il sistema di riferimento ha l'asse Z verso l'alto, l'asse X in avanti e l'asse Y verso sinistra 
+                    // position of the objects in millimeters!
+                    // (pay attention to the order!!!!!!)
+                    // frame of reference locate with the Z axis toward the ceiling, the X axis pointing into the heaps,
+                    // and the Y axis directed to the right hand side of the robot 
+ 
+                    obj.addDouble(posZ);
                     obj.addDouble(posX);
                     obj.addDouble(posY);
-                    obj.addDouble(posZ);
-                    // orientazione dell'oggetto (roll, pitch,yaw) 
+                    // orientation of the object (roll, pitch,yaw) 
                     // in gradi 
                     obj.addDouble(45.0);
                     obj.addDouble(0.0);
                     obj.addDouble(45.0);
-                    // colore dell'oggetto (0-255)
+                    // colour of the object (0-255)
                     obj.addInt(r);
                     obj.addInt(g);
                     obj.addInt(b);
-                    // trasparenza (0.0=invisibile 1.0=solido) 
+                    // trasparency of the object (0.0=invisible 1.0=solid) 
                     if(lifeTimer == 0)
                         obj.addDouble(1.0);
                     else

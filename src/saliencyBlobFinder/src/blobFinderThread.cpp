@@ -37,7 +37,7 @@ using namespace yarp::math;
 using namespace iCub::iKin;
 
 const int DEFAULT_THREAD_RATE = 100;
-#define thresholdDB 50
+#define thresholdDB 250
 #define MAXMEMORY 100
 
 /************************************************************************/
@@ -122,7 +122,7 @@ blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string 
 
     // some standard parameters on the blob search.
     maxBLOB = 4096;
-    minBLOB = 100;
+    minBLOB = 300;
     minBoundingArea = 225;
 }
 
@@ -395,8 +395,8 @@ void blobFinderThread::run() {
             
             Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
             iCubEye *eye=(isLeft?eyeL:eyeR);
-            printf("getting angles \n");
-            
+            //printf("getting angles \n");
+
             if (invPrj) {
                 
                 Vector torso(3);
@@ -412,25 +412,19 @@ void blobFinderThread::run() {
                 
                 
                 Vector q(8);
-                q[0]=torso[0];
-                q[1]=torso[1];
-                q[2]=torso[2];
-                q[3]=head[0];
-                q[4]=head[1];
-                q[5]=head[2];
-                q[6]=head[3];
-                q[7]=head[4];
+                double ratio = M_PI /180;
+                q[0]=torso[0] * ratio;
+                q[1]=torso[1]* ratio;
+                q[2]=torso[2]* ratio;
+                q[3]=head[0]* ratio;
+                q[4]=head[1]* ratio;
+                q[5]=head[2]* ratio;
+                q[6]=head[3]* ratio;
+                q[7]=head[4]* ratio;
                 double ver = head[5];
                 printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
-
-                //if (isLeft) {
-                //    q[7]=head[4]+head[5] / 2.0;
-                //}
-                //else {
-                //    q[7]=head[4]-head[5] / 2.0;
-                //}
-                            
-
+               
+                        
                 Vector x(3);
                 x[0]=z * u;   //epipolar correction excluded the focal lenght
                 x[1]=z * v;
@@ -441,153 +435,154 @@ void blobFinderThread::run() {
                 Vector xe = yarp::math::operator *(*invPrj, x);
                 xe[3]=1.0;  // impose homogeneous coordinates                
                 
-                // update position wrt the root frame
+                        // update position wrt the root frame
                 Matrix eyeH = eye->getH(q);
                 //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
                 Vector xo = yarp::math::operator *(eyeH,xe);
-
+                
                 fp.resize(3,0.0);
                 fp[0]=xo[0];
                 fp[1]=xo[1];
                 fp[2]=xo[2];
                 printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
-
-                char* pointer = memory;
-                if ((memoryPos != 0)&&(memoryPos < MAXMEMORY)) {
-                    //checking the distance with the previously memorised 3D locations
-                    int j;
-                    for (j = 0; j < memoryPos; j++) {
-                        int x = *pointer++; 
-                        int y = *pointer++;
-                        int z = *pointer++;
-                        
-                        double distance = sqrt((fp[0] - x) * (fp[0] - x) + (fp[1] - y) * (fp[1] - y) + (fp[2] - z) * (fp[2] - z));
-
-                        if( distance < 3 ) {
-                            printf("already saved position \n");
-                            break;
-                        }
-                    }
-                    if( j >= memoryPos) {
-                        //need to add a new position
-                        pointer++;
-                        *pointer = fp[0];
-                        pointer++;
-                        *pointer = fp[1];
-                        pointer++;
-                        *pointer = fp[2];
-                        memoryPos++;
-                        
-                        //adding novel position to the GUI
-                        Bottle request, reply;
-                        request.clear(); reply.clear();
-                        request.addVocab(VOCAB3('a','d','d'));
-                        Bottle& listAttr=request.addList();
-                        
-                        Bottle& sublistX = listAttr.addList();
-                            
-                        sublistX.addString("x");
-                        sublistX.addDouble(fp[0] * -1000);       // adding rotation of the axis X
-                        listAttr.append(sublistX);
-                            
-                        Bottle& sublistY = listAttr.addList();
-                        sublistY.addString("y");
-                        sublistY.addDouble(fp[1] * -1000);       // adding rotation of the axis Y
-                        listAttr.append(sublistY);
-                            
-                        Bottle& sublistZ = listAttr.addList();            
-                        sublistZ.addString("z");
-                        sublistZ.addDouble(fp[2] * 1000 + 640);   //adding the height of the support as well
-                        listAttr.append(sublistZ);
-                        
-                        Bottle& sublistR = listAttr.addList();
-                        sublistR.addString("r");
-                        sublistR.addDouble(255.0);
-                        listAttr.append(sublistR);
-                            
-                        Bottle& sublistG = listAttr.addList();
-                        sublistG.addString("g");
-                        sublistG.addDouble(0.0);
-                        listAttr.append(sublistG);
-                            
-                        Bottle& sublistB = listAttr.addList();
-                        sublistB.addString("b");
-                        sublistB.addDouble(0.0);
-                        listAttr.append(sublistB);
-                            
-                        Bottle& sublistLife = listAttr.addList();
-                        sublistLife.addString("lifeTimer");
-                        sublistLife.addDouble(60.0);
-                        listAttr.append(sublistLife);          
-                   
-                                     
-                        blobDatabasePort.write(request, reply);
-                    }
-                }
-                else {  //case where the element is either the first of the list or the last of the list
-                    //memoryPos = 1; 
-                    pointer = memory;
-                    *pointer = fp[0]; pointer++;
-                    *pointer = fp[1]; pointer++;
-                    *pointer = fp[2];
-
-                    Bottle request, reply;
-                    request.clear(); reply.clear();
-                    request.addVocab(VOCAB3('a','d','d'));
-                    Bottle& listAttr=request.addList();
-                   
-                    Bottle& sublistX = listAttr.addList();
-                    
-                    sublistX.addString("x");
-                    sublistX.addDouble(fp[0] * -1000);       // adding rotation of the axis X
-                    listAttr.append(sublistX);
-
-                    Bottle& sublistY = listAttr.addList();
-                    sublistY.addString("y");
-                    sublistY.addDouble(fp[1] * -1000);       // adding rotation of the axis Y
-                    listAttr.append(sublistY);
-
-                    Bottle& sublistZ = listAttr.addList();            
-                    sublistZ.addString("z");
-                    sublistZ.addDouble(fp[2] * 1000 + 640);   //adding the height of the support as well
-                    listAttr.append(sublistZ);
-
-                    Bottle& sublistR = listAttr.addList();
-                    sublistR.addString("r");
-                    sublistR.addDouble(255.0);
-                    listAttr.append(sublistR);
-
-                    Bottle& sublistG = listAttr.addList();
-                    sublistG.addString("g");
-                    sublistG.addDouble(0.0);
-                    listAttr.append(sublistG);
-
-                    Bottle& sublistB = listAttr.addList();
-                    sublistB.addString("b");
-                    sublistB.addDouble(0.0);
-                    listAttr.append(sublistB);
-
-                    Bottle& sublistLife = listAttr.addList();
-                    sublistLife.addString("lifeTimer");
-                    sublistLife.addDouble(60.0);
-                    listAttr.append(sublistLife);          
-                   
-                                     
-                    blobDatabasePort.write(request, reply);
-                    memoryPos++;
-                }
-                
             }
-            
             
             
             for (int i = 1; i < nBlobs; i++) {
                 if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
                     printf("areaLP: %d \n", pBlob[i].areaLP);
-                }
-            }
-        }
-    }
+                    
+                    /*
+                        char* pointer = memory;
+                        if ((memoryPos != 0)&&(memoryPos < MAXMEMORY)) {
+                            //checking the distance with the previously memorised 3D locations
+                            int j;
+                            for (j = 0; j < memoryPos; j++) {
+                                int x = *pointer++; 
+                                int y = *pointer++;
+                                int z = *pointer++;
+                                
+                                double distance = sqrt((fp[0] - x) * (fp[0] - x) + (fp[1] - y) * (fp[1] - y) + (fp[2] - z) * (fp[2] - z));
+                                printf("distance %f \n", distance);
+                                if( distance < 0.6) {
+                                    printf("already saved position \n");
+                                    break;
+                                }
+                            }
+                            if( j >= memoryPos) {
+                                //need to add a new position
+                                pointer++;
+                                *pointer = fp[0];
+                                pointer++;
+                                *pointer = fp[1];
+                                pointer++;
+                                *pointer = fp[2];
+                                memoryPos++;
+                                
+                                //adding novel position to the GUI
+                                Bottle request, reply;
+                                request.clear(); reply.clear();
+                                request.addVocab(VOCAB3('a','d','d'));
+                                Bottle& listAttr=request.addList();
+                                
+                                Bottle& sublistX = listAttr.addList();
+                                
+                                sublistX.addString("x");
+                                sublistX.addDouble(fp[0] * 1000);    
+                                listAttr.append(sublistX);
+                                
+                                Bottle& sublistY = listAttr.addList();
+                                sublistY.addString("y");
+                                sublistY.addDouble(fp[1] * 1000);      
+                                listAttr.append(sublistY);
+                                
+                                Bottle& sublistZ = listAttr.addList();            
+                                sublistZ.addString("z");
+                                sublistZ.addDouble(fp[2] * 1000);   
+                                listAttr.append(sublistZ);
+                                
+                                Bottle& sublistR = listAttr.addList();
+                                sublistR.addString("r");
+                                sublistR.addDouble(255.0);
+                                listAttr.append(sublistR);
+                                
+                                Bottle& sublistG = listAttr.addList();
+                                sublistG.addString("g");
+                                sublistG.addDouble(0.0);
+                                listAttr.append(sublistG);
+                                
+                                Bottle& sublistB = listAttr.addList();
+                                sublistB.addString("b");
+                                sublistB.addDouble(0.0);
+                                listAttr.append(sublistB);
+                                
+                                Bottle& sublistLife = listAttr.addList();
+                                sublistLife.addString("lifeTimer");
+                                sublistLife.addDouble(60.0);
+                                listAttr.append(sublistLife);          
+                   
+                                
+                                blobDatabasePort.write(request, reply);
+                            }
+                        }
+                        else {  //case where the element is either the first of the list or the last of the list
+                            //memoryPos = 1; 
+                            pointer = memory;
+                            *pointer = fp[0]; pointer++;
+                            *pointer = fp[1]; pointer++;
+                            *pointer = fp[2];
+                            
+                            Bottle request, reply;
+                            request.clear(); reply.clear();
+                            request.addVocab(VOCAB3('a','d','d'));
+                            Bottle& listAttr=request.addList();
+                            
+                            Bottle& sublistX = listAttr.addList();
+                            
+                            sublistX.addString("x");
+                            sublistX.addDouble(fp[0] * 1000);      
+                            listAttr.append(sublistX);
+                            
+                            Bottle& sublistY = listAttr.addList();
+                            sublistY.addString("y");
+                            sublistY.addDouble(fp[1] * 1000);      
+                            listAttr.append(sublistY);
+                            
+                            Bottle& sublistZ = listAttr.addList();            
+                            sublistZ.addString("z");
+                            sublistZ.addDouble(fp[2] * 1000);   
+                            listAttr.append(sublistZ);
+                            
+                            Bottle& sublistR = listAttr.addList();
+                            sublistR.addString("r");
+                            sublistR.addDouble(255.0);
+                            listAttr.append(sublistR);
+                            
+                            Bottle& sublistG = listAttr.addList();
+                            sublistG.addString("g");
+                            sublistG.addDouble(0.0);
+                            listAttr.append(sublistG);
+                            
+                            Bottle& sublistB = listAttr.addList();
+                            sublistB.addString("b");
+                            sublistB.addDouble(0.0);
+                            listAttr.append(sublistB);
+                            
+                            Bottle& sublistLife = listAttr.addList();
+                            sublistLife.addString("lifeTimer");
+                            sublistLife.addDouble(60.0);
+                            listAttr.append(sublistLife);          
+                            
+                            
+                            blobDatabasePort.write(request, reply);
+                            memoryPos++;
+                        }
+                    }
+                    */
+                } //if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB))
+            } //for (int i = 1; i < nBlobs; i++)
+        } //if(blobDatabasePort.getOutputCount())
+    } // if (0 != img)
 }
 
 /**
