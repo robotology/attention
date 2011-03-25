@@ -146,32 +146,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
 
     printf("extracting kinematic informations \n");
 
-    eyeL = new iCubEye("left");
-    eyeR = new iCubEye("right");    
-
-    // remove constraints on the links
-    // we use the chains for logging purpose
-    eyeL->setAllConstraints(false);
-    eyeR->setAllConstraints(false);
-
-    // release links
-    eyeL->releaseLink(0);
-    //eyeC.releaseLink(0);
-    eyeR->releaseLink(0);
-    eyeL->releaseLink(1);
-    //eyeC.releaseLink(1);
-    eyeR->releaseLink(1);
-    eyeL->releaseLink(2);
-    //eyeC.releaseLink(2);
-    eyeR->releaseLink(2);
-
-    // get camera projection matrix from the configFile
-    if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
-        Matrix &Prj = *PrjL;
-        //cxl=Prj(0,2);
-        //cyl=Prj(1,2);
-        invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
-    }
+    
 
     printf("starting the tracker.... \n");
     ResourceFinder* rf = new ResourceFinder();
@@ -189,6 +164,32 @@ bool gazeArbiterThread::threadInit() {
     executing = false;
     printf("starting the thread.... \n");
 
+    blobDatabasePort.open(getName("/database").c_str());
+
+    eyeL = new iCubEye("left");
+    eyeR = new iCubEye("right");    
+
+    // remove constraints on the links
+    // we use the chains for logging purpose
+    //eyeL->setAllConstraints(false);
+    //eyeR->setAllConstraints(false);
+
+    // release links
+    eyeL->releaseLink(0);
+    eyeR->releaseLink(0);
+    eyeL->releaseLink(1);
+    eyeR->releaseLink(1);
+    eyeL->releaseLink(2);
+    eyeR->releaseLink(2);
+
+    // get camera projection matrix from the configFile
+    if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
+        Matrix &Prj = *PrjL;
+        //cxl=Prj(0,2);
+        //cyl=Prj(1,2);
+        invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
+    }
+    
     //initializing gazecontrollerclient
     Property option;
     option.put("device","gazecontrollerclient");
@@ -207,7 +208,11 @@ bool gazeArbiterThread::threadInit() {
     else
         return false;
     
-    string headPort = "/icub/head";
+    string headPort = "/icub/head";//<<--------- hard coded here remove asap
+    string robot("icub");
+    string name("local");
+
+    //initialising the head polydriver
     optionsHead.put("device", "remote_controlboard");
     optionsHead.put("local", "/localhead");
     optionsHead.put("remote", headPort.c_str());
@@ -217,7 +222,20 @@ bool gazeArbiterThread::threadInit() {
         printf("cannot connect to robot head\n");
     }
     robotHead->view(encHead);
+    
+    //initialising the torso polydriver
+    printf("starting the polydrive for the torso.... \n");
+    Property optPolyTorso("(device remote_controlboard)");
+    optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
+    optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
 
+
+    polyTorso=new PolyDriver;
+    if (!polyTorso->open(optPolyTorso))
+    {
+        return false;
+    }
+    polyTorso->view(encTorso);
     
     template_size = 20;
     search_size = 100;
@@ -240,6 +258,7 @@ void gazeArbiterThread::interrupt() {
     inLeftPort.interrupt();
     inRightPort.interrupt();
     statusPort.interrupt();
+    blobDatabasePort.interrupt();
 }
 
 void gazeArbiterThread::setDimension(int w, int h) {
@@ -425,7 +444,7 @@ void gazeArbiterThread::run() {
                 px(0) = (width / 2.0) - errorx;
                 px(1) = (height / 2.0) - errory;
                 error = sqrt(errorx * errorx + errory * errory);
-                printf("norm error %f \n", error);
+                //printf("norm error %f \n", error);
                 int camSel = 0;
                 igaze->lookAtMonoPixel(camSel,px,z);
                 tracker->getPoint(point);
@@ -527,8 +546,122 @@ void gazeArbiterThread::run() {
                     status.clear();
                     status.addString("vergence_accomplished");
                     statusPort.write();
-                    printf("************ \n");
+                    printf(" sending location !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
                     accomplished_flag = true;
+                    
+
+
+                    //calculating the 3d position and sending it to database
+                    u = 160; 
+                    v = 120;
+                    z = 0.5;
+                    Vector fp(3);
+
+                    
+
+                    if (invPrjL) {
+                      
+                        /*
+                        
+                        Vector torso(3);
+                        encTorso->getEncoder(0,&torso[0]);
+                        encTorso->getEncoder(1,&torso[1]);
+                        encTorso->getEncoder(2,&torso[2]);
+                        Vector head(5);
+                        encHead->getEncoder(0,&head[0]);
+                        encHead->getEncoder(1,&head[1]);
+                        encHead->getEncoder(2,&head[2]);
+                        encHead->getEncoder(3,&head[3]);
+                        encHead->getEncoder(4,&head[4]);
+                
+                
+                        Vector q(8);
+                        double ratio = M_PI /180;
+                        q[0]=torso[0] * ratio;
+                        q[1]=torso[1]* ratio;
+                        q[2]=torso[2]* ratio;
+                        q[3]=head[0]* ratio;
+                        q[4]=head[1]* ratio;
+                        q[5]=head[2]* ratio;
+                        q[6]=head[3]* ratio;
+                        q[7]=head[4]* ratio;
+                        double ver = head[5];
+                        //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+                        
+                            
+                        Vector x(3);
+                        x[0]=z * u;   //epipolar correction excluded the focal lenght
+                        x[1]=z * v;
+                        x[2]=z;
+                        
+                        // find the 3D position from the 2D projection,
+                        // knowing the distance z from the camera
+                        Vector xe = yarp::math::operator *(*invPrjL, x);
+                        xe[3]=1.0;  // impose homogeneous coordinates                
+                        
+                        // update position wrt the root frame
+                        Matrix eyeH = eyeL->getH(q);
+                        //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
+                        Vector xo = yarp::math::operator *(eyeH,xe);
+                        
+                        //fp.resize(3,0.0);
+                        //fp[0]=xo[0];
+                        //fp[1]=xo[1];
+                        //fp[2]=xo[2];
+                        printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);
+                    
+
+                        //adding novel position to the GUI
+                        Bottle request, reply;
+                        request.clear(); reply.clear();
+                        request.addVocab(VOCAB3('a','d','d'));
+                        Bottle& listAttr=request.addList();
+                        
+                        Bottle& sublistX = listAttr.addList();
+                        
+                        sublistX.addString("x");
+                        sublistX.addDouble(xo[0] * 1000);    
+                        listAttr.append(sublistX);
+                        
+                        Bottle& sublistY = listAttr.addList();
+                        sublistY.addString("y");
+                        sublistY.addDouble(xo[1] * 1000);      
+                        listAttr.append(sublistY);
+                        
+                        Bottle& sublistZ = listAttr.addList();            
+                        sublistZ.addString("z");
+                        sublistZ.addDouble(xo[2] * 1000);   
+                        listAttr.append(sublistZ);
+                        
+                        Bottle& sublistR = listAttr.addList();
+                        sublistR.addString("r");
+                        sublistR.addDouble(0.0);
+                        listAttr.append(sublistR);
+                        
+                        Bottle& sublistG = listAttr.addList();
+                        sublistG.addString("g");
+                        sublistG.addDouble(0.0);
+                        listAttr.append(sublistG);
+                        
+                        Bottle& sublistB = listAttr.addList();
+                        sublistB.addString("b");
+                        sublistB.addDouble(0.0);
+                        listAttr.append(sublistB);
+                        
+                        Bottle& sublistLife = listAttr.addList();
+                        sublistLife.addString("lifeTimer");
+                        sublistLife.addDouble(10.0);
+                        listAttr.append(sublistLife);          
+                        
+                        
+                        blobDatabasePort.write(request, reply);
+
+                        */
+                        
+                        
+                    }
+                    
+                    Time::delay(1);
                     return;
                 }
                 
@@ -541,8 +674,8 @@ void gazeArbiterThread::run() {
                 
 
                 //printf("------------- VERGENCE   ----------------- \n");
-                
-                    
+            
+            
                 //calculating the magnitude of the 3d vector
                 igaze->getAngles(anglesVect);
                 phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
@@ -555,34 +688,34 @@ void gazeArbiterThread::run() {
                 //double varDistance = sqrt (h * h + (BASELINE + b) * (BASELINE + b)) ;
                 //double varDistance = ipLeft;
                 //printf("varDistance %f distance %f of vergence angle tot %f enc %f \n",varDistance,distance, (phiTOT * 180)/PI, _head(5));
-                
-
-
+            
+            
+            
                 //tracker->getPoint(point);
                 double error = 1000;                                         
                 timeoutStart=Time::now();
                 //while ((error > 2.0)&&(timeout < 10)) {
- 
-                    //timeoutStop = Time::now();
-                    // timeout =timeoutStop - timeoutStart;
-                    //corrected the error
-                    //double errorx = 160 - point.x;
-                    //double errory = 120 - point.y;
-                    //printf ("error %f,%f \n",errorx, errory);
-                    Vector px(2);
-                    //error = sqrt(errorx * errorx + errory * errory);
-                    //printf("norm error %f \n", error);
-                    int camSel = 0;
-                    
-                    px(0) = (width / 2.0);
-                    px(1) = (height / 2.0);
-
-                    printf("----------------------------------varDistance %f \n", varDistance);
-                    igaze->lookAtMonoPixel(camSel,px,varDistance);
-                    
-                    //tracker->getPoint(point);
-                    //}
                 
+                //timeoutStop = Time::now();
+                // timeout =timeoutStop - timeoutStart;
+                //corrected the error
+                //double errorx = 160 - point.x;
+                //double errory = 120 - point.y;
+                //printf ("error %f,%f \n",errorx, errory);
+                Vector px(2);
+                //error = sqrt(errorx * errorx + errory * errory);
+                //printf("norm error %f \n", error);
+                int camSel = 0;
+                
+                px(0) = (width / 2.0);
+                px(1) = (height / 2.0);
+                
+                printf("----------------------------------varDistance %f \n", varDistance);
+                igaze->lookAtMonoPixel(camSel,px,varDistance);
+                
+                //tracker->getPoint(point);
+                //}
+            
                
                 /*
                   printf("x1 %f y1 %f z1 %f", x1, y1, z1);
@@ -618,8 +751,8 @@ void gazeArbiterThread::run() {
                   bank = atan2(x1 * s - y1 * z1 * t , 1 - (x1*x1 + z1*z1) * t);
                   printf("headPose heading  %f attitude %f bank %f \n",heading,attitude,bank);
                 */
-
-                
+            
+            
             }
             else {
                 //printf("------------- ANGULAR VERGENCE  ----------------- \n \n");
@@ -632,7 +765,7 @@ void gazeArbiterThread::run() {
                   gazeVect[2] = phi ;                              //vergence  
                   igaze->lookAtRelAngles(gazeVect);
                 */
-
+            
                 gazeVect[0] = 0 ;                //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
                 gazeVect[1] = 0 ;                //tilt
                 gazeVect[2] = phi;              //vergence  
@@ -688,12 +821,13 @@ void gazeArbiterThread::threadRelease() {
     inLeftPort.close();
     inRightPort.close();
     statusPort.close();
+    blobDatabasePort.close();
     delete clientGazeCtrl;
 }
 
 void gazeArbiterThread::update(observable* o, Bottle * arg) {
     //printf("ACK. Aware of observable asking for attention \n");
-    if(arg != 0) {
+    if (arg != 0) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
         ConstString name = arg->get(0).asString();

@@ -98,15 +98,15 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inLeftPort;        // input image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inRightPort;       // output image port
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
-    
+    yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;
-    yarp::dev::IGazeControl *igaze;             // Ikin controller of the gaze
-    yarp::dev::PolyDriver* clientGazeCtrl;      // polydriver for the gaze controller
-    yarp::dev::PolyDriver *robotHead;           // polydriver for the control of the head
-    yarp::dev::IEncoders *encHead;              // measure of the encoder of the head
-    yarp::os::Semaphore mutex;                  // semaphore on the resource stateRequest
+    yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
+    yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
+    yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
+    yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
+    yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
 
-    trackerThread* tracker;                     //reference to the object in charge of tracking a tamplete surrounding a point
+    trackerThread* tracker;                         //reference to the object in charge of tracking a tamplete surrounding a point
 public:
     /**
     * default constructor
