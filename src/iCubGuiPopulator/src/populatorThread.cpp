@@ -32,7 +32,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-#define THRATE 10
+#define THRATE 100
 #define OBLIVIONFACTOR 10
 
 populatorThread::populatorThread() : RateThread(THRATE) {
@@ -136,7 +136,7 @@ void populatorThread::run() {
                     Bottle& obj = guiPort.prepare();
                     obj.clear();
                     string name("obj");
-                    //sprintf((char*)name.c_str(),"Object%d",id);
+                    sprintf((char*)name.c_str(),"Object%d",id);
                     //printf("name of the object:%s \n",name.c_str());
                     obj.addString("object"); // comando
                     obj.addString(name.c_str()); // nome dell'oggetto

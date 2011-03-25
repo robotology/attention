@@ -207,6 +207,7 @@ bool gazeArbiterThread::threadInit() {
     }
     else
         return false;
+    igaze->blockNeckPitch(-40.0);
     
     string headPort = "/icub/head";//<<--------- hard coded here remove asap
     string robot("icub");
@@ -586,13 +587,18 @@ void gazeArbiterThread::run() {
                         q[6]=head[3]* ratio;
                         q[7]=head[4]* ratio;
                         double ver = head[5];
-                        //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+                        printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);
+
+                        
                         
                             
                         Vector x(3);
                         x[0]=z * u;   //epipolar correction excluded the focal lenght
                         x[1]=z * v;
                         x[2]=z;
+                        */
+
+                        /*
                         
                         // find the 3D position from the 2D projection,
                         // knowing the distance z from the camera
@@ -609,7 +615,9 @@ void gazeArbiterThread::run() {
                         //fp[1]=xo[1];
                         //fp[2]=xo[2];
                         printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);
-                    
+                        */
+
+                        /*
 
                         //adding novel position to the GUI
                         Bottle request, reply;
