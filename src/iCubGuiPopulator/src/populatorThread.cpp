@@ -33,7 +33,7 @@ using namespace yarp::sig;
 using namespace std;
 
 #define THRATE 10
-#define OBLIVIONFACTOR 100
+#define OBLIVIONFACTOR 10
 
 populatorThread::populatorThread() : RateThread(THRATE) {
     count = 0;
@@ -117,27 +117,27 @@ void populatorThread::run() {
                 cout<<writer2.toString()<<endl;
                 databasePort.write(writer2,reader2);
                 if(reader2.get(0).asVocab()==VOCAB3('a','c','k')) {
-                    cout << "reader:" << reader2.toString() << endl;
+                    //cout << "reader:" << reader2.toString() << endl;
                     Bottle* list = reader2.get(1).asList();
-                    cout << "list:" << list->toString() << endl;
+                    //cout << "list:" << list->toString() << endl;
                     posX = list->find("x").asDouble();
                     posY = list->find("y").asDouble();
                     posZ = list->find("z").asDouble();
-                    printf("position: %f,%f,%f \n", posX,posY,posZ);
+                    //printf("position: %f,%f,%f \n", posX,posY,posZ);
                     
                     r = list->find("r").asInt();
                     g = list->find("g").asInt();
                     b = list->find("b").asInt();
-                    printf("colour: %d,%d,%d \n", r,g,b);
+                    //printf("colour: %d,%d,%d \n", r,g,b);
 
                     lifeTimer = list->find("lifeTimer").asDouble();
-                    printf("lifeTimer %f \n",lifeTimer);
+                    //printf("lifeTimer %f \n",lifeTimer);
                     
                     Bottle& obj = guiPort.prepare();
                     obj.clear();
-                    string name("object");
-                    sprintf((char*)name.c_str(),"Object%d",id);
-                    printf("name of the object:%s \n",name.c_str());
+                    string name("obj");
+                    //sprintf((char*)name.c_str(),"Object%d",id);
+                    //printf("name of the object:%s \n",name.c_str());
                     obj.addString("object"); // comando
                     obj.addString(name.c_str()); // nome dell'oggetto
                     
@@ -168,7 +168,7 @@ void populatorThread::run() {
                     if(lifeTimer == 0)
                         obj.addDouble(1.0);
                     else
-                        obj.addDouble(lifeTimer / OBLIVIONFACTOR);
+                        obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
                     guiPort.write();
                 }
             }
