@@ -53,6 +53,11 @@
 #include <iCub/observable.h>
 
 
+/**
+* thread that given a series of collected commands executes the most prioritised command, calling
+* the correct interface function of the iKinGazeCtrl.
+*/
+
 class gazeArbiterThread : public yarp::os::RateThread, public observer{
 private:
     std::string name;                       // rootname of all the ports opened by this thread
@@ -67,7 +72,8 @@ private:
     bool executing;                         // flag that is set during the execution of motion
     bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
     int u,v;                                // values passed for saccades
-    double x,y,z;                           // coordinates of the object 
+    double xObject,yObject,zObject;         // coordinates of the object 
+    double zDistance;                       // estimated distance of the object from the eye
     int xOffset;                            // offset for the 3D point along x
     int yOffset;                            // offset for the 3D point along y
     int zOffset;                            // offset for the 3D point along z

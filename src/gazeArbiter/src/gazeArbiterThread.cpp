@@ -229,14 +229,16 @@ bool gazeArbiterThread::threadInit() {
     Property optPolyTorso("(device remote_controlboard)");
     optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
     optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
-
-
     polyTorso=new PolyDriver;
     if (!polyTorso->open(optPolyTorso))
     {
         return false;
     }
     polyTorso->view(encTorso);
+
+
+
+
     
     template_size = 20;
     search_size = 100;
@@ -280,10 +282,10 @@ std::string gazeArbiterThread::getName(const char* p) {
 
 
 void gazeArbiterThread::init(const int x, const int y) {
-    point.x=x;
-    point.y=y;
-    template_roi.width=template_roi.height=template_size;
-    search_roi.width=search_roi.height=search_size;
+    point.x = x;
+    point.y = y;
+    template_roi.width = template_roi.height = template_size;
+    search_roi.width = search_roi.height = search_size;
 }
 
 void gazeArbiterThread::getPoint(CvPoint& p) {
@@ -292,7 +294,6 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 
 
 void gazeArbiterThread::run() {
-    printf(".");
     Bottle& status = statusPort.prepare();
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
@@ -316,6 +317,58 @@ void gazeArbiterThread::run() {
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  SACCADE -----------------------
         if(!executing) {
+            //calculating where the fixation point would end up
+            
+            bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
+            Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
+            iCubEye *eye = (isLeft?eyeL:eyeR);
+            //function that calculates the 3DPoint where to redirect saccade and add the offset
+            Vector torso(3);
+            encTorso->getEncoder(0,&torso[0]);
+            encTorso->getEncoder(1,&torso[1]);
+            encTorso->getEncoder(2,&torso[2]);
+            Vector head(5);
+            encHead->getEncoder(0,&head[0]);
+            encHead->getEncoder(1,&head[1]);
+            encHead->getEncoder(2,&head[2]);
+            encHead->getEncoder(3,&head[3]);
+            encHead->getEncoder(4,&head[4]);
+
+            
+            //if (isLeft)
+            //    q[7]=head[4]+head[5]/2.0;
+            //else
+            //    q[7]=head[4]-head[5]/2.0;
+
+            Vector q(8);
+            double ratio = M_PI /180;
+            q[0]=torso[0] * ratio;
+            q[1]=torso[1] * ratio;
+            q[2]=torso[2] * ratio;
+            q[3]=head[0] * ratio;
+            q[4]=head[1] * ratio;
+            q[5]=head[2] * ratio;
+            q[6]=head[3] * ratio;
+            q[7]=head[4] * ratio;
+            double ver = head[5];
+            //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+
+            Vector x(3);
+            x[0] = zDistance * u;
+            x[1] = zDistance * v;
+            x[2] = zDistance;
+
+            // find the 3D position from the 2D projection,
+            // knowing the distance z from the camera
+            Vector xe = yarp::math::operator *(*invPrj, x);
+            xe[3]=1.0;  // impose homogeneous coordinates                
+
+            // update position wrt the root frame
+            Vector xo = yarp::math::operator *(eye->getH(q),xe);
+            if ((x[1]> 0.5)||(x[1]< -0.5)) {
+                return;
+            }
+            
             // starting saccade toward the direction of the required position
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
@@ -333,7 +386,7 @@ void gazeArbiterThread::run() {
                             px(0) = u;
                             px(1) = v;
                             int camSel = 0;
-                            igaze->lookAtMonoPixel(camSel,px,z);
+                            igaze->lookAtMonoPixel(camSel,px,zDistance);
                             tracker->getPoint(point);
                             dx = (double) (point.x - px(0));
                             dy = (double) (point.y - px(1));
@@ -341,49 +394,12 @@ void gazeArbiterThread::run() {
                             u = width / 2;
                             v = height / 2;
                         }
-                        printf("saccadic event : started \n",u,v,z);
+                        printf("saccadic event : started \n",u,v,zDistance);
                     }
                 }
                 else {
-                    //printf("monocular with stereo \n");
-                    Matrix *invPrjL = 0, *invPrjR = 0;
-                    bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
-                    Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
-                    iCubEye *eye = (isLeft?eyeL:eyeR);
-                    //function that calculates the 3DPoint where to redirect saccade and add the offset
-                    Vector torso(3);
-                    Vector fp(3);
-                    igaze->getAngles(torso);
-                    Vector head(4);
-                    igaze->getAngles(head);
-
-                    Vector q(8);
-                    q[0]=torso[0];
-                    q[1]=torso[1];
-                    q[2]=torso[2];
-                    q[3]=head[0];
-                    q[4]=head[1];
-                    q[5]=head[2];
-                    q[6]=head[3];
-
-                    
-                    if (isLeft)
-                        q[7]=head[4]+head[5]/2.0;
-                    else
-                        q[7]=head[4]-head[5]/2.0;
-
-                    Vector x(3);
-                    x[0] = z * u;
-                    x[1] = z * v;
-                    x[2] = z;
-
-                    // find the 3D position from the 2D projection,
-                    // knowing the distance z from the camera
-                    Vector xe = yarp::math::operator *(*invPrj, x);
-                    xe[3]=1.0;  // impose homogeneous coordinates                
-
-                    // update position wrt the root frame
-                    Vector xo = yarp::math::operator *(eye->getH(q),xe);
+                    // monocular with stereo offsets 
+                    Vector fp;
                     fp.resize(3,0.0);
                     fp[0]=xo[0] + xOffset;
                     fp[1]=xo[1] + yOffset;
@@ -392,19 +408,18 @@ void gazeArbiterThread::run() {
             }
             else {
                 Vector px(3);
-                px(0) = x + xOffset;
-                px(1) = y + yOffset;
-                px(2) = z + zOffset;
+                px[0] = xObject + xOffset;
+                px[1] = yObject + yOffset;
+                px[2] = zObject + zOffset;
                 igaze->lookAtFixationPoint(px);
-                printf("saccadic event : started \n",x,y,z);
+                printf("saccadic event : started \n",xObject,yObject,zObject);
             }
 
             executing = true;
             Time::delay(0.05);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
-
-            
+            printf ("timeout %d \n", timeout);
 
             //constant time of 10 sec after which the action is considered not performed
             timeoutStart=Time::now();
@@ -423,11 +438,6 @@ void gazeArbiterThread::run() {
                     igaze->lookAtFixationPoint(v);
                     timeoutStart = Time::now();
                     timeout = 0;
-                    
-                    //status.clear();
-                    //status.addString("saccade_unreachable");
-                    //statusPort.write();
-                    //status.clear();
                 }
                 else {
                     printf("saccade_accomplished \n");
@@ -438,6 +448,7 @@ void gazeArbiterThread::run() {
             while(( error > 1)&&(timeout < 10.0)&&(tracker->getInputCount())) {
                 timeoutStop = Time::now();
                 timeout =timeoutStop - timeoutStart;
+                printf("timeout in correcting  %d \n", timeout);
                 //corrected the error
                 double errorx = (width / 2.0)  - point.x;
                 double errory = (height / 2.0) - point.y;
@@ -447,7 +458,7 @@ void gazeArbiterThread::run() {
                 error = sqrt(errorx * errorx + errory * errory);
                 //printf("norm error %f \n", error);
                 int camSel = 0;
-                igaze->lookAtMonoPixel(camSel,px,z);
+                igaze->lookAtMonoPixel(camSel,px,zDistance);
                 tracker->getPoint(point);
                 //printf("the point ended up in %d  %d \n",point.x, point.y);
             }
@@ -462,11 +473,6 @@ void gazeArbiterThread::run() {
                 igaze->checkMotionDone(&done);
                 
             }
-            //status = statusPort.prepare();
-            //status.clear();
-            //status.addString("saccade_accomplished");
-            //statusPort.write(true);
-            
         }
     }
     else if(allowedTransitions(2)>0) {
@@ -555,10 +561,8 @@ void gazeArbiterThread::run() {
                     //calculating the 3d position and sending it to database
                     u = 160; 
                     v = 120;
-                    z = 0.5;
+                    zDistance = 0.5;
                     Vector fp(3);
-
-                    
 
                     if (invPrjL) {
                       
@@ -843,7 +847,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
-            z = arg->get(3).asDouble();
+            zDistance = arg->get(3).asDouble();
             mutex.wait();
             stateRequest[3] = 1;
             //executing = false;
@@ -852,9 +856,9 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             firstVer = true;
         }
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
-            x = arg->get(1).asDouble();
-            y = arg->get(2).asDouble();
-            z = arg->get(3).asDouble();
+            xObject = arg->get(1).asDouble();
+            yObject = arg->get(2).asDouble();
+            zObject = arg->get(3).asDouble();
             mutex.wait();
             stateRequest[3] = 1;
             //executing = false;
