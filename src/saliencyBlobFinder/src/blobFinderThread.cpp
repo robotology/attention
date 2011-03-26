@@ -275,8 +275,6 @@ bool blobFinderThread::threadInit() {
     Property optPolyTorso("(device remote_controlboard)");
     optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
     optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
-
-
     polyTorso=new PolyDriver;
     if (!polyTorso->open(optPolyTorso))
     {
@@ -284,6 +282,8 @@ bool blobFinderThread::threadInit() {
     }
     polyTorso->view(encTorso);
 
+
+    //extracting the kinematic chain of the two eyes
     eyeL=new iCubEye("left");
     eyeR=new iCubEye("right");
 
