@@ -218,7 +218,6 @@ void mosaicThread::resize(int width_orig,int height_orig) {
     printf("resizing using %d %d",width_orig,height_orig);
     this->width_orig = width_orig;
     this->height_orig = height_orig;
-    
 }
 
 bool mosaicThread::placeInpImage(int X, int Y) {
@@ -239,14 +238,6 @@ bool mosaicThread::setMosaicSize(int width=DEFAULT_WIDTH, int height=DEFAULT_HEI
 }
 
 void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
-    int i,j;
-    unsigned char* inpTemp = inputImage->getRawImage();
-    unsigned char* outTemp = outputImageMosaic->getRawImage();
-    int iW = inputImage->width();
-    int iH = inputImage->height();
-    int mPad = outputImageMosaic->getPadding();
-    int inputPadding = inputImage->getPadding();
-    
     //recalculing the position in the space
     double u = 160;
     double v = 120;
@@ -313,45 +304,38 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     double distance = z;
     double shift = fp[1] * ( focalLenght / distance );
     printf("shift %f \n", shift);
-
-
-    /*
-    printf("iH %d, iW %d height %d width %d \n", iH, iW, height, width );
-    for(i = 0 ; i < iH ; ++i) {
-        for(j = 0 ; j < iW ; ++j) {   
-            int mosaicX = i; 
-            mosaicX -= iH / 2;
-            mosaicX += ycoord; 
-            int mosaicY = j;
-            mosaicY -= iW / 2;
-            mosaicY += xcoord;
-
-           
-            
-            if(mosaicX < height && mosaicY < width) {
-                int index = mosaicX;
-                index = index *(width * 3 + mPad);
-                index += 3 * mosaicY;
-                 
-                *(outTemp + index) += *inpTemp;
-                inpTemp++;
-                
-                *(outTemp + index + 1) += *inpTemp;
-                inpTemp++;
-                
-                *(outTemp + index + 2) += *inpTemp;
-                inpTemp++;
-            }
-            else {
-                inpTemp +=3;
-            }
-            
-        }
-        //inpTemp += inputPadding;
-    }
-
-    */
     
+    int i,j;
+    unsigned char* inpTemp = inputImage->getRawImage();
+    unsigned char* outTemp = outputImageMosaic->getRawImage();
+    unsigned char* lineOutTemp;
+    int iW = inputImage->width();
+    int iH = inputImage->height();
+    int mPad = outputImageMosaic->getPadding();
+    int inputPadding = inputImage->getPadding();
+    int rowSize = outputImageMosaic->getRowSize();
+    
+    
+    int mosaicX, mosaicY;
+    mosaicX = ycoord;
+    mosaicX -= iH / 2;
+    mosaicY = xcoord;
+    mosaicY -= iW / 2;
+    outTemp = lineOutTemp = outTemp + mosaicX * (rowSize + mPad) + 3 * mosaicY;
+    for(i = 0 ; i < iH ; ++i) {
+        for(j = 0 ; j < iW ; ++j) {
+                *outTemp += *inpTemp;
+                inpTemp++; outTemp++;
+                
+                *outTemp += *inpTemp;
+                inpTemp++; outTemp++;
+                
+                *outTemp += *inpTemp;
+                inpTemp++; outTemp++;
+        }
+        inpTemp += inputPadding;
+        outTemp = lineOutTemp = lineOutTemp + (rowSize + mPad);
+    }
 }
 
 
