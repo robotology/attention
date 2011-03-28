@@ -77,6 +77,9 @@ private:
     int xOffset;                            // offset for the 3D point along x
     int yOffset;                            // offset for the 3D point along y
     int zOffset;                            // offset for the 3D point along z
+    int xmax, xmin;                         // limits in fixation point
+    int ymax, ymin;                         // limits in fixation point
+    int zmax, zmin;                         // limits in fixation point
     int width, height;                      // dimension of the image
     double phi;                             // value passed for vergence
     double phiTOT;                          // accumulator of increments of vergence angles
@@ -199,6 +202,21 @@ public:
     * function that sets the value of the parameter zOffset
     */
     void setZOffset(int  value) { zOffset = value; };
+
+    /**
+    * function that sets the value of the parameter x limirs
+    */
+    void setXLimits(int max, int min) { xmax = max; xmin = min; };
+
+    /**
+    * function that sets the value of the parameter y limits
+    */
+    void setYLimits(int max, int min) { ymax = max; ymin = min; };
+
+    /**
+    * function that sets the value of the parameter z limits
+    */
+    void setZLimits(int max, int min) { zmax = max; zmin = min; };
 
     /**
     * function that returns only when the last action is ended

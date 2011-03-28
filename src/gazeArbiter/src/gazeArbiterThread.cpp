@@ -365,7 +365,16 @@ void gazeArbiterThread::run() {
 
             // update position wrt the root frame
             Vector xo = yarp::math::operator *(eye->getH(q),xe);
-            if ((x[1]> 0.5)||(x[1]< -0.5)) {
+            printf("fixation point estimated %f %f %f",xo[0], xo[1], xo[2]);
+
+
+            if ((xo[1]> 0.3)||(xo[1]< -0.3)) {
+                printf("           OutOfRange ........... \n");
+                Vector px(3);
+                px[0] = -0.5 + xOffset;
+                px[1] = 0.0 + yOffset;
+                px[2] = 0.1 + zOffset;
+                igaze->lookAtFixationPoint(px);
                 return;
             }
             
@@ -419,7 +428,7 @@ void gazeArbiterThread::run() {
             Time::delay(0.05);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
-            printf ("timeout %d \n", timeout);
+            //printf ("timeout %d \n", timeout);
 
             //constant time of 10 sec after which the action is considered not performed
             timeoutStart=Time::now();
@@ -448,7 +457,7 @@ void gazeArbiterThread::run() {
             while(( error > 1)&&(timeout < 10.0)&&(tracker->getInputCount())) {
                 timeoutStop = Time::now();
                 timeout =timeoutStop - timeoutStart;
-                printf("timeout in correcting  %d \n", timeout);
+                //printf("timeout in correcting  %d \n", timeout);
                 //corrected the error
                 double errorx = (width / 2.0)  - point.x;
                 double errory = (height / 2.0) - point.y;
@@ -463,15 +472,22 @@ void gazeArbiterThread::run() {
                 //printf("the point ended up in %d  %d \n",point.x, point.y);
             }
             Time::delay(0.05);
-            igaze->checkMotionDone(&done);
-            while((!done)&&(timeout < 10.0)) {
-                
-                timeoutStop = Time::now();
-                timeout =timeoutStop - timeoutStart;
-                printf("f");
-                Time::delay(0.005);
+            if(timeout >= 10.0) {
+                Vector px(3);
+                px[0] = -0.5 + xOffset;
+                px[1] = 0.0 + yOffset;
+                px[2] = 0.1 + zOffset;
+                igaze->lookAtFixationPoint(px);
                 igaze->checkMotionDone(&done);
-                
+                while((!done)&&(timeout < 10.0)) {
+                    
+                    timeoutStop = Time::now();
+                    timeout =timeoutStop - timeoutStart;
+                    printf("f");
+                    Time::delay(0.005);
+                    igaze->checkMotionDone(&done);
+                    
+                }
             }
         }
     }

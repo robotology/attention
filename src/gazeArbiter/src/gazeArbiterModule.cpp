@@ -80,13 +80,13 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* get the dimension of the image for the thread parametric control */
     width                  = rf.check("width", 
-                           Value("320"), 
+                           Value(320), 
                            "width of the image (int)").asInt();
 
     height                 = rf.check("height", 
-                           Value("240"), 
+                           Value(240), 
                            "height of the image (int)").asInt();
-    width = 320; height = 240;
+
     printf("\n width: %d  height:%d \n", width, height);
     arbiter->setDimension(width,height);
 
@@ -106,6 +106,36 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     this->zoffset       = rf.check("zoffset", 
                            Value(0), 
                            "offset for 3D fixation point z").asInt();
+    arbiter->setZOffset(zoffset);
+
+    
+    // limits for 3d position along x axis 
+    xmax       = rf.check("xmax", 
+                           Value(-10.0), 
+                          "limit max for 3D fixation point x").asInt();
+    xmin       = rf.check("xmin", 
+                           Value(-1), 
+                           "limit min for 3D fixation point x").asInt();;
+    arbiter->setXLimits(xmax,xmin);
+    
+    // limits for 3d position along y axis 
+    ymax       = rf.check("ymax", 
+                           Value(0.3), 
+                           "limit max for 3D fixation point y").asInt();
+    ymax       = rf.check("ymax", 
+                           Value(0.3), 
+                           "limit max for 3D fixation point y").asInt();
+    arbiter->setYLimits(ymax,ymin);
+    
+    // limits for 3d position along z axis 
+    zmax       = rf.check("zmax", 
+                           Value(0.9), 
+                           "limit max for 3D fixation point z").asInt();
+    zmin       = rf.check("zmin", 
+                           Value(-0.3), 
+                           "limit min for 3D fixation point z").asInt();
+    arbiter->setZLimits(zmax,zmin);
+    
 
     collector->addObserver(*arbiter);
 

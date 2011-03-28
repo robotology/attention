@@ -153,6 +153,8 @@
  * 01/02/11 : added xoffset, yoffset and zoffset for 3D target                                      @author Rea
  * 30/02/11 : added new parameters for input image dimensioning                                     @author Rea 
  * 30/02/11 : removed imprecision in the case the tracker does not initialise                       @author Rea  
+ * 24/04/11 : added fixed neck pitch option                                                         @author Rea
+ * 28/03/11 : added the limits for the allowed fixation points in 3d space                          @author Rea
  */
 
 #include <iostream>
@@ -178,6 +180,9 @@ class gazeArbiterModule:public yarp::os::RFModule {
     int xoffset;                                // offset for the 3D point along x
     int yoffset;                                // offset for the 3D point along y
     int zoffset;                                // offset for the 3D point along z
+    int xmax, xmin;                             // limits for the allowed fixation point (x axis)
+    int ymax, ymin;                             // limits for the allowed fixation point (y axis)
+    int zmax, zmin;                             // limits for the allowed fixation point (z axis)
     int width, height;                          // parameter set by user dimensioning input image
     yarp::os::Port handlerPort;                 // a port to handle messages 
 
