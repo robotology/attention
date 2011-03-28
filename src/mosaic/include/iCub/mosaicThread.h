@@ -2,7 +2,7 @@
 
 /* 
  * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Shashank Pathak
+ * Authors: Shashank Pathak, Francesco Rea
  * email:   shashank.pathak@iit.it
  * website: www.robotcub.org 
  * Permission is granted to copy, distribute, and/or modify this program
@@ -44,7 +44,6 @@
 #define MAX_HEIGHT 480
 
 
-
 class mosaicThread : public yarp::os::Thread {
 private:
     int width_orig, height_orig;    // dimension of the input image (original)
@@ -52,7 +51,8 @@ private:
     int xcoord, ycoord;             // position of input image's center in mosaic reference frame
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
-
+    float* memory;                  // memory of plotted location in the space
+    int countMemory;                // number of saved location
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image from camera
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *outputImageMosaic;     // output image (mosaic)
@@ -67,7 +67,7 @@ private:
     yarp::dev::IEncoders   *encTorso,*encHead;              // encoders of the torso and head
     yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
     yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
-
+    yarp::sig::Matrix *eyeH;                                // rototranslation matrix for the considered eye
 
     
     std::string name;       // rootname of all the ports opened by this thread
@@ -163,6 +163,14 @@ public:
     */
     void makeMosaic(yarp::sig::ImageOf<yarp::sig::PixelRgb>* inpImage);
 
+
+    /**
+     * function that adds a novel location to the list of represented locations
+     * @param x x coordinate of the object
+     * @param y y coordinate of the object
+     * @param z z coordinate of the object
+     */
+    void plotObject(float x,float y, float z);
     
 };
 

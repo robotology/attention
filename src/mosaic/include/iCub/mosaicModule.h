@@ -83,6 +83,7 @@
  *  -  \c help \n
  *  -  \c size \n
  *  -  \c place \n
+ *  -  \c plot \n
  *  -  \c quit \n
  *
  *    Note that the name of this port mirrors whatever is provided by the \c --name parameter value
@@ -128,12 +129,19 @@
  * 
  * <tt>mosaic --name mosaic --context mosaic/conf --from mosaic.ini --robot icub</tt>
  *
- * \author Shashank
+ * \author Shashank, Rea
  *
  * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
  * This file can be edited at \c $ICUB_ROOT/main/src/mosaics/mosaic/include/iCub/mosaic.h
  * 
+ */
+
+
+/**
+ * CHANGE LOG:
+ * 24/03/11 : moved multiple addition out of the loop                                 @author Rea
+ * 28/03/11 : added the command to represent the 3d position on the image plane       @author Rea
  */
 
 #include <iostream>
@@ -148,10 +156,13 @@
 //within project includes  
 #include <iCub/mosaicThread.h>
 
+#define MAXMEMORY
+
 class mosaicModule:public yarp::os::RFModule {
     int width_orig, height_orig;             // dimension of the input image
     int width, height;                       // dimension of the mosaic image
 
+    
     std::string moduleName;                  // name of the module
     std::string robotName;                   // name of the robot 
     std::string robotPortName;               // name of robot port

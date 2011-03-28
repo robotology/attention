@@ -108,6 +108,7 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
     mThread = new mosaicThread(robotName, configFile);
     mThread->setMosaicSize(width, height);
     mThread->setInputDim(width_orig, height_orig);
+    mThread->placeInpImage(width / 2, height / 2);  
     mThread->setName(getName().c_str());
     
     /* now start the thread to do the work */
@@ -161,6 +162,14 @@ bool mosaicModule::respond(const Bottle& command, Bottle& reply)
 		bool set = mThread->placeInpImage(command.get(1).asInt(), command.get(2).asInt());
 		if(set) reply.addString("Input image placed successfully");
 		else reply.addString("Input image can NOT be placed there!");
+	}
+	else if (command.get(0).asString() == "plot") {
+	  double x = command.get(1).asDouble();
+	  double y = command.get(2).asDouble();
+	  double z = command.get(3).asDouble();
+	  
+	  printf("x %f y %f z %f \n",x,y,z);
+	  mThread-> plotObject(x,y,z);
 	}
 
     return true;

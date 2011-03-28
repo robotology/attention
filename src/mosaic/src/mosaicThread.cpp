@@ -27,6 +27,8 @@
 #include <yarp/math/SVD.h>
 #include <cstring>
 
+#define MAXMEMORY 100
+
 using namespace yarp::dev;
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -85,8 +87,11 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 mosaicThread::mosaicThread() {
     inputImage = new ImageOf<PixelRgb>;
     outputImageMosaic = new ImageOf<PixelRgb>;
-    robot = "icub";
+    robot = "icub"; 
     resized = false;
+    memory = (float*) malloc(MAXMEMORY);
+    memset(memory, 0, MAXMEMORY);
+    countMemory = 0;
 }
 
 mosaicThread::mosaicThread(string _robot, string _configFile) {
@@ -95,10 +100,16 @@ mosaicThread::mosaicThread(string _robot, string _configFile) {
     robot = _robot;
     configFile = _configFile;
     resized = false;
+    memory = (float*) malloc(MAXMEMORY);
+    memset(memory, 0, MAXMEMORY);
+    countMemory = 0;
 }
 
 mosaicThread::~mosaicThread() {
     // do nothing   
+    delete inputImage;
+    delete outputImageMosaic;
+    free(memory);   
 }
 
 bool mosaicThread::threadInit() {
@@ -117,8 +128,8 @@ bool mosaicThread::threadInit() {
     //initialising the head polydriver
     printf("starting the polydrive for the head.... of the robot %s \n", robot.c_str());
     Property optHead("(device remote_controlboard)");
-    string remoteHeadName="/"+robot+"/head";
-    string localHeadName="/"+name+"/head";
+    string remoteHeadName="/" + robot + "/head";
+    string localHeadName = name + "/head";
     optHead.put("remote",remoteHeadName.c_str());
     optHead.put("local",localHeadName.c_str());
     drvHead =new PolyDriver(optHead);
@@ -132,8 +143,8 @@ bool mosaicThread::threadInit() {
     //initialising the torso polydriver
     printf("starting the polydrive for the torso.... \n");
     Property optPolyTorso("(device remote_controlboard)");
-    optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
-    optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
+    optPolyTorso.put("remote",("/" + robot + "/torso").c_str());
+    optPolyTorso.put("local",(name + "/torso/position").c_str());
 
     polyTorso=new PolyDriver;
     if (!polyTorso->open(optPolyTorso))
@@ -180,18 +191,45 @@ std::string mosaicThread::getName(const char* p) {
 }
 
 void mosaicThread::setMosaicDim(int w, int h) {
+    printf("setting mosaic dimension \n");
     //mosaic image default size
     width = w;
     height = h;
     //default position of input image's center
-    xcoord = width/2;
-    ycoord = height/2;
+    xcoord = floor(width / 2) - 50;
+    ycoord = floor(height / 2) - 50;
+}
+
+void mosaicThread::resize(int width_orig,int height_orig) {        
+    inputImage->resize(width_orig,height_orig);
+    printf("resizing using %d %d",width_orig,height_orig);
+    this->width_orig = width_orig;
+    this->height_orig = height_orig;
+}
+
+bool mosaicThread::placeInpImage(int X, int Y) {
+    if(X > width || X < 0 || Y > height || Y < 0) return false;
+    this->xcoord = X;
+    this->ycoord = Y;
+    return true;
 }
 
 void mosaicThread::setInputDim(int w, int h) {
     //input image default size
     width_orig = w;
     height_orig = h;
+}
+
+void mosaicThread::plotObject(float x,float y,float z) {
+    printf("saving in memory the 3dlocation \n");
+    float* pointer = memory ;
+    printf("countMemory %d \n", countMemory);
+    pointer += countMemory * 3;
+    *pointer = x; pointer++;
+    *pointer = y; pointer++;
+    *pointer = z;
+    printf("saved the position %f,%f,%f \n",x,y,z);
+    countMemory++;
 }
 
 void mosaicThread::run() {
@@ -213,19 +251,6 @@ void mosaicThread::run() {
     }
 }
 
-void mosaicThread::resize(int width_orig,int height_orig) {        
-    inputImage->resize(width_orig,height_orig);
-    printf("resizing using %d %d",width_orig,height_orig);
-    this->width_orig = width_orig;
-    this->height_orig = height_orig;
-}
-
-bool mosaicThread::placeInpImage(int X, int Y) {
-    if(X > this->width || X < 0 || Y > this->height || Y < 0) return false;
-    this->xcoord = X;
-    this->ycoord = Y;
-    return true;
-}
 
 bool mosaicThread::setMosaicSize(int width=DEFAULT_WIDTH, int height=DEFAULT_HEIGHT) {
     if(width > MAX_WIDTH || width < width_orig || width <= 0 
@@ -274,7 +299,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         q[6]=head[3] * ratio;
         q[7]=head[4] * ratio;
         double ver = head[5];
-        printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+        //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
                
                         
         Vector x(3);
@@ -287,24 +312,28 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         Vector xe = yarp::math::operator *(*invPrj, x);
         xe[3]=1.0;  // impose homogeneous coordinates                
                 
-                        // update position wrt the root frame
-        Matrix eyeH = eye->getH(q);
+        // update position wrt the root frame
+        eyeH = new Matrix(4,4);
+        *eyeH = eye->getH(q);
+
         //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
-        Vector xo = yarp::math::operator *(eyeH,xe);
+        Vector xo = yarp::math::operator *(*eyeH,xe);
         
         fp.resize(3,0.0);
         fp[0]=xo[0];
         fp[1]=xo[1];
         fp[2]=xo[2];
-        printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
+        //printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
     }
 
     //calculating the shift in pixels
     double focalLenght = 0.1;
     double distance = z;
     double shift = fp[1] * ( focalLenght / distance );
-    printf("shift %f \n", shift);
+    //printf("shift %f \n", shift);
     
+    
+    // making the mosaic
     int i,j;
     unsigned char* inpTemp = inputImage->getRawImage();
     unsigned char* outTemp = outputImageMosaic->getRawImage();
@@ -314,27 +343,65 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     int mPad = outputImageMosaic->getPadding();
     int inputPadding = inputImage->getPadding();
     int rowSize = outputImageMosaic->getRowSize();
-    
-    
+   
     int mosaicX, mosaicY;
     mosaicX = ycoord;
-    mosaicX -= iH / 2;
+    mosaicX -= floor(iH / 2);
     mosaicY = xcoord;
-    mosaicY -= iW / 2;
+    mosaicY -= floor(iW / 2);
+    //printf("rowSize %d mosaicX %d mosaicY %d ycoord %d xcoord  %d \n", rowSize, mosaicX, mosaicY,ycoord, xcoord);
     outTemp = lineOutTemp = outTemp + mosaicX * (rowSize + mPad) + 3 * mosaicY;
     for(i = 0 ; i < iH ; ++i) {
         for(j = 0 ; j < iW ; ++j) {
-                *outTemp += *inpTemp;
-                inpTemp++; outTemp++;
-                
-                *outTemp += *inpTemp;
-                inpTemp++; outTemp++;
-                
-                *outTemp += *inpTemp;
-                inpTemp++; outTemp++;
+            //printf("%d,%d \n",i,j);
+            *outTemp = *inpTemp;
+            inpTemp++; outTemp++;
+            
+            *outTemp = *inpTemp;
+            inpTemp++; outTemp++;
+            
+            *outTemp = *inpTemp;
+            inpTemp++; outTemp++;
         }
         inpTemp += inputPadding;
         outTemp = lineOutTemp = lineOutTemp + (rowSize + mPad);
+    }
+
+    //deleting previous locations in the image plane
+    
+    //representing new locations on the image plane
+    float* pointer = memory;
+    //int* pointerimage = memoryimage;
+    double distanceEyeObject ;
+    Vector xeye(4);
+    for(int k = 0; k < countMemory; k++) {
+        Vector xoi(4);
+        xoi[0] = *pointer++;
+        xoi[1] = *pointer++;
+        xoi[2] = *pointer++;
+        xoi[3] = 1.0; // impose homogeneous coordinate 
+        eye->EndEffPose(xeye);
+        distanceEyeObject = sqrt ( (xoi[0] - xeye[0]) * (xoi[0] - xeye[0]) +
+                          (xoi[1] - xeye[1]) * (xoi[1] - xeye[1]) + 
+                          (xoi[2] - xeye[2]) * (xoi[2] - xeye[2]) );
+
+        // update position wrt the eye frame
+        Matrix* inveyeH=new Matrix(pinv(eyeH->transposed()).transposed());         
+        Vector xei = yarp::math::operator *(*inveyeH, xoi);        
+        // find the 3D position from the 2D projection,
+        // knowing the distance z from the camera
+        Vector x = yarp::math::operator *(*PrjL, xei);
+        int ui = (int) floor(x[0] / distanceEyeObject);
+        int vi = (int) floor(x[1] / distanceEyeObject);
+        printf ("x %f y %f z %f >>>> u %f v %f \n", xei[0], xei[1], xei[2], u, v);
+        //pointerimage = pointerimage + counterMemoryImage * 2;
+        //*pointerimage = ui; pointerimage++;
+        //*pointerimage = vi;
+        unsigned char* outTemp = outputImageMosaic->getRawImage();
+        outTemp = outTemp + vi * (rowSize + mPad) + ui * 3;
+        *outTemp++ = 255;
+        *outTemp++ = 0;
+        *outTemp++ = 0;
     }
 }
 
