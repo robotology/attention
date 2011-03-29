@@ -113,28 +113,34 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     // limits for 3d position along x axis 
     xmax       = rf.check("xmax", 
                            Value(-0.2), 
-                          "limit max for 3D fixation point x").asInt();
+                          "limit max for 3D fixation point x").asDouble();
+    printf("xmax:%f \n", xmax);
     xmin       = rf.check("xmin", 
                            Value(-10.0), 
-                           "limit min for 3D fixation point x").asInt();;
+                           "limit min for 3D fixation point x").asDouble();;
+    printf("xmax:%f \n", xmin);
     arbiter->setXLimits(xmax,xmin);
     
     // limits for 3d position along y axis 
     ymax       = rf.check("ymax", 
-                           Value(-0.3), 
-                           "limit max for 3D fixation point y").asInt();
-    ymax       = rf.check("ymax", 
                            Value(0.3), 
-                           "limit max for 3D fixation point y").asInt();
+                           "limit max for 3D fixation point y").asDouble();
+    printf("ymax:%f \n", ymax);
+    ymin       = rf.check("ymax", 
+                           Value(-0.3), 
+                           "limit max for 3D fixation point y").asDouble();
+    printf("ymin:%f \n", ymin);
     arbiter->setYLimits(ymax,ymin);
     
     // limits for 3d position along z axis 
     zmax       = rf.check("zmax", 
                            Value(0.9), 
-                           "limit max for 3D fixation point z").asInt();
+                           "limit max for 3D fixation point z").asDouble();
+    printf("zmax:%f \n", zmax);
     zmin       = rf.check("zmin", 
                            Value(-0.3), 
-                           "limit min for 3D fixation point z").asInt();
+                           "limit min for 3D fixation point z").asDouble();
+    printf("zmin:%f \n", zmin);
     arbiter->setZLimits(zmax,zmin);
     
 

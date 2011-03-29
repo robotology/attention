@@ -210,7 +210,7 @@ bool gazeArbiterThread::threadInit() {
     igaze->blockNeckPitch(-40.0);
     
     string headPort = "/icub/head";//<<--------- hard coded here remove asap
-    string robot("icub");
+    //string robot("icub");
     string name("local");
 
     //initialising the head polydriver
@@ -360,15 +360,15 @@ void gazeArbiterThread::run() {
 
             // update position wrt the root frame
             Vector xo = yarp::math::operator *(eye->getH(q),xe);
-            printf("fixation point estimated %f %f %f",xo[0], xo[1], xo[2]);
+            printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
 
 
-            if ((xo[1] > ymax)||(xo[1] < ymin)||(xo[0] < xmin) || (x[2] > zmin) || (x[2] < zmax)) {
-                printf("           OutOfRange ........... \n");
+            if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
+                printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
                 Vector px(3);
-                px[0] = -0.5 + xOffset;
+                px[0] = -0.3 + xOffset;
                 px[1] = 0.0 + yOffset;
-                px[2] = 0.1 + zOffset;
+                px[2] = -0.1 + zOffset;
                 igaze->lookAtFixationPoint(px);
                 waitMotionDone();
                 return;

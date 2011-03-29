@@ -75,13 +75,13 @@ private:
     int u,v;                                // values passed for saccades
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
-    double varDistance;                       // calculated distance of the object from the eye 
+    double varDistance;                     // calculated distance of the object from the eye 
     int xOffset;                            // offset for the 3D point along x
     int yOffset;                            // offset for the 3D point along y
     int zOffset;                            // offset for the 3D point along z
-    int xmax, xmin;                         // limits in fixation point
-    int ymax, ymin;                         // limits in fixation point
-    int zmax, zmin;                         // limits in fixation point
+    double xmax, xmin;                      // limits in fixation point
+    double ymax, ymin;                      // limits in fixation point
+    double zmax, zmin;                      // limits in fixation point
     int width, height;                      // dimension of the image
     double phi;                             // value passed for vergence
     double phiTOT;                          // accumulator of increments of vergence angles
@@ -214,17 +214,17 @@ public:
     /**
     * function that sets the value of the parameter x limirs
     */
-    void setXLimits(int max, int min) { xmax = max; xmin = min; };
+    void setXLimits(double max, double min) { xmax = max; xmin = min; };
 
     /**
     * function that sets the value of the parameter y limits
     */
-    void setYLimits(int max, int min) { ymax = max; ymin = min; };
+    void setYLimits(double max,double  min) { ymax = max; ymin = min; };
 
     /**
     * function that sets the value of the parameter z limits
     */
-    void setZLimits(int max, int min) { zmax = max; zmin = min; };
+    void setZLimits(double max,double min) { zmax = max; zmin = min; };
 
     /**
     * function that returns only when the last action is ended
