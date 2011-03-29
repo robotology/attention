@@ -77,6 +77,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     
     arbiter=new gazeArbiterThread(configFile);
     arbiter->setName(getName().c_str());
+    arbiter->setRobotName(robotName);
 
     /* get the dimension of the image for the thread parametric control */
     width                  = rf.check("width", 
@@ -111,16 +112,16 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     
     // limits for 3d position along x axis 
     xmax       = rf.check("xmax", 
-                           Value(-10.0), 
+                           Value(-0.2), 
                           "limit max for 3D fixation point x").asInt();
     xmin       = rf.check("xmin", 
-                           Value(-1), 
+                           Value(-10.0), 
                            "limit min for 3D fixation point x").asInt();;
     arbiter->setXLimits(xmax,xmin);
     
     // limits for 3d position along y axis 
     ymax       = rf.check("ymax", 
-                           Value(0.3), 
+                           Value(-0.3), 
                            "limit max for 3D fixation point y").asInt();
     ymax       = rf.check("ymax", 
                            Value(0.3), 
@@ -154,7 +155,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
     attach(handlerPort);                  // attach to port
-    //attach(Port);                  // attach to port
+    //attach(Port);                       // attach to port
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module

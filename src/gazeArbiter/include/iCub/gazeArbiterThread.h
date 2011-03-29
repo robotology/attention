@@ -61,6 +61,7 @@
 class gazeArbiterThread : public yarp::os::RateThread, public observer{
 private:
     std::string name;                       // rootname of all the ports opened by this thread
+    std::string robot;                      // name of the robot read by the ResourceFinder
     std::string configFile;                 // configuration file of cameras (LEFT RIGHT)
     yarp::sig::Matrix stateTransition;      // matrix of the state transition; weights of the transition
     yarp::sig::Vector stateRequest;         // buffer of requests  (vergence, smooth pursuit, saccade)
@@ -74,6 +75,7 @@ private:
     int u,v;                                // values passed for saccades
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
+    double varDistance;                       // calculated distance of the object from the eye 
     int xOffset;                            // offset for the 3D point along x
     int yOffset;                            // offset for the 3D point along y
     int zOffset;                            // offset for the 3D point along z
@@ -152,6 +154,12 @@ public:
     * @param str rootname as a string
     */
     void setName(std::string str);
+
+    /**
+    * function that set the robotname for the ports to which the module connects
+    * @param str robotname as a string
+    */
+    void setRobotName(std::string str);
 
     /**
     * function that set the variable needed for image dimension

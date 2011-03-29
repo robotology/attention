@@ -236,10 +236,7 @@ bool gazeArbiterThread::threadInit() {
     }
     polyTorso->view(encTorso);
 
-
-
-
-    
+  
     template_size = 20;
     search_size = 100;
     point.x = 320;
@@ -280,6 +277,10 @@ std::string gazeArbiterThread::getName(const char* p) {
     return str;
 }
 
+void gazeArbiterThread::setRobotName(string str) {
+    this->robot = str;
+    printf("name: %s", name.c_str());
+}
 
 void gazeArbiterThread::init(const int x, const int y) {
     point.x = x;
@@ -334,12 +335,6 @@ void gazeArbiterThread::run() {
             encHead->getEncoder(3,&head[3]);
             encHead->getEncoder(4,&head[4]);
 
-            
-            //if (isLeft)
-            //    q[7]=head[4]+head[5]/2.0;
-            //else
-            //    q[7]=head[4]-head[5]/2.0;
-
             Vector q(8);
             double ratio = M_PI /180;
             q[0]=torso[0] * ratio;
@@ -368,13 +363,14 @@ void gazeArbiterThread::run() {
             printf("fixation point estimated %f %f %f",xo[0], xo[1], xo[2]);
 
 
-            if ((xo[1]> 0.3)||(xo[1]< -0.3)) {
+            if ((xo[1] > ymax)||(xo[1] < ymin)||(xo[0] < xmin) || (x[2] > zmin) || (x[2] < zmax)) {
                 printf("           OutOfRange ........... \n");
                 Vector px(3);
                 px[0] = -0.5 + xOffset;
                 px[1] = 0.0 + yOffset;
                 px[2] = 0.1 + zOffset;
                 igaze->lookAtFixationPoint(px);
+                waitMotionDone();
                 return;
             }
             
@@ -569,7 +565,7 @@ void gazeArbiterThread::run() {
                     status.clear();
                     status.addString("vergence_accomplished");
                     statusPort.write();
-                    printf(" sending location !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+                    printf(" sending location after accomplished vergence!!!!!!!!!!! \n");
                     accomplished_flag = true;
                     
 
@@ -577,117 +573,105 @@ void gazeArbiterThread::run() {
                     //calculating the 3d position and sending it to database
                     u = 160; 
                     v = 120;
-                    zDistance = 0.5;
                     Vector fp(3);
-
-                    if (invPrjL) {
-                      
-                        /*
+                     
                         
-                        Vector torso(3);
-                        encTorso->getEncoder(0,&torso[0]);
-                        encTorso->getEncoder(1,&torso[1]);
-                        encTorso->getEncoder(2,&torso[2]);
-                        Vector head(5);
-                        encHead->getEncoder(0,&head[0]);
-                        encHead->getEncoder(1,&head[1]);
-                        encHead->getEncoder(2,&head[2]);
-                        encHead->getEncoder(3,&head[3]);
-                        encHead->getEncoder(4,&head[4]);
+                    Vector torso(3);
+                    encTorso->getEncoder(0,&torso[0]);
+                    encTorso->getEncoder(1,&torso[1]);
+                    encTorso->getEncoder(2,&torso[2]);
+                    Vector head(5);
+                    encHead->getEncoder(0,&head[0]);
+                    encHead->getEncoder(1,&head[1]);
+                    encHead->getEncoder(2,&head[2]);
+                    encHead->getEncoder(3,&head[3]);
+                    encHead->getEncoder(4,&head[4]);
                 
                 
-                        Vector q(8);
-                        double ratio = M_PI /180;
-                        q[0]=torso[0] * ratio;
-                        q[1]=torso[1]* ratio;
-                        q[2]=torso[2]* ratio;
-                        q[3]=head[0]* ratio;
-                        q[4]=head[1]* ratio;
-                        q[5]=head[2]* ratio;
-                        q[6]=head[3]* ratio;
-                        q[7]=head[4]* ratio;
-                        double ver = head[5];
-                        printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);
-
+                    Vector q(8);
+                    double ratio = M_PI /180;
+                    q[0]=torso[0] * ratio;
+                    q[1]=torso[1]* ratio;
+                    q[2]=torso[2]* ratio;
+                    q[3]=head[0]* ratio;
+                    q[4]=head[1]* ratio;
+                    q[5]=head[2]* ratio;
+                    q[6]=head[3]* ratio;
+                    q[7]=head[4]* ratio;
+                    double ver = head[5];
+                    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);
+                    
                         
                         
                             
-                        Vector x(3);
-                        x[0]=z * u;   //epipolar correction excluded the focal lenght
-                        x[1]=z * v;
-                        x[2]=z;
-                        */
-
-                        /*
+                    Vector x(3);
+                    printf("varDistance %f \n", varDistance);
+                    x[0]=varDistance * u;   //epipolar correction excluded the focal lenght
+                    x[1]=varDistance * v;
+                    x[2]=varDistance;
+                    
                         
-                        // find the 3D position from the 2D projection,
-                        // knowing the distance z from the camera
-                        Vector xe = yarp::math::operator *(*invPrjL, x);
-                        xe[3]=1.0;  // impose homogeneous coordinates                
+                    // find the 3D position from the 2D projection,
+                    // knowing the distance z from the camera
+                    Vector xe = yarp::math::operator *(*invPrjL, x);
+                    xe[3]=1.0;  // impose homogeneous coordinates                
+                    
+                    // update position wrt the root frame
+                    Matrix eyeH = eyeL->getH(q);
+                    //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
+                    Vector xo = yarp::math::operator *(eyeH,xe);
                         
-                        // update position wrt the root frame
-                        Matrix eyeH = eyeL->getH(q);
-                        //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
-                        Vector xo = yarp::math::operator *(eyeH,xe);
+                    //fp.resize(3,0.0);
+                    //fp[0]=xo[0];
+                    //fp[1]=xo[1];
+                    //fp[2]=xo[2];
+                    printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);    
+                    
+                    //adding novel position to the GUI
+                    Bottle request, reply;
+                    request.clear(); reply.clear();
+                    request.addVocab(VOCAB3('a','d','d'));
+                    Bottle& listAttr=request.addList();
+                    
+                    Bottle& sublistX = listAttr.addList();
                         
-                        //fp.resize(3,0.0);
-                        //fp[0]=xo[0];
-                        //fp[1]=xo[1];
-                        //fp[2]=xo[2];
-                        printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);
-                        */
-
-                        /*
-
-                        //adding novel position to the GUI
-                        Bottle request, reply;
-                        request.clear(); reply.clear();
-                        request.addVocab(VOCAB3('a','d','d'));
-                        Bottle& listAttr=request.addList();
+                    sublistX.addString("x");
+                    sublistX.addDouble(xo[0] * 1000);    
+                    listAttr.append(sublistX);
                         
-                        Bottle& sublistX = listAttr.addList();
+                    Bottle& sublistY = listAttr.addList();
+                    sublistY.addString("y");
+                    sublistY.addDouble(xo[1] * 1000);      
+                    listAttr.append(sublistY);
+                    
+                    Bottle& sublistZ = listAttr.addList();            
+                    sublistZ.addString("z");
+                    sublistZ.addDouble(xo[2] * 1000);   
+                    listAttr.append(sublistZ);
+                    
+                    Bottle& sublistR = listAttr.addList();
+                    sublistR.addString("r");
+                    sublistR.addDouble(0.0);
+                    listAttr.append(sublistR);
+                    
+                    Bottle& sublistG = listAttr.addList();
+                    sublistG.addString("g");
+                    sublistG.addDouble(0.0);
+                    listAttr.append(sublistG);
                         
-                        sublistX.addString("x");
-                        sublistX.addDouble(xo[0] * 1000);    
-                        listAttr.append(sublistX);
-                        
-                        Bottle& sublistY = listAttr.addList();
-                        sublistY.addString("y");
-                        sublistY.addDouble(xo[1] * 1000);      
-                        listAttr.append(sublistY);
-                        
-                        Bottle& sublistZ = listAttr.addList();            
-                        sublistZ.addString("z");
-                        sublistZ.addDouble(xo[2] * 1000);   
-                        listAttr.append(sublistZ);
-                        
-                        Bottle& sublistR = listAttr.addList();
-                        sublistR.addString("r");
-                        sublistR.addDouble(0.0);
-                        listAttr.append(sublistR);
-                        
-                        Bottle& sublistG = listAttr.addList();
-                        sublistG.addString("g");
-                        sublistG.addDouble(0.0);
-                        listAttr.append(sublistG);
-                        
-                        Bottle& sublistB = listAttr.addList();
-                        sublistB.addString("b");
-                        sublistB.addDouble(0.0);
-                        listAttr.append(sublistB);
-                        
-                        Bottle& sublistLife = listAttr.addList();
-                        sublistLife.addString("lifeTimer");
-                        sublistLife.addDouble(10.0);
-                        listAttr.append(sublistLife);          
+                    Bottle& sublistB = listAttr.addList();
+                    sublistB.addString("b");
+                    sublistB.addDouble(0.0);
+                    listAttr.append(sublistB);
+                    
+                    Bottle& sublistLife = listAttr.addList();
+                    sublistLife.addString("lifeTimer");
+                    sublistLife.addDouble(8.0);
+                    listAttr.append(sublistLife);          
                         
                         
-                        blobDatabasePort.write(request, reply);
-
-                        */
-                        
-                        
-                    }
+                    blobDatabasePort.write(request, reply);                     
+                    
                     
                     Time::delay(1);
                     return;
@@ -709,7 +693,7 @@ void gazeArbiterThread::run() {
                 phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
                 //phiTOT = phiTOT + phi;
                 //double magnitude = sqrt ( x1 * x1 + y1 * y1 + z1 * z1);
-                double varDistance = BASELINE / (2 * sin (phiTOT / 2));     //in m after it is fixation state
+                varDistance = BASELINE / (2 * sin (phiTOT / 2));     //in m after it is fixation state
                 
                 //double varDistance = (BASELINE /  sin (phiTOT / 2)) * sin (leftHat);     //in m after it is fixation state
                 //double varDistance = h * 1.5 * sqrt(1 + tan(elevation) * tan(elevation)) ;

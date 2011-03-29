@@ -69,6 +69,33 @@
  * - \c height \c 240 \n
  *   specifies the dimension height of the input image
  *
+ * - \c xmax \c -0.2 \n
+ *   max allowed position of the fixation point ( x axis )
+ *
+ * - \c xmin \c -10.0 \n
+ *   min allowed position of the fixation point ( x axis )
+ *
+ * - \c ymax \c 0.3 \n
+ *   max allowed position of the fixation point ( y axis )
+ *
+ * - \c ymin \c -0.3 \n
+ *   max allowed position of the fixation point ( y axis )
+ *
+ * - \c zmax \c 0.9 \n
+ *   max allowed position of the fixation point ( y axis )
+ *
+ * - \c zmin \c -0.3 \n
+ *   max allowed position of the fixation point ( y axis )
+ *
+ * - \c xoffset \c 0.0 \n
+ *   max allowed position of the fixation point ( y axis )
+ * 
+ * - \c yoffset \c 0.0 \n
+ *   max allowed position of the fixation point ( y axis )
+ * 
+ * - \c zoffset \c 0.0 \n
+ *   max allowed position of the fixation point ( y axis )
+ *
  * <b>Configuration File Parameters</b>
  *
  * The following key-value pairs can be specified as parameters in the configuration file 
@@ -155,6 +182,7 @@
  * 30/02/11 : removed imprecision in the case the tracker does not initialise                       @author Rea  
  * 24/04/11 : added fixed neck pitch option                                                         @author Rea
  * 28/03/11 : added the limits for the allowed fixation points in 3d space                          @author Rea
+ * 29/03/11 : added new parameters to the config file and embedded previously added ones            @author Rea
  */
 
 #include <iostream>

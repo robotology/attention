@@ -89,14 +89,13 @@ void populatorThread::run() {
         //int v = reader.pop().asVocab();
         cout<<"reader:"<<reader.toString()<<endl;
         if(reader.get(0).asVocab()==VOCAB3('a','c','k')) {
-            cout<<"reader:"<<reader.toString()<<"size:"<<reader.size()<<endl;
+            cout<<"reader:"<<reader.toString()<<" size:"<<reader.size()<<endl;
             if(reader.size()<=1) {
                 printf("No Objects Found \n");
                 return;
             }
             Bottle* completeList=reader.get(1).asList();
             Bottle* list = completeList->get(1).asList();
-            cout<<"list:"<<list->toString()<<endl;
             int size = list->size();
             cout<<"list size:"<<size<<endl;
             // list of ids
