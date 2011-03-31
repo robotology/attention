@@ -834,6 +834,8 @@ void gazeArbiterThread::threadRelease() {
     inRightPort.close();
     statusPort.close();
     blobDatabasePort.close();
+    delete eyeL;
+    delete eyeR;
     delete clientGazeCtrl;
 }
 
