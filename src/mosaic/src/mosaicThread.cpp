@@ -52,8 +52,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
         if (parType.size())
         {
             if (parType.check("w") && parType.check("h") &&
-                parType.check("fx") && parType.check("fy"))
-            {
+                parType.check("fx") && parType.check("fy")) {
                 // we suppose that the center distorsion is already compensated
                 double cx = parType.find("w").asDouble() / 2.0;
                 double cy = parType.find("h").asDouble() / 2.0;
@@ -123,6 +122,14 @@ bool mosaicThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
+    //initializing gazecontrollerclient
+    Property option;
+    option.put("device","gazecontrollerclient");
+    option.put("remote","/iKinGazeCtrl");
+    string localCon("/client/gaze");
+    localCon.append(getName(""));
+    option.put("local",localCon.c_str());
     
     //initialising the head polydriver
     printf("starting the polydrive for the head.... of the robot %s \n", robot.c_str());
@@ -292,11 +299,11 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         q[0]=torso[0] * ratio;
         q[1]=torso[1] * ratio;
         q[2]=torso[2] * ratio;
-        q[3]=head[0] * ratio;
-        q[4]=head[1] * ratio;
-        q[5]=head[2] * ratio;
-        q[6]=head[3] * ratio;
-        q[7]=head[4] * ratio;
+        q[3]=head[0]  * ratio;
+        q[4]=head[1]  * ratio;
+        q[5]=head[2]  * ratio;
+        q[6]=head[3]  * ratio;
+        q[7]=head[4]  * ratio;
         double ver = head[5];
         //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
                
@@ -328,7 +335,13 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     //calculating the shift in pixels
     double focalLenght = 0.1;
     double distance = z;
-    double shift = fp[1] * ( focalLenght / distance );
+    double baseline = 0.068;
+    double shift = (baseline * distance) / ( focalLenght + distance );
+    Vector angles = eye->getAng();
+    Vector x, o;
+    igaze->getLeftEyePose(x,o);
+    //ycoord += shift;
+    printf("angles %f, %f, %f, %f, %f, %f, %f, %f \n", angles[0], angles[1], angles[2], angles[3], angles[4], angles[5], angles[6],  angles[7] );
     //printf("shift %f \n", shift);
     
     
@@ -349,7 +362,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     mosaicY = xcoord;
     mosaicY -= floor(iW / 2);
     //printf("rowSize %d mosaicX %d mosaicY %d ycoord %d xcoord  %d \n", rowSize, mosaicX, mosaicY,ycoord, xcoord);
-    outTemp = lineOutTemp = outTemp + mosaicX * (rowSize + mPad) + 3 * mosaicY;
+    outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + 3 * mosaicX;
     for(i = 0 ; i < iH ; ++i) {
         for(j = 0 ; j < iW ; ++j) {
             //printf("%d,%d \n",i,j);
@@ -397,7 +410,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         //*pointerimage = ui; pointerimage++;
         //*pointerimage = vi;
         unsigned char* outTemp = outputImageMosaic->getRawImage();
-        outTemp = outTemp + vi * (rowSize + mPad) + ui * 3;
+        outTemp = outTemp + mosaicX * (rowSize + mPad) + 3 * mosaicY + vi * (rowSize + mPad) + ui * 3;
         *outTemp++ = 255;
         *outTemp++ = 0;
         *outTemp++ = 0;
