@@ -1,3 +1,5 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
 /* 
  * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Shashank Pathak
@@ -135,42 +137,42 @@ bool mosaicModule::close()
 
 bool mosaicModule::respond(const Bottle& command, Bottle& reply) 
 {
-	string helpMessage =  string(getName().c_str()) + 
-		        " commands are: \n" +  
-		        "help \n" +
-			"size <int> <int> -to change, if allowed, size (width, height) of mosaic to <int> <int> \n" + 
-			"place <int> -to place, if allowed, input image's center (horz, vert) in mosaic refernce frame \n" +
-		        "quit \n";
+    string helpMessage =  string(getName().c_str()) + 
+                " commands are: \n" +  
+                "help \n" +
+            "size <int> <int> -to change, if allowed, size (width, height) of mosaic to <int> <int> \n" + 
+            "place <int> -to place, if allowed, input image's center (horz, vert) in mosaic refernce frame \n" +
+                "quit \n";
 
-	reply.clear(); 
+    reply.clear(); 
 
 
-	if (command.get(0).asString()=="quit") {
-		reply.addString("quitting");
-		return false;     
-	}
-	else if (command.get(0).asString()=="help") {
-		cout << helpMessage;
-		reply.addString("ok");
-	}
-	else if (command.get(0).asString() == "size") {
-		bool set = mThread->setMosaicSize(command.get(1).asInt(), command.get(2).asInt());
-		if (set) reply.addString("Changed size of the mosaic.");
-		else reply.addString("Could NOT change size of the mosaic.");
-	}
-	else if (command.get(0).asString() == "place") {
-		bool set = mThread->placeInpImage(command.get(1).asInt(), command.get(2).asInt());
-		if(set) reply.addString("Input image placed successfully");
-		else reply.addString("Input image can NOT be placed there!");
-	}
-	else if (command.get(0).asString() == "plot") {
-	  double x = command.get(1).asDouble();
-	  double y = command.get(2).asDouble();
-	  double z = command.get(3).asDouble();
-	  
-	  printf("x %f y %f z %f \n",x,y,z);
-	  mThread-> plotObject(x,y,z);
-	}
+    if (command.get(0).asString()=="quit") {
+        reply.addString("quitting");
+        return false;     
+    }
+    else if (command.get(0).asString()=="help") {
+        cout << helpMessage;
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString() == "size") {
+        bool set = mThread->setMosaicSize(command.get(1).asInt(), command.get(2).asInt());
+        if (set) reply.addString("Changed size of the mosaic.");
+        else reply.addString("Could NOT change size of the mosaic.");
+    }
+    else if (command.get(0).asString() == "place") {
+        bool set = mThread->placeInpImage(command.get(1).asInt(), command.get(2).asInt());
+        if(set) reply.addString("Input image placed successfully");
+        else reply.addString("Input image can NOT be placed there!");
+    }
+    else if (command.get(0).asString() == "plot") {
+      double x = command.get(1).asDouble();
+      double y = command.get(2).asDouble();
+      double z = command.get(3).asDouble();
+      
+      printf("x %f y %f z %f \n",x,y,z);
+      mThread-> plotObject(x,y,z);
+    }
 
     return true;
 }

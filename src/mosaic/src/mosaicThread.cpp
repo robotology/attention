@@ -2,8 +2,8 @@
 
 /* 
  * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Shashank Pathak
- * email:   shashank.pathak@iit.it
+ * Authors: Shashank Pathak, Francesco Rea
+ * email:   shashank.pathak@iit.it, francesco.rea@iit.it
  * website: www.robotcub.org 
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -119,7 +119,6 @@ bool mosaicThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-    
     if (!imagePortOut.open(getName("/image:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
@@ -245,7 +244,7 @@ void mosaicThread::run() {
                 resized = true;
             }
             makeMosaic(inputImage); 
-            imagePortOut.prepare() = *outputImageMosaic;                   
+            imagePortOut.prepare() = *outputImageMosaic;
             imagePortOut.write();
         }                      
     }
