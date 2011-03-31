@@ -60,8 +60,8 @@ private:
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port for camera 1
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;      // output port for overlapped monochromised image
-    
-    yarp::dev::PolyDriver *polyTorso, *drvHead;              // polydriver for the control of the torso and head
+    yarp::dev::IGazeControl *igaze;                         // Ikin controller of the gaze
+    yarp::dev::PolyDriver *polyTorso, *drvHead;             // polydriver for the control of the torso and head
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
     yarp::dev::IEncoders   *encTorso,*encHead;              // encoders of the torso and head

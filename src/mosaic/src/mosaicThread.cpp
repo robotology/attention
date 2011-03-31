@@ -179,7 +179,6 @@ bool mosaicThread::threadInit() {
         //cyl=Prj(1,2);
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
     }
-
     return true;
 }
 
