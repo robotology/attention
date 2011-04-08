@@ -90,7 +90,7 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
     /* create the thread and pass pointers to the module parameters */
     rThread = new repeaterThread(robotName, configFile);
     rThread->setName(getName().c_str());
-    rThread->setInputPortName(inputPortName.c_str());
+    //rThread->setInputPortName(inputPortName.c_str());
     
     /* now start the thread to do the work */
     rThread->start(); // this calls threadInit() and it if returns true, it then calls run()

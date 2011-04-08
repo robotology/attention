@@ -32,9 +32,7 @@ using namespace yarp::sig;
 using namespace std;
 
 repeaterThread::repeaterThread():inputCbPort() {
-    robot = "icub";
-    
-    
+    robot = "icub";        
 }
 
 repeaterThread::repeaterThread(string _robot, string _configFile):inputCbPort(){
@@ -53,11 +51,11 @@ bool repeaterThread::threadInit() {
     inputCbPort.hasNewImage = false;
     inputCbPort.useCallback();          // to enable the port listening to events via callback
 
-    if (!inputCbPort.open(getName(inputPortName.c_str()).c_str())) {
+    if (!inputCbPort.open(getName("/img:i").c_str())) {
         cout <<": unable to open port for reading events  "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
-    if (!outputPort.open(getName(":o").c_str())) {
+    if (!outputPort.open(getName("/img:o").c_str())) {
         cout << ": unable to open port to send unmasked events "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }    
