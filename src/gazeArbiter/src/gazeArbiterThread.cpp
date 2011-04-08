@@ -115,6 +115,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     firstVer = false;
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
+    blockNeckPitchValue =-1;
 
     Matrix trans(4,4);
     trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0;
@@ -156,7 +157,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
 }
 
 gazeArbiterThread::~gazeArbiterThread() {
-
+    // MUST BE REMOVED THE RF AND TRACKER ALLOCATED IN THE CONSTRUCTOR
 }
 
 bool gazeArbiterThread::threadInit() {
@@ -207,11 +208,14 @@ bool gazeArbiterThread::threadInit() {
     }
     else
         return false;
-    igaze->blockNeckPitch(-40.0);
+    //double blockNeckPitchValue = -40.0;
+    if(blockNeckPitchValue != -1) {
+        igaze->blockNeckPitch(blockNeckPitchValue);
+    }
+
     
-    string headPort = "/icub/head";//<<--------- hard coded here remove asap
-    //string robot("icub");
-    string name("local");
+    string headPort = "/" + robot + "/head";
+    string nameLocal("local");
 
     //initialising the head polydriver
     optionsHead.put("device", "remote_controlboard");
@@ -228,7 +232,7 @@ bool gazeArbiterThread::threadInit() {
     printf("starting the polydrive for the torso.... \n");
     Property optPolyTorso("(device remote_controlboard)");
     optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
-    optPolyTorso.put("local",("/"+name+"/torso/position").c_str());
+    optPolyTorso.put("local",("/"+nameLocal+"/torso/position").c_str());
     polyTorso=new PolyDriver;
     if (!polyTorso->open(optPolyTorso))
     {
@@ -247,7 +251,8 @@ bool gazeArbiterThread::threadInit() {
 
     //inLeftPort.open(getName("/matchTracker/img:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
-    statusPort.open("/gazeArbiter/status:o");
+    statusPort.open(( name + "/status:o").c_str());
+    templatePort.open(( name + "/template:i").c_str());
     firstConsistencyCheck=true;
 
     return true;
@@ -258,12 +263,18 @@ void gazeArbiterThread::interrupt() {
     inLeftPort.interrupt();
     inRightPort.interrupt();
     statusPort.interrupt();
+    templatePort.interrupt();
     blobDatabasePort.interrupt();
+    templatePort.interrupt();
 }
 
 void gazeArbiterThread::setDimension(int w, int h) {
     width = w;
     height = h;
+}
+
+void gazeArbiterThread::setBlockPitch(double value) {
+    blockNeckPitchValue = value;
 }
 
 void gazeArbiterThread::setName(string str) {
@@ -669,7 +680,24 @@ void gazeArbiterThread::run() {
                     sublistLife.addDouble(8.0);
                     listAttr.append(sublistLife);          
                         
-                        
+                    if (templatePort.getInputCount()) {
+                        Bottle& templateList = listAttr.addList();
+                        printf("attaching the blob to the item in the list");
+                        templateImage = templatePort.read(false);
+                        if(templateImage!=0) {
+                            int width = templateImage->width();
+                            int height = templateImage->height();
+                            unsigned char* pointerTemplate = templateImage->getRawImage();
+                            int padding = templateImage->getPadding();
+                            for (int r = 0; r < height; r++) {
+                                for (int c = 0; c < width; c++) {
+                                    templateList.addString("template");
+                                    templateList.addInt((unsigned char)*pointerTemplate++);
+                                }
+                            }
+                        }
+                    }
+                    
                     blobDatabasePort.write(request, reply);                     
                     
                     
@@ -833,6 +861,7 @@ void gazeArbiterThread::threadRelease() {
     inLeftPort.close();
     inRightPort.close();
     statusPort.close();
+    templatePort.close();
     blobDatabasePort.close();
     delete eyeL;
     delete eyeR;

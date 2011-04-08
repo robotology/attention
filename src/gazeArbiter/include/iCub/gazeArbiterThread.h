@@ -76,6 +76,7 @@ private:
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
     double varDistance;                     // calculated distance of the object from the eye 
+    double blockNeckPitchValue;             // value for blocking the pitch of the neck
     int xOffset;                            // offset for the 3D point along x
     int yOffset;                            // offset for the 3D point along y
     int zOffset;                            // offset for the 3D point along z
@@ -108,6 +109,8 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgRightIn;                                // input mono image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inLeftPort;        // input image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inRightPort;       // output image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > templatePort;     // port for the segmented object of the zdf
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                                // image for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;
@@ -220,6 +223,12 @@ public:
     * function that sets the value of the parameter y limits
     */
     void setYLimits(double max,double  min) { ymax = max; ymin = min; };
+    
+    /**
+     * function that sets the value head pitch to which the head is blocked
+     * @param blockPitch value of the blockPitch
+     */
+    void setBlockPitch(double blockPitch);
 
     /**
     * function that sets the value of the parameter z limits

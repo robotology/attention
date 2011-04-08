@@ -183,7 +183,10 @@
  * 24/04/11 : added fixed neck pitch option                                                         @author Rea
  * 28/03/11 : added the limits for the allowed fixation points in 3d space                          @author Rea
  * 29/03/11 : added new parameters to the config file and embedded previously added ones            @author Rea
+ * 06/04/11 : added a new port for acquiring the template and sending it to the objectsColl.       @author Rea
  */
+
+
 
 #include <iostream>
 #include <string>

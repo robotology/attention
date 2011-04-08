@@ -118,7 +118,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     xmin       = rf.check("xmin", 
                            Value(-10.0), 
                            "limit min for 3D fixation point x").asDouble();;
-    printf("xmax:%f \n", xmin);
+    printf("xmin:%f \n", xmin);
     arbiter->setXLimits(xmax,xmin);
     
     // limits for 3d position along y axis 
@@ -126,7 +126,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
                            Value(0.3), 
                            "limit max for 3D fixation point y").asDouble();
     printf("ymax:%f \n", ymax);
-    ymin       = rf.check("ymax", 
+    ymin       = rf.check("ymin", 
                            Value(-0.3), 
                            "limit max for 3D fixation point y").asDouble();
     printf("ymin:%f \n", ymin);
@@ -144,10 +144,11 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     arbiter->setZLimits(zmax,zmin);
 
     // fixating pitch
-    pitch       = rf.check("pitch", 
-                           Value(-1), 
+    pitch       = rf.check("blockPitch", 
+                           Value(-37.0), 
                            "fixing the pitch to a desired angle").asDouble();
     printf("pitch:%f \n", pitch);
+    arbiter->setBlockPitch(pitch);
 
     collector->addObserver(*arbiter);
     arbiter->start();
