@@ -309,7 +309,7 @@ bool selectiveAttentionProcessor::threadInit(){
     else
         return false;
 
-    /*
+    
     // set up the ARM MOTOR INTERFACE	
     name = getName("");
     string localName = "/" + name + "/armCtrl";
@@ -349,7 +349,7 @@ bool selectiveAttentionProcessor::threadInit(){
        return false;
     }
     cartCtrlDevice->view(armCart);
-    */
+    
 
     return true;
 }
@@ -379,6 +379,7 @@ void selectiveAttentionProcessor::run(){
     //synchronisation with the input image occuring
     if(!interrupted){
 
+        // code for fixating its head
         if((outputCmdPort.getOutputCount())&&(handFixation)) {
             Vector x(3); Vector o(4);
             armCart->getPose(x,o);
@@ -1031,7 +1032,6 @@ void selectiveAttentionProcessor::interrupt(){
     outputCmdPort.interrupt();
     vergenceCmdPort.interrupt();
     feedbackPort.interrupt();
-    
 }
 
 /**

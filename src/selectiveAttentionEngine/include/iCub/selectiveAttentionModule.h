@@ -219,7 +219,8 @@
  * 05/01/11 : changed the copy function of logpolar images from copy_8u_C1R to copy_C1R         @author Rea
  * 06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       @author Rea
  * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        @author Rea
- */
+ * 08/03/11 : added the new bottle(template) to the communication to the objectProp             @author Rea  
+*/
 
 
 class selectiveAttentionModule : public yarp::os::RFModule {
@@ -352,11 +353,12 @@ public:
 
     /**
     * function that starts the selectiveAttentionProcessor
+    * @return if correctly started
     */
     bool startselectiveAttentionProcessor();
 
-    bool inputImage_flag; //flag that controls if the inputImage has been ever read
-    bool init_flag; //check of the already happened initialisation
+    bool inputImage_flag;                       //flag that controls if the inputImage has been ever read
+    bool init_flag;                             //check of the already happened initialisation
 };
 
 #endif //_selectiveAttentionModule_H_
