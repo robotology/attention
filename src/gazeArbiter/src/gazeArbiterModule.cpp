@@ -145,7 +145,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
 
     // fixating pitch
     pitch       = rf.check("blockPitch", 
-                           Value(-37.0), 
+                           Value(-1), 
                            "fixing the pitch to a desired angle").asDouble();
     printf("pitch:%f \n", pitch);
     arbiter->setBlockPitch(pitch);
