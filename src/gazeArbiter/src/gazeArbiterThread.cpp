@@ -113,6 +113,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     numberState = 4; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
     firstVer = false;
+    visualCorrection = true;
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
@@ -208,9 +209,13 @@ bool gazeArbiterThread::threadInit() {
     }
     else
         return false;
-    //double blockNeckPitchValue = -40.0;
+  
     if(blockNeckPitchValue != -1) {
         igaze->blockNeckPitch(blockNeckPitchValue);
+        printf("pitch fixed at %d \n",blockNeckPitchValue);
+    }
+    else {
+        printf("pitch free to change \n");
     }
 
     
@@ -389,7 +394,7 @@ void gazeArbiterThread::run() {
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
             if(mono){
-                //printf("offset: %d, %d,%d \n", xOffset, yOffset, zOffset );
+                printf("offset: %d, %d,%d \n", xOffset, yOffset, zOffset );
                 if ((xOffset == 0) && (yOffset == 0) && (zOffset == 0)) {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
@@ -420,6 +425,8 @@ void gazeArbiterThread::run() {
                     fp[0]=xo[0] + xOffset;
                     fp[1]=xo[1] + yOffset;
                     fp[2]=xo[2] + zOffset;
+                    igaze->lookAtFixationPoint(fp);
+                    visualCorrection = false;
                 }
             }
             else {
@@ -459,41 +466,43 @@ void gazeArbiterThread::run() {
                     printf("saccade_accomplished \n");
                 }
             }
-            //correcting the macrosaccade using the visual feedback
-            double error = 1000.0;
-            while(( error > 1)&&(timeout < 10.0)&&(tracker->getInputCount())) {
-                timeoutStop = Time::now();
-                timeout =timeoutStop - timeoutStart;
-                //printf("timeout in correcting  %d \n", timeout);
-                //corrected the error
-                double errorx = (width / 2.0)  - point.x;
-                double errory = (height / 2.0) - point.y;
-                Vector px(2);
-                px(0) = (width / 2.0) - errorx;
-                px(1) = (height / 2.0) - errory;
-                error = sqrt(errorx * errorx + errory * errory);
-                //printf("norm error %f \n", error);
-                int camSel = 0;
-                igaze->lookAtMonoPixel(camSel,px,zDistance);
-                tracker->getPoint(point);
-                //printf("the point ended up in %d  %d \n",point.x, point.y);
-            }
-            Time::delay(0.05);
-            if(timeout >= 10.0) {
-                Vector px(3);
-                px[0] = -0.5 + xOffset;
-                px[1] = 0.0 + yOffset;
-                px[2] = 0.1 + zOffset;
-                igaze->lookAtFixationPoint(px);
-                igaze->checkMotionDone(&done);
-                while((!done)&&(timeout < 10.0)) {
-                    
+            //correcting the macrosaccade using the visual feedback (only if required)
+            if (visualCorrection) {
+                double error = 1000.0;
+                while(( error > 1)&&(timeout < 10.0)&&(tracker->getInputCount())) {
                     timeoutStop = Time::now();
                     timeout =timeoutStop - timeoutStart;
-                    printf("f");
-                    Time::delay(0.005);
+                    //printf("timeout in correcting  %d \n", timeout);
+                    //corrected the error
+                    double errorx = (width / 2.0)  - point.x;
+                    double errory = (height / 2.0) - point.y;
+                    Vector px(2);
+                    px(0) = (width / 2.0) - errorx;
+                    px(1) = (height / 2.0) - errory;
+                    error = sqrt(errorx * errorx + errory * errory);
+                    //printf("norm error %f \n", error);
+                    int camSel = 0;
+                    igaze->lookAtMonoPixel(camSel,px,zDistance);
+                    tracker->getPoint(point);
+                    //printf("the point ended up in %d  %d \n",point.x, point.y);
+                }
+                Time::delay(0.05);
+                if(timeout >= 10.0) {
+                    Vector px(3);
+                    px[0] = -0.5 + xOffset;
+                    px[1] = 0.0 + yOffset;
+                    px[2] = 0.1 + zOffset;
+                    igaze->lookAtFixationPoint(px);
                     igaze->checkMotionDone(&done);
-                    
+                    while((!done)&&(timeout < 10.0)) {
+                        
+                        timeoutStop = Time::now();
+                        timeout =timeoutStop - timeoutStart;
+                        printf("f");
+                        Time::delay(0.005);
+                        igaze->checkMotionDone(&done);
+                        
+                    }
                 }
             }
         }

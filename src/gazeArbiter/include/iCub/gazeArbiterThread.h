@@ -72,14 +72,15 @@ private:
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
     bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
+    bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
     int u,v;                                // values passed for saccades
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
     double varDistance;                     // calculated distance of the object from the eye 
     double blockNeckPitchValue;             // value for blocking the pitch of the neck
-    int xOffset;                            // offset for the 3D point along x
-    int yOffset;                            // offset for the 3D point along y
-    int zOffset;                            // offset for the 3D point along z
+    double xOffset;                         // offset for the 3D point along x
+    double yOffset;                         // offset for the 3D point along y
+    double zOffset;                         // offset for the 3D point along z
     double xmax, xmin;                      // limits in fixation point
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
@@ -202,17 +203,17 @@ public:
     /**
     * function that sets the value of the parameter xOffset
     */
-    void setXOffset(int  value) { xOffset = value; };
+    void setXOffset(double  value) { xOffset = value; };
 
     /**
     * function that sets the value of the parameter yOffset
     */
-    void setYOffset(int  value) { yOffset = value; };
+    void setYOffset(double  value) { yOffset = value; };
 
     /**
     * function that sets the value of the parameter zOffset
     */
-    void setZOffset(int  value) { zOffset = value; };
+    void setZOffset(double  value) { zOffset = value; };
 
     /**
     * function that sets the value of the parameter x limirs

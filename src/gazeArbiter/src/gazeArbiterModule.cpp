@@ -94,19 +94,22 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     /* offset for 3d position along x axis */
     this->xoffset       = rf.check("xoffset", 
                            Value(0), 
-                           "offset for 3D fixation point x").asInt();
+                           "offset for 3D fixation point x").asDouble();
+    printf("xoffset:%f \n", xoffset);
     arbiter->setXOffset(xoffset);
 
     /* offset for 3d position along y axis */
     this->yoffset       = rf.check("yoffset", 
                            Value(0), 
-                           "offset for 3D fixation point y").asInt();
+                           "offset for 3D fixation point y").asDouble();
+    printf("yoffset:%f \n", yoffset);
     arbiter->setYOffset(yoffset);
 
     /* offset for 3d position along z axis */
     this->zoffset       = rf.check("zoffset", 
                            Value(0), 
-                           "offset for 3D fixation point z").asInt();
+                           "offset for 3D fixation point z").asDouble();
+    printf("zoffset:%f \n", zoffset);
     arbiter->setZOffset(zoffset);
 
     
