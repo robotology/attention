@@ -185,6 +185,7 @@
  * 29/03/11 : added new parameters to the config file and embedded previously added ones            @author Rea
  * 06/04/11 : added a new port for acquiring the template and sending it to the objectsColl.        @author Rea
  * 11/04/11 : introduced boolean flag for allowing refinement of the final position                 @author Rea 
+ * 11/04/11 : new limit for avoiding the robot to attend too close to the body                      @author Rea
  */
 
 

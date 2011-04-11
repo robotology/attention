@@ -212,7 +212,7 @@ bool gazeArbiterThread::threadInit() {
   
     if(blockNeckPitchValue != -1) {
         igaze->blockNeckPitch(blockNeckPitchValue);
-        printf("pitch fixed at %d \n",blockNeckPitchValue);
+        printf("pitch fixed at %f \n",blockNeckPitchValue);
     }
     else {
         printf("pitch free to change \n");
@@ -223,7 +223,7 @@ bool gazeArbiterThread::threadInit() {
     string nameLocal("local");
 
     //initialising the head polydriver
-    optionsHead.put("device", "remote_controlboard");
+    optionsHead.put("device", "remote_controlboard");3
     optionsHead.put("local", "/localhead");
     optionsHead.put("remote", headPort.c_str());
     robotHead = new PolyDriver (optionsHead);
@@ -403,6 +403,7 @@ void gazeArbiterThread::run() {
                         while (dist > 10) {
                             tracker->init(u,v);
                             tracker->waitInitTracker();
+                            Time::delay(0.05);
                             Vector px(2);
                             px(0) = u;
                             px(1) = v;
