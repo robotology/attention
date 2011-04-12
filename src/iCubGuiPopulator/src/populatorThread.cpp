@@ -37,7 +37,6 @@ using namespace std;
 
 populatorThread::populatorThread() : RateThread(THRATE) {
     count = 0;
-    
 }
 
 populatorThread::~populatorThread() {
@@ -46,12 +45,14 @@ populatorThread::~populatorThread() {
 bool populatorThread::threadInit() {
     databasePort.open(getName("/database").c_str());
     guiPort.open(getName("/gui:o").c_str());
+    texPort.open(getName("/ale/textures").c_str());
     return true;
 }
 
 void populatorThread::interrupt() {
     databasePort.interrupt();
     guiPort.interrupt();
+    texPort.interrupt();
 }
 
 void populatorThread::setName(string str) {
@@ -169,6 +170,33 @@ void populatorThread::run() {
                     else
                         obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
                     guiPort.write();
+
+                    //sending information on the texture
+                    yarp::sig::VectorOf<unsigned char>& tex=texPort.prepare();
+
+                    FILE* img=fopen("Pamela.pgm","rb");
+ 
+                    unsigned char garbage[53];
+                    fread(garbage,1,53,img); // throws pgm header
+                    
+                    unsigned char buffer[9529];
+                    buffer[0]=112; // width
+                    buffer[1]=85;  // height
+                    buffer[2]='P';
+                    buffer[3]='a';
+                    buffer[4]='m';
+                    buffer[5]='e';
+                    buffer[6]='l';
+                    buffer[7]='a';
+                    buffer[8]=0;
+
+                    fread(buffer+9,1,9520,img); // get raw data 
+
+                    for (int i=0; i<9529; ++i) {
+                        tex.push_back(buffer[i]);
+                    }
+
+                    texPort.write();
                 }
             }
             cout<<endl;
@@ -180,5 +208,6 @@ void populatorThread::threadRelease() {
     //closing ports
     databasePort.close();
     guiPort.close();
+    texPort.close();
 }
 

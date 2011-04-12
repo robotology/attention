@@ -133,6 +133,7 @@
 
 /** CHANGE LOG
  * 05/01/11 : added the code for finding the properties and clered out everything before every cycle                @author Rea
+ * 12/04/11 : added the code for the texture                                                                        @author Rea
  */
 
 #include <iostream>
