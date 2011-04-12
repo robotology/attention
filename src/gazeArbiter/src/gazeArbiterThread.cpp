@@ -223,7 +223,7 @@ bool gazeArbiterThread::threadInit() {
     string nameLocal("local");
 
     //initialising the head polydriver
-    optionsHead.put("device", "remote_controlboard");3
+    optionsHead.put("device", "remote_controlboard");
     optionsHead.put("local", "/localhead");
     optionsHead.put("remote", headPort.c_str());
     robotHead = new PolyDriver (optionsHead);
@@ -382,10 +382,12 @@ void gazeArbiterThread::run() {
             if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
                 printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
                 Vector px(3);
-                px[0] = -0.3 + xOffset;
+                px[0] = -0.35 + xOffset;
                 px[1] = 0.0 + yOffset;
-                px[2] = -0.1 + zOffset;
+                px[2] = 0.0 + zOffset;
                 igaze->lookAtFixationPoint(px);
+                u = width / 2;
+                v = height / 2;
                 waitMotionDone();
                 return;
             }
