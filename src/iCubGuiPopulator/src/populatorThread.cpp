@@ -45,7 +45,7 @@ populatorThread::~populatorThread() {
 bool populatorThread::threadInit() {
     databasePort.open(getName("/database").c_str());
     guiPort.open(getName("/gui:o").c_str());
-    texPort.open(getName("/ale/textures").c_str());
+    texPort.open(getName("/textures:o").c_str());
     return true;
 }
 
@@ -170,6 +170,37 @@ void populatorThread::run() {
                     else
                         obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
                     guiPort.write();
+
+                    Time::delay(1);
+                    obj.clear();
+                    obj.addString("object"); // command to add/update an object
+                    obj.addString("Pamela");
+
+                    // object dimensions in millimiters 
+                    // (it will be displayed as a box with the tag "Pamela")
+                    obj.addDouble(100.0);
+                    obj.addDouble(400.0);
+                    obj.addDouble(300.0);
+
+                    // object position in millimiters
+                    obj.addDouble(-1000.0);
+                    obj.addDouble( 250.0);
+                    obj.addDouble( 500.0);
+
+                    // object rotation in degrees
+                    obj.addDouble(0.0);
+                    obj.addDouble(0.0);
+                    obj.addDouble(-30.0);
+
+                    // object color (0-255)
+                    obj.addInt(255);
+                    obj.addInt(200);
+                    obj.addInt(200);
+
+                    // transparency (0.0=invisible 1.0=solid)
+                    obj.addDouble(0.5);
+
+                    guiPort.write(obj);
 
                     //sending information on the texture
                     yarp::sig::VectorOf<unsigned char>& tex=texPort.prepare();
