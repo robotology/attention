@@ -91,7 +91,7 @@ private:
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
     bool accomplished_flag;                 // flag for the accomplished vergence
     double timeoutStart,timeoutStop;        // start and stop timing to avoid that saccadic event can stuck
-    double timeout;                         // actual timer of the saccadic action\
+    double timeout;                         // actual timer of the saccadic action
 
     int template_size;                      // size of the template
     int search_size;                        // area over the search is performed

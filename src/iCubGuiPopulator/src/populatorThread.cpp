@@ -125,15 +125,15 @@ void populatorThread::run() {
                     posX = list->find("x").asDouble();
                     posY = list->find("y").asDouble();
                     posZ = list->find("z").asDouble();
-                    //printf("position: %f,%f,%f \n", posX,posY,posZ);
+                    printf("position: %f,%f,%f \n", posX,posY,posZ);
                     
                     r = list->find("r").asInt();
                     g = list->find("g").asInt();
                     b = list->find("b").asInt();
-                    //printf("colour: %d,%d,%d \n", r,g,b);
+                    printf("colour: %d,%d,%d \n", r,g,b);
 
                     lifeTimer = list->find("lifeTimer").asDouble();
-                    //printf("lifeTimer %f \n",lifeTimer);   
+                    printf("lifeTimer %f \n",lifeTimer);   
                            
                     Bottle& obj = guiPort.prepare();
                     obj.clear();
@@ -143,6 +143,15 @@ void populatorThread::run() {
                     int len;
                     if (id>1000) {
                         len = 6 + 4 ;
+                    }
+                    else if( id > 100) {
+                        len = 6 + 3;
+                    }
+                    else if( id > 10) {
+                        len = 6 + 2;
+                    }
+                    else if( id < 10) {
+                        len = 6 + 1;
                     }
                     
                     bool found = checkNames(id);
@@ -186,7 +195,7 @@ void populatorThread::run() {
                         //Time::delay(3);
                         
                         Bottle& texture = list->findGroup("texture");                    
-                        if (texture!= NULL) {
+                        if ((texture!= NULL)&&(texPort.getOutputCount())) {
                             Bottle* templateBottle = texture.get(1).asList();
                             printf("dimension of the template %d \n", templateBottle->size());
                             int dimTemplate = templateBottle->size();
