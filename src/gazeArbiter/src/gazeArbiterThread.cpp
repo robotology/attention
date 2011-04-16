@@ -674,17 +674,17 @@ void gazeArbiterThread::run() {
                     
                     Bottle& sublistR = listAttr.addList();
                     sublistR.addString("r");
-                    sublistR.addDouble(0.0);
+                    sublistR.addDouble(255.0);
                     listAttr.append(sublistR);
                     
                     Bottle& sublistG = listAttr.addList();
                     sublistG.addString("g");
-                    sublistG.addDouble(0.0);
+                    sublistG.addDouble(255.0);
                     listAttr.append(sublistG);
                         
                     Bottle& sublistB = listAttr.addList();
                     sublistB.addString("b");
-                    sublistB.addDouble(0.0);
+                    sublistB.addDouble(255.0);
                     listAttr.append(sublistB);
                     
                     Bottle& sublistLife = listAttr.addList();
@@ -699,14 +699,27 @@ void gazeArbiterThread::run() {
                         if(templateImage!=0) {
                             int width = templateImage->width();
                             int height = templateImage->height();
+                            printf("template dim %d %d \n", width, height);
                             unsigned char* pointerTemplate = templateImage->getRawImage();
                             int padding = templateImage->getPadding();
-                            for (int r = 0; r < height; r++) {
-                                for (int c = 0; c < width; c++) {
-                                    templateList.addString("template");
-                                    templateList.addInt((unsigned char)*pointerTemplate++);
+                            templateList.addString("texture");
+                            Bottle& pixelList = templateList.addList();
+                            pixelList.addInt(20);
+                            pixelList.addInt(20);
+                            
+                            for (int r = 40; r <60 ; r++) {
+                                for (int c = 40; c < 60; c++) {
+                                    //pixelList.addInt((unsigned char)*pointerTemplate++);
+                                    pixelList.addInt(r + c);
                                 }
                             }
+
+                            //pixelList.addInt(0);
+                            //pixelList.addInt(20);
+                            //pixelList.addInt(100);
+                            //pixelList.addInt(200);
+                            //pixelList.addInt(0);
+                            //templateList.append(pixelList);
                         }
                     }
                     

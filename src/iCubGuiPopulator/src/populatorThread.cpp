@@ -34,18 +34,25 @@ using namespace std;
 
 #define THRATE 100
 #define OBLIVIONFACTOR 10
+#define INCREMENT 10
+#define DECREMENT 2
 
 populatorThread::populatorThread() : RateThread(THRATE) {
     count = 0;
+    numNames = 0;
+    for (int i=0; i< MAXBUFFERDIMENSION; i++) {
+        cName[i]=0;
+    }
 }
 
 populatorThread::~populatorThread() {
+
 }
 
 bool populatorThread::threadInit() {
     databasePort.open(getName("/database").c_str());
     guiPort.open(getName("/gui:o").c_str());
-    texPort.open(getName("/textures:o").c_str());
+    texPort.open(getName("/textures:o").c_str());    
     return true;
 }
 
@@ -75,11 +82,6 @@ void populatorThread::run() {
         writer.clear(); reader.clear();
         Bottle list;
         list.clear();
-        //cleaning the iCubGui
-        Bottle& obj = guiPort.prepare();
-        obj.clear();
-        obj.addString("reset");
-        guiPort.write();
         
         //asking for the list of all the object in the objectsPropertiesCollector
         writer.addVocab(VOCAB3('a','s','k'));
@@ -131,108 +133,175 @@ void populatorThread::run() {
                     //printf("colour: %d,%d,%d \n", r,g,b);
 
                     lifeTimer = list->find("lifeTimer").asDouble();
-                    //printf("lifeTimer %f \n",lifeTimer);
-                    
+                    //printf("lifeTimer %f \n",lifeTimer);   
+                           
                     Bottle& obj = guiPort.prepare();
                     obj.clear();
-                    string name("obj");
+                    string name("");
                     sprintf((char*)name.c_str(),"Object%d",id);
-                    //printf("name of the object:%s \n",name.c_str());
-                    obj.addString("object"); // comando
-                    obj.addString(name.c_str()); // nome dell'oggetto
                     
-                    // object dimension in millimeters 
-                    // it draws an ellips with a the name close by
-                    // pay attention to the order!!!!!!!
-                    obj.addDouble(55.0); 
-                    obj.addDouble(55.0); 
-                    obj.addDouble(55.0);
-                    // position of the objects in millimeters!
-                    // (pay attention to the order!!!!!!)
-                    // frame of reference locate with the Z axis toward the ceiling, the X axis pointing into the heaps,
-                    // and the Y axis directed to the right hand side of the robot 
- 
-                    obj.addDouble(posZ);
-                    obj.addDouble(posX);
-                    obj.addDouble(posY);
-                    // orientation of the object (roll, pitch,yaw) 
-                    // in gradi 
-                    obj.addDouble(45.0);
-                    obj.addDouble(0.0);
-                    obj.addDouble(45.0);
-                    // colour of the object (0-255)
-                    obj.addInt(r);
-                    obj.addInt(g);
-                    obj.addInt(b);
-                    // trasparency of the object (0.0=invisible 1.0=solid) 
-                    if(lifeTimer == 0)
-                        obj.addDouble(1.0);
-                    else
-                        obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
-                    guiPort.write();
-
-                    Time::delay(1);
-                    obj.clear();
-                    obj.addString("object"); // command to add/update an object
-                    obj.addString("Pamela");
-
-                    // object dimensions in millimiters 
-                    // (it will be displayed as a box with the tag "Pamela")
-                    obj.addDouble(100.0);
-                    obj.addDouble(400.0);
-                    obj.addDouble(300.0);
-
-                    // object position in millimiters
-                    obj.addDouble(-1000.0);
-                    obj.addDouble( 250.0);
-                    obj.addDouble( 500.0);
-
-                    // object rotation in degrees
-                    obj.addDouble(0.0);
-                    obj.addDouble(0.0);
-                    obj.addDouble(-30.0);
-
-                    // object color (0-255)
-                    obj.addInt(255);
-                    obj.addInt(200);
-                    obj.addInt(200);
-
-                    // transparency (0.0=invisible 1.0=solid)
-                    obj.addDouble(0.5);
-
-                    guiPort.write(obj);
-
-                    //sending information on the texture
-                    yarp::sig::VectorOf<unsigned char>& tex=texPort.prepare();
-
-                    FILE* img=fopen("Pamela.pgm","rb");
- 
-                    unsigned char garbage[53];
-                    fread(garbage,1,53,img); // throws pgm header
-                    
-                    unsigned char buffer[9529];
-                    buffer[0]=112; // width
-                    buffer[1]=85;  // height
-                    buffer[2]='P';
-                    buffer[3]='a';
-                    buffer[4]='m';
-                    buffer[5]='e';
-                    buffer[6]='l';
-                    buffer[7]='a';
-                    buffer[8]=0;
-
-                    fread(buffer+9,1,9520,img); // get raw data 
-
-                    for (int i=0; i<9529; ++i) {
-                        tex.push_back(buffer[i]);
+                    int len;
+                    if (id>1000) {
+                        len = 6 + 4 ;
                     }
+                    
+                    bool found = checkNames(id);
+                    //bool found = false;
+                    if(!found) {                                            
+                        //adding the object to the GUI
+                        printf("!found numName=%d \n", numNames);
+                        printf("dimension :%d \n",len);
+                        obj.addString("object"); // comando
+                        obj.addString(name.c_str()); // nome dell'oggetto
+                        
+                        // object dimension in millimeters 
+                        // it draws an ellips with a the name close by
+                        // pay attention to the order!!!!!!!
+                        obj.addDouble(5.0); 
+                        obj.addDouble(155.0); 
+                        obj.addDouble(155.0);
+                        // position of the objects in millimeters!
+                        // (pay attention to the order!!!!!!)
+                        // frame of reference locate with the Z axis toward the ceiling, the X axis pointing into the heaps,
+                        // and the Y axis directed to the right hand side of the robot  
+                        obj.addDouble(posX);
+                        obj.addDouble(posY);
+                        obj.addDouble(posZ);
+                        // orientation of the object (roll, pitch,yaw) 
+                        // in gradi 
+                        obj.addDouble(0.0);
+                        obj.addDouble(0.0);
+                        obj.addDouble(0.0);
+                        // colour of the object (0-255)
+                        obj.addInt(r);
+                        obj.addInt(g);
+                        obj.addInt(b);
+                        // trasparency of the object (0.0=invisible 1.0=solid) 
+                        if(lifeTimer == 0)
+                            obj.addDouble(1.0);
+                        else
+                            obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
+                        guiPort.writeStrict();
+                        
+                        //Time::delay(3);
+                        
+                        Bottle& texture = list->findGroup("texture");                    
+                        if (texture!= NULL) {
+                            Bottle* templateBottle = texture.get(1).asList();
+                            printf("dimension of the template %d \n", templateBottle->size());
+                            int dimTemplate = templateBottle->size();
+                            //sending information on the texture
+                            yarp::sig::VectorOf<unsigned char>& tex=texPort.prepare();
+                            
+                            
+                            //unsigned char garbage[53];
+                            //fread(garbage,1,53,img); // throws pgm header
+                            
+                            int dimHeader = 11;
+                            unsigned char buffer[9529]; 
+                            unsigned char* pbuffer = &buffer[0];
+                            int pwidth =  templateBottle->get(0).asInt();
+                            int pheight =  templateBottle->get(1).asInt();
+                            
+                            
+                            
+                            buffer[0]=pwidth;   // width
+                            buffer[1]=pheight;  // height
+                            
+                            buffer[2]='O';
+                            buffer[3]='b';
+                            buffer[4]='j';
+                            buffer[5]='e';
+                            buffer[6]='c';
+                            buffer[7]='t';
+                            pbuffer += 8;
+                            char* pointerName = (char*) name.c_str();
+                            pointerName += 6;
+                            printf("name size %d", len);
+                            for (int i = 6; i < len; i++) {
+                                *pbuffer = *pointerName;
+                                printf("[%c,%d]  ", *pointerName,*pointerName);
+                                pointerName++; pbuffer++;
+                            }
+                            printf("\n");
+                            *pbuffer++ = 0;
+                        
+                            //printf("chars \n");
+                            for (int i = 2; i < dimTemplate; i++) {
+                                int value = templateBottle->get(i).asInt();
+                                unsigned char c = (unsigned char) value;
+                                *pbuffer++ = c;
+                                //printf("%d ",c);
+                            }
+                            
+                            //printf("sent \n");
+                            tex.clear();
+                            for (int i=0; i< dimTemplate + dimHeader; ++i) {
+                                tex.push_back(buffer[i]);
+                                //printf("%d ",buffer[i]);
+                            }                 
+                            texPort.write();
+                        } //endif texture
 
-                    texPort.write();
+                        //adding the object to the list                         
+                        listNames[numNames] =  id;
+                        cName[numNames] += INCREMENT;
+                        printf("added the new name : %d ", listNames[numNames]);
+                        numNames++;
+                    } // endif found                                      
                 }
             }
             cout<<endl;
+            //cleaning the iCubGui
+            cleanNames();
+            //Bottle& obj = guiPort.prepare();
+            //obj.clear();
+            //obj.addString("reset");
+            //guiPort.write();
         }
     }
+}
+
+void populatorThread::cleanNames() {
+    int position;
+    string name("");
+    bool removed = false;
+    position =  numNames;
+    for (int i = 0; i< numNames; i++) {
+        cName[i] -= DECREMENT;
+        printf("cName[%d]=%d \n", i, cName[i]);
+        if(cName[i] <= 0) {
+            Bottle& obj = guiPort.prepare();
+            obj.clear();
+            obj.addString("delete");
+            sprintf((char*)name.c_str(),"Object%d",listNames[i]);
+            printf("deleting the object %s \n ", name.c_str());
+            obj.addString(name.c_str());
+            guiPort.write();
+            position = i;
+            removed = true;
+            break;
+        }        
+    }
+    if (removed) {
+        for (int i= position; i < numNames - 1; i++) { 
+            listNames[i] = listNames[i+1];
+            cName[i] = cName[i+1];
+        }
+        numNames --;
+    }
+}
+
+bool populatorThread::checkNames(short str) {
+    printf("checking name %d in list dim %d \n", str, numNames);    
+    for (int i = 0; i< numNames; i++) {
+        printf("checking against %d \n",listNames[i]); 
+        if(listNames[i] == str) {
+            cName[i] += INCREMENT; 
+            return true;
+        }
+    }
+    return false;
 }
 
 void populatorThread::threadRelease() {

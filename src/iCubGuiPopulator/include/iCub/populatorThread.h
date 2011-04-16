@@ -31,13 +31,19 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/Time.h>
 #include <yarp/sig/all.h>
 #include <iostream>
+
+#define MAXBUFFERDIMENSION 10
 
 class populatorThread : public yarp::os::RateThread {
 private:
     std::string name;                                                       // name of this module
+    int numNames;
     int count;                                                              // counter of the cycle
+    short listNames[MAXBUFFERDIMENSION];
+    short cName[MAXBUFFERDIMENSION];
     yarp::os::Port databasePort;                                            // rpc the remote procedure call port used to send requests to the database and receive replies
     yarp::os::BufferedPort< yarp::os::Bottle> guiPort;                      // port of the gui that receives commands for the object populating process
     yarp::os::BufferedPort<yarp::sig::VectorOf<unsigned char> > texPort;    // port for sending the texture
@@ -91,6 +97,16 @@ public:
     * @return height height of the input image
     */
     void resize(int width, int height);
+
+    /**
+     * function that searches in the vector the presence of the name
+     */
+    bool checkNames(short str);
+
+    /**
+     * function that searches in the vector the presence of the name
+     */
+    void cleanNames();
 };
 
 #endif  //POPULATOR_THREAD_H_
