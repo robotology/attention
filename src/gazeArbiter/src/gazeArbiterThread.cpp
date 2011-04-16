@@ -335,7 +335,7 @@ void gazeArbiterThread::run() {
         // ----------------  SACCADE -----------------------
         if(!executing) {
             //calculating where the fixation point would end up
-            
+            executing = true;
             bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
             Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
             iCubEye *eye = (isLeft?eyeL:eyeR);
@@ -381,6 +381,7 @@ void gazeArbiterThread::run() {
 
             if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
                 printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
+                accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
                 Vector px(3);
                 px[0] = -0.35 + xOffset;
                 px[1] = 0.0 + yOffset;
@@ -390,6 +391,9 @@ void gazeArbiterThread::run() {
                 v = height / 2;
                 waitMotionDone();
                 return;
+            }
+            else {
+                accomplished_flag = false;
             }
             
             // starting saccade toward the direction of the required position
@@ -441,8 +445,7 @@ void gazeArbiterThread::run() {
                 printf("saccadic event : started \n",xObject,yObject,zObject);
             }
 
-            executing = true;
-            Time::delay(0.05);
+                        Time::delay(0.05);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
             //printf ("timeout %d \n", timeout);
@@ -516,7 +519,7 @@ void gazeArbiterThread::run() {
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         // ----------------  VERGENCE -----------------------     
-        
+        printf("vergence_accomplished : %d \n",accomplished_flag);
         //printf("Entering in VERGENCE \n");
         if(!executing) {
             Vector gazeVect(3);
@@ -581,8 +584,7 @@ void gazeArbiterThread::run() {
             */
             
 
-            if((mono)) {
-                
+            if((mono)) {                
                 if((phi < 0.1)&&(phi>-0.1)&&(!accomplished_flag)) {
                     status = statusPort.prepare();
                     status.clear();
@@ -689,7 +691,7 @@ void gazeArbiterThread::run() {
                     
                     Bottle& sublistLife = listAttr.addList();
                     sublistLife.addString("lifeTimer");
-                    sublistLife.addDouble(8.0);
+                    sublistLife.addDouble(1.0);
                     listAttr.append(sublistLife);          
                         
                     if (templatePort.getInputCount()) {
@@ -704,22 +706,15 @@ void gazeArbiterThread::run() {
                             int padding = templateImage->getPadding();
                             templateList.addString("texture");
                             Bottle& pixelList = templateList.addList();
-                            pixelList.addInt(20);
-                            pixelList.addInt(20);
+                            pixelList.addInt(10);
+                            pixelList.addInt(10);
                             
-                            for (int r = 40; r <60 ; r++) {
-                                for (int c = 40; c < 60; c++) {
+                            for (int r = 45; r <55 ; r++) {
+                                for (int c = 45; c < 55; c++) {
                                     //pixelList.addInt((unsigned char)*pointerTemplate++);
                                     pixelList.addInt(r + c);
                                 }
                             }
-
-                            //pixelList.addInt(0);
-                            //pixelList.addInt(20);
-                            //pixelList.addInt(100);
-                            //pixelList.addInt(200);
-                            //pixelList.addInt(0);
-                            //templateList.append(pixelList);
                         }
                     }
                     
@@ -731,10 +726,13 @@ void gazeArbiterThread::run() {
                 }
                 
                 if(accomplished_flag){
-                    if((phi>0.4)||(phi<-0.4))
-                        accomplished_flag = false;
-                    else
+                    if((phi>0.4)||(phi<-0.4)) {
+                        printf("the vergence is asking to revise its previouos measure ........");
+                        //accomplished_flag = false;
+                    }
+                    else {
                         return;
+                    }
                 }
                 
 
@@ -819,7 +817,7 @@ void gazeArbiterThread::run() {
             
             
             }
-            else {
+            else {   //else of the MONO branch
                 //printf("------------- ANGULAR VERGENCE  ----------------- \n \n");
                 
                 /*
