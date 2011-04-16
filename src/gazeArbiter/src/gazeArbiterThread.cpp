@@ -706,13 +706,13 @@ void gazeArbiterThread::run() {
                             int padding = templateImage->getPadding();
                             templateList.addString("texture");
                             Bottle& pixelList = templateList.addList();
-                            pixelList.addInt(10);
-                            pixelList.addInt(10);
+                            pixelList.addInt(width);
+                            pixelList.addInt(height);
                             
-                            for (int r = 45; r <55 ; r++) {
-                                for (int c = 45; c < 55; c++) {
-                                    //pixelList.addInt((unsigned char)*pointerTemplate++);
-                                    pixelList.addInt(r + c);
+                            for (int r = 0; r < height ; r++) {
+                                for (int c = 0; c < width; c++) {
+                                    pixelList.addInt((unsigned char)*pointerTemplate++);
+                                    //pixelList.addInt(r + c);
                                 }
                             }
                         }
