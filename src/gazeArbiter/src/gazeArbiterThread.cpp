@@ -209,6 +209,9 @@ bool gazeArbiterThread::threadInit() {
     }
     else
         return false;
+
+    
+    igaze->storeContext(&originalContext);
   
     if(blockNeckPitchValue != -1) {
         igaze->blockNeckPitch(blockNeckPitchValue);
@@ -889,6 +892,7 @@ void gazeArbiterThread::threadRelease() {
     blobDatabasePort.close();
     delete eyeL;
     delete eyeR;
+    igaze->restoreContext(originalContext);
     delete clientGazeCtrl;
 }
 

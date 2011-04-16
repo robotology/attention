@@ -188,6 +188,7 @@
  * 11/04/11 : new limit for avoiding the robot to attend too close to the body                      @author Rea
  * 16/04/11 : moved the execution at the beginning of saccade and the table not vergence accompli   @author Rea
  * 16/04/11 : plotted the texture on the small pciture in the GUI                                   @author Rea
+ * 16/04/11 : added original context restore                                                        @author Rea
  */
 
 

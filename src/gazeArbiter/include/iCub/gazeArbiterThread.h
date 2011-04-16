@@ -74,6 +74,7 @@ private:
     bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
     bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
     int u,v;                                // values passed for saccades
+    int originalContext;                    // original context for the gaze Controller
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
     double varDistance;                     // calculated distance of the object from the eye 
