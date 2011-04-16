@@ -714,6 +714,7 @@ void gazeArbiterThread::run() {
                                     pixelList.addInt((unsigned char)*pointerTemplate++);
                                     //pixelList.addInt(r + c);
                                 }
+                                pointerTemplate += padding;
                             }
                         }
                     }

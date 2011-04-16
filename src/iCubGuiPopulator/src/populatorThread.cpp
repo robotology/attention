@@ -186,10 +186,10 @@ void populatorThread::run() {
                         obj.addInt(g);
                         obj.addInt(b);
                         // trasparency of the object (0.0=invisible 1.0=solid) 
-                        if(lifeTimer == 0)
+                            //if(lifeTimer == 0)
                             obj.addDouble(1.0);
-                        else
-                            obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
+                            //else
+                            //obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
                         guiPort.writeStrict();
                         
                         //Time::delay(3);
