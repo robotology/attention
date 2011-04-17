@@ -74,7 +74,7 @@ visualFilterThread::visualFilterThread() {
     redGreenV16s   = 0;
     greenRedV16s   = 0;
     blueYellowV16s = 0;
-    lambda = 0.1f;
+    lambda = 0.05f;
 
     resized = false;
 }
@@ -392,11 +392,21 @@ void visualFilterThread::edgesExtract() {
             double rg = *redGreenH16s * *redGreenH16s + *redGreenV16s * *redGreenV16s;
             double gr = *greenRedH16s * *greenRedH16s + *greenRedV16s * *greenRedV16s;
             double by = *blueYellowH16s * *blueYellowH16s + *blueYellowV16s * *blueYellowV16s;
+            double value;
             if (row < height_orig - 2) {
-                *pedges = (unsigned char)(sqrt(max<double> (rg, gr, by)) * (255.0 / 1024)); //normalised with theoric max-response 1448.16, 362.03
+                value = (sqrt(max<double> (rg* (255.0 / 864), gr* (255.0 / 864), by* (255.0 / 864)))); //normalised with theoric max-response 1448.16, 362.03
             }
-            else
-                *pedges = 0;
+            else {
+                value = 0;
+            }
+
+            if(value > 255.0f) {
+                *pedges = 255;
+            }
+            else {
+                *pedges = (unsigned char) value;
+            }
+            
             /*
             if(*pedges>edgesmax)
                     edgesmax=*pedges;
