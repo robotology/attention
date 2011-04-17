@@ -114,6 +114,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     configFile = _configFile;
     firstVer = false;
     visualCorrection = true;
+    isOnWings = false;
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
@@ -342,6 +343,16 @@ void gazeArbiterThread::run() {
             bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
             Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
             iCubEye *eye = (isLeft?eyeL:eyeR);
+            if (isOnWings) {
+                iKinChain* eyeChain = eye.asChain();
+                eyeChain->rmLink(7);
+                eyeChain->rmLink(6);            
+                iKinLink& link = eyeChain[5];
+                double d_value = link.getD();
+                printf("d value %f", d_value);
+                double a_value = link.getA();
+                printf("a value %f", a_value);
+            }
             //function that calculates the 3DPoint where to redirect saccade and add the offset
             Vector torso(3);
             encTorso->getEncoder(0,&torso[0]);
@@ -378,6 +389,7 @@ void gazeArbiterThread::run() {
             xe[3]=1.0;  // impose homogeneous coordinates                
 
             // update position wrt the root frame
+            
             Vector xo = yarp::math::operator *(eye->getH(q),xe);
             printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
 
@@ -403,7 +415,7 @@ void gazeArbiterThread::run() {
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
             if(mono){
-                printf("offset: %d, %d,%d \n", xOffset, yOffset, zOffset );
+                printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
                 if ((xOffset == 0) && (yOffset == 0) && (zOffset == 0)) {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
