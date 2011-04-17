@@ -7,37 +7,37 @@
 	
 	<module>
 		<name>dataDumper</name>
-		<parameters>--name /channel1 --type datatype --downsample 2 </parameters>
+		<parameters>--name /channel1 --type image  --downsample 2 </parameters>
 		<tag>ch1Dumper</tag>
 		<node>/icub14</node>
 	</module>
         <module>
 		<name>dataDumper</name>
-		<parameters>--name /channel2 --type datatype --downsample 2 </parameters>
+		<parameters>--name /channel2 --type image  --downsample 2 </parameters>
 		<tag>ch2Dumper</tag>
 		<node>/icub14</node>
 	</module>
 	<module>
 		<name>dataDumper</name>
-		<parameters>--name /channel3 --type datatype --downsample 2 </parameters>
+		<parameters>--name /channel3 --type image  --downsample 2 </parameters>
 		<tag>ch3Dumper</tag>
 		<node>/icub14</node>
 	</module>
 	<module>
 		<name>dataDumper</name>
-		<parameters>--name /channel4 --type datatype --downsample 2 </parameters>
+		<parameters>--name /channel4 --type image --downsample 2 </parameters>
 		<tag>ch4Dumper</tag>
 		<node>/icub14</node>
 	</module>
 	<module>
 		<name>dataDumper</name>
-		<parameters>--name /channel5 --type datatype --downsample 2 </parameters>
+		<parameters>--name /channel5 --type image  --downsample 2 </parameters>
 		<tag>ch5Dumper</tag>
 		<node>/icub14</node>
 	</module>
 	<module>
 		<name>dataDumper</name>
-		<parameters>--name /channel6 --type datatype --downsample 2 </parameters>
+		<parameters>--name /channel6 --type image --downsample 2 </parameters>
 		<tag>ch6Dumper</tag>
 		<node>/icub14</node>
 	</module>
