@@ -145,6 +145,13 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
                            "limit min for 3D fixation point z").asDouble();
     printf("zmin:%f \n", zmin);
     arbiter->setZLimits(zmax,zmin);
+    
+    // specifies whether the camera is mounted on the head
+    onWings       = rf.check("onWings", 
+                           Value(0), 
+                           "indicates whether the camera is mounted on the head").asInt();
+    printf("onWings %d \n", onWings);
+    arbiter->setOnWings(onWings);
 
     // fixating pitch
     pitch       = rf.check("blockPitch", 
@@ -226,6 +233,6 @@ bool gazeArbiterModule::updateModule() {
 
 double gazeArbiterModule::getPeriod() {
     /* module periodicity (seconds), called implicitly by myModule */
-    return 0.0;
+    return 1.0;
 }
 

@@ -185,6 +185,34 @@ bool gazeArbiterThread::threadInit() {
     eyeL->releaseLink(2);
     eyeR->releaseLink(2);
 
+    // if it isOnWings, move the eyes on top of the head 
+    if (isOnWings) {
+        printf("changing the structure of the chain \n");
+        iKinChain* eyeChain = eyeL->asChain();
+        //eyeChain->rmLink(7);
+        //eyeChain->rmLink(6); ;
+        iKinLink* link = &(eyeChain-> operator ()(5));
+        //double d_value = link->getD();
+        //printf("d value %f \n", d_value);
+        //double a_value = link->getA();
+        //printf("a value %f \n", a_value);
+        link->setD(0.145);
+        link = &(eyeChain-> operator ()(6));
+        link->setD(0.0);
+        //eyeChain->blockLink(6,0.0);
+        //eyeChain->blockLink(7,0.0);
+        //link = &(eyeChain-> operator ()(6));
+        //link->setA(0.0);
+        //link->setD(0.034);
+        //link->setAlpha(0.0);
+        //double d_value = link->getD();
+        //printf("d value %f \n", d_value);
+        //iKinLink twistLink(0.0,0.034,M_PI/2.0,0.0,-22.0*CTRL_DEG2RAD,  84.0*CTRL_DEG2RAD);
+        //*eyeChain << twistLink;
+        //eyeL->releaseLink(6);
+
+    }
+
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
         Matrix &Prj = *PrjL;
@@ -219,7 +247,7 @@ bool gazeArbiterThread::threadInit() {
         printf("pitch fixed at %f \n",blockNeckPitchValue);
     }
     else {
-        printf("pitch free to change \n");
+        printf("pitch free to change\n");
     }
 
     
@@ -263,7 +291,6 @@ bool gazeArbiterThread::threadInit() {
     statusPort.open(( name + "/status:o").c_str());
     templatePort.open(( name + "/template:i").c_str());
     firstConsistencyCheck=true;
-
     return true;
 }
 
@@ -315,6 +342,9 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 
 
 void gazeArbiterThread::run() {
+
+    
+
     Bottle& status = statusPort.prepare();
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
@@ -338,85 +368,103 @@ void gazeArbiterThread::run() {
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  SACCADE -----------------------
         if(!executing) {
-            //calculating where the fixation point would end up
-            executing = true;
-            bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
-            Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
-            iCubEye *eye = (isLeft?eyeL:eyeR);
-            if (isOnWings) {
-                iKinChain* eyeChain = eye.asChain();
-                eyeChain->rmLink(7);
-                eyeChain->rmLink(6);            
-                iKinLink& link = eyeChain[5];
-                double d_value = link.getD();
-                printf("d value %f", d_value);
-                double a_value = link.getA();
-                printf("a value %f", a_value);
-            }
-            //function that calculates the 3DPoint where to redirect saccade and add the offset
-            Vector torso(3);
-            encTorso->getEncoder(0,&torso[0]);
-            encTorso->getEncoder(1,&torso[1]);
-            encTorso->getEncoder(2,&torso[2]);
-            Vector head(5);
-            encHead->getEncoder(0,&head[0]);
-            encHead->getEncoder(1,&head[1]);
-            encHead->getEncoder(2,&head[2]);
-            encHead->getEncoder(3,&head[3]);
-            encHead->getEncoder(4,&head[4]);
-
-            Vector q(8);
-            double ratio = M_PI /180;
-            q[0]=torso[0] * ratio;
-            q[1]=torso[1] * ratio;
-            q[2]=torso[2] * ratio;
-            q[3]=head[0] * ratio;
-            q[4]=head[1] * ratio;
-            q[5]=head[2] * ratio;
-            q[6]=head[3] * ratio;
-            q[7]=head[4] * ratio;
-            double ver = head[5];
-            //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
-
-            Vector x(3);
-            x[0] = zDistance * u;
-            x[1] = zDistance * v;
-            x[2] = zDistance;
-
-            // find the 3D position from the 2D projection,
-            // knowing the distance z from the camera
-            Vector xe = yarp::math::operator *(*invPrj, x);
-            xe[3]=1.0;  // impose homogeneous coordinates                
-
-            // update position wrt the root frame
-            
-            Vector xo = yarp::math::operator *(eye->getH(q),xe);
-            printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
-
-
-            if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
-                printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
-                accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
-                Vector px(3);
-                px[0] = -0.35 + xOffset;
-                px[1] = 0.0 + yOffset;
-                px[2] = 0.0 + zOffset;
-                igaze->lookAtFixationPoint(px);
-                u = width / 2;
-                v = height / 2;
-                waitMotionDone();
-                return;
-            }
-            else {
-                accomplished_flag = false;
-            }
-            
+                        
             // starting saccade toward the direction of the required position
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
             if(mono){
+
+                //calculating where the fixation point would end up
+                executing = true;
+                bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
+                Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
+                iCubEye *eye = (isLeft?eyeL:eyeR);
+                printf("reading the characteristic of the eye \n");
+                //function that calculates the 3DPoint where to redirect saccade and add the offset
+                Vector torso(3);
+                encTorso->getEncoder(0,&torso[0]);
+                encTorso->getEncoder(1,&torso[1]);
+                encTorso->getEncoder(2,&torso[2]);
+                Vector head(5);
+                encHead->getEncoder(0,&head[0]);
+                encHead->getEncoder(1,&head[1]);
+                encHead->getEncoder(2,&head[2]);
+                encHead->getEncoder(3,&head[3]);
+                encHead->getEncoder(4,&head[4]);
+
+
+                Vector x(3);
+                x[0] = zDistance * u;
+                x[1] = zDistance * v;
+                x[2] = zDistance;
+                
+                // find the 3D position from the 2D projection,
+                // knowing the distance z from the camera
+                Vector xe = yarp::math::operator *(*invPrj, x);
+                xe[3]=1.0;  // impose homogeneous coordinates 
+                
+                Vector xo;
+                
+                if(isOnWings) {
+                    printf("isOnWings true \n");
+                    Vector qw(8);
+                    double ratio = M_PI /180; 
+                    qw[0]=torso[0] * ratio;
+                    qw[1]=torso[1] * ratio;
+                    qw[2]=torso[2] * ratio;
+                    qw[3]=head[0] * ratio;
+                    qw[4]=head[1] * ratio;
+                    qw[5]=head[2] * ratio;
+                    qw[6]=0.0*CTRL_DEG2RAD;
+                    qw[7]=0.0*CTRL_DEG2RAD;
+                
+                    double ver = head[5];
+                    xo = yarp::math::operator *(eye->getH(qw),xe);
+                    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+                }
+                else {    
+                    
+                    Vector q(8);
+                    double ratio = M_PI /180;
+                    q[0]=torso[0] * ratio;
+                    q[1]=torso[1] * ratio;
+                    q[2]=torso[2] * ratio;
+                    q[3]=head[0] * ratio;
+                    q[4]=head[1] * ratio;
+                    q[5]=head[2] * ratio;
+                    q[6]=head[3] * ratio;
+                    q[7]=head[4] * ratio;
+                    double ver = head[5];
+                    printf("+ \n");
+                    xo = yarp::math::operator *(eye->getH(q),xe);
+                    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+                }
+                
+                // update position wrt the root frame
+                
+                //Vector xo = yarp::math::operator *(eye->getH(q),xe);
+                printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
+                
+
+                if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
+                    printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
+                    accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
+                    Vector px(3);
+                    px[0] = -0.35 + xOffset;
+                    px[1] = 0.0 + yOffset;
+                    px[2] = 0.0 + zOffset;
+                    igaze->lookAtFixationPoint(px);
+                    u = width / 2;
+                    v = height / 2;
+                    waitMotionDone();
+                    return;
+                }
+                else {
+                    accomplished_flag = false;
+                }
+                
                 printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
-                if ((xOffset == 0) && (yOffset == 0) && (zOffset == 0)) {
+                if (!isOnWings) {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
                         double dx = 100.0 , dy = 100;
@@ -443,24 +491,26 @@ void gazeArbiterThread::run() {
                 else {
                     // monocular with stereo offsets 
                     Vector fp;
+                    printf("monocular with stereo offsets \n");
                     fp.resize(3,0.0);
-                    fp[0]=xo[0] + xOffset;
-                    fp[1]=xo[1] + yOffset;
-                    fp[2]=xo[2] + zOffset;
+                    fp[0]=xo[0];
+                    fp[1]=xo[1];
+                    fp[2]=xo[2];
                     igaze->lookAtFixationPoint(fp);
                     visualCorrection = false;
                 }
             }
             else {
                 Vector px(3);
-                px[0] = xObject + xOffset;
-                px[1] = yObject + yOffset;
-                px[2] = zObject + zOffset;
+                printf("saccadic event to the absolute 3d point with offset %f, %f, %f \n",xOffset, yOffset, zOffset );
+                px[0] = xObject;
+                px[1] = yObject;
+                px[2] = zObject;
                 igaze->lookAtFixationPoint(px);
                 printf("saccadic event : started \n",xObject,yObject,zObject);
             }
 
-                        Time::delay(0.05);
+            Time::delay(0.05);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
             //printf ("timeout %d \n", timeout);
@@ -515,14 +565,11 @@ void gazeArbiterThread::run() {
                     px[2] = 0.1 + zOffset;
                     igaze->lookAtFixationPoint(px);
                     igaze->checkMotionDone(&done);
-                    while((!done)&&(timeout < 10.0)) {
-                        
+                    while((!done)&&(timeout < 10.0)) {                        
                         timeoutStop = Time::now();
                         timeout =timeoutStop - timeoutStart;
-                        printf("f");
                         Time::delay(0.005);
-                        igaze->checkMotionDone(&done);
-                        
+                        igaze->checkMotionDone(&done);                        
                     }
                 }
             }
@@ -836,14 +883,14 @@ void gazeArbiterThread::run() {
             else {   //else of the MONO branch
                 //printf("------------- ANGULAR VERGENCE  ----------------- \n \n");
                 
-                /*
-                  double elev = (anglesVect[1] * PI) / 180;
-                  //(anglesVect[0]-(180 - (anglesVect[2] + phi)/2 - anglesVect[2]/2 - beta))/20
-                  gazeVect[0] =(- anglesVect[2] / 80) * cos(elev) ; //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
-                  gazeVect[1] =(anglesVect[2] / 80) * sin(elev) ;   //tilt
-                  gazeVect[2] = phi ;                              //vergence  
-                  igaze->lookAtRelAngles(gazeVect);
-                */
+                
+                //  double elev = (anglesVect[1] * PI) / 180;
+                //(anglesVect[0]-(180 - (anglesVect[2] + phi)/2 - anglesVect[2]/2 - beta))/20
+                //  gazeVect[0] =(- anglesVect[2] / 80) * cos(elev) ; //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
+                //  gazeVect[1] =(anglesVect[2] / 80) * sin(elev) ;   //tilt
+                //  gazeVect[2] = phi ;                              //vergence  
+                //  igaze->lookAtRelAngles(gazeVect);
+                
             
                 gazeVect[0] = 0 ;                //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
                 gazeVect[1] = 0 ;                //tilt
@@ -893,7 +940,7 @@ void gazeArbiterThread::run() {
             //mutex.post();
             printf("vergence command : done \n");
         }
-    
+
 }
 
 void gazeArbiterThread::threadRelease() {

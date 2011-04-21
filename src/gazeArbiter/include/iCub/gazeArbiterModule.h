@@ -96,6 +96,9 @@
  * - \c zoffset \c 0.0 \n
  *   max allowed position of the fixation point ( y axis )
  *
+ * - \c onWings \c 0 \n
+ *   1\0 when the camera do\don`t mount on the head 
+ *
  * <b>Configuration File Parameters</b>
  *
  * The following key-value pairs can be specified as parameters in the configuration file 
@@ -220,6 +223,7 @@ class gazeArbiterModule:public yarp::os::RFModule {
     double ymax, ymin;                          // limits for the allowed fixation point (y axis)
     double zmax, zmin;                          // limits for the allowed fixation point (z axis)
     double pitch;                               // desired angle for fixed pitch ( -1 not fixed angle)
+    int onWings;
     int width, height;                          // parameter set by user dimensioning input image
     yarp::os::Port handlerPort;                 // a port to handle messages 
 

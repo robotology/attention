@@ -73,6 +73,7 @@ private:
     bool executing;                         // flag that is set during the execution of motion
     bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
     bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
+    bool isOnWings;                         // flag that gives information on where the cameras are mounted
     int u,v;                                // values passed for saccades
     int originalContext;                    // original context for the gaze Controller
     double xObject,yObject,zObject;         // coordinates of the object 
@@ -225,6 +226,12 @@ public:
     * function that sets the value of the parameter y limits
     */
     void setYLimits(double max,double  min) { ymax = max; ymin = min; };
+
+
+    /**
+    * function that sets the value of the parameter y limits
+    */
+    void setOnWings(int value) { value?isOnWings=true:isOnWings=false; };
     
     /**
      * function that sets the value head pitch to which the head is blocked
