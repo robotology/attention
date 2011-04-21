@@ -48,8 +48,8 @@ bool repeaterThread::threadInit() {
 
     
     /* open ports */ 
-    inputCbPort.hasNewImage = false;
-    inputCbPort.useCallback();          // to enable the port listening to events via callback
+    //inputCbPort.hasNewImage = false;
+    //inputCbPort.useCallback();          // to enable the port listening to events via callback
 
     if (!inputCbPort.open(getName("/img:i").c_str())) {
         cout <<": unable to open port for reading events  "  << endl;
@@ -81,14 +81,14 @@ void repeaterThread::setInputPortName(string InpPort) {
     this->inputPortName = InpPort;
 }
 
-void repeaterThread::run() {
-    
+void repeaterThread::run() {    
     while (isStopping() != true) {
-        outputPort.prepare() = *(inputCbPort.inputImage);
-        outputPort.write();  
-    }       
-        
-
+        if (inputCbPort.getInputCount()) {
+            inputImage = inputCbPort.read(true);
+            outputPort.prepare() = *inputImage;
+            outputPort.write();  
+        }
+    }               
 }
 
 void repeaterThread::threadRelease() {
