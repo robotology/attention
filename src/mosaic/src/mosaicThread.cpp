@@ -201,8 +201,8 @@ void mosaicThread::setMosaicDim(int w, int h) {
     width = w;
     height = h;
     //default position of input image's center
-    xcoord = floor(width / 2) - 50;
-    ycoord = floor(height / 2) - 50;
+    xcoord = int(floor(double(width) / 2.0) - 50);
+    ycoord = int(floor(double(height) / 2.0) - 50);
 }
 
 void mosaicThread::resize(int width_orig,int height_orig) {        
@@ -357,9 +357,9 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
    
     int mosaicX, mosaicY;
     mosaicX = ycoord;
-    mosaicX -= floor(iH / 2);
+    mosaicX -= int(floor(double(iH) / 2.0));
     mosaicY = xcoord;
-    mosaicY -= floor(iW / 2);
+    mosaicY -= int(floor(double(iW) / 2.0));
     //printf("rowSize %d mosaicX %d mosaicY %d ycoord %d xcoord  %d \n", rowSize, mosaicX, mosaicY,ycoord, xcoord);
     outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + 3 * mosaicX;
     for(i = 0 ; i < iH ; ++i) {
