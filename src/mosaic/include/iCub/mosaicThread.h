@@ -32,7 +32,7 @@
 #include <yarp/dev/all.h>
 #include <yarp/os/RateThread.h>
 #include <iCub/iKin/iKinInv.h>
-#include <iCub/iKin/iKinIpOpt.h>
+//#include <iCub/iKin/iKinIpOpt.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/ctrl/pids.h>
 
