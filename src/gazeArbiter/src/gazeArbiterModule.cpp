@@ -64,6 +64,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
 
     if (rf.check("config")) {
         configFile=rf.findFile(rf.find("config").asString().c_str());
+        printf("config file %s \n", configFile.c_str());
         if (configFile=="") {
             return false;
         }

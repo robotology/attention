@@ -113,8 +113,9 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     numberState = 4; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
     firstVer = false;
-    visualCorrection = true;
+    visualCorrection = false;
     isOnWings = false;
+    onDVS =  true;
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
@@ -377,9 +378,10 @@ void gazeArbiterThread::run() {
                 //calculating where the fixation point would end up
                 executing = true;
                 bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
+                
                 Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
                 iCubEye *eye = (isLeft?eyeL:eyeR);
-                printf("reading the characteristic of the eye \n");
+
                 //function that calculates the 3DPoint where to redirect saccade and add the offset
                 Vector torso(3);
                 encTorso->getEncoder(0,&torso[0]);
@@ -397,16 +399,17 @@ void gazeArbiterThread::run() {
                 x[0] = zDistance * u;
                 x[1] = zDistance * v;
                 x[2] = zDistance;
+
                 
                 // find the 3D position from the 2D projection,
                 // knowing the distance z from the camera
                 Vector xe = yarp::math::operator *(*invPrj, x);
                 xe[3]=1.0;  // impose homogeneous coordinates 
+                printf("imposing homogebnous coordinates \n");
                 
                 Vector xo;
-                
                 if(isOnWings) {
-                    printf("isOnWings true \n");
+ 
                     Vector qw(8);
                     double ratio = M_PI /180; 
                     qw[0]=torso[0] * ratio;
@@ -423,7 +426,7 @@ void gazeArbiterThread::run() {
                     //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
                 }
                 else {    
-                    
+ 
                     Vector q(8);
                     double ratio = M_PI /180;
                     q[0]=torso[0] * ratio;
@@ -435,7 +438,7 @@ void gazeArbiterThread::run() {
                     q[6]=head[3] * ratio;
                     q[7]=head[4] * ratio;
                     double ver = head[5];
-                    printf("+ \n");
+
                     xo = yarp::math::operator *(eye->getH(q),xe);
                     //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
                 }
@@ -446,7 +449,10 @@ void gazeArbiterThread::run() {
                 printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
                 
 
-                if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
+                if(onDVS){
+                    accomplished_flag = false;  
+                }
+                else if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
                     printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
                     accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
                     Vector px(3);
@@ -466,27 +472,37 @@ void gazeArbiterThread::run() {
                 printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
                 if (!isOnWings) {
                     printf("starting mono saccade with NO offset \n");
-                    if(tracker->getInputCount()) {
+                    //if(tracker->getInputCount()) {
                         double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
+                        if (onDVS) {
+                             u = (((((u - 64)/ 128.0)/ 7.4) * 4) * 320) + 160;
+                             v = (((((v - 64)/ 128.0)/ 7.4) * 4) * 240) + 120;
+                             printf("onDVS active %d %d \n", u,v);
+                        }
                         while (dist > 10) {
-                            tracker->init(u,v);
-                            tracker->waitInitTracker();
-                            Time::delay(0.05);
+                            if(visualCorrection){
+                                tracker->init(u,v);
+                                tracker->waitInitTracker();
+                                Time::delay(0.05);
+                            }
                             Vector px(2);
                             px(0) = u;
                             px(1) = v;
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            tracker->getPoint(point);
-                            dx = (double) (point.x - px(0));
-                            dy = (double) (point.y - px(1));
-                            dist = sqrt(dx * dx + dy * dy);
-                            u = width / 2;
-                            v = height / 2;
+                            dist = 0;
+                            if(visualCorrection){
+                                tracker->getPoint(point);
+                                dx = (double) (point.x - px(0));
+                                dy = (double) (point.y - px(1));
+                                dist = sqrt(dx * dx + dy * dy);
+                                u = width / 2;
+                                v = height / 2;
+                            }
                         }
                         printf("saccadic event : started \n",u,v,zDistance);
-                    }
+                        //}
                 }
                 else {
                     // monocular with stereo offsets 

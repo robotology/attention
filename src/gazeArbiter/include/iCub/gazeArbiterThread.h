@@ -74,6 +74,7 @@ private:
     bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
     bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
     bool isOnWings;                         // flag that gives information on where the cameras are mounted
+    bool onDVS;                             // flag for remapping dvs location into standard dimension
     int u,v;                                // values passed for saccades
     int originalContext;                    // original context for the gaze Controller
     double xObject,yObject,zObject;         // coordinates of the object 
