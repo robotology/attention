@@ -115,7 +115,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     firstVer = false;
     visualCorrection = false;
     isOnWings = false;
-    onDvs =  true;
+    onDvs =  false;
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
@@ -149,8 +149,6 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     xFix = t;
 
     printf("extracting kinematic informations \n");
-
-    
 
     printf("starting the tracker.... \n");
     ResourceFinder* rf = new ResourceFinder();
@@ -212,6 +210,9 @@ bool gazeArbiterThread::threadInit() {
         //*eyeChain << twistLink;
         //eyeL->releaseLink(6);
 
+    }
+    else {
+        printf("isOnWing false \n");
     }
 
     // get camera projection matrix from the configFile
@@ -374,7 +375,7 @@ void gazeArbiterThread::run() {
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
             if(mono){
-
+                printf("mono saccade activated \n");
                 //calculating where the fixation point would end up
                 executing = true;
                 bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
@@ -405,7 +406,7 @@ void gazeArbiterThread::run() {
                 // knowing the distance z from the camera
                 Vector xe = yarp::math::operator *(*invPrj, x);
                 xe[3]=1.0;  // impose homogeneous coordinates 
-                printf("imposing homogebnous coordinates \n");
+                printf("imposing homogeneous coordinates \n");
                 
                 Vector xo;
                 if(isOnWings) {
@@ -501,7 +502,7 @@ void gazeArbiterThread::run() {
                                 v = height / 2;
                             }
                         }
-                        printf("saccadic event : started \n",u,v,zDistance);
+                        printf("saccadic event : started %d %d %f \n",u,v,zDistance);
                         //}
                 }
                 else {

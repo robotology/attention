@@ -196,6 +196,7 @@
  * 16/04/11 : plotted the texture on the small pciture in the GUI                                   @author Rea
  * 16/04/11 : added original context restore                                                        @author Rea
  * 05/05/11 : added the mapping between the dvs camera and the original dimension in the eyes       @author Rea
+ * 20/05/11 : put together the command for choosing between onDvs and onHead
 */
 
 
@@ -220,6 +221,7 @@ class gazeArbiterModule:public yarp::os::RFModule {
     std::string handlerPortName;                // name of the handler port (comunication with respond function)
     std::string configFile;                     // configuration file of cameras
     std::string mode;                           // string that indicates the modality of the mapping (if any)
+    std::string configName;                     // name of the config file for camera that is going to be search
     int ratethread;                             // time constant for ratethread
     double xoffset;                             // offset for the 3D point along x
     double yoffset;                             // offset for the 3D point along y

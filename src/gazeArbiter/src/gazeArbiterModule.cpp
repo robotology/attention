@@ -61,11 +61,19 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
                            Value("icub"), 
                            "Robot name (string)").asString();
     robotPortName         = "/" + robotName + "/head";
+    printf("robotName: %s \n", robotName.c_str());
+    
+    configName             = rf.check("config", 
+                           Value("icubEyes.ini"), 
+                           "Config file for intrinsic parameters (string)").asString();
+    printf("configFile: %s \n", configName.c_str());
 
-    if (rf.check("config")) {
-        configFile=rf.findFile(rf.find("config").asString().c_str());
+    if (strcmp(configName.c_str(),"")) {
+        printf("looking for the config file \n");
+        configFile=rf.findFile(configName.c_str());
         printf("config file %s \n", configFile.c_str());
         if (configFile=="") {
+            printf("ERROR: file not found");
             return false;
         }
     }
@@ -148,22 +156,23 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     arbiter->setZLimits(zmax,zmin);
     
     // specifies whether the camera is mounted on the head
-    onWings       = rf.check("onWings", 
-                           Value(0), 
-                           "indicates whether the camera is mounted on the head").asInt();
-    printf("onWings %d \n", onWings);
-    arbiter->setOnWings(onWings);
+    //onWings       = rf.check("onWings", 
+    //                       Value(0), 
+    //                       "indicates whether the camera is mounted on the head").asInt();
+    //printf("onWings %d \n", onWings);
+    //arbiter->setOnWings(onWings);
     
     // specifies whether the camera is mounted on the head
     mode       = rf.check("mode", 
                            Value("standard"), 
                            "indicates mapping with which the image plane is moved").asString();
+    printf("mode seleected: %s \n", mode.c_str());
     if(!strcmp("onWings", mode.c_str())) {
-        printf("onWings %d \n", onWings);
+        printf("onWings %d true \n", onWings);
         arbiter->setOnWings(true);
     }
     else if(!strcmp("onDvs", mode.c_str())) {
-        printf("onWings %d \n", onWings);
+        printf("onDvs true  \n");
         arbiter->setOnDvs(true);
     } 
        
