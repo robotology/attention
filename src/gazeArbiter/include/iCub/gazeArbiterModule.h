@@ -97,7 +97,10 @@
  *   max allowed position of the fixation point ( y axis )
  *
  * - \c onWings \c 0 \n
- *   1\0 when the camera do\don`t mount on the head 
+ *   1\0 when the camera do\don`t mount on the head
+ *
+ * - \c mode \c standard \n
+ *   onWings\onDvs when the camera considered is on the head or on dvs
  *
  * <b>Configuration File Parameters</b>
  *
@@ -192,7 +195,8 @@
  * 16/04/11 : moved the execution at the beginning of saccade and the table not vergence accompli   @author Rea
  * 16/04/11 : plotted the texture on the small pciture in the GUI                                   @author Rea
  * 16/04/11 : added original context restore                                                        @author Rea
- */
+ * 05/05/11 : added the mapping between the dvs camera and the original dimension in the eyes       @author Rea
+*/
 
 
 
@@ -215,10 +219,11 @@ class gazeArbiterModule:public yarp::os::RFModule {
     std::string robotPortName;                  // reference to the head of the robot
     std::string handlerPortName;                // name of the handler port (comunication with respond function)
     std::string configFile;                     // configuration file of cameras
+    std::string mode;                           // string that indicates the modality of the mapping (if any)
     int ratethread;                             // time constant for ratethread
-    double xoffset;                                // offset for the 3D point along x
-    double yoffset;                                // offset for the 3D point along y
-    double zoffset;                                // offset for the 3D point along z
+    double xoffset;                             // offset for the 3D point along x
+    double yoffset;                             // offset for the 3D point along y
+    double zoffset;                             // offset for the 3D point along z
     double xmax, xmin;                          // limits for the allowed fixation point (x axis)
     double ymax, ymin;                          // limits for the allowed fixation point (y axis)
     double zmax, zmin;                          // limits for the allowed fixation point (z axis)

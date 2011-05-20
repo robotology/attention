@@ -153,6 +153,21 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
                            "indicates whether the camera is mounted on the head").asInt();
     printf("onWings %d \n", onWings);
     arbiter->setOnWings(onWings);
+    
+    // specifies whether the camera is mounted on the head
+    mode       = rf.check("mode", 
+                           Value("standard"), 
+                           "indicates mapping with which the image plane is moved").asString();
+    if(!strcmp("onWings", mode.c_str())) {
+        printf("onWings %d \n", onWings);
+        arbiter->setOnWings(true);
+    }
+    else if(!strcmp("onDvs", mode.c_str())) {
+        printf("onWings %d \n", onWings);
+        arbiter->setOnDvs(true);
+    } 
+       
+   
 
     // fixating pitch
     pitch       = rf.check("blockPitch", 

@@ -115,7 +115,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     firstVer = false;
     visualCorrection = false;
     isOnWings = false;
-    onDVS =  true;
+    onDvs =  true;
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
@@ -449,7 +449,7 @@ void gazeArbiterThread::run() {
                 printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
                 
 
-                if(onDVS){
+                if(onDvs){
                     accomplished_flag = false;  
                 }
                 else if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
@@ -475,10 +475,10 @@ void gazeArbiterThread::run() {
                     //if(tracker->getInputCount()) {
                         double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
-                        if (onDVS) {
+                        if (onDvs) {
                              u = (((((u - 64)/ 128.0)/ 7.4) * 4) * 320) + 160;
                              v = (((((v - 64)/ 128.0)/ 7.4) * 4) * 240) + 120;
-                             printf("onDVS active %d %d \n", u,v);
+                             printf("onDvs active %d %d \n", u,v);
                         }
                         while (dist > 10) {
                             if(visualCorrection){
