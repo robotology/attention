@@ -46,26 +46,47 @@ inline T max(T a, T b, T c) {
 visualFilterThread::visualFilterThread() {
     
     inputExtImage = new ImageOf<PixelRgb>;
+    inputImage = new ImageOf<PixelRgb>;
     inputImageFiltered = new ImageOf<PixelRgb>;
+    logPolarImage = new ImageOf<PixelRgb>;
+    pyImage = new ImageOf<PixelMono>;
+
+    //getKernels(sigma, lambda, psi, gamma);
+    sigma = 1.2;
+    gLambda = 128;
+    psi = 0;
+    gamma = 30;
+    kernelUsed = 2;
+    dwnSam = 2;
+    
+    getKernels();
+    kernelSize[0]=kernelSize[1]=5;      
     
     edges = new ImageOf<PixelMono>;
     
     lambda = 0.1f;
 
     resized = false;
+
+    St = yarp::os::Stamp(0,0);
 }
 
 visualFilterThread::~visualFilterThread() {
     
     delete inputExtImage;
     delete inputImageFiltered;
-    delete inputImage;
+    delete inputImage;   
+    delete edges;
+    delete pyImage;
+    delete logPolarImage;
+    for(int i=0; i<4; ++i){
+        if(gabKer[i]!=0)
+            cvReleaseMatHeader(&gabKer[i]);
+    }
+    printf("Calling destructor \n");
+    //delete dwnImage;
 
     
-    delete edges;
-
-    //if(kernel!=0)
-        //cvReleaseMatHeader(kernel);
 }
 
 bool visualFilterThread::threadInit() {
@@ -96,6 +117,10 @@ bool visualFilterThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+    if (!pyImgPort.open(getName("/pyImg:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
     return true;
 }
 
@@ -112,10 +137,10 @@ std::string visualFilterThread::getName(const char* p) {
 
 void visualFilterThread::run() {
 
-    //cvNamedWindow( "test1", 1);  
-    //cvNamedWindow( "test2", 1);
-    //cvNamedWindow( "test3", 1); 
-
+    double t1,t2,t3,t4,t5;
+    long c1,c2;
+    c1 = c2 = 0;
+    t1=t2=t3=t4=t5=0;
     while (isStopping() != true) {
         inputImage = imagePortIn.read(true);
 
@@ -127,23 +152,35 @@ void visualFilterThread::run() {
             else {
                 filterInputImage();
             }
-          
+            St.update();
+            t1 = St.getTime();
+            c1 = clock(); //LINUX only??
             // extend logpolar input image
             extender(inputImage, maxKernelSize);
             // extract RGB and Y planes
             extractPlanes();
-
-            
+            St.update();
+            t2 = St.getTime();            
+                      
             // gaussian filtering of the of RGB and Y
             filtering();
+            St.update();
+            t3 = St.getTime();
             // colourOpponency map construction
             colourOpponency();
             // apply sobel operators on the colourOpponency maps and combine via maximisation of the 3 edges
+            St.update();
+            t4 = St.getTime();
             edgesExtract();
+
+            St.update();
+            t5 = St.getTime();
+            c2 = clock();
             //cvShowImage( "test", hRG); cvWaitKey(0);           
             
             // sending the edge image on the outport            
-                 
+             printf("All delta times recorded %f, %f, %f, %f \n",t2-t1,t3-t2,t4-t3,t5-t1);
+                printf("The time taken totally %lf \n",(c2-c1)/CLOCKS_PER_SEC);    
             // the copy to the port object can be avoided...
             if((edges!=0)&&(imagePortOut.getOutputCount())) {
                 imagePortOut.prepare() = *(edges);
@@ -164,6 +201,10 @@ void visualFilterThread::run() {
             if((inputExtImage!=0)&&(imagePortExt.getOutputCount())) {
                 imagePortExt.prepare() = *(inputExtImage);
                 imagePortExt.write();
+            }
+            if((pyImage!=0)&&(pyImgPort.getOutputCount())) {
+                pyImgPort.prepare() = *(pyImage);
+                pyImgPort.write();
             }
         }
    }
@@ -224,6 +265,36 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     tempHBY = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
     tempVBY = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
 
+    //allocate space for openCV images for Gabor
+    intensityImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    filteredIntensityImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    filteredIntensityImage1 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    filteredIntensityImage2 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    totImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    dwnImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 ); // this is later resized
+    dwnSample2 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    dwnSample4 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    dwnSample8 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample2 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample4 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample8 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+
+    /****************************************/
+    dwnSample2a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    dwnSample4a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    dwnSample8a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample2a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample4a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample8a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+
+    dwnSample2b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    dwnSample4b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    dwnSample8b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample2b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample4b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    upSample8b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    /******************************************/
+
     // 7x7 kernel for negative gaussian 
     float K[] = {
         0.0113f, 0.0149f, 0.0176f, 0.0186f, 0.0176f, 0.0149f, 0.0113f,
@@ -237,10 +308,11 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
 
     kernel = cvCreateMat( 7, 7, CV_32FC1 );
     cvSetData ( kernel, (float*)K, sizeof ( float ) * 7 );
-    //cvInitMatHeader(kernel,7 ,7, CV_32FC1, K);
+    //cvInitMatHeader(kernel,7 ,7, CV_32FC1, K); 
 
-    minVal = 256;
-
+    // initialize Gabor kernels
+    getKernels();     
+    
 }
 
 void visualFilterThread::filterInputImage() {
@@ -264,6 +336,8 @@ void visualFilterThread::extractPlanes() {
     // We extract color planes from the RGB image. Planes are red,blue, green and yellow (AM of red & green)
     uchar* shift[3];
     uchar* yellowP;
+    uchar* tmpIntensityImage;
+    unsigned char* inputPointer;
     
     // Pointers to raw openCV monochrome image
     shift[0] = (uchar*) cvRedPlane->imageData; 
@@ -272,7 +346,9 @@ void visualFilterThread::extractPlanes() {
     yellowP = (uchar*)cvYellowPlane->imageData;
 
     // Pointer to raw extended input (RGB) image
-    unsigned char* inputPointer = inputExtImage->getRawImage();
+    inputPointer = inputExtImage->getRawImage();
+
+    tmpIntensityImage = (uchar*)intensityImage->imageData;
 
     /* We can avoid padding for openCV images*/
     int paddingMono = inputExtImage->getPadding(); 
@@ -288,6 +364,7 @@ void visualFilterThread::extractPlanes() {
             *shift[2] = *inputPointer++;
 
             *yellowP++ = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
+            *tmpIntensityImage++ = (uchar)((*shift[0]+ *shift[1] + *shift[2])/3);
 
             shift[0]++;
             shift[1]++;
@@ -299,13 +376,12 @@ void visualFilterThread::extractPlanes() {
         shift[1] += paddingMono;
         shift[2] += paddingMono;
         yellowP += paddingMono;
+        tmpIntensityImage += paddingMono;
     }
 
 }
 
 void visualFilterThread::filtering() {
-
-
 
 
     // We gaussian blur the image planes extracted before, one with positive Gaussian and then negative
@@ -320,26 +396,9 @@ void visualFilterThread::filtering() {
     cvSmooth( cvYellowPlane, cvYellowMinus, CV_GAUSSIAN, 7, 7,3 );
     cvSmooth( cvGreenPlane, cvGreenMinus, CV_GAUSSIAN, 7, 7,3 );
     
-/*
-    //Negative
-    cvFilter2D(cvRedPlane, cvRedMinus, kernel, cvPoint(-1,-1));
-    cvFilter2D(cvYellowPlane, cvYellowMinus, kernel, cvPoint(3,3));
-    cvFilter2D(cvGreenPlane, cvGreenMinus, kernel, cvPoint(3,3));
-
-
-    //cvShowImage("test3",&kernel);
-    //IplImage* tem;
-    //tem = cvCreateImage(cvGetSize(cvRedPlane),32,1);
-    cvSmooth(cvRedPlane, cvRedMinus, CV_GAUSSIAN,7,7,3);
-*/
-    //cvShowImage("test2",cvRedMinus);
-    //IplImage* sI;
-    //sI = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    //cvSub(cvRedPlus,cvGreenMinus, sI);
+   
     
-
- 
-
+   
 }
 
 void visualFilterThread::colourOpponency() {
@@ -390,11 +449,110 @@ void visualFilterThread::colourOpponency() {
 
     } 
 
-    //REMOVE
-    //cvShowImage("test1",blueY);
-    //cvShowImage("test2",redG);
-    //cvShowImage("test3",greenR);
-    //cvWaitKey(0);  
+    if(redG == NULL) return;
+    // downsample the images
+    //downSampleImage(redG, dwnSample2,2);
+    downSampleImage(redG, dwnSample4,4);
+    downSampleImage(greenR, dwnSample2,4);
+    downSampleImage(blueY, dwnSample8,4);
+    //downSampleImage(redG, dwnSample8,8);
+
+    // filter downsampled images
+    dwnSample2Fil = cvCreateImage(cvGetSize(dwnSample2),IPL_DEPTH_8U, 1 );
+    dwnSample4Fil = cvCreateImage(cvGetSize(dwnSample4),IPL_DEPTH_8U, 1 );
+    dwnSample8Fil = cvCreateImage(cvGetSize(dwnSample8),IPL_DEPTH_8U, 1 );
+
+    cvFilter2D(dwnSample2,dwnSample2Fil,gabKer[kernelUsed],cvPoint(-1,-1));
+    cvFilter2D(dwnSample4,dwnSample4Fil,gabKer[kernelUsed],cvPoint(-1,-1));
+    cvFilter2D(dwnSample8,dwnSample8Fil,gabKer[kernelUsed],cvPoint(-1,-1));
+
+    //up-sample the filtered images
+    upSampleImage(dwnSample2Fil,upSample2,4);
+    upSampleImage(dwnSample4Fil,upSample4,4);
+    upSampleImage(dwnSample8Fil,upSample8,4);
+
+    // add the images with defined weightages
+    IplImage* imagesToAdd[3]= {upSample2,upSample4,upSample8};
+    float weight[3]= {.33,.33,.33};
+    cvSet(filteredIntensityImage, cvScalar(0));
+    maxImages(imagesToAdd,3,filteredIntensityImage,weight);
+
+    //printf("COMES HERE \n");
+    /********************************************/
+
+    //downSampleImage(redG, dwnSample2,2);
+    downSampleImage(redG, dwnSample4a,2);
+    downSampleImage(greenR, dwnSample2a,2);
+    downSampleImage(blueY, dwnSample8a,2);
+    //downSampleImage(redG, dwnSample8,8);
+
+    // filter downsampled images
+    dwnSample2Fila = cvCreateImage(cvGetSize(dwnSample2a),IPL_DEPTH_8U, 1 );
+    dwnSample4Fila = cvCreateImage(cvGetSize(dwnSample4a),IPL_DEPTH_8U, 1 );
+    dwnSample8Fila = cvCreateImage(cvGetSize(dwnSample8a),IPL_DEPTH_8U, 1 );
+
+    cvFilter2D(dwnSample2a,dwnSample2Fila,gabKer[kernelUsed],cvPoint(-1,-1));
+    cvFilter2D(dwnSample4a,dwnSample4Fila,gabKer[kernelUsed],cvPoint(-1,-1));
+    cvFilter2D(dwnSample8a,dwnSample8Fila,gabKer[kernelUsed],cvPoint(-1,-1));
+
+    //up-sample the filtered images
+    upSampleImage(dwnSample2Fila,upSample2a,2);
+    upSampleImage(dwnSample4Fila,upSample4a,2);
+    upSampleImage(dwnSample8Fila,upSample8a,2);
+
+    // add the images with defined weightages
+    IplImage* imagesToAdd2[3]= {upSample2a,upSample4a,upSample8a};
+    //float weight[3]= {.33,.33,.33};
+    cvSet(filteredIntensityImage2, cvScalar(0));
+    maxImages(imagesToAdd2,3,filteredIntensityImage2,weight);
+
+    
+    //downSampleImage(redG, dwnSample2,2);
+    downSampleImage(redG, dwnSample4b,8);
+    downSampleImage(greenR, dwnSample2b,8);
+    downSampleImage(blueY, dwnSample8b,8);
+    //downSampleImage(redG, dwnSample8,8);
+
+    // filter downsampled images
+    dwnSample2Filb = cvCreateImage(cvGetSize(dwnSample2b),IPL_DEPTH_8U, 1 );
+    dwnSample4Filb = cvCreateImage(cvGetSize(dwnSample4b),IPL_DEPTH_8U, 1 );
+    dwnSample8Filb = cvCreateImage(cvGetSize(dwnSample8b),IPL_DEPTH_8U, 1 );
+
+    cvFilter2D(dwnSample2b,dwnSample2Filb,gabKer[kernelUsed],cvPoint(-1,-1));
+    cvFilter2D(dwnSample4b,dwnSample4Filb,gabKer[kernelUsed],cvPoint(-1,-1));
+    cvFilter2D(dwnSample8b,dwnSample8Filb,gabKer[kernelUsed],cvPoint(-1,-1));
+
+    //up-sample the filtered images
+    upSampleImage(dwnSample2Filb,upSample2b,8);
+    upSampleImage(dwnSample4Filb,upSample4b,8);
+    upSampleImage(dwnSample8Filb,upSample8b,8);
+
+    // add the images with defined weightages
+    IplImage* imagesToAdd8[3]= {upSample2b,upSample4b,upSample8b};
+    //float weight[3]= {.33,.33,.33};
+    cvSet(filteredIntensityImage1, cvScalar(0));
+    maxImages(imagesToAdd8,3,filteredIntensityImage1,weight);
+ 
+    /********************************************/
+    
+    
+    //convert openCV image to YARP image
+    float wt[3]={.05,.45,.5};
+    IplImage* imagesToAddX[3]={filteredIntensityImage2,filteredIntensityImage,filteredIntensityImage1};
+    cvSet(totImage,cvScalar(0));
+    addImages(imagesToAddX,3,totImage,wt);
+    
+    openCVtoYARP(totImage,pyImage,1);
+  /*  cvNamedWindow("test1");
+    cvShowImage("test1",filteredIntensityImage);
+    cvNamedWindow("test2");
+    cvShowImage("test2",filteredIntensityImage1);
+    cvNamedWindow("test3");
+    cvShowImage("test3",filteredIntensityImage2);
+    cvWaitKey(0);
+*/
+
+    
   
 }
 
@@ -435,11 +593,7 @@ void visualFilterThread::edgesExtract() {
             ptrtempHRG++;
         }
     }
-    //printf("Value of max %d \n",maxVal);
-    //cvShowImage("test2",vBY);
-    //cvWaitKey(0);
     
-
     //clearing up the previous value
     edges->zero();
     unsigned char* pedges=edges->getRawImage();
@@ -499,8 +653,332 @@ void visualFilterThread::edgesExtract() {
     
 }
 
+void visualFilterThread::setPar(int par, double value) {
+    if(par == 1) this->sigma = value;
+    else if(par == 2 ) this->gLambda = value;
+    else if(par == 3) this->psi = value;
+    else if(par == 4) this->gamma = value;
+    else if(par == 5) this->kernelUsed = value;
+    else if(par == 6) this->dwnSam = value;
+    else if(par == 7) this->whichScale = value;
+    getKernels();
+}
+
+void visualFilterThread::getKernels(){
+
+    double sigmaX = sigma;
+    double sigmaY = sigma/gamma;
+    double theta[4] = {0, PI/4.0, PI/2.0, 3.0*PI/4.0};
+    
+    int stdDev = 3;
+
+    for(int i = 0; i < 4 ; ++i) {
+     
+        double xLim = max<double>(1.0,max<double>(abs(cos(theta[i])*sigmaX*stdDev),abs(sin(theta[i])*sigmaY*stdDev)));
+        double yLim = max<double>(1.0,max<double>(abs(sin(theta[i])*sigmaX*stdDev),abs(cos(theta[i])*sigmaY*stdDev)));
+
+        double xStepSize = xLim/(kernelSize[0]/2);
+        double yStepSize = yLim/(kernelSize[1]/2);
+        //float* tmpKer = gaborKernel[0][0];
+        double xThre = xStepSize/2;
+        double yThre = yStepSize/2;
+        int k = 0; int j = 0;
+        for(double xV = -xLim; xV < xLim + xThre; xV += xStepSize) {
+            k=0;
+            for(double yV = -yLim; yV < yLim + yThre; yV += yStepSize) {
+                double xT = xV * cos(theta[i]) + yV * sin(theta[i]);
+                double yT = -xV * sin(theta[i]) + yV * cos(theta[i]);
+                gK[i][j][k]= exp(-.5*(xT*xT/(sigmaX*sigmaX) + yT*yT/(sigmaY*sigmaY)))*cos(2.0*PI*xT/gLambda + psi)/(2.0*PI*sigmaX*sigmaY);
+                gK[i][j][k] *= .3;
+                //tmpKer++;
+                k++;
+            }
+            j++;
+            printf("\n");
+        }
+
+        gabKer[i] = cvCreateMat( 5, 5, CV_32FC1 );
+        cvSetData ( gabKer[i], (float*)gK[i], sizeof ( float ) * 5 );
+        printf("\n\n\n");
+    } 
+
+}
+
+void visualFilterThread::downSampleImage(IplImage* OrigImg,IplImage* DwnImg, int factor) {
+
+    // prepare the destination image, can be avoided for optimization
+    cvReleaseImage(&DwnImg);
+    DwnImg = cvCreateImage(cvSize(OrigImg->width/factor,OrigImg->height/factor),IPL_DEPTH_8U, 1 );
+    cvSet(DwnImg,cvScalar(0));
+
+    uchar* tmpOrigImg = (uchar*)OrigImg->imageData;
+    uchar* tmpDwnImg = (uchar*)DwnImg->imageData;    
+    uchar* origin = (uchar*)OrigImg->imageData;
+    uchar* originDwn = (uchar*)DwnImg->imageData;
+
+    // actual width of images, including paddings    
+    int origWidth = OrigImg->widthStep;
+    int dwnWidth = DwnImg->widthStep;
+
+    for(int i=0; i<DwnImg->height*factor; ++i){
+        //jump to beginning of row
+        tmpOrigImg = origin + (i)*origWidth;
+        for(int j=0; j<DwnImg->width*factor; ++j){
+            //printf("i,j, %d,%d by fact %d,%d counter%d ",i,j,i/factor,j/factor,counter);
+            *(tmpDwnImg + ((i)/factor)*dwnWidth + (j)/factor) += *tmpOrigImg/(factor*factor);
+            tmpOrigImg++;
+        }
+        
+        
+    }       
+                    
+}
+
+void visualFilterThread::upSampleImage(IplImage* OrigImg,IplImage* UpImg, int factor) {
+
+    // prepare the destination image
+    cvReleaseImage(&UpImg);
+    UpImg = cvCreateImage(cvSize(OrigImg->width*factor,OrigImg->height*factor),IPL_DEPTH_8U, 1 );
+    cvSet(UpImg,cvScalar(0));
+
+    uchar* tmpOrigImg = (uchar*)OrigImg->imageData;    
+    uchar* tmpUpImg = (uchar*)UpImg->imageData;
+    uchar* originUpImg = (uchar*)UpImg->imageData;
+    
+    // actual width of images, including paddings
+    int UpWidth = UpImg->widthStep;
+    int OrigWidth = OrigImg->widthStep;
+
+    for(int i=0; i<UpImg->height; ++i){
+        for(int j=0; j<UpImg->width; ++j){
+            *tmpUpImg = *(tmpOrigImg + (i/factor)*OrigWidth + j/factor);
+            tmpUpImg++;
+        }
+        // jump to next row
+        tmpUpImg = originUpImg + (i+1)*UpWidth;        
+    }
+
+}            
+
+void visualFilterThread::downSampleMultiScales(IplImage* OrigImg) {
+
+    // assuming 3 scaled down images are prepared already
+    // prepare the destination image, can be avoided for optimization
+    cvReleaseImage(&dwnSample2);
+    dwnSample2 = cvCreateImage(cvSize(OrigImg->width/2,OrigImg->height/2),IPL_DEPTH_8U, 1 );
+    cvSet(dwnSample2,cvScalar(0));
+    cvReleaseImage(&dwnSample4);
+    dwnSample4 = cvCreateImage(cvSize(OrigImg->width/4,OrigImg->height/4),IPL_DEPTH_8U, 1 );
+    cvSet(dwnSample2,cvScalar(0));
+    cvReleaseImage(&dwnSample8);
+    dwnSample8 = cvCreateImage(cvSize(OrigImg->width/8,OrigImg->height/8),IPL_DEPTH_8U, 1 );
+    cvSet(dwnSample2,cvScalar(0));
+
+    uchar* tmpOrigImg = (uchar*)OrigImg->imageData;
+    uchar* origin = (uchar*)OrigImg->imageData;    
+    uchar* tmpDwnImg2 = (uchar*)dwnSample2->imageData;    
+    uchar* originDwn2 = (uchar*)dwnSample2->imageData;
+    uchar* tmpDwnImg4 = (uchar*)dwnSample4->imageData;    
+    uchar* originDwn4 = (uchar*)dwnSample4->imageData;
+    uchar* tmpDwnImg8 = (uchar*)dwnSample8->imageData;    
+    uchar* originDwn8 = (uchar*)dwnSample8->imageData;
+
+    // actual width of images, including paddings    
+    int origWidth = OrigImg->widthStep;
+    int dwnWidth2 = dwnSample2->widthStep;
+    int dwnWidth4 = dwnSample4->widthStep;
+    int dwnWidth8 = dwnSample8->widthStep;
+
+    int htUp = (OrigImg->height/8)*8;
+    int wdUp = (OrigImg->width/8)*8;
+    for(int i=0; i<htUp; ++i){
+        for(int j=0; j<wdUp; ++j){
+            //printf("i,j, %d,%d by fact %d,%d counter%d ",i,j,i/factor,j/factor,counter);
+            *(tmpDwnImg2 + (i/2)*dwnWidth2 + j/2) += *tmpOrigImg/(4);
+            *(tmpDwnImg4 + (i/4)*dwnWidth4 + j/4) += *tmpOrigImg/(16);
+            *(tmpDwnImg8 + (i/8)*dwnWidth8 + j/8) += *tmpOrigImg/(64);
+            tmpOrigImg++;
+        }
+        //jump to next row
+        tmpOrigImg = origin + (i+1)*origWidth;
+        
+    }
+                       
+}
+
+void visualFilterThread::upSampleMultiScales(IplImage* UpImg) {
+
+    // assuming the destination image UpImg is prepared
+    
+
+    uchar* tmpOutImg = (uchar*)UpImg->imageData;
+    uchar* originUpImg = (uchar*)UpImg->imageData;   
+    uchar* tmpUpImg2 = (uchar*)dwnSample2->imageData;
+    uchar* originUpImg2 = (uchar*)dwnSample2->imageData;
+    uchar* tmpUpImg4 = (uchar*)dwnSample4->imageData;
+    uchar* originUpImg4 = (uchar*)dwnSample4->imageData;
+    uchar* tmpUpImg8 = (uchar*)dwnSample8->imageData;
+    uchar* originUpImg8 = (uchar*)dwnSample8->imageData;
+    
+    // actual width of images, including paddings
+    int UpWidth2 = dwnSample2->widthStep;
+    int UpWidth4 = dwnSample4->widthStep;
+    int UpWidth8 = dwnSample8->widthStep;
+    int OrigWidth = UpImg->widthStep;
+
+    float weight2 = .33;
+    float weight4 = .33;
+    float weight8 = .33;
+
+    for(int i=0; i<UpImg->height; ++i){
+        for(int j=0; j<UpImg->width; ++j){
+            *tmpOutImg = weight2*(*(tmpUpImg2 + (i/2)*UpWidth2 + j/2))
+                        + weight4*(*(tmpUpImg4 + (i/4)*UpWidth4 + j/4))
+                        + weight8*(*(tmpUpImg8 + (i/8)*UpWidth8 + j/8));
+            tmpOutImg++;
+        }
+        // jump to next row
+        tmpOutImg = originUpImg + (i+1)*OrigWidth;        
+    }
+
+} 
+
+void visualFilterThread::maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage, float* weights) {
+    
+    
+    uchar* resImageOrigin = (uchar*)resultantImage->imageData;
+    int resImageWidth = resultantImage->widthStep;
+    uchar* tmpResultImage = (uchar*)resultantImage->imageData;
+    for(int i=0; i< numberOfImages; ++i){
+        IplImage* tmpImageTobeAdded = ImagesTobeAdded[i];
+        if(tmpImageTobeAdded != 0){   // save yourself some pain    
+            uchar* tmpImage = (uchar*)tmpImageTobeAdded->imageData;
+            //Images must be same size, type etc
+            int h = tmpImageTobeAdded->height;
+            int w = tmpImageTobeAdded->width;
+            if(h > resultantImage->height || w > resultantImage->width) {
+                printf("Image too big. \n");
+                return ;
+            }
+            float itsWt = weights[i];
+            uchar* imgToBeAddOrigin = (uchar*)tmpImageTobeAdded->imageData;
+            int imgToBeAddWidth = tmpImageTobeAdded->widthStep;
+            for(int j=0; j<h; ++j){
+                tmpImage = imgToBeAddOrigin + j* imgToBeAddWidth; 
+                tmpResultImage = resImageOrigin + j*resImageWidth;
+                for(int k=0; k<w; ++k){
+                    unsigned char valNow = (unsigned char)(*tmpImage);
+                    if(*tmpResultImage < valNow) *tmpResultImage = valNow; 
+                    //*tmpResultImage = (unsigned char)(*tmpImage) * itsWt;
+                    *tmpImage++;
+                    *tmpResultImage++;
+                }
+            }
+        }
+    }
+
+}
+
+void visualFilterThread::addImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage, float* weights) {
+    
+    
+    uchar* resImageOrigin = (uchar*)resultantImage->imageData;
+    int resImageWidth = resultantImage->widthStep;
+    uchar* tmpResultImage = (uchar*)resultantImage->imageData;
+    for(int i=0; i< numberOfImages; ++i){
+        IplImage* tmpImageTobeAdded = ImagesTobeAdded[i];
+        if(tmpImageTobeAdded != NULL){   // save yourself some pain    
+            uchar* tmpImage = (uchar*)tmpImageTobeAdded->imageData;
+            //Images must be same size, type etc
+            int h = tmpImageTobeAdded->height;
+            int w = tmpImageTobeAdded->width;
+            if(h > resultantImage->height || w > resultantImage->width) {
+                printf("Image too big. \n");
+                return ;
+            }
+            float itsWt = weights[i];
+            uchar* imgToBeAddOrigin = (uchar*)tmpImageTobeAdded->imageData;
+            int imgToBeAddWidth = tmpImageTobeAdded->widthStep;
+            for(int j=0; j<h; ++j){
+                tmpImage = imgToBeAddOrigin + j* imgToBeAddWidth; 
+                tmpResultImage = resImageOrigin + j*resImageWidth;
+                for(int k=0; k<w; ++k){
+                    unsigned char valNow = (unsigned char)(*tmpImage)* itsWt;
+                    //if(*tmpResultImage < valNow) *tmpResultImage = valNow;
+                    if((valNow + *tmpResultImage) > 255) *tmpResultImage = 255;
+                    else *tmpResultImage = *tmpResultImage + valNow ;
+                    *tmpImage++;
+                    *tmpResultImage++;
+                }
+            }
+        }
+    }
+
+}
+
+
+void visualFilterThread::openCVtoYARP(IplImage* originalImage, ImageOf<PixelMono>* yarpedImage, int type = 1) {
+
+    //assuming everything is well
+    yarpedImage->resize(originalImage->width,originalImage->height);
+    if(type==1){
+        uchar* originCVImage = (uchar*)originalImage->imageData;
+        uchar* originYARPImage = yarpedImage->getRawImage();
+
+        //padding might be different
+        int widthCV = originalImage->widthStep;
+        int widthY = yarpedImage->getRowSize();
+        int minWid = widthCV>widthY? widthY:widthCV;
+        for(int i=0; i<originalImage->height; ++i){
+            uchar* ptrCV = originCVImage + i*widthCV;
+            uchar* ptrY = originYARPImage + i*widthY;
+            memcpy(ptrY,ptrCV,minWid);
+        }
+    }
+}
+
 void visualFilterThread::threadRelease() {
     resized = false;
+    /*
+    if(cvRedPlane != NULL) cvReleaseImage(&cvRedPlane);
+    if(cvGreenPlane != NULL) cvReleaseImage(&cvGreenPlane);
+    if(cvBluePlane != NULL) cvReleaseImage(&cvBluePlane);
+    if(cvYellowPlane != NULL) cvReleaseImage(&cvYellowPlane);
+    if(cvRedPlus != NULL) cvReleaseImage(&cvRedPlus);
+    if(cvRedMinus != NULL) cvReleaseImage(&cvRedMinus);
+    if(cvGreenPlus != NULL) cvReleaseImage(&cvGreenPlus);
+    if(cvGreenMinus != NULL) cvReleaseImage(&cvGreenMinus);
+    if(cvBluePlus != NULL) cvReleaseImage(&cvBluePlus);
+    if(cvYellowMinus != NULL) cvReleaseImage(&cvYellowMinus);
+    if(redG != NULL) cvReleaseImage(&redG);
+    if(greenR != NULL) cvReleaseImage(&greenR);
+    if(blueY != NULL) cvReleaseImage(&blueY);
+    if(hRG != NULL) cvReleaseImage(&hRG);
+    if(vRG != NULL) cvReleaseImage(&vRG);
+    if(hGR != NULL) cvReleaseImage(&hGR);
+    if(vGR != NULL) cvReleaseImage(&vGR);
+    if(hBY != NULL) cvReleaseImage(&hBY);
+    if(vBY != NULL) cvReleaseImage(&vBY);
+    if(tempHRG != NULL) cvReleaseImage(&tempHRG);
+    if(tempVRG != NULL) cvReleaseImage(&tempVRG);
+    if(tempHGR != NULL) cvReleaseImage(&tempHGR);
+    if(tempVGR != NULL) cvReleaseImage(&tempVGR);
+    if(tempHBY != NULL) cvReleaseImage(&tempHBY);
+    if(tempVBY != NULL) cvReleaseImage(&tempVBY);
+    if(dwnSample2 != NULL) cvReleaseImage(&dwnSample2);
+    if(dwnSample4 != NULL) cvReleaseImage(&dwnSample4);
+    if(dwnSample8 != NULL) cvReleaseImage(&dwnSample8);
+    if(dwnSample2Fil != NULL) cvReleaseImage(&dwnSample2Fil);
+    if(dwnSample4Fil != NULL) cvReleaseImage(&dwnSample4Fil);
+    if(dwnSample8Fil != NULL) cvReleaseImage(&dwnSample8Fil);
+    if(upSample2 != NULL) cvReleaseImage(&upSample2);
+    if(upSample4 != NULL) cvReleaseImage(&upSample4);
+    if(upSample8 != NULL) cvReleaseImage(&upSample8);
+    if(intensityImage != NULL) cvReleaseImage(&intensityImage); 
+    if(filteredIntensityImage != NULL) cvReleaseImage(&filteredIntensityImage);
+    if(dwnImage != NULL) cvReleaseImage(&dwnImage);
+    */
+    
 }
 
 void visualFilterThread::onStop() {

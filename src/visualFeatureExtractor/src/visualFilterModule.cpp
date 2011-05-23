@@ -39,7 +39,7 @@ bool visualFilterModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
-                           Value("/visualFilter"), 
+                           Value("/visualFeaX"), 
                            "module name (string)").asString();
     /*
     * before continuing, set the module name before getting any other parameters, 
@@ -102,8 +102,8 @@ bool visualFilterModule::respond(const Bottle& command, Bottle& reply)
                         " commands are: \n" +  
                         "help \n" + 
                         "quit \n" + 
-                        "set thr <n> ... set the threshold \n" + 
-                        "(where <n> is an integer number) \n";
+                        "par  <n> <d> ... set parameter's value \n" + 
+                        "(where <n> and <d> are an integer and a double respectively) \n";
 
     reply.clear(); 
 
@@ -115,6 +115,17 @@ bool visualFilterModule::respond(const Bottle& command, Bottle& reply)
         cout << helpMessage;
         reply.addString("ok");
     }
+	else if (command.get(0).asString()=="par") {
+		int p = command.get(1).asInt();
+		double v = command.get(2).asDouble();
+		if(p>0 && p<8 && v>=0){
+			vfThread->setPar(p,v);
+			reply.addString("New kernel generated with updated parameters.");
+		}
+		else {
+			reply.addString("Invalid values");
+		}
+    	}
     return true;
 }
 

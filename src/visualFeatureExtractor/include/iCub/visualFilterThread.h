@@ -30,6 +30,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <iostream>
+#include <yarp/os/Stamp.h>
 
 
 #include <cv.h>
@@ -38,6 +39,7 @@
 
 
 #define CHAR_LIMIT 256
+#define PI 3.14159265358979
 
 class visualFilterThread : public yarp::os::Thread
 {
@@ -51,9 +53,15 @@ private:
     int psb16s;                         // step size of the Ipp16s vectors
     float lambda;                       // costant for the temporal filter
    
+    double sigma, gLambda,psi, gamma, dwnSam,whichScale;
+    int kernelUsed;
+    int kernelSize[2];
+    CvMat* gabKer[4];
+
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageFiltered;    // time filtered input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputExtImage;         // extended input image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *logPolarImage;
         
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
      IplImage *cvRedPlane;
@@ -76,6 +84,7 @@ private:
      IplImage *cvRedPlus;
      IplImage *cvRedMinus;
      CvMat *kernel;
+    float gK[4][5][5];
 
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlus;            // positive gaussian-convolved green image 
@@ -96,6 +105,7 @@ private:
     IplImage* redG;
     IplImage* greenR;
     IplImage* blueY;
+    IplImage* totImg;
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortOut;     // output port   
@@ -104,7 +114,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // Colour opponency map G+R-
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // Colour opponency map B+Y-
 
-    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > pyImgPort;        // image after pyramid approach
 
     //IplImage for horizontal and vertical components after Sobel operator on color opponents
     IplImage* hRG;
@@ -121,6 +131,54 @@ private:
     IplImage* tempVGR;
     IplImage* tempHBY;
     IplImage* tempVBY;
+
+    //down-sampled and up-sampled images for applying Gabor filter 
+    IplImage* dwnSample2;
+    IplImage* dwnSample4;
+    IplImage* dwnSample8;
+    IplImage* dwnSample2Fil;
+    IplImage* dwnSample4Fil;
+    IplImage* dwnSample8Fil;
+    IplImage* upSample2;
+    IplImage* upSample4;
+    IplImage* upSample8;
+
+    /******************/
+    //down-sampled and up-sampled images for applying Gabor filter 
+    IplImage* dwnSample2a;
+    IplImage* dwnSample4a;
+    IplImage* dwnSample8a;
+    IplImage* dwnSample2Fila;
+    IplImage* dwnSample4Fila;
+    IplImage* dwnSample8Fila;
+    IplImage* upSample2a;
+    IplImage* upSample4a;
+    IplImage* upSample8a;
+    //down-sampled and up-sampled images for applying Gabor filter 
+    IplImage* dwnSample2b;
+    IplImage* dwnSample4b;
+    IplImage* dwnSample8b;
+    IplImage* dwnSample2Filb;
+    IplImage* dwnSample4Filb;
+    IplImage* dwnSample8Filb;
+    IplImage* upSample2b;
+    IplImage* upSample4b;
+    IplImage* upSample8b;
+
+    //yarp image of final added image after pyramid approach
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* pyImage;
+    
+
+    
+
+    IplImage* intensityImage;
+    IplImage* filteredIntensityImage;
+    IplImage* filteredIntensityImage1;
+    IplImage* filteredIntensityImage2;
+    IplImage* totImage;
+    IplImage* dwnImage;
+
+    yarp::os::Stamp St;
 
     
     std::string name;       // rootname of all the ports opened by this thread
@@ -195,6 +253,24 @@ public:
     * applying sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
     */
     void edgesExtract();
+
+    void getKernels();
+
+    void setPar(int ,double);
+
+    void downSampleImage(IplImage*, IplImage* ,int);
+
+    void upSampleImage(IplImage*, IplImage* ,int);
+
+    void downSampleMultiScales(IplImage* );
+
+    void upSampleMultiScales(IplImage* );
+
+    void addImages(IplImage**, int ,IplImage*, float*);
+
+    void maxImages(IplImage**, int ,IplImage*, float*);
+    
+    void openCVtoYARP(IplImage* ,yarp::sig::ImageOf<yarp::sig::PixelMono>*, int); 
 };
 
 #endif  //_VISUAL_FILTER_THREAD_H_
