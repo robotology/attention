@@ -24,18 +24,19 @@
  */
 
 #include "iCub/mosaicModule.h" 
+#include <yarp/dev/Drivers.h>
+YARP_DECLARE_DEVICES(icubmod)
 
 
 using namespace yarp::os;
 using namespace yarp::sig;
 
 
-int main(int argc, char * argv[])
-{
-    
+int main(int argc, char * argv[]){
+
     Network yarp;
     mosaicModule module; 
-
+    YARP_REGISTER_DEVICES(icubmod)
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("mosaic.ini");      //overridden by --from parameter

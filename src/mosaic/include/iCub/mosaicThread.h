@@ -53,14 +53,15 @@ private:
     std::string configFile;         // name of the configFile where the parameter of the camera are set
     float* memory;                  // memory of plotted location in the space
     int countMemory;                // number of saved location
-    
+    double shiftx;                  // shift of the mosaic picture
+    double shifty;                  // shift of the mosaic picture
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image from camera
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *outputImageMosaic;     // output image (mosaic)
-    
-
+    yarp::dev::IGazeControl *igaze;         //Ikin controller of the gaze
+    yarp::dev::PolyDriver* clientGazeCtrl;  //polydriver for the gaze controller
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port for camera 1
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;      // output port for overlapped monochromised image
-    yarp::dev::IGazeControl *igaze;                         // Ikin controller of the gaze
+    
     yarp::dev::PolyDriver *polyTorso, *drvHead;             // polydriver for the control of the torso and head
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
@@ -68,8 +69,10 @@ private:
     yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
     yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
     yarp::sig::Matrix *eyeH;                                // rototranslation matrix for the considered eye
-
-    
+    yarp::sig::Matrix *eyeH0;
+    yarp::sig::Matrix *inveyeH0;
+    int cxl, cyl, fxl, fyl;
+    int count;
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
     

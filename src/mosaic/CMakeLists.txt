@@ -15,6 +15,7 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS} 	
     ${ICUB_INCLUDE_DIRS}	
+    ${OpenCV_INCLUDE_DIRS}
 )
 
 # Search for source code.
@@ -34,6 +35,7 @@ IF (folder_source)
       icubmod 
       iKin 
       ${YARP_LIBRARIES}
+      ${OpenCV_LIBRARIES}
       )	
 
     INSTALL_TARGETS(/bin ${KEYWORD})
