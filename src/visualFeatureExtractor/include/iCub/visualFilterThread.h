@@ -24,8 +24,8 @@
  * visual filter module (see visualFilterModule.h).
  */
 
-#ifndef _VISUAL_FILTER_THREAD_H_
-#define _VISUAL_FILTER_THREAD_H_
+#ifndef _VISUAL_FEATURE_THREAD_H_
+#define _VISUAL_FEATURE_THREAD_H_
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -37,7 +37,8 @@
 #include <cvaux.h>
 #include <highgui.h>
 
-
+#define KERNEL_ROW 7
+#define KERNEL_COL 7
 #define CHAR_LIMIT 256
 #define PI 3.14159265358979
 
@@ -55,16 +56,18 @@ private:
    
     double sigma, gLambda,psi, gamma, dwnSam,whichScale;
     int kernelUsed;
-    int kernelSize[2];
+    //int kernelSize[2];
     CvMat* gabKer[4];
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageFiltered;    // time filtered input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputExtImage;         // extended input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *logPolarImage;
+    
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* pyImage;              //yarp image of final added image after pyramid approach
         
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
-     IplImage *cvRedPlane;
+    IplImage *cvRedPlane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane2;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane3;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane;           // image of the green channel
@@ -81,21 +84,21 @@ private:
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlus;              // positive gaussian-convolved red image 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redMinus;             // negative gaussian-convolved red image
-     IplImage *cvRedPlus;
-     IplImage *cvRedMinus;
-     CvMat *kernel;
-    float gK[4][5][5];
+    IplImage *cvRedPlus;
+    IplImage *cvRedMinus;
+    CvMat *kernel;
+    double gK[4][KERNEL_ROW][KERNEL_COL];
 
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlus;            // positive gaussian-convolved green image 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenMinus;           // negative gaussian-convolved green image
-     IplImage *cvGreenPlus;
-     IplImage *cvGreenMinus;
+    IplImage *cvGreenPlus;
+    IplImage *cvGreenMinus;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlus;             // positive gaussian-convolved red image 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowMinus;          // negative gaussian-convolved red image
-     IplImage *cvBluePlus;
-     IplImage *cvYellowMinus;
+    IplImage *cvBluePlus;
+    IplImage *cvYellowMinus;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redGreen;             // colour opponency map (R+G-)
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenRed;             // colour opponency map (G+R-)
@@ -165,8 +168,7 @@ private:
     IplImage* upSample4b;
     IplImage* upSample8b;
 
-    //yarp image of final added image after pyramid approach
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* pyImage;
+    
     
 
     
@@ -273,7 +275,7 @@ public:
     void openCVtoYARP(IplImage* ,yarp::sig::ImageOf<yarp::sig::PixelMono>*, int); 
 };
 
-#endif  //_VISUAL_FILTER_THREAD_H_
+#endif  //_VISUAL_FEATURE_THREAD_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 

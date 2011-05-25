@@ -71,6 +71,7 @@ bool visualFilterModule::configure(yarp::os::ResourceFinder &rf) {
     attach(handlerPort);                  // attach to port
 
     /* create the thread and pass pointers to the module parameters */
+    printf("trying to start the main thread \n");
     vfThread = new visualFilterThread();
     vfThread->setName(getName().c_str());
     

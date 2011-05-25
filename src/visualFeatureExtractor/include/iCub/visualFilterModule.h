@@ -24,8 +24,8 @@
  * normally the output is processed by the blob finder module.
  */
 
-#ifndef _VISUAL_FILTER_MODULE_H_
-#define _VISUAL_FILTER_MODULE_H_
+#ifndef _VISUAL_FEATURE_MODULE_H_
+#define _VISUAL_FEATURE_MODULE_H_
 
 /** 
  *
@@ -184,7 +184,7 @@ public:
 };
 
 
-#endif // __VISUAL_FILTER_MODULE_H__
+#endif // __VISUAL_FEATURE_MODULE_H__
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 

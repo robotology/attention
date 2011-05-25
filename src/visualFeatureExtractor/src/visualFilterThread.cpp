@@ -45,12 +45,16 @@ inline T max(T a, T b, T c) {
 
 visualFilterThread::visualFilterThread() {
     
-    inputExtImage = new ImageOf<PixelRgb>;
-    inputImage = new ImageOf<PixelRgb>;
+    inputExtImage      = new ImageOf<PixelRgb>;
+    inputImage         = new ImageOf<PixelRgb>;
+    
     inputImageFiltered = new ImageOf<PixelRgb>;
-    logPolarImage = new ImageOf<PixelRgb>;
-    pyImage = new ImageOf<PixelMono>;
-
+    logPolarImage      = new ImageOf<PixelRgb>;
+    
+    pyImage            = new ImageOf<PixelMono>;
+    
+    
+    
     //getKernels(sigma, lambda, psi, gamma);
     sigma = 1.2;
     gLambda = 128;
@@ -58,17 +62,19 @@ visualFilterThread::visualFilterThread() {
     gamma = 30;
     kernelUsed = 2;
     dwnSam = 2;
-    
+        
     getKernels();
-    kernelSize[0]=kernelSize[1]=5;      
+
+          
     
     edges = new ImageOf<PixelMono>;
     
     lambda = 0.1f;
 
     resized = false;
-
+    
     St = yarp::os::Stamp(0,0);
+    printf("class constructor deactivated \n");
 }
 
 visualFilterThread::~visualFilterThread() {
@@ -90,6 +96,7 @@ visualFilterThread::~visualFilterThread() {
 }
 
 bool visualFilterThread::threadInit() {
+    printf("opening ports \n");
     /* open ports */ 
     if (!imagePortIn.open(getName("/image:i").c_str())) {
         cout <<": unable to open port "  << endl;
@@ -664,28 +671,33 @@ void visualFilterThread::setPar(int par, double value) {
     getKernels();
 }
 
-void visualFilterThread::getKernels(){
-
-    double sigmaX = sigma;
-    double sigmaY = sigma/gamma;
-    double theta[4] = {0, PI/4.0, PI/2.0, 3.0*PI/4.0};
+void visualFilterThread::getKernels() {
     
+    double sigmaX   = sigma;
+    double sigmaY   = sigma/gamma;
+    double theta[4] = {0, PI/4.0, PI/2.0, 3.0*PI/4.0};    
     int stdDev = 3;
-
-    for(int i = 0; i < 4 ; ++i) {
-     
+    
+    for(int i = 0; i < 4 ; ++i) {     
         double xLim = max<double>(1.0,max<double>(abs(cos(theta[i])*sigmaX*stdDev),abs(sin(theta[i])*sigmaY*stdDev)));
         double yLim = max<double>(1.0,max<double>(abs(sin(theta[i])*sigmaX*stdDev),abs(cos(theta[i])*sigmaY*stdDev)));
-
-        double xStepSize = xLim/(kernelSize[0]/2);
-        double yStepSize = yLim/(kernelSize[1]/2);
+        
+        double xStepSize = xLim/(KERNEL_ROW/2);
+        double yStepSize = yLim/(KERNEL_COL/2);
         //float* tmpKer = gaborKernel[0][0];
         double xThre = xStepSize/2;
         double yThre = yStepSize/2;
         int k = 0; int j = 0;
+        int maxi = 0, maxj = 0, maxk = 0;
+        
+        
         for(double xV = -xLim; xV < xLim + xThre; xV += xStepSize) {
             k=0;
             for(double yV = -yLim; yV < yLim + yThre; yV += yStepSize) {
+                if(i > maxi) maxi = i;
+                if(i > maxj) maxj = j;
+                if(i > maxk) maxk = k;
+                //printf("%d %d %d \n", maxi, maxj, maxk);
                 double xT = xV * cos(theta[i]) + yV * sin(theta[i]);
                 double yT = -xV * sin(theta[i]) + yV * cos(theta[i]);
                 gK[i][j][k]= exp(-.5*(xT*xT/(sigmaX*sigmaX) + yT*yT/(sigmaY*sigmaY)))*cos(2.0*PI*xT/gLambda + psi)/(2.0*PI*sigmaX*sigmaY);
@@ -693,12 +705,13 @@ void visualFilterThread::getKernels(){
                 //tmpKer++;
                 k++;
             }
+            
             j++;
             printf("\n");
         }
 
-        gabKer[i] = cvCreateMat( 5, 5, CV_32FC1 );
-        cvSetData ( gabKer[i], (float*)gK[i], sizeof ( float ) * 5 );
+        //gabKer[i] = cvCreateMat( 5, 5, CV_32FC1 );
+        //cvSetData ( gabKer[i], (float*)gK[i], sizeof ( float ) * 5 );
         printf("\n\n\n");
     } 
 
