@@ -459,7 +459,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         x[0]=z * u;   //epipolar correction excluded the focal lenght
         x[1]=z * v;
         x[2]=z;
-        xe = yarp::math::operator *(*invPrj, x);z
+        xe = yarp::math::operator *(*invPrj, x);
         xe[3]=1.0;  // impose homogeneous coordinates
         xo = yarp::math::operator *(*eyeH,xe);
         printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
