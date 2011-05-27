@@ -12,6 +12,7 @@ add_subdirectory(repeater)
 add_subdirectory(selectiveAttentionEngine)
 add_subdirectory(selAttentionInterface)
 add_subdirectory(salBlobFinderInterface)
+add_subdirectory(visualFeatureExtractor)
 
 
 if(IPP_FOUND)
