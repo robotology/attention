@@ -23,9 +23,11 @@
  * @brief main code for the visual filter module; this is part of the logpolar attention system.
  */
 
+
+
 #include "iCub/visualFilterModule.h" 
-#include <ippi.h>
-#include <ippcore.h>
+//#include <ippi.h>
+//#include <ippcore.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -34,7 +36,7 @@ using namespace yarp::sig;
 int main(int argc, char * argv[])
 {
     /* important, this effectively disables the OMP library parallelization in the IPP */
-    ippSetNumThreads(1);
+    //ippSetNumThreads(1);
 
     Network yarp;
     visualFilterModule module; 
