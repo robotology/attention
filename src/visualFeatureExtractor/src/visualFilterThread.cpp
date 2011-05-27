@@ -17,7 +17,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
-
 /**
  * @file visualFilterThread.cpp
  * @brief Implementation of the visual filter thread (see visualFilterThread.h).
