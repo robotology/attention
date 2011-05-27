@@ -33,6 +33,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 using namespace cv;
+using namespace iCub::logpolar;
 
 const int maxKernelSize = 5;
 
@@ -47,6 +48,7 @@ visualFilterThread::visualFilterThread() {
     
     inputExtImage      = new ImageOf<PixelRgb>;
     inputImage         = new ImageOf<PixelRgb>;
+    cartImage         = new ImageOf<PixelRgb>;
     
     inputImageFiltered = new ImageOf<PixelRgb>;
     logPolarImage      = new ImageOf<PixelRgb>;
@@ -62,26 +64,44 @@ visualFilterThread::visualFilterThread() {
     gamma = 30;
     kernelUsed = 2;
     dwnSam = 2;
+
+    // 7x7 kernel for negative gaussian 
+    float K[] = {
+        0.0113f, 0.0149f, 0.0176f, 0.0186f, 0.0176f, 0.0149f, 0.0113f,
+        0.0149f, 0.0197f, 0.0233f, 0.0246f, 0.0233f, 0.0197f, 0.0149f,
+        0.0176f, 0.0233f, 0.0275f, 0.0290f, 0.0275f, 0.0233f, 0.0176f,
+        0.0186f, 0.0246f, 0.0290f, 0.0307f, 0.0290f, 0.0246f, 0.0186f,
+        0.0176f, 0.0233f, 0.0275f, 0.0290f, 0.0275f, 0.0233f, 0.0176f,
+        0.0149f, 0.0197f, 0.0233f, 0.0246f, 0.0233f, 0.0197f, 0.0149f,
+        0.0113f, 0.0149f, 0.0176f, 0.0186f, 0.0176f, 0.0149f, 0.0113f
+    };
+
+    kernel = cvCreateMat( 7, 7, CV_32FC1 );
+    cvSetData ( kernel, (float*)K, sizeof ( float ) * 7 );
         
     getKernels();
 
           
     
-    edges = new ImageOf<PixelMono>;
-    
+    edges = new ImageOf<PixelMono>;    
     lambda = 0.1f;
-
     resized = false;
+
+    xSizeValue = 320 ;         
+    ySizeValue = 240;          // y dimension of the remapped cartesian image
+    overlap = 1.0;         // overlap in the remapping
+    numberOfRings = 152;      // number of rings in the remapping
+    numberOfAngles = 252;     // number of angles in the remapping
     
     St = yarp::os::Stamp(0,0);
-    printf("class constructor deactivated \n");
 }
 
 visualFilterThread::~visualFilterThread() {
     
     delete inputExtImage;
     delete inputImageFiltered;
-    delete inputImage;   
+    delete inputImage;
+    delete cartImage;
     delete edges;
     delete pyImage;
     delete logPolarImage;
@@ -128,6 +148,18 @@ bool visualFilterThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
+    //initializing logpolar mapping
+    cout << "||| initializing the logpolar mapping" << endl;
+
+    if (!trsf.allocLookupTables(L2C, numberOfRings, numberOfAngles, xSizeValue, ySizeValue, overlap)) {
+        cerr << "can't allocate lookup tables" << endl;
+        return false;
+    }
+    cout << "|-| lookup table allocation done" << endl;
+
+
+    
     return true;
 }
 
@@ -143,52 +175,58 @@ std::string visualFilterThread::getName(const char* p) {
 }
 
 void visualFilterThread::run() {
-
     double t1,t2,t3,t4,t5;
     long c1,c2;
     c1 = c2 = 0;
     t1=t2=t3=t4=t5=0;
     while (isStopping() != true) {
         inputImage = imagePortIn.read(true);
-
+        
         if (inputImage != NULL) {
             if (!resized) {
+                printf("new image found %d %d", inputImage->width(),inputImage->height() );
                 resize(inputImage->width(), inputImage->height());
+                int sizecvRedPlus = cvRedPlus->width;
+    
+                printf("image successfull ");
                 resized = true;
             }
             else {
                 filterInputImage();
-            }
-            St.update();
-            t1 = St.getTime();
-            c1 = clock(); //LINUX only??
+            }            
+            resizeCartesian(320,240);
+             printf("red plus dimension in resize1  %d %d", cvRedPlus->width, cvRedPlus->height);
+             
+
+            //filtering input image
+            printf("filtering \n");
+            filterInputImage();
+             printf("red plus dimension in resize2  %d %d", cvRedPlus->width, cvRedPlus->height);
+ 
             // extend logpolar input image
             extender(inputImage, maxKernelSize);
+             printf("red plus dimension in resize3  %d %d", cvRedPlus->width, cvRedPlus->height);
+            
             // extract RGB and Y planes
             extractPlanes();
-            St.update();
-            t2 = St.getTime();            
+             printf("red plus dimension in resize4  %d %d", cvRedPlus->width, cvRedPlus->height);
                       
             // gaussian filtering of the of RGB and Y
             filtering();
-            St.update();
-            t3 = St.getTime();
-            // colourOpponency map construction
-            colourOpponency();
-            // apply sobel operators on the colourOpponency maps and combine via maximisation of the 3 edges
-            St.update();
-            t4 = St.getTime();
-            edgesExtract();
+            
 
-            St.update();
-            t5 = St.getTime();
-            c2 = clock();
-            //cvShowImage( "test", hRG); cvWaitKey(0);           
+            // colourOpponency map construction
+            printf("before colour opponency \n");
+            //colourOpponency();
+            // apply sobel operators on the colourOpponency maps and combine via maximisation of the 3 edges
+
+            printf("extracting edges \n");
+            edgesExtract();
+        
             
             // sending the edge image on the outport            
-             printf("All delta times recorded %f, %f, %f, %f \n",t2-t1,t3-t2,t4-t3,t5-t1);
-                printf("The time taken totally %lf \n",(c2-c1)/CLOCKS_PER_SEC);    
             // the copy to the port object can be avoided...
+            /*
             if((edges!=0)&&(imagePortOut.getOutputCount())) {
                 imagePortOut.prepare() = *(edges);
                 imagePortOut.write();
@@ -208,23 +246,33 @@ void visualFilterThread::run() {
             if((inputExtImage!=0)&&(imagePortExt.getOutputCount())) {
                 imagePortExt.prepare() = *(inputExtImage);
                 imagePortExt.write();
-            }
+                }*/
             if((pyImage!=0)&&(pyImgPort.getOutputCount())) {
                 pyImgPort.prepare() = *(pyImage);
                 pyImgPort.write();
             }
+            
         }
    }
 }
+
+void visualFilterThread::resizeCartesian(int width,int height) {
+    cartImage->resize(width, height);
+    width_cart = width;
+    height_cart = height;
+}
+
 
 void visualFilterThread::resize(int width_orig,int height_orig) {
 
 
     this->width_orig = width_orig;
     this->height_orig = height_orig;
+    
     this->width = width_orig+2*maxKernelSize;
     this->height = height_orig+maxKernelSize;
-
+    
+    printf("width after reposition %d %d", width , height);
     
     edges->resize(width_orig, height_orig);
     inputImageFiltered->resize(width_orig, height_orig);
@@ -232,46 +280,48 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
  
     inputExtImage->resize(width,height);
 
-
+    CvSize cvLogSize = cvSize(width, height);
     //allocate IplImages for color planes
-    cvRedPlane = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    cvGreenPlane = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    cvBluePlane = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    cvYellowPlane = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    cvRedPlane = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    cvGreenPlane = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    cvBluePlane = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    cvYellowPlane = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
 
     //allocate IplImages for color opponents
-    redG = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    greenR = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    blueY = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    redG = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    greenR = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    blueY = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
 
     //allocate IplImages for positive and negative gaussian convolution on image planes
-    cvRedMinus = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    cvRedPlus = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    cvRedMinus = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    cvRedPlus = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
 
-    cvGreenMinus = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    cvGreenPlus = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    cvGreenMinus = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    cvGreenPlus = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
 
-    cvYellowMinus = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    cvBluePlus = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    cvYellowMinus = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    cvBluePlus = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
 
     
     
     //allocate IplImages for horizontal and vertical components of color opponents (after Sobel operator is applied)
-    hRG = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    vRG = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    hGR = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    vGR = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    hBY = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    vBY = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
+    hRG = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    vRG = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    hGR = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    vGR = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    hBY = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
+    vBY = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
 
     //allocate temporary 16 bit deep IplImages for Sobel operator result
-    tempHRG = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
-    tempVRG = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
-    tempHGR = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
-    tempVGR = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
-    tempHBY = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
-    tempVBY = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S, 1 );
+    tempHRG = cvCreateImage(cvLogSize,IPL_DEPTH_16S, 1 );
+    tempVRG = cvCreateImage(cvLogSize,IPL_DEPTH_16S, 1 );
+    tempHGR = cvCreateImage(cvLogSize,IPL_DEPTH_16S, 1 );
+    tempVGR = cvCreateImage(cvLogSize,IPL_DEPTH_16S, 1 );
+    tempHBY = cvCreateImage(cvLogSize,IPL_DEPTH_16S, 1 );
+    tempVBY = cvCreateImage(cvLogSize,IPL_DEPTH_16S, 1 );
 
+
+    /*
     //allocate space for openCV images for Gabor
     intensityImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     filteredIntensityImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
@@ -286,7 +336,7 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     upSample4 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     upSample8 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
 
-    /****************************************/
+    
     dwnSample2a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     dwnSample4a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     dwnSample8a = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
@@ -300,25 +350,15 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     upSample2b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     upSample4b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     upSample8b = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
-    /******************************************/
+    
 
-    // 7x7 kernel for negative gaussian 
-    float K[] = {
-        0.0113f, 0.0149f, 0.0176f, 0.0186f, 0.0176f, 0.0149f, 0.0113f,
-        0.0149f, 0.0197f, 0.0233f, 0.0246f, 0.0233f, 0.0197f, 0.0149f,
-        0.0176f, 0.0233f, 0.0275f, 0.0290f, 0.0275f, 0.0233f, 0.0176f,
-        0.0186f, 0.0246f, 0.0290f, 0.0307f, 0.0290f, 0.0246f, 0.0186f,
-        0.0176f, 0.0233f, 0.0275f, 0.0290f, 0.0275f, 0.0233f, 0.0176f,
-        0.0149f, 0.0197f, 0.0233f, 0.0246f, 0.0233f, 0.0197f, 0.0149f,
-        0.0113f, 0.0149f, 0.0176f, 0.0186f, 0.0176f, 0.0149f, 0.0113f
-    };
-
-    kernel = cvCreateMat( 7, 7, CV_32FC1 );
-    cvSetData ( kernel, (float*)K, sizeof ( float ) * 7 );
+   */
+    
     //cvInitMatHeader(kernel,7 ,7, CV_32FC1, K); 
-
     // initialize Gabor kernels
-    getKernels();     
+    //getKernels();     
+
+    printf("red plus dimension in resize  %d %d", cvRedPlus->width, cvRedPlus->height);
     
 }
 
@@ -339,6 +379,10 @@ ImageOf<PixelRgb>* visualFilterThread::extender(ImageOf<PixelRgb>* inputOrigImag
     return inputExtImage;
 }
 
+void visualFilterThread::cartremap(ImageOf<PixelRgb>* cartesianImage, ImageOf<PixelRgb>* logpolarImage) {
+    trsf.logpolarToCart (*cartesianImage, *logpolarImage);
+}
+
 void visualFilterThread::extractPlanes() {
     // We extract color planes from the RGB image. Planes are red,blue, green and yellow (AM of red & green)
     uchar* shift[3];
@@ -348,14 +392,24 @@ void visualFilterThread::extractPlanes() {
     
     // Pointers to raw openCV monochrome image
     shift[0] = (uchar*) cvRedPlane->imageData; 
-    shift[1] = (uchar*)cvGreenPlane->imageData;
-    shift[2] = (uchar*)cvBluePlane->imageData;
-    yellowP = (uchar*)cvYellowPlane->imageData;
+    shift[1] = (uchar*) cvGreenPlane->imageData;
+    shift[2] = (uchar*) cvBluePlane->imageData;
+    yellowP  = (uchar*) cvYellowPlane->imageData;
 
     // Pointer to raw extended input (RGB) image
     inputPointer = inputExtImage->getRawImage();
+    uchar* originInputImage = inputPointer;
+    uchar* originCVRedPlane = (uchar*) cvRedPlane->imageData;
+    uchar* originCVGreenPlane = (uchar*) cvGreenPlane->imageData;
+    uchar* originCVBluePlane = (uchar*) cvBluePlane->imageData;
+    uchar* originCVYellowPlane = (uchar*) cvYellowPlane->imageData;
+    int widthInputImage = inputExtImage->getRowSize();
+    int widthcvR = cvRedPlane->widthStep;
+    int widthcvG = cvGreenPlane->widthStep;
+    int widthcvB = cvBluePlane->widthStep;
+    int widthcvY = cvYellowPlane->widthStep;
 
-    tmpIntensityImage = (uchar*)intensityImage->imageData;
+    //tmpIntensityImage = (uchar*)intensityImage->imageData;
 
     /* We can avoid padding for openCV images*/
     int paddingMono = inputExtImage->getPadding(); 
@@ -363,57 +417,61 @@ void visualFilterThread::extractPlanes() {
 
     const int h = inputExtImage->height();
     const int w = inputExtImage->width();
+    printf("dimension inside extractPlanes %d %d and paddings %d,%d of extended size %d,%d \n ", w,h, padding3C,paddingMono);
 
     for(int r = 0; r < h; r++) {
+
+        inputPointer = originInputImage + r* widthInputImage;
+        shift[0] = originCVRedPlane + r* widthcvR;
+        shift[1] = originCVGreenPlane + r*widthcvG;
+        shift[2] = originCVBluePlane + r*widthcvB;
+        yellowP = originCVYellowPlane + r*widthcvY;
+        
         for(int c = 0; c < w; c++) {
             *shift[0] = *inputPointer++;
             *shift[1] = *inputPointer++;
             *shift[2] = *inputPointer++;
 
             *yellowP++ = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
-            *tmpIntensityImage++ = (uchar)((*shift[0]+ *shift[1] + *shift[2])/3);
+            // *tmpIntensityImage++ = (uchar)((*shift[0]+ *shift[1] + *shift[2])/3);
 
             shift[0]++;
             shift[1]++;
             shift[2]++;
         }
 
-        inputPointer += padding3C;
-        shift[0] += paddingMono;
-        shift[1] += paddingMono;
-        shift[2] += paddingMono;
-        yellowP += paddingMono;
-        tmpIntensityImage += paddingMono;
+        //inputPointer += padding3C;
+        //shift[0] += paddingMono;
+        //shift[1] += paddingMono;
+        //shift[2] += paddingMono;
+        //yellowP += paddingMono;
+        //tmpIntensityImage += paddingMono;
     }
 
 }
 
 void visualFilterThread::filtering() {
-
-
     // We gaussian blur the image planes extracted before, one with positive Gaussian and then negative
-
+    printf(" red plane dimension in filtering %d %d ", cvRedPlane->width, cvRedPlane->height);
+    printf(" red plus dimension in filtering  %d %d ", cvRedPlus->width, cvRedPlus->height);
     //Positive
     cvSmooth( cvRedPlane, cvRedPlus, CV_GAUSSIAN, 5, 5 );
     cvSmooth( cvBluePlane, cvBluePlus, CV_GAUSSIAN, 5, 5 );
     cvSmooth( cvGreenPlane, cvGreenPlus, CV_GAUSSIAN, 5, 5 );
 
-
-    cvSmooth( cvRedPlane, cvRedMinus, CV_GAUSSIAN, 7, 7,3 );
-    cvSmooth( cvYellowPlane, cvYellowMinus, CV_GAUSSIAN, 7, 7,3 );
-    cvSmooth( cvGreenPlane, cvGreenMinus, CV_GAUSSIAN, 7, 7,3 );
-    
-   
-    
-   
+    //Negative
+    //cvSmooth( cvRedPlane, cvRedMinus, CV_GAUSSIAN, 7, 7, 3 );
+    //cvSmooth( cvYellowPlane, cvYellowMinus, CV_GAUSSIAN, 7, 7, 3 );
+    //cvSmooth( cvGreenPlane, cvGreenMinus, CV_GAUSSIAN, 7, 7, 3 );    
 }
 
 void visualFilterThread::colourOpponency() {
     
     // we want RG = (G- - R+)/2 -128, GR = (R- - G+)/2 and BY = (Y- -B+)/2 -128. These values are obtained after filtering with positive and negative Gaussian.
 
-    const int h = height;
-    const int w = width;
+    const int h = height_cart;
+    const int w = width_cart;
+    printf("dimension of the cartesian images %d %d", h, w);
     int pad = inputExtImage->getPadding();
 
     uchar* rMinus = (uchar*)cvRedMinus->imageData;
@@ -432,7 +490,7 @@ void visualFilterThread::colourOpponency() {
     for(int r = 0; r < h; r++) {
         for(int c = 0; c < w; c++) {
             
-            *RG++ = ((*rPlus >> 1)  + 128 - (*gMinus >> 1) );
+            *RG++ = ((*rPlus >> 1) + 128 - (*gMinus >> 1) );
             *GR++ = ((*gPlus >> 1) + 128 - (*rMinus >> 1) );
             *BY++ = ((*bPlus >> 1) + 128 - (*yMinus >> 1) );
 
@@ -454,16 +512,19 @@ void visualFilterThread::colourOpponency() {
         GR += pad;
         BY += pad;
 
-    } 
-
+    }     
     if(redG == NULL) return;
-    // downsample the images
-    //downSampleImage(redG, dwnSample2,2);
+    //remapping into cartesian            
+    //cartremap(cartImage, inputImage);
+
+    float weight[3]= {.33,.33,.33};
+
+    /*
+    // downsample the images by dimension 4
     downSampleImage(redG, dwnSample4,4);
     downSampleImage(greenR, dwnSample2,4);
     downSampleImage(blueY, dwnSample8,4);
-    //downSampleImage(redG, dwnSample8,8);
-
+  
     // filter downsampled images
     dwnSample2Fil = cvCreateImage(cvGetSize(dwnSample2),IPL_DEPTH_8U, 1 );
     dwnSample4Fil = cvCreateImage(cvGetSize(dwnSample4),IPL_DEPTH_8U, 1 );
@@ -480,18 +541,17 @@ void visualFilterThread::colourOpponency() {
 
     // add the images with defined weightages
     IplImage* imagesToAdd[3]= {upSample2,upSample4,upSample8};
-    float weight[3]= {.33,.33,.33};
     cvSet(filteredIntensityImage, cvScalar(0));
     maxImages(imagesToAdd,3,filteredIntensityImage,weight);
-
-    //printf("COMES HERE \n");
-    /********************************************/
-
-    //downSampleImage(redG, dwnSample2,2);
+    */
+    
+    //-------------------------------------------------------------------
+    
+    // downsample the images by dimension 2
+    
     downSampleImage(redG, dwnSample4a,2);
     downSampleImage(greenR, dwnSample2a,2);
     downSampleImage(blueY, dwnSample8a,2);
-    //downSampleImage(redG, dwnSample8,8);
 
     // filter downsampled images
     dwnSample2Fila = cvCreateImage(cvGetSize(dwnSample2a),IPL_DEPTH_8U, 1 );
@@ -513,12 +573,12 @@ void visualFilterThread::colourOpponency() {
     cvSet(filteredIntensityImage2, cvScalar(0));
     maxImages(imagesToAdd2,3,filteredIntensityImage2,weight);
 
-    
-    //downSampleImage(redG, dwnSample2,2);
+    //----------------------------------------------------------------------
+    /*
+    // downsample the images by dimension 2
     downSampleImage(redG, dwnSample4b,8);
     downSampleImage(greenR, dwnSample2b,8);
     downSampleImage(blueY, dwnSample8b,8);
-    //downSampleImage(redG, dwnSample8,8);
 
     // filter downsampled images
     dwnSample2Filb = cvCreateImage(cvGetSize(dwnSample2b),IPL_DEPTH_8U, 1 );
@@ -539,17 +599,17 @@ void visualFilterThread::colourOpponency() {
     //float weight[3]= {.33,.33,.33};
     cvSet(filteredIntensityImage1, cvScalar(0));
     maxImages(imagesToAdd8,3,filteredIntensityImage1,weight);
+    */
  
     /********************************************/
-    
     
     //convert openCV image to YARP image
     float wt[3]={.05,.45,.5};
     IplImage* imagesToAddX[3]={filteredIntensityImage2,filteredIntensityImage,filteredIntensityImage1};
     cvSet(totImage,cvScalar(0));
-    addImages(imagesToAddX,3,totImage,wt);
+    //addImages(imagesToAddX,3,totImage,wt);
     
-    openCVtoYARP(totImage,pyImage,1);
+    openCVtoYARP(filteredIntensityImage2,pyImage,1);
   /*  cvNamedWindow("test1");
     cvShowImage("test1",filteredIntensityImage);
     cvNamedWindow("test2");

@@ -31,7 +31,8 @@
 #include <yarp/os/all.h>
 #include <iostream>
 #include <yarp/os/Stamp.h>
-
+/* Log-Polar includes */
+#include <iCub/RC_DIST_FB_logpolar_mapper.h>
 
 #include <cv.h>
 #include <cvaux.h>
@@ -50,6 +51,7 @@ private:
     int psb;
     int width_orig, height_orig;        // dimension of the input image (original)
     int width, height;                  // dimension of the extended input image (extending)
+    int width_cart, height_cart;        // dimension of the cartesian width and height
     int size1;                          // size of the buffer
     int psb16s;                         // step size of the Ipp16s vectors
     float lambda;                       // costant for the temporal filter
@@ -60,6 +62,7 @@ private:
     CvMat* gabKer[4];
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *cartImage; 
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageFiltered;    // time filtered input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputExtImage;         // extended input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *logPolarImage;
@@ -169,8 +172,12 @@ private:
     IplImage* upSample8b;
 
     
-    
-
+    iCub::logpolar::logpolarTransform trsf; //reference to the converter for logpolar transform
+    int xSizeValue;         // x dimension of the remapped cartesian image
+    int ySizeValue;         // y dimension of the remapped cartesian image
+    double overlap;         // overlap in the remapping
+    int numberOfRings;      // number of rings in the remapping
+    int numberOfAngles;     // number of angles in the remapping
     
 
     IplImage* intensityImage;
@@ -223,6 +230,13 @@ public:
     * @param height height of the input image
     */
     void resize(int width, int height);
+    
+    /**
+    * function that resizes the cartesian image
+    * @param width width of the input image
+    * @param height height of the input image
+    */
+    void resizeCartesian(int width, int height);
 
     /**
     * function that extendes the original image of the desired value for future convolutions (in-place operation)
@@ -230,6 +244,13 @@ public:
     * @param extDimension dimension of the extention on each of the sides of the image
     */
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extender(yarp::sig::ImageOf<yarp::sig::PixelRgb>* origImage,int extDimension); 
+
+     /**
+    * function that maps logpolar image to cartesian
+    * @param cartesianImage cartesian image to remap
+    * @param logpolarImage  result of the remapping
+    */
+    void cartremap(yarp::sig::ImageOf<yarp::sig::PixelRgb>* cartesianImage,yarp::sig::ImageOf<yarp::sig::PixelRgb>* logpolarImage);
 
     /**
     * extracting RGB and Y planes
