@@ -32,7 +32,7 @@
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
-using namespace cv;
+//using namespace cv;
 using namespace iCub::logpolar;
 
 const int maxKernelSize = 5;
@@ -195,21 +195,21 @@ void visualFilterThread::run() {
                 filterInputImage();
             }            
             resizeCartesian(320,240);
-             printf("red plus dimension in resize1  %d %d", cvRedPlus->width, cvRedPlus->height);
+            printf("red plus dimension in resize1  %d %d \n", cvRedPlus->width, cvRedPlus->height);
              
 
             //filtering input image
             printf("filtering \n");
             filterInputImage();
-             printf("red plus dimension in resize2  %d %d", cvRedPlus->width, cvRedPlus->height);
+             printf("red plus dimension in resize2  %d %d \n", cvRedPlus->width, cvRedPlus->height);
  
             // extend logpolar input image
             extender(inputImage, maxKernelSize);
-             printf("red plus dimension in resize3  %d %d", cvRedPlus->width, cvRedPlus->height);
+             printf("red plus dimension in resize3  %d %d \n", cvRedPlus->width, cvRedPlus->height);
             
             // extract RGB and Y planes
             extractPlanes();
-             printf("red plus dimension in resize4  %d %d", cvRedPlus->width, cvRedPlus->height);
+             printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
                       
             // gaussian filtering of the of RGB and Y
             filtering();
@@ -217,7 +217,7 @@ void visualFilterThread::run() {
 
             // colourOpponency map construction
             printf("before colour opponency \n");
-            //colourOpponency();
+            colourOpponency();
             // apply sobel operators on the colourOpponency maps and combine via maximisation of the 3 edges
 
             printf("extracting edges \n");
@@ -226,7 +226,7 @@ void visualFilterThread::run() {
             
             // sending the edge image on the outport            
             // the copy to the port object can be avoided...
-            /*
+            
             if((edges!=0)&&(imagePortOut.getOutputCount())) {
                 imagePortOut.prepare() = *(edges);
                 imagePortOut.write();
@@ -246,7 +246,7 @@ void visualFilterThread::run() {
             if((inputExtImage!=0)&&(imagePortExt.getOutputCount())) {
                 imagePortExt.prepare() = *(inputExtImage);
                 imagePortExt.write();
-                }*/
+                }
             if((pyImage!=0)&&(pyImgPort.getOutputCount())) {
                 pyImgPort.prepare() = *(pyImage);
                 pyImgPort.write();
@@ -272,7 +272,7 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     this->width = width_orig+2*maxKernelSize;
     this->height = height_orig+maxKernelSize;
     
-    printf("width after reposition %d %d", width , height);
+    printf("width after reposition %d %d \n", width , height);
     
     edges->resize(width_orig, height_orig);
     inputImageFiltered->resize(width_orig, height_orig);
@@ -452,27 +452,28 @@ void visualFilterThread::extractPlanes() {
 
 void visualFilterThread::filtering() {
     // We gaussian blur the image planes extracted before, one with positive Gaussian and then negative
-    printf(" red plane dimension in filtering %d %d ", cvRedPlane->width, cvRedPlane->height);
-    printf(" red plus dimension in filtering  %d %d ", cvRedPlus->width, cvRedPlus->height);
+    
     //Positive
     cvSmooth( cvRedPlane, cvRedPlus, CV_GAUSSIAN, 5, 5 );
     cvSmooth( cvBluePlane, cvBluePlus, CV_GAUSSIAN, 5, 5 );
     cvSmooth( cvGreenPlane, cvGreenPlus, CV_GAUSSIAN, 5, 5 );
 
     //Negative
-    //cvSmooth( cvRedPlane, cvRedMinus, CV_GAUSSIAN, 7, 7, 3 );
-    //cvSmooth( cvYellowPlane, cvYellowMinus, CV_GAUSSIAN, 7, 7, 3 );
-    //cvSmooth( cvGreenPlane, cvGreenMinus, CV_GAUSSIAN, 7, 7, 3 );    
+    cvSmooth( cvRedPlane, cvRedMinus, CV_GAUSSIAN, 7, 7, 3 );
+    cvSmooth( cvYellowPlane, cvYellowMinus, CV_GAUSSIAN, 7, 7, 3 );
+    cvSmooth( cvGreenPlane, cvGreenMinus, CV_GAUSSIAN, 7, 7, 3 );    
 }
 
 void visualFilterThread::colourOpponency() {
     
     // we want RG = (G- - R+)/2 -128, GR = (R- - G+)/2 and BY = (Y- -B+)/2 -128. These values are obtained after filtering with positive and negative Gaussian.
 
-    const int h = height_cart;
-    const int w = width_cart;
-    printf("dimension of the cartesian images %d %d", h, w);
-    int pad = inputExtImage->getPadding();
+    const int h = height;
+    const int w = width;
+    
+
+    printf("inside the colourOpponency ");
+    int pad = cvRedMinus->widthStep - cvRedMinus->width;
 
     uchar* rMinus = (uchar*)cvRedMinus->imageData;
     uchar* rPlus = (uchar*)cvRedPlus->imageData;
@@ -503,11 +504,11 @@ void visualFilterThread::colourOpponency() {
         }
 
         rMinus += pad;
-        rPlus += pad;
+        rPlus  += pad;
         gMinus += pad;
-        gPlus += pad;
+        gPlus  += pad;
         yMinus += pad;
-        bPlus += pad;
+        bPlus  += pad;
         RG += pad;
         GR += pad;
         BY += pad;
