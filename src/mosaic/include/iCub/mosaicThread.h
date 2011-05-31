@@ -55,23 +55,25 @@ private:
     int countMemory;                // number of saved location
     double shiftx;                  // shift of the mosaic picture
     double shifty;                  // shift of the mosaic picture
+    float azimuth, elevation;          // parameters necessary to fetch the portion of the mosaic
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image from camera
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *outputImageMosaic;     // output image (mosaic)
     yarp::dev::IGazeControl *igaze;         //Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;  //polydriver for the gaze controller
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port for camera 1
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port for camera 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;      // output port for overlapped monochromised image
-    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portionPort;       // port used to send the portion of the mosaic requested
     yarp::dev::PolyDriver *polyTorso, *drvHead;             // polydriver for the control of the torso and head
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
     yarp::dev::IEncoders   *encTorso,*encHead;              // encoders of the torso and head
     yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
     yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
-    yarp::sig::Matrix *eyeH;                                // rototranslation matrix for the considered eye
+    yarp::sig::Matrix *cyclopicPrj;                         // projection on the cyclopic plane  
+    yarp::sig::Matrix *eyeHL, *eyeHR;                                // rototranslation matrix for the considered eye
     yarp::sig::Matrix *eyeH0;
     yarp::sig::Matrix *inveyeH0;
-    int cxl, cyl, fxl, fyl;
+    float cxl, cyl, fxl, fyl;
     int count;
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
@@ -174,6 +176,19 @@ public:
      * @param z z coordinate of the object
      */
     void plotObject(float x,float y, float z);
+
+    /**
+     * function that fetches a portion of the mosaic 
+     * @param image portion extracted and ready to be used
+     */
+    void fetchPortion(yarp::sig::ImageOf<yarp::sig::PixelRgb>* image);
+
+    /**
+     * function that set a portion of the mosaic to fetch  
+     * @param azimuth angle of gaze interested in
+     * @param elevation angle of gaze interested in
+     */    
+    void setFetchPortion(float azimuth, float elevation);
     
 };
 

@@ -58,8 +58,8 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 // we suppose that the center distorsion is already compensated
                 double cx = parType.find("w").asDouble() / 2.0;
                 double cy = parType.find("h").asDouble() / 2.0;
-                double fx = parType.find("fx").asDouble();
-                double fy = parType.find("fy").asDouble();
+                double fx = parType.find("fx").asDouble(); printf("fx %f \n", fx);
+                double fy = parType.find("fy").asDouble(); printf("fy %f \n", fy);
 
                 Matrix K=eye(3,3);
                 Matrix Pi=zeros(3,4);
@@ -93,6 +93,8 @@ mosaicThread::mosaicThread() {
     memory = (float*) malloc(MAXMEMORY);
     memset(memory, 0, MAXMEMORY);
     countMemory = 0;
+    azimuth = 0.0;
+    elevation = 0.0;
 }
 
 mosaicThread::mosaicThread(string _robot, string _configFile) {
@@ -104,6 +106,8 @@ mosaicThread::mosaicThread(string _robot, string _configFile) {
     memory = (float*) malloc(MAXMEMORY);
     memset(memory, 0, MAXMEMORY);
     countMemory = 0;
+    elevation = 0.0;
+    azimuth = 0.0;
 }
 
 mosaicThread::~mosaicThread() {
@@ -124,6 +128,11 @@ bool mosaicThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
+    if (!portionPort.open(getName("/portion:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    } 
 
     printf("\n robotname: %s \n",robot.c_str());
 
@@ -205,6 +214,7 @@ bool mosaicThread::threadInit() {
         return false; //PrjL=invPrjL=NULL;
     }
 
+    
 
     //initilization of the backprojection to the cyclopic plane
     Vector q(8);
@@ -220,7 +230,7 @@ bool mosaicThread::threadInit() {
     eyeH0 = new Matrix(4,4);
     *eyeH0 = eyeL->getH(q);
     Matrix& eyeH_ref = *eyeH0;
-     inveyeH0 = new Matrix(pinv(eyeH_ref.transposed()).transposed());
+    inveyeH0 = new Matrix(pinv(eyeH_ref.transposed()).transposed());
 
     printf("initilisation successfully ended \n");
     return true;
@@ -246,14 +256,15 @@ void mosaicThread::setMosaicDim(int w, int h) {
     height = h;
     //default position of input image's center
     xcoord = floor(height / 2);
-    ycoord = floor(width / 2);
+    ycoord = floor(width / 2);    
 }
 
 void mosaicThread::resize(int width_orig,int height_orig) {        
+    printf("resizing using %d %d \n",width_orig,height_orig);
     inputImage->resize(width_orig,height_orig);
-    printf("resizing using %d %d",width_orig,height_orig);
     this->width_orig = width_orig;
     this->height_orig = height_orig;
+    printf("successfully resized \n");
 }
 
 bool mosaicThread::placeInpImage(int X, int Y) {
@@ -281,6 +292,72 @@ void mosaicThread::plotObject(float x,float y,float z) {
     countMemory++;
 }
 
+
+void mosaicThread::setFetchPortion(float a, float e) {
+    elevation = e;
+    azimuth   = a;
+}
+
+void mosaicThread::fetchPortion(ImageOf<PixelRgb> *image) {
+    //    printf("trying to fetch a particular position on the mosaic %f %f \n", azimuth, elevation);
+    //determine the shift based on the focal length
+
+    int shiftx =(int) floor(  fxl  * ((azimuth   * 3.14) / 180));
+    int shifty =(int) floor( -fyl  * ((elevation * 3.14) / 180));
+    
+    unsigned char* mosaic = outputImageMosaic->getRawImage();
+    unsigned char* portion =  image->getRawImage();
+    int mosaicRowSize = outputImageMosaic->getRowSize();
+    int mosaicPadding = outputImageMosaic->getPadding();
+    int portionPadding = image->getPadding();
+    mosaic += shiftx * 3 + shifty * mosaicRowSize; // + (width>>1) * 3 + (height>>1) * mosaicRowSize;
+    //printf("height_orig width_orig %d %d mosaicRowSize %d \n", height_orig, width_orig,mosaicRowSize );
+    for ( int row = 0 ; row < height_orig; row++) { 
+        for (int cols = 0; cols< width_orig; cols++) {
+            *portion++ = *mosaic++;  //red
+            *portion++ = *mosaic++;  //green
+            *portion++ = *mosaic++;  //blue
+        }
+        portion += portionPadding;
+        mosaic  += mosaicRowSize - width_orig * 3;
+    }
+}
+
+bool mosaicThread::setMosaicSize(int width=DEFAULT_WIDTH, int height=DEFAULT_HEIGHT) {
+    if(width > MAX_WIDTH || width < width_orig || width <= 0 
+       || height > MAX_HEIGHT || height < height_orig || height <= 0 ) {
+        printf("setMosaicSize returned FALSE \n");
+        return false;
+    }
+    else{
+        printf("setMosaicSize returned TRUE \n");
+    }
+    this->width = width;
+    this->height = height;
+
+    //extraction the projection for the cyclopic plane
+    double cx = width / 2; 
+    double cy = height / 2; 
+    double fx = fxl;        
+    double fy = fyl;        
+    
+    Matrix K=eye(3,3);
+    Matrix Pi=zeros(3,4);
+    
+    K(0,0)=fx; K(1,1)=fy;
+    K(0,2)=cx; K(1,2)=cy; 
+    
+    Pi(0,0)=Pi(1,1)=Pi(2,2)=1.0; 
+    
+    cyclopicPrj  = new Matrix;
+    *cyclopicPrj = K * Pi;
+
+    printf("resizing the image with dimension %d %d \n", width, height);
+    outputImageMosaic->resize(this->width,this->height);
+    outputImageMosaic->zero();
+    return true;    
+}
+
 void mosaicThread::run() {
     printf("Initialization of the run function %d %d .... \n", width, height);
     count++;
@@ -293,31 +370,29 @@ void mosaicThread::run() {
                 resize(inputImage->width(),inputImage->height());
                 resized = true;
             }
+            
             makeMosaic(inputImage); 
-            imagePortOut.prepare() = *outputImageMosaic;
-            imagePortOut.write();
+            if(imagePortOut.getOutputCount()) {
+                imagePortOut.prepare() = *outputImageMosaic;
+                imagePortOut.write();
+            }
+            if(portionPort.getOutputCount()) {
+                ImageOf<PixelRgb>& portionImage = portionPort.prepare();
+                portionImage.resize(320,240);
+                fetchPortion(&portionImage);
+                portionPort.write();
+            }
         }                      
     }
 }
 
 
-bool mosaicThread::setMosaicSize(int width=DEFAULT_WIDTH, int height=DEFAULT_HEIGHT) {
-    if(width > MAX_WIDTH || width < width_orig || width <= 0 
-       || height > MAX_HEIGHT || height < height_orig || height <= 0 ) 
-        return false;
-    this->width = width;
-    this->height = height;
-    printf("reseizing the image with dimension %d %d \n", width, height);
-    outputImageMosaic->resize(this->width,this->height);
-    outputImageMosaic->zero();
-    return true;    
-}
-
 void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
+    printf("making the mosaic \n");
     //recalculing the position in the space
     double u = 160;
     double v = 120;
-    double z = 0.5;
+    double z = 1.0;
     
     bool isLeft = true;
     Vector fp(3);
@@ -368,11 +443,13 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         xe[3]=1.0;  // impose homogeneous coordinates                
                 
         // update position wrt the root frame
-        eyeH = new Matrix(4,4);
-        *eyeH = eye->getH(q);
+        eyeHL = new Matrix(4,4);
+        eyeHR = new Matrix(4,4);
+        *eyeHL = eyeL->getH(q);
+        *eyeHR = eyeR->getH(q);
 
         //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
-        Vector xo = yarp::math::operator *(*eyeH,xe);
+        Vector xo = yarp::math::operator *(*eyeHL,xe);
         
         prec = fp;
         fp.resize(3,0.0);
@@ -380,21 +457,6 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         fp[1]=xo[1];
         fp[2]=xo[2];
         //printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
-        
-        //c1[0].x = 43;   c1[0].y = 18;
-        //c1[1].x = 280;  c1[1].y = 40;
-        //c1[2].x = 19;   c1[2].y = 223;
-        //c1[3].x = 304;  c1[3].y = 200;
-        
-        //c1[0].x = 150;   c1[0].y = 20;
-        //c1[1].x = 280;  c1[1].y = 50;
-        //c1[2].x = 0;   c1[2].y = 240;
-        //c1[3].x = 320;  c1[3].y = 240;
-        
-        //c1[0].x = 50;   c1[0].y = 50;  
-        //c1[1].x = 320;  c1[1].y = 0;   
-        //c1[2].x = 0;    c1[2].y = 240;  
-        //c1[3].x = 320;  c1[3].y = 240; 
         
         c2[0].x = 0;    c2[0].y = 0;   
         c2[1].x = 320;  c2[1].y = 0;   
@@ -404,6 +466,9 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         Vector x_hat(4);
 
         //___________________________________________________________
+        //
+        // extracting the warp perspective vertix
+        //
 
         u = 0;
         v = 0;
@@ -412,11 +477,10 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         x[2]=z;
         xe = yarp::math::operator *(*invPrj, x);
         xe[3]=1.0;  // impose homogeneous coordinates
-        xo = yarp::math::operator *(*eyeH,xe);
-        printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
+        xo = yarp::math::operator *(*eyeHL,xe);
         //------------------------------------------
         xe = yarp::math::operator *(*inveyeH0,xo);
-        x_hat = yarp::math::operator *(*PrjL, xe);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xe);
         c1[0].x = x_hat[0]/z;   c1[0].y = x_hat[1]/z;
         printf("onPlane %f %f %f \n \n",x_hat[0], x_hat[1], x_hat[2]);
 
@@ -429,11 +493,11 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         x[2]=z;
         xe = yarp::math::operator *(*invPrj, x);
         xe[3]=1.0;  // impose homogeneous coordinates
-        xo = yarp::math::operator *(*eyeH,xe);
-        printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
+        xo = yarp::math::operator *(*eyeHL,xe);
+        //printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
         //------------------------------------------
         xe = yarp::math::operator *(*inveyeH0,xo);
-        x_hat = yarp::math::operator *(*PrjL, xe);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xe);
         c1[1].x = x_hat[0]/z;   c1[1].y = x_hat[1]/z;
         printf("onPlane %f %f %f \n \n",x_hat[0], x_hat[1], x_hat[2]);
         //__________________________________________________________
@@ -445,11 +509,11 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         x[2]=z;
         xe = yarp::math::operator *(*invPrj, x);
         xe[3]=1.0;  // impose homogeneous coordinates
-        xo = yarp::math::operator *(*eyeH,xe);
-        printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
+        xo = yarp::math::operator *(*eyeHL,xe);
+        //printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
         //------------------------------------------
         xe = yarp::math::operator *(*inveyeH0,xo);
-        x_hat = yarp::math::operator *(*PrjL, xe);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xe);
         c1[2].x = x_hat[0]/z;   c1[2].y = x_hat[1]/z;
         printf("onPlane %f %f %f \n \n",x_hat[0], x_hat[1], x_hat[2]);
         //________________________________________________________
@@ -461,11 +525,11 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
         x[2]=z;
         xe = yarp::math::operator *(*invPrj, x);
         xe[3]=1.0;  // impose homogeneous coordinates
-        xo = yarp::math::operator *(*eyeH,xe);
-        printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
+        xo = yarp::math::operator *(*eyeHL,xe);
+        //printf("vertix %f,%f,%f \n",xo[0],xo[1],xo[2]);
         //------------------------------------
         xe = yarp::math::operator *(*inveyeH0,xo);
-        x_hat = yarp::math::operator *(*PrjL, xe);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xe);
         c1[3].x = x_hat[0]/z;   c1[3].y = x_hat[1]/z;
         printf("onPlane %f %f %f \n \n",x_hat[0], x_hat[1], x_hat[2]);
     }
@@ -476,7 +540,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     //igaze->getLeftEyePose(x,o);
     igaze->getAngles(x);
     //printf("angles %f, %f, %f, %f, %f, %f, %f, %f \n", angles[0], angles[1], angles[2], angles[3], angles[4], angles[5], angles[6],  angles[7] );
-    printf("o %f %f %f \n",o[0],o[1],o[2]);
+    //printf("o %f %f %f \n",o[0],o[1],o[2]);
     //printf("distancey %f   ",distancey);
     //calculating the shift in pixels
     double focalLenght = 200;
@@ -486,11 +550,10 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     shift_prev = shiftx;
     shiftx = fxl  * ((x[0]*3.14)/180);
     shifty = -fyl  * ((x[1]*3.14)/180);
-     
-
+    
     ycoord = shiftx + floor(width / 2);
     xcoord = shifty + floor(height / 2);
-    printf("ycoord %d shiftx %f shifty %f shift   \n",ycoord,shiftx ,shifty);
+    printf("ycoord %d shiftx %f shifty %f shift   \n",ycoord,shiftx,shifty);
     
     // making the mosaic
     int i,j;
@@ -502,12 +565,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     int mPad = outputImageMosaic->getPadding();
     int inputPadding = inputImage->getPadding();
     int rowSize = outputImageMosaic->getRowSize();   
-    int mosaicX, mosaicY;
-    mosaicX = ycoord;
-    mosaicX -= floor(iH / 2);
-    mosaicY = xcoord;
-    mosaicY -= floor(iW / 2);
-    float alfa = 0.5;
+    
 
     //warping the image
     CvPoint2D32f srcTri[3], dstTri[3];
@@ -520,23 +578,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     /*
     CvPoint2D32f* c1 = (&cvPoint2D32f(0,0), &cvPoint2D32f(320,0), &cvPoint2D32f(0,240), &cvPoint2D32f(320,240));
     CvPoint2D32f* c2 = (&cvPoint2D32f(0,0), &cvPoint2D32f(320,0), &cvPoint2D32f(0,240), &cvPoint2D32f(320,240)); 
-    */
-
-    
-
-
-    CvPoint3D32f *c3 = new CvPoint3D32f[4];
-    CvPoint3D32f *c4 = new CvPoint3D32f[4];
-
-    c3[0].x = 50.0;   c3[0].y = 50.0;  c3[0].z = 0.0;
-    c3[1].x = 320.0;  c3[1].y = 0.0;   c3[1].z = 0.0;
-    c3[2].x = 0.0;    c3[2].y = 240.0;  c3[2].z = 0.0; 
-    c3[3].x = 320.0;  c3[3].y = 240.0; c3[3].z = 0.0;
-    
-    c4[0].x = 0.0;    c4[0].y = 0.0;   c4[0].z = 0.0;
-    c4[1].x = 320.0;  c4[1].y = 0.0;   c4[1].z = 0.0;
-    c4[2].x = 0.0;    c4[2].y = 240.0; c4[2].z = 0.0;
-    c4[3].x = 320.0;  c4[3].y = 240.0; c4[3].z = 0.0; 
+    */    
 
     CvMat* src = cvCreateMat(4,4,CV_32FC1); //vector of 4 points
     CvMat* dest = cvCreateMat(3,3,CV_32FC3); //vector of 4 points
@@ -549,33 +591,31 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     //value[8] = 0.0;  value[9] = 240.0;  value[10] = 0.0; value[11] = 1.0; 
     //value[12] = 320.0;  value[13] = 240.0; value[14] = 0.0; value[15] = 1.0;
  
-    float* pointerMlx = mlx->data.fl;
-    double* pointerEyeH = eyeH->data();  
-    for (int i = 0; i < 4 ; i++) {
-        for (int j = 0;j < 4; j++) {
-            pointerMlx[i*4+j] = (float) *pointerEyeH;
-            printf("%f,  ", pointerMlx[i*4+j]);
-            //pointerMlx++;
-            pointerEyeH++;            
-        }
-        printf("\n");
-    }
-
-    
-
-    printf("\n getting perspective  \n");   
+    //float* pointerMlx = mlx->data.fl;
+    //double* pointerEyeH = eyeH->data();  
+    //for (int i = 0; i < 4 ; i++) {
+    //    for (int j = 0;j < 4; j++) {
+    //        pointerMlx[i*4+j] = (float) *pointerEyeH;
+    //        printf("%f,  ", pointerMlx[i*4+j]);
+    //        //pointerMlx++;
+    //        pointerEyeH++;            
+    //    }
+    //    printf("\n");
+    // }
+ 
     //cvPerspectiveTransform(c3, c4, dest);
-    c4[0].x = 0.0;    c4[0].y = 50.0;   c4[0].z = 0.0;
-    c4[1].x = 320.0;  c4[1].y = 0.0;   c4[1].z = 0.0;
-    c4[2].x = 0.0;    c4[2].y = 240.0-50; c4[2].z = 0.0;
-    c4[3].x = 320.0;  c4[3].y = 240.0; c4[3].z = 0.0;
-    printf("success in getting the perspective \n");
+    //c4[0].x = 0.0;    c4[0].y = 50.0;   c4[0].z = 0.0;
+    //c4[1].x = 320.0;  c4[1].y = 0.0;   c4[1].z = 0.0;
+    //c4[2].x = 0.0;    c4[2].y = 240.0-50; c4[2].z = 0.0;
+    //c4[3].x = 320.0;  c4[3].y = 240.0; c4[3].z = 0.0;
+    
+    //printf("success in getting the perspective \n");
     //float* pointerDest = dest->data.fl;
-    for (int i = 0; i < 4 ; i++) {
-        c1[i].x = c4[i].x;
-        c1[i].y = c4[i].y;
-        printf("position %f %f \n",c4[i].x,c4[i].y);
-    }    
+    //for (int i = 0; i < 4 ; i++) {
+    //    c1[i].x = c4[i].x;
+    //    c1[i].y = c4[i].y;
+    //    printf("position %f %f \n",c4[i].x,c4[i].y);
+    //}    
     
     printf("getting perspective transform \n");   
     mmat = cvGetPerspectiveTransform(c1, c2, mmat);
@@ -584,10 +624,17 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
     ImageOf<PixelRgb>* destIm = new ImageOf<PixelRgb>;
     destIm->resize(320,240);
 	
-    cvWarpPerspective((CvArr*)inputImage->getIplImage(),(CvArr*)destIm->getIplImage(),mmat); 
+    cvWarpPerspective((CvArr*)inputImage->getIplImage(),(CvArr*)destIm->getIplImage(),mmat,CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS); 
+    //destIm = inputImage;
     unsigned char* inpTemp = destIm->getRawImage();
 
-    //printf("rowSize %d mosaicX %d mosaicY %d ycoord %d xcoord  %d \n", rowSize, mosaicX, mosaicY,ycoord, xcoord);
+    int mosaicX, mosaicY;
+    mosaicX = ycoord;
+    mosaicX -= floor(iH / 2);
+    mosaicY = xcoord;
+    mosaicY -= floor(iW / 2);
+    float alfa = 0.9;
+    printf("rowSize %d mosaicX %d mosaicY %d ycoord %d xcoord  %d \n", rowSize, mosaicX, mosaicY,ycoord, xcoord);
     outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + 3 * mosaicX;
     for(i = 0 ; i < iH ; ++i) {
         for(j = 0 ; j < iW ; ++j) {
@@ -625,7 +672,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImage) {
                           (xoi[2] - xeye[2]) * (xoi[2] - xeye[2]) );
 
         // update position wrt the eye frame
-        Matrix* inveyeH=new Matrix(pinv(eyeH->transposed()).transposed());         
+        Matrix* inveyeH=new Matrix(pinv(eyeHL->transposed()).transposed());         
         Vector xei = yarp::math::operator *(*inveyeH, xoi);        
         // find the 3D position from the 2D projection,
         // knowing the distance z from the camera
@@ -653,8 +700,10 @@ void mosaicThread::threadRelease() {
 void mosaicThread::onStop() {
     imagePortIn.interrupt();
     imagePortOut.interrupt();
+    portionPort.interrupt();
         
     imagePortOut.close();
     imagePortIn.close();
+    portionPort.close();
 }
 

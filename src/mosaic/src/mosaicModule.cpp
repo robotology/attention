@@ -108,14 +108,15 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* create the thread and pass pointers to the module parameters */
     mThread = new mosaicThread(robotName, configFile);
-    mThread->setInputDim(width_orig, height_orig);
-    mThread->setMosaicSize(width, height);
-       
-    mThread->placeInpImage(width / 2, height / 2);  
     mThread->setName(getName().c_str());
     
     /* now start the thread to do the work */
     mThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    
+    // setting the dimension after threadinit to use some correct variables    
+    mThread->setInputDim(width_orig, height_orig);
+    mThread->setMosaicSize(width, height);       
+    mThread->placeInpImage(width / 2, height / 2);  
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
@@ -139,11 +140,12 @@ bool mosaicModule::close()
 bool mosaicModule::respond(const Bottle& command, Bottle& reply) 
 {
     string helpMessage =  string(getName().c_str()) + 
-                " commands are: \n" +  
-                "help \n" +
-            "size <int> <int> -to change, if allowed, size (width, height) of mosaic to <int> <int> \n" + 
-            "place <int> -to place, if allowed, input image's center (horz, vert) in mosaic refernce frame \n" +
-                "quit \n";
+        " commands are: \n" +  
+        "help \n" +
+        "size <int> <int> -to change, if allowed, size (width, height) of mosaic to <int> <int> \n" + 
+        "place <int> -to place, if allowed, input image's center (horz, vert) in mosaic refernce frame \n" +
+        "fetch <float> <float> -to placefetch a portion of th emosaic \n" +
+        "quit \n";
 
     reply.clear(); 
 
@@ -172,8 +174,16 @@ bool mosaicModule::respond(const Bottle& command, Bottle& reply)
       double z = command.get(3).asDouble();
       
       printf("x %f y %f z %f \n",x,y,z);
-      mThread-> plotObject(x,y,z);
+      mThread->plotObject(x,y,z);
     }
+    else if (command.get(0).asString() == "fetch") {
+      double azimuth = command.get(1).asDouble();
+      double elevation = command.get(2).asDouble();
+     
+      printf("azimuth %f elevation %f  \n",azimuth,elevation);
+      mThread->setFetchPortion(azimuth, elevation);
+    }
+    
 
     return true;
 }
