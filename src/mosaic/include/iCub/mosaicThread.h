@@ -49,34 +49,41 @@ private:
     int width_orig, height_orig;    // dimension of the input image (original)
     int width, height;              // dimension of the mosaic image 
     int xcoord, ycoord;             // position of input image's center in mosaic reference frame
+    int xcoordRight, ycoordRight;   // position of input image's center in mosaic reference frame
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
     float* memory;                  // memory of plotted location in the space
     int countMemory;                // number of saved location
-    double shiftx;                  // shift of the mosaic picture
-    double shifty;                  // shift of the mosaic picture
-    float azimuth, elevation;          // parameters necessary to fetch the portion of the mosaic
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image from camera
+    double shiftx, shifty;          // shift on the mosaic of the leftcamera
+    double shiftxRight, shiftyRight;// shift of the mosaic of the rightcamera
+    float azimuth, elevation;       // parameters necessary to fetch the portion of the mosaic
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageLeft;        // input image from left camera
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageRight;       // input image from right camera
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *warpImLeft;            // warped image from left camera
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *warpImRight;           // warped image from right camera
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *outputImageMosaic;     // output image (mosaic)
     yarp::dev::IGazeControl *igaze;         //Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;  //polydriver for the gaze controller
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port for camera 
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortInRight;       // input port for camera  
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;      // output port for overlapped monochromised image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portionPort;       // port used to send the portion of the mosaic requested
     yarp::dev::PolyDriver *polyTorso, *drvHead;             // polydriver for the control of the torso and head
-    iCub::iKin::iCubEye *eyeL;
-    iCub::iKin::iCubEye *eyeR;
-    yarp::dev::IEncoders   *encTorso,*encHead;              // encoders of the torso and head
+    iCub::iKin::iCubEye *eyeL;                              //reference to the left eye
+    iCub::iKin::iCubEye *eyeR;                              //reference to the right eye
+    iCub::iKin::iCubEye *eyeCyclopic;                       //reference to the mosaic plane
+    yarp::dev::IEncoders *encTorso,*encHead;              // encoders of the torso and head
     yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
     yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
     yarp::sig::Matrix *cyclopicPrj;                         // projection on the cyclopic plane  
     yarp::sig::Matrix *eyeHL, *eyeHR;                                // rototranslation matrix for the considered eye
     yarp::sig::Matrix *eyeH0;
     yarp::sig::Matrix *inveyeH0;
-    float cxl, cyl, fxl, fyl;
+    float cxl, cyl, fxl, fyl, cxr, cyr, fxr, fyr;
     int count;
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
+    bool rectified;         // flag set whenever the rectification is required
     
 public:
     /**
@@ -161,12 +168,18 @@ public:
     */
     bool setMosaicSize(int width, int height);
 
+    /**
+     * function that set to a specific value the flag  for rectification
+     * @param value true/false when rectification is required/not required 
+     */
+    bool setRectification(bool value) { rectified = true; };
 
     /**
     * function to create mosaic image from a given input image
-    * @param inputImage the input image
+    * @param inputImageLeft the input image for the left camera
+    * @param inputImageRight the input image for the right camera
     */
-    void makeMosaic(yarp::sig::ImageOf<yarp::sig::PixelRgb>* inpImage);
+    void makeMosaic(yarp::sig::ImageOf<yarp::sig::PixelRgb>* inpImageLeft,yarp::sig::ImageOf<yarp::sig::PixelRgb>* inpImageRight );
 
 
     /**

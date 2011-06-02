@@ -105,7 +105,6 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
         configFile.clear();
     }
 
-
     /* create the thread and pass pointers to the module parameters */
     mThread = new mosaicThread(robotName, configFile);
     mThread->setName(getName().c_str());
@@ -117,6 +116,15 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
     mThread->setInputDim(width_orig, height_orig);
     mThread->setMosaicSize(width, height);       
     mThread->placeInpImage(width / 2, height / 2);  
+
+    if (rf.check("rectify")) {
+        mThread->setRectification(true);
+        printf("rectification required \n");
+    }
+    else {
+        printf("rectification not required \n");
+    }
+    
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
