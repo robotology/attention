@@ -227,7 +227,7 @@ bool gazeArbiterThread::threadInit() {
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
-    string localCon("/client/gaze");
+    string localCon("/client/gaze/");
     localCon.append(getName(""));
     option.put("local",localCon.c_str());
 
