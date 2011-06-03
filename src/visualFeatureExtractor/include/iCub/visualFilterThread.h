@@ -388,17 +388,16 @@ private:
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redGreen;             // colour opponency map (R+G-)
     yarp::sig::ImageOf<yarp::sig::PixelMono> *cartRedGreen;             // colour opponency map (R+G-)
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *upSampleRG;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *upSampleRGyarp;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenRed;             // colour opponency map (G+R-)
     yarp::sig::ImageOf<yarp::sig::PixelMono> *cartGreenRed;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *upSampleGR;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *upSampleGRyarp;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *blueYellow;           // colour opponency map (B+Y-)
     yarp::sig::ImageOf<yarp::sig::PixelMono> *cartBlueYellow;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *upSampleBY;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *upSampleBYyarp;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;                // edges of colour opponency maps 
 
     IplImage* redG;
-    IplImage* cartRedG;
     IplImage* greenR;
     IplImage* blueY;
     IplImage* totImg;
@@ -429,37 +428,37 @@ private:
     IplImage* tempVBY;
 
     //down-sampled and up-sampled images for applying Gabor filter 
-    IplImage* dwnSample2;
-    IplImage* dwnSample4;
-    IplImage* dwnSample8;
-    IplImage* dwnSample2Fil;
-    IplImage* dwnSample4Fil;
-    IplImage* dwnSample8Fil;
-    IplImage* upSample2;
-    IplImage* upSample4;
-    IplImage* upSample8;
+    IplImage* dwnSampleRG;
+    IplImage* dwnSampleGR;
+    IplImage* dwnSampleBY;
+    IplImage* dwnSampleRGFil;
+    IplImage* dwnSampleGRFil;
+    IplImage* dwnSampleBYFil;
+    IplImage* upSampleRG;
+    IplImage* upSampleGR;
+    IplImage* upSampleBY;
 
     /******************/
     //down-sampled and up-sampled images for applying Gabor filter 
-    IplImage* dwnSample2a;
-    IplImage* dwnSample4a;
-    IplImage* dwnSample8a;
-    IplImage* dwnSample2Fila;
-    IplImage* dwnSample4Fila;
-    IplImage* dwnSample8Fila;
-    IplImage* upSample2a;
-    IplImage* upSample4a;
-    IplImage* upSample8a;
+    IplImage* dwnSampleRGa;
+    IplImage* dwnSampleGRa;
+    IplImage* dwnSampleBYa;
+    IplImage* dwnSampleRGFila;
+    IplImage* dwnSampleGRFila;
+    IplImage* dwnSampleBYFila;
+    IplImage* upSampleRGa;
+    IplImage* upSampleGRa;
+    IplImage* upSampleBYa;
     //down-sampled and up-sampled images for applying Gabor filter 
-    IplImage* dwnSample2b;
-    IplImage* dwnSample4b;
-    IplImage* dwnSample8b;
-    IplImage* dwnSample2Filb;
-    IplImage* dwnSample4Filb;
-    IplImage* dwnSample8Filb;
-    IplImage* upSample2b;
-    IplImage* upSample4b;
-    IplImage* upSample8b;
+    IplImage* dwnSampleRGb;
+    IplImage* dwnSampleGRb;
+    IplImage* dwnSampleBYb;
+    IplImage* dwnSampleRGFilb;
+    IplImage* dwnSampleGRFilb;
+    IplImage* dwnSampleBYFilb;
+    IplImage* upSampleRGb;
+    IplImage* upSampleGRb;
+    IplImage* upSampleBYb;
 
     
     iCub::logpolar::logpolarTransform trsf; //reference to the converter for logpolar transform
@@ -572,44 +571,74 @@ public:
 
     void setPar(int ,double);
 
-    void downSampleImage(IplImage*, IplImage* ,int);
+    /**
+    * function that downsamples an image by a given factor, by taking average over a factor-by-factor window
+    * @param originalImage Original image
+    * @param retImage Returned image
+    * @param factor Factor by which it is downsampled
+    */
+    void downSampleImage(IplImage* originalImage, IplImage* retImage,int factor);
 
-    void upSampleImage(IplImage*, IplImage* ,int);
+    /**
+    * function that upsamples an image by a given factor, by taking replicating over a factor-by-factor window
+    * @param originalImage Original image
+    * @param retImage Returned image
+    * @param factor Factor by which it is upsampled
+    */
+    void upSampleImage(IplImage* originalImage, IplImage* retImage,int factor);
 
     void downSampleMultiScales(IplImage* );
 
     void upSampleMultiScales(IplImage* );
 
-    void addImages(IplImage**, int ,IplImage*, float*);
-
-    void maxImages(IplImage**, int ,IplImage*, float*);
-    
-    void openCVtoYARP(IplImage* ,yarp::sig::ImageOf<yarp::sig::PixelMono>*, int);
+    /**
+    * function that given a list of images adds them according to some defined weightage
+    * @param imageList List of images
+    * @param numOfImages Number of images
+    * @param retImage Returned image, after adding them
+    * @param weights Weightage of the additions
+    */
+    void addImages(IplImage** imageList, int numOfImages,IplImage* retImage, float* weights);
 
     /**
-    * function which constructs horizontal and vertical components of a linearly separable kernel
-    * @param size the dimension of the kernel (it should be square)
-    * @param kernel pointer to the square kernel which is to be separated
-    * @param vertical pointer to the vertical component
-    * @param horizontal pointer to the horizontal component
-    * @param parameters parameters of a kernel, in case it is a standard kernel like Gaussian.
+    * function that given a list of images combines taking maximum for that location
+    * @param imageList List of images
+    * @param numOfImages Number of images
+    * @param retImage Returned image, after combining them thus
     */
-    //void getLinearlySeperableKernel(int size, float* kernel, float* vertical, float* horizontal, float* parameters = NULL); 
+    void maxImages(IplImage** imageList, int numOfImages,IplImage* retImage);
+    
+    /**
+    * function to convert IplImage to YARP image. The usual warpIplImage doesnt work for mono to mono.
+    * @param origImage OpenCV or IplImage
+    * @param yarpdImage YARP image to be sent to port
+    * @param channel Currently works for only mono channel
+    */
+    void openCVtoYARP(IplImage* origImage,yarp::sig::ImageOf<yarp::sig::PixelMono>* yarpdImage, int channel);
 
+    /**
+    * function which crops the image
+    * @param corners int array defining the crop boundaries in (left-top,right-bottom) fashion
+    * @param imageToBeCropped source image that needs to be cropped
+    * @param retImage The final cropped image
+    */
     void cropImage(int* corners, IplImage* imageToBeCropped, IplImage* retImage);
 
     
 
     /**
-    * function which applies a linear kernel (2D kernel must be seperated via SVD method) to a given image
+    * function which applies a linear kernel (2D kernel must be seperated, if possible, via SVD method) to a given image
+    * The image need not be enlarged as this function takes care of edges efficiently.
     * @param vecSize size of the linear kernel
     * @param vec pointer to linear kernel
     * @param img pointer to IplImage on which kernel is to be applied
     * @param factor the value by which the sum must be scaled in resulting image. default: 1.0
     * @param direction the direction of application of kernel (0 for horizontal else vertical). default: 0
+    * @param maxVal maximum value of the convolution operator, so as to avoid overflow. default: 255
     */
-    void convolve1D(int vecSize, float* vec, IplImage* img, IplImage* resImg, float factor=1.0,int direction=0);
+    void convolve1D(int vecSize, float* vec, IplImage* img, IplImage* resImg, float factor=1.0,int direction=0,int maxVal=255);
 
+    void cropCircleImage(int* center, float radius, IplImage* srcImg);
     
 };
 
