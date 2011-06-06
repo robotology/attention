@@ -44,7 +44,7 @@ gazeCollectorThread::~gazeCollectorThread() {
 bool gazeCollectorThread::threadInit() {
     printf("starting the thread.... \n");
     /* open ports */
-    string rootName("/");
+    string rootName("");
     rootName.append(getName("/cmd:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inCommandPort.open(rootName.c_str());

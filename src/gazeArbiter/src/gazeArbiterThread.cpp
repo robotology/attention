@@ -288,16 +288,32 @@ bool gazeArbiterThread::threadInit() {
     search_roi.width   = search_roi.height   = search_size;
 
     //opening port section 
-    string rootNameStatus("/");rootNameStatus.append(getName("/status:o"));
+    string rootNameStatus("");rootNameStatus.append(getName("/status:o"));
     statusPort.open(rootNameStatus.c_str());
-    string rootNameTemplate("/");rootNameTemplate.append(getName("/template:o"));
+    string rootNameTemplate("");rootNameTemplate.append(getName("/template:o"));
     templatePort.open(rootNameTemplate.c_str());
-    string rootNameDatabase("/");rootNameDatabase.append(getName("/database:o"));
+    string rootNameDatabase("");rootNameDatabase.append(getName("/database:o"));
     blobDatabasePort.open(rootNameDatabase.c_str());
+    string rootNameInhibition("");rootNameInhibition.append(getName("/inhibition:o"));
+    inhibitionPort.open(rootNameInhibition.c_str());
     //inLeftPort.open(getName("/matchTracker/img:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
-
     firstConsistencyCheck=true;
+
+    inhibitionImage = new ImageOf<PixelMono>;
+    inhibitionImage->resize(252,152);
+    unsigned char* pinhi = inhibitionImage->getRawImage();
+    int padding = inhibitionImage->getPadding();
+    for(int y = 0; y < 152; y++) {
+        for(int x = 0;x < 252; x++) {
+            if(y<52)
+                *pinhi++ = (unsigned char) 255;
+            else
+                *pinhi++ = (unsigned char) 0;
+        }
+        pinhi += padding;
+    }
+    
     return true;
 }
 
@@ -307,6 +323,7 @@ void gazeArbiterThread::interrupt() {
     inRightPort.interrupt();
     statusPort.interrupt();
     templatePort.interrupt();
+    inhibitionPort.interrupt();
     blobDatabasePort.interrupt();
     templatePort.interrupt();
 }
@@ -671,6 +688,10 @@ void gazeArbiterThread::run() {
 
             if((mono)) {                
                 if((phi < 0.05)&&(phi>-0.05)&&(!accomplished_flag)) {
+                    //code for accomplished vergence
+                    
+                    
+                    //sending the acknowledgement vergence_accomplished
                     status = statusPort.prepare();
                     status.clear();
                     status.addString("vergence_accomplished");
@@ -679,6 +700,9 @@ void gazeArbiterThread::run() {
                     accomplished_flag = true;
                     
 
+                    //sending an image for inhibition of return 
+                    inhibitionPort.prepare() = *inhibitionImage;
+                    inhibitionPort.write();
 
                     //calculating the 3d position and sending it to database
                     u = 160; 
@@ -972,6 +996,7 @@ void gazeArbiterThread::threadRelease() {
     statusPort.close();
     templatePort.close();
     blobDatabasePort.close();
+    inhibitionPort.close();
     delete eyeL;
     delete eyeR;
     igaze->restoreContext(originalContext);

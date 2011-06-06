@@ -114,8 +114,10 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inLeftPort;        // input image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inRightPort;       // output image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > templatePort;     // port for the segmented object of the zdf
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                                // image for the segmented object of the zdf
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                            // image for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                            // image for the inhibition of return
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
