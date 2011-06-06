@@ -304,9 +304,9 @@ bool gazeArbiterThread::threadInit() {
     inhibitionImage->resize(252,152);
     unsigned char* pinhi = inhibitionImage->getRawImage();
     int padding = inhibitionImage->getPadding();
-    for(int y = 0; y < 152; y++) {
-        for(int x = 0;x < 252; x++) {
-            if(y<52)
+    for(int y = 0; y < 320; y++) {
+        for(int x = 0;x < 240; x++) {
+            if((x>160-20)&&(x<160+20)&&(y>120-20)&&(y<120+20))
                 *pinhi++ = (unsigned char) 255;
             else
                 *pinhi++ = (unsigned char) 0;
