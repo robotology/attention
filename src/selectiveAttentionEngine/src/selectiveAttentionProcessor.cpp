@@ -567,7 +567,7 @@ void selectiveAttentionProcessor::run(){
             int outputYSize=ySizeValue;
             outputCartImage.resize(outputXSize,outputYSize);
             threshCartImage.resize(outputXSize,outputYSize);
-            
+            threshCartImage.zero();
             trsf.logpolarToCart(*intermCartOut,*inputLogImage);
             //find the max in the cartesian image and downsample
             maxValue=0;
@@ -616,8 +616,7 @@ void selectiveAttentionProcessor::run(){
             if(!maxResponse) {
                 
                 pImage = outputCartImage.getRawImage();
-                unsigned char* pThres = threshCartImage.getRawImage();
-                int paddingThresh = threshCartImage.getPadding();
+                
                 float distance = 0;
                 bool foundmax=false;
                 //looking for the max value 
@@ -636,21 +635,21 @@ void selectiveAttentionProcessor::run(){
                                 // beware:the distance is useful to decrease computation demand but the WTA is selected in the top left hand corner!
                                 if(distance < 10) {
                                     *pImage = 255; pImage++; *pImage=0; pImage++; *pImage=0; pImage-=2;
-                                    *pThres = 255; pThres++;
+                                    //*pThres = 255; pThres++;
                                     countMaxes++;
                                     xm += x;
                                     ym += y;
                                 }
-                                //else {
-                                //    break;
-                                //}
+                                else {
+                                    break;
+                                }
                             }
                         }
                         pImage+=3;
-                        pThres++;
+                        //pThres++;
                     }
                     pImage += paddingOutput;
-                    pThres += paddingThresh;
+                    //pThres += paddingThresh;
                 }
                 xm = xm / countMaxes; ym = ym / countMaxes;
             }
@@ -667,6 +666,64 @@ void selectiveAttentionProcessor::run(){
             pImage += round(ym) * (3 * (xSizeValue) + paddingOutput);
             for(int i = 0; i < xSizeValue; i++) {
                 *pImage = 255; pImage++; *pImage = 0; pImage++; *pImage = 0; pImage++;
+            }
+            //representing the depressing gaussian
+            unsigned char* pThres = threshCartImage.getRawImage();
+            int paddingThresh = threshCartImage.getPadding();
+            int rowsizeThresh = threshCartImage.getRowSize();
+            pThres +=   ((int)ym - 5) * rowsizeThresh + ((int)xm - 5);
+            //calculating the peek value
+            int dx = 30.0;
+            int dy = 30.0;
+            double sx = (dx / 2) / 3 ; //0.99 percentile
+            double sy = (dy / 2) / 3 ;
+            double vx = 8; //sx * sx; // variance          
+            double vy = 8; //sy * sy;
+           
+            double rho = 0;
+            
+            double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+            double b = -0.5 /(1 - rho * rho);
+            double k = 1 / (a * exp (b));
+                           
+            //uy = ym;
+            //ux = xm;          
+ 
+            double f, e, d;            
+
+            double zmax = 0;
+            //for the whole blob in this loop
+            for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
+                for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
+                    
+                    if((c == xm)&&(r == ym)) { 
+                        //z = a * exp (b);
+                        //z = z * k;
+                        z = 1;
+                    }
+                    else {    
+                        f = ((c - xm) * (c - xm)) /(vx * vx);
+                        d = ((r - ym)  * (r - ym)) /(vy * vy);
+                        //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
+                        e = 0;
+                        z = a * exp ( b * (f + d - e) );
+                        z = z * k;
+                        z = (1 / 1.638575) * z;
+                        //z = 0.5;
+                    }
+                    
+                    // restrincting the z gain between two thresholds
+                    if (z > 1) {
+                        z = 1;
+                    }
+                    //if (z < 0.3) {
+                    //    z = 0.3;
+                    //}
+                    
+                    //set the image 
+                    *pThres++ = 255 * z;                    
+                }
+                pThres += rowsizeThresh - (dx + 1) ;
             }
             //controlling the heading of the robot
             endInt=Time::now();

@@ -218,6 +218,7 @@
  * 06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       @author Rea
  * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        @author Rea
  * 08/03/11 : added the new bottle(template) to the communication to the objectProp             @author Rea  
+ * 06/06/11 : created a new ouput image composed of a gaussian around the WTA                   @author Rea
 */
 
 
