@@ -26,10 +26,6 @@
 #include <iCub/selectiveAttentionProcessor.h>
 
 
-//#include <ipp.h>
-//#include <ipps.h>
-//#include <ippcore.h>
-
 #include <math.h>
 #include <iostream>
 #include <stdlib.h>
@@ -281,6 +277,7 @@ bool selectiveAttentionProcessor::threadInit(){
     outputCmdPort.open(getName("/cmd:o").c_str());
     feedbackPort.open(getName("/feedback:o").c_str());
     imageCartOut.open(getName("/cartesian:o").c_str());
+    thImagePort.open(getName("/wta:o").c_str());
 
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
@@ -561,19 +558,22 @@ void selectiveAttentionProcessor::run(){
                 pImage += padding3C;
                 plinear += padding;
             }
-            ImageOf<PixelRgb> &outputCartImage = imageCartOut.prepare();  //preparing the cartesian output
+            ImageOf<PixelRgb>  &outputCartImage = imageCartOut.prepare();  // preparing the cartesian output for combination
+            ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
             int ratioX = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
             int ratioY = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
             // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
             int outputXSize=xSizeValue;
             int outputYSize=ySizeValue;
             outputCartImage.resize(outputXSize,outputYSize);
+            threshCartImage.resize(outputXSize,outputYSize);
+            
             trsf.logpolarToCart(*intermCartOut,*inputLogImage);
             //find the max in the cartesian image and downsample
             maxValue=0;
             float xm=0,ym=0;
             int countMaxes=0;
-            pImage=outputCartImage.getRawImage();
+            pImage = outputCartImage.getRawImage();
             unsigned char* pInter=intermCartOut->getRawImage();
             unsigned char* pcart1= cart1_yarp->getRawImage();
             unsigned char* pmotion= motion_yarp->getRawImage();
@@ -597,8 +597,7 @@ void selectiveAttentionProcessor::run(){
                         break;
                     }
                     if(maxValue < *pImage) {
-                        maxValue = *pImage;
-                 
+                        maxValue = *pImage;                 
                     }
                     pImage++; pInter++;
                     *pImage = value;
@@ -608,14 +607,18 @@ void selectiveAttentionProcessor::run(){
                     pcart1++;
                     pmotion++;
                 }
-                pImage += paddingOutput;
-                pInter += paddingInterm;
-                pcart1 += paddingCartesian;
+                pImage  += paddingOutput;
+                pInter  += paddingInterm;
+                pcart1  += paddingCartesian;
                 pmotion += paddingCartesian;
             }
+           
             if(!maxResponse) {
-                pImage=outputCartImage.getRawImage();
-                float distance=0;
+                
+                pImage = outputCartImage.getRawImage();
+                unsigned char* pThres = threshCartImage.getRawImage();
+                int paddingThresh = threshCartImage.getPadding();
+                float distance = 0;
                 bool foundmax=false;
                 //looking for the max value 
                 for(int y=0;y<ySizeValue;y++) {
@@ -632,21 +635,24 @@ void selectiveAttentionProcessor::run(){
                                 distance = sqrt((x-xm)*(x-xm)+(y-ym)*(y-ym));
                                 // beware:the distance is useful to decrease computation demand but the WTA is selected in the top left hand corner!
                                 if(distance < 10) {
-                                    *pImage=255; pImage++; *pImage=0; pImage++; *pImage=0; pImage-=2;
+                                    *pImage = 255; pImage++; *pImage=0; pImage++; *pImage=0; pImage-=2;
+                                    *pThres = 255; pThres++;
                                     countMaxes++;
                                     xm += x;
                                     ym += y;
                                 }
-                                else {
-                                    break;
-                                }
+                                //else {
+                                //    break;
+                                //}
                             }
                         }
                         pImage+=3;
+                        pThres++;
                     }
-                    pImage+=paddingOutput;
+                    pImage += paddingOutput;
+                    pThres += paddingThresh;
                 }
-                xm = xm/countMaxes; ym = ym/countMaxes;
+                xm = xm / countMaxes; ym = ym / countMaxes;
             }
             //representation of red lines where the WTA point is
             //representation of the vertical line
@@ -840,6 +846,9 @@ bool selectiveAttentionProcessor::outPorts(){
     if(imageCartOut.getOutputCount()){
         imageCartOut.write();
     }
+    if(thImagePort.getOutputCount()) {
+        thImagePort.write();
+    }
     if(centroidPort.getOutputCount()){  
         Bottle& commandBottle=centroidPort.prepare();
         commandBottle.clear();
@@ -1030,6 +1039,7 @@ void selectiveAttentionProcessor::interrupt(){
     linearCombinationPort.interrupt();
     centroidPort.interrupt();
     outputCmdPort.interrupt();
+    thImagePort.interrupt();
     vergenceCmdPort.interrupt();
     feedbackPort.interrupt();
 }
@@ -1059,6 +1069,7 @@ void selectiveAttentionProcessor::threadRelease(){
     centroidPort.close();
     feedbackPort.close();
     outputCmdPort.close();
+    thImagePort.close();
     imageCartOut.close();
     vergenceCmdPort.close();
     

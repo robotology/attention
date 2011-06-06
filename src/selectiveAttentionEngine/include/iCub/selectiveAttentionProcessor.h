@@ -61,32 +61,24 @@ class selectiveAttentionProcessor:public yarp::os::RateThread {
         yarp::sig::ImageOf<yarp::sig::PixelMono> *tmp2;              //temporary rgb image
         yarp::sig::ImageOf<yarp::sig::PixelRgb> *intermCartOut;     //temporary rgb image
         yarp::os::BufferedPort<yarp::os::Bottle> vergencePort;      //port dedicated to the communication with the vergence
-        //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inImagePort;   //a port for the inputImage (colour)
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageCartOut;  //port for sending cartesian image result
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map1Port;     // input port for the 1st saliency map
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map2Port;     // input port for the 2nd saliency map
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map3Port;     // input port for the 3rd saliency map
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map4Port;     //input port for the 4th saliency map
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map5Port;     //input port for the 5th saliency map
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map6Port;     //input port for the 6th saliency map
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;   //input port for the flow motion
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;    //input port for the 1st cartesian saliency map
-
+    
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > thImagePort;              //port for the output the WTA
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageCartOut;              //port for sending cartesian image result
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map1Port;                 // input port for the 1st saliency map
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map2Port;                 // input port for the 2nd saliency map
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map3Port;                 // input port for the 3rd saliency map
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map4Port;                 // input port for the 4th saliency map
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map5Port;                 // input port for the 5th saliency map
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map6Port;                 // input port for the 6th saliency map
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;               // input port for the flow motion
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;                // input port for the 1st cartesian saliency map
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
         yarp::os::BufferedPort<yarp::os::Bottle > centroidPort;                                     // output port where the centroid coordinate is sent
         yarp::os::BufferedPort<yarp::os::Bottle > gazeCoordPort;                                    // port that is dedicated to the streaming out gaze coordinates
         yarp::os::BufferedPort<yarp::os::Bottle > outputCmdPort;                                    // port that is dedicated to sending the typology of the gaze behaviour and some params
         yarp::os::BufferedPort<yarp::os::Bottle > vergenceCmdPort;                                  // port that is dedicated to command of vergence, this helps to calculated the relative depth of the object
         yarp::os::Port feedbackPort;                                                                //port necessary to send back command to the preattentive processors
-        
-        /*
-        Ipp8u* map1_ippi;   //ippi image of the 1st map
-        Ipp8u* map2_ippi;   //ippi image of the 2nd map
-        Ipp8u* map3_ippi;   //ippi image of the 3rd map
-        Ipp8u* map4_ippi;   //ippi image of the 4th map
-        Ipp8u* map5_ippi;   //ippi image of the 5th map
-        Ipp8u* map6_ippi;   //ippi image of the 6th map
-        */
+       
       
         //yarp::sig::ImageOf<yarp::sig::PixelMono>* outputImagePlane; //temp variable for plane extraction;
         int cLoop;      //counter of the loop

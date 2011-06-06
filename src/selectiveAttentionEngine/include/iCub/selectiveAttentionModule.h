@@ -37,9 +37,6 @@
 
 //within Project Include
 #include <iCub/selectiveAttentionProcessor.h>
-//#include <iCub/interactionThread.h>
-//#include <iCub/YARPImgRecv.h>
-//#include <iCub/YarpImage2Pixbuf.h>
 
 // general command vocab's
 #define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
@@ -155,6 +152,7 @@
  * - centroid:o :      port where the coordinate of the attention focus are sent 
  * - feedback:o :      port necessary to send back commands to preattentive processors
  * - cmd:o :           port where the command representing the gaze behaviour is sent
+ * - wta:o :           port dedicated to the representation of the WTA before saccade performing 
  * 
  * InOut ports:
  * -<name>/cmd
