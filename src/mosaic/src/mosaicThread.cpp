@@ -924,7 +924,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
     CvPoint2D32f *c2 = new CvPoint2D32f[4];
     CvPoint2D32f *cr = new CvPoint2D32f[4];
 
-    int originalPixelSize = inputImageLeft-> getPixelSize();
+    int originalPixelSize = iImageLeft-> getPixelSize();
     printf("The original pixel size for the image %d \n", originalPixelSize);
     
     
