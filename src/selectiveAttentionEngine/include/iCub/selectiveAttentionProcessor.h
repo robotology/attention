@@ -63,7 +63,7 @@ class selectiveAttentionProcessor:public yarp::os::RateThread {
         yarp::os::BufferedPort<yarp::os::Bottle> vergencePort;      //port dedicated to the communication with the vergence
     
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > thImagePort;              //port for the output the WTA
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageCartOut;              //port for sending cartesian image result
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  imageCartOut;             //port for sending cartesian image result
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map1Port;                 // input port for the 1st saliency map
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map2Port;                 // input port for the 2nd saliency map
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map3Port;                 // input port for the 3rd saliency map
@@ -73,6 +73,8 @@ class selectiveAttentionProcessor:public yarp::os::RateThread {
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;               // input port for the flow motion
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;                // input port for the 1st cartesian saliency map
         yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiCartPort;             //where the image of cuncurrent inhibition of return can be sent (cartesian)
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiPort;                 //where the image of cuncurrent inhibition of return can be sent 
         yarp::os::BufferedPort<yarp::os::Bottle > centroidPort;                                     // output port where the centroid coordinate is sent
         yarp::os::BufferedPort<yarp::os::Bottle > gazeCoordPort;                                    // port that is dedicated to the streaming out gaze coordinates
         yarp::os::BufferedPort<yarp::os::Bottle > outputCmdPort;                                    // port that is dedicated to sending the typology of the gaze behaviour and some params
@@ -115,9 +117,9 @@ class selectiveAttentionProcessor:public yarp::os::RateThread {
 
         double z;                               // distance [m]
         double xm, ym;                          //position of the most salient object in the combination
-        yarp::dev::IGazeControl *igaze;         //Ikin controller of the gaze
-        yarp::dev::PolyDriver* clientGazeCtrl;  //polydriver for the gaze controller
-        iCub::logpolar::logpolarTransform trsf; //reference to the converter for logpolar transform
+        yarp::dev::IGazeControl *igaze;             //Ikin controller of the gaze
+        yarp::dev::PolyDriver* clientGazeCtrl;      //polydriver for the gaze controller
+        iCub::logpolar::logpolarTransform trsf;     //reference to the converter for logpolar transform
         yarp::dev::PolyDriver* armRobotDevice;      //device necessary to control the robot arm
         yarp::dev::PolyDriver* cartCtrlDevice;      //device necessary to control in the cartesian frame of reference
 
@@ -445,6 +447,8 @@ class selectiveAttentionProcessor:public yarp::os::RateThread {
         yarp::sig::ImageOf<yarp::sig::PixelMono>* map6_yarp;        //saliency map coming from the 6th source
         yarp::sig::ImageOf<yarp::sig::PixelMono>* motion_yarp;      //saliency map coming from the 6th source
         yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       //saliency map coming from the 6th source
+        yarp::sig::ImageOf<yarp::sig::PixelMono>* inhicart_yarp;    //cartesian input of the inhibition of return
+        yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        //logpolar input of the inhibition of return
         yarp::sig::ImageOf<yarp::sig::PixelMono>* edges_yarp;       //yarp image of the composition of all the edges
         yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         //yarp image of regions of skin colour
         yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputLogImage;     //3channel image representing the saliencymap in logpolar
