@@ -61,13 +61,22 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageRight;       // input image from right camera
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *warpImLeft;            // warped image from left camera
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *warpImRight;           // warped image from right camera
+
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *inputMonoLeft;        // input image from left camera
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *inputMonoRight;       // input image from right camera
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *warpMnLeft;           // warped image from left camera
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *warpMnRight;          // warped image from right camera
+    
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *outputImageMosaic;     // output image (mosaic)
     yarp::dev::IGazeControl *igaze;         //Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;  //polydriver for the gaze controller
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port for camera 
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortInLeft;       // input port for camera 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortInRight;       // input port for camera  
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageMonoInLeft;       // input port for camera 
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageMonoInRight;       // input port for camera  
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;      // output port for overlapped monochromised image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portionPort;       // port used to send the portion of the mosaic requested
+
     yarp::dev::PolyDriver *polyTorso, *drvHead;             // polydriver for the control of the torso and head
     iCub::iKin::iCubEye *eyeL;                              //reference to the left eye
     iCub::iKin::iCubEye *eyeR;                              //reference to the right eye
@@ -153,6 +162,14 @@ public:
     void resize(int width, int height);
 
     /**
+    * function that resizes the necessary and already allocated images (mono images)
+    * @param width width of the input image
+    * @param height height of the input image
+    */
+    void resizeMono(int width, int height);
+    
+
+    /**
     * function that places the input image on mosaic
     * @param xcoord x coordinate of input image's center in mosaic image reference frame
     * @param ycoord y coordinate of input image's center in mosaic image reference frame
@@ -175,12 +192,19 @@ public:
     bool setRectification(bool value) { rectified = true; };
 
     /**
-    * function to create mosaic image from a given input image
+    * function to create mosaic image from a given input image of type RGB
     * @param inputImageLeft the input image for the left camera
     * @param inputImageRight the input image for the right camera
     */
     void makeMosaic(yarp::sig::ImageOf<yarp::sig::PixelRgb>* inpImageLeft,yarp::sig::ImageOf<yarp::sig::PixelRgb>* inpImageRight );
 
+
+    /**
+    * function to create mosaic image from a given input image of type mono
+    * @param inputImageLeft the input image for the left camera
+    * @param inputImageRight the input image for the right camera
+    */
+    void makeMosaic(yarp::sig::ImageOf<yarp::sig::PixelMono>* inpImageLeft,yarp::sig::ImageOf<yarp::sig::PixelMono>* inpImageRight );
 
     /**
      * function that adds a novel location to the list of represented locations

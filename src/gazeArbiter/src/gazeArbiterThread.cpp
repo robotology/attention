@@ -41,6 +41,7 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068     // distance in meters between eyes
+#define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
  
 static Vector orVector (Vector &a, Vector &b) {
     int dim = a.length();
@@ -165,9 +166,7 @@ bool gazeArbiterThread::threadInit() {
     done=true;
     executing = false;
     printf("starting the thread.... \n");
-
-    blobDatabasePort.open(getName("/database").c_str());
-
+    
     eyeL = new iCubEye("left");
     eyeR = new iCubEye("right");    
 
@@ -285,13 +284,19 @@ bool gazeArbiterThread::threadInit() {
     point.x = 320;
     point.y = 240;
 
-    template_roi.width=template_roi.height=template_size;
-    search_roi.width=search_roi.height=search_size;
+    template_roi.width = template_roi.height = template_size;
+    search_roi.width   = search_roi.height   = search_size;
 
+    //opening port section 
+    string rootNameStatus("/");rootNameStatus.append(getName("/status:o"));
+    statusPort.open(rootNameStatus.c_str());
+    string rootNameTemplate("/");rootNameTemplate.append(getName("/template:o"));
+    templatePort.open(rootNameTemplate.c_str());
+    string rootNameDatabase("/");rootNameDatabase.append(getName("/database:o"));
+    blobDatabasePort.open(rootNameDatabase.c_str());
     //inLeftPort.open(getName("/matchTracker/img:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
-    statusPort.open(( name + "/status:o").c_str());
-    templatePort.open(( name + "/template:i").c_str());
+
     firstConsistencyCheck=true;
     return true;
 }
@@ -317,7 +322,7 @@ void gazeArbiterThread::setBlockPitch(double value) {
 
 void gazeArbiterThread::setName(string str) {
     this->name=str;
-    printf("name: %s", name.c_str());
+    printf("name: %s \n", name.c_str());
 }
 
 std::string gazeArbiterThread::getName(const char* p) {
@@ -328,7 +333,7 @@ std::string gazeArbiterThread::getName(const char* p) {
 
 void gazeArbiterThread::setRobotName(string str) {
     this->robot = str;
-    printf("name: %s", name.c_str());
+    printf("name: %s \n", name.c_str());
 }
 
 void gazeArbiterThread::init(const int x, const int y) {
@@ -344,8 +349,6 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 
 
 void gazeArbiterThread::run() {
-
-    
 
     Bottle& status = statusPort.prepare();
     //double start = Time::now();
@@ -369,8 +372,7 @@ void gazeArbiterThread::run() {
     if(allowedTransitions(3)>0) {
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  SACCADE -----------------------
-        if(!executing) {
-                        
+        if(!executing) {                       
             // starting saccade toward the direction of the required position
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
             timeoutStart=Time::now();
@@ -457,9 +459,9 @@ void gazeArbiterThread::run() {
                     printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
                     accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
                     Vector px(3);
-                    px[0] = -0.35 + xOffset;
+                    px[0] = -0.5 + xOffset;
                     px[1] = 0.0 + yOffset;
-                    px[2] = 0.0 + zOffset;
+                    px[2] = 0.3 + zOffset;
                     igaze->lookAtFixationPoint(px);
                     u = width / 2;
                     v = height / 2;
@@ -534,16 +536,17 @@ void gazeArbiterThread::run() {
 
             //constant time of 10 sec after which the action is considered not performed
             timeoutStart=Time::now();
-            while ((!done)&&(timeout < 10.0)) {
-                while((!done)&&(timeout < 10.0)) {
+            while ((!done)&&(timeout < TIMEOUT_CONST)) {
+                while((!done)&&(timeout < TIMEOUT_CONST)) {
                     timeoutStop = Time::now();
                     timeout =timeoutStop - timeoutStart;
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);
                     
                 }
-                if(timeout >= 10.0) {
+                if(timeout >= TIMEOUT_CONST) {
                     Vector v(3);
+                    printf("TIMEOUT in reaching with a saccade \n");
                     v(0)= -0.5; v(1) = 0; v(2) = 0.5;
                     igaze->stopControl();
                     igaze->lookAtFixationPoint(v);
@@ -557,7 +560,7 @@ void gazeArbiterThread::run() {
             //correcting the macrosaccade using the visual feedback (only if required)
             if (visualCorrection) {
                 double error = 1000.0;
-                while(( error > 1)&&(timeout < 10.0)&&(tracker->getInputCount())) {
+                while(( error > 1)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
                     timeoutStop = Time::now();
                     timeout =timeoutStop - timeoutStart;
                     //printf("timeout in correcting  %d \n", timeout);
@@ -575,14 +578,15 @@ void gazeArbiterThread::run() {
                     //printf("the point ended up in %d  %d \n",point.x, point.y);
                 }
                 Time::delay(0.05);
-                if(timeout >= 10.0) {
+                if(timeout >= TIMEOUT_CONST) {
                     Vector px(3);
+                    printf("TIMEOUT in reaching with visualFeedback \n");
                     px[0] = -0.5 + xOffset;
                     px[1] = 0.0 + yOffset;
-                    px[2] = 0.1 + zOffset;
+                    px[2] = 0.3 + zOffset;
                     igaze->lookAtFixationPoint(px);
                     igaze->checkMotionDone(&done);
-                    while((!done)&&(timeout < 10.0)) {                        
+                    while((!done)&&(timeout < TIMEOUT_CONST)) {                        
                         timeoutStop = Time::now();
                         timeout =timeoutStop - timeoutStart;
                         Time::delay(0.005);
@@ -590,6 +594,8 @@ void gazeArbiterThread::run() {
                     }
                 }
             }
+            // saccade accomplished
+            //accomplished_flag = true;
         }
     }
     else if(allowedTransitions(2)>0) {
@@ -598,7 +604,7 @@ void gazeArbiterThread::run() {
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         // ----------------  VERGENCE -----------------------     
-        printf("vergence_accomplished : %d \n",accomplished_flag);
+        //printf("vergence_accomplished : %d \n",accomplished_flag);
         //printf("Entering in VERGENCE \n");
         if(!executing) {
             Vector gazeVect(3);
@@ -664,7 +670,7 @@ void gazeArbiterThread::run() {
             
 
             if((mono)) {                
-                if((phi < 0.1)&&(phi>-0.1)&&(!accomplished_flag)) {
+                if((phi < 0.05)&&(phi>-0.05)&&(!accomplished_flag)) {
                     status = statusPort.prepare();
                     status.clear();
                     status.addString("vergence_accomplished");

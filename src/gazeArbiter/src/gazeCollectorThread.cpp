@@ -44,8 +44,10 @@ gazeCollectorThread::~gazeCollectorThread() {
 bool gazeCollectorThread::threadInit() {
     printf("starting the thread.... \n");
     /* open ports */
-    printf("opening ports.... \n");
-    inCommandPort.open(getName("/cmd:i").c_str());
+    string rootName("/");
+    rootName.append(getName("/cmd:i"));
+    printf("opening ports with rootname %s .... \n", rootName.c_str());
+    inCommandPort.open(rootName.c_str());
     return true;
 }
 
@@ -68,7 +70,7 @@ void gazeCollectorThread::run() {
     while(isStopping() != true){
         Bottle* b=inCommandPort.read(true);
         if(b!=0) {
-            printf(" bottle received : %s \n",b->toString().c_str());
+            //printf(" bottle received : %s \n",b->toString().c_str());
             setChanged();
             notifyObservers(b);
         }

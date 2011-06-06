@@ -196,7 +196,8 @@
  * 16/04/11 : plotted the texture on the small pciture in the GUI                                   @author Rea
  * 16/04/11 : added original context restore                                                        @author Rea
  * 05/05/11 : added the mapping between the dvs camera and the original dimension in the eyes       @author Rea
- * 20/05/11 : put together the command for choosing between onDvs and onHead
+ * 20/05/11 : put together the command for choosing between onDvs and onHead                        @author Rea   
+ * 03/06/11 : added new output image where the area around WTA is selected                          @author Rea 
 */
 
 

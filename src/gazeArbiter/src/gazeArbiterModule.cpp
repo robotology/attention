@@ -44,14 +44,12 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
                            Value("/gazeArbiter"), 
                            "module name (string)").asString();
 
-
-   
-
     /*
     * before continuing, set the module name before getting any other parameters, 
     * specifically the port names which are dependent on the module name
     */
     setName(moduleName.c_str());
+    printf("module will be activated with the name: %s \n", getName().c_str());
 
     /*
     * get the robot name which will form the stem of the robot ports names
@@ -87,6 +85,15 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     arbiter=new gazeArbiterThread(configFile);
     arbiter->setName(getName().c_str());
     arbiter->setRobotName(robotName);
+    
+    if (rf.check("visualFeedback")) {
+        arbiter->setVisualFeedback(true);
+        printf("visualFeedback required \n");
+    }
+    else {
+        printf("visualFeedback  not required \n");
+        //the default value for arbiter->visualCorrection is false
+    }
 
     /* get the dimension of the image for the thread parametric control */
     width                  = rf.check("width", 
@@ -193,7 +200,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
     */
-    handlerPortName =  "";
+    handlerPortName =  "/";
     handlerPortName += getName();         // use getName() rather than a literal 
 
     if (!handlerPort.open(handlerPortName.c_str())) {           

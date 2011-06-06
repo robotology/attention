@@ -240,6 +240,11 @@ public:
     void setOnDvs  (int value) { value?onDvs=true:onDvs=false; };
 
     /**
+    * function that sets the value of the visualCorrection for a visual feedback in saccade
+    */
+    void setVisualFeedback  (int value) { value?visualCorrection=true:visualCorrection=false; };
+
+    /**
      * function that sets the value head pitch to which the head is blocked
      * @param blockPitch value of the blockPitch
      */
