@@ -109,13 +109,15 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
     mThread = new mosaicThread(robotName, configFile);
     mThread->setName(getName().c_str());
     
-    /* now start the thread to do the work */
-    mThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    
     
     // setting the dimension after threadinit to use some correct variables    
     mThread->setInputDim(width_orig, height_orig);
     mThread->setMosaicSize(width, height);       
-    mThread->placeInpImage(width / 2, height / 2);  
+    mThread->placeInpImage(width>>1, height>>1);  
+
+    /* now start the thread to do the work */
+    mThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
     if (rf.check("rectify")) {
         mThread->setRectification(true);

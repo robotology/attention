@@ -31,7 +31,7 @@
 
 #define MAXMEMORY 100
 #define LEFT_EYE 0;
-#define RIGHT_EYE 0;
+#define RIGHT_EYE 1;
 
 using namespace yarp::dev;
 using namespace yarp::os;
@@ -113,28 +113,39 @@ mosaicThread::mosaicThread(string _robot, string _configFile) {
     resized = false;
     rectified = false;
     //allocating memory
+    outputImageMosaic = new ImageOf<PixelRgb>;
+    
     inputImageLeft    = new ImageOf<PixelRgb>;
     inputImageRight   = new ImageOf<PixelRgb>;
-    outputImageMosaic = new ImageOf<PixelRgb>;
     warpImLeft        = new ImageOf<PixelRgb>;
     warpImRight       = new ImageOf<PixelRgb>;
+
+    inputMonoLeft     = new ImageOf<PixelMono>;
+    inputMonoRight    = new ImageOf<PixelMono>;
+    warpMnLeft        = new ImageOf<PixelMono>;
+    warpMnRight       = new ImageOf<PixelMono>;
+ 
     memory = (float*) malloc(MAXMEMORY);
     memset(memory, 0, MAXMEMORY);
 }
 
 mosaicThread::~mosaicThread() {
     // freeing memory
+    delete outputImageMosaic;
     delete inputImageLeft;
     delete inputImageRight;
-    delete outputImageMosaic;
     delete warpImLeft;
     delete warpImRight;
+    delete inputMonoLeft;
+    delete inputMonoRight;
+    delete warpMnLeft;
+    delete warpMnRight;
     free(memory);   
 }
 
 bool mosaicThread::threadInit() {
     /* open ports */ 
-    if (!imagePortIn.open(getName("/image:i").c_str())) {
+    if (!imagePortInLeft.open(getName("/left:i").c_str())) {
         cout <<": unable to open port for camera  "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -142,6 +153,16 @@ bool mosaicThread::threadInit() {
         cout <<": unable to open port for camera  "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
+    if (!imageMonoInLeft.open(getName("/leftMono:i").c_str())) {
+        cout <<": unable to open port for camera  "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!imageMonoInRight.open(getName("/rightMono:i").c_str())) {
+        cout <<": unable to open port for camera  "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    
     if (!imagePortOut.open(getName("/image:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
@@ -302,19 +323,34 @@ void mosaicThread::setMosaicDim(int w, int h) {
 void mosaicThread::resize(int width_orig,int height_orig) {        
     this->width_orig = width_orig;
     this->height_orig = height_orig;
+
     printf("resizing using %d %d \n",width_orig,height_orig);
     inputImageLeft->resize(width_orig,height_orig);
     inputImageRight->resize(width_orig,height_orig);
     warpImLeft->resize(width_orig,height_orig);
     warpImRight->resize(width_orig,height_orig);
+   
+    printf("successfully resized \n");
+}
+
+void mosaicThread::resizeMono(int width_orig,int height_orig) {        
+    this->width_orig = width_orig;
+    this->height_orig = height_orig;
+    
+    printf("resizing mono images \n");
+    inputMonoLeft->resize(width_orig,height_orig);
+    inputMonoRight->resize(width_orig,height_orig);
+    warpMnLeft->resize(width_orig,height_orig);
+    warpMnRight->resize(width_orig,height_orig);
     
     printf("successfully resized \n");
 }
 
+
 bool mosaicThread::placeInpImage(int X, int Y) {
     if(X > width || X < 0 || Y > height || Y < 0) return false;
-    this->xcoord = X;
-    this->ycoord = Y;
+    xcoord = X;
+    ycoord = Y;
     return true;
 }
 
@@ -367,7 +403,7 @@ void mosaicThread::fetchPortion(ImageOf<PixelRgb> *image) {
     }
 }
 
-bool mosaicThread::setMosaicSize(int width=DEFAULT_WIDTH, int height=DEFAULT_HEIGHT) {
+bool mosaicThread::setMosaicSize(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT) {
     if(width > MAX_WIDTH || width < width_orig || width <= 0 
        || height > MAX_HEIGHT || height < height_orig || height <= 0 ) {
         printf("setMosaicSize returned FALSE \n");
@@ -398,8 +434,8 @@ bool mosaicThread::setMosaicSize(int width=DEFAULT_WIDTH, int height=DEFAULT_HEI
     *cyclopicPrj = K * Pi;
 
     printf("resizing the image with dimension %d %d \n", width, height);
-    outputImageMosaic->resize(width,height);
-    outputImageMosaic->zero();
+    //outputImageMosaic->resize(width,height);
+    //outputImageMosaic->zero();
     return true;    
 }
 
@@ -408,18 +444,20 @@ void mosaicThread::run() {
     count++;
     outputImageMosaic->resize(width,height);
     outputImageMosaic->zero();
+    
     while (isStopping() != true)  {                
-        inputImageLeft = imagePortIn.read(false); // do not wait                          
-        if (inputImageLeft != NULL ) {            
+
+        inputImageLeft = imagePortInLeft.read(false); // do not wait                          
+
+        if (inputImageLeft != NULL ) {
+            printf("found RGB image \n");
             if(!resized) {
                 resize(inputImageLeft->width(),inputImageLeft->height());
                 resized = true;
             }
             if(imagePortInRight.getInputCount()) {
                 inputImageRight = imagePortInRight.read(false);                
-                if(inputImageRight!=NULL) {
-                    makeMosaic(inputImageLeft, inputImageRight); 
-                }
+                makeMosaic(inputImageLeft, inputImageRight); 
             }
             if(imagePortOut.getOutputCount()) {
                 imagePortOut.prepare() = *outputImageMosaic;
@@ -431,12 +469,39 @@ void mosaicThread::run() {
                 fetchPortion(&portionImage);
                 portionPort.write();
             }
-        }                      
+        }
+
+        //----------------------------------------------------------------
+
+        inputMonoLeft = imageMonoInLeft.read(false); // do not wait                          
+
+        if (inputMonoLeft != NULL ) {    
+            printf("Found MONO image \n");
+            if(!resized) {
+                resizeMono(inputMonoLeft->width(),inputMonoLeft->height());
+                resized = true;
+            }
+                           
+            makeMosaic(inputMonoLeft, inputMonoLeft); 
+            
+            if(imagePortOut.getOutputCount()) {
+                imagePortOut.prepare() = *outputImageMosaic;
+                imagePortOut.write();
+            }
+            if(portionPort.getOutputCount()) {
+                ImageOf<PixelRgb>& portionImage = portionPort.prepare();
+                portionImage.resize(320,240);
+                fetchPortion(&portionImage);
+                portionPort.write();
+            }
+        }
+                      
     }
+    
 }
 
 
-void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRgb>* inputImageRight) {
+void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelRgb>* inputImageLeft, ImageOf<PixelRgb>* inputImageRight) {
     //recalculing the position in the space
     double u = 160;
     double v = 120;
@@ -452,6 +517,9 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRg
     CvPoint2D32f *c1 = new CvPoint2D32f[4];
     CvPoint2D32f *c2 = new CvPoint2D32f[4];
     CvPoint2D32f *cr = new CvPoint2D32f[4];
+
+    int originalPixelSize = inputImageLeft-> getPixelSize();
+    printf("The original pixel size for the image %d \n", originalPixelSize);
     
     
     if ((invPrj)&&(rectified)) {
@@ -699,7 +767,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRg
         //for (int i=0; i<3; i++) {
         //    for (int j=0; j<3; j++){
         //        dataLeft[i * 3 + j] = eyeHL->operator()(i,j);
-        //        dataRight[i * 3 + j] = eyeHR->operator()(i,j);
+        //        dataRight[i * 3 + j] = eyeHR->operat1or()(i,j);
         //    }
         // }
         
@@ -713,10 +781,12 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRg
 
     
     
-    unsigned char* inpTemp = warpImLeft->getRawImage();
-    unsigned char* inpTempRight = warpImRight->getRawImage(); 
+    unsigned char* inpTemp = warpImLeft->getRawImage();     
     int inpRowsize = warpImLeft->getRowSize();
-
+    int pixelSizeLeft = warpImLeft->getPixelSize();
+    if(pixelSizeLeft == 0) {
+        pixelSizeLeft = 1;
+    }
     int mosaicX, mosaicY;
     int mosaicXRight, mosaicYRight;
     shift_prev = shiftx;
@@ -747,25 +817,33 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRg
     //printf("%f %f %f %f", c1[0].y,c1[1].y,c1[2].y,c1[3].y);
     //printf("dimWarp: %d %d ", dimWarpX, dimWarpY);
     
-    outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + 3 * mosaicX;
+    outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + pixelSizeLeft * mosaicX;
+    printf("pixelSize for the left image %d \n", pixelSizeLeft);
 
     for(i = 0 ; i < iH ; ++i) {
         for(j = 0 ; j < iW ; ++j) {
-           *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp);
+             
+            *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp);
             inpTemp++; outTemp++;
+            
             
             *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp); 
-            inpTemp++; outTemp++;
+            inpTemp++;
+            outTemp++;
             
             *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp);
-            inpTemp++; outTemp++; 
+            inpTemp++;
+            
+            outTemp++;
         }
         inpTemp      += inputPadding;
         outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
     }
     
     
-    if(rectified) {
+    /*
+    if(warpImRight!=NULL) {
+        unsigned char* inpTempRight = warpImRight->getRawImage();
         outTemp = outputImageMosaic->getRawImage();
         outTemp = lineOutTemp = outTemp + mosaicYRight * (rowSize + mPad) + 3 * mosaicXRight;
         for(i = 0 ; i < iH ; ++i) {
@@ -783,6 +861,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRg
             outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
         }
     }
+    */
 
     //deleting previous locations in the image plane
     //representing new locations on the image plane
@@ -791,6 +870,7 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRg
     double distanceEyeObject ;
     Vector xeye(4);
     
+    /*
     for(int k = 0; k < countMemory; k++) {
         Vector xoi(4);
         Vector xei_or(4);
@@ -823,6 +903,412 @@ void mosaicThread::makeMosaic(ImageOf<PixelRgb>* inputImageLeft, ImageOf<PixelRg
         *outTemp++ = 0;
         *outTemp++ = 0;
     }
+    */
+}
+
+void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf<PixelMono>* iImageRight) {
+    printf("entering the make mosaic for mono image \n");
+    //recalculing the position in the space
+    double u = 160;
+    double v = 120;
+    double z = 0.5;
+    
+    bool isLeft = true;
+    Vector fp(3);
+    Matrix  *invPrj=(isLeft?invPrjL:invPrjR);
+    iCubEye *eye=(isLeft?eyeL:eyeR);
+    Vector prec;
+    double shift_prev;
+
+    CvPoint2D32f *c1 = new CvPoint2D32f[4];
+    CvPoint2D32f *c2 = new CvPoint2D32f[4];
+    CvPoint2D32f *cr = new CvPoint2D32f[4];
+
+    int originalPixelSize = inputImageLeft-> getPixelSize();
+    printf("The original pixel size for the image %d \n", originalPixelSize);
+    
+    
+    if ((invPrj)&&(rectified)) {
+        
+        Vector torso(3);
+        encTorso->getEncoder(0,&torso[0]);
+        encTorso->getEncoder(1,&torso[1]);
+        encTorso->getEncoder(2,&torso[2]);
+        Vector head(5);
+        encHead->getEncoder(0,&head[0]);
+        encHead->getEncoder(1,&head[1]);
+        encHead->getEncoder(2,&head[2]);
+        encHead->getEncoder(3,&head[3]);
+        encHead->getEncoder(4,&head[4]);
+                
+        
+        Vector q(8);
+        double ratio = M_PI /180;
+        q[0]=torso[0] * ratio;
+        q[1]=torso[1] * ratio;
+        q[2]=torso[2] * ratio;
+        q[3]=head[0]  * ratio;
+        q[4]=head[1]  * ratio;
+        q[5]=head[2]  * ratio;
+        q[6]=head[3]  * ratio;
+        q[7]=head[4]  * ratio;
+        double ver = head[5];
+        //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
+               
+                        
+        Vector x(3);
+        x[0]=z * u;   //epipolar correction excluded the focal lenght
+        x[1]=z * v;
+        x[2]=z;
+                
+        // find the 3D position from the 2D projection,
+        // knowing the distance z from the camera
+        Vector xeLeft(4),xeRight(4);
+        Vector xe = yarp::math::operator *(*invPrj, x);
+        xeLeft  = yarp::math::operator *(*invPrjL, x);
+        xeRight = yarp::math::operator *(*invPrjR, x);
+        xe[3]     = 1.0;  // impose homogeneous coordinates                
+        xeLeft[3] = 1.0;
+        xeRight[3]= 1.0;
+                
+        // update position wrt the root frame
+        eyeHL = new Matrix(4,4);
+        *eyeHL = eyeL->getH(q);        
+        eyeHR = new Matrix(4,4);
+        *eyeHR = eyeR->getH(q);
+        //Matrix* inveyeHL  = new Matrix(pinv(eyeHL->transposed()).transposed());
+        
+        //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
+        Vector xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);
+        Vector xoRight = yarp::math::operator *(*eyeHR,xeRight);
+        
+        prec = fp;
+        fp.resize(3,0.0);
+        fp[0]=xoLeft[0];
+        fp[1]=xoLeft[1];
+        fp[2]=xoLeft[2];
+        printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
+        
+        c2[0].x = 0;    c2[0].y = 0;   
+        c2[1].x = 320;  c2[1].y = 0;   
+        c2[2].x = 0;    c2[2].y = 240; 
+        c2[3].x = 320;  c2[3].y = 240; 
+
+        Vector x_hat(4);
+
+        //___________________________________________________________
+        //
+        // extracting the warp perspective vertix
+        //
+
+        u = 0;
+        v = 0;
+        x[0]=z * u;   //epipolar correction excluded the focal lenght
+        x[1]=z * v;
+        x[2]=z;
+        
+        //------------------------------------------
+        //printf("vertix %f,%f,%f \n",xoLeft[0],xoLeft[1],xoLeft[2]); 
+        xeLeft = yarp::math::operator *(*invPrjL, x);
+        xeLeft[3]=1.0;  // impose homogeneous coordinates
+        xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);
+        xeLeft = yarp::math::operator *(*inveyeH0,xoLeft);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeLeft);
+        c1[0].x = x_hat[0]/z;   c1[0].y = x_hat[1]/z;
+        printf("onPlane %f %f %f \n \n",x_hat[0]/z, x_hat[1]/z, x_hat[2]);
+        //------------------------------------------
+        xeRight = yarp::math::operator *(*invPrjR, x);
+        xeRight[3]=1.0;  // impose homogeneous coordinates
+        xoRight  = yarp::math::operator *(*eyeHR,xeRight);
+        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[0].x = x_hat[0]/z;   cr[0].y = x_hat[1]/z;
+        
+
+        //___________________________________________________________
+        
+        u = 320;
+        v = 0;
+        x[0]=z * u;   //epipolar correction excluded the focal lenght
+        x[1]=z * v;
+        x[2]=z;
+        //------------------------------------------
+        xeLeft = yarp::math::operator *(*invPrjL, x);
+        xeLeft[3]=1.0;  // impose homogeneous coordinates
+        xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);                
+        xeLeft = yarp::math::operator *(*inveyeH0,xoLeft);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeLeft);
+        c1[1].x = x_hat[0]/z;   c1[1].y = x_hat[1]/z;
+        printf("onPlane %f %f %f \n \n",x_hat[0]/z, x_hat[1]/z, x_hat[2]);
+        //------------------------------------------
+        xeRight = yarp::math::operator *(*invPrjR, x);
+        xeRight[3]=1.0;  // impose homogeneous coordinates
+        xoRight  = yarp::math::operator *(*eyeHR,xeRight); 
+        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[1].x = x_hat[0]/z;   cr[1].y = x_hat[1]/z;
+        
+
+        //__________________________________________________________
+
+        u = 0;
+        v = 240;
+        x[0]=z * u;   //epipolar correction excluded the focal lenght
+        x[1]=z * v;
+        x[2]=z;
+        //------------------------------------------
+        xeLeft = yarp::math::operator *(*invPrjL, x);
+        xeLeft[3]=1.0;  // impose homogeneous coordinates
+        xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);
+        xeLeft = yarp::math::operator *(*inveyeH0,xoLeft);       
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeLeft);
+        c1[2].x = x_hat[0]/z;   c1[2].y = x_hat[1]/z;
+        printf("onPlane %f %f %f \n \n",x_hat[0]/z, x_hat[1]/z, x_hat[2]);
+        //------------------------------------------
+        xeRight = yarp::math::operator *(*invPrjR, x);
+        xeRight[3]=1.0;  // impose homogeneous coordinates
+        xoRight  = yarp::math::operator *(*eyeHR,xeRight);
+        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[2].x = x_hat[0]/z;   cr[2].y = x_hat[1]/z;
+        
+        //________________________________________________________
+
+        u = 320;
+        v = 240;
+        x[0]=z * u;   //epipolar correction excluded the focal lenght
+        x[1]=z * v;
+        x[2]=z;        
+        //------------------------------------
+        xeLeft = yarp::math::operator *(*invPrjL, x);
+        xeLeft[3]=1.0;  // impose homogeneous coordinates
+        xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);               
+        xeLeft = yarp::math::operator *(*inveyeH0,xoLeft);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeLeft);
+        c1[3].x = x_hat[0]/z;   c1[3].y = x_hat[1]/z;
+        printf("onPlane %f %f %f \n \n",x_hat[0]/z, x_hat[1]/z, x_hat[2]);
+        //------------------------------------
+        xeRight = yarp::math::operator *(*invPrjR, x);
+        xeRight[3]=1.0;  // impose homogeneous coordinates
+        xoRight  = yarp::math::operator *(*eyeHR,xeRight); 
+        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[3].x = x_hat[0]/z;   cr[3].y = x_hat[1]/z;
+
+        printf("dimension %f %f",  c1[1].x - c1[0].x , c1[3].x - c1[2].x);
+        double dimensionX = c1[1].x - c1[0].x;              
+    }
+
+    double distancey = fp[1] - prec[1];
+    //Vector angles = eye->getAng();
+    Vector x(3), o(4);
+    //igaze->getLeftEyePose(x,o);
+    igaze->getAngles(x);
+    //printf("angles %f, %f, %f, %f, %f, %f, %f, %f \n", angles[0], angles[1], angles[2], angles[3], angles[4], angles[5], angles[6],  angles[7] );
+    //printf("o %f %f %f \n",o[0],o[1],o[2]);
+    //printf("distancey %f   ",distancey);
+    //calculating the shift in pixels
+    double focalLenght = 200;
+    double distance = z;
+    double baseline = 0.068;
+    
+    
+    // making the mosaic
+    int i,j;
+    
+    unsigned char* outTemp = outputImageMosaic->getRawImage();
+    unsigned char* lineOutTemp;
+    int iW = iImageLeft->width();
+    int iH = iImageLeft->height();
+    int mPad = outputImageMosaic->getPadding();
+    int inputPadding = iImageLeft->getPadding();
+    int rowSize = outputImageMosaic->getRowSize();   
+    
+    if(rectified) {
+        CvMat* mmat = cvCreateMat(3,3,CV_32FC1);
+        CvMat* mmatRight = cvCreateMat(3,3,CV_32FC1);
+        
+        float azimuth = ((x[0] * 3.14) / 180);
+        float elevation = ((x[1] * 3.14) / 180);
+        printf("angles %f %f",azimuth , elevation);
+        
+        c1[0].x = c1[0].x * 0.6; 
+        c1[0].y = c1[0].y * 0.6;//  - (dimensionX-50)  * 0.1;
+        c1[1].x = c1[1].x * 0.6; 
+        c1[1].y = c1[1].y * 0.6;//  - (dimensionX-50)  * 0.1;
+        c1[2].x = c1[2].x * 0.6; 
+        c1[2].y = c1[2].y * 0.6;//  + (dimensionX+50)  * 0.1;
+        c1[3].x = c1[3].x * 0.6; 
+        c1[3].y = c1[3].y * 0.6;//  + (dimensionX+50)  * 0.1;
+    
+        cr[0].x = cr[0].x * 0.6; 
+        cr[0].y = cr[0].y * 0.6;//  - (dimensionX-50)  * 0.1;
+        cr[1].x = cr[1].x * 0.6; 
+        cr[1].y = cr[1].y * 0.6;//  - (dimensionX-50)  * 0.1;
+        cr[2].x = cr[2].x * 0.6; 
+        cr[2].y = cr[2].y * 0.6;//  + (dimensionX+50)  * 0.1;
+        cr[3].x = cr[3].x * 0.6; 
+        cr[3].y = cr[3].y * 0.6;//  + (dimensionX+50)  * 0.1;
+        
+        //c1[0].x = 0.5 * c2[0].x - abs(azimuth - 0.1)  * 100; 
+        //c1[0].y = 0.5 * c2[0].y - abs(azimuth - 0.1)  * 60;
+        //c1[1].x = 0.5 * c2[1].x - abs(azimuth + 0.1)  * 100;
+        //c1[1].y = 0.5 * c2[1].y - abs(azimuth + 0.1)  * 60;
+        //c1[2].x = 0.5 * c2[2].x - abs(azimuth - 0.1)  * 100;
+        //c1[2].y = 0.5 * c2[2].y + abs(azimuth - 0.1)  * 60;
+        //c1[3].x = 0.5 * c2[3].x - abs(azimuth + 0.1)  * 100;
+        //c1[3].y = 0.5 * c2[3].y + abs(azimuth + 0.1)  * 60;
+        
+        //cr[0].x = c2[0].x;   cr[0].y = c2[0].y;
+        //cr[1].x = c2[1].x;   cr[1].y = c2[1].y;
+        //cr[2].x = c2[2].x;   cr[2].y = c2[2].y;
+        //cr[3].x = c2[3].x;   cr[3].y = c2[3].y;
+        
+        printf("getting perspective transform \n");   
+        mmat = cvGetPerspectiveTransform(c2, c1, mmat);
+        mmatRight = cvGetPerspectiveTransform(c2,cr,mmatRight);
+        
+        //float* dataLeft = mmat->data.fl;
+        //float* dataRight = mmatRight->data.fl;
+        //for (int i=0; i<3; i++) {
+        //    for (int j=0; j<3; j++){
+        //        dataLeft[i * 3 + j] = eyeHL->operator()(i,j);
+        //        dataRight[i * 3 + j] = eyeHR->operat1or()(i,j);
+        //    }
+        // }
+        
+        cvWarpPerspective((CvArr*)inputImageLeft->getIplImage(),(CvArr*)warpImLeft->getIplImage(),mmat,CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS,cvScalar(255,3,3));
+        cvWarpPerspective((CvArr*)inputImageRight->getIplImage(),(CvArr*)warpImRight->getIplImage(),mmatRight,CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS,cvScalar(255,3,3));
+    }
+    else {
+        warpMnLeft = iImageLeft;
+        warpMnRight = iImageRight;
+    }
+
+    
+    printf("connecting the warp mono images \n");
+    unsigned char* inpTemp = warpMnLeft->getRawImage();     
+    int inpRowsize = warpMnLeft->getRowSize();
+    int pixelSizeLeft = warpMnLeft->getPixelSize();
+    if(pixelSizeLeft == 0) {
+        pixelSizeLeft = 1;
+    }
+    int mosaicX, mosaicY;
+    int mosaicXRight, mosaicYRight;
+    shift_prev = shiftx;
+    shiftx =  fxl * 1.0  * ((x[0] * 3.14) / 180);
+    shifty =  -fyl * 1.0  * ((x[1] * 3.14) / 180);
+    shiftxRight = fxr * 1.0 * ((x[0] * 3.14) / 180);
+    shiftyRight = -fyr * 1.0 * ((x[1] * 3.14) / 180);
+    printf(" shiftx %f shifty %f  shiftx %f shifty %f  \n",shiftx,shifty, shiftxRight,shiftyRight);        
+        
+    ycoord = shiftx + floor(width / 2);
+    xcoord = shifty + floor(height / 2);
+    ycoordRight = shiftxRight + floor(width / 2);
+    xcoordRight = shiftyRight + floor(height / 2);
+
+    mosaicX = ycoord ;
+    mosaicX -= floor(iH / 2);
+    mosaicY = xcoord;
+    mosaicY -= floor(iW / 2);
+    mosaicXRight = ycoordRight ;
+    mosaicXRight -= floor(iH / 2);
+    mosaicYRight = xcoordRight ;
+    mosaicYRight -= floor(iW / 2);
+    float alfa = 0.96;
+
+    //int dimWarpX = max(c1[1].x, c1[3].x) - min(c1[0].x,c1[2].x);
+    //int dimWarpY = max(c1[2].y, c1[3].y) - min(c1[0].y,c1[1].y);    
+    //printf("%f %f %f %f", c1[0].x,c1[1].x,c1[2].x,c1[3].x);
+    //printf("%f %f %f %f", c1[0].y,c1[1].y,c1[2].y,c1[3].y);
+    //printf("dimWarp: %d %d ", dimWarpX, dimWarpY);
+    
+    outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + pixelSizeLeft * mosaicX;
+    printf("pixelSize for the left image %d \n", pixelSizeLeft);
+
+    for(i = 0 ; i < iH ; ++i) {
+        for(j = 0 ; j < iW ; ++j) {
+             
+            *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp);
+            inpTemp++; outTemp++;
+            
+            
+            *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp); 
+            //inpTemp++;
+            outTemp++;
+            
+            *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp);
+            //inpTemp++;            
+            outTemp++;
+        }
+        inpTemp      += inputPadding;
+        outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
+    }
+    
+    
+    /*
+    if(warpImRight!=NULL) {
+        unsigned char* inpTempRight = warpImRight->getRawImage();
+        outTemp = outputImageMosaic->getRawImage();
+        outTemp = lineOutTemp = outTemp + mosaicYRight * (rowSize + mPad) + 3 * mosaicXRight;
+        for(i = 0 ; i < iH ; ++i) {
+            for(j = 0 ; j < iW ; ++j) {
+                *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTempRight);
+                inpTempRight++; outTemp++;
+                
+                *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTempRight); 
+                inpTempRight++; outTemp++;
+                
+                *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTempRight);
+                inpTempRight++; outTemp++;
+            }
+            inpTempRight += inputPadding;
+            outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
+        }
+    }
+    */
+
+    //deleting previous locations in the image plane
+    //representing new locations on the image plane
+    float* pointer = memory;
+    //int* pointerimage = memoryimage;
+    double distanceEyeObject ;
+    Vector xeye(4);
+    
+    /*
+    for(int k = 0; k < countMemory; k++) {
+        Vector xoi(4);
+        Vector xei_or(4);
+        xoi[0] = *pointer++;
+        xoi[1] = *pointer++;
+        xoi[2] = *pointer++;
+        xoi[3] = 1.0; // impose homogeneous coordinate 
+        igaze->getLeftEyePose(xeye,xei_or);
+        printf("eyePose %f %f %f \n",xeye[0],xeye[1],xeye[2]);
+        distanceEyeObject = sqrt ( (xoi[0] - xeye[0]) * (xoi[0] - xeye[0]) +
+                          (xoi[1] - xeye[1]) * (xoi[1] - xeye[1]) + 
+                          (xoi[2] - xeye[2]) * (xoi[2] - xeye[2]) );
+
+        // update position wrt the eye frame
+        Matrix* inveyeH=new Matrix(pinv(eyeHL->transposed()).transposed());         
+        Vector xei = yarp::math::operator *(*inveyeH, xoi);        
+        // find the 3D position from the 2D projection,
+        // knowing the distance z from the camera
+        Vector x = yarp::math::operator *(*PrjL, xei);
+        printf("x: %f, %f, %f distanceEyeObject %f \n", x[0],x[1], x[2], distanceEyeObject);
+        int ui = (int) floor(x[0] / distanceEyeObject);
+        int vi = (int) floor(x[1] / distanceEyeObject);
+        printf ("x %f y %f z %f , mosaicx %d mosaicy %d >>>> u %d v %d \n", xei[0], xei[1], xei[2],mosaicX, mosaicY,ui, vi);
+        //pointerimage = pointerimage + counterMemoryImage * 2;
+        //*pointerimage = ui; pointerimage++;
+        //*pointerimage = vi;
+        unsigned char* outTemp = outputImageMosaic->getRawImage();
+        outTemp = outTemp + (height / 2) * (rowSize + mPad) + 3 * (width / 2) + vi * (rowSize + mPad) + ui * 3;
+        *outTemp++ = 255;
+        *outTemp++ = 0;
+        *outTemp++ = 0;
+    }
+    */
 }
 
 
@@ -831,12 +1317,18 @@ void mosaicThread::threadRelease() {
 }
 
 void mosaicThread::onStop() {
-    imagePortIn.interrupt();
+    imagePortInLeft.interrupt();
+    imagePortInRight.interrupt();
+    imageMonoInLeft.interrupt();
+    imageMonoInRight.interrupt();
     imagePortOut.interrupt();
     portionPort.interrupt();
         
     imagePortOut.close();
-    imagePortIn.close();
+    imagePortInLeft.close();
+    imagePortInLeft.close();
+    imageMonoInLeft.close();
+    imageMonoInLeft.close();
     portionPort.close();
 }
 
