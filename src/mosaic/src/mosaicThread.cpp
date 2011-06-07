@@ -446,13 +446,13 @@ bool mosaicThread::setMosaicSize(int width = DEFAULT_WIDTH, int height = DEFAULT
     *cyclopicPrj = K * Pi;
 
     printf("resizing the image with dimension %d %d \n", width, height);
-    //outputImageMosaic->resize(width,height);
-    //outputImageMosaic->zero();
+    outputImageMosaic->resize(width,height);
+    outputImageMosaic->zero();
     return true;    
 }
 
 void mosaicThread::run() {
-    printf("Initialization of the run function %d %d .... \n", width, height);
+    //printf("Initialization of the run function %d %d .... \n", width, height);
     count++;
 
     
