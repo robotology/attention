@@ -25,6 +25,10 @@
 
 #include "iCub/mosaicModule.h"
 
+
+#define COMMAND_VOCAB_OK VOCAB2('o','k')
+#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
@@ -147,8 +151,11 @@ bool mosaicModule::close()
     return true;
 }
 
-bool mosaicModule::respond(const Bottle& command, Bottle& reply) 
-{
+bool mosaicModule::respond(const Bottle& command, Bottle& reply)  {
+    
+    bool ok = false;
+    bool rec = false; // is the command recognized?
+
     string helpMessage =  string(getName().c_str()) + 
         " commands are: \n" +  
         "help \n" +
@@ -165,35 +172,54 @@ bool mosaicModule::respond(const Bottle& command, Bottle& reply)
         return false;     
     }
     else if (command.get(0).asString()=="help") {
+        rec = true;
         cout << helpMessage;
         reply.addString("ok");
     }
     else if (command.get(0).asString() == "size") {
+        rec = true;
         bool set = mThread->setMosaicSize(command.get(1).asInt(), command.get(2).asInt());
         if (set) reply.addString("Changed size of the mosaic.");
         else reply.addString("Could NOT change size of the mosaic.");
     }
     else if (command.get(0).asString() == "place") {
+        rec = true;
         bool set = mThread->placeInpImage(command.get(1).asInt(), command.get(2).asInt());
         if(set) reply.addString("Input image placed successfully");
         else reply.addString("Input image can NOT be placed there!");
+        ok = true;
     }
     else if (command.get(0).asString() == "plot") {
-      double x = command.get(1).asDouble();
-      double y = command.get(2).asDouble();
-      double z = command.get(3).asDouble();
-      
-      printf("x %f y %f z %f \n",x,y,z);
-      mThread->plotObject(x,y,z);
+        rec = true;
+        double x = command.get(1).asDouble();
+        double y = command.get(2).asDouble();
+        double z = command.get(3).asDouble();
+        
+        printf("x %f y %f z %f \n",x,y,z);
+        mThread->plotObject(x,y,z);
+
+        ok = true;
     }
     else if (command.get(0).asString() == "fetch") {
-      double azimuth = command.get(1).asDouble();
-      double elevation = command.get(2).asDouble();
-     
-      printf("azimuth %f elevation %f  \n",azimuth,elevation);
-      mThread->setFetchPortion(azimuth, elevation);
+        rec = true;
+        double azimuth = command.get(1).asDouble();
+        double elevation = command.get(2).asDouble();
+        
+        printf("azimuth %f elevation %f  \n",azimuth,elevation);
+        mThread->setFetchPortion(azimuth, elevation);
+
+        ok = true;
     }
     
+    if (!rec)
+        ok = RFModule::respond(command,reply);
+    
+    if (!ok) {
+        reply.clear();
+        reply.addVocab(COMMAND_VOCAB_FAILED);
+    }
+    else
+        reply.addVocab(COMMAND_VOCAB_OK);
 
     return true;
 }

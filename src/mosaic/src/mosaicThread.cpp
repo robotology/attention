@@ -385,7 +385,7 @@ void mosaicThread::setFetchPortion(float a, float e) {
 }
 
 void mosaicThread::fetchPortion(ImageOf<PixelRgb> *image) {
-    //    printf("trying to fetch a particular position on the mosaic %f %f \n", azimuth, elevation);
+    //printf("trying to fetch a particular position on the mosaic %f %f \n", azimuth, elevation);
     //determine the shift based on the focal length
 
     int shiftx =(int) floor(  fxl  * ((azimuth   * 3.14) / 180));
