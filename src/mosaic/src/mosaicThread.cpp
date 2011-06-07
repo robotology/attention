@@ -30,8 +30,9 @@
 #include <cstring>
 
 #define MAXMEMORY 100
-#define LEFT_EYE 0;
-#define RIGHT_EYE 1;
+#define LEFT_EYE 0
+#define RIGHT_EYE 1
+#define THRATE 100
 
 using namespace yarp::dev;
 using namespace yarp::os;
@@ -86,13 +87,14 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 }
 
 /**************************************************************************/
-mosaicThread::mosaicThread() {
+mosaicThread::mosaicThread(): RateThread(THRATE) {
     inputImageLeft = new ImageOf<PixelRgb>;
     inputImageRight = new ImageOf<PixelRgb>;
     outputImageMosaic = new ImageOf<PixelRgb>;
     warpImLeft = new ImageOf<PixelRgb>;
     warpImRight = new ImageOf<PixelRgb>;
-   
+    
+    
     robot = "icub"; 
     resized = false;
     memory = (float*) malloc(MAXMEMORY);
@@ -103,7 +105,7 @@ mosaicThread::mosaicThread() {
     rectified = false;
 }
 
-mosaicThread::mosaicThread(string _robot, string _configFile) {
+mosaicThread::mosaicThread(string _robot, string _configFile): RateThread(THRATE) {
     //initialisation of variables
     countMemory = 0;
     elevation = 0.0;
@@ -317,7 +319,11 @@ void mosaicThread::setMosaicDim(int w, int h) {
     height = h;
     //default position of input image's center
     xcoord = floor(height / 2);
-    ycoord = floor(width / 2);    
+    ycoord = floor(width / 2);   
+    
+    memoryLocation = new int[w*h];
+    outputImageMosaic->resize(width,height);
+    outputImageMosaic->zero();
 }
 
 void mosaicThread::resize(int width_orig,int height_orig) {        
@@ -415,6 +421,12 @@ bool mosaicThread::setMosaicSize(int width = DEFAULT_WIDTH, int height = DEFAULT
     this->width = width;
     this->height = height;
 
+    printf("initialisation of the memoryLocation pointer \n");
+    memoryLocation = new int[width * height];
+    for (int j=0; j < width*height; j++) {
+        memoryLocation[j] = 0;
+    }
+
     //extraction the projection for the cyclopic plane
     double cx = width / 2; 
     double cy = height / 2; 
@@ -442,11 +454,11 @@ bool mosaicThread::setMosaicSize(int width = DEFAULT_WIDTH, int height = DEFAULT
 void mosaicThread::run() {
     printf("Initialization of the run function %d %d .... \n", width, height);
     count++;
-    outputImageMosaic->resize(width,height);
-    outputImageMosaic->zero();
-    
-    while (isStopping() != true)  {                
 
+    
+    //while (isStopping() != true)  {                
+
+        /*
         inputImageLeft = imagePortInLeft.read(false); // do not wait                          
 
         if (inputImageLeft != NULL ) {
@@ -470,34 +482,33 @@ void mosaicThread::run() {
                 portionPort.write();
             }
         }
+        */
 
         //----------------------------------------------------------------
 
         inputMonoLeft = imageMonoInLeft.read(false); // do not wait                          
-
+        //printf("Mono image passed \n");
         if (inputMonoLeft != NULL ) {    
-            printf("Found MONO image \n");
+            printf("Found MONO image, resizing \n");
             if(!resized) {
                 resizeMono(inputMonoLeft->width(),inputMonoLeft->height());
                 resized = true;
             }
                            
-            makeMosaic(inputMonoLeft, inputMonoLeft); 
-            
-            if(imagePortOut.getOutputCount()) {
-                imagePortOut.prepare() = *outputImageMosaic;
-                imagePortOut.write();
-            }
-            if(portionPort.getOutputCount()) {
-                ImageOf<PixelRgb>& portionImage = portionPort.prepare();
-                portionImage.resize(320,240);
-                fetchPortion(&portionImage);
-                portionPort.write();
-            }
+            makeMosaic(inputMonoLeft, inputMonoLeft);    
+        } 
+        
+        if(imagePortOut.getOutputCount()) {
+            imagePortOut.prepare() = *outputImageMosaic;
+            imagePortOut.write();
         }
-                      
-    }
-    
+        if(portionPort.getOutputCount()) {
+            ImageOf<PixelRgb>& portionImage = portionPort.prepare();
+            portionImage.resize(320,240);
+            fetchPortion(&portionImage);
+            portionPort.write();
+        } 
+       
 }
 
 
@@ -1099,14 +1110,20 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         double dimensionX = c1[1].x - c1[0].x;              
     }
 
-    double distancey = fp[1] - prec[1];
-    //Vector angles = eye->getAng();
-    Vector x(3), o(4);
-    //igaze->getLeftEyePose(x,o);
-    igaze->getAngles(x);
+   
+    
+    //double distancey = fp[1] - prec[1];
+     Vector x(3);
+     Vector o(4);
+    
+
+     igaze->getAngles(x);
+     printf("before iGaze \n");
     //printf("angles %f, %f, %f, %f, %f, %f, %f, %f \n", angles[0], angles[1], angles[2], angles[3], angles[4], angles[5], angles[6],  angles[7] );
-    //printf("o %f %f %f \n",o[0],o[1],o[2]);
+    
+//printf("o %f %f %f \n",o[0],o[1],o[2]);
     //printf("distancey %f   ",distancey);
+    
     //calculating the shift in pixels
     double focalLenght = 200;
     double distance = z;
@@ -1115,7 +1132,9 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
     
     // making the mosaic
     int i,j;
+    printf("extracting the features of the image \n");
     
+
     unsigned char* outTemp = outputImageMosaic->getRawImage();
     unsigned char* lineOutTemp;
     int iW = iImageLeft->width();
@@ -1123,6 +1142,9 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
     int mPad = outputImageMosaic->getPadding();
     int inputPadding = iImageLeft->getPadding();
     int rowSize = outputImageMosaic->getRowSize();   
+    
+
+    printf("extracted the features of the image \n");
     
     if(rectified) {
         CvMat* mmat = cvCreateMat(3,3,CV_32FC1);
@@ -1220,26 +1242,33 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
     //int dimWarpX = max(c1[1].x, c1[3].x) - min(c1[0].x,c1[2].x);
     //int dimWarpY = max(c1[2].y, c1[3].y) - min(c1[0].y,c1[1].y);    
     //printf("%f %f %f %f", c1[0].x,c1[1].x,c1[2].x,c1[3].x);
-    //printf("%f %f %f %f", c1[0].y,c1[1].y,c1[2].y,c1[3].y);
+    //printf("%f %f %f %f", c1[0].y,c1[1].y,c1 [2].y,c1[3].y);
     //printf("dimWarp: %d %d ", dimWarpX, dimWarpY);
     
     outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + pixelSizeLeft * mosaicX;
-    printf("pixelSize for the left image %d \n", pixelSizeLeft);
+    printf("pixelSize for the left image %d %d %d \n", pixelSizeLeft, iH, iW);
+    int* pMemoryLocation = memoryLocation + (mosaicY * 640 + mosaicX);
 
     for(i = 0 ; i < iH ; ++i) {
         for(j = 0 ; j < iW ; ++j) {
-             
-            *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp);
-            inpTemp++; outTemp++;
+            unsigned char red = *outTemp;
+            unsigned char green = *(outTemp + 1);
+            unsigned char blue  = *(outTemp + 2);
             
-            
-            *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp); 
-            //inpTemp++;
-            outTemp++;
-            
-            *outTemp = (unsigned char) floor(alfa * *outTemp + (1- alfa) * *inpTemp);
-            //inpTemp++;            
-            outTemp++;
+            if((red == 0) && (green == 0) && (blue == 0) && (*inpTemp>50)) {               
+                *outTemp = (unsigned char)  *inpTemp;
+                outTemp++;
+                *outTemp = (unsigned char)  *inpTemp;
+                outTemp++;
+                *outTemp = (unsigned char)  *inpTemp;
+                outTemp++;                 
+            }
+            else {
+                outTemp += 3;
+            }
+           
+            pMemoryLocation++;
+            inpTemp++;
         }
         inpTemp      += inputPadding;
         outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);

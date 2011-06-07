@@ -44,12 +44,13 @@
 #define MAX_HEIGHT 480
 
 
-class mosaicThread : public yarp::os::Thread {
+class mosaicThread : public yarp::os::RateThread {
 private:
     int width_orig, height_orig;    // dimension of the input image (original)
     int width, height;              // dimension of the mosaic image 
     int xcoord, ycoord;             // position of input image's center in mosaic reference frame
     int xcoordRight, ycoordRight;   // position of input image's center in mosaic reference frame
+    int* memoryLocation;            // pionter to the memory unit
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
     float* memory;                  // memory of plotted location in the space
