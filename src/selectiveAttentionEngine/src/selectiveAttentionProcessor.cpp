@@ -284,6 +284,7 @@ bool selectiveAttentionProcessor::threadInit(){
     feedbackPort.open(getName("/feedback:o").c_str());
     imageCartOut.open(getName("/cartesian:o").c_str());
     thImagePort.open(getName("/wta:o").c_str());
+    portionRequestPort.open(getName("/portionRequest:o").c_str());
 
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
@@ -1144,6 +1145,7 @@ void selectiveAttentionProcessor::interrupt(){
     inhiPort.interrupt();
     motionPort.interrupt();
     
+    portionRequestPort.interrupt();
     linearCombinationPort.interrupt();
     centroidPort.interrupt();
     outputCmdPort.interrupt();
@@ -1181,7 +1183,8 @@ void selectiveAttentionProcessor::threadRelease(){
     thImagePort.close();
     imageCartOut.close();
     vergenceCmdPort.close();
-    
+    portionRequestPort.close();
+
     delete clientGazeCtrl;
 }
 
