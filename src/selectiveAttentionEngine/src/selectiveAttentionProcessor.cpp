@@ -516,7 +516,19 @@ void selectiveAttentionProcessor::run(){
                 idle=false;
             }
         }
-        if(inhiCartPort.getInputCount()) {
+        if((inhiCartPort.getInputCount())&&(portionRequestPort.getOutputCount())) {
+            //send information about the portion
+            double azimuth   =  10.0;
+            double elevation = -10.0;
+            Bottle* sent =new Bottle();
+            Bottle* received;    
+            sent->clear();
+            sent->addString("fetch");
+            sent->addDouble(azimuth);
+            sent->addDouble(elevation);
+            portionRequestPort.write(*sent, *received);
+
+
             tmp = inhiCartPort.read(false);
             if(tmp!= 0) {
                 copy_8u_C1R(tmp,inhicart_yarp);
@@ -613,7 +625,10 @@ void selectiveAttentionProcessor::run(){
             for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
                 for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
                     double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
-                    combinValue = combinValue - (double) *pinhicart;
+                    combinValue = combinValue - (double) (*pinhicart * 0.5);
+                    if(combinValue < 0) {
+                        combinValue = 0;
+                    }
                     unsigned char value = (unsigned char) ceil(combinValue);
                     //unsigned char value=*pInter;
                     *pImage = value;
@@ -696,6 +711,9 @@ void selectiveAttentionProcessor::run(){
             for(int i = 0; i < xSizeValue; i++) {
                 *pImage = 255; pImage++; *pImage = 0; pImage++; *pImage = 0; pImage++;
             }
+            
+            
+            /*
             //representing the depressing gaussian
             unsigned char* pThres = threshCartImage.getRawImage();
             int paddingThresh = threshCartImage.getPadding();
@@ -754,6 +772,8 @@ void selectiveAttentionProcessor::run(){
                 }
                 pThres += rowsizeThresh - (dx + 1) ;
             }
+            */
+            
             //controlling the heading of the robot
             endInt=Time::now();
             double diff=endInt - startInt;
