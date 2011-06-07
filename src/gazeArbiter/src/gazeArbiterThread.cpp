@@ -301,18 +301,76 @@ bool gazeArbiterThread::threadInit() {
     firstConsistencyCheck=true;
 
     inhibitionImage = new ImageOf<PixelMono>;
-    inhibitionImage->resize(252,152);
+    inhibitionImage->resize(320,240);
+    inhibitionImage->zero();
     unsigned char* pinhi = inhibitionImage->getRawImage();
     int padding = inhibitionImage->getPadding();
-    for(int y = 0; y < 320; y++) {
-        for(int x = 0;x < 240; x++) {
-            if((x>160-20)&&(x<160+20)&&(y>120-20)&&(y<120+20))
-                *pinhi++ = (unsigned char) 255;
-            else
-                *pinhi++ = (unsigned char) 0;
+    int rowsizeInhi = inhibitionImage->getRowSize();
+    int ym = 240>>1;
+    int xm = 320>>1;
+    //calculating the peek value
+    int dx = 50.0;
+    int dy = 50.0;
+    double sx = (dx / 2) / 3 ; //0.99 percentile
+    double sy = (dy / 2) / 3 ;
+    double vx = 10; //sx * sx; // variance          
+    double vy = 10; //sy * sy;
+    
+    double rho = 0;
+    
+    double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+    double b = -0.5 /(1 - rho * rho);
+    double k = 1 / (a * exp (b));      
+    
+    double f, e, d, z = 1;            
+    
+    double zmax = 0;
+    pinhi +=   ((int)(ym-(dy>>1))) * rowsizeInhi + ((int)(xm-(dx>>1)));
+    //for the whole blob in this loop
+    for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
+        for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
+            
+            if((c == xm)&&(r == ym)) { 
+                //z = a * exp (b);
+                //z = z * k;
+                z = 1;
+            }
+            else {    
+                f = ((c - xm) * (c - xm)) /(vx * vx);
+                d = ((r - ym)  * (r - ym)) /(vy * vy);
+                //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
+                e = 0;
+                z = a * exp ( b * (f + d - e) );
+                z = z * k;
+                z = (1 / 1.638575) * z;
+                //z = 0.5;
+            }
+            
+            // restrincting the z gain between two thresholds
+            if (z > 1) {
+                z = 1;
+            }
+            //if (z < 0.3) {
+            //    z = 0.3;
+            //}
+            
+            
+            //set the image 
+            *pinhi++ = 255 * z;                    
         }
-        pinhi += padding;
+        pinhi += rowsizeInhi - (dx + 1) ;
     }
+
+
+    //for(int y = 0; y < 240; y++) {
+    //    for(int x = 0;x < 320; x++) {
+    //        if((x > 160-20) && (x < 160+20) && (y > 120-20) && (y<120+20))
+    //            *pinhi++ = (unsigned char) 255;
+    //        else
+    //            *pinhi++ = (unsigned char) 0;
+    //   }
+    //    pinhi += padding;
+    //}
     
     return true;
 }
@@ -696,11 +754,12 @@ void gazeArbiterThread::run() {
                     status.clear();
                     status.addString("vergence_accomplished");
                     statusPort.write();
-                    printf(" sending location after accomplished vergence!!!!!!!!!!! \n");
+                    printf(" sending location \n");
                     accomplished_flag = true;
                     
 
                     //sending an image for inhibition of return 
+                    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>sending IMAGE after accomplished vergence!!!!!!!!!!! \n");
                     inhibitionPort.prepare() = *inhibitionImage;
                     inhibitionPort.write();
 
