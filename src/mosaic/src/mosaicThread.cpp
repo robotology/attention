@@ -105,6 +105,7 @@ mosaicThread::mosaicThread(): RateThread(THRATE) {
     azimuth = 0.0;
     elevation = 0.0;
     rectified = false;
+    forgettingFactor = false;
 }
 
 mosaicThread::mosaicThread(string _robot, string _configFile): RateThread(THRATE) {
@@ -116,6 +117,7 @@ mosaicThread::mosaicThread(string _robot, string _configFile): RateThread(THRATE
     configFile = _configFile;
     resized = false;
     rectified = false;
+    forgettingFactor = false;
     //allocating memory
     outputImageMosaic = new ImageOf<PixelRgb>;
     
@@ -399,7 +401,7 @@ void mosaicThread::fetchPortion(ImageOf<PixelRgb> *image) {
     int mosaicPadding = outputImageMosaic->getPadding();
     int portionPadding = image->getPadding();
 
-    printf("fetching focal lenght  %f %f \n", fxl, fyl);
+    //printf("fetching focal lenght  %f %f \n", fxl, fyl);
     ycoord = 320 + shiftx ;
     xcoord = 240 + shifty;
     mosaicX = ycoord - 160 ;
@@ -1279,23 +1281,55 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
             unsigned char green = *(outTemp + 1);
             unsigned char blue  = *(outTemp + 2);
             
-            if((red == 0) && (green == 0) && (blue == 0) && (*inpTemp>50) ) {               //
-                *outTemp = (unsigned char)  *inpTemp;
-                outTemp++;
-                *outTemp = (unsigned char)  *inpTemp;
-                outTemp++;
-                *outTemp = (unsigned char)  *inpTemp;
-                outTemp++;                 
+            if((red <= 20) && (green <= 20) && (blue <= 20)) {           
+                if(*inpTemp > 0) {
+                    unsigned char value = (unsigned char) *inpTemp;
+                    *outTemp = value;
+                    outTemp++;
+                    *outTemp = value;
+                    outTemp++;
+                    *outTemp = value;
+                    outTemp++;        
+                }
+                else {
+                    *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; 
+                }
             }
             else {
-                outTemp += 3;
-            }
-           
+                //*outTemp = 0; outTemp++; *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; 
+                outTemp += 3;   
+            }           
             pMemoryLocation++;
             inpTemp++;
         }
         inpTemp      += inputPadding;
         outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
+    }
+    
+    if(forgettingFactor) {
+        outTemp = outputImageMosaic->getRawImage();
+        int paddingOut = outputImageMosaic->getPadding();
+        for(i = 0 ; i < 640 ; ++i) {
+            for(j = 0 ; j < 480 ; ++j) {
+                unsigned char red = *outTemp;
+                unsigned char green = *(outTemp + 1);
+                unsigned char blue  = *(outTemp + 2);
+                
+                if((red > 10) && (green > 10) && (blue > 10) ) {               
+                    
+                    *outTemp = (unsigned char)  red - 10;
+                    outTemp++;
+                    *outTemp = (unsigned char)  red - 10;
+                    outTemp++;
+                    *outTemp = (unsigned char)  red - 10;
+                    outTemp++;                 
+                }
+                else {
+                    outTemp += 3;                   
+                }
+            }
+            outTemp      += paddingOut;
+        }
     }
     
     

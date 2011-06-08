@@ -343,7 +343,7 @@ bool gazeArbiterThread::threadInit() {
                 z = a * exp ( b * (f + d - e) );
                 z = z * k;
                 if(z>zmax) zmax=z;
-                z = (1 / 1.2) * z;
+                z = (1 / 1.645062) * z;
                 //z = 0.5;
             }
             
@@ -362,7 +362,7 @@ bool gazeArbiterThread::threadInit() {
         pinhi += rowsizeInhi - (dx + 1) ;
     }
 
-    printf("zmax = %f", zmax);
+    printf("zmax = %f \n", zmax);
 
     //pinhi = inhibitionImage->getRawImage();
     //*pinhi = 255;

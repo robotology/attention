@@ -94,7 +94,7 @@ private:
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
     bool rectified;         // flag set whenever the rectification is required
-    
+    bool forgettingFactor;  // flag that allows reduction of the inhibition in time
 public:
     /**
     * constructor default
