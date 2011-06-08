@@ -296,7 +296,7 @@ bool gazeArbiterThread::threadInit() {
     blobDatabasePort.open(rootNameDatabase.c_str());
     string rootNameInhibition("");rootNameInhibition.append(getName("/inhibition:o"));
     inhibitionPort.open(rootNameInhibition.c_str());
-    //inLeftPort.open(getName("/matchTracker/img:i").c_str());
+    inLeftPort.open(getName("/gazeArbiter/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
     firstConsistencyCheck=true;
 
@@ -309,12 +309,12 @@ bool gazeArbiterThread::threadInit() {
     int ym = 240>>1;
     int xm = 320>>1;
     //calculating the peek value
-    int dx = 50.0;
-    int dy = 50.0;
+    int dx = 80.0;
+    int dy = 80.0;
     double sx = (dx / 2) / 3 ; //0.99 percentile
     double sy = (dy / 2) / 3 ;
-    double vx = 10; //sx * sx; // variance          
-    double vy = 10; //sy * sy;
+    double vx = 15; //sx * sx; // variance          
+    double vy = 15; //sy * sy;
     
     double rho = 0;
     
@@ -342,7 +342,8 @@ bool gazeArbiterThread::threadInit() {
                 e = 0;
                 z = a * exp ( b * (f + d - e) );
                 z = z * k;
-                z = (1 / 1.638575) * z;
+                if(z>zmax) zmax=z;
+                z = (1 / 1.2) * z;
                 //z = 0.5;
             }
             
@@ -360,6 +361,17 @@ bool gazeArbiterThread::threadInit() {
         }
         pinhi += rowsizeInhi - (dx + 1) ;
     }
+
+    printf("zmax = %f", zmax);
+
+    //pinhi = inhibitionImage->getRawImage();
+    //*pinhi = 255;
+    //pinhi += rowsizeInhi - 1;
+    //*pinhi = 255;
+    //pinhi += 1 + rowsizeInhi * 230;
+    //*pinhi = 255;
+    //pinhi += rowsizeInhi - 1;
+    //*pinhi = 255;
 
 
     //for(int y = 0; y < 240; y++) {
@@ -436,6 +448,12 @@ void gazeArbiterThread::run() {
         allowedTransitions = orVector(allowedTransitions ,c );
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0;
     }
+
+    if(inLeftPort.getInputCount()){
+       imgLeftIn = inLeftPort.read(false);
+    }
+    
+    
     //mutex.post();
     //double end = Time::now();
     //double interval = end - start;
@@ -760,6 +778,82 @@ void gazeArbiterThread::run() {
 
                     //sending an image for inhibition of return 
                     printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>sending IMAGE after accomplished vergence!!!!!!!!!!! \n");
+                    if(imgLeftIn!=NULL){
+                        unsigned char* pinhi = inhibitionImage->getRawImage();
+                        inhibitionImage->resize(320,240);
+                        inhibitionImage->zero();
+                        int padding = inhibitionImage->getPadding();
+                        int rowsizeInhi = inhibitionImage->getRowSize();
+                        int ym = 240>>1;
+                        int xm = 320>>1;
+                        //calculating the peek value
+                        int dx = 50.0;
+                        int dy = 50.0;
+                        double sx = (dx / 2) / 3 ; //0.99 percentile
+                        double sy = (dy / 2) / 3 ;
+                        double vx = 10; //sx * sx; // variance          
+                        double vy = 10; //sy * sy;
+                        
+                        double rho = 0;
+                        
+                        double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+                        double b = -0.5 /(1 - rho * rho);
+                        double k = 1 / (a * exp (b));      
+                        
+                        double f, e, d, z = 1;            
+                        
+                        double zmax = 0;
+                        pinhi +=   ((int)(ym-(dy>>1))) * rowsizeInhi + ((int)(xm-(dx>>1)));
+                        //for the whole blob in this loop
+                        for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
+                            for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
+                                
+                                if((c == xm)&&(r == ym)) { 
+                                    //z = a * exp (b);
+                                    //z = z * k;
+                                    z = 1;
+                                }
+                                else {    
+                                    f = ((c - xm) * (c - xm)) /(vx * vx);
+                                    d = ((r - ym)  * (r - ym)) /(vy * vy);
+                                    //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
+                                    e = 0;
+                                    z = a * exp ( b * (f + d - e) );
+                                    z = z * k;
+                                    z = (1 / 1.638575) * z;
+                                    //z = 0.5;
+                                }
+                                
+                                // restrincting the z gain between two thresholds
+                                if (z > 1) {
+                                    z = 1;
+                                }
+                                //if (z < 0.3) {
+                                //    z = 0.3;
+                                //}
+                                
+                                
+                                //set the image 
+                                *pinhi++ = 255 * z;                    
+                            }
+                            pinhi += rowsizeInhi - (dx + 1) ;
+                        }
+                        
+                        pinhi = inhibitionImage->getRawImage();
+                        unsigned char* pinLeft = imgLeftIn->getRawImage();
+                        //int padding  = inhibitionImage->getPadding();
+                        int padding3 = imgLeftIn->getPadding(); 
+                        for ( int row = 0 ; row < 240; row++) { 
+                            for (int cols = 0; cols< 320; cols++) {
+                                *pinhi = (unsigned char) floor(0.85 * *pinLeft + 0.15 * *pinhi);  //red
+                                //*portion++ = *mosaic++;  //green
+                                //*portion++ = *mosaic++;  //blue
+                                pinhi++; pinLeft+=3;
+                            }
+                            pinhi += padding;
+                            pinLeft += padding3;
+                        }
+                    }
                     inhibitionPort.prepare() = *inhibitionImage;
                     inhibitionPort.write();
 

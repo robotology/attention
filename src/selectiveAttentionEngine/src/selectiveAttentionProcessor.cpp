@@ -399,6 +399,8 @@ void selectiveAttentionProcessor::run(){
         }
         
         
+        
+        
         //--read value from the preattentive level
         if(feedbackPort.getOutputCount()){
             /*
@@ -517,25 +519,7 @@ void selectiveAttentionProcessor::run(){
                 idle=false;
             }
         }
-        if((inhiCartPort.getInputCount())&&(portionRequestPort.getOutputCount())) {
-            //send information about the portion
-            double azimuth   =  10.0;
-            double elevation = -10.0;
-            Bottle* sent =new Bottle();
-            Bottle* received;    
-            sent->clear();
-            sent->addString("fetch");
-            sent->addDouble(azimuth);
-            sent->addDouble(elevation);
-            portionRequestPort.write(*sent, *received);
-
-
-            tmp = inhiCartPort.read(false);
-            if(tmp!= 0) {
-                copy_8u_C1R(tmp,inhicart_yarp);
-                idle=false;
-            }
-        }
+        
 
         //2. processing of the input images
         unsigned char* pmap1 = map1_yarp->getRawImage();
@@ -606,6 +590,33 @@ void selectiveAttentionProcessor::run(){
             threshCartImage.resize(outputXSize,outputYSize);
             threshCartImage.zero();
             trsf.logpolarToCart(*intermCartOut,*inputLogImage);
+
+            //code for preparing the inhibition of return 
+            if((inhiCartPort.getInputCount())&&(portionRequestPort.getOutputCount())) {
+                //send information about the portion
+                //double azimuth   =  10.0;
+                //double elevation = -10.0;
+                Vector angles(3);
+                bool b = igaze->getAngles(angles);
+                //printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
+                Bottle* sent = new Bottle();
+                Bottle* received = new Bottle();    
+                sent->clear();
+                sent->addString("fetch");
+                sent->addDouble(angles[0]);
+                sent->addDouble(angles[1]);
+                portionRequestPort.write(*sent, *received);
+            }
+            Time::delay(0.05);
+            if(inhiCartPort.getInputCount()) {            
+                tmp = inhiCartPort.read(false);
+                if(tmp!= 0) {
+                    copy_8u_C1R(tmp,inhicart_yarp);
+                    idle=false;
+                }
+            }
+
+
             //find the max in the cartesian image and downsample
             maxValue=0;
             float xm=0,ym=0;
@@ -626,27 +637,44 @@ void selectiveAttentionProcessor::run(){
             for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
                 for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
                     double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
-                    combinValue = combinValue - (double) (*pinhicart * 0.5);
+                    if(*pinhicart > 10) {
+                        combinValue = 0;
+                    }
+                    
                     if(combinValue < 0) {
                         combinValue = 0;
                     }
                     unsigned char value = (unsigned char) ceil(combinValue);
                     //unsigned char value=*pInter;
-                    *pImage = value;
-                    if(*pImage == 255) {
+                    if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
+                        *pImage = 0;
+                    }
+                    else {
+                        *pImage = value;
+                    }
+                    if(value == 255) {
                         maxResponse = true;
                         xm = (float) x; ym = (float) y;
                         startInt = 0;      // forces the immediate saccade to the very salient object
                         break;
                     }
-                    if(maxValue < *pImage) {
-                        maxValue = *pImage;                 
+                    if(maxValue < value) {
+                        maxValue = value;                 
                     }
-                    pImage++; pInter++;
-                    *pImage = value;
-                    pImage++; pInter++;
-                    *pImage = value;
-                    pImage++; pInter++;
+                    if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
+                       pImage++; pInter++;
+                        *pImage = 255;
+                        pImage++; pInter++;
+                        *pImage = 0;
+                        pImage++; pInter++; 
+                    }
+                    else {
+                        pImage++; pInter++;
+                        *pImage = value;
+                        pImage++; pInter++;
+                        *pImage = value;
+                        pImage++; pInter++;
+                    }
                     pcart1++;
                     pmotion++;
                     pinhicart++;

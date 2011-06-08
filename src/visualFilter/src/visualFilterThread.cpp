@@ -394,7 +394,7 @@ void visualFilterThread::edgesExtract() {
             double by = *blueYellowH16s * *blueYellowH16s + *blueYellowV16s * *blueYellowV16s;
             double value;
             if (row < height_orig - 2) {
-                value = (sqrt(max<double> (rg* (255.0 / 864), gr* (255.0 / 864), by* (255.0 / 864)))); //normalised with theoric max-response 1448.16, 362.03
+                value = (sqrt(max<double> (rg * (255.0 / 1024), gr * (255.0 / 1024), by * (255.0 / 1024)))); //normalised with theoric max-response 1448.16, 362.03
             }
             else {
                 value = 0;

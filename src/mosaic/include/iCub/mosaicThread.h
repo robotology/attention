@@ -89,7 +89,7 @@ private:
     yarp::sig::Matrix *eyeHL, *eyeHR;                                // rototranslation matrix for the considered eye
     yarp::sig::Matrix *eyeH0;
     yarp::sig::Matrix *inveyeH0;
-    float cxl, cyl, fxl, fyl, cxr, cyr, fxr, fyr;
+    double cxl, cyl, fxl, fyl, cxr, cyr, fxr, fyr;
     int count;
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized

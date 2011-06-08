@@ -33,6 +33,8 @@
 #define LEFT_EYE 0
 #define RIGHT_EYE 1
 #define THRATE 100
+#define RATIOX 3
+#define BIASX 0
 
 using namespace yarp::dev;
 using namespace yarp::os;
@@ -387,16 +389,26 @@ void mosaicThread::setFetchPortion(float a, float e) {
 void mosaicThread::fetchPortion(ImageOf<PixelRgb> *image) {
     //printf("trying to fetch a particular position on the mosaic %f %f \n", azimuth, elevation);
     //determine the shift based on the focal length
-
-    int shiftx =(int) floor(  fxl  * ((azimuth   * 3.14) / 180));
-    int shifty =(int) floor( -fyl  * ((elevation * 3.14) / 180));
+    int mosaicX, mosaicY;
+    int shiftx =(int) floor( fxl   * 1.0  * tan(((azimuth + BIASX)  * 3.14) / 180));
+    int shifty =(int) floor( -fyl  * 1.0 *    tan((elevation * 3.14) / 180));
     
     unsigned char* mosaic = outputImageMosaic->getRawImage();
     unsigned char* portion =  image->getRawImage();
     int mosaicRowSize = outputImageMosaic->getRowSize();
     int mosaicPadding = outputImageMosaic->getPadding();
     int portionPadding = image->getPadding();
-    mosaic += shiftx * 3 + shifty * mosaicRowSize; // + (width>>1) * 3 + (height>>1) * mosaicRowSize;
+
+    printf("fetching focal lenght  %f %f \n", fxl, fyl);
+    ycoord = 320 + shiftx ;
+    xcoord = 240 + shifty;
+    mosaicX = ycoord - 160 ;
+    //mosaicX -= floor(height_orig / 2);
+    mosaicY = xcoord - 120;
+    //mosaicY -= floor(width_orig / 2);
+    
+    
+    mosaic += mosaicX * 3 +  mosaicY * mosaicRowSize; // + (width>>1) * 3 + (height>>1) * mosaicRowSize;
     //printf("height_orig width_orig %d %d mosaicRowSize %d \n", height_orig, width_orig,mosaicRowSize );
     for ( int row = 0 ; row < height_orig; row++) { 
         for (int cols = 0; cols< width_orig; cols++) {
@@ -407,6 +419,7 @@ void mosaicThread::fetchPortion(ImageOf<PixelRgb> *image) {
         portion += portionPadding;
         mosaic  += mosaicRowSize - width_orig * 3;
     }
+   
 }
 
 bool mosaicThread::setMosaicSize(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT) {
@@ -458,19 +471,18 @@ void mosaicThread::run() {
     
     //while (isStopping() != true)  {                
 
-        /*
+    
         inputImageLeft = imagePortInLeft.read(false); // do not wait                          
-
         if (inputImageLeft != NULL ) {
             printf("found RGB image \n");
             if(!resized) {
                 resize(inputImageLeft->width(),inputImageLeft->height());
                 resized = true;
             }
-            if(imagePortInRight.getInputCount()) {
-                inputImageRight = imagePortInRight.read(false);                
-                makeMosaic(inputImageLeft, inputImageRight); 
-            }
+            
+            //inputImageRight = imagePortInRight.read(false);                
+            makeMosaic(inputImageLeft, inputImageLeft); 
+            
             if(imagePortOut.getOutputCount()) {
                 imagePortOut.prepare() = *outputImageMosaic;
                 imagePortOut.write();
@@ -482,10 +494,12 @@ void mosaicThread::run() {
                 portionPort.write();
             }
         }
-        */
+    
+        
 
         //----------------------------------------------------------------
 
+        
         inputMonoLeft = imageMonoInLeft.read(false); // do not wait                          
         //printf("Mono image passed \n");
         if (inputMonoLeft != NULL ) {    
@@ -508,6 +522,7 @@ void mosaicThread::run() {
             fetchPortion(&portionImage);
             portionPort.write();
         } 
+        
        
 }
 
@@ -704,7 +719,10 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelRgb>* inputImageLeft, Imag
         double dimensionX = c1[1].x - c1[0].x;              
     }
 
-    double distancey = fp[1] - prec[1];
+
+    printf("out of the point project \n");
+    
+    // double distancey = fp[1] - prec[1];
     //Vector angles = eye->getAng();
     Vector x(3), o(4);
     //igaze->getLeftEyePose(x,o);
@@ -717,17 +735,21 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelRgb>* inputImageLeft, Imag
     double distance = z;
     double baseline = 0.068;
     
-    
+    printf("before getting raw image\n");
+
     // making the mosaic
     int i,j;
     
     unsigned char* outTemp = outputImageMosaic->getRawImage();
     unsigned char* lineOutTemp;
+    printf("getting raw image\n");
     int iW = inputImageLeft->width();
     int iH = inputImageLeft->height();
     int mPad = outputImageMosaic->getPadding();
     int inputPadding = inputImageLeft->getPadding();
     int rowSize = outputImageMosaic->getRowSize();   
+
+    printf("before rectification \n");
     
     if(rectified) {
         CvMat* mmat = cvCreateMat(3,3,CV_32FC1);
@@ -791,6 +813,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelRgb>* inputImageLeft, Imag
     }
 
     
+    printf("before  shifts \n");
     
     unsigned char* inpTemp = warpImLeft->getRawImage();     
     int inpRowsize = warpImLeft->getRowSize();
@@ -801,21 +824,20 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelRgb>* inputImageLeft, Imag
     int mosaicX, mosaicY;
     int mosaicXRight, mosaicYRight;
     shift_prev = shiftx;
-    shiftx =  fxl * 1.0  * ((x[0] * 3.14) / 180);
-    shifty =  -fyl * 1.0  * ((x[1] * 3.14) / 180);
+    shiftx =  fxl * 1.0  * tan((x[0] * 3.14) / 180);
+    shifty =  -fyl * 1.0  * tan((x[1] * 3.14) / 180);
     shiftxRight = fxr * 1.0 * ((x[0] * 3.14) / 180);
     shiftyRight = -fyr * 1.0 * ((x[1] * 3.14) / 180);
     printf(" shiftx %f shifty %f  shiftx %f shifty %f  \n",shiftx,shifty, shiftxRight,shiftyRight);        
         
-    ycoord = shiftx + floor(width / 2);
-    xcoord = shifty + floor(height / 2);
+    ycoord = shiftx + 320;
+    xcoord = shifty + 240;
     ycoordRight = shiftxRight + floor(width / 2);
     xcoordRight = shiftyRight + floor(height / 2);
 
-    mosaicX = ycoord ;
-    mosaicX -= floor(iH / 2);
-    mosaicY = xcoord;
-    mosaicY -= floor(iW / 2);
+    mosaicX = ycoord - 160 ;   
+    mosaicY = xcoord - 120 ;
+
     mosaicXRight = ycoordRight ;
     mosaicXRight -= floor(iH / 2);
     mosaicYRight = xcoordRight ;
@@ -829,7 +851,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelRgb>* inputImageLeft, Imag
     //printf("dimWarp: %d %d ", dimWarpX, dimWarpY);
     
     outTemp = lineOutTemp = outTemp + mosaicY * (rowSize + mPad) + pixelSizeLeft * mosaicX;
-    printf("pixelSize for the left image %d \n", pixelSizeLeft);
+    printf("pixelSize for the left image %d %d %d \n", pixelSizeLeft, iH , iW);
 
     for(i = 0 ; i < iH ; ++i) {
         for(j = 0 ; j < iW ; ++j) {
@@ -851,6 +873,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelRgb>* inputImageLeft, Imag
         outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
     }
     
+    printf("end of copy \n");
     
     /*
     if(warpImRight!=NULL) {
@@ -1152,7 +1175,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         
         float azimuth = ((x[0] * 3.14) / 180);
         float elevation = ((x[1] * 3.14) / 180);
-        printf("angles %f %f",azimuth , elevation);
+        //printf("angles %f %f",azimuth , elevation);
         
         c1[0].x = c1[0].x * 0.6; 
         c1[0].y = c1[0].y * 0.6;//  - (dimensionX-50)  * 0.1;
@@ -1218,21 +1241,22 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
     int mosaicX, mosaicY;
     int mosaicXRight, mosaicYRight;
     shift_prev = shiftx;
-    shiftx =  fxl * 1.0  * ((x[0] * 3.14) / 180);
-    shifty =  -fyl * 1.0  * ((x[1] * 3.14) / 180);
-    shiftxRight = fxr * 1.0 * ((x[0] * 3.14) / 180);
+    shiftx =  (int) floor(  fxl * RATIOX  * tan(((x[0] + BIASX) * 3.14) / 180));
+    shifty =  (int) floor( -fyl * 1.0  *    tan((x[1] * 3.14) / 180));
+    
+    shiftxRight =  fxr * 1.0 * ((x[0] * 3.14) / 180);
     shiftyRight = -fyr * 1.0 * ((x[1] * 3.14) / 180);
-    printf(" shiftx %f shifty %f  shiftx %f shifty %f  \n",shiftx,shifty, shiftxRight,shiftyRight);        
+    printf(" ---------------------------------------x[0] %f  x[1] %f----- shiftx %f shifty %f  fxl %f fyl %f  \n",x[0],x[1],shiftx,shifty, fxl,fyl);        
         
-    ycoord = shiftx + floor(width / 2);
-    xcoord = shifty + floor(height / 2);
+    ycoord = shiftx + 320 + 320;
+    xcoord = shifty + 240;
     ycoordRight = shiftxRight + floor(width / 2);
     xcoordRight = shiftyRight + floor(height / 2);
 
-    mosaicX = ycoord ;
-    mosaicX -= floor(iH / 2);
-    mosaicY = xcoord;
-    mosaicY -= floor(iW / 2);
+    mosaicX = ycoord - 160 ;
+    //mosaicX -= floor(iH / 2);
+    mosaicY = xcoord - 120;
+    //mosaicY -= floor(iW / 2);
     mosaicXRight = ycoordRight ;
     mosaicXRight -= floor(iH / 2);
     mosaicYRight = xcoordRight ;
@@ -1255,7 +1279,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
             unsigned char green = *(outTemp + 1);
             unsigned char blue  = *(outTemp + 2);
             
-            if((red == 0) && (green == 0) && (blue == 0) && (*inpTemp>50)) {               
+            if((red == 0) && (green == 0) && (blue == 0) && (*inpTemp>50) ) {               //
                 *outTemp = (unsigned char)  *inpTemp;
                 outTemp++;
                 *outTemp = (unsigned char)  *inpTemp;

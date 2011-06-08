@@ -136,15 +136,16 @@
  * 
  * \section portsc_sec Ports Created
  * Input ports:
- * - map1:i : image coming from the 1st saliency map
- * - map2:i : image coming from the 2nd saliency map
- * - map3:i : image coming from the 3rd saliency map
- * - map4:i : image coming from the 4th saliency map
- * - map5:i : image coming from the 5th saliency map
- * - map6:i : image coming from the 6th saliency map
- * - motion:i : cartesian input image of the flow motion
- * - cart:i : cartesian input image in the saliency
- * 
+ * - map1:i     : image coming from the 1st saliency map
+ * - map2:i     : image coming from the 2nd saliency map
+ * - map3:i     : image coming from the 3rd saliency map
+ * - map4:i     : image coming from the 4th saliency map
+ * - map5:i     : image coming from the 5th saliency map
+ * - map6:i     : image coming from the 6th saliency map
+ * - motion:i   : cartesian input image of the flow motion
+ * - cart:i     : cartesian input image in the saliency
+ * - inhiCart:i : cartesian image for the inhibition of return
+ * - inhi:i     : logpolar image for inhibition of return
  * 
  * Outports:
  * - attention:o :     graphical output of the selected region of interest (winner-take-all)
@@ -156,6 +157,7 @@
  * 
  * InOut ports:
  * -<name>/cmd
+ * - portionRequest     port for asking the correct portion of the mosaic based on the azimuth and elevation
  * 
  * Possible commands that this module is responsive to are:
  * - set def : set the coefficient to the default value
@@ -219,6 +221,7 @@
  * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        @author Rea
  * 08/03/11 : added the new bottle(template) to the communication to the objectProp             @author Rea  
  * 06/06/11 : created a new ouput image composed of a gaussian around the WTA                   @author Rea
+ * 07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              @author Rea
 */
 
 

@@ -205,7 +205,7 @@ bool mosaicModule::respond(const Bottle& command, Bottle& reply)  {
         double azimuth = command.get(1).asDouble();
         double elevation = command.get(2).asDouble();
         
-        printf("azimuth %f elevation %f  \n",azimuth,elevation);
+        //printf("azimuth %f elevation %f  \n",azimuth,elevation);
         mThread->setFetchPortion(azimuth, elevation);
 
         ok = true;

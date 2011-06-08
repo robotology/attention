@@ -14,6 +14,7 @@ add_subdirectory(selAttentionInterface)
 add_subdirectory(salBlobFinderInterface)
 add_subdirectory(visualFeatureExtractor)
 
+add_subdirectory(zdfControl)
 
 if(IPP_FOUND)
     if(IPOPT_FOUND)
