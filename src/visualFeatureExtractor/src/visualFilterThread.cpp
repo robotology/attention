@@ -946,7 +946,31 @@ static float G5[5] = { -0.0545f,
                      };
 
 // these are values for Gabor params 1.2, 128, 0 , 5, theta=0. Imprecise values for now!
-static float Gab7V[7] = { -0.0298,
+static float Gab7V0[7] = { -0.0298,
+                           -0.1703,
+                           -0.4844,
+                           -0.6863,
+                           -0.4844,
+                           -0.1703,
+                           -0.0298
+                        };
+static float Gab7V45[7] = { -0.0298,
+                           -0.1703,
+                           -0.4844,
+                           -0.6863,
+                           -0.4844,
+                           -0.1703,
+                           -0.0298
+                        };
+static float Gab7V90[7] = { -0.0298,
+                           -0.1703,
+                           -0.4844,
+                           -0.6863,
+                           -0.4844,
+                           -0.1703,
+                           -0.0298
+                        };
+static float Gab7VM45[7] = { -0.0298,
                            -0.1703,
                            -0.4844,
                            -0.6863,
@@ -955,7 +979,10 @@ static float Gab7V[7] = { -0.0298,
                            -0.0298
                         };
 
-static float Gab7H[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
+static float Gab7H0[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
+static float Gab7H45[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
+static float Gab7H90[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
+static float Gab7HM45[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
 
 
 template<class T>
@@ -987,6 +1014,11 @@ visualFilterThread::visualFilterThread() {
     upSampleRGyarp      = new ImageOf<PixelMono>;
     upSampleGRyarp      = new ImageOf<PixelMono>;
     upSampleBYyarp      = new ImageOf<PixelMono>;
+
+    gabor0              = new ImageOf<PixelMono>;
+    gabor45             = new ImageOf<PixelMono>;
+    gabor90             = new ImageOf<PixelMono>;
+    gaborM45            = new ImageOf<PixelMono>;
     
     // Let us initialize IplImage pointers to NULL
 
@@ -1055,6 +1087,12 @@ visualFilterThread::~visualFilterThread() {
     delete upSampleRGyarp;
     delete upSampleGRyarp;
     delete upSampleBYyarp;
+
+    delete gabor0;
+    delete gabor45;
+    delete gabor90;
+    delete gaborM45;
+
     printf("Called destructor \n");
     
     
@@ -1091,6 +1129,24 @@ bool visualFilterThread::threadInit() {
     }
     if (!pyImgPort.open(getName("/pyImg:o").c_str())) {
         cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+
+    // Opening ports for gabor-filtered images
+    if (!gaborPort0.open(getName("/gabor0:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!gaborPort45.open(getName("/gabor45:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!gaborPort90.open(getName("/gabor90:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!gaborPortM45.open(getName("/gaborM45:o").c_str())) {
+        cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
@@ -1200,6 +1256,23 @@ void visualFilterThread::run() {
                 pyImgPort.prepare() = *(pyImage);
                 pyImgPort.write();
             }
+
+            if((gabor0 != 0) && (gaborPort0.getOuputCount())) {
+                gaborPort0.prepare() = *(gabor0);
+                gaborPort0.write();
+            }
+            if((gabor45 != 0) && (gaborPort45.getOuputCount())) {
+                gaborPort45.prepare() = *(gabor45);
+                gaborPort45.write();
+            }
+            if((gabor90 != 0) && (gaborPort90.getOuputCount())) {
+                gaborPort90.prepare() = *(gabor90);
+                gaborPort90.write();
+            }
+            if((gaborM45 != 0) && (gaborPortM45.getOuputCount())) {
+                gaborPortM45.prepare() = *(gaborM45);
+                gaborPortM45.write();
+            }
             
         }
    }
@@ -1296,6 +1369,12 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
 
     
     //allocate space for openCV images for Gabor
+
+    cvGabor0 = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
+    cvGabor45 = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
+    cvGabor90 = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
+    cvGaborM45 = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
+
     intensityImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     filteredIntensityImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     filteredIntensityImage1 = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
@@ -1502,8 +1581,8 @@ void visualFilterThread::colourOpponency() {
     }
 
  
-
-    if(redG == NULL || greenR == NULL) return;
+    // Cropping the extended part of these log-polar color opponency maps. LATER: Can be accomodated inside the loop above.
+    
     IplImage* tmpRedGreen=NULL;
     tmpRedGreen = cvCreateImage(cvSize(252,152),IPL_DEPTH_8U, 1 );
     IplImage* tmpGreenRed=NULL;
@@ -1523,16 +1602,16 @@ void visualFilterThread::colourOpponency() {
     cvShowImage("test3",cvRedPlane);
     cvWaitKey(0);*/
     
+    // Preparing to send these openCV images to YARP port
     redGreen->zero();
-    openCVtoYARP(tmpRedGreen,redGreen,1);
-    
+    openCVtoYARP(tmpRedGreen,redGreen,1);    
     greenRed->zero();
     openCVtoYARP(tmpGreenRed,greenRed,1);
     blueYellow->zero();
     openCVtoYARP(tmpBlueYellow,blueYellow,1);
     
        
-    // Converting R+G- to cartesian , similarly for others
+    // Converting regular R+G- to cartesian , similarly for others
     lpMono.logpolarToCart (*cartRedGreen, *redGreen);
     lpMono.logpolarToCart (*cartGreenRed, *greenRed);
     lpMono.logpolarToCart (*cartBlueYellow, *blueYellow);
@@ -1540,41 +1619,40 @@ void visualFilterThread::colourOpponency() {
     
     float weight[3]= {.33,.33,.33};
 
+    // Downsample these cartesian color opponency maps to scale 4
     downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleRGa,2);
     downSampleImage((IplImage*)cartGreenRed->getIplImage(), dwnSampleGRa,2);
     downSampleImage((IplImage*)cartBlueYellow->getIplImage(), dwnSampleBYa,2);
-    //downSampleImage(greenR, dwnSampleGRa,2);
-    //downSampleImage(blueY, dwnSampleBYa,2);
-    
-    
 
-    // filter downsampled images
+    // Some local tmp images allocated
     dwnSampleRGFila = cvCreateImage(cvGetSize(dwnSampleRGa),IPL_DEPTH_8U, 1 );
     dwnSampleGRFila = cvCreateImage(cvGetSize(dwnSampleGRa),IPL_DEPTH_8U, 1 );
     dwnSampleBYFila = cvCreateImage(cvGetSize(dwnSampleBYa),IPL_DEPTH_8U, 1 );
 
-    // Some local tmp images allocated
     IplImage* tmpdwnSampleRGFil, *tmpdwnSampleGRFil,*tmpdwnSampleBYFil;
     tmpdwnSampleRGFil = cvCreateImage(cvGetSize(dwnSampleRGa),IPL_DEPTH_8U, 1 );
     tmpdwnSampleGRFil = cvCreateImage(cvGetSize(dwnSampleGRa),IPL_DEPTH_8U, 1 );
     tmpdwnSampleBYFil = cvCreateImage(cvGetSize(dwnSampleBYa),IPL_DEPTH_8U, 1 );
-    
-    convolve1D(7,Gab7H,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1);  
-    convolve1D(7,Gab7H,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1);
-    convolve1D(7,Gab7H,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1); 
-    
-    // local tmp images freed
-    cvReleaseImage(&tmpdwnSampleRGFil);
-    cvReleaseImage(&tmpdwnSampleGRFil);
-    cvReleaseImage(&tmpdwnSampleBYFil);
-    // release tmp images
-    cvReleaseImage(&tmpRedGreen);
-    cvReleaseImage(&tmpGreenRed);
-    cvReleaseImage(&tmpBlueYellow);  
 
+    
+    
+
+    /**********************************************************************************************/
+    /*     For orientation 0 degrees                                                              */
+    /**********************************************************************************************/
+
+    
+    
+    convolve1D(7,Gab7H0,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V0,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+  
+    convolve1D(7,Gab7H0,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V0,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+ 
+    convolve1D(7,Gab7H0,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V0,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical   
+    
+    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
     cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
     cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
@@ -1583,13 +1661,132 @@ void visualFilterThread::colourOpponency() {
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,2);
     upSampleImage(dwnSampleGRFila,upSampleGRa,2);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,2);    
+    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+
+    // Add these 3 color opponent maps. We may take max when adding
+    float wt[3]={.33,.33,.33};
+    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2Add,3,cvGabor0);
+
+     
+
+    /**********************************************************************************************/
+    /*     For orientation 45 degrees                                                              */
+    /**********************************************************************************************/
+
+    convolve1D(7,Gab7H45,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V45,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+  
+    convolve1D(7,Gab7H45,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V45,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+ 
+    convolve1D(7,Gab7H45,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V45,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical    
+      
+
+    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
+    int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
+    cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    cropCircleImage(centerImg,dwnSampleBYFila->height/2,dwnSampleBYFila);
+
+    //up-sample the filtered images
+    upSampleImage(dwnSampleRGFila,upSampleRGa,2);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,2);
+    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+
+    // Add these 3 color opponent maps. We may take max when adding
+    float wt[3]={.33,.33,.33};
+    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2Add,3,cvGabor45); 
+
+    
+    /**********************************************************************************************/
+    /*     For orientation 90 degrees                                                              */
+    /**********************************************************************************************/
+
+    convolve1D(7,Gab7H90,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V90,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+  
+    convolve1D(7,Gab7H90,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V90,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+ 
+    convolve1D(7,Gab7H90,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7V90,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical    
+      
+
+    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
+    int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
+    cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    cropCircleImage(centerImg,dwnSampleBYFila->height/2,dwnSampleBYFila);
+
+    //up-sample the filtered images
+    upSampleImage(dwnSampleRGFila,upSampleRGa,2);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,2);
+    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+
+    // Add these 3 color opponent maps. We may take max when adding
+    float wt[3]={.33,.33,.33};
+    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2Add,3,cvGabor90); 
+
+    
+    /**********************************************************************************************/
+    /*     For orientation minus 45 degrees                                                              */
+    /**********************************************************************************************/
+
+    convolve1D(7,Gab7HM45,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7VM45,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+  
+    convolve1D(7,Gab7HM45,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7VM45,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+ 
+    convolve1D(7,Gab7HM45,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
+    convolve1D(7,Gab7VM45,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical    
+      
+
+    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
+    int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
+    cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    cropCircleImage(centerImg,dwnSampleBYFila->height/2,dwnSampleBYFila);
+
+    //up-sample the filtered images
+    upSampleImage(dwnSampleRGFila,upSampleRGa,2);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,2);
+    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+
+    // Add these 3 color opponent maps. We may take max when adding
+    float wt[3]={.33,.33,.33};
+    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2Add,3,cvGaborM45); 
+
+    
+    /********** End of oriented gabor filtering  *********************************/
+
     
     
-    
+    //Preparing the upsampled image to be sent to port
     openCVtoYARP(upSampleRGa,upSampleRGyarp,1);
     openCVtoYARP(upSampleGRa,upSampleGRyarp,1);
     openCVtoYARP(upSampleBYa,upSampleBYyarp,1);
+
+    openCVtoYARP(cvGabor0,gabor0,1);
+    openCVtoYARP(cvGabor45,gabor45,1);
+    openCVtoYARP(cvGabor90,gabor90,1);
+    openCVtoYARP(cvGaborM45,gaborM45,1);
+
+    // local tmp images freed
+    cvReleaseImage(&dwnSampleRGFila);
+    cvReleaseImage(&dwnSampleGRFila);
+    cvReleaseImage(&dwnSampleBYFila);
+    cvReleaseImage(&tmpdwnSampleRGFil);
+    cvReleaseImage(&tmpdwnSampleGRFil);
+    cvReleaseImage(&tmpdwnSampleBYFil);
+    cvReleaseImage(&tmpRedGreen);
+    cvReleaseImage(&tmpGreenRed);
+    cvReleaseImage(&tmpBlueYellow);
     
 
     
@@ -2234,6 +2431,10 @@ void visualFilterThread::onStop() {
     rgPort.interrupt();
     grPort.interrupt();
     byPort.interrupt();
+    gaborPort0.interrupt();
+    gaborPort45.interrupt();
+    gaborPort90.interrupt();
+    gaborPortM45.interrupt();
     
     imagePortOut.close();
     imagePortExt.close();
@@ -2241,5 +2442,10 @@ void visualFilterThread::onStop() {
     grPort.close();
     byPort.close();
     imagePortIn.close();
+    gaborPort0.close();
+    gaborPort45.close();
+    gaborPort90.close();
+    gaborPortM45.close();
+    
 }
 

@@ -396,6 +396,14 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *cartBlueYellow;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *upSampleBYyarp;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;                // edges of colour opponency maps 
+    
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *gabor0;               // image with Gabor filter oriented to zero
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *gabor45;              // image with Gabor filter oriented to 45 deg
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *gabor90;              // image with Gabor filter oriented to 90 deg
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *gaborM45;             // image with Gabor filter oriented to -45 deg
+
+    IplImage *cvGabor0, *cvGabor45, *cvGabor90, *cvGaborM45;
+    
 
     IplImage* redG;
     IplImage* greenR;
@@ -408,6 +416,11 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgPort;           // Colour opponency map R+G-
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // Colour opponency map G+R-
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // Colour opponency map B+Y-
+
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > gaborPort0;               // port for Gabor filtered image with orientation 0
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > gaborPort45;              // port for Gabor filtered image with orientation
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > gaborPort90;              // port for Gabor filtered image with orientation
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > gaborPortM45;             // port for Gabor filtered image with orientation
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > pyImgPort;        // image after pyramid approach
 
