@@ -198,6 +198,7 @@
  * 05/05/11 : added the mapping between the dvs camera and the original dimension in the eyes       @author Rea
  * 20/05/11 : put together the command for choosing between onDvs and onHead                        @author Rea   
  * 03/06/11 : added new output image where the area around WTA is selected                          @author Rea 
+ * 09/06/11 : added the port in order to plot out the timing of the whole fixation deployment       @author Rea
 */
 
 

@@ -94,7 +94,9 @@ private:
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
     bool accomplished_flag;                 // flag for the accomplished vergence
     double timeoutStart,timeoutStop;        // start and stop timing to avoid that saccadic event can stuck
+    double timetotStart,timetotStop;        // start and stop timing for the complete fixation task
     double timeout;                         // actual timer of the saccadic action
+    double timetot;                         // actual timer of the complete fixation task
 
     int template_size;                      // size of the template
     int search_size;                        // area over the search is performed
@@ -117,6 +119,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
     yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                            // image for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
+    yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                            // image for the inhibition of return
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;

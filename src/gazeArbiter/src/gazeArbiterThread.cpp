@@ -290,6 +290,8 @@ bool gazeArbiterThread::threadInit() {
     //opening port section 
     string rootNameStatus("");rootNameStatus.append(getName("/status:o"));
     statusPort.open(rootNameStatus.c_str());
+    string rootNameTiming("");rootNameTiming.append(getName("/timing:o"));
+    timingPort.open(rootNameTiming.c_str());
     string rootNameTemplate("");rootNameTemplate.append(getName("/template:o"));
     templatePort.open(rootNameTemplate.c_str());
     string rootNameDatabase("");rootNameDatabase.append(getName("/database:o"));
@@ -396,6 +398,7 @@ void gazeArbiterThread::interrupt() {
     inhibitionPort.interrupt();
     blobDatabasePort.interrupt();
     templatePort.interrupt();
+    timingPort.interrupt();
 }
 
 void gazeArbiterThread::setDimension(int w, int h) {
@@ -438,6 +441,7 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 void gazeArbiterThread::run() {
 
     Bottle& status = statusPort.prepare();
+    Bottle& timing = timingPort.prepare();
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
@@ -468,7 +472,8 @@ void gazeArbiterThread::run() {
         if(!executing) {                       
             // starting saccade toward the direction of the required position
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
-            timeoutStart=Time::now();
+            timetotStart = Time::now();
+            timeoutStart = Time::now();
             if(mono){
                 printf("mono saccade activated \n");
                 //calculating where the fixation point would end up
@@ -765,19 +770,24 @@ void gazeArbiterThread::run() {
             if((mono)) {                
                 if((phi < 0.05)&&(phi>-0.05)&&(!accomplished_flag)) {
                     //code for accomplished vergence
+                    timetotStop = Time::now();
+                    timetot = timetotStop - timetotStart;
+                    timing = timingPort.prepare();
+                    timing.clear();
+                    timing.addDouble(timetot);
+                    timingPort.write();
                     
-                    
+
                     //sending the acknowledgement vergence_accomplished
                     status = statusPort.prepare();
                     status.clear();
                     status.addString("vergence_accomplished");
                     statusPort.write();
-                    printf(" sending location \n");
                     accomplished_flag = true;
                     
 
                     //sending an image for inhibition of return 
-                    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>sending IMAGE after accomplished vergence!!!!!!!!!!! \n");
+                    
                     if(imgLeftIn!=NULL){
                         unsigned char* pinhi = inhibitionImage->getRawImage();
                         inhibitionImage->resize(320,240);
@@ -800,9 +810,9 @@ void gazeArbiterThread::run() {
                         double b = -0.5 /(1 - rho * rho);
                         double k = 1 / (a * exp (b));      
                         
-                        double f, e, d, z = 1;            
-                        
+                        double f, e, d, z = 1;                                    
                         double zmax = 0;
+
                         pinhi +=   ((int)(ym-(dy>>1))) * rowsizeInhi + ((int)(xm-(dx>>1)));
                         //for the whole blob in this loop
                         for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
@@ -820,7 +830,7 @@ void gazeArbiterThread::run() {
                                     e = 0;
                                     z = a * exp ( b * (f + d - e) );
                                     z = z * k;
-                                    z = (1 / 1.638575) * z;
+                                    z = (1 / 1.62) * z;
                                     //z = 0.5;
                                 }
                                 
@@ -839,23 +849,29 @@ void gazeArbiterThread::run() {
                             pinhi += rowsizeInhi - (dx + 1) ;
                         }
                         
+                        
+                    
                         pinhi = inhibitionImage->getRawImage();
-                        unsigned char* pinLeft = imgLeftIn->getRawImage();
+
+                        //printf("copying the image \n");
+                        //unsigned char* pinLeft = imgLeftIn->getRawImage();
                         //int padding  = inhibitionImage->getPadding();
-                        int padding3 = imgLeftIn->getPadding(); 
-                        for ( int row = 0 ; row < 240; row++) { 
-                            for (int cols = 0; cols< 320; cols++) {
-                                *pinhi = (unsigned char) floor(0.85 * *pinLeft + 0.15 * *pinhi);  //red
-                                //*portion++ = *mosaic++;  //green
+                        //int padding3 = imgLeftIn->getPadding(); 
+                        //for ( int row = 0 ; row < 240; row++) { 
+                        //    for (int cols = 0; cols< 320; cols++) {
+                        //        *pinhi = (unsigned char) floor(0.85 * *pinLeft + 0.15 * *pinhi);  //red
+                        //        //*portion++ = *mosaic++;  //green
                                 //*portion++ = *mosaic++;  //blue
-                                pinhi++; pinLeft+=3;
-                            }
-                            pinhi += padding;
-                            pinLeft += padding3;
-                        }
+                        //        pinhi++; pinLeft+=3;
+                        //    }
+                        //    pinhi += padding;
+                        //    pinLeft += padding3;
+                        //}
                     }
                     inhibitionPort.prepare() = *inhibitionImage;
                     inhibitionPort.write();
+                    printf("IMAGE just sent on the port \n");
+                    
 
                     //calculating the 3d position and sending it to database
                     u = 160; 
@@ -897,7 +913,6 @@ void gazeArbiterThread::run() {
                     x[1]=varDistance * v;
                     x[2]=varDistance;
                     
-                        
                     // find the 3D position from the 2D projection,
                     // knowing the distance z from the camera
                     Vector xe = yarp::math::operator *(*invPrjL, x);
@@ -914,7 +929,7 @@ void gazeArbiterThread::run() {
                     //fp[2]=xo[2];
                     printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);    
                     
-                    //adding novel position to the GUI
+                    //adding novel position to the 
                     Bottle request, reply;
                     request.clear(); reply.clear();
                     request.addVocab(VOCAB3('a','d','d'));
@@ -1150,6 +1165,7 @@ void gazeArbiterThread::threadRelease() {
     templatePort.close();
     blobDatabasePort.close();
     inhibitionPort.close();
+    timingPort.close();
     delete eyeL;
     delete eyeR;
     igaze->restoreContext(originalContext);
