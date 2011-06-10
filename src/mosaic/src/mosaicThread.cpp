@@ -1306,6 +1306,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
     }
     
+    forgettingFactor =  true;
     if(forgettingFactor) {
         outTemp = outputImageMosaic->getRawImage();
         int paddingOut = outputImageMosaic->getPadding();

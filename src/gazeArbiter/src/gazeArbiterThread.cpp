@@ -311,12 +311,12 @@ bool gazeArbiterThread::threadInit() {
     int ym = 240>>1;
     int xm = 320>>1;
     //calculating the peek value
-    int dx = 80.0;
-    int dy = 80.0;
+    int dx = 30.0;
+    int dy = 30.0;
     double sx = (dx / 2) / 3 ; //0.99 percentile
     double sy = (dy / 2) / 3 ;
-    double vx = 15; //sx * sx; // variance          
-    double vy = 15; //sy * sy;
+    double vx = 10; //sx * sx; // variance          
+    double vy = 10; //sy * sy;
     
     double rho = 0;
     
