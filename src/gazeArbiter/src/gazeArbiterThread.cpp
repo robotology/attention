@@ -472,7 +472,7 @@ void gazeArbiterThread::run() {
         if(!executing) {                       
             // starting saccade toward the direction of the required position
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
-            timetotStart = Time::now();
+            
             timeoutStart = Time::now();
             if(mono){
                 printf("mono saccade activated \n");
@@ -645,6 +645,14 @@ void gazeArbiterThread::run() {
                 if(timeout >= TIMEOUT_CONST) {
                     Vector v(3);
                     printf("TIMEOUT in reaching with a saccade \n");
+
+                    timetotStop = Time::now();
+                    timetot = timetotStop - timetotStart;
+                    timing = timingPort.prepare();
+                    timing.clear();
+                    timing.addDouble(-1);
+                    timingPort.write();
+
                     v(0)= -0.5; v(1) = 0; v(2) = 0.5;
                     igaze->stopControl();
                     igaze->lookAtFixationPoint(v);
@@ -679,6 +687,14 @@ void gazeArbiterThread::run() {
                 if(timeout >= TIMEOUT_CONST) {
                     Vector px(3);
                     printf("TIMEOUT in reaching with visualFeedback \n");
+                    
+                    timetotStop = Time::now();
+                    timetot = timetotStop - timetotStart;
+                    timing = timingPort.prepare();
+                    timing.clear();
+                    timing.addDouble(-1);
+                    timingPort.write();
+
                     px[0] = -0.5 + xOffset;
                     px[1] = 0.0 + yOffset;
                     px[2] = 0.3 + zOffset;
@@ -1187,6 +1203,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             stateRequest[3] = 1;
             //executing = false;
             mutex.post();
+            timetotStart = Time::now();
             mono = true;
             firstVer = true;
         }
