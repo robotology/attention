@@ -1257,19 +1257,19 @@ void visualFilterThread::run() {
                 pyImgPort.write();
             }
 
-            if((gabor0 != 0) && (gaborPort0.getOuputCount())) {
+            if((gabor0 != 0) && (gaborPort0.getOutputCount())) {
                 gaborPort0.prepare() = *(gabor0);
                 gaborPort0.write();
             }
-            if((gabor45 != 0) && (gaborPort45.getOuputCount())) {
+            if((gabor45 != 0) && (gaborPort45.getOutputCount())) {
                 gaborPort45.prepare() = *(gabor45);
                 gaborPort45.write();
             }
-            if((gabor90 != 0) && (gaborPort90.getOuputCount())) {
+            if((gabor90 != 0) && (gaborPort90.getOutputCount())) {
                 gaborPort90.prepare() = *(gabor90);
                 gaborPort90.write();
             }
-            if((gaborM45 != 0) && (gaborPortM45.getOuputCount())) {
+            if((gaborM45 != 0) && (gaborPortM45.getOutputCount())) {
                 gaborPortM45.prepare() = *(gaborM45);
                 gaborPortM45.write();
             }
@@ -1653,10 +1653,10 @@ void visualFilterThread::colourOpponency() {
     convolve1D(7,Gab7V0,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical   
     
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImg,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    int centerImg0[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    cropCircleImage(centerImg0,dwnSampleRGFila->height/2,dwnSampleRGFila);
+    cropCircleImage(centerImg0,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    cropCircleImage(centerImg0,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,2);
@@ -1665,8 +1665,8 @@ void visualFilterThread::colourOpponency() {
 
     // Add these 3 color opponent maps. We may take max when adding
     float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2Add,3,cvGabor0);
+    IplImage* imgs2Add0[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2Add0,3,cvGabor0);
 
      
 
@@ -1685,10 +1685,10 @@ void visualFilterThread::colourOpponency() {
       
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImg,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    int centerImg45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    cropCircleImage(centerImg45,dwnSampleRGFila->height/2,dwnSampleRGFila);
+    cropCircleImage(centerImg45,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    cropCircleImage(centerImg45,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,2);
@@ -1696,9 +1696,9 @@ void visualFilterThread::colourOpponency() {
     upSampleImage(dwnSampleBYFila,upSampleBYa,2);
 
     // Add these 3 color opponent maps. We may take max when adding
-    float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2Add,3,cvGabor45); 
+    //float wt[3]={.33,.33,.33};
+    IplImage* imgs2Add45[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2Add45,3,cvGabor45); 
 
     
     /**********************************************************************************************/
@@ -1716,10 +1716,10 @@ void visualFilterThread::colourOpponency() {
       
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImg,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    int centerImg90[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    cropCircleImage(centerImg90,dwnSampleRGFila->height/2,dwnSampleRGFila);
+    cropCircleImage(centerImg90,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    cropCircleImage(centerImg90,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,2);
@@ -1727,9 +1727,9 @@ void visualFilterThread::colourOpponency() {
     upSampleImage(dwnSampleBYFila,upSampleBYa,2);
 
     // Add these 3 color opponent maps. We may take max when adding
-    float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2Add,3,cvGabor90); 
+    //float wt[3]={.33,.33,.33};
+    IplImage* imgs2Add90[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2Add90,3,cvGabor90); 
 
     
     /**********************************************************************************************/
@@ -1747,10 +1747,10 @@ void visualFilterThread::colourOpponency() {
       
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImg[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    cropCircleImage(centerImg,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImg,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    int centerImgM45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    cropCircleImage(centerImgM45,dwnSampleRGFila->height/2,dwnSampleRGFila);
+    cropCircleImage(centerImgM45,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    cropCircleImage(centerImgM45,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,2);
@@ -1758,9 +1758,9 @@ void visualFilterThread::colourOpponency() {
     upSampleImage(dwnSampleBYFila,upSampleBYa,2);
 
     // Add these 3 color opponent maps. We may take max when adding
-    float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2Add,3,cvGaborM45); 
+    //float wt[3]={.33,.33,.33};
+    IplImage* imgs2AddM45[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
+    maxImages(imgs2AddM45,3,cvGaborM45); 
 
     
     /********** End of oriented gabor filtering  *********************************/
