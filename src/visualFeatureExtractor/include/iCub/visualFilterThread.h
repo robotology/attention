@@ -354,19 +354,19 @@ private:
         
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
     IplImage *cvRedPlane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane2;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane3;
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane2;
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane3;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane;           // image of the green channel
      IplImage *cvGreenPlane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane2;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane3;
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane2;
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane3;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane;            // image of the blue channel
      IplImage *cvBluePlane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane2;           // image of the blue channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane3;           // image of the blue channel
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane2;           // image of the blue channel
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane3;           // image of the blue channel
     yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowPlane;          // image of the yellow channel
      IplImage *cvYellowPlane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowPlane2;
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowPlane2;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlus;              // positive gaussian-convolved red image 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redMinus;             // negative gaussian-convolved red image
@@ -649,7 +649,20 @@ public:
     * @param direction the direction of application of kernel (0 for horizontal else vertical). default: 0
     * @param maxVal maximum value of the convolution operator, so as to avoid overflow. default: 255
     */
-    void convolve1D(int vecSize, float* vec, IplImage* img, IplImage* resImg, float factor=1.0,int direction=0,int maxVal=255);
+    void convolve1D(int vecSize, float* vec, IplImage* img, IplImage* resImg, float factor=1.0,int shift =0,int direction=0,int maxVal=255);
+
+    /**
+    * function which applies a 2D kernel to a given image
+    * The image need not be enlarged as this function takes care of edges efficiently.
+    * @param rowSize size of the row of kernel
+    * @param colSize size of the column of kernel
+    * @param ker pointer to 2D kernel
+    * @param img pointer to IplImage on which kernel is to be applied
+    * @param factor the value by which the sum must be scaled in resulting image. default: 1.0
+    * @param maxVal maximum value of the convolution operator, so as to avoid overflow. default: 255
+    */
+    void convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor=1.0,int shift=0,int maxVal=255);
+
 
     void cropCircleImage(int* center, float radius, IplImage* srcImg);
     

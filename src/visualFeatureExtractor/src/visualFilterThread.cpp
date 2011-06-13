@@ -983,6 +983,68 @@ static float Gab7H0[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354, 
 static float Gab7H45[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
 static float Gab7H90[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
 static float Gab7HM45[7] = { -0.0001,   -0.0186,   -0.3354,   -0.8799,   -0.3354,   -0.0186,   -0.0001 };
+/*
+static float Gabor0[7][7]={0.000004 , 0.000507 , 0.009155 , 0.024018 , 0.009155 , 0.000507 , 0.000004 , 
+0.000023 , 0.002895 , 0.052271 , 0.137134 , 0.052271 , 0.002895 , 0.000023 , 
+0.000066 , 0.008234 , 0.148672 , 0.390039 , 0.148672 , 0.008234 , 0.000066 , 
+0.000094 , 0.011666 , 0.210643 , 0.552621 , 0.210643 , 0.011666 , 0.000094 , 
+0.000066 , 0.008234 , 0.148672 , 0.390039 , 0.148672 , 0.008234 , 0.000066 , 
+0.000023 , 0.002895 , 0.052271 , 0.137134 , 0.052271 , 0.002895 , 0.000023 , 
+0.000004 , 0.000507 , 0.009155 , 0.024018 , 0.009155 , 0.000507 , 0.000004 };
+static float Gabor45[7][7]={0.034029 , 0.011588 , 0.000071 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.011588 , 0.160103 , 0.039997 , 0.000181 , 0.000000 , 0.000000 , 0.000000 , 
+0.000071 , 0.039997 , 0.405435 , 0.074309 , 0.000246 , 0.000000 , 0.000000 , 
+0.000000 , 0.000181 , 0.074309 , 0.552621 , 0.074309 , 0.000181 , 0.000000 , 
+0.000000 , 0.000000 , 0.000246 , 0.074309 , 0.405435 , 0.039997 , 0.000071 , 
+0.000000 , 0.000000 , 0.000000 , 0.000181 , 0.039997 , 0.160103 , 0.011588 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000071 , 0.011588 , 0.034029 };
+static float Gabor90[7][7]={0.000004 , 0.000023 , 0.000066 , 0.000094 , 0.000066 , 0.000023 , 0.000004 , 
+0.000507 , 0.002895 , 0.008234 , 0.011666 , 0.008234 , 0.002895 , 0.000507 , 
+0.009155 , 0.052271 , 0.148672 , 0.210643 , 0.148672 , 0.052271 , 0.009155 , 
+0.024018 , 0.137134 , 0.390039 , 0.552621 , 0.390039 , 0.137134 , 0.024018 , 
+0.009155 , 0.052271 , 0.148672 , 0.210643 , 0.148672 , 0.052271 , 0.009155 , 
+0.000507 , 0.002895 , 0.008234 , 0.011666 , 0.008234 , 0.002895 , 0.000507 , 
+0.000004 , 0.000023 , 0.000066 , 0.000094 , 0.000066 , 0.000023 , 0.000004 };
+static float GaborM45[7][7]={0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000071 , 0.011588 , 0.034029 , 
+0.000000 , 0.000000 , 0.000000 , 0.000181 , 0.039997 , 0.160103 , 0.011588 , 
+0.000000 , 0.000000 , 0.000246 , 0.074309 , 0.405435 , 0.039997 , 0.000071 , 
+0.000000 , 0.000181 , 0.074309 , 0.552621 , 0.074309 , 0.000181 , 0.000000 , 
+0.000071 , 0.039997 , 0.405435 , 0.074309 , 0.000246 , 0.000000 , 0.000000 , 
+0.011588 , 0.160103 , 0.039997 , 0.000181 , 0.000000 , 0.000000 , 0.000000 , 
+0.034029 , 0.011588 , 0.000071 , 0.000000 , 0.000000 , 0.000000 , 0.000000 };
+*/
+
+static float Gabor0[7][7]={0.000000 , 0.000000 , 0.000000 , 0.144106 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.822803 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 2.340231 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 3.315728 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 2.340231 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.822803 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.144106 , 0.000000 , 0.000000 , 0.000000 };
+
+static float Gabor45[7][7]={0.204177 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.960616 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 2.432608 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 3.315728 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 2.432608 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.960616 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.204177 };
+
+static float Gabor90[7][7]={0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.144106 , 0.822803 , 2.340231 , 3.315728 , 2.340231 , 0.822803 , 0.144106 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 };
+
+static float GaborM45[7][7]={0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.204177 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.960616 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 0.000000 , 2.432608 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 0.000000 , 3.315728 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.000000 , 2.432608 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.000000 , 0.960616 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 
+0.204177 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 , 0.000000 };
 
 
 template<class T>
@@ -1043,7 +1105,7 @@ visualFilterThread::visualFilterThread() {
     sigma = 1.2;
     gLambda = 128;
     psi = 0;
-    gamma = 5;
+    gamma = 30;
     kernelUsed = 2;
     dwnSam = 2;
 
@@ -1321,7 +1383,6 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
  
     
     //allocate IplImages for color planes
-    if(cvRedPlane != NULL) printf("No IMAGE but pointer\n");
     cvRedPlane = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
     cvGreenPlane = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
     cvBluePlane = cvCreateImage(cvLogSize,IPL_DEPTH_8U, 1 );
@@ -1489,8 +1550,8 @@ void visualFilterThread::filtering() {
     // We gaussian blur the image planes extracted before, one with positive Gaussian and then negative
     
     //Positive
-    convolve1D(5,G5,cvRedPlane,tmpRedPlus,.2,0);
-    convolve1D(5,G5,tmpRedPlus,cvRedPlus,.2,1);
+    convolve1D(5,G5,cvRedPlane,tmpRedPlus,.5,0);
+    convolve1D(5,G5,tmpRedPlus,cvRedPlus,.5,1);
 
     convolve1D(5,G5,cvGreenPlane,tmpGreenPlus,.5,0);
     convolve1D(5,G5,tmpGreenPlus,cvGreenPlus,.5,1);
@@ -1511,8 +1572,7 @@ void visualFilterThread::filtering() {
     convolve1D(7,G7,tmpYellowMinus,cvYellowMinus,.5,1);
 
     int crn[4]={5,5,252,152};
-    IplImage* tmp;
-
+    
     
 
     /*cvNamedWindow("test1");
@@ -1620,9 +1680,10 @@ void visualFilterThread::colourOpponency() {
     float weight[3]= {.33,.33,.33};
 
     // Downsample these cartesian color opponency maps to scale 4
-    downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleRGa,2);
-    downSampleImage((IplImage*)cartGreenRed->getIplImage(), dwnSampleGRa,2);
-    downSampleImage((IplImage*)cartBlueYellow->getIplImage(), dwnSampleBYa,2);
+    int dwnSamRat = 4;
+    downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleRGa,dwnSamRat);
+    downSampleImage((IplImage*)cartGreenRed->getIplImage(), dwnSampleGRa,dwnSamRat);
+    downSampleImage((IplImage*)cartBlueYellow->getIplImage(), dwnSampleBYa,dwnSamRat);
 
     // Some local tmp images allocated
     dwnSampleRGFila = cvCreateImage(cvGetSize(dwnSampleRGa),IPL_DEPTH_8U, 1 );
@@ -1637,20 +1698,36 @@ void visualFilterThread::colourOpponency() {
     
     
 
+    float scaleFactor = .2;
+    int shift = -30;
     /**********************************************************************************************/
     /*     For orientation 0 degrees                                                              */
     /**********************************************************************************************/
 
     
-    
-    convolve1D(7,Gab7H0,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V0,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+   /* 
+    convolve1D(7,Gab7H0,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V0,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
   
-    convolve1D(7,Gab7H0,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V0,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+    convolve1D(7,Gab7H0,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V0,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
  
-    convolve1D(7,Gab7H0,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V0,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical   
+    convolve1D(7,Gab7H0,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V0,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical 
+
+    */
+ 
+    convolve2D(7,7,&Gabor0[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,shift);  
+    convolve2D(7,7,&Gabor0[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,shift);  
+    convolve2D(7,7,&Gabor0[0][0], dwnSampleBYa, dwnSampleBYFila, scaleFactor,shift); 
+
+    cvNamedWindow("test1");
+    cvShowImage("test1",dwnSampleRGa);
+    cvNamedWindow("test2");
+    cvShowImage("test2",dwnSampleGRa);
+    cvNamedWindow("test3");
+    cvShowImage("test3",dwnSampleBYa);
+    //cvWaitKey(0);
     
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImg0[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
@@ -1659,9 +1736,9 @@ void visualFilterThread::colourOpponency() {
     cropCircleImage(centerImg0,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,2);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,2);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+    upSampleImage(dwnSampleRGFila,upSampleRGa,dwnSamRat);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,dwnSamRat);
+    upSampleImage(dwnSampleBYFila,upSampleBYa,dwnSamRat);
 
     // Add these 3 color opponent maps. We may take max when adding
     float wt[3]={.33,.33,.33};
@@ -1674,15 +1751,29 @@ void visualFilterThread::colourOpponency() {
     /*     For orientation 45 degrees                                                              */
     /**********************************************************************************************/
 
-    convolve1D(7,Gab7H45,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V45,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+/*
+    convolve1D(7,Gab7H45,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V45,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
   
-    convolve1D(7,Gab7H45,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V45,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+    convolve1D(7,Gab7H45,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V45,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
  
-    convolve1D(7,Gab7H45,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V45,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical    
-      
+    convolve1D(7,Gab7H45,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V45,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical  
+
+*/
+    convolve2D(7,7,&Gabor45[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,shift);  
+    convolve2D(7,7,&Gabor45[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,shift);  
+    convolve2D(7,7,&Gabor45[0][0], dwnSampleBYa, dwnSampleBYFila, scaleFactor,shift); 
+
+    cvNamedWindow("test7");
+    cvShowImage("test7",dwnSampleRGFila);
+    cvNamedWindow("test8");
+    cvShowImage("test8",dwnSampleGRFila);
+    cvNamedWindow("test9");
+    cvShowImage("test9",dwnSampleBYFila);
+    cvWaitKey(0); 
+     
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImg45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
@@ -1691,9 +1782,9 @@ void visualFilterThread::colourOpponency() {
     cropCircleImage(centerImg45,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,2);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,2);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+    upSampleImage(dwnSampleRGFila,upSampleRGa,dwnSamRat);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,dwnSamRat);
+    upSampleImage(dwnSampleBYFila,upSampleBYa,dwnSamRat);
 
     // Add these 3 color opponent maps. We may take max when adding
     //float wt[3]={.33,.33,.33};
@@ -1705,15 +1796,20 @@ void visualFilterThread::colourOpponency() {
     /*     For orientation 90 degrees                                                              */
     /**********************************************************************************************/
 
-    convolve1D(7,Gab7H90,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V90,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+/*
+    convolve1D(7,Gab7H90,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V90,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
   
-    convolve1D(7,Gab7H90,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V90,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+    convolve1D(7,Gab7H90,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V90,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
  
-    convolve1D(7,Gab7H90,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7V90,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical    
-      
+    convolve1D(7,Gab7H90,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7V90,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical    
+  */
+    
+    convolve2D(7,7,&Gabor90[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,shift);  
+    convolve2D(7,7,&Gabor90[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,shift);  
+    convolve2D(7,7,&Gabor90[0][0], dwnSampleBYa, dwnSampleBYFila, scaleFactor,shift);    
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImg90[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
@@ -1722,9 +1818,9 @@ void visualFilterThread::colourOpponency() {
     cropCircleImage(centerImg90,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,2);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,2);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+    upSampleImage(dwnSampleRGFila,upSampleRGa,dwnSamRat);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,dwnSamRat);
+    upSampleImage(dwnSampleBYFila,upSampleBYa,dwnSamRat);
 
     // Add these 3 color opponent maps. We may take max when adding
     //float wt[3]={.33,.33,.33};
@@ -1736,15 +1832,20 @@ void visualFilterThread::colourOpponency() {
     /*     For orientation minus 45 degrees                                                              */
     /**********************************************************************************************/
 
-    convolve1D(7,Gab7HM45,dwnSampleRGa,tmpdwnSampleRGFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7VM45,tmpdwnSampleRGFil,dwnSampleRGFila,.4,1); // convolve with vertical
+/*
+    convolve1D(7,Gab7HM45,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7VM45,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
   
-    convolve1D(7,Gab7HM45,dwnSampleGRa,tmpdwnSampleGRFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7VM45,tmpdwnSampleGRFil,dwnSampleGRFila,.4,1); // convolve with vertical 
+    convolve1D(7,Gab7HM45,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7VM45,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
  
-    convolve1D(7,Gab7HM45,dwnSampleBYa,tmpdwnSampleBYFil,.4,0); // convolve with horizontal 
-    convolve1D(7,Gab7VM45,tmpdwnSampleBYFil,dwnSampleBYFila,.4,1);// convolve with vertical    
-      
+    convolve1D(7,Gab7HM45,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
+    convolve1D(7,Gab7VM45,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical    
+ */
+
+    convolve2D(7,7,&GaborM45[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,shift);  
+    convolve2D(7,7,&GaborM45[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,shift);  
+    convolve2D(7,7,&GaborM45[0][0], dwnSampleBYa, dwnSampleBYFila, scaleFactor,shift);     
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImgM45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
@@ -1753,9 +1854,9 @@ void visualFilterThread::colourOpponency() {
     cropCircleImage(centerImgM45,dwnSampleBYFila->height/2,dwnSampleBYFila);
 
     //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,2);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,2);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,2);
+    upSampleImage(dwnSampleRGFila,upSampleRGa,dwnSamRat);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,dwnSamRat);
+    upSampleImage(dwnSampleBYFila,upSampleBYa,dwnSamRat);
 
     // Add these 3 color opponent maps. We may take max when adding
     //float wt[3]={.33,.33,.33};
@@ -1765,7 +1866,13 @@ void visualFilterThread::colourOpponency() {
     
     /********** End of oriented gabor filtering  *********************************/
 
-    
+    cvNamedWindow("test4");
+    cvShowImage("test4",cvGabor0);
+    cvNamedWindow("test5");
+    cvShowImage("test5",cvGabor45);
+    cvNamedWindow("test6");
+    cvShowImage("test6",cvGaborM45);
+    cvWaitKey(0);
     
     //Preparing the upsampled image to be sent to port
     openCVtoYARP(upSampleRGa,upSampleRGyarp,1);
@@ -1776,6 +1883,8 @@ void visualFilterThread::colourOpponency() {
     openCVtoYARP(cvGabor45,gabor45,1);
     openCVtoYARP(cvGabor90,gabor90,1);
     openCVtoYARP(cvGaborM45,gaborM45,1);
+
+    
 
     // local tmp images freed
     cvReleaseImage(&dwnSampleRGFila);
@@ -1809,7 +1918,7 @@ void visualFilterThread::edgesExtract() {
     short* ptrtempHRG;
     char* temphRG;
     short maxVal = -256;
-   temphRG = hRG->imageData;
+    temphRG = hRG->imageData;
     minVal = 257; 
 
             
@@ -2114,7 +2223,7 @@ void visualFilterThread::maxImages(IplImage** ImagesTobeAdded, int numberOfImage
             int w = tmpImageTobeAdded->width;
             if(h > resultantImage->height || w > resultantImage->width) {
                 printf("Image too big. \n");
-                return ;
+                continue ;
             }
             uchar* imgToBeAddOrigin = (uchar*)tmpImageTobeAdded->imageData;
             int imgToBeAddWidth = tmpImageTobeAdded->widthStep;
@@ -2220,7 +2329,12 @@ void visualFilterThread::getLinearlySeperableKernel(int sizeOfKernel,float* kern
 
 } */
 
-void visualFilterThread::convolve1D(int vecSize, float* vec, IplImage* img, IplImage* resImg, float factor,int direction, int maxVal){
+void visualFilterThread::convolve1D(int vecSize, float* vec, IplImage* img, IplImage* resImg, float factor,int shift,int direction, int maxVal){
+    
+    //IplImage* resImg = cvCreateImage(cvGetSize(img),IPL_DEPTH_16S, 1 );
+    float maxPixelVal = 0;
+    float minPixelVal = -256;
+    int maxRange = 255;
     int ROIRowStart = vecSize/2;
     int ROIRowEnd = img->height-vecSize/2;
     int ROIColEnd = img->width - vecSize/2;
@@ -2232,7 +2346,8 @@ void visualFilterThread::convolve1D(int vecSize, float* vec, IplImage* img, IplI
     uchar* mat = (uchar*)img->imageData;
     uchar* res = (uchar*)resImg->imageData;
     float* midVec = vec + vecSize/2; // middle of linear kernel
-    int pixelPos = 0; int pixPos =0;
+    int pixelPos = 0; int pixPos =0;    
+    
     if(direction == 0){ //horizontal convolution
         for(int i=0;i<resImg->height;++i){
             for(int j=0;j<resImg->width;++j){
@@ -2250,8 +2365,10 @@ void visualFilterThread::convolve1D(int vecSize, float* vec, IplImage* img, IplI
                     sum += (*(mat+pixelPos+pixPos))* (*(midVec+k));
                     //tmpVec++;
                 }
-                sum *= factor;
-                *(res+i*resRowSize+j)=sum;//<0?0: sum>maxVal? maxVal:sum;
+                sum *= factor; 
+                if(sum>maxPixelVal) maxPixelVal=sum;
+                else if(sum<minPixelVal) minPixelVal=sum;               
+                *(res+i*resRowSize+j)=sum;//+ shift;//<0?0: sum>maxVal? maxVal:sum;
             }
         } 
     } 
@@ -2273,14 +2390,97 @@ void visualFilterThread::convolve1D(int vecSize, float* vec, IplImage* img, IplI
                     //tmpVec++;
                 }
                 sum *= factor;
+                if(sum>maxPixelVal) maxPixelVal=sum;
+                else if(sum<minPixelVal) minPixelVal=sum;  
                 *(res+i*resRowSize+j)=sum;//<0?0: sum>maxVal? maxVal:sum;
             }
         } 
+    }
+/*
+    for(int i=0; i<resultImg->height; ++i){
+        for(int j=0; j<resultImg->width; ++j){
+            *(resultImg->imageData + i*(resultImg->widthStep) + j)= (unsigned char)(maxRange*(*(resImg->imageData + i*(resImg->widthStep) + j)-minPixelVal)/(maxPixelVal-minPixelVal));
+        }
     }  
-                
+    cvReleaseImage(&resImg);  
+*/         
         
 }
 
+
+void visualFilterThread::convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor,int shift, int maxVal){
+    
+    //printf("Entering convolution\n");
+    //IplImage* resImg;
+    //resImg = cvCreateImage(cvGetSize(img),IPL_DEPTH_32F, 1 );
+    int minPixelVal =1024;
+    int maxPixelVal =-1024;
+    int range =255;
+
+    uchar* ptrImg = (uchar*)img->imageData;
+    uchar* ptrResImg = (uchar*)resImg->imageData;
+    uchar* ptrOriginResImg = (uchar*)resImg->imageData;
+    int imgRowSize = img->widthStep;
+    int resRowSize = resImg->widthStep/sizeof(uchar);
+    int effectiveWidth = rowSize;
+    int effectiveHeight = colSize;
+    float* kerStartPt = ker;
+    float* kerNowPt = ker;
+    uchar* imgStartPt = (uchar*)img->imageData;
+    uchar* imgNowPt = (uchar*)img->imageData;
+
+   
+    for(int i=0;i<resImg->height;++i){
+        ptrResImg = ptrOriginResImg + i*resRowSize;
+        effectiveHeight = min(i+colSize/2,img->height)-max(0,i-colSize/2);
+        for(int j=0;j<resImg->width;++j){
+            effectiveWidth = min(j+rowSize/2,img->width)-max(0,j-rowSize/2);
+            kerStartPt = ker + max(0,colSize/2 -i)*rowSize + max(0,rowSize/2-j);
+            imgStartPt = (uchar*)img->imageData + (i-effectiveHeight/2)*imgRowSize + (j - effectiveWidth/2);
+            kerNowPt = ker + max(0,colSize/2 -i)*rowSize + max(0,rowSize/2-j);
+            imgNowPt = (uchar*)img->imageData + (i-effectiveHeight/2)*imgRowSize + (j - effectiveWidth/2);
+            float sum =0;
+            for(int k=0; k<effectiveHeight; k++){
+                kerNowPt = kerStartPt + k* rowSize;
+                imgNowPt = imgStartPt + k* imgRowSize;
+                for(int l=0; l<effectiveWidth;l++){
+                    //float imgNow = *imgNowPt;
+                    //float imgNow = (*kerNowPt * (int)*imgNowPt);          
+                    sum += (*kerNowPt * *imgNowPt);
+                    //if(imgNow<0) printf("TThis has value neg%f for pos%d,%d \n", imgNow,i,j);
+                    kerNowPt++; imgNowPt++;
+                }
+            }
+
+            // We have to scale. shift and cut the overflow
+            sum *= factor;
+            sum += shift;
+            if(sum<minPixelVal) minPixelVal = sum;
+            if(sum>maxPixelVal) maxPixelVal = sum;
+            *ptrResImg = sum>255?255:sum<0?0:sum ;//+ shift;
+            ptrResImg++;
+        }
+    }
+/*
+    printf("The min is%d and maximum is%d for this image\n",minPixelVal,maxPixelVal);
+    float scalingFact = 255.0/(maxPixelVal-minPixelVal);
+
+    cvNamedWindow("FloatImage");
+    cvShowImage("FloatImage",resImg);
+    cvNamedWindow("OrigImage");
+    cvShowImage("OrigImage",img);
+    cvWaitKey(0);*/
+
+    
+   /*for(int i=0; i<resultImg->height; ++i){
+        for(int j=0; j<resultImg->width; ++j){
+            *(resultImg->imageData + i*(resultImg->widthStep) + j)= (unsigned char)((*(resImg->imageData + i*(resImg->widthStep)/sizeof(float) + j)-minPixelVal)*scalingFact);
+        }
+    }
+    cvDestroyWindow("FloatImage");  
+    cvReleaseImage(&resImg);*/ 
+
+}
 
 void visualFilterThread::cropImage(int* corners, IplImage* imageToBeCropped, IplImage* retImage){
 
@@ -2327,7 +2527,7 @@ void visualFilterThread::cropCircleImage(int* center, float radius, IplImage* sr
     
     for(int i=0; i< srcImg->height; ++i){
         for(int j=0; j< srcImg->width; ++j){
-            if((i - center[0])*(i - center[0]) + (j - center[1])*(j - center[1]) > radius*radius) {
+            if((i - center[0])*(i - center[0]) + (j - center[1])*(j - center[1]) >= radius*radius) {
                 *(srcImg->imageData + i*srcImg->widthStep + j) = 0; //blacken the pixel out of circle
             }
         }
