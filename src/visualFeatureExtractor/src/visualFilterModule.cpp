@@ -93,7 +93,7 @@ bool visualFilterModule::close()
     handlerPort.close();
     /* stop the thread */
     vfThread->stop();
-    delete vfThread;
+    //delete vfThread;
     return true;
 }
 

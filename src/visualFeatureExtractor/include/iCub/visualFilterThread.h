@@ -46,6 +46,8 @@
 #define CHAR_LIMIT 256
 #define PI 3.1415926535897932384626433832795
 #define MONO_PIXEL_SIZE 1
+#define DWN_SAMPLE 2
+#define NBR_OF_FILTERS 4
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
@@ -339,7 +341,22 @@ private:
     int psb16s;                         // step size of the Ipp16s vectors
     float lambda;                       // costant for the temporal filter
    
-    double sigma, gLambda,psi, gamma, dwnSam,whichScale;
+    // parameters for Gabor filter
+    double sigma[NBR_OF_FILTERS];
+    double gLambda[NBR_OF_FILTERS];
+    double psi[NBR_OF_FILTERS];
+    double gamma[NBR_OF_FILTERS];
+    double filScale[NBR_OF_FILTERS];
+    double filShift[NBR_OF_FILTERS];
+
+    int intSigma[NBR_OF_FILTERS];
+    int intLambda[NBR_OF_FILTERS];
+    int intPsi[NBR_OF_FILTERS];
+    int intGamma[NBR_OF_FILTERS];
+    int intFilScale[NBR_OF_FILTERS];
+    int intFilShift[NBR_OF_FILTERS];
+    
+    double dwnSam,whichScale;
     int kernelUsed;
     //int kernelSize[2];
     CvMat* gabKer[4];
@@ -350,8 +367,9 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputExtImage;         // extended input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *logPolarImage;
     
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* pyImage;              //yarp image of final added image after pyramid approach
-        
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cartIntensImg;              //yarp cartesian intensity image 
+  
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
     IplImage *cvRedPlane;
     //yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane2;
@@ -481,7 +499,16 @@ private:
     double overlap;         // overlap in the remapping
     int numberOfRings;      // number of rings in the remapping
     int numberOfAngles;     // number of angles in the remapping
+    float orient0[2];
+    float orient45[2];
+    float orient90[2];
+    float orientM45[2];
     
+
+    /*** To convert to cartesian **/
+    IplImage* tmpRedGreen;
+    IplImage* tmpGreenRed;
+    IplImage* tmpBlueYellow;
 
     IplImage* intensityImage;
     IplImage* filteredIntensityImage;
@@ -661,7 +688,7 @@ public:
     * @param factor the value by which the sum must be scaled in resulting image. default: 1.0
     * @param maxVal maximum value of the convolution operator, so as to avoid overflow. default: 255
     */
-    void convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor=1.0,int shift=0,int maxVal=255);
+    void convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor=1.0,int shift=0,float* range = NULL,int maxVal=255);
 
 
     void cropCircleImage(int* center, float radius, IplImage* srcImg);
