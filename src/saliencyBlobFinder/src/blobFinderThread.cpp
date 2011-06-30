@@ -414,7 +414,9 @@ void blobFinderThread::run() {
         }
 
         //ippiCopy_8u_C3R(img->getRawImage(), img->getRowSize(), ptr_inputImg->getRawImage(), ptr_inputImg->getRowSize(), srcsize);
-        memcpy(img->getRawImage(),ptr_inputImg->getRawImage(),img->getRowSize()* img->height());
+        
+        memcpy(ptr_inputImg->getRawImage(),img->getRawImage(),img->getRowSize()* img->height());
+        
         bool ret1=true, ret2=true;
         ret2 = getPlanes(img);
         ret1 = getOpponencies();
@@ -422,9 +424,10 @@ void blobFinderThread::run() {
             return;
 
         tmpImage=edgesPort.read(false);
-        if (tmpImage != 0)
+        if (tmpImage != 0) {
             //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), edges->getRawImage(), edges->getRowSize(), srcsize);
-            memcpy(tmpImage->getRawImage(),edges->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
+            memcpy(edges->getRawImage(),tmpImage->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
+        }
 
         rain(edges);
         drawAllBlobs(false);
@@ -435,20 +438,23 @@ void blobFinderThread::run() {
         salience->ComputeMeanColors(max_tag);
         salience->DrawMeanColorsLP(*outMeanColourLP, *ptr_tagged);
 
-        /*ippiCopy_8u_C3R(outMeanColourLP->getRawImage(), outMeanColourLP->getRowSize(), _outputImage3->getRawImage(), _outputImage3->getRowSize(), srcsize);	
+        //ippiCopy_8u_C3R(outMeanColourLP->getRawImage(), outMeanColourLP->getRowSize(), _outputImage3->getRawImage(), _outputImage3->getRowSize(), srcsize);	
+        memcpy(_outputImage3->getRawImage(),outMeanColourLP->getRawImage(), outMeanColourLP->getRowSize() *  outMeanColourLP->height());
+        
+        /*   
         if((0 != _outputImage3) && (outputPort3.getOutputCount())) { 
             outputPort3.prepare() = *(_outputImage3);
             outputPort3.write();
         }
         */
 
-        if((0 != _outputImage3) && (outputPort3.getOutputCount())) { 
-            outputPort3.prepare() = *((ImageOf<PixelRgb>*)outMeanColourLP);
+        if((0 != _outputImage3) ||  (outputPort3.getOutputCount())) { 
+            outputPort3.prepare() = *((ImageOf<PixelRgb>*)_outputImage3);
             outputPort3.write();
         }
 
         if((0 != outContrastLP) && (saliencePort.getOutputCount())) { 
-            saliencePort.prepare() = *(outContrastLP);
+            saliencePort.prepare() = *((ImageOf<PixelMono>*)outContrastLP);
             saliencePort.write();
         }
 
@@ -784,9 +790,9 @@ bool blobFinderThread::getPlanes(ImageOf<PixelRgb>* inputImage) {
 
     for(int height=0; height<inputImage->height(); ++height){
         for(int width=0; width<inputImage->width(); ++width){
-            *shift[0] = *ptr_inputImage++;
-            *shift[1] = *ptr_inputImage++;
-            *shift[2] = *ptr_inputImage++;
+            *shift[0] = *ptr_inputImage;ptr_inputImage++;
+            *shift[1] = *ptr_inputImage;ptr_inputImage++;
+            *shift[2] = *ptr_inputImage;ptr_inputImage++;
             *shift[3] = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
             shift[0]++;
             shift[1]++;
