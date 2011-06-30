@@ -26,8 +26,8 @@
 #ifndef _BLOBFINDERTHREAD_H_
 #define _BLOBFINDERTHREAD_H_
 
-#include <ippi.h>
-#include <ippcore.h>
+//#include <ippi.h>
+//#include <ippcore.h>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
@@ -54,6 +54,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;        // port where the edges image is read
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > saliencePort;     // port that returns the salience map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort3;       // port that returns the image output 3channels
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgbPort;          // port where RGB image is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgPort;           // port where the difference of gaussian R+G- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // port where the difference of gaussian G+R- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // port where the difference of gaussian B+Y- of the image is streamed
@@ -109,6 +110,14 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRed;                    // pointer to the red plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGreen;                  // pointer to the green plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBlue;                   // pointer to the input blue plane image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgYellow;                   // pointer to the input blue plane image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRplus, *ptr_tmpRpluss;        // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRminus, *ptr_tmpRminuss;        // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpGplus, *ptr_tmpGpluss;        // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpGminus, *ptr_tmpGminuss;        // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpBplus, *ptr_tmpBpluss;        // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpYminus, *ptr_tmpYminuss;        // temp image to hold convolution result
+    
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRG;                     // pointer to the input image R+G-
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGR;                     // pointer to the input image G+R-
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBY;                     // pointer to the input image B+Y-
@@ -218,6 +227,19 @@ public:
     * @param inputImage image where we can extract planes from
     */
     bool getPlanes(yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage);
+
+    /**
+    * function which applies a linear kernel (2D kernel must be seperated, if possible, via SVD method) to a given image
+    * The image need not be enlarged as this function takes care of edges efficiently.
+    * @param vecSize size of the linear kernel
+    * @param vec pointer to linear kernel
+    * @param img pointer to IplImage on which kernel is to be applied
+    * @param factor the value by which the sum must be scaled in resulting image. default: 1.0
+    * @param direction the direction of application of kernel (0 for horizontal else vertical). default: 0
+    * @param maxVal maximum value of the convolution operator, so as to avoid overflow. default: 255
+    */
+    void convolve1D(int vecSize, float* vec, yarp::sig::ImageOf<yarp::sig::PixelMono>* img, yarp::sig::ImageOf<yarp::sig::PixelMono>* resImg, float factor=1.0,int shift =0,int direction=0,int maxVal=255);
+
 
     /**
      *

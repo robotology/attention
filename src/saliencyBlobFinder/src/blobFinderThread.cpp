@@ -40,6 +40,26 @@ const int DEFAULT_THREAD_RATE = 100;
 #define thresholdDB 250
 #define MAXMEMORY 100
 
+// defining seperate vectors (horizontal and vertical) for gaussians of size 5x5 (sigma 1) and 7x7 (sigma 3)
+// method to do so could be: 1. [u s v] = svd(G) 2. Normalize columns of u and v, by sqrt of largest singular
+// value ie s(1,1)
+static float G7[7] = {      -0.1063f,
+                           -0.1403f,
+                           -0.1658f,
+                           -0.1752f,
+                           -0.1658f,
+                           -0.1403f,
+                           -0.1063f
+                    };
+
+static float G5[5] = { -0.0545f,
+                       -0.2442f,
+                       -0.4026f,
+                       -0.2442f,
+                       -0.0545f
+                     };
+
+
 /************************************************************************/
 bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 {
@@ -105,9 +125,24 @@ blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string 
     ptr_inputImgRed = new ImageOf<yarp::sig::PixelMono>; 
     ptr_inputImgGreen = new ImageOf<yarp::sig::PixelMono>; 
     ptr_inputImgBlue = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_inputImgYellow = new ImageOf<yarp::sig::PixelMono>; 
     ptr_inputImgRG = new ImageOf<yarp::sig::PixelMono>; 
     ptr_inputImgGR = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_inputImgBY = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_inputImgBY = new ImageOf<yarp::sig::PixelMono>;
+
+    ptr_tmpRplus = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpRminus = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpGplus = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpGminus = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpBplus = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpYminus = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpRpluss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpRminuss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpGpluss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpGminuss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpBpluss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpYminuss = new ImageOf<yarp::sig::PixelMono>; 
+ 
     edges = new ImageOf<yarp::sig::PixelMono>; 
     img = new ImageOf<PixelRgb>;
     tmpImage = new ImageOf<PixelMono>;
@@ -137,10 +172,24 @@ blobFinderThread::~blobFinderThread() {
     delete ptr_inputImgRed;     // pointer to the input image of the red plane
     delete ptr_inputImgGreen;   // pointer to the input image of the green plane
     delete ptr_inputImgBlue;    // pointer to the input image of the blue plane
+    delete ptr_inputImgYellow;    // pointer to the input image of the blue plane
     delete ptr_inputImgRG;      // pointer to the input image of the R+G- colour opponency
     delete ptr_inputImgGR;      // pointer to the input image of the G+R- colour opponency
     delete ptr_inputImgBY;      // pointer to the input image of the B+Y- colour opponency
-
+ 
+    delete ptr_tmpRplus;
+    delete ptr_tmpRminus;
+    delete ptr_tmpGplus;
+    delete ptr_tmpGminus;
+    delete ptr_tmpBplus;
+    delete ptr_tmpYminus;
+    delete ptr_tmpRpluss;
+    delete ptr_tmpRminuss;
+    delete ptr_tmpGpluss;
+    delete ptr_tmpGminuss;
+    delete ptr_tmpBpluss;
+    delete ptr_tmpYminuss;
+    
     delete _inputImgRGS;
     delete _inputImgGRS;
     delete _inputImgBYS;
@@ -211,10 +260,24 @@ void blobFinderThread::resizeImages(int width, int height) {
     ptr_inputImgRed->resize(width, height);
     ptr_inputImgGreen->resize(width, height);
     ptr_inputImgBlue->resize(width, height);
+    ptr_inputImgYellow->resize(width, height);
     ptr_inputImgRG->resize(width, height);
     ptr_inputImgGR->resize(width, height);
     ptr_inputImgBY->resize(width, height);
 
+    ptr_tmpRplus->resize(width,height);
+    ptr_tmpRminus->resize(width,height);
+    ptr_tmpGplus->resize(width,height);
+    ptr_tmpGminus->resize(width,height);
+    ptr_tmpBplus->resize(width,height);
+    ptr_tmpYminus->resize(width,height);
+    ptr_tmpRpluss->resize(width,height);
+    ptr_tmpRminuss->resize(width,height);
+    ptr_tmpGpluss->resize(width,height);
+    ptr_tmpGminuss->resize(width,height);
+    ptr_tmpBpluss->resize(width,height);
+    ptr_tmpYminuss->resize(width,height);
+    
     resized_flag = true;
 }
 
@@ -222,16 +285,27 @@ void blobFinderThread::resizeImages(int width, int height) {
  * initialization of the thread 
  */
 bool blobFinderThread::threadInit() {
+    if (!inputPort.open(getName("/image:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!edgesPort.open(getName("/edges:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!blobDatabasePort.open(getName("/database").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!saliencePort.open(getName("/salienceMap:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!outputPort3.open(getName("/imageC3:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
     
-    inputPort.open(getName("/image:i").c_str());
-    edgesPort.open(getName("/edges:i").c_str());
-    rgPort.open(getName("/rg:i").c_str());
-    grPort.open(getName("/gr:i").c_str());
-    byPort.open(getName("/by:i").c_str());
-    blobDatabasePort.open(getName("/database").c_str());
-    saliencePort.open(getName("/salienceMap:o").c_str());
-    outputPort3.open(getName("/imageC3:o").c_str());
-
     //initializing gazecontrollerclient
     Property option;
     option.put("device","gazecontrollerclient");
@@ -320,9 +394,6 @@ bool blobFinderThread::threadInit() {
 void blobFinderThread::interrupt() {
     inputPort.interrupt();          // getName("image:i");
     edgesPort.interrupt();          // getName(edges:i);
-    rgPort.interrupt();             // open(getName("rg:i"));
-    grPort.interrupt();             // open(getName("gr:i"));
-    byPort.interrupt();             // open(getName("by:i"));
     blobDatabasePort.interrupt();
     saliencePort.interrupt();
     outputPort3.interrupt();
@@ -342,16 +413,18 @@ void blobFinderThread::run() {
             reinitialise(img->width(), img->height());
         }
 
-        ippiCopy_8u_C3R(img->getRawImage(), img->getRowSize(), ptr_inputImg->getRawImage(), ptr_inputImg->getRowSize(), srcsize);
+        //ippiCopy_8u_C3R(img->getRawImage(), img->getRowSize(), ptr_inputImg->getRawImage(), ptr_inputImg->getRowSize(), srcsize);
+        memcpy(img->getRawImage(),ptr_inputImg->getRawImage(),img->getRowSize()* img->height());
         bool ret1=true, ret2=true;
-        ret1 = getOpponencies();
         ret2 = getPlanes(img);
+        ret1 = getOpponencies();
         if (!ret1 || !ret2)
             return;
 
         tmpImage=edgesPort.read(false);
         if (tmpImage != 0)
-            ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), edges->getRawImage(), edges->getRowSize(), srcsize);
+            //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), edges->getRawImage(), edges->getRowSize(), srcsize);
+            memcpy(tmpImage->getRawImage(),edges->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
 
         rain(edges);
         drawAllBlobs(false);
@@ -589,9 +662,6 @@ void blobFinderThread::run() {
  *	releases the thread
  */
 void blobFinderThread::threadRelease() {
-    rgPort.close();
-    grPort.close();
-    byPort.close();
     blobDatabasePort.close();
     outputPort3.close();
     saliencePort.close();
@@ -602,18 +672,91 @@ void blobFinderThread::threadRelease() {
  * function that reads the ports for colour RGB opponency maps
  */
 bool blobFinderThread::getOpponencies() {
-
-    tmpImage=rgPort.read(false);
+/*
+    tmpImage=rgbPort.read(false);
     if (tmpImage != NULL)
-        ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgRG->getRawImage(), ptr_inputImgRG->getRowSize(), srcsize);
+        //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgRG->getRawImage(), ptr_inputImgRG->getRowSize(), srcsize);
+        memcpy(tmpImage->getRawImage(),ptr_inputImgRG->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
     
     tmpImage=grPort.read(false);
     if (tmpImage != NULL)
-        ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgGR->getRawImage(), ptr_inputImgGR->getRowSize(), srcsize);
+        //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgGR->getRawImage(), ptr_inputImgGR->getRowSize(), srcsize);
+        memcpy(tmpImage->getRawImage(),ptr_inputImgGR->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
     
     tmpImage=byPort.read(false);
     if (tmpImage != NULL)
-        ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgBY->getRawImage(), ptr_inputImgBY->getRowSize(), srcsize);
+        //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgBY->getRawImage(), ptr_inputImgBY->getRowSize(), srcsize);
+        memcpy(tmpImage->getRawImage(),ptr_inputImgBY->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
+*/
+
+    // We have got planes by now, so we need to convolve them and then get R+G- and others
+    //Positive
+    convolve1D(5,G5,ptr_inputImgRed,ptr_tmpRpluss,.5,0);
+    convolve1D(5,G5,ptr_tmpRpluss,ptr_tmpRplus,.5,1);
+
+    convolve1D(5,G5,ptr_inputImgGreen,ptr_tmpGpluss,.5,0);
+    convolve1D(5,G5,ptr_tmpGpluss,ptr_tmpGplus,.5,1);
+
+    convolve1D(5,G5,ptr_inputImgBlue,ptr_tmpBpluss,.5,0);
+    convolve1D(5,G5,ptr_tmpBpluss,ptr_tmpBplus,.5,1);
+
+    //Negative
+    convolve1D(7,G7,ptr_inputImgRed,ptr_tmpRminuss,.5,0);
+    convolve1D(7,G7,ptr_tmpRminuss,ptr_tmpRminus,.5,1);
+    
+    convolve1D(7,G7,ptr_inputImgGreen,ptr_tmpGminuss,.5,0);
+    convolve1D(7,G7,ptr_tmpGminuss,ptr_tmpGminus,.5,1);
+    
+    convolve1D(7,G7,ptr_inputImgYellow,ptr_tmpYminuss,.5,0);
+    convolve1D(7,G7,ptr_tmpYminuss,ptr_tmpYminus,.5,1);
+
+    // Finding color opponency now
+    unsigned char* pRG = ptr_inputImgRG->getRawImage();
+    unsigned char* pGR = ptr_inputImgGR->getRawImage();
+    unsigned char* pBY = ptr_inputImgBY->getRawImage();
+
+    unsigned char* rPlus = ptr_tmpRplus->getRawImage();
+    unsigned char* rMinus = ptr_tmpRminus->getRawImage();
+    unsigned char* gPlus = ptr_tmpGplus->getRawImage();
+    unsigned char* gMinus = ptr_tmpGminus->getRawImage();
+    unsigned char* bPlus = ptr_tmpBplus->getRawImage();
+    unsigned char* yMinus = ptr_tmpYminus->getRawImage();
+
+    int h = ptr_tmpRplus->height();
+    int w = ptr_tmpRplus->width(); //ASSUME: all dimensions are similar
+    int pad = ptr_tmpRplus->getPadding();
+
+    for(int r = 0; r < h; r++) {
+        for(int c = 0; c < w; c++) {
+            
+            *pRG++ = ((*rPlus >> 1) + 128 - (*gMinus >> 1) );
+            *pGR++ = ((*gPlus >> 1) + 128 - (*rMinus >> 1) );
+            *pBY++ = ((*bPlus >> 1) + 128 - (*yMinus >> 1) );
+
+            rMinus++;
+            rPlus++;
+            gMinus++;
+            gPlus++;
+            yMinus++;
+            bPlus++;
+        }
+
+        rMinus += pad;
+        rPlus  += pad;
+        gMinus += pad;
+        gPlus  += pad;
+        yMinus += pad;
+        bPlus  += pad;
+        pRG += pad;
+        pGR += pad;
+        pBY += pad;
+
+    }
+    
+    
+    
+    
+    
 
     return true;
 }
@@ -623,11 +766,44 @@ bool blobFinderThread::getOpponencies() {
  * function that reads the ports for the RGB planes
  */
 bool blobFinderThread::getPlanes(ImageOf<PixelRgb>* inputImage) {
-    Ipp8u* shift[3];
+    //Ipp8u* shift[3];
+    unsigned char* shift[4];
+
+    // assuming image planes are sized appropriately
     shift[0] = ptr_inputImgRed->getRawImage(); 
     shift[1] = ptr_inputImgGreen->getRawImage();
     shift[2] = ptr_inputImgBlue->getRawImage();
-    ippiCopy_8u_C3P3R(inputImage->getRawImage(), inputImage->getRowSize(), shift, ptr_inputImgRed->getRowSize(), srcsize);
+    shift[3] = ptr_inputImgYellow->getRawImage();
+
+    int pad_inptImg = inputImage->getPadding();
+    int pad_redPlane = ptr_inputImgRed->getPadding();
+    int pad_greenPlane = ptr_inputImgGreen->getPadding();
+    int pad_bluePlane = ptr_inputImgBlue->getPadding();
+    int pad_yellowPlane = ptr_inputImgYellow->getPadding();
+    unsigned char* ptr_inputImage = inputImage->getRawImage();
+
+    for(int height=0; height<inputImage->height(); ++height){
+        for(int width=0; width<inputImage->width(); ++width){
+            *shift[0] = *ptr_inputImage++;
+            *shift[1] = *ptr_inputImage++;
+            *shift[2] = *ptr_inputImage++;
+            *shift[3] = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
+            shift[0]++;
+            shift[1]++;
+            shift[2]++;
+            shift[3]++;
+            
+        }
+        shift[0] += pad_redPlane;
+        shift[1] += pad_greenPlane;
+        shift[2] += pad_bluePlane;
+        shift[3] += pad_yellowPlane;
+        ptr_inputImage += pad_inptImg;
+
+    }
+            
+    //ippiCopy_8u_C3P3R(inputImage->getRawImage(), inputImage->getRowSize(), shift, ptr_inputImgRed->getRowSize(), srcsize);
+    //memcpy(inputImage->getRawImage(),ptr_inputImgRed->getRawImage(),inputImage->getRowSize()* inputImage->height());
     return true;
 }
 
@@ -678,4 +854,75 @@ void blobFinderThread::drawAllBlobs(bool stable)
         1.0, 0.0,
         pixelRG, pixelGR, pixelBY, 255); 
 }
+
+void blobFinderThread::convolve1D(int vecSize, float* vec, ImageOf<PixelMono>* img, ImageOf<PixelMono>* resImg, float factor,int shift,int direction, int maxVal){
+    
+    // ASSUME: No overflow, same size image
+    float maxPixelVal = 0;
+    float minPixelVal = -256;
+    int maxRange = 255;
+    int ROIRowStart = vecSize/2;
+    int ROIRowEnd = img->height()-vecSize/2;
+    int ROIColEnd = img->width() - vecSize/2;
+    int ROIColStart = vecSize/2;    
+    int vecStart = -vecSize/2;
+    int vecEnd = vecSize/2;
+    int rowSize = img->getRowSize();
+    int resRowSize = resImg->getRowSize();
+    unsigned char* mat = img->getRawImage();
+    unsigned char* res = resImg->getRawImage();
+    float* midVec = vec + vecSize/2; // middle of linear kernel
+    int pixelPos = 0; int pixPos =0;    
+    
+    if(direction == 0){ //horizontal convolution
+        for(int i=0;i<resImg->height();++i){
+            for(int j=0;j<resImg->width();++j){
+                pixelPos = i*resRowSize;
+                //float* tmpVec = midVec;
+                pixPos = j;
+                float sum = *midVec * *(mat+pixelPos+pixPos);
+                pixPos--;
+                for(int k=0; k<vecSize/2 && pixPos>0; k++, pixPos--){
+                    sum += (*(mat+pixelPos+pixPos))* (*(midVec-k));
+                    //tmpVec++;
+                }
+                pixPos = j+1;
+                for(int k=0; k<vecSize/2 && pixPos<img->width(); k++, pixPos++){
+                    sum += (*(mat+pixelPos+pixPos))* (*(midVec+k));
+                    //tmpVec++;
+                }
+                sum *= factor; 
+                //if(sum>maxPixelVal) maxPixelVal=sum;
+                //else if(sum<minPixelVal) minPixelVal=sum;               
+                *(res+i*resRowSize+j)=sum;//+ shift;//<0?0: sum>maxVal? maxVal:sum;
+            }
+        } 
+    } 
+    else {
+        for(int i=0;i<resImg->height();++i){
+            for(int j=0;j<resImg->width();++j){
+                pixelPos = j;
+                //float* tmpVec = midVec;
+                pixPos = i;
+                float sum = *midVec * *(mat+pixPos*rowSize+pixelPos);
+                pixPos--;
+                for(int k=0; k<vecSize/2 && pixPos>0; k++, pixPos--){
+                    sum += (*(mat+pixelPos+pixPos*rowSize))* (*(midVec-k));
+                    //tmpVec++;
+                }
+                pixPos = i+1;
+                for(int k=0; k<vecSize/2 && pixPos<img->height(); k++, pixPos++){
+                    sum += (*(mat+pixelPos+pixPos*rowSize))* (*(midVec+k));
+                    //tmpVec++;
+                }
+                sum *= factor;
+                if(sum>maxPixelVal) maxPixelVal=sum;
+                else if(sum<minPixelVal) minPixelVal=sum;  
+                *(res+i*resRowSize+j)=sum;//<0?0: sum>maxVal? maxVal:sum;
+            }
+        } 
+    }
+    
+}
+
 
