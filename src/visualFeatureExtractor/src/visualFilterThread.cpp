@@ -1081,8 +1081,13 @@ inline T max(T a, T b, T c) {
 
 visualFilterThread::visualFilterThread() {
     
-    inputExtImage       = new ImageOf<PixelRgb>;
-    inputImage          = new ImageOf<PixelRgb>;
+    //inputExtImage       = new ImageOf<PixelRgb>;
+    //inputImage          = new ImageOf<PixelRgb>;
+    yImage              = new ImageOf<PixelMono>;
+    yFilImage           = new ImageOf<PixelMono>;
+    uvOrigImage         = new ImageOf<PixelMono>;
+    uvImage             = new ImageOf<PixelMono>;
+    uvFilImage          = new ImageOf<PixelMono>;
     inputImageFiltered  = new ImageOf<PixelRgb>;
     cartImage           = new ImageOf<PixelRgb>;    
     logPolarImage       = new ImageOf<PixelRgb>;
@@ -1139,27 +1144,55 @@ visualFilterThread::visualFilterThread() {
     dwnSam = 2;*/
 
     //default values
-    for(int i=0;i<4;++i){
+    /*for(int i=0;i<4;++i){
         intLambda[i] = 33;      // factor 100
         intSigma[i] = 80;      // factor 10
         intGamma[i] = 25;       // factor 100
         intPsi[i] = 0;          // factor 100
         intFilScale[i] =10;   // factor 10
         intFilShift[i] = 256;
-    }
-        
+    }*/
 
-    orient0[0]=0.0;
-    orient0[1]=255.0;
+    intLambda[0] = 101;      // factor 100
+    intSigma[0] = 105;      // factor 10
+    intGamma[0] = 25;       // factor 100
+    intPsi[0] = 0;          // factor 100
+    intFilScale[0] =1;      // factor 10
+    intFilShift[0] = 276;
     
-    orient45[0]=0.0;
-    orient45[1]=255.0;
+    intLambda[1] = 101;      // factor 100
+    intSigma[1] = 63;      // factor 10
+    intGamma[1] = 25;       // factor 100
+    intPsi[1] = 0;          // factor 100
+    intFilScale[1] =1;   // factor 10
+    intFilShift[1] = 244;
+    
+    intLambda[2] = 105;      // factor 100
+    intSigma[2] = 105;      // factor 10
+    intGamma[2] = 25;       // factor 100
+    intPsi[2] = 0;          // factor 100
+    intFilScale[2] =1;   // factor 10
+    intFilShift[2] = 244;
+    
+    intLambda[3] = 84;      // factor 100
+    intSigma[3] = 74;      // factor 10
+    intGamma[3] = 25;       // factor 100
+    intPsi[3] = 0;          // factor 100
+    intFilScale[3] =1;   // factor 10
+    intFilShift[3] = 251;
+       
 
-    orient90[0]=0.0;
-    orient90[1]=255.0;
+    orient0[0]=0;
+    orient0[1]=255;
+    
+    orient45[0]=0;
+    orient45[1]=255;
 
-    orientM45[0]=0.0;
-    orientM45[1]=255.0;
+    orient90[0]=0;
+    orient90[1]=255;
+
+    orientM45[0]=0;
+    orientM45[1]=255;
 
     
 
@@ -1167,7 +1200,7 @@ visualFilterThread::visualFilterThread() {
 
           
     
-    lambda = 0.1f;
+    lambda = 0.3f;
     resized = false;
 
     //Logpolar to cartesian and vice versa
@@ -1215,9 +1248,14 @@ visualFilterThread::visualFilterThread() {
 
 visualFilterThread::~visualFilterThread() {
     
-    delete inputExtImage;
+    //delete inputExtImage;
     delete inputImageFiltered;
-    delete inputImage;
+    //delete inputImage;
+    delete yImage;
+    delete yFilImage;
+    delete uvImage;
+    delete uvFilImage;
+    delete uvOrigImage;
     delete cartImage;
     delete logPolarImage;
     
@@ -1251,33 +1289,25 @@ visualFilterThread::~visualFilterThread() {
 bool visualFilterThread::threadInit() {
     printf("opening ports \n");
     /* open ports */ 
-    if (!imagePortIn.open(getName("/image:i").c_str())) {
+    
+
+    if (!yPortIn.open(getName("/y:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    
+    if (!uvPortIn.open(getName("/uv:i").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-    if (!imagePortOut.open(getName("/image:o").c_str())) {
+    
+    if (!imagePortExt.open(getName("/uvExt:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
-
-    if (!imagePortExt.open(getName("/imageExt:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!rgPort.open(getName("/rg:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!grPort.open(getName("/gr:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!byPort.open(getName("/by:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!pyImgPort.open(getName("/pyImg:o").c_str())) {
+    
+    if (!pyImgPort.open(getName("/edges:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -1336,19 +1366,24 @@ void visualFilterThread::run() {
     
     
     while (isStopping() != true) {
-        inputImage = imagePortIn.read(true);
+        //inputImage  = imagePortIn.read(true);
+        yImage      = yPortIn.read(true);
+        uvOrigImage = uvPortIn.read(true);
         
-        if (inputImage != NULL) {
+        if (yImage != NULL && uvOrigImage != NULL && yImage->width() == uvOrigImage->width() 
+            && yImage->height() == uvOrigImage->height() ) {
             if (!resized) {
                 //printf("new image found %d %d", inputImage->width(),inputImage->height() );
-                resize(inputImage->width(), inputImage->height());
-                int sizecvRedPlus = cvRedPlus->width;
+                //resize(inputImage->width(), inputImage->height());
+                resize(yImage->width(), yImage->height());
+                //resize(uvOrigImage->width(), uvOrigImage->height());
+                //int sizecvRedPlus = cvRedPlus->width;
     
                 //printf("image successfull ");
                 resized = true;
             }
             else {
-                filterInputImage();
+                //filterInputImage();
             }            
             resizeCartesian(320,240);
             //printf("red plus dimension in resize1  %d %d \n", cvRedPlus->width, cvRedPlus->height);
@@ -1356,24 +1391,26 @@ void visualFilterThread::run() {
 
             //filtering input image
             //printf("filtering \n");
+            // filter y image
             filterInputImage();
              //printf("red plus dimension in resize2  %d %d \n", cvRedPlus->width, cvRedPlus->height);
  
             // extend logpolar input image
-            extender(inputImage, maxKernelSize);
+            //extender(inputImage, maxKernelSize);
+            extender(uvOrigImage, maxKernelSize);
              //printf("red plus dimension in resize3  %d %d \n", cvRedPlus->width, cvRedPlus->height);
             
             // extract RGB and Y planes
-            extractPlanes();
+            //extractPlanes();
              //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
                       
             // gaussian filtering of the of RGB and Y
-            filtering();
+            //filtering();
             
 
             // colourOpponency map construction
             //printf("before colour opponency \n");
-            colourOpponency();
+            orientation();
             // apply sobel operators on the colourOpponency maps and combine via maximisation of the 3 edges
 
             
@@ -1383,28 +1420,13 @@ void visualFilterThread::run() {
             // sending the edge image on the outport            
             // the copy to the port object can be avoided...
             
-            if((edges!=0)&&(imagePortOut.getOutputCount())) {
-                imagePortOut.prepare() = *(edges);
-                imagePortOut.write();
-            }
-            if((redGreen!=0)&&(rgPort.getOutputCount())) {
-                rgPort.prepare() = *(upSampleRGyarp);
-                rgPort.write();
-            }
-            if((greenRed!=0)&&(grPort.getOutputCount())) {
-                grPort.prepare() = *(upSampleGRyarp);
-                grPort.write();
-            }
-            if((blueYellow!=0)&&(byPort.getOutputCount())) {
-                byPort.prepare() = *(upSampleBYyarp);
-                byPort.write();
-            }
-            if((inputExtImage!=0)&&(imagePortExt.getOutputCount())) {
-                imagePortExt.prepare() = *(inputExtImage);
+            
+            if((uvImage!=0)&&(imagePortExt.getOutputCount())) {
+                imagePortExt.prepare() = *(uvImage);
                 imagePortExt.write();
                 }
-            if((cartIntensImg!=0)&&(pyImgPort.getOutputCount())) {
-                pyImgPort.prepare() = *(cartIntensImg);
+            if((edges!=0)&&(pyImgPort.getOutputCount())) {
+                pyImgPort.prepare() = *(edges);
                 pyImgPort.write();
             }
 
@@ -1449,6 +1471,7 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     CvSize cvCropLogSize = cvSize(width_orig,height_orig);
     CvSize cvCartSize = cvSize(320,240);
     CvSize cvCartDwnSize = cvSize(320/DWN_SAMPLE,240/DWN_SAMPLE);
+    CvSize cvCartDwnSize2 = cvSize(320/DWN_SAMPLE2,240/DWN_SAMPLE2);
     
     //printf("width after reposition %d %d \n", width , height);
 
@@ -1461,7 +1484,13 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     edges->resize(width_orig, height_orig);
     inputImageFiltered->resize(width_orig, height_orig);
     inputImageFiltered->zero();
-    inputExtImage->resize(width,height);
+    //inputExtImage->resize(width,height);
+
+    uvOrigImage->resize(width_orig, height_orig);
+    uvFilImage->resize(width_orig, height_orig);
+    uvImage->resize(width,height);
+    yFilImage->resize(width_orig, height_orig);
+    yImage->resize(width,height);
     intensImg->resize(width,height);
     cartIntensImg->resize(320,240); 
 
@@ -1546,7 +1575,7 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     totImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 );
     dwnImage = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U, 1 ); // this is later resized
     dwnSampleRG  = cvCreateImage(cvCartDwnSize,IPL_DEPTH_8U, 1 );
-    dwnSampleGR  = cvCreateImage(cvCartDwnSize,IPL_DEPTH_8U, 1 );
+    dwnSampleGR  = cvCreateImage(cvCartDwnSize2,IPL_DEPTH_8U, 1 );  // CHANGE!
     dwnSampleBY  = cvCreateImage(cvCartDwnSize,IPL_DEPTH_8U, 1 );
     upSampleRG   = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
     upSampleGR = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
@@ -1554,7 +1583,7 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
 
     
     dwnSampleRGa = cvCreateImage(cvCartDwnSize,IPL_DEPTH_8U, 1 );
-    dwnSampleGRa = cvCreateImage(cvCartDwnSize,IPL_DEPTH_8U, 1 );
+    dwnSampleGRa = cvCreateImage(cvCartDwnSize2,IPL_DEPTH_8U, 1 );  // CHANGE!
     dwnSampleBYa = cvCreateImage(cvCartDwnSize,IPL_DEPTH_8U, 1 );
     upSampleRGa = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
     upSampleGRa = cvCreateImage(cvCartSize,IPL_DEPTH_8U, 1 );
@@ -1571,6 +1600,8 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     cvResizeWindow("Parameters for Gabor Filters",600,400);
     cvNamedWindow("Parameters for Gabor Filters1",CV_GUI_NORMAL);
     cvResizeWindow("Parameters for Gabor Filters1",600,400);
+    cvNamedWindow("Parameters for Scaling Images",CV_GUI_NORMAL);
+    cvResizeWindow("Parameters for Scaling Images",600,400);
     
     cvCreateTrackbar("Sig 0", "Parameters for Gabor Filters", &intSigma[0], 1000, NULL); // no callback
     cvCreateTrackbar("Sig 45", "Parameters for Gabor Filters", &intSigma[1], 1000, NULL); // no callback
@@ -1592,15 +1623,25 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     cvCreateTrackbar("Lambda 90", "Parameters for Gabor Filters1", &intLambda[2], 1000, NULL); // no callback
     cvCreateTrackbar("Lambda -45", "Parameters for Gabor Filters1", &intLambda[3], 1000, NULL); // no callback
 
-    cvCreateTrackbar("Scale 0", "Parameters for Gabor Filters", &intFilScale[0], 1000, NULL); // no callback
-    cvCreateTrackbar("Scale 45", "Parameters for Gabor Filters", &intFilScale[1], 1000, NULL); // no callback
-    cvCreateTrackbar("Scale 90", "Parameters for Gabor Filters", &intFilScale[2], 1000, NULL); // no callback
-    cvCreateTrackbar("Scale -45", "Parameters for Gabor Filters", &intFilScale[3], 1000, NULL); // no callback
+    cvCreateTrackbar("Scale 0", "Parameters for Gabor Filters", &intFilScale[0], 100, NULL); // no callback
+    cvCreateTrackbar("Scale 45", "Parameters for Gabor Filters", &intFilScale[1], 100, NULL); // no callback
+    cvCreateTrackbar("Scale 90", "Parameters for Gabor Filters", &intFilScale[2], 100, NULL); // no callback
+    cvCreateTrackbar("Scale -45", "Parameters for Gabor Filters", &intFilScale[3], 100, NULL); // no callback
     
     cvCreateTrackbar("Shift 0", "Parameters for Gabor Filters1", &intFilShift[0], 512, NULL); // no callback
     cvCreateTrackbar("Shift 45", "Parameters for Gabor Filters1", &intFilShift[1], 512, NULL); // no callback
     cvCreateTrackbar("Shift 90", "Parameters for Gabor Filters1", &intFilShift[2], 512, NULL); // no callback
     cvCreateTrackbar("Shift -45", "Parameters for Gabor Filters1", &intFilShift[3], 512, NULL); // no callback
+    
+    cvCreateTrackbar("Max Neg 0", "Parameters for Scaling Images", &orient0[0], 10000, NULL); // no callback
+    cvCreateTrackbar("Max Neg 45", "Parameters for Scaling Images", &orient45[0], 10000, NULL); // no callback
+    cvCreateTrackbar("Max Neg 90", "Parameters for Scaling Images", &orient90[0], 10000, NULL); // no callback
+    cvCreateTrackbar("Max Neg M45", "Parameters for Scaling Images", &orientM45[0], 10000, NULL); // no callback
+    
+    cvCreateTrackbar("Max 0", "Parameters for Scaling Images", &orient0[1], 10000, NULL); // no callback
+    cvCreateTrackbar("Max 45", "Parameters for Scaling Images", &orient45[1], 10000, NULL); // no callback
+    cvCreateTrackbar("Max 90", "Parameters for Scaling Images", &orient90[1], 10000, NULL); // no callback
+    cvCreateTrackbar("Max M45", "Parameters for Scaling Images", &orientM45[1], 10000, NULL); // no callback
     
     
     
@@ -1610,19 +1651,29 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
 
 void visualFilterThread::filterInputImage() {
     int i;
-    const int sz = inputImage->getRawImageSize();
-    unsigned char * pFiltered = inputImageFiltered->getRawImage();
-    unsigned char * pCurr = inputImageFiltered->getRawImage();
+    //const int szY = yImage->getRawImageSize();
+    const int szUV = uvOrigImage->getRawImageSize();
+    unsigned char * pFilteredY = yFilImage->getRawImage();
+    unsigned char * pCurrY = yImage->getRawImage();
+    unsigned char * pFilteredUV = uvFilImage->getRawImage();
+    unsigned char * pCurrUV = uvOrigImage->getRawImage();
     const float ul = 1.0f - lambda;
-    for (i = 0; i < sz; i++) {
-        *pFiltered = (unsigned char)(lambda * *pCurr++ + ul * *pFiltered + .5f);
-        pFiltered ++;
+    for (i = 0; i < szUV; i++) { // assuming same size
+        *pFilteredUV = (unsigned char)(lambda * *pCurrUV++ + ul * *pFilteredUV++ + .5f);
+        *pFilteredY = (unsigned char)(lambda * *pCurrY++ + ul * *pFilteredY++ + .5f);
+        
     }
 }
-
+/*
 ImageOf<PixelRgb>* visualFilterThread::extender(ImageOf<PixelRgb>* inputOrigImage, int maxSize) {
     iCub::logpolar::replicateBorderLogpolar(*inputExtImage, *inputOrigImage, maxSize);
     return inputExtImage;
+}
+*/
+
+ImageOf<PixelMono>* visualFilterThread::extender(ImageOf<PixelMono>* uvOrigImage, int maxSize) {
+    iCub::logpolar::replicateBorderLogpolar(*uvImage, *uvFilImage, maxSize);
+    return uvImage;
 }
 
 void visualFilterThread::cartremap(ImageOf<PixelRgb>* cartesianImage, ImageOf<PixelRgb>* logpolarImage) {
@@ -1630,6 +1681,8 @@ void visualFilterThread::cartremap(ImageOf<PixelRgb>* cartesianImage, ImageOf<Pi
 }
 
 void visualFilterThread::extractPlanes() {
+
+/*  ********* Depricated ***************
     // We extract color planes from the RGB image. Planes are red,blue, green and yellow (AM of red & green)
     uchar* shift[3];
     uchar* yellowP;
@@ -1658,7 +1711,7 @@ void visualFilterThread::extractPlanes() {
     int widthcvY = cvYellowPlane->widthStep;
     int widthcvI = intensityImage->widthStep;
 
-    /* We can avoid padding for openCV images*/
+    // We can avoid padding for openCV images
     int paddingMono = inputExtImage->getPadding(); 
     int padding3C = inputExtImage->getPadding(); 
 
@@ -1687,7 +1740,7 @@ void visualFilterThread::extractPlanes() {
 
         
     }
-
+*/
 }
 
 void visualFilterThread::filtering() {
@@ -1730,14 +1783,14 @@ void visualFilterThread::filtering() {
     
 }
 
-void visualFilterThread::colourOpponency() {
+void visualFilterThread::orientation() {
     
     // we want RG = (G- - R+)/2 -128, GR = (R- - G+)/2 and BY = (Y- -B+)/2 -128. These values are obtained after filtering with positive and negative Gaussian.
 
     const int h = height;
     const int w = width;
     
-
+/*
     //printf("inside the colourOpponency ");
     int pad = redG->widthStep - redG->width;
     //uchar* originRG = 
@@ -1797,9 +1850,9 @@ void visualFilterThread::colourOpponency() {
     greenRed->resize(252,152);
     blueYellow->resize(252,152);
     
-    /*cropImage(cor,redG,(IplImage*)redGreen->getIplImage());
+    cropImage(cor,redG,(IplImage*)redGreen->getIplImage());
     cropImage(cor,greenR,(IplImage*)greenRed->getIplImage());
-    cropImage(cor,blueY,(IplImage*)blueYellow->getIplImage());*/
+    cropImage(cor,blueY,(IplImage*)blueYellow->getIplImage());
 
    
     
@@ -1815,41 +1868,44 @@ void visualFilterThread::colourOpponency() {
     openCVtoYARP(tmpGreenRed,greenRed,1);
     blueYellow->zero();
     openCVtoYARP(tmpBlueYellow,blueYellow,1);
+
+*/
     
        
     // Converting regular R+G- to cartesian , similarly for others
-    lpMono.logpolarToCart (*cartRedGreen, *redGreen);
-    lpMono.logpolarToCart (*cartGreenRed, *greenRed);
-    lpMono.logpolarToCart (*cartBlueYellow, *blueYellow);
-    lpMono.logpolarToCart (*cartIntensImg, *intensImg);
+    //lpMono.logpolarToCart (*cartRedGreen, *redGreen);
+    //lpMono.logpolarToCart (*cartGreenRed, *greenRed);
+    //lpMono.logpolarToCart (*cartBlueYellow, *blueYellow);
+    //lpMono.logpolarToCart (*cartIntensImg, *intensImg);
+    lpMono.logpolarToCart (*cartRedGreen, *yImage);
+    //lpMono.logpolarToCart (*cartGreenRed, *uvImage);
     
     
     float weight[3]= {.33,.33,.33};
 
     // Downsample these cartesian color opponency maps to scale 4
     //int DWN_SAMPLE = 4;
+    //downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleRGa,DWN_SAMPLE);
     downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleRGa,DWN_SAMPLE);
-    downSampleImage((IplImage*)cartGreenRed->getIplImage(), dwnSampleGRa,DWN_SAMPLE);
-    downSampleImage((IplImage*)cartBlueYellow->getIplImage(), dwnSampleBYa,DWN_SAMPLE);
+    //downSampleImage((IplImage*)cartGreenRed->getIplImage(), dwnSampleGRa,DWN_SAMPLE);
+    downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleGRa,DWN_SAMPLE2);
+    
 
     
     
     // Some local tmp images allocated
     dwnSampleRGFila = cvCreateImage(cvGetSize(dwnSampleRGa),IPL_DEPTH_8U, 1 );
     dwnSampleGRFila = cvCreateImage(cvGetSize(dwnSampleGRa),IPL_DEPTH_8U, 1 );
-    dwnSampleBYFila = cvCreateImage(cvGetSize(dwnSampleBYa),IPL_DEPTH_8U, 1 );
+    
 
-    IplImage* tmpdwnSampleRGFil, *tmpdwnSampleGRFil,*tmpdwnSampleBYFil;
-    tmpdwnSampleRGFil = cvCreateImage(cvGetSize(dwnSampleRGa),IPL_DEPTH_8U, 1 );
-    tmpdwnSampleGRFil = cvCreateImage(cvGetSize(dwnSampleGRa),IPL_DEPTH_8U, 1 );
-    tmpdwnSampleBYFil = cvCreateImage(cvGetSize(dwnSampleBYa),IPL_DEPTH_8U, 1 );
+    
 
     cvShowImage("Parameters for Gabor Filters",NULL);
     cvShowImage("Parameters for Gabor Filters1",NULL);
     cvWaitKey(20);
     getKernels();
 
-    float scaleFactor = 500;
+    float scaleFactor = 100;
     int shift = 0;
     /**********************************************************************************************/
     /*     For orientation 0 degrees                                                              */
@@ -1872,26 +1928,25 @@ void visualFilterThread::colourOpponency() {
  
     convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor0[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,intFilShift[0],orient0);  
     convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor0[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,intFilShift[0],orient0);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor0[0][0], dwnSampleBYa, dwnSampleBYFila, scaleFactor,intFilShift[0],orient0); 
-
+    
     
     
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImg0[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-
+    int centerImg20[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
     cropCircleImage(centerImg0,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg0,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImg0,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    cropCircleImage(centerImg20,dwnSampleGRFila->height/2,dwnSampleGRFila);
+    
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,DWN_SAMPLE);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
+    
 
     // Add these 3 color opponent maps. We may take max when adding
     float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add0[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2Add0,3,cvGabor0);
+    IplImage* imgs2Add0[2]={upSampleRGa,upSampleGRa};
+    maxImages(imgs2Add0,2,cvGabor0);
 
     
 
@@ -1916,7 +1971,7 @@ void visualFilterThread::colourOpponency() {
     
     convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor45[0][0], dwnSampleRGa, dwnSampleRGFila, 1.0*scaleFactor,intFilShift[1],orient45);  
     convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor45[0][0], dwnSampleGRa, dwnSampleGRFila, 1.0*scaleFactor,intFilShift[1],orient45);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor45[0][0], dwnSampleBYa, dwnSampleBYFila, 1.0*scaleFactor,intFilShift[1],orient45); 
+    
     shift =0;
 
     /*cvNamedWindow("test4");
@@ -1932,19 +1987,19 @@ void visualFilterThread::colourOpponency() {
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImg45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    int centerImg245[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
     cropCircleImage(centerImg45,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg45,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImg45,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    cropCircleImage(centerImg245,dwnSampleGRFila->height/2,dwnSampleGRFila);
+   
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,DWN_SAMPLE);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
 
     // Add these 3 color opponent maps. We may take max when adding
     //float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add45[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2Add45,3,cvGabor45); 
+    IplImage* imgs2Add45[2]={upSampleRGa,upSampleGRa };
+    maxImages(imgs2Add45,2,cvGabor45); 
 
     
     /**********************************************************************************************/
@@ -1964,23 +2019,22 @@ void visualFilterThread::colourOpponency() {
     
     convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor90[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,intFilShift[2],orient90);  
     convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor90[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,intFilShift[2],orient90);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor90[0][0], dwnSampleBYa, dwnSampleBYFila, scaleFactor,intFilShift[2],orient90);    
+      
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImg90[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    int centerImg290[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
     cropCircleImage(centerImg90,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg90,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImg90,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    cropCircleImage(centerImg290,dwnSampleGRFila->height/2,dwnSampleGRFila);
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,DWN_SAMPLE);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
 
     // Add these 3 color opponent maps. We may take max when adding
     //float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add90[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2Add90,3,cvGabor90); 
+    IplImage* imgs2Add90[2]={upSampleRGa,upSampleGRa};
+    maxImages(imgs2Add90,2,cvGabor90); 
 
     
     /**********************************************************************************************/
@@ -1999,58 +2053,54 @@ void visualFilterThread::colourOpponency() {
  */
     
     convolve2D(KERNEL_ROW,KERNEL_COL,&GaborM45[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,intFilShift[3],orientM45);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&GaborM45[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,intFilShift[3],orientM45);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&GaborM45[0][0], dwnSampleBYa, dwnSampleBYFila, scaleFactor,intFilShift[3],orientM45);
+    convolve2D(KERNEL_ROW,KERNEL_COL,&GaborM45[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,intFilShift[3],orientM45);
 
          
 
     // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
     int centerImgM45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
+    int centerImgM245[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
     cropCircleImage(centerImgM45,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImgM45,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    cropCircleImage(centerImgM45,dwnSampleBYFila->height/2,dwnSampleBYFila);
+    cropCircleImage(centerImgM245,dwnSampleGRFila->height/2,dwnSampleGRFila);
 
     //up-sample the filtered images
     upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE);
-    upSampleImage(dwnSampleBYFila,upSampleBYa,DWN_SAMPLE);
+    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
 
     // Add these 3 color opponent maps. We may take max when adding
     //float wt[3]={.33,.33,.33};
-    IplImage* imgs2AddM45[3]={upSampleRGa,upSampleGRa ,upSampleBYa};
-    maxImages(imgs2AddM45,3,cvGaborM45); 
+    IplImage* imgs2AddM45[2]={upSampleRGa,upSampleGRa };
+    maxImages(imgs2AddM45,2,cvGaborM45); 
 
     
     /********** End of oriented gabor filtering  *********************************/
 
-    /*cvNamedWindow("test4");
-    cvShowImage("test4",cvGabor0);
-    cvNamedWindow("test5");
-    cvShowImage("test5",cvGabor45);
-    cvNamedWindow("test6");
-    cvShowImage("test6",cvGaborM45);
-    cvWaitKey(0);*/
+    
     
     //Preparing the upsampled image to be sent to port
     openCVtoYARP(upSampleRGa,upSampleRGyarp,1);
     openCVtoYARP(upSampleGRa,upSampleGRyarp,1);
-    openCVtoYARP(upSampleBYa,upSampleBYyarp,1);
+    
 
     openCVtoYARP(cvGabor0,gabor0,1);
     openCVtoYARP(cvGabor45,gabor45,1);
     openCVtoYARP(cvGabor90,gabor90,1);
     openCVtoYARP(cvGaborM45,gaborM45,1);
 
+    /*cvNamedWindow("test4");
+    cvShowImage("test4",(IplImage*)gabor0->getIplImage());
+    cvNamedWindow("test5");
+    cvShowImage("test5",cvGabor45);
+    cvNamedWindow("test6");
+    cvShowImage("test6",cvGaborM45);
+    cvWaitKey(0);*/
     
 
     // local tmp images freed
     cvReleaseImage(&dwnSampleRGFila);
     cvReleaseImage(&dwnSampleGRFila);
-    cvReleaseImage(&dwnSampleBYFila);
-    cvReleaseImage(&tmpdwnSampleRGFil);
-    cvReleaseImage(&tmpdwnSampleGRFil);
-    cvReleaseImage(&tmpdwnSampleBYFil);  
     
+       
 
     
   
@@ -2060,7 +2110,7 @@ void visualFilterThread::colourOpponency() {
 
 void visualFilterThread::edgesExtract() {
 
-    
+    /*
     // Since Sobel doesnt do scaling, destination is 16 bit
     cvSobel(redG,tempHRG,1,0,3);   
     cvSobel(redG,tempVRG,0,1,3);
@@ -2165,6 +2215,66 @@ void visualFilterThread::edgesExtract() {
         ptrHBY = originHBY + (row+1)*widthStepCV + gapInWidth;
         ptrVBY = originVBY + (row+1)*widthStepCV + gapInWidth;
     }
+
+    */
+    cvSobel((IplImage*)uvImage->getIplImage(),tempHRG,1,0,3);   
+    cvSobel((IplImage*)uvImage->getIplImage(),tempVRG,0,1,3);
+
+    // Scaling the destination back to 8 bit
+    cvConvertScaleAbs(tempHRG,hRG,.2,0.0);
+    cvConvertScaleAbs(tempVRG,vRG,.2,0.0);
+
+    //clearing up the previous value
+    edges->zero();
+    uchar* pedges=edges->getRawImage();
+    const int pad_edges = edges->getPadding();
+
+    // can be optimized later
+    uchar* originPedges = edges->getRawImage();
+    int widthEdges = edges->getRowSize();
+    uchar* originHRG = (uchar*)hRG->imageData + hRG->widthStep * (height - height_orig);
+    uchar* originVRG = (uchar*)vRG->imageData + vRG->widthStep * (height - height_orig);
+    int widthStepCV = hRG->widthStep;
+
+    uchar* ptrHRG = (uchar*)hRG->imageData;
+    uchar* ptrVRG = (uchar*)vRG->imageData;
+    
+    //The extra portion of extended image can be neglected, hence the pointers are shifted accordingly. 
+    int j = (hRG->widthStep)*(height-height_orig)+ (width-width_orig)/2; 
+
+    // At the end of the original width, extended image pointers need to jump more 
+    int gapInWidth = (width - width_orig)/2;
+    const int padXtnd = gapInWidth + (hRG->widthStep - hRG->width);
+
+    ptrHRG += j; ptrVRG += j;
+    
+
+    for (int row = 0; row < height_orig; row++) {
+        for (int col = 0; col < width_orig; col++) {
+
+            double rg = (*ptrHRG ) * (*ptrHRG ) + (*ptrVRG ) * (*ptrVRG );
+            if (row < height_orig) {
+                *pedges = (unsigned char)(sqrt(rg)); //*(255.0 / 1024)); //normalised with theoric max-response 1448.16, 362.03                
+            }
+            else
+                *pedges = 0;
+            
+            pedges++;
+            ptrHRG++; ptrVRG++;
+            
+        }
+        // padding
+        pedges += pad_edges;
+        //ptrHRG += padXtnd; ptrVRG += padXtnd;
+        //ptrHGR += padXtnd; ptrVGR += padXtnd;
+        //ptrHBY += padXtnd; ptrVBY += padXtnd;
+        ptrHRG = originHRG + (row+1)*widthStepCV + gapInWidth;
+        ptrVRG = originVRG + (row+1)*widthStepCV + gapInWidth;        
+    }
+
+    
+    
+    
     
 }
 
@@ -2220,7 +2330,7 @@ void visualFilterThread::getKernels() {
             for(double yV = -yLim; yV < yLim + yThre; yV += yStepSize) {
                 double xT = xV * cos(theta[i]) + yV * sin(theta[i]);
                 double yT = -xV * sin(theta[i]) + yV * cos(theta[i]);
-                double val= filScale[i]*exp(-.5*(xT*xT/(sigmaX*sigmaX) + yT*yT/(sigmaY*sigmaY)))*cos(2.0*PI*xT*fact + psi[i])/(2.0*PI*sigmaX*sigmaY);
+                double val= filScale[i]*exp(-.5*(xT*xT/(sigmaX*sigmaX) + yT*yT/(sigmaY*sigmaY)))*(cos(2.0*PI*xT*fact + psi[i])/(2.0*PI*sigmaX*sigmaY) +sin(2.0*PI*xT*fact + psi[i])/(2.0*PI*sigmaX*sigmaY));
                 //printf("%f , ",val);
                 if(i==0) Gabor0[j][k]=val;
                 else if(i==1) Gabor45[j][k]=val;
@@ -2589,21 +2699,24 @@ void visualFilterThread::convolve1D(int vecSize, float* vec, IplImage* img, IplI
 }
 
 
-void visualFilterThread::convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor,int shift, float* rangeOfPixels, int maxVal){
+void visualFilterThread::convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor,int shift, int* rangeOfPixels, int maxVal){
     
     //printf("Entering convolution\n");
-    IplImage* resFImg;
-    resFImg = cvCreateImage(cvGetSize(img),IPL_DEPTH_32F, 1 );
-    cvSet(resFImg,cvScalar(0.0));
+    //IplImage* resFImg;
+    //resFImg = cvCreateImage(cvGetSize(img),IPL_DEPTH_32F, 1 );
+    //cvSet(resFImg,cvScalar(0.0));
     int minPixelVal =1024;
     int maxPixelVal =-1024;
     int range =255;
 
     uchar* ptrImg = (uchar*)img->imageData;
     uchar* ptrResImg = (uchar*)resImg->imageData;
+    //float* ptrResImg = (float*)resFImg->imageData;
     uchar* ptrOriginResImg = (uchar*)resImg->imageData;
+    //float* ptrOriginResImg = (float*)resFImg->imageData;
     int imgRowSize = img->widthStep;
     int resRowSize = resImg->widthStep/sizeof(uchar);
+    //int resRowSize = resFImg->widthStep/sizeof(float);
     int effectiveWidth = rowSize;
     int effectiveHeight = colSize;
     float* kerStartPt = ker;
@@ -2613,7 +2726,8 @@ void visualFilterThread::convolve2D(int rowSize,int colSize, float* ker, IplImag
     uchar* imgNowPt = (uchar*)img->imageData;
     float sumP =0; int countP =0;
     shift -= 256;
-   
+    float scaleF = 2.55*(*rangeOfPixels);//255.0/((float)(*(rangeOfPixels+1)+*rangeOfPixels));
+    float shft = *(rangeOfPixels+1)* .01;
     for(int i=0;i<resImg->height;++i){
         ptrResImg = ptrOriginResImg + i*resRowSize;
         effectiveHeight = min(i+colSize/2,img->height)-max(0,i-colSize/2)+1;
@@ -2649,8 +2763,8 @@ void visualFilterThread::convolve2D(int rowSize,int colSize, float* ker, IplImag
             sum = 255.0*sum/(max(*(rangeOfPixels+1),abs(*rangeOfPixels)));
             }*/
 
-            *ptrResImg = //(rangeOfPixels != NULL) ? 254.0*(sum-*rangeOfPixels)/(*(rangeOfPixels+1) -*rangeOfPixels):
-                        sum>255?255:sum<0?0:sum ;//+ shift;
+            *ptrResImg =(rangeOfPixels != NULL) ?scaleF*(sum + shft):
+                        sum>255?255:sum<0?0:2*(abs(sum-128)) ;//+ shift;
             sumP += *ptrResImg; countP++;
             ptrResImg++;
         }
@@ -2671,15 +2785,15 @@ void visualFilterThread::convolve2D(int rowSize,int colSize, float* ker, IplImag
     cvNamedWindow("OrigImage");
     cvShowImage("OrigImage",img);
     cvWaitKey(0);*/
-
-    
-   /*for(int i=0; i<resultImg->height; ++i){
-        for(int j=0; j<resultImg->width; ++j){
-            *(resultImg->imageData + i*(resultImg->widthStep) + j)= (unsigned char)((*(resImg->imageData + i*(resImg->widthStep)/sizeof(float) + j)-minPixelVal)*scalingFact);
+   /********* DOESNT WORK ************/
+   /*double scalingFact = 255.0/(maxPixelVal -minPixelVal);
+   for(int i=0; i<resImg->height; ++i){
+        for(int j=0; j<resImg->width; ++j){
+            *(resImg->imageData + i*(resImg->widthStep) + j)= (unsigned char)((*(resFImg->imageData + i*(resFImg->widthStep)/sizeof(float) + j)-minPixelVal)*scalingFact);
         }
     }
-    cvDestroyWindow("FloatImage");  
-    cvReleaseImage(&resImg);*/ 
+    cvReleaseImage(&resFImg);*/
+   /**************************************/ 
 
 }
 
@@ -2835,23 +2949,17 @@ void visualFilterThread::threadRelease() {
 void visualFilterThread::onStop() {
 
     printf("calling on-stop\n");
-    imagePortIn.interrupt();
-    imagePortOut.interrupt();
+    yPortIn.interrupt();
+    uvPortIn.interrupt();
     imagePortExt.interrupt();
-    rgPort.interrupt();
-    grPort.interrupt();
-    byPort.interrupt();
     gaborPort0.interrupt();
     gaborPort45.interrupt();
     gaborPort90.interrupt();
     gaborPortM45.interrupt();
     
-    imagePortOut.close();
+    yPortIn.close();
+    uvPortIn.close();
     imagePortExt.close();
-    rgPort.close();
-    grPort.close();
-    byPort.close();
-    imagePortIn.close();
     gaborPort0.close();
     gaborPort45.close();
     gaborPort90.close();

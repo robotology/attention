@@ -47,6 +47,7 @@
 #define PI 3.1415926535897932384626433832795
 #define MONO_PIXEL_SIZE 1
 #define DWN_SAMPLE 2
+#define DWN_SAMPLE2 4
 #define NBR_OF_FILTERS 4
 
 // patches for now
@@ -361,10 +362,13 @@ private:
     //int kernelSize[2];
     CvMat* gabKer[4];
 
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *yImage;               // y of YUV image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *yFilImage;               // y of YUV image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *uvOrigImage;              // uv of YUV image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *uvImage;              // extended uv of YUV image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *uvFilImage;              // extended uv of YUV image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *cartImage; 
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageFiltered;    // time filtered input image
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputExtImage;         // extended input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *logPolarImage;
     
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
@@ -428,13 +432,10 @@ private:
     IplImage* blueY;
     IplImage* totImg;
 
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortOut;     // output port   
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortExt;      // extended image port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgPort;           // Colour opponency map R+G-
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // Colour opponency map G+R-
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // Colour opponency map B+Y-
-
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > yPortIn;           // Y component from YUV module
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > uvPortIn;          // UV component from YUV module
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortExt;      // extended uv image port
+    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > gaborPort0;               // port for Gabor filtered image with orientation 0
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > gaborPort45;              // port for Gabor filtered image with orientation
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > gaborPort90;              // port for Gabor filtered image with orientation
@@ -499,10 +500,10 @@ private:
     double overlap;         // overlap in the remapping
     int numberOfRings;      // number of rings in the remapping
     int numberOfAngles;     // number of angles in the remapping
-    float orient0[2];
-    float orient45[2];
-    float orient90[2];
-    float orientM45[2];
+    int orient0[2];
+    int orient45[2];
+    int orient90[2];
+    int orientM45[2];
     
 
     /*** To convert to cartesian **/
@@ -575,6 +576,8 @@ public:
     */
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extender(yarp::sig::ImageOf<yarp::sig::PixelRgb>* origImage,int extDimension); 
 
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* extender(yarp::sig::ImageOf<yarp::sig::PixelMono>* origImage,int extDimension);
+
      /**
     * function that maps logpolar image to cartesian
     * @param cartesianImage cartesian image to remap
@@ -598,9 +601,9 @@ public:
     void filtering();
 
     /**
-    * function which constructs colourOpponency maps
+    * function which does Gabor filtering
     */
-    void colourOpponency();
+    void orientation();
 
     /**
     * applying sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
@@ -688,7 +691,7 @@ public:
     * @param factor the value by which the sum must be scaled in resulting image. default: 1.0
     * @param maxVal maximum value of the convolution operator, so as to avoid overflow. default: 255
     */
-    void convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor=1.0,int shift=0,float* range = NULL,int maxVal=255);
+    void convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor=1.0,int shift=0,int* range = NULL,int maxVal=255);
 
 
     void cropCircleImage(int* center, float radius, IplImage* srcImg);
