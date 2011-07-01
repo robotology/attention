@@ -28,6 +28,7 @@
 
 #define ONE_BY_ROOT_TWO 0.707106781
 #define ONE_BY_ROOT_THREE 0.577350269
+#define CV_GUI_NORMAL 0x00000010 
 
 using namespace yarp::os;
 using namespace yarp::sig;
