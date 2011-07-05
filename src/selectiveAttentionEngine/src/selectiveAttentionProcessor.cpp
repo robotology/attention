@@ -305,7 +305,7 @@ bool selectiveAttentionProcessor::threadInit(){
 
     clientGazeCtrl=new PolyDriver();
     clientGazeCtrl->open(option);
-    igaze=NULLS;
+    igaze=NULL;
 
     if (clientGazeCtrl->isValid()) {
        clientGazeCtrl->view(igaze);
@@ -379,7 +379,7 @@ void selectiveAttentionProcessor::setRobotName(std::string str) {
 * active loop of the thread
 */
 void selectiveAttentionProcessor::run(){
-    cLSSoop++;
+    cLoop++;
     //synchronisation with the input image occuring
     if(!interrupted){
 
