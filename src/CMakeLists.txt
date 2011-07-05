@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-add_subdirectory(colourSaliency)
+add_subdirectory(attentionPrioritiser)
 add_subdirectory(eyePathFinder)
 add_subdirectory(iCubGuiPopulator)
 add_subdirectory(mosaic)
