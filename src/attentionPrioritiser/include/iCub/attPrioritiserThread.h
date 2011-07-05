@@ -50,6 +50,7 @@
 #include <iCub/trackerThread.h>
 #include <iCub/observer.h>
 #include <iCub/observable.h>
+#include <iCub/sacPlannerThread.h>
 
 
 /**
@@ -75,6 +76,8 @@ private:
     bool isOnWings;                         // flag that gives information on where the cameras are mounted
     bool onDvs;                             // flag for remapping dvs location into standard dimension
     int u,v;                                // values passed for saccades
+    double time;                            // request of preparing time 
+    int* collectionLocation;                // collection of location for the center of gravity saccade
     int originalContext;                    // original context for the gaze Controller
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
@@ -110,14 +113,15 @@ private:
     CvRect  search_roi;                     // region of interest of the search
     CvPoint point;                          // point result of the search
     
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgLeftIn;                                 // input image 3 channel
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgRightIn;                                // input mono image
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inLeftPort;        // input image port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inRightPort;       // output image port
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* imgLeftIn;                                 // input image 3 channel
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* imgRightIn;                                // input mono image
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inLeftPort;        // input image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inRightPort;       // output image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > templatePort;     // port for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
     yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                            // image for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
+    yarp::os::BufferedPort<yarp::os::Bottle> outputPort;                                // port necessary to send the gaze command to the gazeArbiter
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                            // image for the inhibition of return
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
@@ -129,6 +133,8 @@ private:
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
 
     trackerThread* tracker;                         //reference to the object in charge of tracking a tamplete surrounding a point
+    sacPlannerThread* sacPlanner;                   //planner of saccadic movements (todo: make it a list of planners
+    
 public:
     /**
     * default constructor

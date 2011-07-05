@@ -111,6 +111,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 
 attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
+    collectionLocation = new int[4*2];
     numberState = 4; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
     firstVer = false;
@@ -170,49 +171,7 @@ bool attPrioritiserThread::threadInit() {
     eyeL = new iCubEye("left");
     eyeR = new iCubEye("right");    
 
-    // remove constraints on the links
-    // we use the chains for logging purpose
-    //eyeL->setAllConstraints(false);
-    //eyeR->setAllConstraints(false);
-
-    // release links
-    eyeL->releaseLink(0);
-    eyeR->releaseLink(0);
-    eyeL->releaseLink(1);
-    eyeR->releaseLink(1);
-    eyeL->releaseLink(2);
-    eyeR->releaseLink(2);
-
-    // if it isOnWings, move the eyes on top of the head 
-    if (isOnWings) {
-        printf("changing the structure of the chain \n");
-        iKinChain* eyeChain = eyeL->asChain();
-        //eyeChain->rmLink(7);
-        //eyeChain->rmLink(6); ;
-        iKinLink* link = &(eyeChain-> operator ()(5));
-        //double d_value = link->getD();
-        //printf("d value %f \n", d_value);
-        //double a_value = link->getA();
-        //printf("a value %f \n", a_value);
-        link->setD(0.145);
-        link = &(eyeChain-> operator ()(6));
-        link->setD(0.0);
-        //eyeChain->blockLink(6,0.0);
-        //eyeChain->blockLink(7,0.0);
-        //link = &(eyeChain-> operator ()(6));
-        //link->setA(0.0);
-        //link->setD(0.034);
-        //link->setAlpha(0.0);
-        //double d_value = link->getD();
-        //printf("d value %f \n", d_value);
-        //iKinLink twistLink(0.0,0.034,M_PI/2.0,0.0,-22.0*CTRL_DEG2RAD,  84.0*CTRL_DEG2RAD);
-        //*eyeChain << twistLink;
-        //eyeL->releaseLink(6);
-
-    }
-    else {
-        printf("isOnWing false \n");
-    }
+  
 
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
@@ -221,64 +180,7 @@ bool attPrioritiserThread::threadInit() {
         //cyl=Prj(1,2);
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
     }
-    
-    //initializing gazecontrollerclient
-    Property option;
-    option.put("device","gazecontrollerclient");
-    option.put("remote","/iKinGazeCtrl");
-    string localCon("/client/gaze/");
-    localCon.append(getName(""));
-    option.put("local",localCon.c_str());
-
-    clientGazeCtrl=new PolyDriver();
-    clientGazeCtrl->open(option);
-    igaze=NULL;
-
-    if (clientGazeCtrl->isValid()) {
-       clientGazeCtrl->view(igaze);
-    }
-    else
-        return false;
-
-    
-    igaze->storeContext(&originalContext);
-  
-    if(blockNeckPitchValue != -1) {
-        igaze->blockNeckPitch(blockNeckPitchValue);
-        printf("pitch fixed at %f \n",blockNeckPitchValue);
-    }
-    else {
-        printf("pitch free to change\n");
-    }
-
-    
-    string headPort = "/" + robot + "/head";
-    string nameLocal("local");
-
-    //initialising the head polydriver
-    optionsHead.put("device", "remote_controlboard");
-    optionsHead.put("local", "/localhead");
-    optionsHead.put("remote", headPort.c_str());
-    robotHead = new PolyDriver (optionsHead);
-
-    if (!robotHead->isValid()){
-        printf("cannot connect to robot head\n");
-    }
-    robotHead->view(encHead);
-    
-    //initialising the torso polydriver
-    printf("starting the polydrive for the torso.... \n");
-    Property optPolyTorso("(device remote_controlboard)");
-    optPolyTorso.put("remote",("/"+robot+"/torso").c_str());
-    optPolyTorso.put("local",("/"+nameLocal+"/torso/position").c_str());
-    polyTorso=new PolyDriver;
-    if (!polyTorso->open(optPolyTorso))
-    {
-        return false;
-    }
-    polyTorso->view(encTorso);
-
-  
+     
     template_size = 20;
     search_size = 100;
     point.x = 320;
@@ -298,6 +200,7 @@ bool attPrioritiserThread::threadInit() {
     blobDatabasePort.open(rootNameDatabase.c_str());
     string rootNameInhibition("");rootNameInhibition.append(getName("/inhibition:o"));
     inhibitionPort.open(rootNameInhibition.c_str());
+    
     inLeftPort.open(getName("/attPrioritiser/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
     firstConsistencyCheck=true;
@@ -308,84 +211,9 @@ bool attPrioritiserThread::threadInit() {
     unsigned char* pinhi = inhibitionImage->getRawImage();
     int padding = inhibitionImage->getPadding();
     int rowsizeInhi = inhibitionImage->getRowSize();
-    int ym = 240>>1;
-    int xm = 320>>1;
-    //calculating the peek value
-    int dx = 30.0;
-    int dy = 30.0;
-    double sx = (dx / 2) / 3 ; //0.99 percentile
-    double sy = (dy / 2) / 3 ;
-    double vx = 10; //sx * sx; // variance          
-    double vy = 10; //sy * sy;
     
-    double rho = 0;
-    
-    double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
-    double b = -0.5 /(1 - rho * rho);
-    double k = 1 / (a * exp (b));      
-    
-    double f, e, d, z = 1;            
-    
-    double zmax = 0;
-    pinhi +=   ((int)(ym-(dy>>1))) * rowsizeInhi + ((int)(xm-(dx>>1)));
-    //for the whole blob in this loop
-    for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
-        for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
-            
-            if((c == xm)&&(r == ym)) { 
-                //z = a * exp (b);
-                //z = z * k;
-                z = 1;
-            }
-            else {    
-                f = ((c - xm) * (c - xm)) /(vx * vx);
-                d = ((r - ym)  * (r - ym)) /(vy * vy);
-                //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
-                e = 0;
-                z = a * exp ( b * (f + d - e) );
-                z = z * k;
-                if(z>zmax) zmax=z;
-                z = (1 / 1.645062) * z;
-                //z = 0.5;
-            }
-            
-            // restrincting the z gain between two thresholds
-            if (z > 1) {
-                z = 1;
-            }
-            //if (z < 0.3) {
-            //    z = 0.3;
-            //}
-            
-            
-            //set the image 
-            *pinhi++ = 255 * z;                    
-        }
-        pinhi += rowsizeInhi - (dx + 1) ;
-    }
-
-    printf("zmax = %f \n", zmax);
-
-    //pinhi = inhibitionImage->getRawImage();
-    //*pinhi = 255;
-    //pinhi += rowsizeInhi - 1;
-    //*pinhi = 255;
-    //pinhi += 1 + rowsizeInhi * 230;
-    //*pinhi = 255;
-    //pinhi += rowsizeInhi - 1;
-    //*pinhi = 255;
-
-
-    //for(int y = 0; y < 240; y++) {
-    //    for(int x = 0;x < 320; x++) {
-    //        if((x > 160-20) && (x < 160+20) && (y > 120-20) && (y<120+20))
-    //            *pinhi++ = (unsigned char) 255;
-    //        else
-    //            *pinhi++ = (unsigned char) 0;
-    //   }
-    //    pinhi += padding;
-    //}
-    
+    sacPlanner = new sacPlannerThread();       
+     
     return true;
 }
 
@@ -439,7 +267,6 @@ void attPrioritiserThread::getPoint(CvPoint& p) {
 
 
 void attPrioritiserThread::run() {
-
     Bottle& status = statusPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
@@ -468,26 +295,58 @@ void attPrioritiserThread::run() {
     
     if(allowedTransitions(3)>0) {
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
-        // ----------------  SACCADE -----------------------
+        // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
-
-        }
+            printf("Planned Saccade \n");
+            printf("initialising the planner thread %f \n", time);
+            sacPlanner->setSaccadicTarget(u,v);
+            timeoutStart = Time::now();
+            executing = true;
+       
+            timeoutStop = Time::now();
+            timeout = timeoutStop - timeoutStart;
+            while(timeout < time) {
+                timeoutStop = Time::now();
+                timeout = timeoutStop - timeoutStart;
+                printf("ps \n");
+            }             
+        }                
     }
     else if(allowedTransitions(2)>0) {
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
+        // ----------------  Express Saccade  -----------------------
+        if(!executing) {                       
+            printf("Express Saccade \n");
+            timeoutStart = Time::now();
+            collectionLocation[0 + 0] = u;
+            collectionLocation[0 * 2 +1] = v;
+            timeoutStop = Time::now();
+            timeout = timeoutStop - timeoutStart;
+            if(timeout < time) {
+                timeoutStop = Time::now();
+                timeout = timeoutStop - timeoutStart;
+                printf("es \n");
+            }
+            else {    
+                executing = true;
+                //execution here
+                allowedTransitions(2) = 0;
+                executing = false;
+            }
+        }
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
-       
-        if(!executing) {
-            
+        // ----------------  Smooth Pursuit  -----------------------
+        if(!executing) {                       
+            printf("Smooth Pursuit \n");
         }
     }
     else if(allowedTransitions(0)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
     }
     else {
-        printf("No transition \n");
+        //printf("No transition \n");
     }
 
     
@@ -497,20 +356,22 @@ void attPrioritiserThread::run() {
         mutex.wait();
         allowedTransitions(3) = 0;
         executing = false;  //executing=false allows new action commands
-        printf ("\n\n\n\n\n\n\n\n\n");
-        mutex.post();        
+        printf ("Transition request 3 reset \n");
+        mutex.post();
+        printf("after the mutex \n");
     }
     if(allowedTransitions(2)>0) {
         mutex.wait();
-        allowedTransitions(2) = 0;
-        executing = false;
+        //allowedTransitions(2) = 0;
+        //executing = false;
+        printf ("Transition request 2 reset \n");
         mutex.post();
     }
     if(allowedTransitions(1)>0) {
         mutex.wait();
         allowedTransitions(1) = 0;
         executing = false;
-        //printf ("\n\n\n\n\n\n\n\n\n");
+        printf ("Transition request 1 reset \n");
         mutex.post();
     }
 }
@@ -527,10 +388,11 @@ void attPrioritiserThread::threadRelease() {
     delete eyeR;
     igaze->restoreContext(originalContext);
     delete clientGazeCtrl;
+    delete sacPlanner;
 }
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
-    //printf("ACK. Aware of observable asking for attention \n");
+    printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
@@ -540,8 +402,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
+            time =  arg->get(4).asDouble();
+            printf("time: %f \n", time);
             mutex.wait();
-            stateRequest[3] = 1;
+            if(time < 0.2) {
+                stateRequest[2] = 1;
+            } 
+            else {
+                stateRequest[3] = 1;
+            }
             //executing = false;
             mutex.post();
             timetotStart = Time::now();
