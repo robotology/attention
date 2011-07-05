@@ -200,7 +200,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
     */
-    handlerPortName =  "/";
+    handlerPortName =  "";
     handlerPortName += getName();         // use getName() rather than a literal 
 
     if (!handlerPort.open(handlerPortName.c_str())) {           

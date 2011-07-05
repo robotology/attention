@@ -171,8 +171,6 @@ bool attPrioritiserThread::threadInit() {
     eyeL = new iCubEye("left");
     eyeR = new iCubEye("right");    
 
-  
-
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
         Matrix &Prj = *PrjL;
@@ -192,6 +190,8 @@ bool attPrioritiserThread::threadInit() {
     //opening port section 
     string rootNameStatus("");rootNameStatus.append(getName("/status:o"));
     statusPort.open(rootNameStatus.c_str());
+    string rootNameOutput("");rootNameOutput.append(getName("/command:o"));
+    outputPort.open(rootNameOutput.c_str());
     string rootNameTiming("");rootNameTiming.append(getName("/timing:o"));
     timingPort.open(rootNameTiming.c_str());
     string rootNameTemplate("");rootNameTemplate.append(getName("/template:o"));
@@ -201,7 +201,7 @@ bool attPrioritiserThread::threadInit() {
     string rootNameInhibition("");rootNameInhibition.append(getName("/inhibition:o"));
     inhibitionPort.open(rootNameInhibition.c_str());
     
-    inLeftPort.open(getName("/attPrioritiser/imgMono:i").c_str());
+    inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
     firstConsistencyCheck=true;
 
@@ -212,7 +212,11 @@ bool attPrioritiserThread::threadInit() {
     int padding = inhibitionImage->getPadding();
     int rowsizeInhi = inhibitionImage->getRowSize();
     
-    sacPlanner = new sacPlannerThread();       
+    string name = getName("");
+    sacPlanner = new sacPlannerThread(name);       
+    //referencing the image to all the planners
+    sacPlanner->referenceRetina(imgLeftIn);
+    sacPlanner->start();
      
     return true;
 }
@@ -285,6 +289,8 @@ void attPrioritiserThread::run() {
     }
     
     
+    
+    
     //mutex.post();
     //double end = Time::now();
     //double interval = end - start;
@@ -309,7 +315,18 @@ void attPrioritiserThread::run() {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
                 printf("ps \n");
-            }             
+            }   
+            //executing the saccade
+            Bottle& commandBottle=outputPort.prepare();
+            commandBottle.clear();
+            commandBottle.addString("SAC_MONO");
+            commandBottle.addInt(u);
+            commandBottle.addInt(v);
+            commandBottle.addDouble(zDistance);
+            outputPort.write();
+            
+            //post-saccadic connection
+            
         }                
     }
     else if(allowedTransitions(2)>0) {
@@ -330,6 +347,25 @@ void attPrioritiserThread::run() {
             else {    
                 executing = true;
                 //execution here
+                int centroid_x, centroid_y;                
+                
+                printf("executing the centroid of the group of saccades \n");
+                int j = 0;
+                for(j = 0; j < 1; j++) {
+                    centroid_x += collectionLocation[j * 2];
+                    centroid_y += collectionLocation[j * 2 + 1];
+                }
+                centroid_x =(int) floor(centroid_x / j);
+                centroid_y =(int) floor(centroid_y / j);
+
+                Bottle& commandBottle=outputPort.prepare();
+                commandBottle.clear();
+                commandBottle.addString("SAC_MONO");
+                commandBottle.addInt(centroid_x);
+                commandBottle.addInt(centroid_y);
+                commandBottle.addDouble(zDistance);
+                outputPort.write();
+                
                 allowedTransitions(2) = 0;
                 executing = false;
             }
@@ -384,11 +420,18 @@ void attPrioritiserThread::threadRelease() {
     blobDatabasePort.close();
     inhibitionPort.close();
     timingPort.close();
+    printf("successfully closed all the ports \n");
     delete eyeL;
     delete eyeR;
-    igaze->restoreContext(originalContext);
-    delete clientGazeCtrl;
+    printf("successfully deleted eyes references \n");
+    //igaze->restoreContext(originalContext);
+    printf("successfully restored previous gaze context \n");
+    
+    //delete clientGazeCtrl;
+    printf("deleting the clientPlanner \n");
+    sacPlanner->stop();
     delete sacPlanner;
+    printf("deleting the sacPlanner \n");
 }
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
