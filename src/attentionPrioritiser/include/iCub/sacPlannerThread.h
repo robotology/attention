@@ -50,9 +50,9 @@ private:
     iCub::logpolar::logpolarTransform trsfC2L;                  //reference to the converter for logpolar transform frmo cartesian to logpolar
     iCub::logpolar::logpolarTransform trsfL2C;                  //reference to the converter for logpolar transform frmo cartesian to logpolar
     bool idle;                                                  //flag that inhibith the computation when a saccade process is performed
-    yarp::sig::ImageOf <yarp::sig::PixelMono>* inputImage;       // reference to the input image for saccadic adaptation
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;       // reference to the input image for saccadic adaptation
     
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > corrPort;                 //output port for representing the correlation measure in the adaptation
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                 //output port for representing the correlation measure in the adaptation
 
 public:
     /**
@@ -112,7 +112,7 @@ public:
     * function that allocate the reference to the input magic 
     * @param ref pointer to the retina input image
     */
-    void referenceRetina( yarp::sig::ImageOf<yarp::sig::PixelMono>* ref);
+    void referenceRetina( yarp::sig::ImageOf<yarp::sig::PixelRgb>* ref);
 
     /** 
      * function that set the saccadic target for correction and fast cuncurrent planning in logpolar space
@@ -120,6 +120,16 @@ public:
      * @param theta coordinate in the logpolar image
      */
     void setSaccadicTarget(int rho, int theta);
+
+    /**
+     *   function that shifts the Region of Interest
+     *  @param inImg input image to shift
+     *  @param output of the shift operation
+     *  @param x position on columns
+     *  @param y position on rows
+     */
+    void shiftROI(yarp::sig::ImageOf<yarp::sig::PixelRgb>* inImg,yarp::sig::ImageOf<yarp::sig::PixelRgb>* outImg, int x, int y);
+    
 
 };
 

@@ -42,6 +42,26 @@ using namespace iCub::iKin;
 #define PI  3.14159265
 #define BASELINE 0.068     // distance in meters between eyes
 #define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
+
+
+inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
+    int padding = src->getPadding();
+    int channels = src->getPixelCode();
+    int width = src->width();
+    int height = src->height();
+    unsigned char* psrc = src->getRawImage();
+    unsigned char* pdest = dest->getRawImage();
+    for (int r=0; r < height; r++) {
+        for (int c=0; c < width; c++) {
+            *pdest++ = (unsigned char) *psrc++;
+        }
+        pdest += padding;
+        psrc += padding;
+    }
+}
+
+// ***********************************************************
+
  
 static Vector orVector (Vector &a, Vector &b) {
     int dim = a.length();
@@ -285,9 +305,19 @@ void attPrioritiserThread::run() {
     }
 
     if(inLeftPort.getInputCount()){
-       imgLeftIn = inLeftPort.read(false);
+       imgLeftIn = inLeftPort.read(false);    
+       if(imgLeftIn!=NULL) {
+           sacPlanner->referenceRetina(imgLeftIn);
+           if(templatePort.getOutputCount()) {
+               ImageOf<PixelRgb>& img = templatePort.prepare(); 
+               img.resize(252,152);
+               img.zero();
+               img.copy(*imgLeftIn);
+               //copy_8u_C1R(imgLeftIn,&img);
+               templatePort.write();
+           }
+       }       
     }
-    
     
     
     

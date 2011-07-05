@@ -113,11 +113,11 @@ private:
     CvRect  search_roi;                     // region of interest of the search
     CvPoint point;                          // point result of the search
     
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* imgLeftIn;                                 // input image 3 channel
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgLeftIn;                                 // input image 3 channel
     yarp::sig::ImageOf<yarp::sig::PixelMono>* imgRightIn;                                // input mono image
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inLeftPort;        // input image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inLeftPort;        // input image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inRightPort;       // output image port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > templatePort;     // port for the segmented object of the zdf
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb > > templatePort;     // port for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
     yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                            // image for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system

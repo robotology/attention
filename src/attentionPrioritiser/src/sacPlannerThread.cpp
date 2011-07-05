@@ -33,6 +33,23 @@ using namespace std;
 
 #define THRATE 10
 
+inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
+    int padding = src->getPadding();
+    int channels = src->getPixelCode();
+    int width = src->width();
+    int height = src->height();
+    unsigned char* psrc = src->getRawImage();
+    unsigned char* pdest = dest->getRawImage();
+    for (int r=0; r < height; r++) {
+        for (int c=0; c < width; c++) {
+            *pdest++ = (unsigned char) *psrc++;
+        }
+        pdest += padding;
+        psrc += padding;
+    }
+}
+
+
 sacPlannerThread::sacPlannerThread() {
     
 }
@@ -61,18 +78,18 @@ bool sacPlannerThread::threadInit() {
 
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
-    int numberOfRings = 252;
-    int numberOfAngles = 152;
+    int numberOfRings = 152;
+    int numberOfAngles = 252;
     int xSizeValue = 320;
     int ySizeValue = 240;
     double overlap = 1.0;
-    if (!trsfL2C.allocLookupTables(L2C, numberOfRings, numberOfAngles, xSizeValue, ySizeValue, overlap)) {
+    if (!trsfL2C.allocLookupTables(BOTH, numberOfRings, numberOfAngles, xSizeValue, ySizeValue, overlap)) {
         cerr << "can't allocate lookup tables" << endl;
         return false;
     }
     cout << "||| lookup table L2C allocation done" << endl;
 
-    if (!trsfC2L.allocLookupTables(C2L,xSizeValue, ySizeValue, numberOfRings, numberOfAngles,  overlap)) {
+    if (!trsfC2L.allocLookupTables(C2L, numberOfRings, numberOfAngles,xSizeValue, ySizeValue,  overlap)) {
         cerr << "can't allocate lookup tables" << endl;
         return false;
     }
@@ -101,20 +118,85 @@ void sacPlannerThread::run() {
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);        
         if(!idle) {
-            if(corrPort.getOutputCount()) {
-                ImageOf<PixelMono>& outputImage =  corrPort.prepare();
-                //trsfL2C.logpolarToCart(outputImage,*inputImage);
-                outputImage.copy(*inputImage); 
+            if((corrPort.getOutputCount())&&(inputImage!=NULL)) {
+                ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
+                ImageOf<PixelRgb>* intermImage = new ImageOf<PixelRgb>;
+                ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
+                intermImage->resize(320,240);
+                intermImage2->resize(320,240);
+                outputImage.resize(320,240);
+                outputImage.zero();
+                trsfL2C.logpolarToCart(*intermImage,*inputImage);
+                shiftROI(intermImage,&outputImage,120,140);
+                //printf("copying the image %d %d \n", inputImage->width(), inputImage->height());
+                //copy_8u_C1R(inputImage,&outputImage);
+                //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                //outputImage.copy(*inputImage); 
+                //inputImage->copy(outputImage);
                 corrPort.write();
+                delete intermImage;
+                delete intermImage2;
             }
         }
-        Time::delay(0.5);
+        Time::delay(0.05);
     }
 }
 
-void sacPlannerThread::referenceRetina(ImageOf<PixelMono>* ref) {
+void sacPlannerThread::referenceRetina(ImageOf<PixelRgb>* ref) {
+    printf("referenceRetina \n");
     inputImage = ref;
 }
+
+void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outImg,int x, int y) {
+    int dx = x - 160;
+    int dy = y - 120;
+    printf("dx %d dy %d \n", dx,dy);
+    unsigned char* pinput  = inImg->getRawImage();
+    unsigned char* poutput = outImg->getRawImage();
+    int padding = inImg->getPadding();
+    printf("padding  %d \n", padding);
+    int rowsize = inImg->getRowSize();
+    printf("rowsize %d \n", rowsize);
+    if(dx > 0) {
+        printf("jumping in x \n");
+        pinput += 3 * dx;
+    }
+    if(dy > 0) {
+        printf("jumping in y \n");
+        pinput += dy * rowsize;
+    }
+    for(int row = 0; row < inImg->height(); row++) {        
+        if((row + dy <= 0)||(row + dy > 240)){            
+            for(int col = 0; col< inImg->width(); col++) {
+                //zero
+                *poutput++ = (unsigned char) 0;
+                *poutput++ = (unsigned char) 0;
+                *poutput++ = (unsigned char) 0;
+            }
+            poutput += padding;
+        }
+        else {
+            for(int col = 0; col< inImg->width(); col++) {
+                if((col + dx <= 0)||(col + dx > 320)){
+                    //zero
+                    *poutput++ = (unsigned char) 0;
+                    *poutput++ = (unsigned char) 0;
+                    *poutput++ = (unsigned char) 0;
+                }
+                else {
+                    //copying
+                    *poutput++ = *pinput++;
+                    *poutput++ = *pinput++;
+                    *poutput++ = *pinput++;
+                }
+            }
+            poutput += padding;
+            pinput  += ( rowsize -  280  * 3);
+        }
+    }
+    
+}
+
 
 void sacPlannerThread::onStop() {
     //inCommandPort.interrupt();

@@ -132,6 +132,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
                            Value(320),
                            "Key value (int)").asInt();
     currentProcessor->setXSize(xSize);
+    printf("selected cartesian x dimension %d \n", xSize);
 
     /* get the size of the Y dimension */
 
@@ -139,6 +140,8 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
                            Value(240),
                            "Key value (int)").asInt();
     currentProcessor->setYSize(ySize);
+    printf("selected cartesian y dimension %d \n", ySize);
+    
 
     /* get the overlap ratio */
 
@@ -244,7 +247,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     /* parses the value of the coefficient map cartesian 1 */
     kc1       = rf.check("kc1", 
-                           Value(0.0), 
+                           Value(0.1), 
                            "coefficient map cartesian1 (double)").asDouble();
     currentProcessor->setKC1(kc1);
     currentProcessor->setRobotName(robotName);
