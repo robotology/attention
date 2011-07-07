@@ -125,13 +125,13 @@ void sacPlannerThread::run() {
                 ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
                 intermImage->resize(320,240);
                 intermImage2->resize(320,240);
-                outputImage.resize(320,240);
+                outputImage.resize(252,152);
                 outputImage.zero();
                 trsfL2C.logpolarToCart(*intermImage,*inputImage);
-                shiftROI(intermImage,&outputImage,120,140);
+                shiftROI(intermImage,intermImage2,100,180);
                 //printf("copying the image %d %d \n", inputImage->width(), inputImage->height());
                 //copy_8u_C1R(inputImage,&outputImage);
-                //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                trsfL2C.cartToLogpolar(outputImage, *intermImage2);
                 //outputImage.copy(*inputImage); 
                 //inputImage->copy(outputImage);
                 corrPort.write();
@@ -149,33 +149,48 @@ void sacPlannerThread::referenceRetina(ImageOf<PixelRgb>* ref) {
 }
 
 void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outImg,int x, int y) {
-    int dx = x - 160;
-    int dy = y - 120;
+    int width   = inImg->width();
+    int height  = inImg->height(); 
+    int centerX = width>>1;
+    int centerY = height>>1;
+    int dx = x - centerX;
+    int dy = y - centerY;
+    int channel = inImg->getPixelSize();
     printf("dx %d dy %d \n", dx,dy);
     unsigned char* pinput  = inImg->getRawImage();
     unsigned char* poutput = outImg->getRawImage();
     int padding = inImg->getPadding();
     int rowsize = inImg->getRowSize();
  
+    int direction;
     if(dx > 0) {
-        pinput += 3 * dx;
+        direction = -1;
+        printf("jumping in x \n");
+        pinput += channel * dx;
     }
+    else {
+        direction = 1;
+    }
+    
     if(dy > 0) {
         pinput += dy * rowsize;
     }
-    for(int row = 0; row < inImg->height(); row++) {        
-        if((row + dy <= 0)||(row + dy > 240)){            
-            for(int col = 0; col< inImg->width(); col++) {
+    for(int row = 0; row < height; row++) {        
+        if((row + dy <= 0)||(row + dy >= height)){                        
+            for(int col = 0; col < inImg->width(); col++) {
                 //zero
-                *poutput++ = (unsigned char) 0;
-                *poutput++ = (unsigned char) 0;
-                *poutput++ = (unsigned char) 0;
+                *poutput = (unsigned char) 0;
+                poutput++;
+                *poutput = (unsigned char) 0;
+                poutput++;
+                *poutput = (unsigned char) 0;
+                poutput++;
             }
             poutput += padding;
-        }
+        }        
         else {
-            for(int col = 0; col< inImg->width(); col++) {
-                if((col + dx <= 0)||(col + dx > 320)){
+            for(int col = 0; col < width; col++) {
+                if((col + dx <= 0)||(col + dx > width)){
                     //zero
                     *poutput++ = (unsigned char) 0;
                     *poutput++ = (unsigned char) 0;
@@ -183,15 +198,19 @@ void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outI
                 }
                 else {
                     //copying
-                    *poutput++ = *pinput++;
-                    *poutput++ = *pinput++;
-                    *poutput++ = *pinput++;
+                    *poutput = *pinput; //red
+                    poutput++; pinput++;
+                    *poutput = *pinput; //green
+                    poutput++; pinput++;
+                    *poutput = *pinput; //blue
+                    poutput++; pinput++;
                 }
             }
-            poutput += padding;
-            pinput  += ( rowsize -  280  * 3);
-        }
-    }    
+
+            poutput += padding;            
+            pinput  += ( rowsize -  (width + dx * direction)  * channel + channel * direction);
+        }        
+    }        
 }
 
 
@@ -211,6 +230,7 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
     double _corrFunct[_shiftLevels];
     pCorr = &_corrFunct[0]; 
     
+
     //Correlation Function Computation
     for (int k = 0; k < _shiftLevels; k++) {
         
