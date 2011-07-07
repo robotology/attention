@@ -31,6 +31,7 @@
 #include <yarp/os/Thread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Semaphore.h>
 #include <yarp/sig/all.h>
 #include <iostream>
 #include <string>
@@ -46,13 +47,16 @@ class sacPlannerThread : public yarp::os::Thread, public observable{
 private:
     
     std::string name;       // rootname of all the ports opened by this thread
-    yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
-    iCub::logpolar::logpolarTransform trsfC2L;                  //reference to the converter for logpolar transform frmo cartesian to logpolar
-    iCub::logpolar::logpolarTransform trsfL2C;                  //reference to the converter for logpolar transform frmo cartesian to logpolar
-    bool idle;                                                  //flag that inhibith the computation when a saccade process is performed
-    yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;       // reference to the input image for saccadic adaptation
+    yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
+    iCub::logpolar::logpolarTransform trsfC2L;                  // reference to the converter for logpolar transform frmo cartesian to logpolar
+    iCub::logpolar::logpolarTransform trsfL2C;                  // reference to the converter for logpolar transform frmo cartesian to logpolar
+    bool sleep;                                                 // flag set after the prediction is memorised
+    bool idle;                                                  // flag that inhibith the computation when a saccade process is performed
     
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;       // reference to the input image for saccadic adaptation    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                 //output port for representing the correlation measure in the adaptation
+    yarp::os::Semaphore mutex;
+
 
 public:
     /**
@@ -137,8 +141,9 @@ public:
      * @param imgA first image
      * @param imgB second image
      * @param step jumping of the pixel to reduce the computation demand (default value 1)
+     * @return the pointer to the list of correlation function
      */
-    void logCorrRgbSum(yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgA, yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgB, int step = 1);
+    void logCorrRgbSum(yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgA, yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgB,double* pointerCorr, int step = 1);
 };
 
 #endif  //_SAC_PLANNER_THREAD_H_

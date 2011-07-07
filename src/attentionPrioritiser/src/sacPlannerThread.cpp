@@ -119,7 +119,12 @@ void sacPlannerThread::run() {
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);        
         if(!idle) {
-            if((corrPort.getOutputCount())&&(inputImage!=NULL)) {
+            // check whether it must be sleeping
+            bool checkSleep;
+            mutex.wait();
+            checkSleep = sleep;
+            mutex.post();
+            if((corrPort.getOutputCount())&&(inputImage!=NULL)&&(!checkSleep)) {
                 ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
                 ImageOf<PixelRgb>* intermImage = new ImageOf<PixelRgb>;
                 ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
@@ -137,7 +142,18 @@ void sacPlannerThread::run() {
                 corrPort.write();
                 delete intermImage;
                 delete intermImage2;
+                mutex.wait();
+                sleep = true;
+                mutex.post();
             }
+            //goes into the sleep mode waiting for the flag to be set by observable            
+            mutex.wait();
+            checkSleep = sleep;
+            mutex.post();
+            if((!checkSleep)&&(inputImage!=NULL)) {
+                // it has been waken up by observable
+                // it compares the predictic pre-saccadic image with the post-saccadic image                
+            }            
         }
         Time::delay(0.05);
     }

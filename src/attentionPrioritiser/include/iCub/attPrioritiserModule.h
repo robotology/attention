@@ -69,39 +69,6 @@
  * - \c height \c 240 \n
  *   specifies the dimension height of the input image
  *
- * - \c xmax \c -0.2 \n
- *   max allowed position of the fixation point ( x axis )
- *
- * - \c xmin \c -10.0 \n
- *   min allowed position of the fixation point ( x axis )
- *
- * - \c ymax \c 0.3 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c ymin \c -0.3 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c zmax \c 0.9 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c zmin \c -0.3 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c xoffset \c 0.0 \n
- *   max allowed position of the fixation point ( y axis )
- * 
- * - \c yoffset \c 0.0 \n
- *   max allowed position of the fixation point ( y axis )
- * 
- * - \c zoffset \c 0.0 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c onWings \c 0 \n
- *   1\0 when the camera do\don`t mount on the head
- *
- * - \c mode \c standard \n
- *   onWings\onDvs when the camera considered is on the head or on dvs
- *
  * <b>Configuration File Parameters</b>
  *
  * The following key-value pairs can be specified as parameters in the configuration file 
@@ -172,6 +139,13 @@
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
  * This file can be edited at \c $ICUB_ROOT/main/src/modules/colourSaliency/include/iCub/colourSaliencyModule.h
  * 
+ */
+
+
+/** 
+ * CHANGE LOG:
+ * 06/07/11 : created the module                                                                            @author Rea
+ * 07/07/11 : added the function that calculates the correlation between two log-polar images
  */
 
 #include <iostream>
