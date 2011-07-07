@@ -130,7 +130,15 @@ public:
      */
     void shiftROI(yarp::sig::ImageOf<yarp::sig::PixelRgb>* inImg,yarp::sig::ImageOf<yarp::sig::PixelRgb>* outImg, int x, int y);
     
-
+    
+    /**
+     * function that calculate the corr.value of two logpolar images
+     * providing as well step and shift of the image
+     * @param imgA first image
+     * @param imgB second image
+     * @param step jumping of the pixel to reduce the computation demand (default value 1)
+     */
+    void logCorrRgbSum(yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgA, yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgB, int step = 1);
 };
 
 #endif  //_SAC_PLANNER_THREAD_H_

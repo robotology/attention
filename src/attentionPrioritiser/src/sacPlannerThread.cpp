@@ -32,6 +32,7 @@ using namespace yarp::sig;
 using namespace std;
 
 #define THRATE 10
+#define _shiftLevels 1
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     int padding = src->getPadding();
@@ -154,15 +155,12 @@ void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outI
     unsigned char* pinput  = inImg->getRawImage();
     unsigned char* poutput = outImg->getRawImage();
     int padding = inImg->getPadding();
-    printf("padding  %d \n", padding);
     int rowsize = inImg->getRowSize();
-    printf("rowsize %d \n", rowsize);
+ 
     if(dx > 0) {
-        printf("jumping in x \n");
         pinput += 3 * dx;
     }
     if(dy > 0) {
-        printf("jumping in y \n");
         pinput += dy * rowsize;
     }
     for(int row = 0; row < inImg->height(); row++) {        
@@ -193,10 +191,124 @@ void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outI
             poutput += padding;
             pinput  += ( rowsize -  280  * 3);
         }
-    }
-    
+    }    
 }
 
+
+void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>* imgB,double* pCorr, int step) {
+    int _actRings    = imgA->height();
+    int _sizeTheta  = imgA->width();
+    if((_actRings!=imgB->height())||(_sizeTheta!=imgB->width())) {
+        printf("ERROR : the dimension of the two images do not match! \n");
+        return;
+    }
+   
+
+    unsigned char* aPtr = imgA->getRawImage();
+    unsigned char* bPtr = imgB->getRawImage();
+    int padding = imgA->getPadding();
+    int _count[_shiftLevels];
+    double _corrFunct[_shiftLevels];
+    pCorr = &_corrFunct[0]; 
+    
+    //Correlation Function Computation
+    for (int k = 0; k < _shiftLevels; k++) {
+        
+        int iA, iB;
+
+        double average_Ar = 0;
+        double average_Ag = 0;
+        double average_Ab = 0;
+        double average_Br = 0;
+        double average_Bg = 0;
+        double average_Bb = 0;
+        
+        double R_corr = 0;
+        double G_corr = 0;
+        double B_corr = 0;
+        
+        double pixelA = 0;
+        double pixelB = 0;
+        
+        // k1 = k *_img.Size_LP;  ???????
+        
+        /* for (j = 0; j < _actRings; j++) {
+           
+           for (i = 0; i < _img.Size_Theta; i++) {
+
+                iR = _shiftMap[k1 + j *_img.Size_Theta + i];
+                iL = 3 * (j*_img.Size_Theta + i);
+                
+                if (iR > 0) {
+                 average_Lr += lPtr[iL];
+                 average_Rr += rPtr[iR];
+                 //average_Lg += lPtr[iL+1];
+                 //average_Rg += rPtr[iR+1];
+                 //average_Lb += lPtr[iL+2];
+                 //average_Rb += rPtr[iR+2];
+                }
+           }
+        }*/
+
+        if (_count[k] != 0) {
+            average_Ar /= _count[k];
+            average_Br /= _count[k];
+            average_Ag /= _count[k];
+            average_Bg /= _count[k];
+            average_Ab /= _count[k];
+            average_Bb /= _count[k];
+        }
+
+        double numr   = 0;
+        double den_Ar = 0;
+        double den_Br = 0;
+        double numg   = 0;
+        double den_Ag = 0;
+        double den_Bg = 0;
+        double numb   = 0;
+        double den_Ab = 0;
+        double den_Bb = 0;
+
+        for (int j = _actRings - 1; j >= 0; j-=step) {
+            for (int i = _sizeTheta - 1; i >= 0; i-=step) {
+
+                //iR = _shiftMap[k1 + j*_img.Size_Theta + i];
+                iA = 3 * (j * _sizeTheta + i); 
+                iB = 3 * (j * _sizeTheta + i);
+                aPtr += iA;
+                bPtr += iB;
+
+                if (iA > 0) {
+                    //Red
+                    pixelA = aPtr[iA] - average_Ar;
+                    pixelB = bPtr[iB] - average_Br;
+                    numr   += (pixelA * pixelB);
+                    den_Ar += (pixelA * pixelA);
+                    den_Br += (pixelB * pixelB);
+                    //Green
+                    pixelA = aPtr[iA+1] - average_Ag;
+                    pixelB = bPtr[iB+1] - average_Bg;
+                    numg   += (pixelA * pixelB);
+                    den_Ag += (pixelA * pixelA);
+                    den_Bg += (pixelB * pixelB);
+                    //Blue
+                    pixelA = aPtr[iA+2] - average_Ab;
+                    pixelB = bPtr[iB+2] - average_Bb;
+                    numb   += (pixelA * pixelB);
+                    den_Ab += (pixelA * pixelA);
+                    den_Bb += (pixelB * pixelB);
+                }
+            }
+        }
+        R_corr = numr / sqrt(den_Ar * den_Br + 0.00001);
+        G_corr = numg / sqrt(den_Ag * den_Bg + 0.00001);
+        B_corr = numb / sqrt(den_Ab * den_Bb + 0.00001);
+        _corrFunct[k] = (R_corr + G_corr + B_corr) / 3.0;
+        _corrFunct[k] *= _count[k];
+        double _maxCount = 255.0;             // normalisation hard coded
+        _corrFunct[k] /= _maxCount;  // normalisation
+    }
+}
 
 void sacPlannerThread::onStop() {
     //inCommandPort.interrupt();
