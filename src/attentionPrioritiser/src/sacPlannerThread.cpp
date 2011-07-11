@@ -118,7 +118,7 @@ std::string sacPlannerThread::getName(const char* p) {
 
 void sacPlannerThread::run() {
     while(isStopping() != true){        
-        //Bottle* b=inCommandPort.read(true);        
+        //Bottle* b=inCommandPort.read(true);       
         if(!idle) {
             // check whether it must be sleeping
             bool checkSleep;
@@ -186,6 +186,8 @@ void sacPlannerThread::run() {
                     //ImageOf<PixelRgb>* pOutputImageDown  = &outputImageDown;
                     
                     logCorrRgbSum(inputImage, pOutputImage, pCorr,1);
+                    printf("correlation between the predicted saccadic image with the actual");
+                    
                     if(*pCorr < THCORR) {
                         // the saccadic planner triggers the error
                         //calculating the max correlation 
