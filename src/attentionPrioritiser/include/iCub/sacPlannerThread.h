@@ -54,6 +54,7 @@ private:
     bool idle;                                                  // flag that inhibith the computation when a saccade process is performed
     
     yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;       // reference to the input image for saccadic adaptation    
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* predictedImage;   // reference to the predicted image for saccadic adaptation    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                 //output port for representing the correlation measure in the adaptation
     yarp::os::Semaphore mutex;
 
@@ -144,6 +145,13 @@ public:
      * @return the pointer to the list of correlation function
      */
     void logCorrRgbSum(yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgA, yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgB,double* pointerCorr, int step = 1 );
+
+    /**
+     * function that resize the images once the dimension of the input image are known 
+     * @param logwidth width dimension of the log-polar input image
+     * @param logheight height dimension of the log-polar input image
+     */ 
+    void resizeImages(int logwidth, int logheight);
 };
 
 #endif  //_SAC_PLANNER_THREAD_H_

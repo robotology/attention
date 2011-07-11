@@ -116,6 +116,11 @@ std::string sacPlannerThread::getName(const char* p) {
     return str;
 }
 
+void sacPlannerThread::resizeImages(int logwidth, int logheight) {
+    predictedImage = new ImageOf<PixelRgb>;
+    predictedImage->resize(logwidth, logheight);
+}
+
 void sacPlannerThread::run() {
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);       
@@ -134,6 +139,8 @@ void sacPlannerThread::run() {
                 ImageOf<PixelRgb>* outputImageRight   = new ImageOf<PixelRgb>;
                 int width  = inputImage->width();
                 int height = inputImage->height();
+                printf("resizing images \n");
+                resizeImages(width, height);
                 if(!checkSleep) {
                     ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
                     ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
@@ -148,49 +155,57 @@ void sacPlannerThread::run() {
                     outputImageRight->resize(width,height);
                     int xPos = 100;
                     int yPos = 180;
+                    
                     trsfL2C.logpolarToCart(*intermImage,*inputImage);
                     shiftROI(intermImage,intermImage2, xPos, yPos);
                     trsfL2C.cartToLogpolar(outputImage, *intermImage2);
-                    shiftROI(intermImage,intermImage2, xPos, yPos + 10);
-                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
-                    shiftROI(intermImage,intermImage2, xPos, yPos - 10);
-                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
-                    shiftROI(intermImage,intermImage2, xPos - 10, yPos);
-                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
-                    shiftROI(intermImage,intermImage2, xPos + 10, yPos);
-                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+
+                    //shiftROI(intermImage,intermImage2, xPos, yPos + 10);
+                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
                     
-                    //printf("copying the image %d %d \n", inputImage->width(), inputImage->height());
-                    //copy_8u_C1R(inputImage,&outputImage);
+                    //shiftROI(intermImage,intermImage2, xPos, yPos - 10);
+                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
                     
-                    //outputImage.copy(*inputImage); 
+                    //shiftROI(intermImage,intermImage2, xPos - 10, yPos);
+                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    
+                    //shiftROI(intermImage,intermImage2, xPos + 10, yPos);
+                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    
+                    
+                    
+                    outputImage.copy(*predictedImage); 
                     //inputImage->copy(outputImage);
                     corrPort.write();
                     delete intermImage;
                     delete intermImage2;
-                    mutex.wait();
-                    sleep = true;
-                    mutex.post();
-                    checkSleep = true;
+                    //mutex.wait();
+                    //sleep = true;
+                    //mutex.post();
+                    //checkSleep = true;
                 }
             
                 //goes into the sleep mode waiting for the flag to be set by observable            
-                if(!checkSleep) {
+                if((!checkSleep)&&(corrPort.getOutputCount())) {
+                    ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
+                    printf("Entering checkSleep \n");
                     // it has been waken up by observable
                     // it compares the predictic pre-saccadic image with the post-saccadic image  
                     double* pCorr;
-                    ImageOf<PixelRgb>* pOutputImage      = &outputImage;
+                    //ImageOf<PixelRgb>* pOutputImage      = &outputImage;
                     //ImageOf<PixelRgb>* pOutputImageLeft  = &outputImageLeft;
                     //ImageOf<PixelRgb>* pOutputImageRight = &outputImageRight;
                     //ImageOf<PixelRgb>* pOutputImageUp    = &outputImageUp;
                     //ImageOf<PixelRgb>* pOutputImageDown  = &outputImageDown;
                     
-                    logCorrRgbSum(inputImage, pOutputImage, pCorr,1);
+                    
+                    logCorrRgbSum(inputImage, predictedImage, pCorr,1);
                     printf("correlation between the predicted saccadic image with the actual");
                     
+                    /*
                     if(*pCorr < THCORR) {
                         // the saccadic planner triggers the error
-                        //calculating the max correlation 
+                        // calculating the max correlation 
                         double *leftCorr, *rightCorr, *upCorr, *downCorr;
                         logCorrRgbSum(inputImage, outputImageLeft, leftCorr ,1);
                         printf("saccadic correlation left %f \n", *leftCorr);
@@ -205,6 +220,7 @@ void sacPlannerThread::run() {
                         // the saccadic event has been successfully  performed
                         printf("saccadic event has been successfully performed \n");
                     }
+                    */
                 }            
             }
         }
@@ -213,7 +229,6 @@ void sacPlannerThread::run() {
 }
 
 void sacPlannerThread::referenceRetina(ImageOf<PixelRgb>* ref) {
-    printf("referenceRetina \n");
     inputImage = ref;
 }
 
