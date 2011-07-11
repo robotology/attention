@@ -124,36 +124,48 @@ void sacPlannerThread::run() {
             mutex.wait();
             checkSleep = sleep;
             mutex.post();
-            if((corrPort.getOutputCount())&&(inputImage!=NULL)&&(!checkSleep)) {
+            if((corrPort.getOutputCount())&&(inputImage!=NULL)) {
+                //here it comes if only if it is not sleeping
                 ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
-                ImageOf<PixelRgb>* intermImage = new ImageOf<PixelRgb>;
-                ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
-                intermImage->resize(320,240);
-                intermImage2->resize(320,240);
-                outputImage.resize(252,152);
-                outputImage.zero();
-                trsfL2C.logpolarToCart(*intermImage,*inputImage);
-                shiftROI(intermImage,intermImage2,100,180);
-                //printf("copying the image %d %d \n", inputImage->width(), inputImage->height());
-                //copy_8u_C1R(inputImage,&outputImage);
-                trsfL2C.cartToLogpolar(outputImage, *intermImage2);
-                //outputImage.copy(*inputImage); 
-                //inputImage->copy(outputImage);
-                corrPort.write();
-                delete intermImage;
-                delete intermImage2;
-                mutex.wait();
-                sleep = true;
-                mutex.post();
+                if(!checkSleep) {
+                    ImageOf<PixelRgb>* intermImage = new ImageOf<PixelRgb>;
+                    ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
+                    intermImage->resize(320,240);
+                    intermImage2->resize(320,240);
+                    outputImage.resize(252,152);
+                    outputImage.zero();
+                    trsfL2C.logpolarToCart(*intermImage,*inputImage);
+                    shiftROI(intermImage,intermImage2,100,180);
+                    //printf("copying the image %d %d \n", inputImage->width(), inputImage->height());
+                    //copy_8u_C1R(inputImage,&outputImage);
+                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    //outputImage.copy(*inputImage); 
+                    //inputImage->copy(outputImage);
+                    corrPort.write();
+                    delete intermImage;
+                    delete intermImage2;
+                    mutex.wait();
+                    sleep = true;
+                    mutex.post();
+                    checkSleep = true;
+                }
+            
+                //goes into the sleep mode waiting for the flag to be set by observable            
+                if(!checkSleep) {
+                    // it has been waken up by observable
+                    // it compares the predictic pre-saccadic image with the post-saccadic image  
+                    double* pCorr;
+                    ImageOf<PixelRgb>* pOutputImage = &outputImage;
+                    logCorrRgbSum(inputImage, pOutputImage, pCorr,1);
+                    if(*pCorr < THCORR) {
+                        // the saccadic planner triggers the error
+
+                    }
+                    else {
+                        // the saccadic event has been successfully  performed
+                    }
+                }            
             }
-            //goes into the sleep mode waiting for the flag to be set by observable            
-            mutex.wait();
-            checkSleep = sleep;
-            mutex.post();
-            if((!checkSleep)&&(inputImage!=NULL)) {
-                // it has been waken up by observable
-                // it compares the predictic pre-saccadic image with the post-saccadic image                
-            }            
         }
         Time::delay(0.05);
     }

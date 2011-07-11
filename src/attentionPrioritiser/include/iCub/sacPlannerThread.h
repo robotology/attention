@@ -143,7 +143,7 @@ public:
      * @param step jumping of the pixel to reduce the computation demand (default value 1)
      * @return the pointer to the list of correlation function
      */
-    void logCorrRgbSum(yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgA, yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgB,double* pointerCorr, int step = 1);
+    void logCorrRgbSum(yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgA, yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgB,double* pointerCorr, int step = 1 );
 };
 
 #endif  //_SAC_PLANNER_THREAD_H_
