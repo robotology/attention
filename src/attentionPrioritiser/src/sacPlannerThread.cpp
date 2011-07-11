@@ -37,7 +37,7 @@ using namespace std;
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     int padding = src->getPadding();
-    int channels = src->getPixelCode();
+    int channels = src->getPixelSize();
     int width = src->width();
     int height = src->height();
     unsigned char* psrc = src->getRawImage();
@@ -46,6 +46,24 @@ inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
         for (int c=0; c < width; c++) {
             *pdest++ = (unsigned char) *psrc++;
         }
+        pdest += padding;
+        psrc += padding;
+    }
+}
+
+inline void copy_8u_C3R(ImageOf<PixelRgb>* src, ImageOf<PixelRgb>* dest) {
+    int padding = src->getPadding();
+    int channels = src->getPixelSize();
+    int width = src->width();
+    int height = src->height();
+    unsigned char* psrc = src->getRawImage();
+    unsigned char* pdest = dest->getRawImage();
+    for (int r=0; r < height; r++) {
+        for (int c=0; c < width; c++) {
+            for (int j = 0; j < channels; j++) {
+                *pdest++ = (unsigned char) *psrc++;
+            }
+        }            
         pdest += padding;
         psrc += padding;
     }
@@ -132,14 +150,13 @@ void sacPlannerThread::run() {
             mutex.post();
             if((corrPort.getOutputCount())&&(inputImage!=NULL)) {
                 //here it comes if only if it is not sleeping
-                ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
+                ImageOf<PixelRgb>& outputImage        = corrPort.prepare();
                 ImageOf<PixelRgb>* outputImageUp      = new ImageOf<PixelRgb>;
                 ImageOf<PixelRgb>* outputImageDown    = new ImageOf<PixelRgb>;
                 ImageOf<PixelRgb>* outputImageLeft    = new ImageOf<PixelRgb>;
                 ImageOf<PixelRgb>* outputImageRight   = new ImageOf<PixelRgb>;
                 int width  = inputImage->width();
                 int height = inputImage->height();
-                printf("resizing images \n");
                 resizeImages(width, height);
                 if(!checkSleep) {
                     ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
@@ -170,12 +187,13 @@ void sacPlannerThread::run() {
                     //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
                     
                     //shiftROI(intermImage,intermImage2, xPos + 10, yPos);
-                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);                    
                     
                     
+                    //outputImage.copy(*predictedImage); 
+                    //predictedImage->copy(outputImage);
+                    copy_8u_C3R(&outputImage, predictedImage);
                     
-                    outputImage.copy(*predictedImage); 
-                    //inputImage->copy(outputImage);
                     corrPort.write();
                     delete intermImage;
                     delete intermImage2;
@@ -187,7 +205,7 @@ void sacPlannerThread::run() {
             
                 //goes into the sleep mode waiting for the flag to be set by observable            
                 if((!checkSleep)&&(corrPort.getOutputCount())) {
-                    ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
+                    //ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
                     printf("Entering checkSleep \n");
                     // it has been waken up by observable
                     // it compares the predictic pre-saccadic image with the post-saccadic image  
@@ -200,7 +218,7 @@ void sacPlannerThread::run() {
                     
                     
                     logCorrRgbSum(inputImage, predictedImage, pCorr,1);
-                    printf("correlation between the predicted saccadic image with the actual");
+                    printf("correlation between the predicted saccadic image with the actual %f \n", *pCorr);
                     
                     /*
                     if(*pCorr < THCORR) {
@@ -221,10 +239,13 @@ void sacPlannerThread::run() {
                         printf("saccadic event has been successfully performed \n");
                     }
                     */
+
+                    
                 }            
             }
         }
         Time::delay(0.05);
+        printf("time delay \n" );
     }
 }
 
@@ -299,11 +320,18 @@ void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outI
 
 
 void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>* imgB,double* pCorr, int step) {
-    int _actRings    = imgA->height();
+    int _actRings   = imgA->height();
     int _sizeTheta  = imgA->width();
     if((_actRings!=imgB->height())||(_sizeTheta!=imgB->width())) {
         printf("ERROR : the dimension of the two images do not match! \n");
         return;
+    }
+    else {
+        printf("the dimension of the two images do match \n");
+    }
+
+    if((imgA==NULL)||(imgB==NULL)) {
+        printf("NULL images \n");
     }
    
 
@@ -311,10 +339,12 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
     unsigned char* bPtr = imgB->getRawImage();
     int padding = imgA->getPadding();
     int _count[_shiftLevels];
-    double _corrFunct[_shiftLevels];
-    pCorr = &_corrFunct[0]; 
+    double _corrFunct = 10.2;
+    pCorr = &_corrFunct;
+    return;
     
-
+    /*
+    printf("starting the cycle with %d shiftlevels \n", _shiftLevels);
     //Correlation Function Computation
     for (int k = 0; k < _shiftLevels; k++) {
         
@@ -336,24 +366,6 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
         
         // k1 = k *_img.Size_LP;  ???????
         
-        /* for (j = 0; j < _actRings; j++) {
-           
-           for (i = 0; i < _img.Size_Theta; i++) {
-
-                iR = _shiftMap[k1 + j *_img.Size_Theta + i];
-                iL = 3 * (j*_img.Size_Theta + i);
-                
-                if (iR > 0) {
-                 average_Lr += lPtr[iL];
-                 average_Rr += rPtr[iR];
-                 //average_Lg += lPtr[iL+1];
-                 //average_Rg += rPtr[iR+1];
-                 //average_Lb += lPtr[iL+2];
-                 //average_Rb += rPtr[iR+2];
-                }
-           }
-        }*/
-
         if (_count[k] != 0) {
             average_Ar /= _count[k];
             average_Br /= _count[k];
@@ -373,14 +385,16 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
         double den_Ab = 0;
         double den_Bb = 0;
 
+        printf("running through the whole image \n");
+
         for (int j = _actRings - 1; j >= 0; j-=step) {
             for (int i = _sizeTheta - 1; i >= 0; i-=step) {
-
+                printf("%d %d \n", i, j);
                 //iR = _shiftMap[k1 + j*_img.Size_Theta + i];
                 iA = 3 * (j * _sizeTheta + i); 
                 iB = 3 * (j * _sizeTheta + i);
-                aPtr += iA;
-                bPtr += iB;
+                //aPtr += iA;
+                //bPtr += iB;
 
                 if (iA > 0) {
                     //Red
@@ -404,14 +418,20 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
                 }
             }
         }
+
+        printf("RGB normalisation %d %d %d \n", numr, numg, numb);
         R_corr = numr / sqrt(den_Ar * den_Br + 0.00001);
         G_corr = numg / sqrt(den_Ag * den_Bg + 0.00001);
         B_corr = numb / sqrt(den_Ab * den_Bb + 0.00001);
+        printf("mean between %d %d %d \n",R_corr, G_corr, B_corr);
         _corrFunct[k] = (R_corr + G_corr + B_corr) / 3.0;
-        _corrFunct[k] *= _count[k];
-        double _maxCount = 255.0;             // normalisation hard coded
-        _corrFunct[k] /= _maxCount;  // normalisation
+        //_corrFunct[k] *= _count[k];
+        printf("dividing by 255 \n");
+        //double _maxCount = 255.0;             // normalisation hard coded
+        //_corrFunct[k] /= _maxCount;           // normalisation
+        printf("end of the function \n");
     }
+    */
 }
 
 void sacPlannerThread::onStop() {
