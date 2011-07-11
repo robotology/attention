@@ -32,6 +32,7 @@ using namespace yarp::sig;
 using namespace std;
 
 #define THRATE 10
+#define THCORR 0.8
 #define _shiftLevels 1
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
@@ -127,18 +128,41 @@ void sacPlannerThread::run() {
             if((corrPort.getOutputCount())&&(inputImage!=NULL)) {
                 //here it comes if only if it is not sleeping
                 ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
+                ImageOf<PixelRgb>* outputImageUp      = new ImageOf<PixelRgb>;
+                ImageOf<PixelRgb>* outputImageDown    = new ImageOf<PixelRgb>;
+                ImageOf<PixelRgb>* outputImageLeft    = new ImageOf<PixelRgb>;
+                ImageOf<PixelRgb>* outputImageRight   = new ImageOf<PixelRgb>;
+                int width  = inputImage->width();
+                int height = inputImage->height();
                 if(!checkSleep) {
-                    ImageOf<PixelRgb>* intermImage = new ImageOf<PixelRgb>;
+                    ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
                     ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
+                    
                     intermImage->resize(320,240);
-                    intermImage2->resize(320,240);
-                    outputImage.resize(252,152);
+                    intermImage2->resize(320,240);                                        
+                    outputImage.resize(width,height);
                     outputImage.zero();
+                    outputImageUp->resize(width,height);
+                    outputImageDown->resize(width,height);
+                    outputImageLeft->resize(width,height);
+                    outputImageRight->resize(width,height);
+                    int xPos = 100;
+                    int yPos = 180;
                     trsfL2C.logpolarToCart(*intermImage,*inputImage);
-                    shiftROI(intermImage,intermImage2,100,180);
+                    shiftROI(intermImage,intermImage2, xPos, yPos);
+                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    shiftROI(intermImage,intermImage2, xPos, yPos + 10);
+                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    shiftROI(intermImage,intermImage2, xPos, yPos - 10);
+                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    shiftROI(intermImage,intermImage2, xPos - 10, yPos);
+                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    shiftROI(intermImage,intermImage2, xPos + 10, yPos);
+                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    
                     //printf("copying the image %d %d \n", inputImage->width(), inputImage->height());
                     //copy_8u_C1R(inputImage,&outputImage);
-                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    
                     //outputImage.copy(*inputImage); 
                     //inputImage->copy(outputImage);
                     corrPort.write();
@@ -155,14 +179,29 @@ void sacPlannerThread::run() {
                     // it has been waken up by observable
                     // it compares the predictic pre-saccadic image with the post-saccadic image  
                     double* pCorr;
-                    ImageOf<PixelRgb>* pOutputImage = &outputImage;
+                    ImageOf<PixelRgb>* pOutputImage      = &outputImage;
+                    //ImageOf<PixelRgb>* pOutputImageLeft  = &outputImageLeft;
+                    //ImageOf<PixelRgb>* pOutputImageRight = &outputImageRight;
+                    //ImageOf<PixelRgb>* pOutputImageUp    = &outputImageUp;
+                    //ImageOf<PixelRgb>* pOutputImageDown  = &outputImageDown;
+                    
                     logCorrRgbSum(inputImage, pOutputImage, pCorr,1);
                     if(*pCorr < THCORR) {
                         // the saccadic planner triggers the error
-
+                        //calculating the max correlation 
+                        double *leftCorr, *rightCorr, *upCorr, *downCorr;
+                        logCorrRgbSum(inputImage, outputImageLeft, leftCorr ,1);
+                        printf("saccadic correlation left %f \n", *leftCorr);
+                        logCorrRgbSum(inputImage, outputImageRight, rightCorr,1);
+                        printf("saccadic correlation left %f \n", *rightCorr);
+                        logCorrRgbSum(inputImage, outputImageUp, upCorr,1);
+                        printf("saccadic correlation left %f \n", *upCorr);
+                        logCorrRgbSum(inputImage, outputImageDown, downCorr,1);
+                        printf("saccadic correlation left %f \n", *downCorr);
                     }
                     else {
                         // the saccadic event has been successfully  performed
+                        printf("saccadic event has been successfully performed \n");
                     }
                 }            
             }
