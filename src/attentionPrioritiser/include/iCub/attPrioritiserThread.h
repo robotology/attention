@@ -95,6 +95,7 @@ private:
     bool mono;                              // flag that indicates whether the saccade is mono or not
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
     bool accomplished_flag;                 // flag for the accomplished vergence
+    bool correcting;                        // flag that allows the test for correction to take place
     double timeoutStart,timeoutStop;        // start and stop timing to avoid that saccadic event can stuck
     double timetotStart,timetotStop;        // start and stop timing for the complete fixation task
     double timeout;                         // actual timer of the saccadic action

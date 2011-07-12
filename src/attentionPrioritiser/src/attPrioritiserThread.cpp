@@ -42,7 +42,8 @@ using namespace iCub::iKin;
 #define PI  3.14159265
 #define BASELINE 0.068     // distance in meters between eyes
 #define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
-
+#define THCORR 0.99
+#define corrStep 10 
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     int padding = src->getPadding();
@@ -186,6 +187,7 @@ attPrioritiserThread::~attPrioritiserThread() {
 bool attPrioritiserThread::threadInit() {
     done=true;
     executing = false;
+    correcting = false;
     printf("starting the thread.... \n");
     
     eyeL = new iCubEye("left");
@@ -210,7 +212,7 @@ bool attPrioritiserThread::threadInit() {
     //opening port section 
     string rootNameStatus("");rootNameStatus.append(getName("/status:o"));
     statusPort.open(rootNameStatus.c_str());
-    string rootNameOutput("");rootNameOutput.append(getName("/command:o"));
+    string rootNameOutput("");rootNameOutput.append(getName("/cmd:o"));
     outputPort.open(rootNameOutput.c_str());
     string rootNameTiming("");rootNameTiming.append(getName("/timing:o"));
     timingPort.open(rootNameTiming.c_str());
@@ -345,8 +347,13 @@ void attPrioritiserThread::run() {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
                 printf("ps \n");
-            }   
-            //executing the saccade
+            }
+            // activating the sacPlanner
+            sacPlanner->setSaccadicTarget(u,v);
+            sacPlanner->wakeup();
+            Time::delay(0.5);
+            
+            // executing the saccade
             Bottle& commandBottle=outputPort.prepare();
             commandBottle.clear();
             commandBottle.addString("SAC_MONO");
@@ -356,7 +363,29 @@ void attPrioritiserThread::run() {
             outputPort.write();
             
             //post-saccadic connection
-            
+            // wait for accpomplished saccadic event
+            while(!correcting) {
+                Time::delay(0.1);
+            }
+            correcting = false;   // resetting the correction flag
+
+            // correction or second saccade??
+            double corr = sacPlanner->getCorrValue();
+            printf("received the response from the planner %f \n", corr);
+            if(corr < THCORR) {
+                //getDirection and calculating the pixel dimension of the correction
+                double dirRad = (sacPlanner->getDirection() * PI) / 180;
+                printf("direction of the correction in degrees %d \n",sacPlanner->getDirection() );
+                int xVar = (int) floor(cos(dirRad) * corrStep);
+                int yVar = (int) floor(sin(dirRad) * corrStep);
+                Bottle& commandBottle=outputPort.prepare();
+                commandBottle.clear();
+                commandBottle.addString("SAC_MONO");
+                commandBottle.addInt(160 + xVar);
+                commandBottle.addInt(120 + yVar);
+                commandBottle.addDouble(zDistance);
+                outputPort.write();
+            }            
         }                
     }
     else if(allowedTransitions(2)>0) {
@@ -366,7 +395,7 @@ void attPrioritiserThread::run() {
             printf("Express Saccade \n");
             timeoutStart = Time::now();
             collectionLocation[0 + 0] = u;
-            collectionLocation[0 * 2 +1] = v;
+            collectionLocation[0 * 2 + 1] = v;
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
             if(timeout < time) {
@@ -424,7 +453,6 @@ void attPrioritiserThread::run() {
         executing = false;  //executing=false allows new action commands
         printf ("Transition request 3 reset \n");
         mutex.post();
-        printf("after the mutex \n");
     }
     if(allowedTransitions(2)>0) {
         mutex.wait();
@@ -511,6 +539,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.wait();
             stateRequest[1] = 1;
             //executing = false;
+            mutex.post();
+        }
+        else if(!strcmp(name.c_str(),"SAC_ACC")) {
+            // saccade accomplished           
+            mutex.wait();
+            correcting = true;
             mutex.post();
         }
         else {

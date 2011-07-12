@@ -51,6 +51,7 @@ private:
     iCub::logpolar::logpolarTransform trsfC2L;                  // reference to the converter for logpolar transform frmo cartesian to logpolar
     iCub::logpolar::logpolarTransform trsfL2C;                  // reference to the converter for logpolar transform frmo cartesian to logpolar
     bool sleep;                                                 // flag set after the prediction is memorised
+    bool compare;                                               // flag that indicates when it is checking the difference between predicted saccadic image with the current saccadic image
     bool idle;                                                  // flag that inhibith the computation when a saccade process is performed
     
     yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;       // reference to the input image for saccadic adaptation    
@@ -58,6 +59,10 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                 //output port for representing the correlation measure in the adaptation
     yarp::os::Semaphore mutex;
 
+    double corrValue;                                           // correlation value between the predicted image and the current 
+    int direction;                                              // direction of the more likely increment in correlation
+    int countDirection;                                         // counter of the selected directions
+    int rho, theta;                                             // position in the log-polar space of the desired saccadic goal
 
 public:
     /**
@@ -113,6 +118,11 @@ public:
     */
     std::string getName(const char* p);
 
+    /** 
+     * function that wakes the planner up changing the sleep flage from true to false
+     */
+    void wakeup(){sleep = false; printf("waking up \n"); };
+
     /**
     * function that allocate the reference to the input magic 
     * @param ref pointer to the retina input image
@@ -152,6 +162,23 @@ public:
      * @param logheight height dimension of the log-polar input image
      */ 
     void resizeImages(int logwidth, int logheight);
+
+
+    /**
+     * function that return the direction that is more likely to increase the correlation
+     * @return angle in degree of the direction
+     */
+    int getDirection(){return direction;};
+
+   
+     /**
+     * function that return the direction that is more likely to increase the correlation
+     * @return angle in degree of the direction
+     */
+    int getCorrValue(){return corrValue;};
+
+
+    
 };
 
 #endif  //_SAC_PLANNER_THREAD_H_

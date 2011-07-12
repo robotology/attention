@@ -32,8 +32,9 @@ using namespace yarp::sig;
 using namespace std;
 
 #define THRATE 10
-#define THCORR 0.8
+#define THCORR 0.99    // remember to change the counterpart in attPrioritiserThread
 #define _shiftLevels 1
+#define corrStep 10    // remember to change the counterpart in attPrioritiserThread
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     int padding = src->getPadding();
@@ -83,8 +84,12 @@ sacPlannerThread::~sacPlannerThread() {
     
 }
 
+
 bool sacPlannerThread::threadInit() {
     idle = false;
+    sleep = true;
+    direction = 0;
+    countDirection = 0;
     printf("starting the thread.... \n");
     /* open ports */
     string rootName("");
@@ -134,6 +139,13 @@ std::string sacPlannerThread::getName(const char* p) {
     return str;
 }
 
+void sacPlannerThread::setSaccadicTarget(int r, int t) {
+    printf("setting Saccadic Planner \n");
+    rho   = r;
+    theta = t;
+    printf("rho %d theta %d \n", rho, theta);
+}
+
 void sacPlannerThread::resizeImages(int logwidth, int logheight) {
     predictedImage = new ImageOf<PixelRgb>;
     predictedImage->resize(logwidth, logheight);
@@ -142,13 +154,13 @@ void sacPlannerThread::resizeImages(int logwidth, int logheight) {
 void sacPlannerThread::run() {
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);       
+        printf(". \n");
         if(!idle) {
             // check whether it must be sleeping
-            bool checkSleep;
-            mutex.wait();
-            checkSleep = sleep;
-            mutex.post();
-            if((corrPort.getOutputCount())&&(inputImage!=NULL)) {
+            bool checkSleep = false;
+
+            if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
+                printf("it is not sleeping outer \n");
                 //here it comes if only if it is not sleeping
                 ImageOf<PixelRgb>& outputImage        = corrPort.prepare();
                 ImageOf<PixelRgb>* outputImageUp      = new ImageOf<PixelRgb>;
@@ -158,7 +170,12 @@ void sacPlannerThread::run() {
                 int width  = inputImage->width();
                 int height = inputImage->height();
                 resizeImages(width, height);
-                if(!checkSleep) {
+                
+                mutex.wait();
+                if(!sleep) {                    
+                    mutex.post();
+                    printf("it is not sleeping \n");
+                    
                     ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
                     ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
                     
@@ -170,24 +187,24 @@ void sacPlannerThread::run() {
                     outputImageDown->resize(width,height);
                     outputImageLeft->resize(width,height);
                     outputImageRight->resize(width,height);
-                    int xPos = 100;
-                    int yPos = 180;
+                    int xPos = theta;
+                    int yPos = rho;
                     
                     trsfL2C.logpolarToCart(*intermImage,*inputImage);
                     shiftROI(intermImage,intermImage2, xPos, yPos);
                     trsfL2C.cartToLogpolar(outputImage, *intermImage2);
 
-                    //shiftROI(intermImage,intermImage2, xPos, yPos + 10);
-                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    shiftROI(intermImage,intermImage2, xPos, yPos + corrStep);
+                    trsfL2C.cartToLogpolar(*outputImageUp, *intermImage2);
                     
-                    //shiftROI(intermImage,intermImage2, xPos, yPos - 10);
-                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    shiftROI(intermImage,intermImage2, xPos, yPos - corrStep);
+                    trsfL2C.cartToLogpolar(*outputImageDown, *intermImage2);
                     
-                    //shiftROI(intermImage,intermImage2, xPos - 10, yPos);
-                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    shiftROI(intermImage,intermImage2, xPos - corrStep, yPos);
+                    trsfL2C.cartToLogpolar(*outputImageLeft, *intermImage2);
                     
-                    //shiftROI(intermImage,intermImage2, xPos + 10, yPos);
-                    //trsfL2C.cartToLogpolar(outputImage, *intermImage2);                    
+                    shiftROI(intermImage,intermImage2, xPos + corrStep, yPos);
+                    trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);                    
                     
                     
                     //outputImage.copy(*predictedImage); 
@@ -197,19 +214,23 @@ void sacPlannerThread::run() {
                     corrPort.write();
                     delete intermImage;
                     delete intermImage2;
-                    //mutex.wait();
-                    //sleep = true;
-                    //mutex.post();
-                    //checkSleep = true;
+                    mutex.wait();
+                    sleep   = false;
+                    compare = true;
+                    printf("sleep false and compare true \n");
+                    mutex.post();
+                }
+                else {
+                    mutex.post();
                 }
             
                 //goes into the sleep mode waiting for the flag to be set by observable            
-                if((!checkSleep)&&(corrPort.getOutputCount())) {
+                if((!sleep)&&(compare)&&(corrPort.getOutputCount())) {
                     //ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
-                    printf("Entering checkSleep \n");
+                    printf("Entering checkSleep with compare \n");
                     // it has been waken up by observable
                     // it compares the predictic pre-saccadic image with the post-saccadic image  
-                    double* pCorr;
+                    double* pCorr = new double;
                     //ImageOf<PixelRgb>* pOutputImage      = &outputImage;
                     //ImageOf<PixelRgb>* pOutputImageLeft  = &outputImageLeft;
                     //ImageOf<PixelRgb>* pOutputImageRight = &outputImageRight;
@@ -219,33 +240,57 @@ void sacPlannerThread::run() {
                     
                     logCorrRgbSum(inputImage, predictedImage, pCorr,1);
                     printf("correlation between the predicted saccadic image with the actual %f \n", *pCorr);
+                    corrValue = *pCorr;
                     
-                    /*
                     if(*pCorr < THCORR) {
                         // the saccadic planner triggers the error
                         // calculating the max correlation 
-                        double *leftCorr, *rightCorr, *upCorr, *downCorr;
+                        double *leftCorr  = new double;
+                        double *rightCorr = new double;
+                        double *upCorr    = new double;
+                        double *downCorr  = new double;
                         logCorrRgbSum(inputImage, outputImageLeft, leftCorr ,1);
                         printf("saccadic correlation left %f \n", *leftCorr);
+                        if(*leftCorr > *pCorr) {
+                            direction += 0;
+                            countDirection++;
+                            direction /= countDirection;
+                        }
                         logCorrRgbSum(inputImage, outputImageRight, rightCorr,1);
-                        printf("saccadic correlation left %f \n", *rightCorr);
+                        printf("saccadic correlation right %f \n", *rightCorr);
+                        if(*rightCorr > *pCorr) {
+                            direction += 180;
+                            countDirection++;
+                            direction /= countDirection;
+                        }
                         logCorrRgbSum(inputImage, outputImageUp, upCorr,1);
-                        printf("saccadic correlation left %f \n", *upCorr);
+                        printf("saccadic correlation up %f \n", *upCorr);
+                        if(*leftCorr > *pCorr) {
+                            direction += 90;
+                            countDirection++;
+                            direction /= countDirection;
+                        }
                         logCorrRgbSum(inputImage, outputImageDown, downCorr,1);
-                        printf("saccadic correlation left %f \n", *downCorr);
+                        printf("saccadic correlation down %f \n", *downCorr);
+                        if(*leftCorr > *pCorr) {
+                            direction += 270;
+                            countDirection++;
+                            direction /= countDirection;
+                        }
                     }
                     else {
                         // the saccadic event has been successfully  performed
                         printf("saccadic event has been successfully performed \n");
                     }
-                    */
-
                     
+                    mutex.wait();
+                    compare = false;
+                    sleep = true;
+                    mutex.post();
                 }            
             }
         }
         Time::delay(0.05);
-        printf("time delay \n" );
     }
 }
 
@@ -261,7 +306,7 @@ void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outI
     int dx = x - centerX;
     int dy = y - centerY;
     int channel = inImg->getPixelSize();
-    printf("dx %d dy %d \n", dx,dy);
+
     unsigned char* pinput  = inImg->getRawImage();
     unsigned char* poutput = outImg->getRawImage();
     int padding = inImg->getPadding();
@@ -326,9 +371,6 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
         printf("ERROR : the dimension of the two images do not match! \n");
         return;
     }
-    else {
-        printf("the dimension of the two images do match \n");
-    }
 
     if((imgA==NULL)||(imgB==NULL)) {
         printf("NULL images \n");
@@ -339,12 +381,11 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
     unsigned char* bPtr = imgB->getRawImage();
     int padding = imgA->getPadding();
     int _count[_shiftLevels];
-    double _corrFunct = 10.2;
-    pCorr = &_corrFunct;
-    return;
+    double _corrFunct[_shiftLevels];
+    //pCorr = &_corrFunct;
     
-    /*
-    printf("starting the cycle with %d shiftlevels \n", _shiftLevels);
+    
+    //printf("starting the cycle with %d shiftlevels \n", _shiftLevels);
     //Correlation Function Computation
     for (int k = 0; k < _shiftLevels; k++) {
         
@@ -385,11 +426,12 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
         double den_Ab = 0;
         double den_Bb = 0;
 
-        printf("running through the whole image \n");
+        //for (int j = _actRings - 1; j >= 0; j-=step) {
+        //    for (int i = _sizeTheta - 1; i >= 0; i-=step) {
+                
+        for (int j = 0 ; j < (_actRings>>1) ; j+=step) {
+            for (int i = 0;i <  _sizeTheta ; i+=step) {
 
-        for (int j = _actRings - 1; j >= 0; j-=step) {
-            for (int i = _sizeTheta - 1; i >= 0; i-=step) {
-                printf("%d %d \n", i, j);
                 //iR = _shiftMap[k1 + j*_img.Size_Theta + i];
                 iA = 3 * (j * _sizeTheta + i); 
                 iB = 3 * (j * _sizeTheta + i);
@@ -398,40 +440,48 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
 
                 if (iA > 0) {
                     //Red
-                    pixelA = aPtr[iA] - average_Ar;
-                    pixelB = bPtr[iB] - average_Br;
+                    pixelA = *aPtr - average_Ar;
+                    pixelB = *bPtr - average_Br;
                     numr   += (pixelA * pixelB);
                     den_Ar += (pixelA * pixelA);
                     den_Br += (pixelB * pixelB);
+                    aPtr++;bPtr++;
+                    
                     //Green
-                    pixelA = aPtr[iA+1] - average_Ag;
-                    pixelB = bPtr[iB+1] - average_Bg;
+                    pixelA = *aPtr - average_Ag;
+                    pixelB = *bPtr - average_Bg;
                     numg   += (pixelA * pixelB);
                     den_Ag += (pixelA * pixelA);
                     den_Bg += (pixelB * pixelB);
+                    aPtr++;bPtr++;
+
                     //Blue
-                    pixelA = aPtr[iA+2] - average_Ab;
-                    pixelB = bPtr[iB+2] - average_Bb;
+                    pixelA = *aPtr - average_Ab;
+                    pixelB = *bPtr - average_Bb;
                     numb   += (pixelA * pixelB);
                     den_Ab += (pixelA * pixelA);
                     den_Bb += (pixelB * pixelB);
+                    aPtr++;bPtr++;
                 }
             }
+            aPtr += padding;
+            bPtr += padding;            
         }
 
-        printf("RGB normalisation %d %d %d \n", numr, numg, numb);
+        //printf("RGB normalisation %f %f %f \n", numr, numg, numb);
+        //printf("denominator %f %f %f \n", den_Ar, den_Ag, den_Ab);
         R_corr = numr / sqrt(den_Ar * den_Br + 0.00001);
         G_corr = numg / sqrt(den_Ag * den_Bg + 0.00001);
         B_corr = numb / sqrt(den_Ab * den_Bb + 0.00001);
-        printf("mean between %d %d %d \n",R_corr, G_corr, B_corr);
+        //printf("mean between %f %f %f \n",R_corr, G_corr, B_corr);
         _corrFunct[k] = (R_corr + G_corr + B_corr) / 3.0;
         //_corrFunct[k] *= _count[k];
-        printf("dividing by 255 \n");
+        //printf("before dividing by 255 %f \n", _corrFunct[k]);
         //double _maxCount = 255.0;             // normalisation hard coded
         //_corrFunct[k] /= _maxCount;           // normalisation
-        printf("end of the function \n");
+        *pCorr = _corrFunct[k];
     }
-    */
+    
 }
 
 void sacPlannerThread::onStop() {
@@ -445,7 +495,4 @@ void sacPlannerThread::threadRelease() {
     
 }
 
-void sacPlannerThread::setSaccadicTarget(int rho, int theta) {
-    printf("setting Saccadic Planner \n");
-    printf("rho %d theta %d \n", rho, theta);
-}
+
