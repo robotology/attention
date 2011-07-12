@@ -154,13 +154,13 @@ void sacPlannerThread::resizeImages(int logwidth, int logheight) {
 void sacPlannerThread::run() {
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);       
-        printf(". \n");
+ 
         if(!idle) {
             // check whether it must be sleeping
             bool checkSleep = false;
 
             if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
-                printf("it is not sleeping outer \n");
+
                 //here it comes if only if it is not sleeping
                 ImageOf<PixelRgb>& outputImage        = corrPort.prepare();
                 ImageOf<PixelRgb>* outputImageUp      = new ImageOf<PixelRgb>;
@@ -174,8 +174,7 @@ void sacPlannerThread::run() {
                 mutex.wait();
                 if(!sleep) {                    
                     mutex.post();
-                    printf("it is not sleeping \n");
-                    
+                                        
                     ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
                     ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
                     
@@ -238,9 +237,9 @@ void sacPlannerThread::run() {
                     //ImageOf<PixelRgb>* pOutputImageDown  = &outputImageDown;
                     
                     
-                    logCorrRgbSum(inputImage, predictedImage, pCorr,1);
-                    printf("correlation between the predicted saccadic image with the actual %f \n", *pCorr);
+                    logCorrRgbSum(inputImage, predictedImage, pCorr,1);                    
                     corrValue = *pCorr;
+                    printf("correlation between the predicted saccadic image with the actual %f \n", *pCorr);
                     
                     if(*pCorr < THCORR) {
                         // the saccadic planner triggers the error
