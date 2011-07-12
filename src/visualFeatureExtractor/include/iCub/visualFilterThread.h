@@ -38,6 +38,10 @@
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_fft_complex.h>
+
+
 //#include <Eigen/Dense>
 
 
@@ -341,6 +345,8 @@ private:
     int size1;                          // size of the buffer
     int psb16s;                         // step size of the Ipp16s vectors
     float lambda;                       // costant for the temporal filter
+
+    int loopParity;                      // to be removed
    
     // parameters for Gabor filter
     double sigma[NBR_OF_FILTERS];
@@ -361,6 +367,10 @@ private:
     int kernelUsed;
     //int kernelSize[2];
     CvMat* gabKer[4];
+
+    double logGabor[4][6][256][256];       // very larger array [nscale][norient][ht][wd];
+
+    IplImage* logGaborFilterImage[4][6];     // to visualize, removed later
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *yImage;               // y of YUV image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *yFilImage;               // y of YUV image
@@ -481,6 +491,19 @@ private:
     IplImage* upSampleRGa;
     IplImage* upSampleGRa;
     IplImage* upSampleBYa;
+
+    // Images for emergent orientation and inhibitions, so we have one positive, one negative
+    IplImage* tmpEmerge;
+    IplImage* tmpEmerge2;
+    IplImage* emergeP0;
+    IplImage* emergeN0;
+    IplImage* emergeP45;
+    IplImage* emergeN45;
+    IplImage* emergeP90;
+    IplImage* emergeN90;
+    IplImage* emergePM45;
+    IplImage* emergeNM45;
+    
     //down-sampled and up-sampled images for applying Gabor filter 
     IplImage* dwnSampleRGb;
     IplImage* dwnSampleGRb;
@@ -504,6 +527,10 @@ private:
     int orient45[2];
     int orient90[2];
     int orientM45[2];
+    int positiveWt;
+    int negativeWt;
+    int posGaussWindowSize;
+    int negGaussWindowSize;
     
 
     /*** To convert to cartesian **/
@@ -694,7 +721,21 @@ public:
     void convolve2D(int rowSize,int colSize, float* ker, IplImage* img, IplImage* resImg, float factor=1.0,int shift=0,int* range = NULL,int maxVal=255);
 
 
+    /**
+    * function that crops in-place a given circle (center, radius form) from source image
+    * @param center center of circle in (int,int) array
+    * @param radius radius of circle
+    * @param srcImage source image that will be changed after cropping
+    */
     void cropCircleImage(int* center, float radius, IplImage* srcImg);
+
+    /**
+    * function that implements 2D FFT/iFFT as two iterative 1D FFTs (not implemented in gsl)
+    * @param input2DArray 2D array of whose FFT or iFFT is to be taken
+    * @param FFTed output array
+    * @param forward flag which is true/false for FFT/iFFT respectively, default is FFT
+    */
+    void FFT2D(double input2DArray[256][2*256], double FFTed[256][2*256], bool forward = true);
     
 };
 
