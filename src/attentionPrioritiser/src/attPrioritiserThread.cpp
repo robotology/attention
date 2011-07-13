@@ -351,7 +351,7 @@ void attPrioritiserThread::run() {
             // activating the sacPlanner
             sacPlanner->setSaccadicTarget(u,v);
             sacPlanner->wakeup();
-            Time::delay(0.5);
+            Time::delay(0.1);
             
             // executing the saccade
             Bottle& commandBottle=outputPort.prepare();
@@ -368,14 +368,17 @@ void attPrioritiserThread::run() {
                 Time::delay(0.1);
             }
             correcting = false;   // resetting the correction flag
+            sacPlanner->setCompare(true);
+            sacPlanner->wakeup();
+            Time::delay(0.1);
 
             // correction or second saccade??
             double corr = sacPlanner->getCorrValue();
             printf("received the response from the planner %f \n", corr);
             if(corr < THCORR) {
                 //getDirection and calculating the pixel dimension of the correction
-                double dirRad = (sacPlanner->getDirection() * PI) / 180;
-                printf("direction of the correction in degrees %d \n",sacPlanner->getDirection() );
+                double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
+                printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
                 int xVar = (int) floor(cos(dirRad) * corrStep);
                 int yVar = (int) floor(sin(dirRad) * corrStep);
                 Bottle& commandBottle=outputPort.prepare();
@@ -545,6 +548,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // saccade accomplished           
             mutex.wait();
             correcting = true;
+            
             mutex.post();
         }
         else {

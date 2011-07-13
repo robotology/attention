@@ -54,13 +54,19 @@ private:
     bool compare;                                               // flag that indicates when it is checking the difference between predicted saccadic image with the current saccadic image
     bool idle;                                                  // flag that inhibith the computation when a saccade process is performed
     
-    yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;       // reference to the input image for saccadic adaptation    
-    yarp::sig::ImageOf <yarp::sig::PixelRgb>* predictedImage;   // reference to the predicted image for saccadic adaptation    
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                 //output port for representing the correlation measure in the adaptation
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;                                     // reference to the input image for saccadic adaptation    
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* predictedImage;                                 // reference to the predicted image for saccadic adaptation    
+    
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* outputImageUp;                           // image of the alternative saccadic event (up)      
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* outputImageDown;                         // image of the alternative saccadic event (down) 
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* outputImageLeft;                         // image of the alternative saccadic event (left) 
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* outputImageRight;                        // image of the alternative saccadic event (right) 
+    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                //output port for representing the correlation measure in the adaptation
     yarp::os::Semaphore mutex;
 
     double corrValue;                                           // correlation value between the predicted image and the current 
-    int direction;                                              // direction of the more likely increment in correlation
+    double direction;                                              // direction of the more likely increment in correlation
     int countDirection;                                         // counter of the selected directions
     int rho, theta;                                             // position in the log-polar space of the desired saccadic goal
 
@@ -137,6 +143,14 @@ public:
     void setSaccadicTarget(int rho, int theta);
 
     /**
+     * @brief: function that set the compare flag.
+     * The compare flag set by this function enable/disable the control of the saccadic position reached
+     * @param value value of the boolean flag that has be to assigned
+     */
+    void setCompare(bool value) {mutex.wait(); compare = value; mutex.post(); };    
+    
+
+    /**
      *   function that shifts the Region of Interest
      *  @param inImg input image to shift
      *  @param output of the shift operation
@@ -168,14 +182,14 @@ public:
      * function that return the direction that is more likely to increase the correlation
      * @return angle in degree of the direction
      */
-    int getDirection(){return direction;};
+    double getDirection(){return direction;};
 
    
      /**
      * function that return the direction that is more likely to increase the correlation
      * @return angle in degree of the direction
      */
-    int getCorrValue(){return corrValue;};
+    double getCorrValue(){return corrValue;};
 
 
     

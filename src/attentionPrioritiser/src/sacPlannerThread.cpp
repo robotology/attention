@@ -55,8 +55,10 @@ inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
 inline void copy_8u_C3R(ImageOf<PixelRgb>* src, ImageOf<PixelRgb>* dest) {
     int padding = src->getPadding();
     int channels = src->getPixelSize();
+    //printf("channel of the input image %d \n", channels);
     int width = src->width();
     int height = src->height();
+    //printf("dimension of the input image %d %d \n", width, height);
     unsigned char* psrc = src->getRawImage();
     unsigned char* pdest = dest->getRawImage();
     for (int r=0; r < height; r++) {
@@ -88,6 +90,7 @@ sacPlannerThread::~sacPlannerThread() {
 bool sacPlannerThread::threadInit() {
     idle = false;
     sleep = true;
+    compare = false;
     direction = 0;
     countDirection = 0;
     printf("starting the thread.... \n");
@@ -120,7 +123,12 @@ bool sacPlannerThread::threadInit() {
     }
     cout << "||| lookup table C2L allocation done" << endl;
 
-    
+    outputImageUp      = new ImageOf<PixelRgb>;
+    outputImageDown    = new ImageOf<PixelRgb>;
+    outputImageLeft    = new ImageOf<PixelRgb>;
+    outputImageRight   = new ImageOf<PixelRgb>;
+    predictedImage     = new ImageOf<PixelRgb>;
+
     return true;
 }
 
@@ -147,7 +155,7 @@ void sacPlannerThread::setSaccadicTarget(int r, int t) {
 }
 
 void sacPlannerThread::resizeImages(int logwidth, int logheight) {
-    predictedImage = new ImageOf<PixelRgb>;
+    //
     predictedImage->resize(logwidth, logheight);
 }
 
@@ -157,22 +165,19 @@ void sacPlannerThread::run() {
  
         if(!idle) {
             // check whether it must be sleeping
-            bool checkSleep = false;
 
             if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
 
                 //here it comes if only if it is not sleeping
-                ImageOf<PixelRgb>& outputImage        = corrPort.prepare();
-                ImageOf<PixelRgb>* outputImageUp      = new ImageOf<PixelRgb>;
-                ImageOf<PixelRgb>* outputImageDown    = new ImageOf<PixelRgb>;
-                ImageOf<PixelRgb>* outputImageLeft    = new ImageOf<PixelRgb>;
-                ImageOf<PixelRgb>* outputImageRight   = new ImageOf<PixelRgb>;
+                ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
                 int width  = inputImage->width();
                 int height = inputImage->height();
                 resizeImages(width, height);
+                outputImage.resize(width,height);
+                outputImage.zero();
                 
                 mutex.wait();
-                if(!sleep) {                    
+                if((!sleep)&&(!compare)) {                    
                     mutex.post();
                                         
                     ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
@@ -180,8 +185,7 @@ void sacPlannerThread::run() {
                     
                     intermImage->resize(320,240);
                     intermImage2->resize(320,240);                                        
-                    outputImage.resize(width,height);
-                    outputImage.zero();
+                    
                     outputImageUp->resize(width,height);
                     outputImageDown->resize(width,height);
                     outputImageLeft->resize(width,height);
@@ -193,6 +197,13 @@ void sacPlannerThread::run() {
                     shiftROI(intermImage,intermImage2, xPos, yPos);
                     trsfL2C.cartToLogpolar(outputImage, *intermImage2);
 
+                    //outputImage.copy(*predictedImage); 
+                    //predictedImage->copy(outputImage);                    
+                    corrPort.write();
+                    copy_8u_C3R(&outputImage, predictedImage);
+
+
+                    //created alternative shifts
                     shiftROI(intermImage,intermImage2, xPos, yPos + corrStep);
                     trsfL2C.cartToLogpolar(*outputImageUp, *intermImage2);
                     
@@ -205,18 +216,12 @@ void sacPlannerThread::run() {
                     shiftROI(intermImage,intermImage2, xPos + corrStep, yPos);
                     trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);                    
                     
-                    
-                    //outputImage.copy(*predictedImage); 
-                    //predictedImage->copy(outputImage);
-                    copy_8u_C3R(&outputImage, predictedImage);
-                    
-                    corrPort.write();
+
                     delete intermImage;
                     delete intermImage2;
                     mutex.wait();
-                    sleep   = false;
-                    compare = true;
-                    printf("sleep false and compare true \n");
+                    sleep   = true;
+                    compare = false;
                     mutex.post();
                 }
                 else {
@@ -224,6 +229,7 @@ void sacPlannerThread::run() {
                 }
             
                 //goes into the sleep mode waiting for the flag to be set by observable            
+                printf("sleep %d compare %d \n" ,sleep, compare);
                 if((!sleep)&&(compare)&&(corrPort.getOutputCount())) {
                     //ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
                     printf("Entering checkSleep with compare \n");
@@ -239,7 +245,9 @@ void sacPlannerThread::run() {
                     
                     logCorrRgbSum(inputImage, predictedImage, pCorr,1);                    
                     corrValue = *pCorr;
-                    printf("correlation between the predicted saccadic image with the actual %f \n", *pCorr);
+                    printf("correlation between the predicted saccadic image with the actual %f \n", corrValue);
+                    copy_8u_C3R(predictedImage, &outputImage);
+                    corrPort.write();
                     
                     if(*pCorr < THCORR) {
                         // the saccadic planner triggers the error
@@ -248,33 +256,42 @@ void sacPlannerThread::run() {
                         double *rightCorr = new double;
                         double *upCorr    = new double;
                         double *downCorr  = new double;
+                        double max = 0.0;
+                        
                         logCorrRgbSum(inputImage, outputImageLeft, leftCorr ,1);
                         printf("saccadic correlation left %f \n", *leftCorr);
-                        if(*leftCorr > *pCorr) {
-                            direction += 0;
-                            countDirection++;
-                            direction /= countDirection;
+                        if(*leftCorr > max) {
+                            max = *leftCorr;
+                            direction = 180.0;
+                            //countDirection++;
+                            //direction /= countDirection;
                         }
                         logCorrRgbSum(inputImage, outputImageRight, rightCorr,1);
                         printf("saccadic correlation right %f \n", *rightCorr);
-                        if(*rightCorr > *pCorr) {
-                            direction += 180;
-                            countDirection++;
-                            direction /= countDirection;
+                        if(*rightCorr > max) {
+                            max = *rightCorr;
+                            direction = 0.0;
+                            //direction += 180;
+                            //countDirection++;
+                            //direction /= countDirection;
                         }
                         logCorrRgbSum(inputImage, outputImageUp, upCorr,1);
                         printf("saccadic correlation up %f \n", *upCorr);
-                        if(*leftCorr > *pCorr) {
-                            direction += 90;
-                            countDirection++;
-                            direction /= countDirection;
+                        if(*upCorr > max) {
+                            max = *upCorr;
+                            direction = 90.0;
+                            //direction += 90;
+                            //countDirection++;
+                            //direction /= countDirection;
                         }
                         logCorrRgbSum(inputImage, outputImageDown, downCorr,1);
                         printf("saccadic correlation down %f \n", *downCorr);
-                        if(*leftCorr > *pCorr) {
-                            direction += 270;
-                            countDirection++;
-                            direction /= countDirection;
+                        if(*downCorr > max) {
+                            max = *downCorr;
+                            direction = 180.0;
+                            //direction += 270;
+                            //countDirection++;
+                            //direction /= countDirection;
                         }
                     }
                     else {
@@ -491,7 +508,11 @@ void sacPlannerThread::onStop() {
 }
 
 void sacPlannerThread::threadRelease() {
-    
+    delete outputImageUp;                                 
+    delete outputImageDown;                          
+    delete outputImageLeft;                    
+    delete outputImageRight;
+    delete predictedImage;
 }
 
 
