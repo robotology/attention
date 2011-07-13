@@ -288,7 +288,7 @@ void sacPlannerThread::run() {
                         printf("saccadic correlation down %f \n", *downCorr);
                         if(*downCorr > max) {
                             max = *downCorr;
-                            direction = 180.0;
+                            direction = 270.0;
                             //direction += 270;
                             //countDirection++;
                             //direction /= countDirection;
