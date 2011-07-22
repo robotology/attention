@@ -1342,6 +1342,14 @@ visualFilterThread::visualFilterThread() {
     intPsi[3] = 0;          // factor 100
     intFilScale[3] =1;   // factor 10
     intFilShift[3] = 251;
+
+    intFactor = 20;
+    intSig = 65;
+    intMinWav = 30; 
+    intScale = 0;
+    intOrient = 0;
+    intCutoff = 45;
+    intSharpness = 15;
        
 
     orient0[0]=0;
@@ -1379,6 +1387,25 @@ visualFilterThread::visualFilterThread() {
     numberOfAngles = 252;     // number of angles in the remapping
     
     loopParity = 0;
+
+    // Allocating space for non radix 2 FFT. 2D FFT are implemented as FFT_of_Col(FFT_of_Rows)
+    wt_row = gsl_fft_complex_wavetable_alloc(ROW_SIZE);
+    wk_row = gsl_fft_complex_workspace_alloc(ROW_SIZE);
+    wt_col = gsl_fft_complex_wavetable_alloc(COL_SIZE);
+    wk_col = gsl_fft_complex_workspace_alloc(COL_SIZE);
+
+    // Allocations for storing log Gabor filters and other variables
+    logGaborFilter  = new logGaborOrientArray[LOG_GABOR_ORIENTATION];    // stores LG for all orienatation and scales
+    FFTnIFFT        = new logGaborComplexArray[2];                       // to store FFT and iFFT of a given image
+    imgInComplex    = new logGaborComplexRow[COL_SIZE];                  // to store image in complex notation 
+    sumOfAllImages  = new logGaborComplexRow[COL_SIZE];
+    logGaborRealImages = new logGaborComplexArray[LOG_GABOR_ORIENTATION];
+
+    for(int i=0; i<LOG_GABOR_ORIENTATION; ++i){
+        for(int j=0; j<LOG_GABOR_SCALE; ++j){
+            weightInSumming[i][j] = 25;              // since 4 scales
+        }
+    }
 
 
     /********************/
@@ -1451,6 +1478,17 @@ visualFilterThread::~visualFilterThread() {
     delete gabor90;
     delete gaborM45;
 
+    gsl_fft_complex_wavetable_free (wt_row);
+    gsl_fft_complex_workspace_free (wk_row);
+    gsl_fft_complex_wavetable_free (wt_col);
+    gsl_fft_complex_workspace_free (wk_col);
+
+    delete [] logGaborFilter;
+    delete [] FFTnIFFT;
+    delete [] imgInComplex;
+    delete [] sumOfAllImages;
+    delete [] logGaborRealImages;
+
     printf("Called destructor \n");
     
     
@@ -1514,6 +1552,9 @@ bool visualFilterThread::threadInit() {
         return false;
     }
     cout << "|-| lookup table allocation for mono done" << endl;
+
+    
+
 
 
     
@@ -1789,7 +1830,15 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     cvResizeWindow("Parameters for Gabor Filters1",600,400);
     cvNamedWindow("Parameters for Scaling Images");
     cvResizeWindow("Parameters for Scaling Images",600,400);
-    
+    cvNamedWindow("log-Gabor");
+    cvResizeWindow("log-Gabor",600,400);
+    cvNamedWindow("Addition of Images");
+    cvResizeWindow("Addition of Images",600,400);
+    cvNamedWindow("Addition of Images2");
+    cvResizeWindow("Addition of Images2",600,400);
+    cvNamedWindow("Addition of Images3");
+    cvResizeWindow("Addition of Images3",600,400);
+
     cvCreateTrackbar("Sig 0", "Parameters for Gabor Filters", &intSigma[0], 1000, NULL); // no callback
     cvCreateTrackbar("Sig 45", "Parameters for Gabor Filters", &intSigma[1], 1000, NULL); // no callback
     cvCreateTrackbar("Sig 90", "Parameters for Gabor Filters", &intSigma[2], 1000, NULL); // no callback
@@ -1835,98 +1884,48 @@ void visualFilterThread::resize(int width_orig,int height_orig) {
     cvCreateTrackbar("postive Guassian", "Parameters for Scaling Images", &posGaussWindowSize, 20, NULL); // no callback
     cvCreateTrackbar("negative Guassian", "Parameters for Scaling Images", &negGaussWindowSize, 20, NULL); // no callback
 
+    cvCreateTrackbar("factor","log-Gabor",&intFactor,100,NULL);
+    cvCreateTrackbar("min wavelength","log-Gabor",&intMinWav,100,NULL);
+    cvCreateTrackbar("sigma","log-Gabor",&intSig,100,NULL);
+    cvCreateTrackbar("scale","log-Gabor",&intScale,LOG_GABOR_SCALE-1,NULL);
+    cvCreateTrackbar("orient","log-Gabor",&intOrient,LOG_GABOR_ORIENTATION-1,NULL);
+    cvCreateTrackbar("cutoff","log-Gabor",&intCutoff,100,NULL);
+    cvCreateTrackbar("sharpness","log-Gabor",&intSharpness,100,NULL);
 
-    /* Setting up log-Gabor filter */
-    const int ht = 256;
-    const int wd = 256;
-
-    double data[2*ht*wd];
-    const int sz = ht*wd;
-    double* dataPtr = data;
-
-    for(int j=0;j<2*ht*wd;++j){
-        data[j] =0;
-    }
-       
+    cvCreateTrackbar("(0,0)","Addition of Images",&weightInSumming[0][0],100,NULL);
+    cvCreateTrackbar("(0,1)","Addition of Images",&weightInSumming[0][1],100,NULL);
+    cvCreateTrackbar("(0,2)","Addition of Images",&weightInSumming[0][2],100,NULL);
+    cvCreateTrackbar("(0,3)","Addition of Images",&weightInSumming[0][3],100,NULL);
     
-    double radius[ht][wd];
-    double theta[ht][wd];
+    cvCreateTrackbar("(1,0)","Addition of Images",&weightInSumming[1][0],100,NULL);
+    cvCreateTrackbar("(1,1)","Addition of Images",&weightInSumming[1][1],100,NULL);
+    cvCreateTrackbar("(1,2)","Addition of Images",&weightInSumming[1][2],100,NULL);
+    cvCreateTrackbar("(1,3)","Addition of Images",&weightInSumming[1][3],100,NULL);
 
-    double m = 2;         // multiplying factor between scales
-    double sigmaF = .65;
-    const int nscale = 4;
-    const int norient = 6; // so 6 orientations
-    //double logGabor[nscale][norient][ht][wd];       // very larger array
-    double minWave = 3;
-    double freq0 = 1.0;
-
-    double maxWave = minWave*pow(m,(nscale-1));
-    double cuttoff_butterworth = .45;
-    int sharpness_butterworth = 15;
-
-    double spread;
-
-    // shift the radius
-    int row, col;
-    double  x, y;
-
-    int orientation = 0; double waveLength = minWave;
-    double ang ;//= (orientation)*PI / (norient);
-    double deltaTheta;
-
-    // get FFT of logGabor filter for each scale and each orientation
-
+    cvCreateTrackbar("(2,0)","Addition of Images2",&weightInSumming[2][0],100,NULL);
+    cvCreateTrackbar("(2,1)","Addition of Images2",&weightInSumming[2][1],100,NULL);
+    cvCreateTrackbar("(2,2)","Addition of Images2",&weightInSumming[2][2],100,NULL);
+    cvCreateTrackbar("(2,3)","Addition of Images2",&weightInSumming[2][3],100,NULL);
     
-    for(int scaleOfFilter = 0;scaleOfFilter<nscale; ++scaleOfFilter){ //for each scale
-    
-        for(int orientOfFilter =0;orientOfFilter<norient; ++orientOfFilter){  //for each orientation
+    cvCreateTrackbar("(3,0)","Addition of Images2",&weightInSumming[3][0],100,NULL);
+    cvCreateTrackbar("(3,1)","Addition of Images2",&weightInSumming[3][1],100,NULL);
+    cvCreateTrackbar("(3,2)","Addition of Images2",&weightInSumming[3][2],100,NULL);
+    cvCreateTrackbar("(3,3)","Addition of Images2",&weightInSumming[3][3],100,NULL);
 
-            logGaborFilterImage[scaleOfFilter][orientOfFilter] = cvCreateImage(cvSize(256,256),IPL_DEPTH_32F, 1 );
-            float* ptrLogGaborImage = (float*)logGaborFilterImage[scaleOfFilter][orientOfFilter]->imageData;
+    cvCreateTrackbar("(4,0)","Addition of Images3",&weightInSumming[4][0],100,NULL);
+    cvCreateTrackbar("(4,1)","Addition of Images3",&weightInSumming[4][1],100,NULL);
+    cvCreateTrackbar("(4,2)","Addition of Images3",&weightInSumming[4][2],100,NULL);
+    cvCreateTrackbar("(4,3)","Addition of Images3",&weightInSumming[4][3],100,NULL);
 
-            freq0 = 1.0/(minWave*pow(m,scaleOfFilter));
-            ang = orientOfFilter*PI/norient;
-         
-            for(int i=0; i<ht; ++i){
+    cvCreateTrackbar("(5,0)","Addition of Images3",&weightInSumming[5][0],100,NULL);
+    cvCreateTrackbar("(5,1)","Addition of Images3",&weightInSumming[5][1],100,NULL);
+    cvCreateTrackbar("(5,2)","Addition of Images3",&weightInSumming[5][2],100,NULL);
+    cvCreateTrackbar("(5,3)","Addition of Images3",&weightInSumming[5][3],100,NULL);
+ 
+   
+    // set log Gabor here
 
-                for(int j=0; j<wd; ++j){
 
-                    row = i<ht/2?i+ht/2:i-ht/2;     // Quadrant shift, FFT reasons
-                    col = j<wd/2?j+wd/2:j-wd/2;
-                    x = -.5 + (double)i/(ht-1);     // assuming ht is even
-                    y = -.5 + (double)j/(wd-1);     // assuming wd is even
-                    radius[row][col]= sqrt(x*x + y*y)/freq0;
-                    theta[row][col]= atan2(y,x);
-
-                    if(radius[row][col] < .001){     // since log is singular near zero
-                        logGabor[scaleOfFilter][orientOfFilter][i][j] = 0;
-                    }
-                    else{
-                        logGabor[scaleOfFilter][orientOfFilter][i][j] = exp(-pow(log(radius[row][col]),2)/(2*pow(log(sigmaF),2)));     // LATER: optimize
-
-                        // Apply butterworth lowpass filter
-                        logGabor[scaleOfFilter][orientOfFilter][i][j] = logGabor[scaleOfFilter][orientOfFilter][i][j]/(1.0+ pow((.5/cuttoff_butterworth),sharpness_butterworth));
-                    }
-
-                    deltaTheta = abs(atan2(sin(theta[row][col])*cos(ang) - cos(theta[row][col])* sin(ang), cos(theta[row][col])*cos(ang) + sin(theta[row][col])*sin(ang)));
-
-                    deltaTheta = min(PI, deltaTheta*norient/2);
-
-                    logGabor[scaleOfFilter][orientOfFilter][i][j] *= (cos(deltaTheta)+1)/2.0;  
-                    *ptrLogGaborImage = logGabor[scaleOfFilter][orientOfFilter][i][j]; 
-                    ptrLogGaborImage++;                 
-                    
-                 }
-            }
-        printf("Finished orient%d and scale%d \n",orientOfFilter,scaleOfFilter);
-
-        cvNamedWindow("GaborFil");
-        cvShowImage("GaborFil",logGaborFilterImage[scaleOfFilter][orientOfFilter]);
-        cvWaitKey(0); // wait
-
-        } // end each orientation
-
-    } //end each scale
 
     
 
@@ -2074,647 +2073,277 @@ void visualFilterThread::filtering() {
 
 void visualFilterThread::orientation() {
     
-    // we want RG = (G- - R+)/2 -128, GR = (R- - G+)/2 and BY = (Y- -B+)/2 -128. These values are obtained after filtering with positive and negative Gaussian.
-
-    const int h = height;
-    const int w = width;
-    
-/*
-    //printf("inside the colourOpponency ");
-    int pad = redG->widthStep - redG->width;
-    //uchar* originRG = 
-
-    uchar* rMinus = (uchar*)cvRedMinus->imageData;
-    uchar* rPlus = (uchar*)cvRedPlus->imageData;
-
-    uchar* gMinus = (uchar*)cvGreenMinus->imageData;
-    uchar* gPlus = (uchar*)cvGreenPlus->imageData;;
-
-    uchar* yMinus = (uchar*)cvYellowMinus->imageData;
-    uchar* bPlus = (uchar*)cvBluePlus->imageData;
-
-    uchar* RG = (uchar*)redG->imageData;
-    uchar* GR = (uchar*)greenR->imageData;
-    uchar* BY = (uchar*)blueY->imageData;
-
-    for(int r = 0; r < h; r++) {
-        for(int c = 0; c < w; c++) {
-            
-            *RG++ = ((*rPlus >> 1) + 128 - (*gMinus >> 1) );
-            *GR++ = ((*gPlus >> 1) + 128 - (*rMinus >> 1) );
-            *BY++ = ((*bPlus >> 1) + 128 - (*yMinus >> 1) );
-
-            rMinus++;
-            rPlus++;
-            gMinus++;
-            gPlus++;
-            yMinus++;
-            bPlus++;
-        }
-
-        rMinus += pad;
-        rPlus  += pad;
-        gMinus += pad;
-        gPlus  += pad;
-        yMinus += pad;
-        bPlus  += pad;
-        RG += pad;
-        GR += pad;
-        BY += pad;
-
-    }
-
- 
-    // Cropping the extended part of these log-polar color opponency maps. LATER: Can be accomodated inside the loop above.
     
     
-    int cor[4]={5,5,257,157};
-    cropImage(cor,redG,tmpRedGreen);
-    cropImage(cor,greenR,tmpGreenRed);
-    cropImage(cor,blueY,tmpBlueYellow);
-
-    cropImage(cor,intensityImage,filteredIntensityImage);
-
-    redGreen->resize(252,152);
-    greenRed->resize(252,152);
-    blueYellow->resize(252,152);
-    
-    cropImage(cor,redG,(IplImage*)redGreen->getIplImage());
-    cropImage(cor,greenR,(IplImage*)greenRed->getIplImage());
-    cropImage(cor,blueY,(IplImage*)blueYellow->getIplImage());
-
-   
-    
-    // Preparing to send these openCV images to YARP port
-    //printf("Size of YARP rG, gR, bY %d,%d : %d,%d : %d,%d \n",redGreen->width(),redGreen->height(),greenRed->width(),greenRed->height(),blueYellow->width(),blueYellow->height());
-    //printf("Size of openCV rG, gR, bY %d,%d : %d,%d : %d,%d \n",tmpRedGreen->width,tmpRedGreen->height,tmpGreenRed->width,tmpGreenRed->height,tmpBlueYellow->width,tmpBlueYellow->height);
-    
-    redGreen->zero();
-    openCVtoYARP(tmpRedGreen,redGreen,1);
-    intensImg->zero();
-    openCVtoYARP(filteredIntensityImage,intensImg,1);    
-    greenRed->zero();
-    openCVtoYARP(tmpGreenRed,greenRed,1);
-    blueYellow->zero();
-    openCVtoYARP(tmpBlueYellow,blueYellow,1);
-
-*/
-    
-       
-    // Converting regular R+G- to cartesian , similarly for others
-    //lpMono.logpolarToCart (*cartRedGreen, *redGreen);
-    //lpMono.logpolarToCart (*cartGreenRed, *greenRed);
-    //lpMono.logpolarToCart (*cartBlueYellow, *blueYellow);
-    //lpMono.logpolarToCart (*cartIntensImg, *intensImg);
-    lpMono.logpolarToCart (*cartRedGreen, *yImage);
-    //lpMono.logpolarToCart (*cartGreenRed, *uvImage);
-    
-    
-    //float weight[3]= {.33,.33,.33};
-
-    // Downsample these cartesian color opponency maps to scale 4
-    //int DWN_SAMPLE = 4;
-    //downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleRGa,DWN_SAMPLE);
-    //downSampleImage((IplImage*)cartGreenRed->getIplImage(), dwnSampleGRa,DWN_SAMPLE);
-    
-    /*downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleRGa,DWN_SAMPLE);
-    downSampleImage((IplImage*)cartRedGreen->getIplImage(), dwnSampleGRa,DWN_SAMPLE2);*/
-    
-    // short circuit
-    IplImage* ss, *ssRGB;
-    ssRGB = 0;
-    ss = 0;
-    ssRGB = cvCreateImage(cvSize(320,240),IPL_DEPTH_8U, 3 );
-    ss = cvCreateImage(cvSize(320,240),IPL_DEPTH_8U, 1 );
-    int pausefactor = 10;
-    
-    if(loopParity < pausefactor/2 ) ssRGB = cvLoadImage("allVert.jpg");
-    else ssRGB = cvLoadImage("oneVert.jpg");
-    cvNamedWindow("Loaded"),
-    cvShowImage("Loaded",ssRGB);
-    
-    
-    cvCvtColor( ssRGB, ss, CV_RGB2GRAY );
-    
-    
-    downSampleImage(ss, dwnSampleRGa,DWN_SAMPLE);
-    //downSampleImage((IplImage*)cartGreenRed->getIplImage(), dwnSampleGRa,DWN_SAMPLE);
-    downSampleImage(ss, dwnSampleGRa,DWN_SAMPLE2);
-    cvNamedWindow("Art Image");
-    cvShowImage("Art Image",ss);
-    
-    
-    loopParity = (loopParity+1)%pausefactor; 
-    
-    // Some local tmp images allocated
-    dwnSampleRGFila = cvCreateImage(cvGetSize(dwnSampleRGa),IPL_DEPTH_8U, 1 );
-    dwnSampleGRFila = cvCreateImage(cvGetSize(dwnSampleGRa),IPL_DEPTH_8U, 1 );
-    
-
-    
-
-    cvShowImage("Parameters for Gabor Filters",NULL);
-    cvShowImage("Parameters for Gabor Filters1",NULL);
-    cvWaitKey(20);
-    cvReleaseImage(&ss);
-    cvReleaseImage(&ssRGB);
-    getKernels();
-
-    float scaleFactor = 100;
-    int shift = 0;
-    /**********************************************************************************************/
-    /*     For orientation 0 degrees                                                              */
-    /**********************************************************************************************/
-
-    
-   /* 
-    convolve1D(7,Gab7H0,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V0,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
-  
-    convolve1D(7,Gab7H0,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V0,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
- 
-    convolve1D(7,Gab7H0,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V0,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical 
-
-    */
-
-    
- 
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor0[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,intFilShift[0],orient0);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor0[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,intFilShift[0],orient0);  
-    
-    
-    
-    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImg0[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    int centerImg20[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
-    cropCircleImage(centerImg0,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg20,dwnSampleGRFila->height/2,dwnSampleGRFila);
-    
-
-    //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
-    
-
-    // Add these 3 color opponent maps. We may take max when adding
-    float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add0[2]={upSampleRGa,upSampleGRa};
-    maxImages(imgs2Add0,2,cvGabor0);
-
-    
-
-     
-
-    /**********************************************************************************************/
-    /*     For orientation 45 degrees                                                              */
-    /**********************************************************************************************/
-
-/*
-    convolve1D(7,Gab7H45,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V45,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
-  
-    convolve1D(7,Gab7H45,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V45,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
- 
-    convolve1D(7,Gab7H45,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V45,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical  
-
-*/
-    shift = 0;
-    
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor45[0][0], dwnSampleRGa, dwnSampleRGFila, 1.0*scaleFactor,intFilShift[1],orient45);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor45[0][0], dwnSampleGRa, dwnSampleGRFila, 1.0*scaleFactor,intFilShift[1],orient45);  
-    
-    shift =0;
-
-    /*cvNamedWindow("test4");
-    cvShowImage("test4",dwnSampleRGa);
-    cvNamedWindow("test5");
-    cvShowImage("test5",dwnSampleRGFila);
-    cvNamedWindow("test6");
-    cvShowImage("test6",cvGaborM45);
-    cvWaitKey(0);*/
-    
-     
-     
-
-    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImg45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    int centerImg245[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
-    cropCircleImage(centerImg45,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg245,dwnSampleGRFila->height/2,dwnSampleGRFila);
-   
-
-    //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
-
-    // Add these 3 color opponent maps. We may take max when adding
-    //float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add45[2]={upSampleRGa,upSampleGRa };
-    maxImages(imgs2Add45,2,cvGabor45); 
-
-    
-    /**********************************************************************************************/
-    /*     For orientation 90 degrees                                                              */
-    /**********************************************************************************************/
-
-/*
-    convolve1D(7,Gab7H90,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V90,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
-  
-    convolve1D(7,Gab7H90,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V90,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
- 
-    convolve1D(7,Gab7H90,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7V90,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical    
-  */
-    
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor90[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,intFilShift[2],orient90);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&Gabor90[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,intFilShift[2],orient90);  
-      
-
-    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImg90[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    int centerImg290[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
-    cropCircleImage(centerImg90,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImg290,dwnSampleGRFila->height/2,dwnSampleGRFila);
-
-    //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
-
-    // Add these 3 color opponent maps. We may take max when adding
-    //float wt[3]={.33,.33,.33};
-    IplImage* imgs2Add90[2]={upSampleRGa,upSampleGRa};
-    maxImages(imgs2Add90,2,cvGabor90); 
-
-    
-    /**********************************************************************************************/
-    /*     For orientation minus 45 degrees                                                              */
-    /**********************************************************************************************/
-
-/*
-    convolve1D(7,Gab7HM45,dwnSampleRGa,tmpdwnSampleRGFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7VM45,tmpdwnSampleRGFil,dwnSampleRGFila,scaleFactor,0,1); // convolve with vertical
-  
-    convolve1D(7,Gab7HM45,dwnSampleGRa,tmpdwnSampleGRFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7VM45,tmpdwnSampleGRFil,dwnSampleGRFila,scaleFactor,0,1); // convolve with vertical 
- 
-    convolve1D(7,Gab7HM45,dwnSampleBYa,tmpdwnSampleBYFil,scaleFactor,0,0); // convolve with horizontal 
-    convolve1D(7,Gab7VM45,tmpdwnSampleBYFil,dwnSampleBYFila,scaleFactor,0,1);// convolve with vertical    
- */
-    
-    convolve2D(KERNEL_ROW,KERNEL_COL,&GaborM45[0][0], dwnSampleRGa, dwnSampleRGFila, scaleFactor,intFilShift[3],orientM45);  
-    convolve2D(KERNEL_ROW,KERNEL_COL,&GaborM45[0][0], dwnSampleGRa, dwnSampleGRFila, scaleFactor,intFilShift[3],orientM45);
-
-         
-
-    // Removing the pixels just outside the circle that get corrupted due to filtering. LATER: This can be taken care of during filtering.
-    int centerImgM45[2] = {dwnSampleRGFila->height/2, dwnSampleRGFila->width/2};
-    int centerImgM245[2] = {dwnSampleGRFila->height/2, dwnSampleGRFila->width/2};
-    cropCircleImage(centerImgM45,dwnSampleRGFila->height/2,dwnSampleRGFila);
-    cropCircleImage(centerImgM245,dwnSampleGRFila->height/2,dwnSampleGRFila);
-
-    //up-sample the filtered images
-    upSampleImage(dwnSampleRGFila,upSampleRGa,DWN_SAMPLE);
-    upSampleImage(dwnSampleGRFila,upSampleGRa,DWN_SAMPLE2);
-
-    // Add these 3 color opponent maps. We may take max when adding
-    //float wt[3]={.33,.33,.33};
-    IplImage* imgs2AddM45[2]={upSampleRGa,upSampleGRa };
-    maxImages(imgs2AddM45,2,cvGaborM45); 
-
-    /*************** Linear combination of oriented images  **********************/
-
-    // Calculate positive Gaussian image for orientations
-    // for tuning purpose only
-    if((posGaussWindowSize/2)*2 + 1 ==  5){
-        convolve1D(5,GP5,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(5,GP5,tmpEmerge,emergeP0,.5,1);
-        convolve1D(5,GP5,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(5,GP5,tmpEmerge,emergeP45,.5,1);
-        convolve1D(5,GP5,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(5,GP5,tmpEmerge,emergeP90,.5,1);
-        convolve1D(5,GP5,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(5,GP5,tmpEmerge,emergePM45,.5,1);
-    }
-    else if((posGaussWindowSize/2)*2 + 1 == 7){
-        convolve1D(7,GP7,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(7,GP7,tmpEmerge,emergeP0,.5,1);
-        convolve1D(7,GP7,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(7,GP7,tmpEmerge,emergeP45,.5,1);
-        convolve1D(7,GP7,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(7,GP7,tmpEmerge,emergeP90,.5,1);
-        convolve1D(7,GP7,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(7,GP7,tmpEmerge,emergePM45,.5,1);
-    }
-    else if((posGaussWindowSize/2)*2 + 1 == 9){
-        convolve1D(9,GP9,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(9,GP9,tmpEmerge,emergeP0,.5,1);
-        convolve1D(9,GP9,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(9,GP9,tmpEmerge,emergeP45,.5,1);
-        convolve1D(9,GP9,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(9,GP9,tmpEmerge,emergeP90,.5,1);
-        convolve1D(9,GP9,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(9,GP9,tmpEmerge,emergePM45,.5,1);
-    }
-    else if((posGaussWindowSize/2)*2 + 1 == 11){
-        convolve1D(11,GP11,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(11,GP11,tmpEmerge,emergeP0,.5,1);
-        convolve1D(11,GP11,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(11,GP11,tmpEmerge,emergeP45,.5,1);
-        convolve1D(11,GP11,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(11,GP11,tmpEmerge,emergeP90,.5,1);
-        convolve1D(11,GP11,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(11,GP11,tmpEmerge,emergePM45,.5,1);
-    }
-    
-    // Calculate negative Gaussian image for orientations
-
-    if((negGaussWindowSize/2)*2 + 1 ==  7){
-        convolve1D(7,GN7,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(7,GN7,tmpEmerge,emergeN0,.5,1);
-        convolve1D(7,GN7,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(7,GN7,tmpEmerge,emergeN45,.5,1);
-        convolve1D(7,GN7,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(7,GN7,tmpEmerge,emergeN90,.5,1);
-        convolve1D(7,GN7,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(7,GN7,tmpEmerge,emergeNM45,.5,1);
-    }
-    else if((negGaussWindowSize/2)*2 + 1 ==  9){
-        convolve1D(9,GN9,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(9,GN9,tmpEmerge,emergeN0,.5,1);
-        convolve1D(9,GN9,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(9,GN9,tmpEmerge,emergeN45,.5,1);
-        convolve1D(9,GN9,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(9,GN9,tmpEmerge,emergeN90,.5,1);
-        convolve1D(9,GN9,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(9,GN9,tmpEmerge,emergeNM45,.5,1);
-    }
-    else if((negGaussWindowSize/2)*2 + 1 ==  11){
-        convolve1D(11,GN11,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(11,GN11,tmpEmerge,emergeN0,.5,1);
-        convolve1D(11,GN11,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(11,GN11,tmpEmerge,emergeN45,.5,1);
-        convolve1D(11,GN11,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(11,GN11,tmpEmerge,emergeN90,.5,1);
-        convolve1D(11,GN11,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(11,GN11,tmpEmerge,emergeNM45,.5,1);
-    }
-    else if((negGaussWindowSize/2)*2 + 1 ==  13){
-        convolve1D(13,GN13,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(13,GN13,tmpEmerge,emergeN0,.5,1);
-        convolve1D(13,GN13,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(13,GN13,tmpEmerge,emergeN45,.5,1);
-        convolve1D(13,GN13,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(13,GN13,tmpEmerge,emergeN90,.5,1);
-        convolve1D(13,GN13,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(13,GN13,tmpEmerge,emergeNM45,.5,1);
-    }
-    else if((negGaussWindowSize/2)*2 + 1 ==  15){
-        convolve1D(15,GN15,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(15,GN15,tmpEmerge,emergeN0,.5,1);
-        convolve1D(15,GN15,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(15,GN15,tmpEmerge,emergeN45,.5,1);
-        convolve1D(15,GN15,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(15,GN15,tmpEmerge,emergeN90,.5,1);
-        convolve1D(15,GN15,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(15,GN15,tmpEmerge,emergeNM45,.5,1);
-    }
-    else if((negGaussWindowSize/2)*2 + 1 ==  17){
-        convolve1D(17,GN17,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(17,GN17,tmpEmerge,emergeN0,.5,1);
-        convolve1D(17,GN17,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(17,GN17,tmpEmerge,emergeN45,.5,1);
-        convolve1D(17,GN17,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(17,GN17,tmpEmerge,emergeN90,.5,1);
-        convolve1D(17,GN17,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(17,GN17,tmpEmerge,emergeNM45,.5,1);
-    }
-    else if((negGaussWindowSize/2)*2 + 1 ==  19){
-        convolve1D(19,GN19,cvGabor0,tmpEmerge,.5,0);
-        convolve1D(19,GN19,tmpEmerge,emergeN0,.5,1);
-        convolve1D(19,GN19,cvGabor45,tmpEmerge,.5,0);
-        convolve1D(19,GN19,tmpEmerge,emergeN45,.5,1);
-        convolve1D(19,GN19,cvGabor90,tmpEmerge,.5,0);
-        convolve1D(19,GN19,tmpEmerge,emergeN90,.5,1);
-        convolve1D(19,GN19,cvGaborM45,tmpEmerge,.5,0);
-        convolve1D(19,GN19,tmpEmerge,emergeNM45,.5,1);
-    }
-
-
-    // Use positive of orientation with negative of others, to get new oriented images
-    IplImage* linearCombination[4];
-    float posWt = .002*(positiveWt-500);
-    float negWt = .002*(negativeWt-500);
-    
-
-    float weight0[4]={posWt,negWt,negWt,negWt}; // so that sum would be .6 times the mean
-    linearCombination[0]=emergeP0;
-    linearCombination[1]=emergeN45;
-    linearCombination[2]=emergeN90;
-    linearCombination[3]=emergeNM45;
-    
-    addImages(linearCombination,4,cvGabor0,weight0);
-    //cvEqualizeHist(tmpEmerge2,cvGabor0);
-    
-    float weight45[4]={negWt,posWt,negWt,negWt}; // so that sum would be .6 times the mean
-    linearCombination[0]=emergeN0;
-    linearCombination[1]=emergeP45;
-    linearCombination[2]=emergeN90;
-    linearCombination[3]=emergeNM45;
-    
-    addImages(linearCombination,4,cvGabor45,weight45);
-    //cvEqualizeHist(tmpEmerge2,cvGabor45);
-    
-    float weight90[4]={negWt,negWt,posWt,negWt}; // so that sum would be .6 times the mean
-    linearCombination[0]=emergeN0;
-    linearCombination[1]=emergeN45;
-    linearCombination[2]=emergeP90;
-    linearCombination[3]=emergeNM45;
-    
-    addImages(linearCombination,4,tmpEmerge2,weight90);
-    cvEqualizeHist(tmpEmerge2,cvGabor90);
-    
-    float weightM45[4]={negWt,negWt,negWt,posWt}; // so that sum would be .6 times the mean
-    linearCombination[0]=emergeN0;
-    linearCombination[1]=emergeN45;
-    linearCombination[2]=emergeN90;
-    linearCombination[3]=emergePM45;
-    
-    addImages(linearCombination,4,cvGaborM45,weightM45);
-    //cvEqualizeHist(tmpEmerge2,cvGaborM45);
-    
-    
-    /********** End of oriented gabor filtering  *********************************/
 
 
     /************************* Implementing log-Gabor **************************************/
-
     IplImage* imRGB, *im, *filImageReal, *filImageCplx;
-    imRGB = cvCreateImage(cvSize(256,256),IPL_DEPTH_8U, 3 );
-    im = cvCreateImage(cvSize(256,256),IPL_DEPTH_8U, 1 );
-    filImageReal = cvCreateImage(cvSize(256,256),IPL_DEPTH_32F, 1 );
-    filImageCplx = cvCreateImage(cvSize(256,256),IPL_DEPTH_32F, 1 );
-    imRGB = cvLoadImage("256x256.jpg");
+    printf("Loading done");
+    imRGB = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_8U, 3 );
+    im = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_8U, 1 );
+    filImageReal = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_32F, 1 );
+    filImageCplx = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_32F, 1 );
+    imRGB= cvLoadImage("320x240.jpg");
     cvCvtColor(imRGB,im,CV_RGB2GRAY);
     cvNamedWindow("loaded image");
     cvShowImage("loaded image",im);
-    cvWaitKey(0);
+    cvWaitKey(10);
 
-    float* ptrRealImg = (float*)filImageReal->imageData;
-    float* ptrCplxImg = (float*)filImageCplx->imageData;
-    //float* ptrOrigRealImg = (float*)filImageReal->imageData;
-    //float* ptrOrigCplxImg = (float*)filImageCplx->imageData;
-
-    //int widthReal = filImageReal->widthStep/sizeof(float);
-    //int widthComp = filImageCplx->widthStep/sizeof(float);
-
-
-    
-    
-   
-    /* 
-    //Using 1D FFT
-    const int sz = 256*256;
-    double data[2*sz];
-    double* dataPtr = data;
-    uchar* imgNow= (uchar*)im->imageData;
-    uchar* imgOrig = (uchar*)im->imageData;
-    const int ht = im->height;
-    const int wd = im->width;
-    
-    
-
-
-
-    // get FFT of image
-    for(int i=0; i<im->height;++i){
-        imgNow = imgOrig + i*im->widthStep/sizeof(uchar);
-        for(int j=0; j<im->width;++j){
-
-        *dataPtr++ = (double)*imgNow++;
-        *dataPtr++ = 0;
-        }
-    }       
-     
-    gsl_fft_complex_radix2_forward (data, 1, sz);
-
-
-    // get element wise product of these two matrices
-
-    for(int i= 0; i<ht; ++i){
-        for(int j= 0; j<wd; ++j){
-            data[2*(i*wd+j)] = logGabor[0][0][i][j]*data[2*(i*wd+j)];  // second scale second orientation
-            data[2*(i*wd+j)+1] = 0; // not strictly needed
+     ImageOf<PixelRgb>* myImg;
+    myImg = new ImageOf<PixelRgb>;
+    myImg->resize(imRGB->width,imRGB->height);
+    myImg->wrapIplImage(imRGB);
+    ImageOf<PixelMono>* myMono;
+    myMono = new ImageOf<PixelMono>;
+    myMono->resize(myImg->width(),myImg->height());
+    uchar* oriRGB = (uchar*) myImg->getRawImage();
+    uchar* oriMono = (uchar*) myMono->getRawImage();
+    uchar* ptrRgb;
+    uchar* ptrMono;
+    for(int i=0; i<myImg->height();++i){
+        ptrRgb = oriRGB + i*myImg->getRowSize();
+        ptrMono = oriMono + i*myMono->getRowSize();
+        for(int j=0; j<myImg->width();++j){
+            *ptrMono++ = (*ptrRgb + *(ptrRgb+1) + *(ptrRgb+2))/3.0; ptrRgb +=3;
         }
     }
+
+    logGabor* myGabor;
+    myGabor = new logGabor;
+    
+    ImageOf<PixelFloat>* myRes1, *myRes2;
+    myRes1 = new ImageOf<PixelFloat>;
+    myRes2 = new ImageOf<PixelFloat>;
+
+    float maxInLG = -10;
+    float minInLG = 1000;
+    bool notSetMinMax = true;
+    while(true){
+
+    myGabor->setLogGabor();
+    // initialize sums
+    for(int i=0; i<COL_SIZE; ++i){
+        for(int j=0; j<ROW_SIZE; ++j){
+            sumOfAllImages[i][2*j]=sumOfAllImages[i][2*j+1]=0;
+            for(int k=0; k<LOG_GABOR_ORIENTATION;++k)
+                logGaborRealImages[k][i][2*j]=logGaborRealImages[k][i][2*j+1]=0;
+        }
+    }
+
+    for(int o=0; o<1; ++o){ //LOG_GABOR_ORIENTATION
+        for(int s=0; s<LOG_GABOR_SCALE; ++s){
+            cvShowImage("log-Gabor",NULL);
+            cvShowImage("Addition of Images",NULL);
+            cvShowImage("Addition of Images2",NULL);
+            cvShowImage("Addition of Images3",NULL);
+            cvWaitKey(2);
+            
+            setLogGabor();
+
+            
+            //cvWaitKey(0);
+
+            float* ptrRealImg = (float*)filImageReal->imageData;
+            float* ptrCplxImg = (float*)filImageCplx->imageData;
+            
+            // Using 2D FFT
+
+            uchar* imgNow= (uchar*)im->imageData;
+            uchar* imgOrig = (uchar*)im->imageData;
+
+            // get FFT format of image
+            for(int i=0; i<im->height;++i){
+                imgNow = imgOrig + i*im->widthStep;
+                for(int j=0; j<im->width;++j){
+
+                imgInComplex[i][2*j] = (double)*imgNow;
+                imgInComplex[i][2*j+1] = (double)*imgNow++;
+                }
+            }
+
+            FFT2D(imgInComplex,FFTnIFFT[0],true); // forward
+
+            // get element wise product of these two matrices
+
+            for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    FFTnIFFT[0][i][2*j] =(double)logGaborFilter[o][s][i][j];  // first scale first orientation
+                    FFTnIFFT[0][i][2*j+1] =0;//*= logGaborFilter[o][s][i][j]; // may not work
+                }
+            }
+            
+            FFT2D(FFTnIFFT[0],FFTnIFFT[1],false);    // inverse
+            
+
+            // by now, data matrix has both real and imaginary part, corresponding to even-symmetric and odd-symmetric component
+            for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=(float) FFTnIFFT[1][i][2*j];// first scale first orientation
+                    *ptrCplxImg++= (float)FFTnIFFT[1][i][2*j+1]; // complex part of image
+
+                    if(!notSetMinMax) FFTnIFFT[1][i][2*j] -= .04*(maxInLG - minInLG);
+                    FFTnIFFT[1][i][2*j] = FFTnIFFT[1][i][2*j]<0?0:FFTnIFFT[1][i][2*j]; 
+                    sumOfAllImages[i][2*j] += (float) FFTnIFFT[1][i][2*j]*((double)weightInSumming[o][s]*.01);
+                    logGaborRealImages[o][i][2*j] += (float) FFTnIFFT[1][i][2*j]*100;//((double)weightInSumming[o][s]*.01);
+
+                    if(notSetMinMax){
+                        if(FFTnIFFT[1][i][2*j]>maxInLG) maxInLG = FFTnIFFT[1][i][2*j];
+                        if(FFTnIFFT[1][i][2*j]<minInLG) minInLG = FFTnIFFT[1][i][2*j];
+                    }
+                    //if(logGaborFilter[o][s][i][j]>.00001)
+                    //printf("log%f, FFT%f, %f and iFFT %f,%f \n",logGaborFilter[o][s][i][j],FFTnIFFT[0][i][2*j],FFTnIFFT[0][i][2*j+1],FFTnIFFT[1][i][2*j],FFTnIFFT[1][i][2*j+1]);
+                    
+                    
+                }
+            }
+            
+            /*
+            cvNamedWindow("logGabor Real");
+            cvShowImage("logGabor Real",filImageReal);
+            cvNamedWindow("logGabor Complex");
+            cvShowImage("logGabor Complex",filImageCplx);   
+            cvWaitKey(10);
+            cvSet(filImageReal, cvScalar(0));
+            cvSet(filImageReal, cvScalar(0));*/
+            
+
+            } // end of each scale
+
+            if(maxInLG>0) notSetMinMax = false;
+        } // end of each orientation
+    
+        float* ptrRealImg;
+        ptrRealImg = (float*)filImageReal->imageData;
+        for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=sumOfAllImages[i][2*j];
+                    
+                }
+            }
+            
+
+        cvNamedWindow("Image Sum");
+        cvShowImage("Image Sum",filImageReal);
         
 
-    // get inverse FFT of the product
-    gsl_fft_complex_radix2_inverse(data,1,sz);
+        ptrRealImg = (float*)filImageReal->imageData;
+        for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=100.0*logGaborRealImages[0][i][2*j];
+                    
+                }
+            }
+            
 
-    // by now, data matrix has both real and imaginary part, corresponding to even-symmetric and odd-symmetric component
-    for(int i= 0; i<ht; ++i){
-        for(int j= 0; j<wd; ++j){
-            *ptrRealImg++ = data[2*(i*wd+j)];// first scale first orientation
-            *ptrCplxImg++ = data[2*(i*wd+j)+1]; // complex part of image
-        }
-    }
+        cvNamedWindow("Orient 0");
+        cvShowImage("Orient 0",filImageReal);
 
-    */
-
-    // Using 2D FFT
-
-    double imgData[256][2*256];
-    double fftImg[256][2*256];
-    double iFFTImg[256][2*256];
-    uchar* imgNow= (uchar*)im->imageData;
-    uchar* imgOrig = (uchar*)im->imageData;
-
-    // get FFT format of image
-    for(int i=0; i<im->height;++i){
-        imgNow = imgOrig + i*im->widthStep;
-        for(int j=0; j<im->width;++j){
-
-        imgData[i][2*j] = (double)*imgNow++;
-        imgData[i][2*j+1] = 0;
-        }
-    }
-
-    FFT2D(imgData,fftImg,true); // forward
-
-    // get element wise product of these two matrices
-
-    for(int i= 0; i<256; ++i){
-        for(int j= 0; j<256; ++j){
-            fftImg[i][2*j] = fftImg[i][2*j]*logGabor[0][0][i][j];  // first scale first orientation
-            //fftImg[i][2*j+1] = 0; // may not work
-        }
-    }
+        
     
-    FFT2D(fftImg,iFFTImg,false);    // inverse
+    myRes1->resize(myMono->width(), myMono->height());
+    myRes2->resize(myMono->width(), myMono->height());
 
-    // by now, data matrix has both real and imaginary part, corresponding to even-symmetric and odd-symmetric component
-    for(int i= 0; i<256; ++i){
-        for(int j= 0; j<256; ++j){
-            *ptrRealImg++= iFFTImg[i][2*j];// first scale first orientation
-            *ptrCplxImg++= iFFTImg[i][2*j+1]; // complex part of image
-        }
-    }
+    myGabor->getAllLogGabor(myMono,myRes1,myRes2);
     
-
-    cvNamedWindow("logGabor Real");
-    cvShowImage("logGabor Real",filImageReal);
-    cvNamedWindow("logGabor Complex");
-    cvShowImage("logGabor Complex",filImageCplx);
+            
+    cvCvtColor(imRGB,im,CV_RGB2GRAY);
+    cvNamedWindow("loaded image");
+    cvShowImage("loaded image",(IplImage*)myMono->getIplImage());
+    cvNamedWindow("gab image");
+    cvShowImage("gab image",(IplImage*)myRes1->getIplImage());
+    cvNamedWindow("gab Im image");
+    cvShowImage("gab Im image",(IplImage*)myRes2->getIplImage());
     cvWaitKey(0);
 
+    
+        
+/*
+        ptrRealImg = (float*)filImageReal->imageData;
+        for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=logGaborRealImages[1][i][2*j];
+                    
+                }
+            }
+            
+
+        cvNamedWindow("Orient 1");
+        cvShowImage("Orient 1",filImageReal);
+
+        ptrRealImg = (float*)filImageReal->imageData;
+        for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=logGaborRealImages[2][i][2*j];
+                    
+                }
+            }
+            
+
+        cvNamedWindow("Orient 2");
+        cvShowImage("Orient 2",filImageReal);
+
+        ptrRealImg = (float*)filImageReal->imageData;
+        for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=logGaborRealImages[3][i][2*j];
+                    
+                }
+            }
+            
+
+        cvNamedWindow("Orient 3");
+        cvShowImage("Orient 3",filImageReal);
+
+        ptrRealImg = (float*)filImageReal->imageData;
+        for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=logGaborRealImages[4][i][2*j];
+                    
+                }
+            }
+            
+
+        cvNamedWindow("Orient 4");
+        cvShowImage("Orient 4",filImageReal);
+
+        ptrRealImg = (float*)filImageReal->imageData;
+        for(int i= 0; i<COL_SIZE; ++i){
+                for(int j= 0; j<ROW_SIZE; ++j){
+                    *ptrRealImg++=logGaborRealImages[5][i][2*j];
+                    
+                }
+            }
+            
+
+        cvNamedWindow("Orient 5");
+        cvShowImage("Orient 5",filImageReal);
+*/
+        cvWaitKey(10);
+
+    } // end temp endless loop
+
+    delete myRes1;
+    delete myRes2;
+    delete myGabor;
+    delete myMono;
+    delete myImg;
+
+    cvReleaseImage(&filImageReal);
+    cvReleaseImage(&filImageCplx);
     
 
                  
      
       
 
-    printf("DONE \n");
-
-    cvNamedWindow("Gabor0");
-    cvShowImage("Gabor0",cvGabor0);
-    cvNamedWindow("Gabor90");
-    cvShowImage("Gabor90",cvGabor90);
-    cvNamedWindow("Gabor45");
-    cvShowImage("Gabor45",cvGabor45);
-    cvNamedWindow("GaborM45");
-    cvShowImage("GaborM45",cvGaborM45);
-    cvWaitKey(20);
+    
 
     
     
-    //Preparing the upsampled image to be sent to port
-    openCVtoYARP(upSampleRGa,upSampleRGyarp,1);
-    openCVtoYARP(upSampleGRa,upSampleGRyarp,1);
+    //Preparing the image to be sent to port?
     
-
-    openCVtoYARP(cvGabor0,gabor0,1);
-    openCVtoYARP(cvGabor45,gabor45,1);
-    openCVtoYARP(cvGabor90,gabor90,1);
-    openCVtoYARP(cvGaborM45,gaborM45,1);
-
-    /*cvNamedWindow("test4");
-    cvShowImage("test4",(IplImage*)gabor0->getIplImage());
-    cvNamedWindow("test5");
-    cvShowImage("test5",cvGabor45);
-    cvNamedWindow("test6");
-    cvShowImage("test6",cvGaborM45);
-    cvWaitKey(0);*/
     
-
-    // local tmp images freed
-    cvReleaseImage(&dwnSampleRGFila);
-    cvReleaseImage(&dwnSampleGRFila);
     
        
 
@@ -3475,11 +3104,109 @@ void visualFilterThread::cropCircleImage(int* center, float radius, IplImage* sr
     }
 }
 
+void visualFilterThread::setLogGabor(){
 
-void visualFilterThread::FFT2D(double inputArray[256][2*256], double FFTed[256][2*256], bool forward){
+/* Setting up log-Gabor filter */
+    const int ht = COL_SIZE;
+    const int wd = ROW_SIZE;
 
-    const int h = 256;
-    const int w = 256;
+    double data[2*ht*wd];
+    const int sz = ht*wd;
+    double* dataPtr = data;
+
+    for(int j=0;j<2*ht*wd;++j){
+        data[j] =0;
+    }
+       
+    
+    double radius[ht][wd];
+    double theta[ht][wd];
+
+    int m = (int)intFactor/10.0;//2;         // multiplying factor between scales
+    double sigmaF = (double)intSig/100.0; //.65;
+    double minWave = (double)intMinWav/10.0;//3;
+
+    const int nscale = LOG_GABOR_SCALE;
+    const int norient = LOG_GABOR_ORIENTATION; // so 6 orientations
+    //double logGabor[nscale][norient][ht][wd];       // very larger array
+    double freq0;// = 1.0;
+
+    double maxWave = minWave*pow(m,(nscale-1));
+    double cuttoff_butterworth = (double)intCutoff/100.0; //.45;
+    int sharpness_butterworth = intSharpness;//15;
+
+    double spread;
+
+    // shift the radius
+    int row, col;
+    double  x, y;
+
+    int orientation = 0; double waveLength = minWave;
+    double ang ;//= (orientation)*PI / (norient);
+    double deltaTheta;
+
+    // get FFT of logGabor filter for each scale and each orientation
+
+    
+    for(int scaleOfFilter = 0;scaleOfFilter<nscale; ++scaleOfFilter){ //for each scale
+    
+        for(int orientOfFilter =0;orientOfFilter<norient; ++orientOfFilter){  //for each orientation
+
+            logGaborFilterImage[scaleOfFilter][orientOfFilter] = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_32F, 1 );
+            float* ptrLogGaborImage = (float*)logGaborFilterImage[scaleOfFilter][orientOfFilter]->imageData;
+
+            freq0 = 1.0/(minWave*pow(m,scaleOfFilter));
+            ang = orientOfFilter*PI/norient;
+         
+            for(int i=0; i<ht; ++i){
+
+                for(int j=0; j<wd; ++j){
+
+                    row = i<ht/2?i+ht/2:i-ht/2;     // Quadrant shift, FFT reasons
+                    col = j<wd/2?j+wd/2:j-wd/2;
+                    x = -.5 + (double)i/(ht-1);     // assuming ht is even
+                    y = -.5 + (double)j/(wd-1);     // assuming wd is even
+                    radius[row][col]= sqrt(x*x + y*y)/freq0;
+                    theta[row][col]= atan2(y,x);
+
+                    if(radius[row][col] < .001){     // since log is singular near zero
+                        logGaborFilter[orientOfFilter][scaleOfFilter][i][j] = 0;
+                    }
+                    else{
+                        logGaborFilter[orientOfFilter][scaleOfFilter][i][j] = exp(-pow(log(radius[row][col]),2)/(2*pow(log(sigmaF),2)));     // LATER: optimize
+
+                        // Apply butterworth lowpass filter
+                        logGaborFilter[orientOfFilter][scaleOfFilter][i][j] = logGaborFilter[orientOfFilter][scaleOfFilter][i][j]/(1.0+ pow((radius[row][col]/cuttoff_butterworth),sharpness_butterworth));
+                    }
+
+                    deltaTheta = abs(atan2(sin(theta[row][col])*cos(ang) - cos(theta[row][col])* sin(ang), cos(theta[row][col])*cos(ang) + sin(theta[row][col])*sin(ang)));
+
+                    deltaTheta = min(PI, deltaTheta*norient/2);
+
+                    logGaborFilter[orientOfFilter][scaleOfFilter][i][j] *= (cos(deltaTheta)+1)/2.0;  
+                    *ptrLogGaborImage = logGaborFilter[orientOfFilter][scaleOfFilter][i][j]; 
+                    ptrLogGaborImage++;                 
+                    
+                 }
+            }
+        //printf("Finished orient%d and scale%d \n",orientOfFilter,scaleOfFilter);
+
+        if(scaleOfFilter == intScale && orientOfFilter == intOrient){
+            cvNamedWindow("GaborFil");
+            cvShowImage("GaborFil",logGaborFilterImage[scaleOfFilter][orientOfFilter]);
+            cvWaitKey(10); // wait
+        }
+
+        } // end each orientation
+
+    } //end each scale
+
+}
+
+void visualFilterThread::FFT2D(double inputArray[COL_SIZE][2*ROW_SIZE], double FFTed[COL_SIZE][2*ROW_SIZE], bool forward){
+
+    const int h = COL_SIZE;
+    const int w = ROW_SIZE;
     //double FFTed[h][2*w];
     // Calculate FFT of each row
     for(int i= 0; i < h; ++i){
@@ -3492,9 +3219,9 @@ void visualFilterThread::FFT2D(double inputArray[256][2*256], double FFTed[256][
         }
         // Calculate FFT of this row
         if(forward)
-            gsl_fft_complex_radix2_forward (currentRow, 1, w);
+            gsl_fft_complex_forward(currentRow, 1, w,wt_row,wk_row);
         else
-            gsl_fft_complex_radix2_inverse (currentRow, 1, w);
+            gsl_fft_complex_inverse (currentRow, 1, w,wt_row,wk_row);
         // store this
         for(int j = 0; j < 2*w; ++j){
             FFTed[i][j]=currentRow[j];
@@ -3511,9 +3238,9 @@ void visualFilterThread::FFT2D(double inputArray[256][2*256], double FFTed[256][
         }
         // Calculate FFT of this column
         if(forward)
-            gsl_fft_complex_radix2_forward (currentCol, 1, h);
+            gsl_fft_complex_forward (currentCol, 1, h,wt_col,wk_col);
         else
-            gsl_fft_complex_radix2_inverse (currentCol, 1, h);
+            gsl_fft_complex_inverse (currentCol, 1, h,wt_col,wk_col);
         // store this
         for(int j = 0; j < h; ++j){
             FFTed[j][2*i]=currentCol[2*j];
@@ -3530,6 +3257,9 @@ void visualFilterThread::threadRelease() {
 
     trsf.freeLookupTables();
     lpMono.freeLookupTables();
+
+    
+
     
     printf("Releasing thread \n");
     if(resized){

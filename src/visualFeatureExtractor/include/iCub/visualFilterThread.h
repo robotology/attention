@@ -40,7 +40,10 @@
 #include <highgui.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_fft_complex.h>
+#include <gsl/gsl_sort_double.h>
+#include <gsl/gsl_statistics.h>
 
+#include <iCub/logGabor.h>
 
 //#include <Eigen/Dense>
 
@@ -53,6 +56,17 @@
 #define DWN_SAMPLE 2
 #define DWN_SAMPLE2 4
 #define NBR_OF_FILTERS 4
+
+#define LOG_GABOR_SCALE 4
+#define LOG_GABOR_ORIENTATION 6
+#define ROW_SIZE 320
+#define COL_SIZE 240
+
+typedef double logGaborRealArray[COL_SIZE][ROW_SIZE];
+typedef double logGaborComplexArray[COL_SIZE][2*ROW_SIZE];                  // Complex image corresponding to image size
+typedef double logGaborOrientArray[LOG_GABOR_SCALE][COL_SIZE][ROW_SIZE];  // Array of filtered images for an 
+                                                                            // orientation, across any scale(first index)
+typedef double logGaborComplexRow[2*ROW_SIZE];                              // To store image in complex notation
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
@@ -368,9 +382,19 @@ private:
     //int kernelSize[2];
     CvMat* gabKer[4];
 
-    double logGabor[4][6][256][256];       // very larger array [nscale][norient][ht][wd];
+    //double logGabor[LOG_GABOR_SCALE][LOG_GABOR_ORIENTATION][256][256];       // very larger array [nscale][norient][ht][wd];
+    
 
-    IplImage* logGaborFilterImage[4][6];     // to visualize, removed later
+    IplImage* logGaborFilterImage[LOG_GABOR_SCALE][LOG_GABOR_ORIENTATION];     // to visualize, removed later
+
+    logGaborOrientArray* logGaborFilter;                            // to store LG filter for each scale and orientation
+    logGaborComplexArray* logGaborRealImages;                        // to store sum of LG for each orientation across
+                                                                    // all scales
+    logGaborOrientArray* logGaborImaginaryImages;                   // imaginary parts of iFFTs
+    logGaborComplexArray* FFTnIFFT;                                 // to store FFT and its inverse
+    logGaborComplexRow* imgInComplex;                               // to store image in complex notation
+    logGaborComplexRow* sumOfAllImages;                             // to store sum across all scales and orientations
+    int weightInSumming[LOG_GABOR_ORIENTATION][LOG_GABOR_SCALE]; // linear array to store weights used while summing
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *yImage;               // y of YUV image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *yFilImage;               // y of YUV image
@@ -531,6 +555,20 @@ private:
     int negativeWt;
     int posGaussWindowSize;
     int negGaussWindowSize;
+    int intFactor;
+    int intMinWav;
+    int intSig;
+    int intScale;
+    int intOrient;
+    int intCutoff;
+    int intSharpness;
+
+    // For non-radix 2 FFTs
+    gsl_fft_complex_wavetable * wt_row;
+    gsl_fft_complex_workspace * wk_row;
+    gsl_fft_complex_wavetable * wt_col;
+    gsl_fft_complex_workspace * wk_col;
+
     
 
     /*** To convert to cartesian **/
@@ -735,7 +773,14 @@ public:
     * @param FFTed output array
     * @param forward flag which is true/false for FFT/iFFT respectively, default is FFT
     */
-    void FFT2D(double input2DArray[256][2*256], double FFTed[256][2*256], bool forward = true);
+    void FFT2D(double input2DArray[COL_SIZE][2*ROW_SIZE], double FFTed[COL_SIZE][2*ROW_SIZE], bool forward = true);
+
+    /**
+    * function that sets up log-Gabor filters
+    */
+    void setLogGabor();
+
+    
     
 };
 
