@@ -20,12 +20,12 @@
   
 /**
  * @file main.cpp
- * @brief main code for the visual filter module; this is part of the logpolar attention system.
+ * @brief main code for the early vision module; this is part of the logpolar attention system.
  */
 
 
 
-#include "iCub/visualFilterModule.h" 
+#include "iCub/earlyVisionModule.h" 
 //#include <ippi.h>
 //#include <ippcore.h>
 
@@ -39,11 +39,11 @@ int main(int argc, char * argv[])
     //ippSetNumThreads(1);
 
     Network yarp;
-    visualFilterModule module; 
+    earlyVisionModule module; 
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("visualFilterModule.ini"); //overridden by --from parameter
+    rf.setDefaultConfigFile("earlyVisionModule.ini"); //overridden by --from parameter
     rf.setDefaultContext("attentionMechanism/conf");   //overridden by --context parameter
     rf.configure("ICUB_ROOT", argc, argv);
  

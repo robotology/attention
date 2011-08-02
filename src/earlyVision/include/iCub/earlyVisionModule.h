@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /* 
- * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Rea Francesco
- * email:   francesco.rea@iit.it
+ * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
+ * Authors: Rea Francesco, Shashank Pathak
+ * email:   francesco.rea@iit.it, shashank.pathak@iit.it
  * website: www.robotcub.org 
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -19,25 +19,25 @@
  */
 
 /**
- * @file visualFilterModule.h
- * @brief Simple module that implements DoG on input logpolar images and later extra edges;
- * normally the output is processed by the blob finder module.
+ * @file earlyVisionModule.h
+ * @brief Simple module that implements efficient visual feature maps;
  */
 
-#ifndef _VISUAL_FEATURE_MODULE_H_
-#define _VISUAL_FEATURE_MODULE_H_
+#ifndef _EARLY_VISION_MODULE_H_
+#define _EARLY_VISION_MODULE_H_
 
 /** 
  *
- * \defgroup icub_visualFilter visualFilter
+ * \defgroup icub_earlyVision earlyVision
  * @ingroup icub_logpolarAttention
  *
- * This is a module that correctly applies filters to the input logpolar image:
+ * This is a module that applies various bio-inspired (early visual feature cues) transformations on the input image:
  *
- * - extract colour oppenency maps based on RGB colours
- * - extract edges based on sobel operator
- * - take the modulus value of the edges over several channels (RG, Gr, BY)
- * - take the maximum of the edges of the channels
+ * - extract color planes R,G,B,Y
+ * - computes YUV (chrominance) maps based on RGB colours
+ * - extract edges based on sobel operator applied over intensity
+ * - extract orientation applying Kirsch operator over intensity
+ * - extract color opponency maps   
  * 
  * \section lib_sec Libraries
  *
@@ -50,13 +50,13 @@
  * The following key-value pairs can be specified as command-line parameters by prefixing \c -- to the key 
  * (e.g. \c --from file.ini. The value part can be changed to suit your needs; the default values are shown below. 
  *
- * - \c from \c visualFilter.ini \n 
+ * - \c from \c earlyVision.ini \n 
  *   specifies the configuration file
  *
- * - \c context \c visualFilter/conf \n
+ * - \c context \c earlyVision/conf \n
  *   specifies the sub-path from \c $ICUB_ROOT/icub/app to the configuration file
  *
- * - \c name \c visualFilter \n 
+ * - \c name \c earlyVision \n 
  *   specifies the name of the module (used to form the stem of module port names)  
  *
  * - \c robot \c icub \n 
@@ -79,7 +79,7 @@
  *
  *  <b>Input ports</b>
  *
- *  - \c /visualFilter \n
+ *  - \c /earlyVision \n
  *    This port is used to change the parameters of the module at run time or stop the module. \n
  *    The following commands are available
  * 
@@ -88,17 +88,17 @@
  *
  *    Note that the name of this port mirrors whatever is provided by the \c --name parameter value
  *    The port is attached to the terminal so that you can type in commands and receive replies.
- *    The port can be used by other modules but also interactively by a user through the yarp rpc directive, viz.: \c yarp \c rpc \c /visualFilter
+ *    The port can be used by other modules but also interactively by a user through the yarp rpc directive, viz.: \c yarp \c rpc \c /earlyVision
  *    This opens a connection from a terminal to the port and allows the user to then type in commands and receive replies.
  *       
- *  - \c /visualFilter/image:i \n
+ *  - \c /earlyVision/image:i \n
  *
  * <b>Output ports</b>
  *
- *  - \c /visualFilter \n
+ *  - \c /earlyVision \n
  *    see above
  *
- *  - \c /visualFilter/image:o \n
+ *  - \c /earlyVision/image:o \n
  *
  * <b>Port types</b>
  *
@@ -118,8 +118,8 @@
  *
  * \section conf_file_sec Configuration Files
  *
- * \c visualFilter.ini  in \c $ICUB_ROOT/app/visualFilter/conf \n
- * \c icubEyes.ini  in \c $ICUB_ROOT/app/visualFilter/conf
+ * \c earlyVision.ini  in \c $ICUB_ROOT/app/earlyVision/conf \n
+ * \c icubEyes.ini  in \c $ICUB_ROOT/app/earlyVision/conf
  * 
  * \section tested_os_sec Tested OS
  *
@@ -127,24 +127,16 @@
  *
  * \section example_sec Example Instantiation of the Module
  * 
- * <tt>visualFilter --name visualFilter --context visualFilter/conf --from visualFilter.ini --robot icub</tt>
+ * <tt>earlyVision --name earlyVision --context earlyVision/conf --from earlyVision.ini --robot icub</tt>
  *
- * \author Rea Francesco, Giorgio Metta
+ * \author Rea Francesco, Shashank Pathak
  *
- * Copyright (C) 2010 RobotCub Consortium\n
+ * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/visualFilter/include/iCub/visualFilter.h
+ * This file can be edited at \c $ICUB_ROOT/main/src/modules/earlyVision/include/iCub/earlyVision.h
  * 
  */
 
-/**
- * CHANGE LOG
- * 16/03/11 : changed the max method for optimization                                                                       @author Shashank  
- * 16/03/11 : changed to a more efficient filter type (with in IPP library)
-@author Shashank  
- * 16/03/11 : pulling out couple of float calculations into look up tables to boost performance
-@author Shashank
-*/
 
 #include <iostream>
 #include <string>
@@ -156,9 +148,9 @@
 #include <yarp/os/Thread.h>
  
 //within project includes  
-#include <iCub/visualFilterThread.h>
+#include <iCub/earlyVisionThread.h>
 
-class visualFilterModule:public yarp::os::RFModule
+class earlyVisionModule:public yarp::os::RFModule
 {
    /* module parameters */
 
@@ -172,7 +164,7 @@ class visualFilterModule:public yarp::os::RFModule
 
    yarp::os::Port handlerPort;      // a port to handle messages 
    /* pointer to a new thread to be created and started in configure() and stopped in close() */
-   visualFilterThread *vfThread;
+   earlyVisionThread *evThread;
 
 public:
    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
@@ -184,7 +176,7 @@ public:
 };
 
 
-#endif // __VISUAL_FEATURE_MODULE_H__
+#endif // __EARLY_VISION_MODULE_H__
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 

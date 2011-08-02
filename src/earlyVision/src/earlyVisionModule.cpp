@@ -1,7 +1,9 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
 /* 
- * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Francesco Rea
- * email:   francesco.rea@iit.it
+ * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
+ * Authors: Rea Francesco, Shashank Pathak
+ * email:   francesco.rea@iit.it, shashank.pathak@iit.it
  * website: www.robotcub.org 
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -39,7 +41,7 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
-                           Value("/visualFeaX"), 
+                           Value("/earlyVision"), 
                            "module name (string)").asString();
     /*
     * before continuing, set the module name before getting any other parameters, 
@@ -72,11 +74,11 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* create the thread and pass pointers to the module parameters */
     printf("trying to start the main thread \n");
-    vfThread = new visualFilterThread();
-    vfThread->setName(getName().c_str());
+    evThread = new earlyVisionThread();
+    evThread->setName(getName().c_str());
     
     /* now start the thread to do the work */
-    vfThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    evThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
@@ -92,8 +94,8 @@ bool earlyVisionModule::close()
 {
     handlerPort.close();
     /* stop the thread */
-    vfThread->stop();
-    //delete vfThread;
+    evThread->stop();
+    //delete evThread;
     return true;
 }
 
@@ -102,9 +104,7 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
     string helpMessage =  string(getName().c_str()) + 
                         " commands are: \n" +  
                         "help \n" + 
-                        "quit \n" + 
-                        "par  <n> <d> ... set parameter's value \n" + 
-                        "(where <n> and <d> are an integer and a double respectively) \n";
+                        "quit \n" ;
 
     reply.clear(); 
 
@@ -116,17 +116,7 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
         cout << helpMessage;
         reply.addString("ok");
     }
-	else if (command.get(0).asString()=="par") {
-		int p = command.get(1).asInt();
-		double v = command.get(2).asDouble();
-		if(p>0 && p<8 && v>=0){
-			vfThread->setPar(p,v);
-			reply.addString("New kernel generated with updated parameters.");
-		}
-		else {
-			reply.addString("Invalid values");
-		}
-    	}
+	
     return true;
 }
 
