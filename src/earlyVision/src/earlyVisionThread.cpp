@@ -504,6 +504,9 @@ void earlyVisionThread::extractPlanes() {
     CSPlane[0] = first_plane;
     CSPlane[1] = second_plane;
     CSPlane[2] = third_plane;
+    int padPlane1 = f_psb - this->width;
+    int padPlane2 = s_psb - this->width;
+    int padPlane3 = t_psb - this->width;
     
     // Pointers to raw plane image
     shift[0] = (uchar*) redPlane->getRawImage(); 
@@ -559,11 +562,13 @@ void earlyVisionThread::extractPlanes() {
         YUV[0] += padMono;
         YUV[1] += padMono;
         YUV[2] += padMono;
-        CSPlane[0] += padMono;
-        CSPlane[1] += padMono;
-        CSPlane[2] += padMono;
+        CSPlane[0] += padPlane1;
+        CSPlane[1] += padPlane2;
+        CSPlane[2] += padPlane3;
                 
-    }            
+    } 
+
+               
 
 }
 
@@ -686,6 +691,7 @@ void earlyVisionThread::centerSurrounding(){
             }
         }
 
+        
         //output Y centre-surround results to ports
         if ( CSPort1.getOutputCount()>0 ){
             CSPort1.prepare() = *img_out_Y;	
