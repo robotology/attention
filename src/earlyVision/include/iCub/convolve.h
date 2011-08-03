@@ -41,6 +41,8 @@ class convolve {
         void operator=(const convolve&);
         convolve(const convolve&);
 
+        inline int _max(int a, int b) {return a<b?b:a;}
+
     public:
         convolve(){
             this->kernelWidth   = 0;
@@ -186,12 +188,12 @@ class convolve {
             int padOutput = resImg->getPadding();
             float* kerStartPt = this->kernel;
             for(int i=0;i<resImg->height();++i){
-                int eff_ht = min(img->height(),i+kernelHeight/2)-max(0,i-kernelHeight/2)+1;
+                int eff_ht = min(img->height(),i+kernelHeight/2)-_max(0,i-kernelHeight/2)+1;
                 for(int j=0;j<resImg->width();++j){
                     // current pixel point is anchor
-                    int eff_wd = min(img->width(), j + kernelWidth/2)- max(0,j-kernelWidth/2)+1;
-                    currPtrImage = mat + resRowSize*max(0,i-kernelHeight/2)+max(0,j-kernelWidth/2);
-                    kerStartPt = kernel + max(0,kernelHeight/2 -i)*kernelWidth + max(0,kernelWidth/2-j);
+                    int eff_wd = min(img->width(), j + kernelWidth/2)- _max(0,j-kernelWidth/2)+1;
+                    currPtrImage = mat + resRowSize*_max(0,i-kernelHeight/2)+_max(0,j-kernelWidth/2);
+                    kerStartPt = kernel + _max(0,kernelHeight/2 -i)*kernelWidth + _max(0,kernelWidth/2-j);
                     //printf("i%dj%deff ht%d,wd%d \n",i,j,eff_ht,eff_wd);
                     float sum = 0;
                     for(int k=0; k<eff_ht;++k){
@@ -200,7 +202,7 @@ class convolve {
                         }
                         // shift the pointers
                         currPtrImage += resRowSize - eff_wd-1;
-                        kerStartPt += max(0,j+kernelWidth/2-img->width());
+                        kerStartPt += _max(0,j+kernelWidth/2-img->width());
                     }
 
                     *res++ = sum*factor;
