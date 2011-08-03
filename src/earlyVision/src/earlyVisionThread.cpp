@@ -163,6 +163,27 @@ earlyVisionThread::~earlyVisionThread() {
     delete Uplane;
     delete Vplane;
 
+    // CS
+    delete centerSurr;
+    delete img_out_Y;
+    delete img_out_UV;
+    delete img_out_V;
+    delete img_Y;
+    delete img_UV;
+    delete img_V;
+    ippiFree( colour ); 
+    ippiFree( tmp ); 
+    free ( pyuva );
+    ippiFree( yuva_orig );
+    ippiFree( first_plane );
+    ippiFree( second_plane );
+    ippiFree( third_plane );
+    ippiFree( cs_tot_32f );
+    ippiFree( colcs_out );
+    ippiFree( ycs_out );
+    ippiFree( scs_out );
+    ippiFree( vcs_out );
+
     printf("Called destructor \n");
     
     
@@ -213,6 +234,19 @@ bool earlyVisionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }   
 
+    // CS ports
+    if (!CSPort1.open(getName("/centerSurround1:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!CSPort2.open(getName("/centerSurround2:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!CSPort3.open(getName("/centerSurround3:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
     
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
@@ -223,7 +257,11 @@ bool earlyVisionThread::threadInit() {
         cerr << "can't allocate lookup tables for mono" << endl;
         return false;
     }
-    cout << "|-| lookup table allocation for mono done" << endl;    
+    cout << "|-| lookup table allocation for mono done" << endl;
+
+    
+
+    
     return true;
 }
 
@@ -265,6 +303,8 @@ void earlyVisionThread::run() {
             // gaussian filtering of the of RGB and Y
             filtering();
             
+            // Center-surround
+            centerSurrounding();
 
             // colourOpponency map construction
             colorOpponency();
@@ -283,30 +323,36 @@ void earlyVisionThread::run() {
                 orientPort.prepare() = *(orientationImage);
                 orientPort.write();
                 }
+
             if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
             }
+
             if((Yplane!=0)&&(chromPort.getOutputCount())) {
                 chromPort.prepare() = *(Yplane);
                 chromPort.write();
                 }
+
             if((edges!=0)&&(edgesPort.getOutputCount())) {
                 edgesPort.prepare() = *(edges);
                 edgesPort.write();
             }
-            if((coRG!=0)&&(colorOpp1Port.getOutputCount())) {
-                colorOpp1Port.prepare() = *(coRG);
+
+            if((img_out_Y!=0)&&(colorOpp1Port.getOutputCount())) {
+                colorOpp1Port.prepare() = *(img_out_Y);
                 colorOpp1Port.write();
                 }
-            if((coGR!=0)&&(colorOpp2Port.getOutputCount())) {
-                colorOpp2Port.prepare() = *(coGR);
+            if((img_out_UV!=0)&&(colorOpp2Port.getOutputCount())) {
+                colorOpp2Port.prepare() = *(img_out_UV);
                 colorOpp2Port.write();
                 }
-            if((coBY!=0)&&(colorOpp3Port.getOutputCount())) {
-                colorOpp3Port.prepare() = *(coBY);
+            if((img_out_V!=0)&&(colorOpp3Port.getOutputCount())) {
+                colorOpp3Port.prepare() = *(img_out_V);
                 colorOpp3Port.write();
             }
+
+            
 
             
             
@@ -330,6 +376,7 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     width = this->width_orig+2*maxKernelSize;
     height = this->height_orig+maxKernelSize;
 
+    
     
     //resizing yarp image 
     filteredInputImage->resize(this->width_orig, this->height_orig);
@@ -367,7 +414,54 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     Yplane->resize(width, height);
     Uplane->resize(width, height);
     Vplane->resize(width, height);
-     
+    
+    // allocating for CS
+
+    origsize.width = width_orig;
+    origsize.height = height_orig;
+
+    srcsize.width = this->width;
+    srcsize.height = this->height;
+
+    colour  = ippiMalloc_8u_C4( this->width, this->height, &psb4);
+
+    yuva_orig = ippiMalloc_8u_C1( this->width *4, this->height, &psb4);
+    first_plane    = ippiMalloc_8u_C1( this->width, this->height, &f_psb);
+    second_plane    = ippiMalloc_8u_C1( this->width, this->height, &s_psb);
+    third_plane   = ippiMalloc_8u_C1( this->width, this->height, &t_psb);
+    
+    tmp     = ippiMalloc_8u_C1( this->width, this->height, &psb );// to separate alpha channel
+    pyuva = (Ipp8u**) malloc(4*sizeof(Ipp8u*));
+
+    cs_tot_32f  = ippiMalloc_32f_C1( this->width, this->height, &psb_32f );
+    colcs_out   = ippiMalloc_8u_C1( this->width, this->height,  &col_psb );
+    ycs_out     = ippiMalloc_8u_C1( this->width, this->height,  &ycs_psb );
+    scs_out     = ippiMalloc_8u_C1( this->width, this->height,  &ycs_psb );
+    vcs_out     = ippiMalloc_8u_C1( this->width, this->height,  &ycs_psb );
+
+    ncsscale = 4;
+    centerSurr  = new CentSur( srcsize , ncsscale );
+
+    //inputExtImage = new ImageOf<PixelRgb>;
+    //inputExtImage->resize( this->width, this->height );
+    isYUV = true;
+	img_Y = new ImageOf<PixelMono>;
+	img_Y->resize( this->width, this->height );
+
+    img_out_Y = new ImageOf<PixelMono>;
+	img_out_Y->resize( width_orig, height_orig );
+
+    img_UV = new ImageOf<PixelMono>;
+	img_UV->resize( this->width, this->height );
+
+    img_out_UV = new ImageOf<PixelMono>;
+	img_out_UV->resize( width_orig, height_orig );
+
+    img_V = new ImageOf<PixelMono>;
+	img_V->resize( this->width, this->height );
+
+    img_out_V = new ImageOf<PixelMono>;
+	img_out_V->resize( width_orig, height_orig ); 
    
     
 }
@@ -404,6 +498,12 @@ void earlyVisionThread::extractPlanes() {
     uchar* tmpIntensityImage;
     uchar* ptrIntensityImg;
     uchar* inputPointer;
+
+    // for CS, these planes are of extended size
+    Ipp8u* CSPlane[3];
+    CSPlane[0] = first_plane;
+    CSPlane[1] = second_plane;
+    CSPlane[2] = third_plane;
     
     // Pointers to raw plane image
     shift[0] = (uchar*) redPlane->getRawImage(); 
@@ -434,10 +534,17 @@ void earlyVisionThread::extractPlanes() {
             *ptrIntensityImg++ = ONE_BY_ROOT_THREE * sqrt(*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]);
 
             // RGB to Y'UV conversion
-            *YUV[0]++ = .299* (*shift[0]) + .587 * (*shift[1]) + .114 * (*shift[2]);
-            *YUV[1]++ = -.14713* (*shift[0]) + -.28886 * (*shift[1]) + .436 * (*shift[2]);
-            *YUV[2]++ = .615* (*shift[0]) + -.51499 * (*shift[1]) + -.10001 * (*shift[2]);
-            
+            *YUV[0] = .299* (*shift[0]) + .587 * (*shift[1]) + .114 * (*shift[2]);
+            *YUV[1] = -.14713* (*shift[0]) + -.28886 * (*shift[1]) + .436 * (*shift[2]);
+            *YUV[2] = .615* (*shift[0]) + -.51499 * (*shift[1]) + -.10001 * (*shift[2]);
+
+            // CS, take in IPP planes
+            *CSPlane[0]++ = *YUV[0];
+            *CSPlane[1]++ = *YUV[1];
+            *CSPlane[2]++ = *YUV[2];
+            YUV[0]++;
+            YUV[1]++;
+            YUV[2]++;
             shift[0]++;
             shift[1]++;
             shift[2]++;
@@ -452,6 +559,9 @@ void earlyVisionThread::extractPlanes() {
         YUV[0] += padMono;
         YUV[1] += padMono;
         YUV[2] += padMono;
+        CSPlane[0] += padMono;
+        CSPlane[1] += padMono;
+        CSPlane[2] += padMono;
                 
     }            
 
@@ -492,6 +602,107 @@ void earlyVisionThread::filtering() {
     gaborNegHorConvolution->convolve1D(yellowPlane,tmpMonoLPImage);
     gaborNegVerConvolution->convolve1D(tmpMonoLPImage,Yminus);    
     
+}
+
+void earlyVisionThread::centerSurrounding(){
+
+        //performs centre-surround uniqueness analysis on first plane
+        centerSurr->proc_im_8u( first_plane , f_psb );
+        ippiCopy_8u_C1R( centerSurr->get_centsur_norm8u(), centerSurr->get_psb_8u(), ycs_out, ycs_psb , srcsize );
+
+        ippiSet_32f_C1R( 0.0, cs_tot_32f, psb_32f, srcsize );
+
+        //performs centre-surround uniqueness analysis on second plane:
+        centerSurr->proc_im_8u( second_plane , s_psb );
+        if ( isYUV ){
+            ippiAdd_32f_C1IR( centerSurr->get_centsur_32f(), centerSurr->get_psb_32f(), cs_tot_32f, psb_32f, srcsize );
+        }
+        else
+            ippiCopy_8u_C1R( centerSurr->get_centsur_norm8u(), centerSurr->get_psb_8u(), scs_out, ycs_psb , srcsize ); 
+
+        //Colour process V:performs centre-surround uniqueness analysis:
+        centerSurr->proc_im_8u( third_plane , t_psb );
+
+        if ( isYUV ){
+            ippiAdd_32f_C1IR( centerSurr->get_centsur_32f(), centerSurr->get_psb_32f(), cs_tot_32f, psb_32f, srcsize );
+        }
+        else
+            ippiCopy_8u_C1R( centerSurr->get_centsur_norm8u(), centerSurr->get_psb_8u(), vcs_out, ycs_psb , srcsize ); 
+
+        if ( isYUV ){
+            //get min max   
+            Ipp32f valueMin,valueMax;
+            valueMin = 0.0f;
+            valueMax = 0.0f;
+            ippiMinMax_32f_C1R( cs_tot_32f, psb_32f, srcsize, &valueMin, &valueMax );
+            if ( valueMax == valueMin ){ valueMax = 255.0f; valueMin = 0.0f;}
+            ippiScale_32f8u_C1R( cs_tot_32f, psb_32f, colcs_out, col_psb, srcsize, valueMin, valueMax );
+        }
+  
+        //revert to yarp images
+        ippiCopy_8u_C1R( ycs_out, ycs_psb, img_Y->getRawImage(), img_Y->getRowSize(), srcsize );
+        
+        if ( isYUV ){
+            ippiCopy_8u_C1R( colcs_out, col_psb, img_UV->getRawImage(), img_UV->getRowSize(), srcsize );
+        }else{
+            ippiCopy_8u_C1R( scs_out, ycs_psb, img_UV->getRawImage(), img_UV->getRowSize(), srcsize );
+            ippiCopy_8u_C1R( vcs_out, ycs_psb, img_V->getRawImage(), img_V->getRowSize(), srcsize );
+        }
+
+        //this is nasty, resizes the images...
+        unsigned char* imgY = img_Y->getPixelAddress( maxKernelSize, maxKernelSize );
+        unsigned char* imgUV = img_UV->getPixelAddress( maxKernelSize, maxKernelSize );
+        unsigned char* imgV;
+        unsigned char* imgVo;
+
+        if (!isYUV){
+           imgV = img_V->getPixelAddress( maxKernelSize, maxKernelSize );
+           imgVo = img_out_V->getRawImage();
+        }
+        
+        unsigned char* imgYo = img_out_Y->getRawImage();
+        unsigned char* imgUVo = img_out_UV->getRawImage();
+        int rowsize= img_out_Y->getRowSize();
+        int rowsize2= img_Y->getRowSize();
+
+        for(int row=0; row<height_orig; row++) {
+            for(int col=0; col<width_orig; col++) {
+                *imgYo  = *imgY;
+                *imgUVo = *imgUV;
+                if (!isYUV) {
+                    *imgVo = *imgV;
+                    imgVo++;  imgV++;          
+                }
+                imgYo++;  imgUVo++;
+                imgY++;   imgUV++;
+            }    
+            imgYo+=rowsize - width_orig;
+            imgUVo+=rowsize - width_orig;
+            imgY+=rowsize2 - width_orig;
+            imgUV+=rowsize2 - width_orig;
+            if (!isYUV) {
+                imgVo+=rowsize - width_orig;
+                imgV+=rowsize2 - width_orig;       
+            }
+        }
+
+        //output Y centre-surround results to ports
+        if ( CSPort1.getOutputCount()>0 ){
+            CSPort1.prepare() = *img_out_Y;	
+            CSPort1.write();
+        }
+
+        //output UV centre-surround results to ports
+        if ( CSPort2.getOutputCount()>0 ){
+             CSPort2.prepare() = *img_out_UV;	
+            CSPort2.write();
+        }
+        //output UV centre-surround results to ports
+        if ( !isYUV && CSPort3.getOutputCount()>0 ){
+            CSPort3.prepare() = *img_out_V;	
+            CSPort3.write();
+        }
+
 }
 
 void earlyVisionThread::colorOpponency(){

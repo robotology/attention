@@ -43,10 +43,14 @@
 #include <gsl/gsl_sort_double.h>
 #include <gsl/gsl_statistics.h>
 
+#include <ipp.h>        // This will be removed later
+
+
 #include <iCub/logPolar.h>
 
 #include <iCub/convolve.h>
 #include <iCub/config.h>
+#include "iCub/centerSurround.h"
 
 
 //#include <Eigen/Dense>
@@ -77,7 +81,7 @@ class earlyVisionThread : public yarp::os::Thread
 private:
     
 
-    int psb;
+    //int psb;
     int width_orig, height_orig;        // dimension of the input image (original)
     int width, height;                  // dimension of the extended input image (extending)
     int width_cart, height_cart;        // dimension of the cartesian width and height    
@@ -157,10 +161,40 @@ private:
     int numberOfRings;      // number of rings in the remapping
     int numberOfAngles;     // number of angles in the remapping
     
+    IppiSize srcsize, origsize;
+    CentSur *centerSurr; 
+   
+    Ipp8u *orig;        //extended input image
+    Ipp8u *colour;      //extended rgb+a image
+    Ipp8u *yuva_orig;   //extended yuv+a image    
+    Ipp8u** pyuva;      //extended yuv+a image used to extract y, u and v plane
     
+    Ipp8u *first_plane;      //extended plane either y or h
+    Ipp8u *second_plane;      //extended plane either u or v
+    Ipp8u *third_plane;      //extended plane either v or s
 
+    Ipp8u *tmp;         //extended tmp containing alpha
+    Ipp32f *cs_tot_32f; //extended 
+    Ipp8u *ycs_out;     //final extended intensity center surround image
+    Ipp8u *scs_out;     //final extended intensity center surround image
+    Ipp8u *vcs_out;     //final extended intensity center surround image
+    Ipp8u *colcs_out;   //final extended coulour center surround image
+    int img_psb, psb4, psb, ycs_psb, col_psb, psb_32f, f_psb, s_psb, t_psb; //images rowsizes
+    int ncsscale;
+    bool isYUV;
+
+    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_Y;          // extended output image, also reused for hsv
+	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_UV;         // extended output image, also reused for hsv
+    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_V;         // extended output image, also reused for hsv
+	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_out_Y;      // output image, also reused for hsv
+	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_out_UV;     // output image, also reused for hsv
+    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_out_V;     // output image, only used for hsv
     
-
+    // Ports for CS
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > CSPort1;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > CSPort2;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > CSPort3;
+    
     yarp::os::Stamp St;
 
     
@@ -244,6 +278,11 @@ public:
     * gaussing filtering of the of image planes extracted
     */
     void filtering();
+
+    /**
+    * Center-surrounding
+    */
+    void centerSurrounding();
 
     /**
     * Creating color opponency maps
