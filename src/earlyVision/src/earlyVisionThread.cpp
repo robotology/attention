@@ -55,10 +55,7 @@ earlyVisionThread::earlyVisionThread() {
     Bminus              = new ImageOf<PixelMono>;
     Yminus              = new ImageOf<PixelMono>;
 
-    coRG                = new ImageOf<PixelMono>;
-    coGR                = new ImageOf<PixelMono>;
-    coBY                = new ImageOf<PixelMono>;
-
+    
     tmpMonoLPImage      = new ImageOf<PixelMono>;
     tmpMono16LPImage    = new ImageOf<PixelMono16>;
     tmpMono16LPImage1   = new ImageOf<PixelMono16>;
@@ -95,7 +92,12 @@ earlyVisionThread::earlyVisionThread() {
     gaborNegVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);
 
     kirschConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,K1,.005,0);
-    
+
+    img_Y = new ImageOf<PixelMono>;
+	img_UV = new ImageOf<PixelMono>;
+	img_V = new ImageOf<PixelMono>;
+	
+	
     
     
     
@@ -132,9 +134,6 @@ earlyVisionThread::~earlyVisionThread() {
     delete Bplus;
     delete Bminus;
     delete Yminus;
-    delete coRG;
-    delete coGR;
-    delete coBY;
     delete tmpMonoLPImage;
     delete tmpMono16LPImage;
     delete tmpMono16LPImage1;
@@ -165,26 +164,10 @@ earlyVisionThread::~earlyVisionThread() {
 
     // CS
     delete centerSurr;
-    delete img_out_Y;
-    delete img_out_UV;
-    delete img_out_V;
     delete img_Y;
     delete img_UV;
     delete img_V;
-    /*ippiFree( colour ); 
-    ippiFree( tmp ); 
-    free ( pyuva );
-    ippiFree( yuva_orig );
-    ippiFree( first_plane );
-    ippiFree( second_plane );
-    ippiFree( third_plane );
-    ippiFree( cs_tot_32f );
-    ippiFree( colcs_out );
-    ippiFree( ycs_out );
-    ippiFree( scs_out );
-    ippiFree( vcs_out );*/
 
-    printf("Called destructor \n");
     
     
 }
@@ -339,18 +322,7 @@ void earlyVisionThread::run() {
                 edgesPort.write();
             }
 
-            if((img_out_Y!=0)&&(colorOpp1Port.getOutputCount())) {
-                colorOpp1Port.prepare() = *(img_out_Y);
-                colorOpp1Port.write();
-                }
-            if((img_out_UV!=0)&&(colorOpp2Port.getOutputCount())) {
-                colorOpp2Port.prepare() = *(img_out_UV);
-                colorOpp2Port.write();
-                }
-            if((img_out_V!=0)&&(colorOpp3Port.getOutputCount())) {
-                colorOpp3Port.prepare() = *(img_out_V);
-                colorOpp3Port.write();
-            }
+            
 
             
 
@@ -389,10 +361,7 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     Bminus->resize(width, height);
     Yminus->resize(width, height);
 
-    //LATER: change to relevant size only
-    coRG->resize(width, height);
-    coGR->resize(width, height);
-    coBY->resize(width, height);
+    
 
     tmpMonoLPImage->resize(width, height);
     tmpMono16LPImage->resize(width, height);
@@ -429,23 +398,17 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     //inputExtImage = new ImageOf<PixelRgb>;
     //inputExtImage->resize( this->width, this->height );
     isYUV = true;
-	img_Y = new ImageOf<PixelMono>;
 	img_Y->resize( this->width, this->height );
 
-    img_out_Y = new ImageOf<PixelMono>;
-	img_out_Y->resize( width_orig, height_orig );
+    
 
-    img_UV = new ImageOf<PixelMono>;
-	img_UV->resize( this->width, this->height );
+    img_UV->resize( this->width, this->height );
 
-    img_out_UV = new ImageOf<PixelMono>;
-	img_out_UV->resize( width_orig, height_orig );
+    
 
-    img_V = new ImageOf<PixelMono>;
-	img_V->resize( this->width, this->height );
+    img_V->resize( this->width, this->height );
 
-    img_out_V = new ImageOf<PixelMono>;
-	img_out_V->resize( width_orig, height_orig ); 
+    
    
     
 }
@@ -595,62 +558,55 @@ void earlyVisionThread::filtering() {
 
 void earlyVisionThread::centerSurrounding(){
 
+        // Allocate temporarily
+        ImageOf<PixelMono>& _Y = CSPort1.prepare();
+        _Y.resize(this->width_orig,this->height_orig);
+        ImageOf<PixelMono>& _UV = CSPort2.prepare();
+        _UV.resize(this->width_orig,this->height_orig);
+        ImageOf<PixelMono>& _V = CSPort3.prepare();
+        _V.resize(this->width_orig,this->height_orig);
         
-
         //performs centre-surround uniqueness analysis on first plane
-        centerSurr->proc_im_8u( (IplImage*)Yplane->getIplImage(),ycs_out);
+        centerSurr->proc_im_8u( (IplImage*)Yplane->getIplImage(),(IplImage*)img_Y->getIplImage());
         
         cvSet(cs_tot_32f,cvScalar(0));
         
-        //performs centre-surround uniqueness analysis on second plane:
-        centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
+        
         if ( isYUV ){
+            //performs centre-surround uniqueness analysis on second plane:
+            centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
-            
-        }
-        
-        //Colour process V:performs centre-surround uniqueness analysis:
-        centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
-
-        if ( isYUV ){
+            //Colour process V:performs centre-surround uniqueness analysis:
+            centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
-            
-        }
-        
-
-        if (isYUV ){
             //get min max   
             double valueMin = 1000;
             double valueMax = -1000;
-          	//minMaxLoc(cs_tot_32f,&minPixelVal,&maxPixelVal); ??
-            float* ptrcs_tot_32f = (float*)cs_tot_32f->imageData; 
-            for(int i=0; i<cs_tot_32f->height;i++){
-                for(int j=0; j<cs_tot_32f->width; ++j){
-                    float now = *ptrcs_tot_32f++;
-                    valueMin = valueMin> now? now:valueMin;
-                    valueMax = valueMax<now? now:valueMax;
-                }
-            }
+            img_UV->zero();     // this is not strictly required
+          	cvMinMaxLoc(cs_tot_32f,&valueMin,&valueMax);            
             if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ valueMax = 255.0f; valueMin = 0.0f;}
-            cvConvertScale(cs_tot_32f,colcs_out,255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
+            cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
+            
             
         }
-  
+        else{
+            //performs centre-surround uniqueness analysis on second plane:
+            centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),(IplImage*)img_UV->getIplImage() );
+            //Colour process V:performs centre-surround uniqueness analysis:
+            centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), (IplImage*)img_V->getIplImage());           
+
+        }
+
+
         //revert to yarp images
-        img_Y->zero();
-        cvCopy(ycs_out,(IplImage*)img_Y->getIplImage(),(IplImage*)img_Y->getIplImage());
-        
-        if ( isYUV ){
-            cvCopy(colcs_out,(IplImage*)img_UV->getIplImage()); // ???
-            
-        }else{
-            cvCopy(scs_out,(IplImage*)img_UV->getIplImage());
-            cvCopy(vcs_out,(IplImage*)img_V->getIplImage());
-        }
+        //img_Y->zero();
+        //cvCopy(ycs_out,(IplImage*)img_Y->getIplImage());
 
         
         
-        cvWaitKey(0);
+        
+        
+       
 
         //this is nasty, resizes the images...
         unsigned char* imgY = img_Y->getPixelAddress( maxKernelSize, maxKernelSize );
@@ -660,12 +616,12 @@ void earlyVisionThread::centerSurrounding(){
 
         if (!isYUV){
            imgV = img_V->getPixelAddress( maxKernelSize, maxKernelSize );
-           imgVo = img_out_V->getRawImage();
+           imgVo = _V.getRawImage();
         }
         
-        unsigned char* imgYo = img_out_Y->getRawImage();
-        unsigned char* imgUVo = img_out_UV->getRawImage();
-        int rowsize= img_out_Y->getRowSize();
+        unsigned char* imgYo = _Y.getRawImage();
+        unsigned char* imgUVo = _UV.getRawImage();
+        int rowsize= _Y.getRowSize();
         int rowsize2= img_Y->getRowSize();
 
         for(int row=0; row<height_orig; row++) {
@@ -692,31 +648,37 @@ void earlyVisionThread::centerSurrounding(){
         
         //output Y centre-surround results to ports
         if ( CSPort1.getOutputCount()>0 ){
-            CSPort1.prepare() = *img_out_Y;	
             CSPort1.write();
         }
 
         //output UV centre-surround results to ports
         if ( CSPort2.getOutputCount()>0 ){
-             CSPort2.prepare() = *img_out_UV;	
             CSPort2.write();
         }
         //output UV centre-surround results to ports
         if ( !isYUV && CSPort3.getOutputCount()>0 ){
-            CSPort3.prepare() = *img_out_V;	
             CSPort3.write();
         }
-
-        
+       
 }
 
 void earlyVisionThread::colorOpponency(){
 
     // get opponent colors for eg R+G- from R+ and G- channels
     // Finding color opponency now
-    uchar* pRG = coRG->getRawImage();
-    uchar* pGR = coGR->getRawImage();
-    uchar* pBY = coBY->getRawImage();
+
+    ImageOf<PixelMono>& coRG = colorOpp1Port.prepare();
+    ImageOf<PixelMono>& coGR = colorOpp2Port.prepare();
+    ImageOf<PixelMono>& coBY = colorOpp3Port.prepare();
+
+    coRG.resize(width,height);
+    coGR.resize(width,height);
+    coBY.resize(width,height);
+    
+    
+    uchar* pRG = coRG.getRawImage();
+    uchar* pGR = coGR.getRawImage();
+    uchar* pBY = coBY.getRawImage();
 
     uchar* rPlus = Rplus->getRawImage();
     uchar* rMinus = Rminus->getRawImage();
@@ -726,7 +688,7 @@ void earlyVisionThread::colorOpponency(){
     uchar* yMinus = Yminus->getRawImage();
 
     int padChannel = Rplus->getPadding();
-    int padOpponents = coRG->getPadding();
+    int padOpponents = coRG.getPadding();
 
     for(int r = 0; r < height; r++) {
         for(int c = 0; c < width; c++) {
@@ -754,6 +716,17 @@ void earlyVisionThread::colorOpponency(){
         pBY += padOpponents;
 
     }
+
+    if(colorOpp1Port.getOutputCount()) {
+        colorOpp1Port.write();
+    }
+    if(colorOpp2Port.getOutputCount()) {
+        colorOpp2Port.write();
+    }
+    if(colorOpp3Port.getOutputCount()) {
+        colorOpp3Port.write();
+    }
+    
       
 
 }

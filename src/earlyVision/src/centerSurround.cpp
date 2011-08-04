@@ -95,8 +95,7 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
     //subtractions (ABSDIFF) to make DOG pyramid:
   	//1st neighbours:  
     for (int nd=0;nd<ngauss-1;nd++){
-        cvAbsDiff(gauss[nd],gauss[nd+1],tmp_im_32f);
-        
+        cvAbsDiff(gauss[nd],gauss[nd+1],tmp_im_32f);        
         cvAdd(tmp_im_32f,cs_tot_32f,cs_tot_32f);
         
     }

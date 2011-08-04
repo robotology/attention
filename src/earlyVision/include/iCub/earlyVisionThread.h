@@ -98,9 +98,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Yminus;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *YofYUV;
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *coRG;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *coGR;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *coBY;
+    
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
@@ -185,9 +183,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_Y;          // extended output image, also reused for hsv
 	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_UV;         // extended output image, also reused for hsv
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_V;         // extended output image, also reused for hsv
-	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_out_Y;      // output image, also reused for hsv
-	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_out_UV;     // output image, also reused for hsv
-    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_out_V;     // output image, only used for hsv
+	
     
     // Ports for CS
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > CSPort1;
