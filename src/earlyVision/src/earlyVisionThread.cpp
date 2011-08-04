@@ -171,7 +171,7 @@ earlyVisionThread::~earlyVisionThread() {
     delete img_Y;
     delete img_UV;
     delete img_V;
-    ippiFree( colour ); 
+    /*ippiFree( colour ); 
     ippiFree( tmp ); 
     free ( pyuva );
     ippiFree( yuva_orig );
@@ -182,7 +182,7 @@ earlyVisionThread::~earlyVisionThread() {
     ippiFree( colcs_out );
     ippiFree( ycs_out );
     ippiFree( scs_out );
-    ippiFree( vcs_out );
+    ippiFree( vcs_out );*/
 
     printf("Called destructor \n");
     
@@ -415,32 +415,16 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     Uplane->resize(width, height);
     Vplane->resize(width, height);
     
-    // allocating for CS
+    // allocating for CS ncsscale = 4;   
 
-    origsize.width = width_orig;
-    origsize.height = height_orig;
-
-    srcsize.width = this->width;
-    srcsize.height = this->height;
-
-    colour  = ippiMalloc_8u_C4( this->width, this->height, &psb4);
-
-    yuva_orig = ippiMalloc_8u_C1( this->width *4, this->height, &psb4);
-    first_plane    = ippiMalloc_8u_C1( this->width, this->height, &f_psb);
-    second_plane    = ippiMalloc_8u_C1( this->width, this->height, &s_psb);
-    third_plane   = ippiMalloc_8u_C1( this->width, this->height, &t_psb);
+    cs_tot_32f  = cvCreateImage( cvSize(width, height),IPL_DEPTH_32F, 1  );
+    colcs_out   = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
+    ycs_out     = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
+    scs_out     = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
+    vcs_out     = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
     
-    tmp     = ippiMalloc_8u_C1( this->width, this->height, &psb );// to separate alpha channel
-    pyuva = (Ipp8u**) malloc(4*sizeof(Ipp8u*));
-
-    cs_tot_32f  = ippiMalloc_32f_C1( this->width, this->height, &psb_32f );
-    colcs_out   = ippiMalloc_8u_C1( this->width, this->height,  &col_psb );
-    ycs_out     = ippiMalloc_8u_C1( this->width, this->height,  &ycs_psb );
-    scs_out     = ippiMalloc_8u_C1( this->width, this->height,  &ycs_psb );
-    vcs_out     = ippiMalloc_8u_C1( this->width, this->height,  &ycs_psb );
-
-    ncsscale = 4;
-    centerSurr  = new CentSur( srcsize , ncsscale );
+    
+    centerSurr  = new CenterSurround( width,height,1.0 );
 
     //inputExtImage = new ImageOf<PixelRgb>;
     //inputExtImage->resize( this->width, this->height );
@@ -500,13 +484,13 @@ void earlyVisionThread::extractPlanes() {
     uchar* inputPointer;
 
     // for CS, these planes are of extended size
-    Ipp8u* CSPlane[3];
+    /*Ipp8u* CSPlane[3];
     CSPlane[0] = first_plane;
     CSPlane[1] = second_plane;
     CSPlane[2] = third_plane;
     int padPlane1 = f_psb - this->width;
     int padPlane2 = s_psb - this->width;
-    int padPlane3 = t_psb - this->width;
+    int padPlane3 = t_psb - this->width;*/
     
     // Pointers to raw plane image
     shift[0] = (uchar*) redPlane->getRawImage(); 
@@ -542,9 +526,9 @@ void earlyVisionThread::extractPlanes() {
             *YUV[2] = .615* (*shift[0]) + -.51499 * (*shift[1]) + -.10001 * (*shift[2]);
 
             // CS, take in IPP planes
-            *CSPlane[0]++ = *YUV[0];
+            /**CSPlane[0]++ = *YUV[0];
             *CSPlane[1]++ = *YUV[1];
-            *CSPlane[2]++ = *YUV[2];
+            *CSPlane[2]++ = *YUV[2];*/
             YUV[0]++;
             YUV[1]++;
             YUV[2]++;
@@ -562,9 +546,9 @@ void earlyVisionThread::extractPlanes() {
         YUV[0] += padMono;
         YUV[1] += padMono;
         YUV[2] += padMono;
-        CSPlane[0] += padPlane1;
-        CSPlane[1] += padPlane2;
-        CSPlane[2] += padPlane3;
+        //CSPlane[0] += padPlane1;
+        //CSPlane[1] += padPlane2;
+        //CSPlane[2] += padPlane3;
                 
     } 
 
@@ -611,48 +595,62 @@ void earlyVisionThread::filtering() {
 
 void earlyVisionThread::centerSurrounding(){
 
+        
+
         //performs centre-surround uniqueness analysis on first plane
-        centerSurr->proc_im_8u( first_plane , f_psb );
-        ippiCopy_8u_C1R( centerSurr->get_centsur_norm8u(), centerSurr->get_psb_8u(), ycs_out, ycs_psb , srcsize );
-
-        ippiSet_32f_C1R( 0.0, cs_tot_32f, psb_32f, srcsize );
-
+        centerSurr->proc_im_8u( (IplImage*)Yplane->getIplImage(),ycs_out);
+        
+        cvSet(cs_tot_32f,cvScalar(0));
+        
         //performs centre-surround uniqueness analysis on second plane:
-        centerSurr->proc_im_8u( second_plane , s_psb );
+        centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
         if ( isYUV ){
-            ippiAdd_32f_C1IR( centerSurr->get_centsur_32f(), centerSurr->get_psb_32f(), cs_tot_32f, psb_32f, srcsize );
+            cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
+            
         }
-        else
-            ippiCopy_8u_C1R( centerSurr->get_centsur_norm8u(), centerSurr->get_psb_8u(), scs_out, ycs_psb , srcsize ); 
-
+        
         //Colour process V:performs centre-surround uniqueness analysis:
-        centerSurr->proc_im_8u( third_plane , t_psb );
+        centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
 
         if ( isYUV ){
-            ippiAdd_32f_C1IR( centerSurr->get_centsur_32f(), centerSurr->get_psb_32f(), cs_tot_32f, psb_32f, srcsize );
+            cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
+            
         }
-        else
-            ippiCopy_8u_C1R( centerSurr->get_centsur_norm8u(), centerSurr->get_psb_8u(), vcs_out, ycs_psb , srcsize ); 
+        
 
-        if ( isYUV ){
+        if (isYUV ){
             //get min max   
-            Ipp32f valueMin,valueMax;
-            valueMin = 0.0f;
-            valueMax = 0.0f;
-            ippiMinMax_32f_C1R( cs_tot_32f, psb_32f, srcsize, &valueMin, &valueMax );
-            if ( valueMax == valueMin ){ valueMax = 255.0f; valueMin = 0.0f;}
-            ippiScale_32f8u_C1R( cs_tot_32f, psb_32f, colcs_out, col_psb, srcsize, valueMin, valueMax );
+            double valueMin = 1000;
+            double valueMax = -1000;
+          	//minMaxLoc(cs_tot_32f,&minPixelVal,&maxPixelVal); ??
+            float* ptrcs_tot_32f = (float*)cs_tot_32f->imageData; 
+            for(int i=0; i<cs_tot_32f->height;i++){
+                for(int j=0; j<cs_tot_32f->width; ++j){
+                    float now = *ptrcs_tot_32f++;
+                    valueMin = valueMin> now? now:valueMin;
+                    valueMax = valueMax<now? now:valueMax;
+                }
+            }
+            if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ valueMax = 255.0f; valueMin = 0.0f;}
+            cvConvertScale(cs_tot_32f,colcs_out,255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
+            
         }
   
         //revert to yarp images
-        ippiCopy_8u_C1R( ycs_out, ycs_psb, img_Y->getRawImage(), img_Y->getRowSize(), srcsize );
+        img_Y->zero();
+        cvCopy(ycs_out,(IplImage*)img_Y->getIplImage(),(IplImage*)img_Y->getIplImage());
         
         if ( isYUV ){
-            ippiCopy_8u_C1R( colcs_out, col_psb, img_UV->getRawImage(), img_UV->getRowSize(), srcsize );
+            cvCopy(colcs_out,(IplImage*)img_UV->getIplImage()); // ???
+            
         }else{
-            ippiCopy_8u_C1R( scs_out, ycs_psb, img_UV->getRawImage(), img_UV->getRowSize(), srcsize );
-            ippiCopy_8u_C1R( vcs_out, ycs_psb, img_V->getRawImage(), img_V->getRowSize(), srcsize );
+            cvCopy(scs_out,(IplImage*)img_UV->getIplImage());
+            cvCopy(vcs_out,(IplImage*)img_V->getIplImage());
         }
+
+        
+        
+        cvWaitKey(0);
 
         //this is nasty, resizes the images...
         unsigned char* imgY = img_Y->getPixelAddress( maxKernelSize, maxKernelSize );
@@ -709,6 +707,7 @@ void earlyVisionThread::centerSurrounding(){
             CSPort3.write();
         }
 
+        
 }
 
 void earlyVisionThread::colorOpponency(){
@@ -958,6 +957,11 @@ void earlyVisionThread::threadRelease() {
     trsf.freeLookupTables();
     lpMono.freeLookupTables();
 
+    cvReleaseImage(&cs_tot_32f); 
+    cvReleaseImage(&colcs_out);
+    cvReleaseImage(&ycs_out);
+    cvReleaseImage(&scs_out);
+    cvReleaseImage(&vcs_out);
     
 
     

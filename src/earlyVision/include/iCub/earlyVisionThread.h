@@ -43,8 +43,6 @@
 #include <gsl/gsl_sort_double.h>
 #include <gsl/gsl_statistics.h>
 
-#include <ipp.h>        // This will be removed later
-
 
 #include <iCub/logPolar.h>
 
@@ -161,24 +159,25 @@ private:
     int numberOfRings;      // number of rings in the remapping
     int numberOfAngles;     // number of angles in the remapping
     
-    IppiSize srcsize, origsize;
-    CentSur *centerSurr; 
+    //IppiSize srcsize, origsize;
+    CenterSurround *centerSurr; 
    
-    Ipp8u *orig;        //extended input image
+    /*Ipp8u *orig;        //extended input image
     Ipp8u *colour;      //extended rgb+a image
     Ipp8u *yuva_orig;   //extended yuv+a image    
-    Ipp8u** pyuva;      //extended yuv+a image used to extract y, u and v plane
+    Ipp8u** pyuva;      //extended yuv+a image used to extract y, u and v plane*/
     
-    Ipp8u *first_plane;      //extended plane either y or h
-    Ipp8u *second_plane;      //extended plane either u or v
-    Ipp8u *third_plane;      //extended plane either v or s
-
-    Ipp8u *tmp;         //extended tmp containing alpha
-    Ipp32f *cs_tot_32f; //extended 
-    Ipp8u *ycs_out;     //final extended intensity center surround image
-    Ipp8u *scs_out;     //final extended intensity center surround image
-    Ipp8u *vcs_out;     //final extended intensity center surround image
-    Ipp8u *colcs_out;   //final extended coulour center surround image
+    /*yarp::sig::ImageOf<yarp::sig::PixelMono> *first_plane;      //extended plane either y or h
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *second_plane;      //extended plane either u or v
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *third_plane;      //extended plane either v or s
+    */
+    //Ipp8u *tmp;         //extended tmp containing alpha
+    IplImage *cs_tot_32f; //extended
+    IplImage *cs_tot_8u; 
+    IplImage *ycs_out;     //final extended intensity center surround image
+    IplImage *scs_out;     //final extended intensity center surround image
+    IplImage *vcs_out;     //final extended intensity center surround image
+    IplImage *colcs_out;   //final extended coulour center surround image
     int img_psb, psb4, psb, ycs_psb, col_psb, psb_32f, f_psb, s_psb, t_psb; //images rowsizes
     int ncsscale;
     bool isYUV;

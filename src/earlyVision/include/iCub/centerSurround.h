@@ -35,81 +35,86 @@
 #ifndef __CENTSUR_H__
 #define __CENTSUR_H__
 
-#include <ipp.h>
+
+#include <cv.h>
+#include <cvaux.h>
+#include <highgui.h>
+
+#include <yarp/sig/all.h>
+#include <yarp/os/all.h>
+
+#define ngs 4
 	
-class CentSur { 
+class CenterSurround { 
 public:
     /**
     * constructor
     */
-	CentSur(IppiSize imsize, int nscale, double sigma = 1.0);
+	CenterSurround(int _w, int _h,  double sigma = 1.0);
     /**
      * destructor
      */
-	~CentSur();
+	~CenterSurround();
 
     /**
      * convert image to 32f precision
      */
-	void proc_im_8u(Ipp8u* im_8u, int psb_8u);
+	void proc_im_8u(IplImage* im_8u, IplImage* output8u);
 
     /**
      * process 32f image creating gauss pyramids:
      */
-	void proc_im_32f(Ipp32f* im_32f, int psb_32f);
+	void proc_im_32f(IplImage* im_32f, IplImage* output8u);
     
     /**
      * returns gaussians
      */
-	Ipp32f* get_gauss(int s){return gauss[s];}
+	IplImage* get_gauss(int s){return gauss[s];}
 
     /**
      * returns pyramids
      */
-	Ipp32f* get_pyramid(int s){return pyramid[s];}
+	IplImage* get_pyramid(int s){return pyramid[s];}
 
     /**
      * get center surround image in 32f precision
      */
-	Ipp32f* get_centsur_32f(){return cs_tot_32f;} 
+	IplImage* get_centsur_32f(){return cs_tot_32f;} 
 
     /**
      * get center surround image in 8u precision
      */
-	Ipp8u*  get_centsur_norm8u(){return cs_tot_8u;}
-    
-    /**
-     * get center surround row size in 32f precision
-     */
-	int get_psb_32f(){return psb_32f;}
+	IplImage*  get_centsur_norm8u(){return cs_tot_8u;}
 
-    /**
-     * get center surround row size in 8uf precision
-     */
-	int get_psb_8u(){return psb_8u;}
+
 
 private:
 
     /**
      * creates pyramids
      */
-	void make_pyramid(Ipp32f* im_in, int pin32_);
+	void make_pyramid(IplImage* im_in);
 
     
-	Ipp32f **pyramid,**pyramid_gauss,**gauss,*cs_tot_32f,*tmp_im_32f,*im_in_32f;
+	// Store IplImages for each level of pyramid
+	IplImage *pyramid[ngs],*pyramid_gauss[ngs],*gauss[ngs];
+	IplImage *cs_tot_32f,*cs_tot_8u,*tmp_im_32f,*im_in_32f;
 
-	Ipp8u *cs_tot_8u,*pbuf;
+	int ngauss;
 
-	int *psb_p,pbufsize,psb_8u,psb_32f,ngauss;
+	int srcsizeWidth;
+	int srcsizeHeight;
 
-	IppiSize srcsize,*psize;
+	// Image sizes at each level
+	int psizeWidth[ngs];
+	int psizeHeight[ngs];
+	
 
-	IppiRect *proi, *dstRect;
-
+	// factors for down and up sampling and sigma for Gaussian
 	double sd,su,sigma;
-    Ipp8u* pBuffer;
-    Ipp8u* pBufferGauss;
+    
 };
+
 #endif
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
