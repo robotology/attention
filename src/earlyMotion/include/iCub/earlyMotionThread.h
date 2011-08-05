@@ -47,45 +47,20 @@ private:
     int psb16s;                         // step size of the Ipp16s vectors
     float lambda;                       // costant for the temporal filter
    
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImage;            // input image
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputImageFiltered;    // time filtered input image
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *inputExtImage;         // extended input image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *inputImage;           // input image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *inputImageFiltered;    // time filtered input image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *inputExtImage;         // extended input image
         
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane2;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane3;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane;           // image of the green channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane2;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane3;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane;            // image of the blue channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane2;           // image of the blue channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane3;           // image of the blue channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowPlane;          // image of the yellow channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowPlane2;
-
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlus;              // positive gaussian-convolved red image 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redMinus;             // negative gaussian-convolved red image
-
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlus;            // positive gaussian-convolved green image 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenMinus;           // negative gaussian-convolved green image
-
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlus;             // positive gaussian-convolved red image 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowMinus;          // negative gaussian-convolved red image
-
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redGreen;             // colour opponency map (R+G-)
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenRed;             // colour opponency map (G+R-)
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *blueYellow;           // colour opponency map (B+Y-)
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;                // edges of colour opponency maps 
-
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;       // input port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortOut;     // output port   
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortExt;      // extended image port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgPort;           // Colour opponency map R+G-
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // Colour opponency map G+R-
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // Colour opponency map B+Y-
-
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *imageT1;              // image of t-1 temporal space
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *imageT2;              // image of t-2 temporal space
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *imageT3;              // image of t-3 temporal space
     
 
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *motion;                // edges of colour opponency maps 
+
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortIn;    // input port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;     // output port   
+    
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
 
@@ -143,19 +118,16 @@ public:
     void filterInputImage();
 
     /**
-    * gaussing filtering of the of RGBY
-    */
-    void filtering();
+     * function that extracts temporal variancy informatin
+     */
+    void temporalSubtraction(yarp::sig::ImageOf<yarp::sig::PixelMono>* out);
 
     /**
-    * function which constructs colourOpponency maps
-    */
-    void colourOpponency();
+     * function that stores the image in a temporal array
+     */
+    void temporalStore();
 
-    /**
-    * applying sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
-    */
-    void edgesExtract();
+    
 };
 
 #endif  //_EARLY_MOTION_THREAD_H_

@@ -41,31 +41,10 @@ inline T max(T a, T b, T c) {
 }
 
 earlyMotionThread::earlyMotionThread() {
-    redPlane = new ImageOf<PixelMono>;
-    redPlane2 = new ImageOf<PixelMono>;
-    redPlane3 = new ImageOf<PixelMono>;
-    greenPlane = new ImageOf<PixelMono>;
-    greenPlane2 = new ImageOf<PixelMono>;
-    greenPlane3 = new ImageOf<PixelMono>;
-    bluePlane = new ImageOf<PixelMono>;
-    bluePlane2 = new ImageOf<PixelMono>;
-    bluePlane3 = new ImageOf<PixelMono>;
-    yellowPlane = new ImageOf<PixelMono>;
-    yellowPlane2 = new ImageOf<PixelMono>;
+    
     inputExtImage = new ImageOf<PixelRgb>;
     inputImageFiltered = new ImageOf<PixelRgb>;
-
-    redPlus = new ImageOf<PixelMono>;
-    redMinus = new ImageOf<PixelMono>;
-    greenPlus = new ImageOf<PixelMono>;
-    greenMinus = new ImageOf<PixelMono>;
-    bluePlus = new ImageOf<PixelMono>;
-    yellowMinus = new ImageOf<PixelMono>;
-
-    redGreen = new ImageOf<PixelMono>;
-    greenRed = new ImageOf<PixelMono>;
-    blueYellow = new ImageOf<PixelMono>;
-    edges = new ImageOf<PixelMono>;
+    motion = new ImageOf<PixelMono>;
 
     lambda = 0.05f;
 
@@ -73,34 +52,12 @@ earlyMotionThread::earlyMotionThread() {
 }
 
 earlyMotionThread::~earlyMotionThread() {
-    delete redPlane;
-    delete redPlane2;
-    delete redPlane3;
-    delete greenPlane;
-    delete greenPlane2;
-    delete greenPlane3;
-    delete bluePlane;
-    delete bluePlane2;
-    delete bluePlane3;
-    delete yellowPlane;
-    delete yellowPlane2;
+    
     delete inputExtImage;
     delete inputImageFiltered;
     delete inputImage;
 
-    delete redPlus;
-    delete redMinus;
-    delete greenPlus;
-    delete greenMinus;
-    delete bluePlus;
-    delete yellowMinus;
-
-    delete redGreen;
-    delete greenRed;
-    delete blueYellow;
-    delete edges;
-
-    
+    delete motion;    
 }
 
 bool earlyMotionThread::threadInit() {
@@ -110,27 +67,17 @@ bool earlyMotionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-    if (!imagePortOut.open(getName("/image:o").c_str())) {
+    if (!motionPort.open(getName("/motion:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
+    /*
     if (!imagePortExt.open(getName("/imageExt:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!rgPort.open(getName("/rg:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!grPort.open(getName("/gr:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!byPort.open(getName("/by:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
+        }*/
+
     return true;
 }
 
@@ -155,42 +102,25 @@ void earlyMotionThread::run() {
                 resized = true;
             }
             else {
-                filterInputImage();
+                //filterInputImage();
             }
           
-            // extend logpolar input image
-            extender(inputImage, maxKernelSize);
-            // extract RGB and Y planes
-            extractPlanes();
-            // gaussian filtering of the of RGB and Y
-            filtering();
-            // colourOpponency map construction
-            colourOpponency();
-            // apply sobel operators on the colourOpponency maps and combine via maximisation of the 3 edges
-            edgesExtract();
-            // sending the edge image on the outport
-                 
+            // sending the edge image on the outport                 
             // the copy to the port object can be avoided...
-            if((edges!=0)&&(imagePortOut.getOutputCount())) {
-                imagePortOut.prepare() = *(edges);
-                imagePortOut.write();
+            if((motionPort.getOutputCount())) {
+                ImageOf<PixelMono>& out = motionPort.prepare();
+                out.resize(width, height);
+                
+                // extend logpolar input image
+                //extender(inputImage, maxKernelSize);
+                
+                //extractPlanes();
+                
+                temporalSubtraction(&out);
+                motionPort.write();
             }
-            if((redGreen!=0)&&(rgPort.getOutputCount())) {
-                rgPort.prepare() = *(redGreen);
-                rgPort.write();
-            }
-            if((greenRed!=0)&&(grPort.getOutputCount())) {
-                grPort.prepare() = *(greenRed);
-                grPort.write();
-            }
-            if((blueYellow!=0)&&(byPort.getOutputCount())) {
-                byPort.prepare() = *(blueYellow);
-                byPort.write();
-            }
-            if((inputExtImage!=0)&&(imagePortExt.getOutputCount())) {
-                imagePortExt.prepare() = *(inputExtImage);
-                imagePortExt.write();
-            }
+
+            
         }
    }
 }
@@ -208,34 +138,11 @@ void earlyMotionThread::resize(int width_orig,int height_orig) {
     //srcsize.height = height;
 
     // resizing plane images
-    edges->resize(width_orig, height_orig);
+    motion->resize(width_orig, height_orig);
     inputImageFiltered->resize(width_orig, height_orig);
     inputImageFiltered->zero();
  
     inputExtImage->resize(width,height);
-    redPlane->resize(width,height);
-    redPlane2->resize(width,height);
-    redPlane3->resize(width,height);
-    greenPlane->resize(width,height);
-    greenPlane2->resize(width,height);
-    greenPlane3->resize(width,height);
-    bluePlane->resize(width,height);
-    bluePlane2->resize(width,height);
-    bluePlane3->resize(width,height);
-    yellowPlane->resize(width,height);
-    yellowPlane2->resize(width,height);
-
-    redPlus->resize(width,height);
-    redMinus->resize(width,height);
-    greenPlus->resize(width,height);
-    greenMinus->resize(width,height);
-    bluePlus->resize(width,height);
-    yellowMinus->resize(width,height);
-
-    redGreen->resize(width, height);
-    greenRed->resize(width, height);
-    blueYellow->resize(width, height);
-
     
 }
 
@@ -257,19 +164,11 @@ ImageOf<PixelRgb>* earlyMotionThread::extender(ImageOf<PixelRgb>* inputOrigImage
 }
 
 void earlyMotionThread::extractPlanes() {
-    /* check ipp for the existence of functions with output by plane (rather than by pixel) */
-    //Ipp8u* shift[3];
-    //Ipp8u* yellowP;
     
-    //shift[0] = redPlane->getRawImage();
-    //shift[1] = greenPlane->getRawImage();
-    //shift[2] = bluePlane->getRawImage();
-    //yellowP = yellowPlane->getRawImage();
-    //Ipp8u* inputPointer = inputExtImage->getRawImage();
 
     /* use getPadding!!!! */
-    int paddingMono = redPlane->getPadding(); //redPlane->getRowSize()-redPlane->width();
-    int padding3C = inputExtImage->getPadding(); //inputExtImage->getRowSize()-inputExtImage->width()*3;
+    //int paddingMono = redPlane->getPadding(); 
+    int padding3C = inputExtImage->getPadding(); 
 
     const int h = inputExtImage->height();
     const int w = inputExtImage->width();
@@ -277,13 +176,39 @@ void earlyMotionThread::extractPlanes() {
     
 }
 
-void earlyMotionThread::filtering() {
-
+void earlyMotionThread::temporalStore() {
+    int padding = inputImage->getPadding();
+    unsigned char* pin = inputImage->getRawImage();
+    for(int row = 0; row < height; row++) {
+        for(int col = 0; col < width ; col++) {
+            *imageT3 = *imageT2;
+            *imageT2 = *imageT1;
+            *imageT1 = *inputImage;    
+            imageT1++;
+            imageT2++;
+            imageT3++;
+            inputImage++;
+        }
+        inputImage  += padding;
+        imageT1  += padding;
+        imageT2  += padding;
+        imageT3  += padding;
+    }
 }
 
-void earlyMotionThread::colourOpponency() {
-
+void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
+    int padding = inputImage->getPadding();
+    unsigned char* pin = inputImage->getRawImage();
+    unsigned char* pout = outputImage->getRawImage();
+    for(int row = 0; row < height; row++) {
+        for(int col = 0; col < width ; col++) {
+            *inputImage++ = *outputImage++;
+        }
+        inputImage  += padding;
+        outputImage += padding;
+    }
 }
+
 
 void earlyMotionThread::threadRelease() {
     resized = false;
@@ -291,17 +216,13 @@ void earlyMotionThread::threadRelease() {
 
 void earlyMotionThread::onStop() {
     imagePortIn.interrupt();
-    imagePortOut.interrupt();
-    imagePortExt.interrupt();
-    rgPort.interrupt();
-    grPort.interrupt();
-    byPort.interrupt();
+    //imagePortOut.interrupt();
+    //imagePortExt.interrupt();
+
     
-    imagePortOut.close();
-    imagePortExt.close();
-    rgPort.close();
-    grPort.close();
-    byPort.close();
+    motionPort.close();
+    //imagePortExt.close();
+
     imagePortIn.close();
 }
 

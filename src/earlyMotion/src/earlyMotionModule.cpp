@@ -71,11 +71,11 @@ bool earlyMotionModule::configure(yarp::os::ResourceFinder &rf) {
     attach(handlerPort);                  // attach to port
 
     /* create the thread and pass pointers to the module parameters */
-    vfThread = new visualFilterThread();
-    vfThread->setName(getName().c_str());
+    emThread = new earlyMotionThread();
+    emThread->setName(getName().c_str());
     
     /* now start the thread to do the work */
-    vfThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    emThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
@@ -91,8 +91,8 @@ bool earlyMotionModule::close()
 {
     handlerPort.close();
     /* stop the thread */
-    vfThread->stop();
-    delete vfThread;
+    emThread->stop();
+    delete emThread;
     return true;
 }
 

@@ -17,7 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
-x
+
 /**
  * @file earlyMotionModule.h
  * @brief Simple module that implements logPolar detection of motion
@@ -140,7 +140,8 @@ x
 
 
 
-
+#include <iostream>
+#include <string>
 
 
 #include <yarp/os/RFModule.h>
@@ -152,8 +153,7 @@ x
 //within project includes  
 #include <iCub/earlyMotionThread.h>
 
-#include <iostream>
-#include <string>
+
 
 class earlyMotionModule:public yarp::os::RFModule {
 
@@ -173,15 +173,13 @@ class earlyMotionModule:public yarp::os::RFModule {
     
 public:
     
-    earlyMotionModule(){};
 
-    ~earlyMotionModule(){};
     
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
     bool interruptModule();                       // interrupt, e.g., the ports 
     bool close();                                 // close and shut down the module
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
-    double getPeriod(); 
+ 
     bool updateModule();
 };
 
