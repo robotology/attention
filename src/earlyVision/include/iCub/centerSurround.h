@@ -43,6 +43,8 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 
+#include <iCub/convolve.h> // LATER: To be using this convolution than the openCV one
+
 #define ngs 4
 	
 class CenterSurround { 

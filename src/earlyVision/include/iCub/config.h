@@ -28,17 +28,45 @@
 #ifndef _CONFIG_EARLY_VISION_H
 #define _CONFIG_EARLY_VISION_H
 
-static float Sobel3XHorz[3] = {1.3161f, 0 ,-1.3161f};
-static float Sobel3XVert[3] = {-.7598f, -1.5197f,-.7598f};
-static float Sobel3YHorz[3] = {.7598f, 1.5197f,.7598f};
-static float Sobel3YVert[3] = {-1.3161f, 0 ,1.3161f};
 
+// Definitions for Sobel filter, for edge detection
+#define SobelOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>
+#define SobelOutputImagePtr float
+#define SOBEL_FLICKER 10
+#define SOBEL_SHIFT 0
+#define SOBEL_FACTOR .0005
+
+
+#define KirschOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>
+#define KirschOutputImagePtr float
+#define KIRSCH_FLICKER 10
+#define KIRSCH_SHIFT 50
+#define KIRSCH_FACTOR .0005
+
+
+
+
+// 5x5 Sobel matrix is non-separable (has rank 2), hence convolution is 2D
+static float Sobel2DXgrad[25] = {1, 2, 0, -2 ,-1,
+                                 4, 8, 0, -8, -4,
+                                 6, 12, 0, -12, -6,
+                                 4, 8, 0, -8, -4,
+                                 1, 2, 0, -2 ,-1};
+
+static float Sobel2DYgrad[25] = {-1, -4, -6, -4, -1,
+                                 -2, -8, -12, -8, -2,
+                                 0, 0, 0, 0, 0,
+                                 2, 8, 12, 8, 2,
+                                  1, 4, 6, 4, 1};
+
+// Gaussian matrix is always separable, sigma here is 1
 static float G5[5] = { -0.0545f,
                        -0.2442f,
                        -0.4026f,
                        -0.2442f,
                        -0.0545f
                      };
+// Gaussian matrix is always separable, sigma here is 3 times that of positive Gaussian
 static float GN7[7] = {      -0.1063f,
                            -0.1403f,
                            -0.1658f,
@@ -48,7 +76,31 @@ static float GN7[7] = {      -0.1063f,
                            -0.1063f
                     };
 
-static float K1[9] = {5, 5, 5,-3, 0, -3, -3, -3, -3};
+// Kirsch matrix is non-separable, these directions are 8 namely N, NE, E, ...
+static float K1[9] = {+3,  	+3,  	+3,
+                        +3, 	0, 	+3,
+                        -5, 	-5, 	-5};
+static float K2[9] = {+3,  	+3,  	+3,
+                        -5, 	0, 	+3,
+                        -5, 	-5, 	+3};
+static float K3[9] = {  5,  	+3,  	+3,
+                        -5, 	0, 	+3,
+                        -5, 	+3, 	+3};
+static float K4[9] = {-5,  	-5,  	+3,
+                        -5, 	0, 	+3,
+                        +3, 	+3, 	+3};
+static float K5[9] = {-5,  	-5,  	-5,
+                        +3, 	0, 	+3,
+                        +3, 	+3, 	+3};
+static float K6[9] = {+3,  	-5,  	-5,
+                        +3, 	0, 	-5,
+                        +3, 	+3, 	+3};
+static float K7[9] = {+3,  	+3,  	-5,
+                        +3, 	0, 	-5,
+                        +3, 	+3, 	-5};
+static float K8[9] = {+3,  	+3,  	+3,
+                        +3, 	0, 	-5,
+                        +3, 	-5, 	-5};
 
 const int maxKernelSize = 5;
 
@@ -56,7 +108,10 @@ const int maxKernelSize = 5;
 
 
 
-
+static float Sobel3XHorz[3] = {1.3161f, 0 ,-1.3161f};
+static float Sobel3XVert[3] = {-.7598f, -1.5197f,-.7598f};
+static float Sobel3YHorz[3] = {.7598f, 1.5197f,.7598f};
+static float Sobel3YVert[3] = {-1.3161f, 0 ,1.3161f};
 
 static float GN9[9] = { -0.0630f,               // for negative Gaussian, sigma is 3 here
                        -0.0929f,

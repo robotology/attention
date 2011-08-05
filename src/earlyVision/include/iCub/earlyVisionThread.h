@@ -71,9 +71,6 @@
 #endif
 
 
-
-
-
 class earlyVisionThread : public yarp::os::Thread 
 {
 private:
@@ -104,20 +101,33 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage1;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage2;
+    SobelOutputImage *tmpMonoSobelImage1;
+    SobelOutputImage *tmpMonoSobelImage2;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelHorz;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelVert;
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *orientationImage;
+    KirschOutputImage *o0;
+    KirschOutputImage *o45;
+    KirschOutputImage *o90;
+    KirschOutputImage *oM45;
 
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono16> ,uchar >* sobelHorXConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono16>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono16> ,uchar >* sobelVerXConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono16> ,uchar >* sobelHorYConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono16>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono16> ,uchar >* sobelVerYConvolution;
+    
+    
+    
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* kirschConvolution;
+
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution0;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution45;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution90;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolutionM45;
+
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
+sobel2DXConvolution;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
+sobel2DYConvolution;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;
     
@@ -139,7 +149,10 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;  
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort45;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort90;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPortM45;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;  
@@ -195,8 +208,12 @@ private:
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
+    int sobelIsNormalized;
+    int kirschIsNormalized;
 
     int minVal;
+    float sobelLimits[2];   // maximum and minimum of Sobel operator results
+    float kirschLimits[4][2];   //maximum and minimum of Kirsch operator for each orientation
 
 public:
     /**

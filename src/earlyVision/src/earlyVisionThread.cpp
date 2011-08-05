@@ -57,17 +57,31 @@ earlyVisionThread::earlyVisionThread() {
 
     
     tmpMonoLPImage      = new ImageOf<PixelMono>;
+
     tmpMono16LPImage    = new ImageOf<PixelMono16>;
     tmpMono16LPImage1   = new ImageOf<PixelMono16>;
     tmpMono16LPImage2   = new ImageOf<PixelMono16>;
+
+    
+
+    tmpMonoSobelImage1  = new SobelOutputImage;
+    tmpMonoSobelImage2  = new SobelOutputImage;
+
+    o0      = new KirschOutputImage;
+    o45     = new KirschOutputImage;
+    o90     = new KirschOutputImage;
+    oM45    = new KirschOutputImage;
+    
+    
+
     tmpMonoLPImageSobelHorz      = new ImageOf<PixelMono>;
     tmpMonoLPImageSobelVert      = new ImageOf<PixelMono>;
 
-    orientationImage    = new ImageOf<PixelMono>;
+    
     
     
 
-    edges               = new ImageOf<PixelMono>;
+    edges               = new yarp::sig::ImageOf<yarp::sig::PixelMono>;
     
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
@@ -82,16 +96,32 @@ earlyVisionThread::earlyVisionThread() {
     Uplane            = new ImageOf<PixelMono>;
     Vplane            = new ImageOf<PixelMono>;
 
-    sobelHorXConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono16>,uchar>(3,Sobel3XHorz,0,250.0,0);
-    sobelVerXConvolution =  new convolve<ImageOf<PixelMono16>,uchar,ImageOf<PixelMono16>,uchar>(3,Sobel3XVert,1,250.0,0);
-    sobelHorYConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono16>,uchar>(3,Sobel3YHorz,0,250.0,0);
-    sobelVerYConvolution =  new convolve<ImageOf<PixelMono16>,uchar,ImageOf<PixelMono16>,uchar>(3,Sobel3YVert,1,250.0,0);
     gaborPosHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
     gaborPosVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
     gaborNegHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
     gaborNegVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);
 
-    kirschConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,K1,.005,0);
+    kirschConvolution0 =  new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
+    kirschConvolution45 =  new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K6,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
+    kirschConvolution90 =  new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K5,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
+    kirschConvolutionM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K7,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
+    
+    sobel2DXConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DXgrad,SOBEL_FACTOR,SOBEL_SHIFT);
+    sobel2DYConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DYgrad,SOBEL_FACTOR,SOBEL_SHIFT);
+    sobelIsNormalized = 0;
+    sobelLimits[0] = 0;
+    sobelLimits[1] = 2.0;
+
+    kirschIsNormalized = 0;
+    kirschLimits[0][0] = 0;
+    kirschLimits[0][1] = 2.0;
+    kirschLimits[1][0] = 0;
+    kirschLimits[1][1] = 2.0;
+    kirschLimits[2][0] = 0;
+    kirschLimits[2][1] = 2.0;
+    kirschLimits[3][0] = 0;
+    kirschLimits[3][1] = 2.0;
+    
 
     img_Y = new ImageOf<PixelMono>;
 	img_UV = new ImageOf<PixelMono>;
@@ -140,16 +170,22 @@ earlyVisionThread::~earlyVisionThread() {
     delete tmpMono16LPImage2;
     delete tmpMonoLPImageSobelHorz;
     delete tmpMonoLPImageSobelVert;
-    delete orientationImage;
-    delete sobelHorXConvolution;
-    delete sobelVerXConvolution;
-    delete sobelHorYConvolution;
-    delete sobelVerYConvolution;
+    delete tmpMonoSobelImage1;
+    delete tmpMonoSobelImage2;
     delete gaborPosHorConvolution;    
     delete gaborPosVerConvolution;    
     delete gaborNegHorConvolution;    
     delete gaborNegVerConvolution;
-    delete kirschConvolution;    
+    delete kirschConvolution0;
+    delete kirschConvolution45;
+    delete kirschConvolution90;
+    delete kirschConvolutionM45;
+    delete sobel2DXConvolution;
+    delete sobel2DYConvolution;
+    delete o0;
+    delete o45;
+    delete o90;
+    delete oM45;    
     delete edges;
     delete YofYUV;
     delete intensImg;
@@ -197,7 +233,19 @@ bool earlyVisionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-    if (!orientPort.open(getName("/orientation:o").c_str())) {
+    if (!orientPort0.open(getName("/orientation0:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!orientPort45.open(getName("/orientation45:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!orientPort90.open(getName("/orientation90:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!orientPortM45.open(getName("/orientationM45:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -300,12 +348,7 @@ void earlyVisionThread::run() {
             edgesExtract();
         
             
-            // orientation port
             
-            if((orientationImage!=0)&&(orientPort.getOutputCount())) {
-                orientPort.prepare() = *(orientationImage);
-                orientPort.write();
-                }
 
             if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
@@ -332,11 +375,6 @@ void earlyVisionThread::run() {
    }
 }
 
-/*void earlyVisionThread::resizeCartesian(int width,int height) {
-    cartImage->resize(width, height);
-    width_cart = width;
-    height_cart = height;
-}*/
 
 
 void earlyVisionThread::resize(int width_orig,int height_orig) {
@@ -369,6 +407,15 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     tmpMono16LPImage2->resize(width, height);
     tmpMonoLPImageSobelHorz->resize(width, height);
     tmpMonoLPImageSobelVert->resize(width, height);
+    tmpMonoSobelImage1->resize(width,height);
+    tmpMonoSobelImage2->resize(width,height);
+
+    // for Kirsch
+    o0->resize(width, height);
+    o45->resize(width, height);
+    o90->resize(width, height);
+    oM45->resize(width, height);
+    
     
 
     edges->resize(width, height);
@@ -488,10 +535,7 @@ void earlyVisionThread::extractPlanes() {
             *YUV[1] = -.14713* (*shift[0]) + -.28886 * (*shift[1]) + .436 * (*shift[2]);
             *YUV[2] = .615* (*shift[0]) + -.51499 * (*shift[1]) + -.10001 * (*shift[2]);
 
-            // CS, take in IPP planes
-            /**CSPlane[0]++ = *YUV[0];
-            *CSPlane[1]++ = *YUV[1];
-            *CSPlane[2]++ = *YUV[2];*/
+            
             YUV[0]++;
             YUV[1]++;
             YUV[2]++;
@@ -509,9 +553,7 @@ void earlyVisionThread::extractPlanes() {
         YUV[0] += padMono;
         YUV[1] += padMono;
         YUV[2] += padMono;
-        //CSPlane[0] += padPlane1;
-        //CSPlane[1] += padPlane2;
-        //CSPlane[2] += padPlane3;
+        
                 
     } 
 
@@ -598,13 +640,13 @@ void earlyVisionThread::centerSurrounding(){
         }
 
 
-        //revert to yarp images
-        //img_Y->zero();
-        //cvCopy(ycs_out,(IplImage*)img_Y->getIplImage());
-
+        cvNamedWindow("Y");
+        cvShowImage("Y",(IplImage*)img_Y->getIplImage());
+        cvNamedWindow("UV");
+        cvShowImage("UV",(IplImage*)img_UV->getIplImage());
+        cvWaitKey(0);
         
-        
-        
+            
         
        
 
@@ -733,12 +775,117 @@ void earlyVisionThread::colorOpponency(){
 
 void earlyVisionThread::orientation() {
 
+    // orientation port
+    ImageOf<PixelMono>& ori0 =  orientPort0.prepare();
+    ori0.resize(Yplane->width(),Yplane->height());
+    ImageOf<PixelMono>& ori45 =  orientPort45.prepare();
+    ori45.resize(Yplane->width(),Yplane->height());
+    ImageOf<PixelMono>& ori90 =  orientPort90.prepare();
+    ori90.resize(Yplane->width(),Yplane->height());
+    ImageOf<PixelMono>& oriM45 =  orientPortM45.prepare();
+    oriM45.resize(Yplane->width(),Yplane->height());
 
+    ori0.zero();
+    ori45.zero();
+    ori90.zero();
+    oriM45.zero();
+       
     // Using Kirsch matrix
-    orientationImage->zero();
-    kirschConvolution->convolve2D(Yplane,orientationImage);
+    kirschConvolution0->convolve2D(Yplane,o0);
+    kirschConvolution45->convolve2D(Yplane,o45);
+    kirschConvolution90->convolve2D(Yplane,o90);
+    kirschConvolutionM45->convolve2D(Yplane,oM45);
+    
+    
      
 
+    uchar* ori[4]= {(uchar*)ori0.getRawImage(),
+                    (uchar*)ori45.getRawImage(),
+                    (uchar*)ori90.getRawImage(),
+                    (uchar*)oriM45.getRawImage()};
+
+    KirschOutputImagePtr* p[4] = { (KirschOutputImagePtr*)o0->getRawImage(),
+                                    (KirschOutputImagePtr*)o45->getRawImage(),
+                                    (KirschOutputImagePtr*)o90->getRawImage(),
+                                    (KirschOutputImagePtr*)oM45->getRawImage()};
+
+     
+    const int pad_output = ori0.getPadding()/sizeof(uchar);
+    int padK = o0->getPadding()/sizeof(KirschOutputImagePtr);
+    
+
+    // LATER: Do not consider extended portion
+    #ifdef USE_PROPORTIONAL_KIRSCH
+    float normalizingRatio[4];
+    normalizingRatio[0]= 255.0/(kirschLimits[0][0]-kirschLimits[0][1]);
+    normalizingRatio[1]= 255.0/(kirschLimits[1][0]-kirschLimits[1][1]);
+    normalizingRatio[2]= 255.0/(kirschLimits[2][0]-kirschLimits[2][1]);
+    normalizingRatio[3]= 255.0/(kirschLimits[3][0]-kirschLimits[3][1]);
+    #endif
+
+    for (int row = 0; row < ori0.height(); row++) {
+        for (int col = 0; col < ori0.width(); col++) {
+
+            #ifdef USE_PROPORTIONAL_KIRSCH
+            if (row < height_orig) {
+                if(kirschIsNormalized< KIRSCH_FLICKER){
+                    for(int i=0; i<4; ++i){
+                        kirschLimits[i][0] = kirschLimits[i][0]<*p[i]?*p[i]:kirschLimits[i][0]; // max
+                        kirschLimits[i][1] = kirschLimits[i][1]>*p[i]?*p[i]:kirschLimits[i][1]; // min
+                        *ori[i] = abs(*p[i])*255;
+                                                
+                    }
+                }
+                else {
+                    for(int i=0; i<4; ++i){
+                        float tmpV = 255.0 *abs(*p[i]);//normalizingRatio[i]*(*p[i]-kirschLimits[i][1]);
+                        *ori[i] = tmpV>255?255:tmpV<0?0:(unsigned char)tmpV;
+                    }
+                }
+            }
+            #else
+            if (row < height_orig) { 
+                for(int i=0; i<4; ++i){
+                            float tmpV = 255.0 *abs(*p[i]);
+                            *ori[i] = tmpV>255?255:tmpV<0?0:(unsigned char)tmpV;
+                        }
+            }
+            #endif
+            //
+            
+            ori[0]++;
+            p[0]++;
+            ori[1]++;
+            p[1]++;
+            ori[2]++;
+            p[2]++;
+            ori[3]++;
+            p[3]++;
+             
+            
+        }
+        // padding
+        ori[0] += pad_output;
+        p[0] += padK; 
+        ori[1] += pad_output;
+        p[1] += padK; 
+        ori[2] += pad_output;
+        p[2] += padK; 
+        ori[3] += pad_output;
+        p[3] += padK; 
+               
+    } 
+
+    kirschIsNormalized++;
+
+   
+     
+    orientPort0.write();
+    orientPort45.write();
+    orientPort90.write();
+    orientPortM45.write();
+
+    
     
   
 }
@@ -747,43 +894,53 @@ void earlyVisionThread::orientation() {
 
 void earlyVisionThread::edgesExtract() {
 
-    tmpMono16LPImage->zero();
-    tmpMono16LPImage1->zero();
     
-    IplImage* tmpI = (IplImage*)tmpMono16LPImage->getIplImage();
-    IplImage* tmpIn = (IplImage*)intensImg->getIplImage();
     
-
     // X derivative 
-    sobelHorXConvolution->convolve1D(intensImg,tmpMono16LPImage);
-    sobelVerXConvolution->convolve1D(tmpMono16LPImage,tmpMono16LPImage1);
+    tmpMonoSobelImage1->zero();
+    sobel2DXConvolution->convolve2D(intensImg,tmpMonoSobelImage1);
 
-    tmpMono16LPImage->zero();
-    tmpMono16LPImage2->zero();
+    
+    
 
-    // Y derivative 
-    sobelHorYConvolution->convolve1D(intensImg,tmpMono16LPImage);
-    sobelVerYConvolution->convolve1D(tmpMono16LPImage,tmpMono16LPImage2);
+    // Y derivative
+    tmpMonoSobelImage2->zero();     // This can be removed 
+    sobel2DYConvolution->convolve2D(intensImg,tmpMonoSobelImage2);
+    
+    cvNamedWindow("edgesY");
+    cvShowImage("edgesY",(IplImage*)tmpMonoSobelImage2->getIplImage());
+    cvNamedWindow("edgesX");
+    cvShowImage("edgesX",(IplImage*)tmpMonoSobelImage1->getIplImage());
     
 
     //clearing up the previous value
     edges->zero();
-    uchar* pedges=edges->getRawImage();
-    uchar* ptrHorz = tmpMono16LPImage1->getRawImage();
-    uchar* ptrVert = tmpMono16LPImage2->getRawImage();
+
+    uchar* pedges= (uchar*)edges->getRawImage();
+    SobelOutputImagePtr* ptrHorz = (SobelOutputImagePtr*)tmpMonoSobelImage1->getRawImage();
+    SobelOutputImagePtr* ptrVert = (SobelOutputImagePtr*)tmpMonoSobelImage2->getRawImage();
      
-    const int pad_edges = edges->getPadding();
-    int padHorz = tmpMono16LPImage1->getPadding();
-    int padVert = tmpMono16LPImage2->getPadding();
+    const int pad_edges = edges->getPadding()/sizeof(uchar);
+    int padHorz = tmpMonoSobelImage1->getPadding()/sizeof(SobelOutputImagePtr);
+    int padVert = tmpMonoSobelImage2->getPadding()/sizeof(SobelOutputImagePtr);
 
     // LATER: Do not consider extended portion
-    
-    for (int row = 0; row < height; row++) {
-        for (int col = 0; col < width; col++) {
+    float normalizingRatio = 255.0/(sobelLimits[0]-sobelLimits[1]);
+    for (int row = 0; row < edges->height(); row++) {
+        for (int col = 0; col < edges->width(); col++) {
 
             if (row < height_orig) {
-                double rg = (*ptrHorz ) * (*ptrHorz ) + (*ptrVert ) * (*ptrVert );
-                *pedges = (unsigned char)(sqrt(rg)); 
+                double rg = sqrt((*ptrHorz ) * (*ptrHorz ) + (*ptrVert ) * (*ptrVert ))*0.707106781;
+                
+                if(sobelIsNormalized < SOBEL_FLICKER){
+                    sobelLimits[0] = sobelLimits[0]<rg?rg:sobelLimits[0];   // max
+                    sobelLimits[1] = sobelLimits[1]>rg?rg:sobelLimits[1];   //min
+                    *pedges = (uchar)(255*rg);
+                    
+                }
+                else {
+                    *pedges = (uchar)(normalizingRatio*(rg-sobelLimits[1]));
+                }
             }
             else
                 *pedges = 0;
@@ -798,6 +955,7 @@ void earlyVisionThread::edgesExtract() {
         ptrVert += padVert;        
     } 
 
+    sobelIsNormalized++;
     
     
 }
@@ -952,7 +1110,10 @@ void earlyVisionThread::onStop() {
     intenPort.interrupt();
     chromPort.interrupt();
     edgesPort.interrupt();
-    orientPort.interrupt();
+    orientPort0.interrupt();
+    orientPort45.interrupt();
+    orientPort90.interrupt();
+    orientPortM45.interrupt();
     colorOpp1Port.interrupt();
     colorOpp2Port.interrupt();
     colorOpp3Port.interrupt();
@@ -962,7 +1123,10 @@ void earlyVisionThread::onStop() {
     intenPort.close();
     chromPort.close();
     edgesPort.close();
-    orientPort.close();
+    orientPort0.close();
+    orientPort45.close();
+    orientPort90.close();
+    orientPortM45.close();
     colorOpp1Port.close();
     colorOpp2Port.close();
     colorOpp3Port.close();

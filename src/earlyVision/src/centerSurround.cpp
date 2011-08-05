@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include "iCub/centerSurround.h"
 
+
 #define KERNSIZE 3    //kernsize (odd, >= 3)
 
 using namespace std;
@@ -143,7 +144,7 @@ void CenterSurround::make_pyramid( IplImage* im_32f)
     su = 2.0;
     for (int sg=1;sg<ngauss;sg++){
         //Downsize previous pyramid image by half:
-        int interpolation = CV_INTER_AREA;// IPPI_INTER_LANCZOS
+        int interpolation = CV_INTER_AREA;// IPPI_INTER_LANCZOS is not available in openCV
         
         cvResize(pyramid[sg-1],pyramid[sg],interpolation);
         
