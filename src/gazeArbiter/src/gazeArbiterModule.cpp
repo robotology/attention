@@ -263,8 +263,8 @@ bool gazeArbiterModule::updateModule() {
     return true;
 }
 
-double gazeArbiterModule::getPeriod() {
+//double gazeArbiterModule::getPeriod() {
     /* module periodicity (seconds), called implicitly by myModule */
-    return 1.0;
-}
+//    return 1.0;
+//}
 
