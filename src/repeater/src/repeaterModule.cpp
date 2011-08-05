@@ -138,9 +138,9 @@ bool repeaterModule::updateModule()
     return true;
 }
 
-double repeaterModule::getPeriod()
-{
+//double repeaterModule::getPeriod()
+//{
     /* module periodicity (seconds), called implicitly by myModule */
-    return 0.1;
-}
+//    return 0.1;
+//}
 

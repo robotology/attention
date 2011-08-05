@@ -195,7 +195,7 @@ public:
     /**
     *  unimplemented
     */
-    double getPeriod();
+    //double getPeriod();
 
     /**
     *  unimplemented
