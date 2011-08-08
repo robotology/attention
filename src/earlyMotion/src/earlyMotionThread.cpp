@@ -32,6 +32,7 @@ using namespace yarp::sig;
 using namespace std;
 
 const int maxKernelSize = 5;
+const int increment     = 50;
 
 template<class T>
 inline T max(T a, T b, T c) {    
@@ -41,22 +42,18 @@ inline T max(T a, T b, T c) {
 }
 
 earlyMotionThread::earlyMotionThread() {
-    
-    inputExtImage = new ImageOf<PixelRgb>;
-    inputImageFiltered = new ImageOf<PixelRgb>;
-    motion = new ImageOf<PixelMono>;
-
-    lambda = 0.05f;
-
+    count = 1;
+    inputExtImage      = new ImageOf<PixelRgb>;
+    inputImageFiltered = new ImageOf<PixelMono>;
+    motion             = new ImageOf<PixelMono>;
+    lambda = 0.3f;
     resized = false;
 }
 
 earlyMotionThread::~earlyMotionThread() {
-    
     delete inputExtImage;
     delete inputImageFiltered;
     delete inputImage;
-
     delete motion;    
 }
 
@@ -92,44 +89,11 @@ std::string earlyMotionThread::getName(const char* p) {
     return str;
 }
 
-void earlyMotionThread::run() {
-    while (isStopping() != true) {
-        inputImage = imagePortIn.read(true);
-
-        if (inputImage != NULL) {
-            if (!resized) {
-                resize(inputImage->width(), inputImage->height());
-                resized = true;
-            }
-            else {
-                //filterInputImage();
-            }
-          
-            // sending the edge image on the outport                 
-            // the copy to the port object can be avoided...
-            if((motionPort.getOutputCount())) {
-                ImageOf<PixelMono>& out = motionPort.prepare();
-                out.resize(width, height);
-                
-                // extend logpolar input image
-                //extender(inputImage, maxKernelSize);
-                
-                //extractPlanes();
-                
-                temporalSubtraction(&out);
-                motionPort.write();
-            }
-
-            
-        }
-   }
-}
-
 void earlyMotionThread::resize(int width_orig,int height_orig) {
-    this->width_orig = width_orig;
+    this->width_orig  = width_orig;
     this->height_orig = height_orig;
-    this->width = width_orig+2*maxKernelSize;
-    this->height = height_orig+maxKernelSize;
+    this->width  = width_orig  + 2 * maxKernelSize;
+    this->height = height_orig + maxKernelSize;
 
     // resizing the ROI
     //originalSrcsize.height = height_orig;
@@ -139,18 +103,72 @@ void earlyMotionThread::resize(int width_orig,int height_orig) {
 
     // resizing plane images
     motion->resize(width_orig, height_orig);
+
+
+    imageT1 = new ImageOf<PixelMono>;
+    imageT1->resize(width_orig, height_orig);
+    imageT1->zero();
+    imageT2 = new ImageOf<PixelMono>;
+    imageT2->resize(width_orig, height_orig);
+    imageT2->zero();
+    imageT3 = new ImageOf<PixelMono>;
+    imageT3->resize(width_orig, height_orig);
+    imageT3->zero();
+    imageT4 = new ImageOf<PixelMono>;
+    imageT4->resize(width_orig, height_orig);
+    imageT4->zero();
+        
     inputImageFiltered->resize(width_orig, height_orig);
     inputImageFiltered->zero();
  
-    inputExtImage->resize(width,height);
-    
+    inputExtImage->resize(width,height);   
 }
+
+void earlyMotionThread::run() {
+    while (isStopping() != true) {
+        count++;
+        inputImage = imagePortIn.read(true);
+        
+        if (inputImage != NULL) {
+            if (!resized) {
+                resize(inputImage->width(), inputImage->height());
+                resized = true;
+            }
+            else {
+                filterInputImage();
+            }
+            
+            
+            
+            // sending the edge image on the outport                 
+            // the copy to the port object can be avoided...
+            if((motionPort.getOutputCount())) {
+                ImageOf<PixelMono>& out = motionPort.prepare();
+                out.resize(width_orig, height_orig);
+                out.zero();
+                
+                // extend logpolar input image
+                //extender(inputImage, maxKernelSize);
+                
+                //extractPlanes();
+                
+                temporalSubtraction(&out);
+                motionPort.write();
+            }            
+            if(count % 1 == 0) {
+                temporalStore();
+                count=1;
+            }
+        }
+    }
+}
+
 
 void earlyMotionThread::filterInputImage() {
     int i;
     const int sz = inputImage->getRawImageSize();
     unsigned char * pFiltered = inputImageFiltered->getRawImage();
-    unsigned char * pCurr = inputImageFiltered->getRawImage();
+    unsigned char * pCurr     = inputImage->getRawImage();
     const float ul = 1.0f - lambda;
     for (i = 0; i < sz; i++) {
         *pFiltered = (unsigned char)(lambda * *pCurr++ + ul * *pFiltered + .5f);
@@ -163,49 +181,82 @@ ImageOf<PixelRgb>* earlyMotionThread::extender(ImageOf<PixelRgb>* inputOrigImage
     return inputExtImage;
 }
 
-void earlyMotionThread::extractPlanes() {
-    
-
-    /* use getPadding!!!! */
-    //int paddingMono = redPlane->getPadding(); 
+void earlyMotionThread::extractPlanes() { 
     int padding3C = inputExtImage->getPadding(); 
 
     const int h = inputExtImage->height();
     const int w = inputExtImage->width();
-
     
 }
 
 void earlyMotionThread::temporalStore() {
     int padding = inputImage->getPadding();
-    unsigned char* pin = inputImage->getRawImage();
-    for(int row = 0; row < height; row++) {
-        for(int col = 0; col < width ; col++) {
-            *imageT3 = *imageT2;
-            *imageT2 = *imageT1;
-            *imageT1 = *inputImage;    
-            imageT1++;
-            imageT2++;
-            imageT3++;
-            inputImage++;
+    unsigned char* pin      = inputImage->getRawImage();
+    unsigned char* pimageT1 = imageT1->getRawImage();
+    unsigned char* pimageT2 = imageT2->getRawImage();
+    unsigned char* pimageT3 = imageT3->getRawImage();
+    unsigned char* pimageT4 = imageT4->getRawImage();
+ 
+    for(int row = 0; row < height_orig; row++) {
+        for(int col = 0; col < width_orig ; col++) {
+            *pimageT4 = *pimageT3;
+            *pimageT3 = *pimageT2;
+            *pimageT2 = *pimageT1;
+            *pimageT1 = *pin;    
+            pimageT1++;
+            pimageT2++;
+            pimageT3++;
+            pimageT4++;
+            pin++;
         }
-        inputImage  += padding;
-        imageT1  += padding;
-        imageT2  += padding;
-        imageT3  += padding;
+        pin  += padding;
+        pimageT1  += padding;
+        pimageT2  += padding;
+        pimageT3  += padding;
+        pimageT4  += padding;
     }
 }
 
 void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     int padding = inputImage->getPadding();
-    unsigned char* pin = inputImage->getRawImage();
+    unsigned char* pin  = inputImageFiltered->getRawImage();
     unsigned char* pout = outputImage->getRawImage();
-    for(int row = 0; row < height; row++) {
-        for(int col = 0; col < width ; col++) {
-            *inputImage++ = *outputImage++;
+    unsigned char* pimageT1 = imageT1->getRawImage();
+    unsigned char* pimageT2 = imageT2->getRawImage();
+    unsigned char* pimageT3 = imageT3->getRawImage();
+    unsigned char* pimageT4 = imageT4->getRawImage();
+    
+    unsigned char diff10, diff21, diff32, diff20, diff30, diff40;
+
+    for(int row = 0; row < height_orig; row++) {
+        for(int col = 0; col < width_orig ; col++) {
+            diff10 = (*pin - *pimageT1)      * (*pin - *pimageT1);
+            diff21 = (*pimageT2 - *pimageT3) * (*pimageT2 - *pimageT3);
+            diff32 = (*pimageT3 - *pimageT2) * (*pimageT3 - *pimageT2);
+            diff20 = (*pin - *pimageT2)      * (*pin - *pimageT2);
+            diff30 = (*pin - *pimageT3)      * (*pin - *pimageT3);
+            diff40 = (*pin - *pimageT4)      * (*pin - *pimageT4);
+
+            //*pout = *pin;
+            
+            *pout += floor(10.0 * sqrt(diff10 + diff20 + diff30 + diff40) * ( row  / (double)height_orig ));
+            if(*pout>200){
+                *pout = 255;
+            }
+                     
+            pout++;
+            pin++;
+            pimageT1++;
+            pimageT2++;
+            pimageT3++;
+            pimageT4++;
         }
-        inputImage  += padding;
-        outputImage += padding;
+        pin      += padding;
+        pout     += padding;
+        pimageT1 += padding;
+        pimageT2 += padding;
+        pimageT3 += padding;
+        pimageT4 += padding;
     }
 }
 
@@ -218,7 +269,6 @@ void earlyMotionThread::onStop() {
     imagePortIn.interrupt();
     //imagePortOut.interrupt();
     //imagePortExt.interrupt();
-
     
     motionPort.close();
     //imagePortExt.close();

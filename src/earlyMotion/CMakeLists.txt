@@ -14,7 +14,8 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${logpolar_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS} 	
-    ${IPP_INCLUDE_DIRS}	
+    ${IPP_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIR}	
 )
 
 # Search for source code.
@@ -30,7 +31,7 @@ IF (folder_source)
         ${folder_header}
     )
 
-    TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${IPP_LIBRARIES} ${YARP_LIBRARIES})	
+    TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${IPP_LIBRARIES} ${OpenCV_LIBS} ${YARP_LIBRARIES})	
     INSTALL_TARGETS(/bin ${KEYWORD})
 	
 ELSE (folder_source)

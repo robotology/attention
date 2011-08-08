@@ -135,6 +135,7 @@
 
 /**
  * CHANGE LOG
+ * 08/08/11 : added a factor to compensate for logpolar noise in fovea                  @Rea
  */
 
 

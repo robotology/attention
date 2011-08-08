@@ -39,8 +39,8 @@
 class earlyMotionThread : public yarp::os::Thread
 {
 private:
-    
-    int psb;
+
+    int count;                          // iteration counter for time division
     int width_orig, height_orig;        // dimension of the input image (original)
     int width, height;                  // dimension of the extended input image (extending)
     int size1;                          // size of the buffer
@@ -48,12 +48,13 @@ private:
     float lambda;                       // costant for the temporal filter
    
     yarp::sig::ImageOf<yarp::sig::PixelMono> *inputImage;           // input image
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *inputImageFiltered;    // time filtered input image
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *inputExtImage;         // extended input image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *inputImageFiltered;   // time filtered input image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *inputExtImage;        // extended input image
         
     yarp::sig::ImageOf<yarp::sig::PixelMono> *imageT1;              // image of t-1 temporal space
     yarp::sig::ImageOf<yarp::sig::PixelMono> *imageT2;              // image of t-2 temporal space
     yarp::sig::ImageOf<yarp::sig::PixelMono> *imageT3;              // image of t-3 temporal space
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *imageT4;              // image of t-3 temporal space
     
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *motion;                // edges of colour opponency maps 

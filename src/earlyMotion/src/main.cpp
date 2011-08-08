@@ -26,21 +26,21 @@
 
 #include <yarp/os/all.h>
 
-//#include <iCub/earlyMotionModule.h>
+#include <iCub/earlyMotionModule.h>
 
 int main(int argc, char * argv[])
 {
 
-    // yarp::os::Network yarp;
-    //earlyMotionModule module; 
+    yarp::os::Network yarp;
+    earlyMotionModule module; 
 
-    //yarp::os::ResourceFinder rf;
-    //rf.setVerbose(true);
-    //rf.setDefaultConfigFile("earlyMotionModule.ini"); //overridden by --from parameter
-    //rf.setDefaultContext("logpolarAttention/conf");   //overridden by --context parameter
-    //rf.configure("ICUB_ROOT", argc, argv);
+    yarp::os::ResourceFinder rf;
+    rf.setVerbose(true);
+    rf.setDefaultConfigFile("earlyMotionModule.ini"); //overridden by --from parameter
+    rf.setDefaultContext("logpolarAttention/conf");   //overridden by --context parameter
+    rf.configure("ICUB_ROOT", argc, argv);
  
-    //module.runModule(rf);
+    module.runModule(rf);
     return 0;
 }
 
