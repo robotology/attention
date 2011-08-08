@@ -30,7 +30,7 @@ template<class inputImage,class ptrInput, class outputImage, class ptrOutput>
 class convolve {
 
         int kernelWidth;        // width of the kernel. When 1D kernel is applied in horizontal, this is length
-        int kernelHeight;       // height of the kernel. When 1D kernel is applied in horizontal, this is length       
+        int kernelHeight;       // height of the kernel. When 1D kernel is applied in vertical, this is length       
         float* kernel;          // pointer to kernel values
         int direction;          // direction in which kernel is applied,(0,1,2) for (horizontal,vertical,both)
         float factor;           // scaling factor applied to kernel multiplication
@@ -67,6 +67,7 @@ class convolve {
      * @param kernel pointer to float array representing kernel values
      * @param scale scaling factor applied to kernel multiplication
      * @param shift shift in values applied to kernel multiplication
+     * @param flicker count of kernel operations where the min and max will be calculated to normalise it later
      */
         convolve(int width,int height,float* kernel, float scale,int shift,int flicker=0){
         
@@ -80,7 +81,13 @@ class convolve {
             this->flicker       = flicker;
             this->limits[0]     = -10000;       // max
             this->limits[1]     = 10000;        // min
-            this->kernelIsDefined = true;               //LATER: more assertions
+            if(kernel == NULL || width <0 || height<0){
+                this->kernelIsDefined = false;
+            }
+            else {
+                this->kernelIsDefined = true;               
+            }
+            assert(this->kernelIsDefined);
         };
     /**
      * For a linear kernel. For separable 2D kernels, this can be efficient way to do
@@ -89,6 +96,7 @@ class convolve {
      * @param direction direction of the kernel, 0 implies horizontal and 1 implies vertical
      * @param scale scaling factor applied to kernel multiplication
      * @param shift shift in values applied to kernel multiplication
+     * @param flicker count of kernel operations where the min and max will be calculated to normalise it later
      */
         convolve(int length,float* kernel,int direction,float scale,int shift,int flicker=0){
         
@@ -114,11 +122,29 @@ class convolve {
                 this->limits[0] = 255.0;
                 this->limits[1] = 0.0;
             }
-            this->kernelIsDefined = true;               //LATER: more assertions
+            if(kernel == NULL || length <0){
+                this->kernelIsDefined = false;
+            }
+            else {
+                this->kernelIsDefined = true;               
+            }
+            assert(this->kernelIsDefined);
         };
         ~convolve(){
-            //nothing
+            //nothing 
         };
+
+    /**
+     * For setting a kernel. This could be used to reuse a kernel object
+     * @param length legnth of vector representing values of kernel
+     * @param kernel pointer to float array representing kernel values
+     * @param direction direction of the kernel, 0 implies horizontal and 1 implies vertical
+     * @param scale scaling factor applied to kernel multiplication
+     * @param shift shift in values applied to kernel multiplication
+     * @param flicker count of kernel operations where the min and max will be calculated to normalise it later
+     * @param upLimit the upper limit observed in kernel output during convolution(used for normalising)
+     * @param downLimit the lower limit observed in kernel output during convolution(used for normalising)
+     */
 
         void setKernelParameters(int width,int height,float* kernel, float scale,int shift,int flicker, float upLimit, float downLimit){
         
@@ -136,11 +162,13 @@ class convolve {
         };
 
 
-        // Convolution of a kernel with image, in given direction
+    /**
+     * For 1D convolution ie convolving a vector with a matrix
+     * @param img input image
+     * @param resImg resultant image after applying the kernel
+     */
         void convolve1D(inputImage* img,outputImage* resImg){
             assert(kernelIsDefined);
-            float maxPixelVal = 0;
-            float minPixelVal = -256;
             int rowSize         = img->getRowSize()/sizeof(ptrInput);
             int resRowSize = resImg->getRowSize()/sizeof(ptrOutput);
             ptrInput* mat = (ptrInput*)img->getRawImage();
@@ -207,15 +235,20 @@ class convolve {
                     }
                 } 
             }
-           else; // wrong direction
+           else {
+                assert(direction==0 || direction==1); // wrong direction
+                }
             
         }
 
+    /**
+     * For 2D convolution ie convolving a matrix with a matrix. This is unavoidable when kernel is non-seperable
+     * @param img input image
+     * @param resImg resultant image after applying the kernel
+     */
         void convolve2D(inputImage* img,outputImage* resImg){
             
             assert(kernelIsDefined);
-            float maxPixelVal = 0;
-            float minPixelVal = -256;
             int rowSize         = img->getRowSize()/sizeof(ptrInput);
             int resRowSize = resImg->getRowSize()/sizeof(ptrOutput);
             
