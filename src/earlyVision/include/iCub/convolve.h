@@ -166,8 +166,9 @@ class convolve {
      * For 1D convolution ie convolving a vector with a matrix
      * @param img input image
      * @param resImg resultant image after applying the kernel
+     * @param borderType an integer parameter for type of border 0: kernel from (0,0) 1: kernel all within
      */
-        void convolve1D(inputImage* img,outputImage* resImg){
+        void convolve1D(inputImage* img,outputImage* resImg, int borderType = 0){
             assert(kernelIsDefined);
             int rowSize         = img->getRowSize()/sizeof(ptrInput);
             int resRowSize = resImg->getRowSize()/sizeof(ptrOutput);
@@ -175,10 +176,14 @@ class convolve {
             ptrOutput* res = (ptrOutput*)resImg->getRawImage();
             int rowPos = 0; int pixPos =0;    
             float scalingVal = 1.0/(limits[0] -limits[1]);
+            int shiftSqKernel = 0;
+            if(borderType == 1){
+                shiftSqKernel = kernelWidth/2;
+            }
             if(this->direction == 0){ //horizontal convolution
                 float* midVec = kernel + this->kernelWidth/2; // middle of linear kernel    
-                for(int i=0;i<resImg->height();++i){
-                    for(int j=0;j<resImg->width();++j){
+                for(int i=shiftSqKernel;i<resImg->height()-shiftSqKernel;++i){
+                    for(int j=shiftSqKernel;j<resImg->width()-shiftSqKernel;++j){
                         rowPos = i*resRowSize;
                         pixPos = j;
                         float sum = *midVec * *(mat+rowPos+pixPos);
@@ -207,8 +212,8 @@ class convolve {
             } 
             else if(this->direction == 1){
                 float* midVec = kernel + this->kernelHeight/2; // middle of linear kernel    
-                for(int i=0;i<resImg->height();++i){
-                    for(int j=0;j<resImg->width();++j){
+                for(int i=shiftSqKernel;i<resImg->height()-shiftSqKernel;++i){
+                    for(int j=shiftSqKernel;j<resImg->width()-shiftSqKernel;++j){
                         rowPos = j;
                         pixPos = i;
                         float sum = *midVec * *(mat+pixPos*rowSize+rowPos);
@@ -245,8 +250,9 @@ class convolve {
      * For 2D convolution ie convolving a matrix with a matrix. This is unavoidable when kernel is non-seperable
      * @param img input image
      * @param resImg resultant image after applying the kernel
+     * @param borderType an integer parameter for type of border 0: kernel from (0,0) 1: kernel all within
      */
-        void convolve2D(inputImage* img,outputImage* resImg){
+        void convolve2D(inputImage* img,outputImage* resImg, int borderType = 0){
             
             assert(kernelIsDefined);
             int rowSize         = img->getRowSize()/sizeof(ptrInput);
@@ -259,9 +265,13 @@ class convolve {
             int padOutput = resImg->getPadding()/sizeof(ptrOutput);
             float* kerStartPt = this->kernel; 
             float scalingVal = 1.0/(limits[0] -limits[1]);           
-            for(int i=0;i<resImg->height();++i){
+            int shiftSqKernel = 0;
+            if(borderType == 1){
+                shiftSqKernel = kernelWidth/2;
+            }
+            for(int i=shiftSqKernel;i<resImg->height()-shiftSqKernel;++i){
                 int eff_ht = min(img->height(),i+kernelHeight/2)-_max(0,i-kernelHeight/2)+1;
-                for(int j=0;j<resImg->width();++j){
+                for(int j=shiftSqKernel;j<resImg->width()-shiftSqKernel;++j){
                     // current pixel point is anchor
                     int eff_wd = min(img->width(), j + kernelWidth/2)- _max(0,j-kernelWidth/2)+1;
                     currPtrImage = mat + rowSize*_max(0,i-kernelHeight/2)+_max(0,j-kernelWidth/2);

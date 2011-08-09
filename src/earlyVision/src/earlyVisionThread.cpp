@@ -85,6 +85,7 @@ earlyVisionThread::earlyVisionThread() {
     
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
+    unXtnIntensImg      = new ImageOf<PixelMono>;
     cartIntensImg       = new ImageOf<PixelMono>;
     
     redPlane            = new ImageOf<PixelMono>;
@@ -143,13 +144,18 @@ earlyVisionThread::earlyVisionThread() {
     resized = false;
 
     //Logpolar to cartesian and vice versa
+    xSizeValue = CART_ROW_SIZE ;         
+    ySizeValue = CART_COL_SIZE;          // y dimension of the remapped cartesian image
+    overlap = 1.0;         // overlap in the remapping
+    numberOfRings = COL_SIZE;      // 152, number of rings in the remapping
+    numberOfAngles = ROW_SIZE;     // number of angles in the remapping   
+    
+    //Logpolar to cartesian and vice versa
     xSizeValue = 320 ;         
     ySizeValue = 240;          // y dimension of the remapped cartesian image
     overlap = 1.0;         // overlap in the remapping
     numberOfRings = 152;      // number of rings in the remapping
-    numberOfAngles = 252;     // number of angles in the remapping   
-    
-    
+    numberOfAngles = 252;     // number of angles in the remapping
 }
 
 earlyVisionThread::~earlyVisionThread() {
@@ -189,6 +195,7 @@ earlyVisionThread::~earlyVisionThread() {
     delete edges;
     delete YofYUV;
     delete intensImg;
+    delete unXtnIntensImg;
     delete cartIntensImg;
     delete redPlane;
     delete greenPlane;
@@ -313,10 +320,10 @@ void earlyVisionThread::run() {
    while (isStopping() != true) {
         
         inputImage  = imagePortIn.read(true);
+        
              
         if (inputImage != NULL) {
             if (!resized) {
-                
                 resize(inputImage->width(), inputImage->height());
                 filteredInputImage->zero(); 
                 resized = true;
@@ -410,18 +417,20 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     tmpMonoSobelImage1->resize(width,height);
     tmpMonoSobelImage2->resize(width,height);
 
-    // for Kirsch
-    o0->resize(width, height);
-    o45->resize(width, height);
-    o90->resize(width, height);
-    oM45->resize(width, height);
+    
     
     
 
     edges->resize(width, height);
     intensImg->resize(width, height);
+    unXtnIntensImg->resize(this->width_orig,this->height_orig);
 
-    cartIntensImg->resize(ROW_SIZE, COL_SIZE);
+    cartIntensImg->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    // for Kirsch
+    o0->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    o45->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    o90->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    oM45->resize(CART_ROW_SIZE, CART_COL_SIZE);
 
     redPlane->resize(width, height);
     greenPlane->resize(width, height);
@@ -488,9 +497,11 @@ void earlyVisionThread::extractPlanes() {
     uchar* shift[4];
     uchar* YUV[3];
     int padInput;
+    int padUnX;
     int padMono;
     uchar* tmpIntensityImage;
     uchar* ptrIntensityImg;
+    uchar* ptrUnXtnIntensImg;
     uchar* inputPointer;
 
     // for CS, these planes are of extended size
@@ -512,14 +523,16 @@ void earlyVisionThread::extractPlanes() {
     YUV[1] = (uchar*) Uplane->getRawImage(); 
     YUV[2] = (uchar*) Vplane->getRawImage(); 
     ptrIntensityImg = (uchar*) intensImg->getRawImage();
+    ptrUnXtnIntensImg = (uchar*) unXtnIntensImg->getRawImage();
     inputPointer = (uchar*)extendedInputImage->getRawImage();
     padInput =  extendedInputImage->getPadding();
     padMono = redPlane->getPadding();
-
+    padUnX = unXtnIntensImg->getPadding();
     
 
     const int h = extendedInputImage->height();
     const int w = extendedInputImage->width();
+
     for(int r = 0; r < h; r++) {       
         
         for(int c = 0; c < w; c++) {
@@ -528,14 +541,18 @@ void earlyVisionThread::extractPlanes() {
             *shift[2] = *inputPointer++;
 
             *shift[3]++ = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
-            *ptrIntensityImg++ = ONE_BY_ROOT_THREE * sqrt(*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]);
+            *ptrIntensityImg = ONE_BY_ROOT_THREE * sqrt(*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]);
+            if(r>=maxKernelSize && c >=maxKernelSize && c< w-maxKernelSize){
+                *ptrUnXtnIntensImg++ = *ptrIntensityImg;
+                
+            }
 
             // RGB to Y'UV conversion
             *YUV[0] = .299* (*shift[0]) + .587 * (*shift[1]) + .114 * (*shift[2]);
             *YUV[1] = -.14713* (*shift[0]) + -.28886 * (*shift[1]) + .436 * (*shift[2]);
             *YUV[2] = .615* (*shift[0]) + -.51499 * (*shift[1]) + -.10001 * (*shift[2]);
 
-            
+            ptrIntensityImg++;
             YUV[0]++;
             YUV[1]++;
             YUV[2]++;
@@ -546,6 +563,9 @@ void earlyVisionThread::extractPlanes() {
         // paddings
         inputPointer += padInput;
         ptrIntensityImg += padMono;
+        if(r>=maxKernelSize){
+            ptrUnXtnIntensImg += padUnX;
+        }
         shift[0] += padMono;
         shift[1] += padMono;
         shift[2] += padMono;
@@ -556,6 +576,9 @@ void earlyVisionThread::extractPlanes() {
         
                 
     } 
+
+    lpMono.logpolarToCart(*cartIntensImg,*unXtnIntensImg);
+    
 
                
 
@@ -618,16 +641,27 @@ void earlyVisionThread::centerSurrounding(){
             //performs centre-surround uniqueness analysis on second plane:
             centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
+            //cvNamedWindow("AfterCSofUplane");
+            //vShowImage("AfterCSofUplane",cs_tot_32f);
             //Colour process V:performs centre-surround uniqueness analysis:
             centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
+            //cvNamedWindow("AfterCSofVplane");
+            //cvShowImage("AfterCSofVplane",cs_tot_32f);
+            
             //get min max   
             double valueMin = 1000;
             double valueMax = -1000;
             img_UV->zero();     // this is not strictly required
           	cvMinMaxLoc(cs_tot_32f,&valueMin,&valueMax);            
-            if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ valueMax = 255.0f; valueMin = 0.0f;}
+            if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ 
+                valueMax = 255.0f; valueMin = 0.0f;
+            }
             cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
+            //cvNamedWindow("AfterCSscale");
+            //cvShowImage("AfterCSscale",(IplImage*)img_UV->getIplImage());
+            //cvWaitKey(0);
+            
             
             
         }
@@ -640,11 +674,11 @@ void earlyVisionThread::centerSurrounding(){
         }
 
 
-        cvNamedWindow("Y");
+        /*cvNamedWindow("Y");
         cvShowImage("Y",(IplImage*)img_Y->getIplImage());
         cvNamedWindow("UV");
         cvShowImage("UV",(IplImage*)img_UV->getIplImage());
-        cvWaitKey(0);
+        cvWaitKey(0);*/
         
             
         
@@ -775,26 +809,28 @@ void earlyVisionThread::colorOpponency(){
 
 void earlyVisionThread::orientation() {
 
+    
     // orientation port
     ImageOf<PixelMono>& ori0 =  orientPort0.prepare();
-    ori0.resize(Yplane->width(),Yplane->height());
+    ori0.resize(cartIntensImg->width(),cartIntensImg->height());
     ImageOf<PixelMono>& ori45 =  orientPort45.prepare();
-    ori45.resize(Yplane->width(),Yplane->height());
+    ori45.resize(cartIntensImg->width(),cartIntensImg->height());
     ImageOf<PixelMono>& ori90 =  orientPort90.prepare();
-    ori90.resize(Yplane->width(),Yplane->height());
+    ori90.resize(cartIntensImg->width(),cartIntensImg->height());
     ImageOf<PixelMono>& oriM45 =  orientPortM45.prepare();
-    oriM45.resize(Yplane->width(),Yplane->height());
+    oriM45.resize(cartIntensImg->width(),cartIntensImg->height());
 
+    printf("Ori w%d h%d and cart w%d h%d \n",ori0.width(),ori0.height(),cartIntensImg->width(),cartIntensImg->height());
     ori0.zero();
     ori45.zero();
     ori90.zero();
     oriM45.zero();
        
     // Using Kirsch matrix
-    kirschConvolution0->convolve2D(Yplane,o0);
-    kirschConvolution45->convolve2D(Yplane,o45);
-    kirschConvolution90->convolve2D(Yplane,o90);
-    kirschConvolutionM45->convolve2D(Yplane,oM45);
+    kirschConvolution0->convolve2D(cartIntensImg,o0);
+    kirschConvolution45->convolve2D(cartIntensImg,o45);
+    kirschConvolution90->convolve2D(cartIntensImg,o90);
+    kirschConvolutionM45->convolve2D(cartIntensImg,oM45);
     
     
      
@@ -844,12 +880,12 @@ void earlyVisionThread::orientation() {
                 }
             }
             #else
-            if (row < height_orig) { 
-                for(int i=0; i<4; ++i){
-                            float tmpV = 255.0 *abs(*p[i]);
-                            *ori[i] = tmpV>255?255:tmpV<0?0:(unsigned char)tmpV;
-                        }
-            }
+            
+            for(int i=0; i<4; ++i){
+                        float tmpV = 255.0 *abs(*p[i]);
+                        *ori[i] = tmpV>255?255:(unsigned char)tmpV<0?0:(unsigned char)tmpV;
+                    }
+            
             #endif
             //
             
@@ -878,7 +914,11 @@ void earlyVisionThread::orientation() {
 
     kirschIsNormalized++;
 
-   
+    /*cvNamedWindow("O0");
+    cvShowImage("O0",(IplImage*)ori0.getIplImage());
+    cvNamedWindow("O0O");
+    cvShowImage("O0O",(IplImage*)o0->getIplImage());
+    cvWaitKey(0);*/
      
     orientPort0.write();
     orientPort45.write();
@@ -907,10 +947,10 @@ void earlyVisionThread::edgesExtract() {
     tmpMonoSobelImage2->zero();     // This can be removed 
     sobel2DYConvolution->convolve2D(intensImg,tmpMonoSobelImage2);
     
-    cvNamedWindow("edgesY");
+    /*cvNamedWindow("edgesY");
     cvShowImage("edgesY",(IplImage*)tmpMonoSobelImage2->getIplImage());
     cvNamedWindow("edgesX");
-    cvShowImage("edgesX",(IplImage*)tmpMonoSobelImage1->getIplImage());
+    cvShowImage("edgesX",(IplImage*)tmpMonoSobelImage1->getIplImage());*/
     
 
     //clearing up the previous value

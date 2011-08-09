@@ -59,8 +59,10 @@
 #define MONO_PIXEL_SIZE 1
 
 
-#define ROW_SIZE 320
-#define COL_SIZE 240
+#define ROW_SIZE 252
+#define COL_SIZE 152
+#define CART_ROW_SIZE 320
+#define CART_COL_SIZE 240
 
 #define POS_GAUSSIAN 5
 #define NEG_GAUSSIAN 7
@@ -132,6 +134,7 @@ sobel2DYConvolution;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;
     
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
     yarp::sig::ImageOf<yarp::sig::PixelMono>* cartIntensImg;          //yarp cartesian intensity image for orientation
   
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
