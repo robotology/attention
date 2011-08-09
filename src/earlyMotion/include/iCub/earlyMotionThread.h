@@ -31,10 +31,61 @@
 #include <yarp/os/all.h>
 #include <iostream>
 
+#include <iCub/convolve.h>
 
-// outside project includes
+
+static float G5[5] = { -0.0545f,
+                       -0.2442f,
+                       -0.4026f,
+                       -0.2442f,
+                       -0.0545f
+};
+
+
+//gaussian kernel 9 pixels  with sigma 3
+static float G9[9] = {    -0.0630,
+                          -0.0929,
+                          -0.1226,
+                          -0.1449,
+                          -0.1532,
+                          -0.1449,
+                          -0.1226,
+                          -0.0929,
+                          -0.0630
+};
+
 
 #define CHAR_LIMIT 256
+#define KIRSCH_FLICKER 0
+#define KIRSCH_SHIFT 50
+#define KIRSCH_FACTOR .05
+
+// Kirsch matrix is non-separable, these directions are 8 namely N, NE, E, ...
+static float K1[9] = {+3,  	+3,  	+3,
+                        +3, 	0, 	+3,
+                        -5, 	-5, 	-5};
+static float K2[9] = {+3,  	+3,  	+3,
+                        -5, 	0, 	+3,
+                        -5, 	-5, 	+3};
+static float K3[9] = {  5,  	+3,  	+3,
+                        -5, 	0, 	+3,
+                        -5, 	+3, 	+3};
+static float K4[9] = {-5,  	-5,  	+3,
+                        -5, 	0, 	+3,
+                        +3, 	+3, 	+3};
+static float K5[9] = {-5,  	-5,  	-5,
+                        +3, 	0, 	+3,
+                        +3, 	+3, 	+3};
+static float K6[9] = {+3,  	-5,  	-5,
+                        +3, 	0, 	-5,
+                        +3, 	+3, 	+3};
+static float K7[9] = {+3,  	+3,  	-5,
+                        +3, 	0, 	-5,
+                        +3, 	+3, 	-5};
+static float K8[9] = {+3,  	+3,  	+3,
+                        +3, 	0, 	-5,
+                        +3, 	-5, 	-5};
+
 
 class earlyMotionThread : public yarp::os::Thread
 {
@@ -61,6 +112,8 @@ private:
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortIn;    // input port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;     // output port   
+
+    //convolve conv;
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized

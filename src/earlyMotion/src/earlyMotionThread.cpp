@@ -26,6 +26,7 @@
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/earlyMotionThread.h>
 #include <cstring>
+#include <cv.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -46,7 +47,7 @@ earlyMotionThread::earlyMotionThread() {
     inputExtImage      = new ImageOf<PixelRgb>;
     inputImageFiltered = new ImageOf<PixelMono>;
     motion             = new ImageOf<PixelMono>;
-    lambda = 0.3f;
+    lambda = 0.6f;     // weight of the current image
     resized = false;
 }
 
@@ -155,7 +156,7 @@ void earlyMotionThread::run() {
                 temporalSubtraction(&out);
                 motionPort.write();
             }            
-            if(count % 1 == 0) {
+            if(count % 3 == 0) {
                 temporalStore();
                 count=1;
             }
@@ -219,29 +220,38 @@ void earlyMotionThread::temporalStore() {
 
 void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     int padding = inputImage->getPadding();
+    int rowsize = inputImage->getRowSize();
+    
     unsigned char* pin  = inputImageFiltered->getRawImage();
     unsigned char* pout = outputImage->getRawImage();
     unsigned char* pimageT1 = imageT1->getRawImage();
     unsigned char* pimageT2 = imageT2->getRawImage();
     unsigned char* pimageT3 = imageT3->getRawImage();
     unsigned char* pimageT4 = imageT4->getRawImage();
+
+    
     
     unsigned char diff10, diff21, diff32, diff20, diff30, diff40;
 
     for(int row = 0; row < height_orig; row++) {
         for(int col = 0; col < width_orig ; col++) {
-            diff10 = (*pin - *pimageT1)      * (*pin - *pimageT1);
-            diff21 = (*pimageT2 - *pimageT3) * (*pimageT2 - *pimageT3);
+            diff10 = (*pin      - *pimageT1) * (*pin      - *pimageT1);
+            diff21 = (*pimageT2 - *pimageT1) * (*pimageT2 - *pimageT1);
             diff32 = (*pimageT3 - *pimageT2) * (*pimageT3 - *pimageT2);
-            diff20 = (*pin - *pimageT2)      * (*pin - *pimageT2);
-            diff30 = (*pin - *pimageT3)      * (*pin - *pimageT3);
-            diff40 = (*pin - *pimageT4)      * (*pin - *pimageT4);
+            diff20 = (*pin      - *pimageT2) * (*pin      - *pimageT2);
+            diff30 = (*pin      - *pimageT3) * (*pin      - *pimageT3);
+            diff40 = (*pin      - *pimageT4) * (*pin      - *pimageT4);
 
             //*pout = *pin;
             
-            *pout += floor(10.0 * sqrt(diff10 + diff20 + diff30 + diff40) * ( row  / (double)height_orig ));
-            if(*pout>200){
+            *pout += floor(5.0 * sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (row  / (double)height_orig ));
+            if(*pout > 200){
+                printf("255 \n");
                 *pout = 255;
+                *(pout + 1) = 255;
+                *(pout - 1) = 255;
+                *(pout - rowsize) = 255;
+                *(pout + rowsize) = 255;
             }
                      
             pout++;
@@ -258,6 +268,28 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
         pimageT3 += padding;
         pimageT4 += padding;
     }
+    
+    ImageOf<PixelFloat>* imageTmp = new ImageOf<PixelFloat>;
+    imageTmp->resize(width_orig,height_orig);
+    //convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar> convHoriz(9,&G9[0],0,0.8,-50);  
+    //convHoriz.convolve1D(outputImage,imageTmp);
+    //convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar> convVert(9,&G9[0],1,0.8,-50);  
+    //convHoriz.convolve1D(imageTmp,outputImage);
+
+    //convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelFloat>,float> kirschConvolution0(3,3,K1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
+    //kirschConvolution0.convolve2D(outputImage,imageTmp);
+    //pout = outputImage->getRawImage();
+    //float* ptmp = (float*)imageTmp->getRawImage();
+    //int paddingTmp = imageTmp->getPadding();
+    //for(int row = 0; row < height_orig; row++) {
+    //    for(int col = 0; col < width_orig ; col++) {
+    //        *pout++ = floor(*ptmp++ * 255.0);
+    //   }
+    //    pout += padding;
+    //       ptmp += paddingTmp;
+    //}
+    
+    delete imageTmp;
 }
 
 
