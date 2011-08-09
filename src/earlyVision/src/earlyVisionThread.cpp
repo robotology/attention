@@ -220,7 +220,7 @@ bool earlyVisionThread::threadInit() {
     /* open ports */ 
     
     
-    if (!imagePortIn.open("/imageRGB:i")) {
+    if (!imagePortIn.open(getName("/imageRGB:i").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -820,7 +820,6 @@ void earlyVisionThread::orientation() {
     ImageOf<PixelMono>& oriM45 =  orientPortM45.prepare();
     oriM45.resize(cartIntensImg->width(),cartIntensImg->height());
 
-    printf("Ori w%d h%d and cart w%d h%d \n",ori0.width(),ori0.height(),cartIntensImg->width(),cartIntensImg->height());
     ori0.zero();
     ori45.zero();
     ori90.zero();
