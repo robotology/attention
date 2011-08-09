@@ -21,7 +21,7 @@
 /**
  * @file earlyVisionThread.h
  * @brief Definition of a thread that receives images and does the computation for the
- * visual filter module (see earlyVisionModule.h).
+ * early vision module (see earlyVisionModule.h).
  */
 
 #ifndef _VISUAL_FEATURE_THREAD_H_

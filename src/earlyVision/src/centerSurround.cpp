@@ -19,7 +19,7 @@
  */
 /**
  * @file centerSurround.cpp
- * @brief This is re-implementation of center-surround(original by Andrew & Vadim) without IPP .
+ * @brief This is re-implementation of center-surround(originally by Andrew Dankers & Vadim Tikhanoff) without IPP .
  */
 
 #include <math.h>
@@ -29,6 +29,7 @@
 
 
 #define KERNSIZE 3    //kernsize (odd, >= 3)
+
 
 using namespace std;
 using namespace yarp::os;
@@ -57,8 +58,20 @@ CenterSurround::CenterSurround(int width,int height, double sigma_)
     im_in_32f  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);   
     tmp_im_32f = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1); 
     cs_tot_32f = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);
-    cs_tot_8u  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_8U,1);  
+    cs_tot_8u  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_8U,1);
+
+    // initialize LANCZOS window for filtering in spatial domain
+
+    float ONE_BY_N_1 = 1/(N_LANCZOS -1);        
+    for(int i=0; i<N_LANCZOS; ++i){
+
+        float _x = PI*(2*i*ONE_BY_N_1 -1);
+        LANCZOS_VECTOR[i]= sin(_x)/_x;
+
+    }  
     
+    LanczosHorConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short > (N_LANCZOS,LANCZOS_VECTOR,0,.5,0);
+    LanczosVerConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short > (N_LANCZOS,LANCZOS_VECTOR,1,.5,0);
     
 
 }
@@ -75,13 +88,14 @@ CenterSurround::~CenterSurround() {
         cvReleaseImage(&pyramid_gauss[ng]);
         cvReleaseImage(&gauss[ng]);
     }
-    
+    delete LanczosHorConvolution;
+    delete LanczosVerConvolution;
 }
 
 void CenterSurround::proc_im_8u(IplImage* input_8u, IplImage* output8u)
 {
     //convert im precision to 32f and process as normal:
-    cvConvertScale(input_8u,im_in_32f,0.003922,0);  //  0.003922 = 1/255.0
+    cvConvertScale(input_8u,im_in_32f,0.003922,0);  //  0.003922 = 1/255.0    
     proc_im_32f(im_in_32f,output8u);
 }
 
@@ -109,7 +123,7 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
 
     
     
-  	//norm8u:
+  	//norm8u: This scaling can be avoided
   	double minPixelVal, maxPixelVal;
     minPixelVal = 1000; // arbitrary
     maxPixelVal = -1000;
@@ -124,7 +138,10 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
 
   	if (maxPixelVal == minPixelVal){maxPixelVal=255.0f;minPixelVal=0.0f;}
   	
-    cvConvertScale(cs_tot_32f,output8u,255,0);
+    cvConvertScale(cs_tot_32f,output8u,255/(maxPixelVal - minPixelVal),-255*minPixelVal/(maxPixelVal-minPixelVal));
+    cvNamedWindow("image in float");
+    cvShowImage("image in float",cs_tot_32f);
+    cvWaitKey(0);
     
 }
 

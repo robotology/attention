@@ -1,12 +1,4 @@
-/**
- * \file centsur.h
- * \brief An implementation modelling the centre-surround response, used for construction of spatial uniqueness maps.
- * Based on the difference-of-Gaussians pyramid approach of Itti. A single Gaussian pyramid is created. Neighbouring pyramid entries are subtracted (eg Pyramid level 0 - Pyramid level 1, 1-2, 2-3 ...etc), and so are 2nd neighbours (eg 1-3,2-4,3-5..etc), to obtain spatial uniqueness at various spatial scales. All resultant subtraction results (the difference of Gaussian maps) are summated to yield the centre-surround map output.
- *
- * \author Andrew Dankers
- * \date 2009
- * \note Release under GNU GPL v2.0
- **/
+
 
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
@@ -27,6 +19,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
+
+/**
+ * \file centsur.h
+ * \brief An implementation modelling the centre-surround response, used for construction of spatial uniqueness maps.
+ * Based on the difference-of-Gaussians pyramid approach of Itti. A single Gaussian pyramid is created. Neighbouring pyramid entries are subtracted (eg Pyramid level 0 - Pyramid level 1, 1-2, 2-3 ...etc), and so are 2nd neighbours (eg 1-3,2-4,3-5..etc), to obtain spatial uniqueness at various spatial scales. All resultant subtraction results (the difference of Gaussian maps) are summated to yield the centre-surround map output.
+ *
+ * \author Andrew Dankers
+ * \date 2009
+ * \note Release under GNU GPL v2.0
+ **/
+
+
 /**
  * @file centerSurround.h
  * @brief Center-surround(original by Andrew & Vadim) without IPP .
@@ -46,6 +50,7 @@
 #include <iCub/convolve.h> // LATER: To be using this convolution than the openCV one
 
 #define ngs 4
+#define N_LANCZOS 7     // 'a' for LANCZOS
 	
 class CenterSurround { 
 public:
@@ -114,6 +119,10 @@ private:
 
 	// factors for down and up sampling and sigma for Gaussian
 	double sd,su,sigma;
+
+	float LANCZOS_VECTOR[N_LANCZOS];
+	convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short >* LanczosHorConvolution;
+	convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short >* LanczosVerConvolution;
     
 };
 

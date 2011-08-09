@@ -17,17 +17,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
+
 /**
  * @file earlyVisionThread.cpp
- * @brief Implementation of the visual filter thread (see earlyVisionThread.h).
+ * @brief Implementation of the early stage of vision thread (see earlyVisionThread.h).
  */
-
+`
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/earlyVisionThread.h>
 #include <cstring>
 
 #define ONE_BY_ROOT_TWO 0.707106781
 #define ONE_BY_ROOT_THREE 0.577350269
+
+#define NO_DEBUG_OPENCV //DEBUG_OPENCV //
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -373,7 +376,9 @@ void earlyVisionThread::run() {
             }
 
             
-
+            #ifdef DEBUG_OPENCV
+            cvWaitKey(0);
+            #endif
             
 
             
@@ -735,6 +740,15 @@ void earlyVisionThread::centerSurrounding(){
         if ( !isYUV && CSPort3.getOutputCount()>0 ){
             CSPort3.write();
         }
+
+        #ifdef DEBUG_OPENCV
+        cvNamedWindow("CS_Y");
+        cvShowImage("CS_Y", (IplImage*)_Y.getIplImage());
+        cvNamedWindow("CS_UV");
+        cvShowImage("CS_UV", (IplImage*)_UV.getIplImage());
+        cvNamedWindow("CS_V");
+        cvShowImage("CS_V", (IplImage*)_V.getIplImage());
+        #endif
        
 }
 
@@ -803,7 +817,14 @@ void earlyVisionThread::colorOpponency(){
         colorOpp3Port.write();
     }
     
-      
+    #ifdef DEBUG_OPENCV
+    cvNamedWindow("ColorOppRG");
+    cvShowImage("ColorOppRG", (IplImage*)coRG.getIplImage());
+    cvNamedWindow("ColorOppGR");
+    cvShowImage("ColorOppGR", (IplImage*)coGR.getIplImage());
+    cvNamedWindow("ColorOppBY");
+    cvShowImage("ColorOppBY", (IplImage*)coBY.getIplImage());
+    #endif
 
 }
 
@@ -913,11 +934,16 @@ void earlyVisionThread::orientation() {
 
     kirschIsNormalized++;
 
-    /*cvNamedWindow("O0");
-    cvShowImage("O0",(IplImage*)ori0.getIplImage());
-    cvNamedWindow("O0O");
-    cvShowImage("O0O",(IplImage*)o0->getIplImage());
-    cvWaitKey(0);*/
+    #ifdef DEBUG_OPENCV
+    cvNamedWindow("Orient0");
+    cvShowImage("Orient0", (IplImage*)ori0.getIplImage());
+    cvNamedWindow("Orient45");
+    cvShowImage("Orient45", (IplImage*)ori45.getIplImage());
+    cvNamedWindow("Orient90");
+    cvShowImage("Orient90", (IplImage*)ori90.getIplImage());
+    cvNamedWindow("OrientM45");
+    cvShowImage("OrientM45", (IplImage*)oriM45.getIplImage());
+    #endif
      
     orientPort0.write();
     orientPort45.write();
@@ -995,6 +1021,11 @@ void earlyVisionThread::edgesExtract() {
     } 
 
     sobelIsNormalized++;
+
+    #ifdef DEBUG_OPENCV
+    cvNamedWindow("Edges");
+    cvShowImage("Edges", (IplImage*)edges->getIplImage());
+    #endif
     
     
 }

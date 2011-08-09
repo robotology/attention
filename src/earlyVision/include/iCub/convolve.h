@@ -18,6 +18,8 @@
  * Public License for more details
  */
 
+
+
 /**
  * @file convolve.h
  * @brief Simple, efficient and general method to compute convolution

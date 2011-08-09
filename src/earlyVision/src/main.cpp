@@ -23,28 +23,20 @@
  * @brief main code for the early vision module; this is part of the logpolar attention system.
  */
 
-
-
 #include "iCub/earlyVisionModule.h" 
-//#include <ippi.h>
-//#include <ippcore.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
 
 
-int main(int argc, char * argv[])
-{
-    /* important, this effectively disables the OMP library parallelization in the IPP */
-    //ippSetNumThreads(1);
-
+int main(int argc, char * argv[]) {
     Network yarp;
     earlyVisionModule module; 
 
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("earlyVisionModule.ini"); //overridden by --from parameter
-    rf.setDefaultContext("attentionMechanism/conf");   //overridden by --context parameter
+    rf.setDefaultContext("logpolarAttention/conf");   //overridden by --context parameter
     rf.configure("ICUB_ROOT", argc, argv);
  
     module.runModule(rf);

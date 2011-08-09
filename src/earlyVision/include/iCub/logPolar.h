@@ -18,6 +18,9 @@
  * Public License for more details
  */
 
+
+
+
 /**
  * @file logPolar.h
  * @brief Implements logpolar to cartesian and vice versa, for monochromatic image, taken from previous implementation

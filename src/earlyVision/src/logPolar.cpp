@@ -20,8 +20,9 @@
 
 /**
  * @file logPolar.h
- * @brief Implements logpolar to cartesian and vice versa, for monochromatic image
+ * @brief Implements logpolar to cartesian and vice versa, for monochromatic image (see logPolar.h)
  */
+
 #include <iCub/logPolar.h>
 using namespace yarp::os;
 using namespace yarp::sig;

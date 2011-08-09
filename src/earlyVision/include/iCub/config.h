@@ -18,6 +18,8 @@
  * Public License for more details
  */
 
+
+
 /**
  * @file config.h
  * @brief Configuration file, mainly for values of separable filters (calculated through SVD function of MATLAB).Method

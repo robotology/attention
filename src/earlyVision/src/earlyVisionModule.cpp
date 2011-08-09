@@ -20,7 +20,7 @@
 
 /**
  * @file earlyVisionModule.cpp
- * @brief Implementation of the earlyVisionModule (see header file).
+ * @brief Implementation of the early Vision Module (see earlyVisionModule.h header file).
  */
 
 #include "iCub/earlyVisionModule.h"

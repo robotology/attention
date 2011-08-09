@@ -20,7 +20,7 @@
 
 /**
  * @file earlyVisionModule.h
- * @brief Simple module that implements efficient visual feature maps;
+ * @brief Simple module that implements efficient visual feature maps extraction;
  */
 
 #ifndef _EARLY_VISION_MODULE_H_
