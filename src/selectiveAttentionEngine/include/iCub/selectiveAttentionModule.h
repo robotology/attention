@@ -39,23 +39,23 @@
 #include <iCub/selectiveAttentionProcessor.h>
 
 // general command vocab's
-#define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_SET VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET VOCAB3('g','e','t')
-#define COMMAND_VOCAB_RUN VOCAB3('r','u','n')
-#define COMMAND_VOCAB_SUSPEND VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME VOCAB3('r','e','s')
-#define COMMAND_VOCAB_IS VOCAB2('i','s')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_OK VOCAB2('o','k')
-#define COMMAND_VOCAB_CHILD_COUNT VOCAB2('c','c')
-#define COMMAND_VOCAB_WEIGHT VOCAB1('w')
-#define COMMAND_VOCAB_CHILD_WEIGHT VOCAB2('c','w')
-#define COMMAND_VOCAB_CHILD_WEIGHTS VOCAB3('c','w','s')
-#define COMMAND_VOCAB_NAME VOCAB2('s','1')
-#define COMMAND_VOCAB_CHILD_NAME VOCAB2('c','n')
+#define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
+#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
+#define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
+#define COMMAND_VOCAB_RUN                VOCAB3('r','u','n')
+#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
+#define COMMAND_VOCAB_IS                 VOCAB2('i','s')
+#define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
+#define COMMAND_VOCAB_OK                 VOCAB2('o','k')
+#define COMMAND_VOCAB_CHILD_COUNT        VOCAB2('c','c')
+#define COMMAND_VOCAB_WEIGHT             VOCAB1('w')
+#define COMMAND_VOCAB_CHILD_WEIGHT       VOCAB2('c','w')
+#define COMMAND_VOCAB_CHILD_WEIGHTS      VOCAB3('c','w','s')
+#define COMMAND_VOCAB_NAME               VOCAB2('s','1')
+#define COMMAND_VOCAB_CHILD_NAME         VOCAB2('c','n')
 #define COMMAND_VOCAB_SALIENCE_THRESHOLD VOCAB2('t','h')
-#define COMMAND_VOCAB_NUM_BLUR_PASSES VOCAB2('s','2')
+#define COMMAND_VOCAB_NUM_BLUR_PASSES    VOCAB2('s','2')
 
 #define COMMAND_VOCAB_KBU VOCAB3('k','b','u') //weight of the bottom-up algorithm
 #define COMMAND_VOCAB_KTD VOCAB3('k','t','d') //weight of top-down algorithm
@@ -207,21 +207,23 @@
 
 /**
  * CHANGE LOG
- * 20/12/10 : changed the name from kMotion to kMot in parsing process of the config file       @author Rea
- * 21/12/10 : set to zero every map in the initialization code of the thread                    @author Rea
- * 21/12/10 : immediate response to the stimulus when it is very strong                         @authot Rea
- * 28/12/10 : added polydrivers for the cartesian control (prioceptive information)             @author Rea
- * 28/12/10 : added robotname parameter configurable from config file                           @author Rea
- * 04/01/11 : added initialisation to zero values of motion and cartesian images                @author Rea
- * 04/01/11 : added saccadic event in direction of the left arm (when requested)                @author Rea
- * 04/01/11 : added an in-class function for coping images and extract relevant information     @author Rea
- * 05/01/11 : introduced the mechanism that configure which are the satMap and hueMap           @author Rea
- * 05/01/11 : changed the copy function of logpolar images from copy_8u_C1R to copy_C1R         @author Rea
- * 06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       @author Rea
- * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        @author Rea
- * 08/03/11 : added the new bottle(template) to the communication to the objectProp             @author Rea  
- * 06/06/11 : created a new ouput image composed of a gaussian around the WTA                   @author Rea
- * 07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              @author Rea
+ * 
+ * 20/12/10 : changed the name from kMotion to kMot in parsing process of the config file       \author Rea
+ * 21/12/10 : set to zero every map in the initialization code of the thread                    \author Rea
+ * 21/12/10 : immediate response to the stimulus when it is very strong                         \authot Rea
+ * 28/12/10 : added polydrivers for the cartesian control (prioceptive information)             \author Rea
+ * 28/12/10 : added robotname parameter configurable from config file                           \author Rea
+ * 04/01/11 : added initialisation to zero values of motion and cartesian images                \author Rea
+ * 04/01/11 : added saccadic event in direction of the left arm (when requested)                \author Rea
+ * 04/01/11 : added an in-class function for coping images and extract relevant information     \author Rea
+ * 05/01/11 : introduced the mechanism that configure which are the satMap and hueMap           \author Rea
+ * 05/01/11 : changed the copy function of logpolar images from copy_8u_C1R to copy_C1R         \author Rea
+ * 06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       \author Rea
+ * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        \author Rea
+ * 08/03/11 : added the new bottle(template) to the communication to the objectProp             \author Rea  
+ * 06/06/11 : created a new ouput image composed of a gaussian around the WTA                   \author Rea
+ * 07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              \author Rea
+ * 09/08/11 : changed the algorithm to provide different timing in the saccade selection        \author Rea
 */
 
 

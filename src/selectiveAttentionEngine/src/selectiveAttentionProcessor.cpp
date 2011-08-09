@@ -469,75 +469,98 @@ void selectiveAttentionProcessor::run(){
                 idle=false;
             }
         }
-        if((map3Port.getInputCount())&&(k3!=0)) {
-            tmp = map3Port.read(false);
-            if(tmp!= 0) {
-                copy_C1R(tmp,map3_yarp);
-                idle=false;
-            }
-        }
-        if((map4Port.getInputCount())&&(k4!=0)) {
-            tmp = map4Port.read(false);
-            if(tmp!= 0) {
-                copy_C1R(tmp,map4_yarp);
-                idle=false;
-            }
-        }
-        if((map5Port.getInputCount())&&(k5!=0)) {
-            tmp = map5Port.read(false);
-            if(tmp!= 0) {
-                copy_C1R(tmp,map5_yarp);
-                idle=false;
-            }
-        }
-        if((map6Port.getInputCount())&&(k6!=0)) {
-            tmp = map6Port.read(false);
-            if(tmp!= 0) {
-                copy_C1R(tmp,map6_yarp);
-                idle=false;
-            }
-        }
-        
-        if((motionPort.getInputCount())&&(kmotion!=0)) {
-            tmp = motionPort.read(false);
-            if(tmp!= 0) {
-                copy_8u_C1R(tmp,motion_yarp);
-                idle=false;
-            }
-        }
-        if((cart1Port.getInputCount())&&(kc1!=0)) {
-            tmp = cart1Port.read(false);
-            if(tmp!= 0) {             
-                copy_8u_C1R(tmp,cart1_yarp);
-                idle=false;
-            }
-        }
-        if(inhiPort.getInputCount()) {
-            tmp = inhiPort.read(false);
-            if(tmp!= 0) {
-                copy_8u_C1R(tmp,inhi_yarp);
-                idle=false;
-            }
-        }
-        
-
-        //2. processing of the input images
         unsigned char* pmap1 = map1_yarp->getRawImage();
         unsigned char* pmap2 = map2_yarp->getRawImage();
-        unsigned char* pmap3 = map3_yarp->getRawImage();
-        unsigned char* pmap4 = map4_yarp->getRawImage();
-        unsigned char* pmap5 = map5_yarp->getRawImage();
-        unsigned char* pmap6 = map6_yarp->getRawImage();
-        unsigned char* pface = faceMask ->getRawImage();
-        ImageOf<PixelMono>& linearCombinationImage=linearCombinationPort.prepare();
-        linearCombinationImage.resize(width,height);
         unsigned char* plinear=linearCombinationImage.getRawImage();
         int padding=map1_yarp->getPadding();
         int rowSize=map1_yarp->getRowSize();
-        unsigned char maxValue=0;
-        double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues
-        // combination of all the saliency maps
+        for(int y = 0 ; y < height ; y++){
+            for(int x = 0 ; x < width ; x++){
+                if (*pmap1 == 255){
+                    y = height;
+                    idle =  true;
+                    break;
+                }
+                if (*pmap2 == 255) {
+                    y = height;
+                    idle = true;
+                    break;
+                }
+            }
+        }
+
+        if(!idle) {
+            if((map3Port.getInputCount())&&(k3!=0)) {
+                tmp = map3Port.read(false);
+                if(tmp!= 0) {
+                    copy_C1R(tmp,map3_yarp);
+                    idle=false;
+                }
+            }
+            if((map4Port.getInputCount())&&(k4!=0)) {
+                tmp = map4Port.read(false);
+                if(tmp!= 0) {
+                    copy_C1R(tmp,map4_yarp);
+                    idle=false;
+                }
+            }
+            if((map5Port.getInputCount())&&(k5!=0)) {
+                tmp = map5Port.read(false);
+                if(tmp!= 0) {
+                    copy_C1R(tmp,map5_yarp);
+                    idle=false;
+                }
+            }
+            if((map6Port.getInputCount())&&(k6!=0)) {
+                tmp = map6Port.read(false);
+                if(tmp!= 0) {
+                    copy_C1R(tmp,map6_yarp);
+                    idle=false;
+                }
+            }
+            
+            if((motionPort.getInputCount())&&(kmotion!=0)) {
+                tmp = motionPort.read(false);
+                if(tmp!= 0) {
+                    copy_8u_C1R(tmp,motion_yarp);
+                    idle=false;
+                }
+            }
+            if((cart1Port.getInputCount())&&(kc1!=0)) {
+                tmp = cart1Port.read(false);
+                if(tmp!= 0) {             
+                    copy_8u_C1R(tmp,cart1_yarp);
+                    idle=false;
+                }
+            }
+            if(inhiPort.getInputCount()) {
+                tmp = inhiPort.read(false);
+                if(tmp!= 0) {
+                    copy_8u_C1R(tmp,inhi_yarp);
+                    idle=false;
+                }
+            }
+        } //end of the idle after first response
+        
+
+        int ratioX = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
+        int ratioY = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
+
+        //2. processing of the input images
         if(!idle){
+        
+            unsigned char* pmap3 = map3_yarp->getRawImage();
+            unsigned char* pmap4 = map4_yarp->getRawImage();
+            unsigned char* pmap5 = map5_yarp->getRawImage();
+            unsigned char* pmap6 = map6_yarp->getRawImage();
+            unsigned char* pface = faceMask ->getRawImage();
+            ImageOf<PixelMono>& linearCombinationImage=linearCombinationPort.prepare();
+            linearCombinationImage.resize(width,height);
+            
+            unsigned char maxValue=0;
+            double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues
+            // combination of all the saliency maps
+        
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < width ; x++){
                     unsigned char value;
@@ -566,23 +589,22 @@ void selectiveAttentionProcessor::run(){
             unsigned char* pImage = inputLogImage->getRawImage();
             int padding3C = inputLogImage->getPadding();
             maxValue = 0;
-            for(int y = 0; y < height; y++) {
-                for(int x = 0;x < width; x++) {
-                    *pImage ++ =(unsigned char) *plinear;
-                    *pImage ++ =(unsigned char) *plinear;
-                    *pImage ++ =(unsigned char) *plinear;
+            for(int y = 0 ;  y < height ; y++) {
+                for(int x = 0 ; x < width ; x++) {
+                    *pImage ++ = (unsigned char) *plinear;
+                    *pImage ++ = (unsigned char) *plinear;
+                    *pImage ++ = (unsigned char) *plinear;
                     plinear ++;
                 }
-                pImage += padding3C;
+                pImage  += padding3C;
                 plinear += padding;
             }
             ImageOf<PixelRgb>  &outputCartImage = imageCartOut.prepare();  // preparing the cartesian output for combination
             ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
-            ImageOf<PixelMono> &inhiCartImage = inhiCartPort.prepare();    // preparing the cartesian image for inhibith a portion of the saliency map
+            ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();    // preparing the cartesian image for inhibith a portion of the saliency map
 
             
-            int ratioX = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
-            int ratioY = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
+            
             // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
             int outputXSize=xSizeValue;
             int outputYSize=ySizeValue;
@@ -654,7 +676,8 @@ void selectiveAttentionProcessor::run(){
                     }
                     if(value == 255) {
                         maxResponse = true;
-                        xm = (float) x; ym = (float) y;
+                        xm = (float) x;
+                        ym = (float) y;
                         startInt = 0;      // forces the immediate saccade to the very salient object
                         break;
                     }
@@ -686,28 +709,31 @@ void selectiveAttentionProcessor::run(){
                 pinhicart += paddingCartesian;
             }
            
-            if(!maxResponse) {
-                
-                pImage = outputCartImage.getRawImage();
-                
+            if(!maxResponse) {                
+                pImage = outputCartImage.getRawImage();                
                 float distance = 0;
                 bool foundmax=false;
                 //looking for the max value 
-                for(int y=0;y<ySizeValue;y++) {
-                    for(int x=0;x<xSizeValue;x++) {
+                for(int y = 0 ; y < ySizeValue ; y++) {
+                    for(int x = 0 ; x < xSizeValue ; x++) {
                         //*pImage=value;
                         if(*pImage==maxValue) {
                             if(!foundmax) {
-                                *pImage=255;pImage++;*pImage=0;pImage++;*pImage=0;pImage-=2;
+                                *pImage=255;pImage++;
+                                *pImage=0;pImage++;
+                                *pImage=0;pImage-=2;
                                 countMaxes++;
-                                xm = (float)x ; ym = (float)y;
+                                xm = (float)x;
+                                ym = (float)y;
                                 foundmax = true;
                             }
                             else {
                                 distance = sqrt((x-xm)*(x-xm)+(y-ym)*(y-ym));
                                 // beware:the distance is useful to decrease computation demand but the WTA is selected in the top left hand corner!
                                 if(distance < 10) {
-                                    *pImage = 255; pImage++; *pImage=0; pImage++; *pImage=0; pImage-=2;
+                                    *pImage = 255; pImage++;
+                                    *pImage=0    ; pImage++;
+                                    *pImage=0    ; pImage-=2;
                                     //*pThres = 255; pThres++;
                                     countMaxes++;
                                     xm += x;
@@ -724,15 +750,18 @@ void selectiveAttentionProcessor::run(){
                     pImage += paddingOutput;
                     //pThres += paddingThresh;
                 }
-                xm = xm / countMaxes; ym = ym / countMaxes;
+                xm = xm / countMaxes;
+                ym = ym / countMaxes;
             }
             //representation of red lines where the WTA point is
             //representation of the vertical line
-            pImage=outputCartImage.getRawImage();
-            pImage+=round(xm)*3;
-            for(int i=0;i<ySizeValue;i++) {
-                *pImage=255; pImage++; *pImage=0; pImage++; *pImage=0; pImage++;
-                pImage += (xSizeValue-1) * 3 + paddingOutput;
+            pImage = outputCartImage.getRawImage();
+            pImage += round(xm) * 3;
+            for(int i = 0 ; i < ySizeValue ; i++) {
+                *pImage = 255; pImage++;
+                *pImage = 0;   pImage++;
+                *pImage = 0;   pImage++;
+                pImage += (xSizeValue - 1) * 3 + paddingOutput;
             }
             //representation of the horizontal line
             pImage = outputCartImage.getRawImage();
@@ -742,202 +771,203 @@ void selectiveAttentionProcessor::run(){
             }
             
             
-            /*
+            
             //representing the depressing gaussian
-            unsigned char* pThres = threshCartImage.getRawImage();
-            int paddingThresh = threshCartImage.getPadding();
-            int rowsizeThresh = threshCartImage.getRowSize();
-            pThres +=   ((int)ym - 5) * rowsizeThresh + ((int)xm - 5);
+            //unsigned char* pThres = threshCartImage.getRawImage();
+            //int paddingThresh = threshCartImage.getPadding();
+            //int rowsizeThresh = threshCartImage.getRowSize();
+            //pThres +=   ((int)ym - 5) * rowsizeThresh + ((int)xm - 5);
             //calculating the peek value
-            int dx = 30.0;
-            int dy = 30.0;
-            double sx = (dx / 2) / 3 ; //0.99 percentile
-            double sy = (dy / 2) / 3 ;
-            double vx = 8; //sx * sx; // variance          
-            double vy = 8; //sy * sy;
+            //int dx = 30.0;
+            //int dy = 30.0;
+            //double sx = (dx / 2) / 3 ; //0.99 percentile
+            //double sy = (dy / 2) / 3 ;
+            //double vx = 8; //sx * sx; // variance          
+            //double vy = 8; //sy * sy;
            
-            double rho = 0;
+            //double rho = 0;
             
-            double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
-            double b = -0.5 /(1 - rho * rho);
-            double k = 1 / (a * exp (b));
-                           
-            //uy = ym;
-            //ux = xm;          
+            //double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+            //double b = -0.5 /(1 - rho * rho);
+            //double k = 1 / (a * exp (b));
+                                     
  
-            double f, e, d;            
+            //double f, e, d;            
 
-            double zmax = 0;
+            //double zmax = 0;
             //for the whole blob in this loop
-            for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
-                for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
-                    
-                    if((c == xm)&&(r == ym)) { 
-                        //z = a * exp (b);
-                        //z = z * k;
-                        z = 1;
-                    }
-                    else {    
-                        f = ((c - xm) * (c - xm)) /(vx * vx);
-                        d = ((r - ym)  * (r - ym)) /(vy * vy);
-                        //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
-                        e = 0;
-                        z = a * exp ( b * (f + d - e) );
-                        z = z * k;
-                        z = (1 / 1.638575) * z;
-                        //z = 0.5;
-                    }
-                    
-                    // restrincting the z gain between two thresholds
-                    if (z > 1) {
-                        z = 1;
-                    }
-                    //if (z < 0.3) {
-                    //    z = 0.3;
-                    //}
-                    
-                    //set the image 
-                    *pThres++ = 255 * z;                    
-                }
-                pThres += rowsizeThresh - (dx + 1) ;
-            }
-            */
+            //for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
+            //    for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
+            //        
+            //        if((c == xm)&&(r == ym)) { 
+            //            //z = a * exp (b);
+            //            //z = z * k;
+            //            z = 1;
+            //        }
+            //        else {    
+            //            f = ((c - xm) * (c - xm)) /(vx * vx);
+            //            d = ((r - ym)  * (r - ym)) /(vy * vy);
+            //            //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
+            //            e = 0;
+            //            z = a * exp ( b * (f + d - e) );
+            //            z = z * k;
+            //            z = (1 / 1.638575) * z;
+            //            //z = 0.5;
+            //        }
+            //        
+            //        // restrincting the z gain between two thresholds
+            //        if (z > 1) {
+            //            z = 1;
+            //        }
+            //        //if (z < 0.3) {
+            //        //    z = 0.3;
+            //        //}
+            //        
+            //        //set the image 
+            //        *pThres++ = 255 * z;                    
+            //    }
+            //    pThres += rowsizeThresh - (dx + 1) ;
+            //}
             
-            //controlling the heading of the robot
-            endInt=Time::now();
-            double diff=endInt - startInt;
-            if(diff * 1000 > saccadeInterv) {
-                if(gazePerform) {
-                    Vector px(2);
-                    // ratio maps the WTA to an image 320,240 (see definition) because it is what iKinGazeCtrl asks
-                    px[0] = round(xm / ratioX - 80);   //divided by ratioX because the iKinGazeCtrl receives coordinates in image plane of 320,240
-                    px[1] = round(ym / ratioY);   //divided by ratioY because the iKinGazeCtrl receives coordinates in image plane of 320,240
-                    centroid_x = round(xm / ratioX);    //centroid_x is the value of gazeCoordinate streamed out
-                    centroid_y = round(ym / ratioY);    //centroid_y is the value of gazeCoordinate streamed out
-                    
-                    
-                    //if(vergencePort.getOutputCount()) {
-                    //    //suspending any vergence control;
-                    //    Bottle& command=vergencePort.prepare();
-                    //    command.clear();
-                    //    command.addString("sus");
-                    //    printf("suspending vergerce \n");
-                    //    vergencePort.write();
-                    //    //waiting for the ack from vergence
-                    //    bool flag=false;
-                    //}
-                    
-
-                    //for(int k=0;k<10;k++){ 
-                    //    Time::delay(0.050);
-                    //    printf("*");
-                    //}
-                    
-                    
-                    if(vergenceCmdPort.getInputCount()) {
-                        Vector angles(3);
-                        bool b = igaze->getAngles(angles);
-                        printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
-                        double vergence = (angles[2] * 3.14) / 180;
-                        double version = (angles[0] * 3.14) / 180;
-                        double leftAngle = version + vergence / 2.0;
-                        double rightAngle = version - vergence / 2.0;
-                        z = BASELINE / (2 * sin ( vergence / 2 )); //in m
-                        /*if(leftAngle >= 0) {
-                            if(rightAngle >= 0) {
-                                rightHat = 90 - rightAngle;
-                                leftHat = 90 - leftAngle;
-                                alfa = 90 - rightHat;
-                                h = BASELINE * (
-                                    (sin(leftHat) * sin(rightHat)) / 
-                                    (sin(rightHat) * sin(vergence + alfa) - sin(alfa) * sin(leftHat))
-                                    );
-                            }
-                            else {
-                                if(rightAngle >= leftAngle) {
-                                    rightHat = 90 - rightAngle;
-                                    leftHat = 90 - leftAngle;
-                                    alfa = 90 - rightHat;
-                                    h = BASELINE * (
-                                    (sin(leftHat) * sin(rightHat)) / 
-                                    (sin(leftHat) * sin(vergence + alfa) + sin(alfa) * sin(rightHat))
-                                    );
-                                }
-                                else {
-                                    rightHat = 90 - rightAngle;
-                                    leftHat = 90 - leftAngle;
-                                    alfa = 90 - rightHat;
-                                    h = BASELINE * (
-                                    (sin(leftHat) * sin(rightHat)) / 
-                                    (sin(rightHat) * sin(vergence + alfa) + sin(alfa) * sin(leftHat))
-                                    );
-                                }
-                            }
-                        }
-                        else {
-                            rightHat = 90 - rightAngle;
-                            leftHat = 90 - leftAngle;
-                            alfa = 90 - rightHat;
-                            h = BASELINE * (
-                                    (sin(leftHat) * sin(rightHat)) / 
-                                    (sin(leftHat) * sin(vergence + alfa) - sin(alfa) * sin(rightHat))
-                                    );
-                        }
-                        */
-                    }
-
-                    if(directSaccade) {
-                        igaze->lookAtMonoPixel(camSel,px,z);
-                    }
-                    
-
-                    if(outputCmdPort.getOutputCount()){
-                        if(!handFixation) {
-                           
-                            Bottle& commandBottle=outputCmdPort.prepare();
-                            commandBottle.clear();
-                            commandBottle.addString("SAC_MONO");
-                            commandBottle.addInt(centroid_x);
-                            commandBottle.addInt(centroid_y);
-                            commandBottle.addDouble(z);
-                            outputCmdPort.write();
-                        }
-                    }
-                    //if(vergencePort.getOutputCount()) { 
-                    //    //waiting for the end of the saccadic event
-                    //    bool flag=false;
-                    //    bool res=false;
-                    //    while(!flag) {
-                    //        igaze->checkMotionDone(&flag);
-                    //        Time::delay(0.010);
-                    //    }
-                    //    for(int k=0;k<10;k++){ 
-                    //        Time::delay(0.050);
-                    //    } 
-                    //    //suspending any vergence control
-                    //    Bottle& command=vergencePort.prepare();
-                    //    //resuming vergence
-                    //    command.clear();
-                    //    command.addString("res");
-                    //    printf("resuming vergence \n");
-                    //    vergencePort.write();
-                    //}
-
-                    //adding the element to the DB
-                    //if(databasePort.getOutputCount()) {
-                    //    //suspending any vergence control
-                    //    Bottle& command=databasePort.prepare();
-                    //    command.clear();
-                    //    command.addInt(xm);
-                    //    command.addInt(ym);
-                    //    databasePort.write();
-                    //}
-                   
-                }
-                startInt=Time::now();
-            }
-            outPorts();
         }
+
+
+        //controlling the heading of the robot
+        endInt=Time::now();
+        double diff=endInt - startInt;
+        if((diff * 1000 > saccadeInterv)||(idle)) {
+            if(gazePerform) {
+                Vector px(2);
+                // ratio maps the WTA to an image 320,240 (see definition) because it is what iKinGazeCtrl asks
+                px[0] = round(xm / ratioX - 80);   //divided by ratioX because the iKinGazeCtrl receives coordinates in image plane of 320,240
+                px[1] = round(ym / ratioY);   //divided by ratioY because the iKinGazeCtrl receives coordinates in image plane of 320,240
+                centroid_x = round(xm / ratioX);    //centroid_x is the value of gazeCoordinate streamed out
+                centroid_y = round(ym / ratioY);    //centroid_y is the value of gazeCoordinate streamed out
+                
+                
+                //if(vergencePort.getOutputCount()) {
+                //    //suspending any vergence control;
+                //    Bottle& command=vergencePort.prepare();
+                //    command.clear();
+                //    command.addString("sus");
+                //    printf("suspending vergerce \n");
+                //    vergencePort.write();
+                //    //waiting for the ack from vergence
+                //    bool flag=false;
+                //}
+                
+                
+                //for(int k=0;k<10;k++){ 
+                //    Time::delay(0.050);
+                //    printf("*");
+                //}
+                
+                
+                if(vergenceCmdPort.getInputCount()) {
+                    Vector angles(3);
+                    bool b = igaze->getAngles(angles);
+                    printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
+                    double vergence = (angles[2] * 3.14) / 180;
+                    double version = (angles[0] * 3.14) / 180;
+                    double leftAngle = version + vergence / 2.0;
+                    double rightAngle = version - vergence / 2.0;
+                    z = BASELINE / (2 * sin ( vergence / 2 )); //in m
+                    
+                    //if(leftAngle >= 0) {
+                    //    if(rightAngle >= 0) {
+                    //        rightHat = 90 - rightAngle;
+                    //        leftHat = 90 - leftAngle;
+                    //        alfa = 90 - rightHat;
+                    //        h = BASELINE * (
+                    //            (sin(leftHat) * sin(rightHat)) / 
+                    //            (sin(rightHat) * sin(vergence + alfa) - sin(alfa) * sin(leftHat))
+                    //            );
+                    //    }
+                    //    else {
+                    //        if(rightAngle >= leftAngle) {
+                    //            rightHat = 90 - rightAngle;
+                    //            leftHat = 90 - leftAngle;
+                    //            alfa = 90 - rightHat;
+                    //            h = BASELINE * (
+                    //            (sin(leftHat) * sin(rightHat)) / 
+                    //            (sin(leftHat) * sin(vergence + alfa) + sin(alfa) * sin(rightHat))
+                    //            );
+                    //        }
+                    //        else {
+                    //            rightHat = 90 - rightAngle;
+                    //            leftHat = 90 - leftAngle;
+                    //            alfa = 90 - rightHat;
+                    //            h = BASELINE * (
+                    //           (sin(leftHat) * sin(rightHat)) / 
+                    //            (sin(rightHat) * sin(vergence + alfa) + sin(alfa) * sin(leftHat))
+                    //            );
+                    //        }
+                    //    }
+                    //}
+                    //else {
+                    //   rightHat = 90 - rightAngle;
+                    //    leftHat = 90 - leftAngle;
+                    //    alfa = 90 - rightHat;
+                    //    h = BASELINE * (
+                    //            (sin(leftHat) * sin(rightHat)) / 
+                    //            (sin(leftHat) * sin(vergence + alfa) - sin(alfa) * sin(rightHat))
+                    //            );
+                    //}
+                    
+                }
+                
+                if(directSaccade) {
+                    igaze->lookAtMonoPixel(camSel,px,z);
+                }
+                
+                
+                if(outputCmdPort.getOutputCount()){
+                    if(!handFixation) {
+                        
+                        Bottle& commandBottle=outputCmdPort.prepare();
+                        commandBottle.clear();
+                        commandBottle.addString("SAC_MONO");
+                        commandBottle.addInt(centroid_x);
+                        commandBottle.addInt(centroid_y);
+                        commandBottle.addDouble(z);
+                        outputCmdPort.write();
+                    }
+                }
+                //if(vergencePort.getOutputCount()) { 
+                //    //waiting for the end of the saccadic event
+                //    bool flag=false;
+                //    bool res=false;
+                //    while(!flag) {
+                //        igaze->checkMotionDone(&flag);
+                //        Time::delay(0.010);
+                //    }
+                //    for(int k=0;k<10;k++){ 
+                //        Time::delay(0.050);
+                //    } 
+                //    //suspending any vergence control
+                //    Bottle& command=vergencePort.prepare();
+                //    //resuming vergence
+                //    command.clear();
+                //    command.addString("res");
+                //    printf("resuming vergence \n");
+                //    vergencePort.write();
+                //}
+                
+                //adding the element to the DB
+                //if(databasePort.getOutputCount()) {
+                //    //suspending any vergence control
+                //    Bottle& command=databasePort.prepare();
+                //    command.clear();
+                //    command.addInt(xm);
+                //    command.addInt(ym);
+                //    databasePort.write();
+                //}
+                
+            } //ifgaze Arbiter
+            startInt=Time::now();
+        } //if diff
+        outPorts();
+        //}// end idle
     }
 }
 
