@@ -403,6 +403,10 @@ void selectiveAttentionProcessor::run(){
         
         //--read value from the preattentive level
         if(feedbackPort.getOutputCount()){
+
+            float xm=0,ym=0;
+            
+
             /*
             Bottle in,out;
             out.clear();
@@ -459,19 +463,20 @@ void selectiveAttentionProcessor::run(){
         if((map1Port.getInputCount())&&(k1!=0)) {
             if(tmp!= 0) {
                 copy_C1R(tmp,map1_yarp);
-                idle=false;
+                //idle=false;
             }
         }
         if((map2Port.getInputCount())&&(k2!=0)) {
             tmp = map2Port.read(false);
             if(tmp!= 0) {
                 copy_C1R(tmp,map2_yarp);
-                idle=false;
+                //idle=false;
             }
         }
+
+        // ------------ early stage of response ---------------
         unsigned char* pmap1 = map1_yarp->getRawImage();
-        unsigned char* pmap2 = map2_yarp->getRawImage();
-        unsigned char* plinear=linearCombinationImage.getRawImage();
+        unsigned char* pmap2 = map2_yarp->getRawImage();        
         int padding=map1_yarp->getPadding();
         int rowSize=map1_yarp->getRowSize();
         for(int y = 0 ; y < height ; y++){
@@ -489,58 +494,39 @@ void selectiveAttentionProcessor::run(){
             }
         }
 
+        pmap1 = map1_yarp->getRawImage();
+        pmap2 = map2_yarp->getRawImage();  
+        unsigned char* pmap3 = map3_yarp->getRawImage();
+        unsigned char* pmap4 = map4_yarp->getRawImage();
+
         if(!idle) {
             if((map3Port.getInputCount())&&(k3!=0)) {
                 tmp = map3Port.read(false);
                 if(tmp!= 0) {
                     copy_C1R(tmp,map3_yarp);
-                    idle=false;
+                    //idle=false;
                 }
             }
             if((map4Port.getInputCount())&&(k4!=0)) {
                 tmp = map4Port.read(false);
                 if(tmp!= 0) {
                     copy_C1R(tmp,map4_yarp);
-                    idle=false;
-                }
-            }
-            if((map5Port.getInputCount())&&(k5!=0)) {
-                tmp = map5Port.read(false);
-                if(tmp!= 0) {
-                    copy_C1R(tmp,map5_yarp);
-                    idle=false;
-                }
-            }
-            if((map6Port.getInputCount())&&(k6!=0)) {
-                tmp = map6Port.read(false);
-                if(tmp!= 0) {
-                    copy_C1R(tmp,map6_yarp);
-                    idle=false;
+                    //idle=false;
                 }
             }
             
-            if((motionPort.getInputCount())&&(kmotion!=0)) {
-                tmp = motionPort.read(false);
-                if(tmp!= 0) {
-                    copy_8u_C1R(tmp,motion_yarp);
-                    idle=false;
+            //------ second stage of response  ----------------            
+            for(int y = 0 ; y < height ; y++){
+                for(int x = 0 ; x < width ; x++){
+                    unsigned char value = *pmap1++ + *pmap2++ + *pmap3++ + *pmap4++;
+                    if (value == 255) {
+                        y = height;
+                        idle =  true;
+                        break;
+                    }
                 }
-            }
-            if((cart1Port.getInputCount())&&(kc1!=0)) {
-                tmp = cart1Port.read(false);
-                if(tmp!= 0) {             
-                    copy_8u_C1R(tmp,cart1_yarp);
-                    idle=false;
-                }
-            }
-            if(inhiPort.getInputCount()) {
-                tmp = inhiPort.read(false);
-                if(tmp!= 0) {
-                    copy_8u_C1R(tmp,inhi_yarp);
-                    idle=false;
-                }
-            }
-        } //end of the idle after first response
+            }            
+        }//end of the idle after first two stages of response
         
 
         int ratioX = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
@@ -548,9 +534,45 @@ void selectiveAttentionProcessor::run(){
 
         //2. processing of the input images
         if(!idle){
+
+            if((map5Port.getInputCount())&&(k5!=0)) {
+                tmp = map5Port.read(false);
+                if(tmp!= 0) {
+                    copy_C1R(tmp,map5_yarp);
+                    //idle=false;
+                }
+            }
+            if((map6Port.getInputCount())&&(k6!=0)) {
+                tmp = map6Port.read(false);
+                if(tmp!= 0) {
+                    copy_C1R(tmp,map6_yarp);
+                    //idle=false;
+                }
+            }
+            
+            if((motionPort.getInputCount())&&(kmotion!=0)) {
+                tmp = motionPort.read(false);
+                if(tmp!= 0) {
+                    copy_8u_C1R(tmp,motion_yarp);
+                    //idle=false;
+                }
+            }
+            if((cart1Port.getInputCount())&&(kc1!=0)) {
+                tmp = cart1Port.read(false);
+                if(tmp!= 0) {             
+                    copy_8u_C1R(tmp,cart1_yarp);
+                    //idle=false;
+                }
+            }
+            if(inhiPort.getInputCount()) {
+                tmp = inhiPort.read(false);
+                if(tmp!= 0) {
+                    copy_8u_C1R(tmp,inhi_yarp);
+                    //idle=false;
+                }
+            }
         
-            unsigned char* pmap3 = map3_yarp->getRawImage();
-            unsigned char* pmap4 = map4_yarp->getRawImage();
+            unsigned char* plinear=linearCombinationImage.getRawImage();
             unsigned char* pmap5 = map5_yarp->getRawImage();
             unsigned char* pmap6 = map6_yarp->getRawImage();
             unsigned char* pface = faceMask ->getRawImage();
@@ -572,16 +594,25 @@ void selectiveAttentionProcessor::run(){
                         value=(unsigned char)ceil(combinValue);
                     }
                 
-                    pmap1++; pmap2++; pmap3++;
-                    pmap4++; pmap5++; pmap6++;
+                    pmap1++;
+                    pmap2++;
+                    pmap3++;
+                    pmap4++;
+                    pmap5++;
+                    pmap6++;
                     pface++;
+                    
                     *plinear = value;
                     plinear++;
                 }
-                pmap1 += padding; pmap2 += padding; pmap3 += padding;
-                pmap4 += padding; pmap5 += padding; pmap6 += padding;
+                pmap1   += padding;
+                pmap2   += padding;
+                pmap3   += padding;
+                pmap4   += padding;
+                pmap5   += padding;
+                pmap6   += padding;
                 plinear += padding;
-                pface += padding;
+                pface   += padding;
             }
             
             //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
@@ -591,10 +622,10 @@ void selectiveAttentionProcessor::run(){
             maxValue = 0;
             for(int y = 0 ;  y < height ; y++) {
                 for(int x = 0 ; x < width ; x++) {
-                    *pImage ++ = (unsigned char) *plinear;
-                    *pImage ++ = (unsigned char) *plinear;
-                    *pImage ++ = (unsigned char) *plinear;
-                    plinear ++;
+                    *pImage++ = (unsigned char) *plinear;
+                    *pImage++ = (unsigned char) *plinear;
+                    *pImage++ = (unsigned char) *plinear;
+                    plinear++;
                 }
                 pImage  += padding3C;
                 plinear += padding;
@@ -634,14 +665,13 @@ void selectiveAttentionProcessor::run(){
                 tmp = inhiCartPort.read(false);
                 if(tmp!= 0) {
                     copy_8u_C1R(tmp,inhicart_yarp);
-                    idle=false;
+                    //idle=false;
                 }
             }
 
 
             //find the max in the cartesian image and downsample
-            maxValue=0;
-            float xm=0,ym=0;
+            maxValue=0;            
             int countMaxes=0;
             pImage = outputCartImage.getRawImage();
             unsigned char* pInter    = intermCartOut->getRawImage();
@@ -731,9 +761,12 @@ void selectiveAttentionProcessor::run(){
                                 distance = sqrt((x-xm)*(x-xm)+(y-ym)*(y-ym));
                                 // beware:the distance is useful to decrease computation demand but the WTA is selected in the top left hand corner!
                                 if(distance < 10) {
-                                    *pImage = 255; pImage++;
-                                    *pImage=0    ; pImage++;
-                                    *pImage=0    ; pImage-=2;
+                                    *pImage = 255;
+                                    pImage++;
+                                    *pImage=0;
+                                    pImage++;
+                                    *pImage=0;
+                                    pImage-=2;
                                     //*pThres = 255; pThres++;
                                     countMaxes++;
                                     xm += x;
@@ -745,10 +778,8 @@ void selectiveAttentionProcessor::run(){
                             }
                         }
                         pImage+=3;
-                        //pThres++;
                     }
                     pImage += paddingOutput;
-                    //pThres += paddingThresh;
                 }
                 xm = xm / countMaxes;
                 ym = ym / countMaxes;
@@ -756,7 +787,7 @@ void selectiveAttentionProcessor::run(){
             //representation of red lines where the WTA point is
             //representation of the vertical line
             pImage = outputCartImage.getRawImage();
-            pImage += round(xm) * 3;
+            pImage += (int)round(xm) * 3;
             for(int i = 0 ; i < ySizeValue ; i++) {
                 *pImage = 255; pImage++;
                 *pImage = 0;   pImage++;
@@ -765,9 +796,11 @@ void selectiveAttentionProcessor::run(){
             }
             //representation of the horizontal line
             pImage = outputCartImage.getRawImage();
-            pImage += round(ym) * (3 * (xSizeValue) + paddingOutput);
-            for(int i = 0; i < xSizeValue; i++) {
-                *pImage = 255; pImage++; *pImage = 0; pImage++; *pImage = 0; pImage++;
+            pImage += (int) round(ym) * (3 * (xSizeValue) + paddingOutput);
+            for(int i = 0 ; i < xSizeValue; i++) {
+                *pImage++ = 255;
+                *pImage++ = 0;
+                *pImage++ = 0;
             }
             
             
@@ -831,10 +864,11 @@ void selectiveAttentionProcessor::run(){
             
         }
 
-
+        //---------- SECTION 2 ----------
+        // ------- requiring the saccade ---------------
         //controlling the heading of the robot
         endInt=Time::now();
-        double diff=endInt - startInt;
+        double diff = endInt - startInt;
         if((diff * 1000 > saccadeInterv)||(idle)) {
             if(gazePerform) {
                 Vector px(2);
@@ -922,17 +956,18 @@ void selectiveAttentionProcessor::run(){
                 
                 
                 if(outputCmdPort.getOutputCount()){
-                    if(!handFixation) {
-                        
+                    if(!handFixation) {                        
                         Bottle& commandBottle=outputCmdPort.prepare();
                         commandBottle.clear();
                         commandBottle.addString("SAC_MONO");
                         commandBottle.addInt(centroid_x);
                         commandBottle.addInt(centroid_y);
                         commandBottle.addDouble(z);
+                        //commandBottle.addDouble(timing);
                         outputCmdPort.write();
-                    }
+                    } 
                 }
+
                 //if(vergencePort.getOutputCount()) { 
                 //    //waiting for the end of the saccadic event
                 //    bool flag=false;
