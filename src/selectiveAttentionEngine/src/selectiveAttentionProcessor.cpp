@@ -126,29 +126,14 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     gazePerform = true;
     handFixation = false;
     directSaccade = false;
-    /**  removed lines. the dimension of the cartesian images (result of the remapping) must be read from 
-    xSizeValue=XSIZE_DIM;
-    ySizeValue=YSIZE_DIM;
-    */
 
     cLoop=0;
     endInt=0;
     startInt=Time::now();
     saccadeInterv=3000; //milliseconds
     
-    //default values of the coefficients
-    /** removed hardcoded. these value must be set from either the configuration file or the command line
-    k1=0.5;
-    k2=0.1;
-    k3=0.5;
-    k4=0.1;
-    k5=0.5;
-    k6=1.0;
-    kmotion=0.2;
-    kc1=0.0;
-    */
 
-    // images
+    // images initialisation
     edges_yarp  = new ImageOf <PixelMono>;
     tmp         = new ImageOf <PixelMono>;
     
@@ -202,26 +187,25 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
 
     inImage=new ImageOf<PixelRgb>;
     inImage->resize(width,height);
-
-    //map1_yarp=new ImageOf<PixelMono>;
+   
     map1_yarp->resize(width,height);
     map1_yarp->zero();
-    //map2_yarp=new ImageOf<PixelMono>;
+    
     map2_yarp->resize(width,height);
     map2_yarp->zero();
-    //map3_yarp=new ImageOf<PixelMono>;
+    
     map3_yarp->resize(width,height);
     map3_yarp->zero();
-    //map4_yarp=new ImageOf<PixelMono>;
+    
     map4_yarp->resize(width,height);
     map4_yarp->zero();
-    //map5_yarp=new ImageOf<PixelMono>;
+    
     map5_yarp->resize(width,height);
     map5_yarp->zero();
-    //map6_yarp=new ImageOf<PixelMono>;
+    
     map6_yarp->resize(width,height);
     map6_yarp->zero();
-    //faceMask=new ImageOf<PixelMono>;
+    
     faceMask->resize(width,height);
     faceMask->zero();
     inputLogImage = new ImageOf<PixelRgb>;
@@ -229,8 +213,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
 
     intermCartOut = new ImageOf<PixelRgb>;
     intermCartOut->resize(xSizeValue,ySizeValue);
-    //srcsizeCart.width=xSizeValue;
-    //srcsizeCart.height=ySizeValue;
+
     motion_yarp = new ImageOf<PixelMono>;
     motion_yarp->resize(xSizeValue,ySizeValue);
     motion_yarp->zero();
@@ -263,16 +246,16 @@ bool selectiveAttentionProcessor::threadInit(){
     printf("Thread initialization .... \n");
     //opening ports"
     vergencePort.open(getName("/vergence:o").c_str());
-    //inImagePort.open(getName("/image:i").c_str());
-    map1Port.open(getName("/map1:i").c_str());
-    map2Port.open(getName("/map2:i").c_str());
-    map3Port.open(getName("/map3:i").c_str());
-    map4Port.open(getName("/map4:i").c_str());
-    map5Port.open(getName("/map5:i").c_str());
-    map6Port.open(getName("/map6:i").c_str());
+
+    map1Port.open(getName("/intensity:i").c_str());
+    map2Port.open(getName("/motion:i").c_str());
+    map3Port.open(getName("/chrominance:i").c_str());
+    map4Port.open(getName("/orientation:i").c_str());
+    map5Port.open(getName("/edges:i").c_str());
+    map6Port.open(getName("/blobs:i").c_str());
 
     cart1Port.open(getName("/cart1:i").c_str());
-    motionPort.open(getName("/motion:i").c_str());
+    motionPort.open(getName("/motionCart:i").c_str());
 
     inhiCartPort.open(getName("/inhiCart:i").c_str());
     inhiPort.open(getName("/inhi:i").c_str());
@@ -310,8 +293,9 @@ bool selectiveAttentionProcessor::threadInit(){
     if (clientGazeCtrl->isValid()) {
        clientGazeCtrl->view(igaze);
     }
-    else
+    else {
         return false;
+    }
 
     
     // set up the ARM MOTOR INTERFACE	
