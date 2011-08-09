@@ -236,22 +236,28 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     for(int row = 0; row < height_orig; row++) {
         for(int col = 0; col < width_orig ; col++) {
             diff10 = (*pin      - *pimageT1) * (*pin      - *pimageT1);
+            diff10 = (diff10 > 100) ? diff10 : 0;
             diff21 = (*pimageT2 - *pimageT1) * (*pimageT2 - *pimageT1);
+            diff21 = (diff21 > 100) ? diff21 : 0;
             diff32 = (*pimageT3 - *pimageT2) * (*pimageT3 - *pimageT2);
+            diff32 = (diff32 > 100) ? diff32 : 0;
             diff20 = (*pin      - *pimageT2) * (*pin      - *pimageT2);
+            diff20 = (diff20 > 100) ? diff20 : 0;
             diff30 = (*pin      - *pimageT3) * (*pin      - *pimageT3);
+            diff30 = (diff30 > 100) ? diff30 : 0;
             diff40 = (*pin      - *pimageT4) * (*pin      - *pimageT4);
+            diff40 = (diff40 > 100) ? diff40 : 0;
 
             //*pout = *pin;
             
-            *pout += floor(5.0 * sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (row  / (double)height_orig ));
+            *pout += floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp((2 * row)  / (double)height_orig) - 1));
             if(*pout > 200){
                 printf("255 \n");
                 *pout = 255;
-                *(pout + 1) = 255;
-                *(pout - 1) = 255;
-                *(pout - rowsize) = 255;
-                *(pout + rowsize) = 255;
+                //*(pout + 1) = 255;
+                //*(pout - 1) = 255;
+                //*(pout - rowsize) = 255;
+                //*(pout + rowsize) = 255;
             }
                      
             pout++;
