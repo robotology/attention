@@ -29,7 +29,7 @@
 
 
 #define KERNSIZE 3    //kernsize (odd, >= 3)
-
+#define PI 3.1415
 
 using namespace std;
 using namespace yarp::os;
@@ -139,9 +139,9 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
   	if (maxPixelVal == minPixelVal){maxPixelVal=255.0f;minPixelVal=0.0f;}
   	
     cvConvertScale(cs_tot_32f,output8u,255/(maxPixelVal - minPixelVal),-255*minPixelVal/(maxPixelVal-minPixelVal));
-    cvNamedWindow("image in float");
-    cvShowImage("image in float",cs_tot_32f);
-    cvWaitKey(0);
+    //cvNamedWindow("image in float");
+    //cvShowImage("image in float",cs_tot_32f);
+    //cvWaitKey(0);
     
 }
 

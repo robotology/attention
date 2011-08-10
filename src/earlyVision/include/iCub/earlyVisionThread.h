@@ -97,8 +97,6 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Yminus;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *YofYUV;
 
-    
-
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage1;
@@ -111,10 +109,7 @@ private:
     KirschOutputImage *o0;
     KirschOutputImage *o45;
     KirschOutputImage *o90;
-    KirschOutputImage *oM45;
-
-    
-    
+    KirschOutputImage *oM45;    
     
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
