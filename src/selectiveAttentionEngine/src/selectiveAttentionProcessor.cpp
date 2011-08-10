@@ -435,7 +435,7 @@ void selectiveAttentionProcessor::run(){
             in.clear();
             */
         }
-
+    
         tmp=map1Port.read(false);
         if(tmp==0){
             return;
@@ -459,20 +459,27 @@ void selectiveAttentionProcessor::run(){
         }
 
         // ------------ early stage of response ---------------
-        unsigned char* pmap1 = map1_yarp->getRawImage();
-        unsigned char* pmap2 = map2_yarp->getRawImage();        
+        unsigned char* plinear = linearCombinationImage.getRawImage();
+        unsigned char* pmap1   = map1_yarp->getRawImage();
+        unsigned char* pmap2   = map2_yarp->getRawImage();        
         int padding=map1_yarp->getPadding();
         int rowSize=map1_yarp->getRowSize();
         for(int y = 0 ; y < height ; y++){
             for(int x = 0 ; x < width ; x++){
                 if (*pmap1 == 255){
+                    xm = x;
+                    ym = y;
                     y = height;
                     idle =  true;
+                    timing = 0.1;
                     break;
                 }
                 if (*pmap2 == 255) {
+                    xm = x;
+                    ym = y;
                     y = height;
                     idle = true;
+                    timing = 0.1;
                     break;
                 }
             }
@@ -503,11 +510,15 @@ void selectiveAttentionProcessor::run(){
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < width ; x++){
                     unsigned char value = *pmap1++ + *pmap2++ + *pmap3++ + *pmap4++;
+                    *plinear++ = value;
                     if (value == 255) {
+                        xm = x;
+                        ym = y;
+                        timing = 0.5;
                         y = height;
                         idle =  true;
                         break;
-                    }
+                    }                    
                 }
             }            
         }//end of the idle after first two stages of response
@@ -518,6 +529,7 @@ void selectiveAttentionProcessor::run(){
 
         //2. processing of the input images
         if(!idle){
+            timing = 1.0;
 
             if((map5Port.getInputCount())&&(k5!=0)) {
                 tmp = map5Port.read(false);
@@ -556,7 +568,7 @@ void selectiveAttentionProcessor::run(){
                 }
             }
         
-            unsigned char* plinear=linearCombinationImage.getRawImage();
+            
             unsigned char* pmap5 = map5_yarp->getRawImage();
             unsigned char* pmap6 = map6_yarp->getRawImage();
             unsigned char* pface = faceMask ->getRawImage();
@@ -616,9 +628,7 @@ void selectiveAttentionProcessor::run(){
             }
             ImageOf<PixelRgb>  &outputCartImage = imageCartOut.prepare();  // preparing the cartesian output for combination
             ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
-            ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();    // preparing the cartesian image for inhibith a portion of the saliency map
-
-            
+            ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();  // preparing the cartesian image for inhibith a portion of the saliency map            
             
             // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
             int outputXSize=xSizeValue;
@@ -652,7 +662,6 @@ void selectiveAttentionProcessor::run(){
                     //idle=false;
                 }
             }
-
 
             //find the max in the cartesian image and downsample
             maxValue=0;            
@@ -846,14 +855,14 @@ void selectiveAttentionProcessor::run(){
             //    pThres += rowsizeThresh - (dx + 1) ;
             //}
             
-        }
+        } //end of the last idle.
 
         //---------- SECTION 2 ----------
         // ------- requiring the saccade ---------------
         //controlling the heading of the robot
         endInt=Time::now();
         double diff = endInt - startInt;
-        if((diff * 1000 > saccadeInterv)||(idle)) {
+        if((diff * 1000 > saccadeInterv)||(idle)||(maxResponse)) {
             if(gazePerform) {
                 Vector px(2);
                 // ratio maps the WTA to an image 320,240 (see definition) because it is what iKinGazeCtrl asks
