@@ -23,14 +23,22 @@
 		<tag>earlySelectiveAtt</tag>
 		<node>/powernode</node>
 	</module>
+
+	<module>
+		<name>attentionPrioritiser</name>
+        	<parameters>--name /attPrioritiser/icub/left_cam </parameters>
+        	<tag>prioritiser</tag>
+        	<node>/powernode</node>
+    	</module>
     
         <module>
 		<name>gazeArbiter</name>
         	<parameters>--name /gazeArbiter/icub/left_cam --config icubEyes.ini --ymin -0.25 --ymax 0.25 --xmin -0.60 --xmax -0.3</parameters>
         	<tag>gArbiter</tag>
         	<node>/powernode</node>
-    		</module>
+    	</module>
 
+        
 
     <connection>
         <from>/logPolarTransform/icub/left_cam/image:o</from>
