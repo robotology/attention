@@ -18,7 +18,7 @@ include(iCubHelpers)
 # default prefix for applications
 SET(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}"  CACHE PATH "Application path prefix")
 				
-add_subdirectory(earlyAttention)
+#add_subdirectory(earlyAttention)
 add_subdirectory(logpolarAttention)
 add_subdirectory(protoObjectVisualAttention)
 
