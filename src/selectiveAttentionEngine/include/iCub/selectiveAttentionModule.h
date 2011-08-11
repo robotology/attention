@@ -208,37 +208,37 @@
 /**
  * CHANGE LOG
  * 
- * 20/12/10 : changed the name from kMotion to kMot in parsing process of the config file       author:Rea
- * 21/12/10 : set to zero every map in the initialization code of the thread                    author:Rea
- * 21/12/10 : immediate response to the stimulus when it is very strong                         authot:Rea
- * 28/12/10 : added polydrivers for the cartesian control (prioceptive information)             author:Rea
- * 28/12/10 : added robotname parameter configurable from config file                           author:Rea
- * 04/01/11 : added initialisation to zero values of motion and cartesian images                author:Rea
- * 04/01/11 : added saccadic event in direction of the left arm (when requested)                author:Rea
- * 04/01/11 : added an in-class function for coping images and extract relevant information     author:Rea
- * 05/01/11 : introduced the mechanism that configure which are the satMap and hueMap           author:Rea
- * 05/01/11 : changed the copy function of logpolar images from copy_8u_C1R to copy_C1R         author:Rea
- * 06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       author:Rea
- * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        author:Rea
- * 08/03/11 : added the new bottle(template) to the communication to the objectProp             author:Rea  
- * 06/06/11 : created a new ouput image composed of a gaussian around the WTA                   author:Rea
- * 07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              author:Rea
- * 09/08/11 : changed the algorithm to provide different timing in the saccade selection        author:Rea
- * 09/08/11 : changed the names of the ports to better align it to the biology                  author:Rea
+ * @20/12/10 : changed the name from kMotion to kMot in parsing process of the config file       author:Rea
+ * @21/12/10 : set to zero every map in the initialization code of the thread                    author:Rea
+ * @21/12/10 : immediate response to the stimulus when it is very strong                         authot:Rea
+ * @28/12/10 : added polydrivers for the cartesian control (prioceptive information)             author:Rea
+ * @28/12/10 : added robotname parameter configurable from config file                           author:Rea
+ * @04/01/11 : added initialisation to zero values of motion and cartesian images                author:Rea
+ * @04/01/11 : added saccadic event in direction of the left arm (when requested)                author:Rea
+ * @04/01/11 : added an in-class function for coping images and extract relevant information     author:Rea
+ * @05/01/11 : introduced the mechanism that configure which are the satMap and hueMap           author:Rea
+ * @05/01/11 : changed the copy function of logpolar images from copy_8u_C1R to copy_C1R         author:Rea
+ * @06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       author:Rea
+ * @06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        author:Rea
+ * @08/03/11 : added the new bottle(template) to the communication to the objectProp             author:Rea  
+ * @06/06/11 : created a new ouput image composed of a gaussian around the WTA                   author:Rea
+ * @07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              author:Rea
+ * @09/08/11 : changed the algorithm to provide different timing in the saccade selection        author:Rea
+ * @09/08/11 : changed the names of the ports to better align it to the biology                  author: Rea
 */
 
 
 class selectiveAttentionModule : public yarp::os::RFModule {
 private:
-    double parameterZ;          //z distance of the objects necessary for monocular gazing
-    double k1;                  //coefficient map1
-    double k2;                  //coefficient map2
-    double k3;                  //coefficient map3
-    double k4;                  //coefficient map4
-    double k5;                  //coefficient map5
-    double k6;                  //coefficient map6
-    double kMotion;             //coefficient map Motion
-    double kc1;                 //coefficient map cartesian1
+    double parameterZ;          // z distance of the objects necessary for monocular gazing
+    double k1;                  // coefficient map1
+    double k2;                  // coefficient map2
+    double k3;                  // coefficient map3
+    double k4;                  // coefficient map4
+    double k5;                  // coefficient map5
+    double k6;                  // coefficient map6
+    double kMotion;             // coefficient map Motion
+    double kc1;                 // coefficient map cartesian1
 
     yarp::os::Port cmdPort;     // command port of the module
     int ct;                     // counter of the module

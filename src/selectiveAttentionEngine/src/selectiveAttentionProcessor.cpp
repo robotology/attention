@@ -862,14 +862,17 @@ void selectiveAttentionProcessor::run(){
         //controlling the heading of the robot
         endInt=Time::now();
         double diff = endInt - startInt;
+        // idle: when any of the first two stages of response fires
+        // maxresponse: when within the linear combination one region fires
+        // the rest is a constant rate firing
         if((diff * 1000 > saccadeInterv)||(idle)||(maxResponse)) {
             if(gazePerform) {
                 Vector px(2);
                 // ratio maps the WTA to an image 320,240 (see definition) because it is what iKinGazeCtrl asks
-                px[0] = round(xm / ratioX - 80);   //divided by ratioX because the iKinGazeCtrl receives coordinates in image plane of 320,240
-                px[1] = round(ym / ratioY);   //divided by ratioY because the iKinGazeCtrl receives coordinates in image plane of 320,240
-                centroid_x = round(xm / ratioX);    //centroid_x is the value of gazeCoordinate streamed out
-                centroid_y = round(ym / ratioY);    //centroid_y is the value of gazeCoordinate streamed out
+                px[0] = round(xm / ratioX - 80);   // divided by ratioX because the iKinGazeCtrl receives coordinates in image plane of 320,240
+                px[1] = round(ym / ratioY);        // divided by ratioY because the iKinGazeCtrl receives coordinates in image plane of 320,240
+                centroid_x = round(xm / ratioX);   // centroid_x is the value of gazeCoordinate streamed out
+                centroid_y = round(ym / ratioY);   // centroid_y is the value of gazeCoordinate streamed out
                 
                 
                 //if(vergencePort.getOutputCount()) {
@@ -894,9 +897,9 @@ void selectiveAttentionProcessor::run(){
                     Vector angles(3);
                     bool b = igaze->getAngles(angles);
                     printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
-                    double vergence = (angles[2] * 3.14) / 180;
-                    double version = (angles[0] * 3.14) / 180;
-                    double leftAngle = version + vergence / 2.0;
+                    double vergence   = (angles[2] * 3.14) / 180;
+                    double version    = (angles[0] * 3.14) / 180;
+                    double leftAngle  = version + vergence / 2.0;
                     double rightAngle = version - vergence / 2.0;
                     z = BASELINE / (2 * sin ( vergence / 2 )); //in m
                     
@@ -956,7 +959,7 @@ void selectiveAttentionProcessor::run(){
                         commandBottle.addInt(centroid_x);
                         commandBottle.addInt(centroid_y);
                         commandBottle.addDouble(z);
-                        //commandBottle.addDouble(timing);
+                        commandBottle.addDouble(timing);
                         outputCmdPort.write();
                     } 
                 }
