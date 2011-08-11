@@ -311,12 +311,12 @@ bool gazeArbiterThread::threadInit() {
     int ym = 240>>1;
     int xm = 320>>1;
     //calculating the peek value
-    int dx = 30.0;
-    int dy = 30.0;
+    int dx = 90.0;
+    int dy = 90.0;
     double sx = (dx / 2) / 3 ; //0.99 percentile
     double sy = (dy / 2) / 3 ;
-    double vx = 10; //sx * sx; // variance          
-    double vy = 10; //sy * sy;
+    double vx = 18; //sx * sx; // variance          
+    double vy = 18; //sy * sy;
     
     double rho = 0;
     
@@ -345,7 +345,7 @@ bool gazeArbiterThread::threadInit() {
                 z = a * exp ( b * (f + d - e) );
                 z = z * k;
                 if(z>zmax) zmax=z;
-                z = (1 / 1.645062) * z;
+                z = (1 / 1.646172) * z;
                 //z = 0.5;
             }
             
@@ -364,7 +364,7 @@ bool gazeArbiterThread::threadInit() {
         pinhi += rowsizeInhi - (dx + 1) ;
     }
 
-    printf("zmax = %f \n", zmax);
+    printf("     \n zmax = %f \n", zmax);
 
     //pinhi = inhibitionImage->getRawImage();
     //*pinhi = 255;
@@ -807,7 +807,8 @@ void gazeArbiterThread::run() {
                     if(imgLeftIn!=NULL){
                         unsigned char* pinhi = inhibitionImage->getRawImage();
                         inhibitionImage->resize(320,240);
-                        inhibitionImage->zero();
+                        //inhibitionImage->zero();
+                        /*
                         int padding = inhibitionImage->getPadding();
                         int rowsizeInhi = inhibitionImage->getRowSize();
                         int ym = 240>>1;
@@ -864,7 +865,7 @@ void gazeArbiterThread::run() {
                             }
                             pinhi += rowsizeInhi - (dx + 1) ;
                         }
-                        
+                        */
                         
                     
                         pinhi = inhibitionImage->getRawImage();

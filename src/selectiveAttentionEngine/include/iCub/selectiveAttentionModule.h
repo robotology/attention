@@ -224,7 +224,8 @@
  * @06/06/11 : created a new ouput image composed of a gaussian around the WTA                   author:Rea
  * @07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              author:Rea
  * @09/08/11 : changed the algorithm to provide different timing in the saccade selection        author:Rea
- * @09/08/11 : changed the names of the ports to better align it to the biology                  author: Rea
+ * @09/08/11 : changed the names of the ports to better align it to the biology                  author:Rea
+ * @11/08/11 : changed the visitiong algorithm for the image                                     author:Rea
 */
 
 
