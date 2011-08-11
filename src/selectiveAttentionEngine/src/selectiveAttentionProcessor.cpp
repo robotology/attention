@@ -464,13 +464,13 @@ void selectiveAttentionProcessor::run(){
         // ------------ early stage of response ---------------
         
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
-        map1Left  += width>>1 - 1;
+        pmap1Left  += width>>1 - 1;
         unsigned char* pmap1Right  = map1_yarp->getRawImage();        
-        map1Right += width>>1;
+        pmap1Right += width>>1;
         unsigned char* pmap2Left   = map2_yarp->getRawImage();        
-        map2Left  += width>>1 - 1;
-        unsigned char* pmap1Right  = map1_yarp->getRawImage();        
-        map2Right += width>>1;
+        pmap2Left  += width>>1 - 1;
+        unsigned char* pmap2Right  = map2_yarp->getRawImage();        
+        pmap2Right += width>>1;
         int padding = map1_yarp->getPadding();
         int rowSize = map1_yarp->getRowSize();
         // exploring the image from rho=0 and from theta = 0
@@ -480,7 +480,7 @@ void selectiveAttentionProcessor::run(){
                     printf("max in intesity \n");
                     xm = width>>1 + x;
                     ym = y;
-                    y = height;
+                    y = height;// for jumping out of the outer loop
                     idle =  true;
                     timing = 0.1;
                     break;
@@ -489,7 +489,7 @@ void selectiveAttentionProcessor::run(){
                     printf("max in intesity \n");
                     xm = width>>1 - x;
                     ym = y;
-                    y = height;
+                    y = height;// for jumping out of the outer loop
                     idle =  true;
                     timing = 0.1;
                     break;
@@ -498,7 +498,7 @@ void selectiveAttentionProcessor::run(){
                     printf("max in motion \n");
                     xm = width>>1 + x;
                     ym = y;
-                    y = height;
+                    y = height;// for jumping out of the outer loop
                     idle = true;
                     timing = 0.1;
                     break;
@@ -507,21 +507,38 @@ void selectiveAttentionProcessor::run(){
                     printf("max in motion \n");
                     xm = width>>1 - x;
                     ym = y;
-                    y = height;
+                    y = height;// for jumping out of the outer loop
                     idle = true;
                     timing = 0.1;
                     break;
                 }
             }
-            pmap1 += padding;
-            pmap2 += padding;
+            pmap1Right += rowSize - width>>1 - 1;
+            pmap1Left  += rowSize + width>>1 - 1;
+            pmap2Right += rowSize - width>>1 - 1;
+            pmap2Left  += rowSize + width>>1 - 1;
         }
 
-        pmap1 = map1_yarp->getRawImage();
-        pmap2 = map2_yarp->getRawImage();  
-        unsigned char* pmap3 = map3_yarp->getRawImage();
-        unsigned char* pmap4 = map4_yarp->getRawImage();
+        pmap1Left  = map1_yarp->getRawImage();
+        pmap1Left  += width>>1 - 1;
+        pmap1Right = map1_yarp->getRawImage();
+        pmap1Right += width>>1;
+    
+        pmap2Left  = map2_yarp->getRawImage();
+        pmap2Left  += width>>1 - 1;
+        pmap2Right = map2_yarp->getRawImage();
+        pmap2Right += width>>1;
+        unsigned char* pmap3Left  = map3_yarp->getRawImage();
+        pmap3Left  += width>>1 - 1;
+        unsigned char* pmap3Right = map3_yarp->getRawImage();
+        pmap3Right += width>>1;
+        unsigned char* pmap4Left  = map4_yarp->getRawImage();
+        pmap4Left  += width>>1 - 1;
+        unsigned char* pmap4Right = map4_yarp->getRawImage();
+        pmap4Right += width>>1;
+
         double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues
+
         if(!idle) {
             printf("activating the second stage of early vision... \n");
             if((map3Port.getInputCount())&&(k3!=0)) {
@@ -540,26 +557,41 @@ void selectiveAttentionProcessor::run(){
             }
             
             //------ second stage of response  ----------------            
-            for(int y = 0 ; y < height ; y++){
-                for(int x = 0 ; x < width ; x++){
+            for(int y = 0 ; y < height; y++){
+                for(int x = 0 ; x < width>>1; x++){
                     //unsigned char value = *pmap1++ + *pmap2++ + *pmap3++ + *pmap4++;
-                    double value = (double) (*pmap1++ * (k1/sumK) + *pmap2++ * (k2/sumK) + *pmap3++ * (k3/sumK) + *pmap4++ * (k4/sumK));
-                        
+                    double value = (double) (*pmap1Right++ * (k1/sumK) + *pmap2Right++ * (k2/sumK) + *pmap3Right++ * (k3/sumK) + *pmap4Right++ * (k4/sumK));
                     //*plinear++ = value;
                     if (value >= 255) {
-                        printf("max in the second stage \n");
-                        xm = x;
+                        printf("max in the second stage right \n");
+                        xm = x + width;
                         ym = y;
                         timing = 0.5;
-                        y = height;
+                        y = height;    // for jumping out of outer loop
                         idle =  true;
                         break;
-                    }                    
+                    } 
+
+                    value = (double) (*pmap1Left-- * (k1/sumK) + *pmap2Left-- * (k2/sumK) + *pmap3Left-- * (k3/sumK) + *pmap4Left-- * (k4/sumK));
+                    if (value >= 255) {
+                        printf("max in the second stage left \n");
+                        xm = x - width;
+                        ym = y;
+                        timing = 0.5;
+                        y = height;   // for jumping out of the outer loop
+                        idle =  true;
+                        break;
+                    }                     
                 }
-                pmap1 += padding;
-                pmap2 += padding;
-                pmap3 += padding;
-                pmap4 += padding;
+
+                pmap1Right += rowSize - width>>1 - 1;
+                pmap1Left  += rowSize + width>>1 - 1;
+                pmap2Right += rowSize - width>>1 - 1;
+                pmap2Left  += rowSize + width>>1 - 1;
+                pmap3Right += rowSize - width>>1 - 1;
+                pmap3Left  += rowSize + width>>1 - 1;
+                pmap4Right += rowSize - width>>1 - 1;
+                pmap4Left  += rowSize + width>>1 - 1;
             }            
         }//end of the idle after first two stages of response
         
@@ -610,10 +642,10 @@ void selectiveAttentionProcessor::run(){
                 }
             }
         
-            pmap1 = map1_yarp->getRawImage();
-            pmap2 = map2_yarp->getRawImage();  
-            pmap3 = map3_yarp->getRawImage();
-            pmap4 = map4_yarp->getRawImage();
+            unsigned char* pmap1 = map1_yarp->getRawImage();
+            unsigned char* pmap2 = map2_yarp->getRawImage();  
+            unsigned char* pmap3 = map3_yarp->getRawImage();
+            unsigned char* pmap4 = map4_yarp->getRawImage();
             unsigned char* pmap5 = map5_yarp->getRawImage();
             unsigned char* pmap6 = map6_yarp->getRawImage();
             unsigned char* pface = faceMask ->getRawImage();
