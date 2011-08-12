@@ -230,7 +230,6 @@ void selectiveAttentionProcessor::resizeImages(int width,int height) {
     tmp->resize(width,height);
     inImage->resize(width,height);
     
-
     tmp->resize(width,height);
     image_out->resize(width,height);
     image_tmp->resize(width,height);
@@ -325,8 +324,6 @@ bool selectiveAttentionProcessor::threadInit(){
     //remoteName = "/cartesianSolver/left_arm";
     //remoteName = "/" + robotName + "/cartesianController/right_arm";
 
-
-
     options.clear();
     options.put("device","cartesiancontrollerclient");
     options.put("local", localName.c_str());                //local port names
@@ -380,17 +377,13 @@ void selectiveAttentionProcessor::run(){
             commandBottle.addDouble(x(2));
             outputCmdPort.write();
             return; 
-        }
-        
-        
-        
+        }                        
         
         //--read value from the preattentive level
         if(feedbackPort.getOutputCount()){
 
             float xm=0,ym=0;
             
-
             /*
             Bottle in,out;
             out.clear();
@@ -436,9 +429,9 @@ void selectiveAttentionProcessor::run(){
             */
         }
     
-        printf("entering the first stage of vision....\n");
+        //printf("reading input signals \n");
         tmp=map1Port.read(false);
-        if((tmp==0)&&(!reinit_flag)){
+        if((tmp == 0)&&(!reinit_flag)){
             return;
         }
         if(!reinit_flag){
@@ -448,21 +441,21 @@ void selectiveAttentionProcessor::run(){
 
         idle = false;
         if((map1Port.getInputCount())&&(k1!=0)) {
-            if(tmp!= 0) {
+            if(tmp != 0) {
                 copy_C1R(tmp,map1_yarp);
                 //idle=false;
             }
         }
         if((map2Port.getInputCount())&&(k2!=0)) {
             tmp = map2Port.read(false);
-            if(tmp!= 0) {
+            if(tmp != 0) {
                 copy_C1R(tmp,map2_yarp);
                 //idle=false;
             }
         }
 
         // ------------ early stage of response ---------------
-        
+        //printf("entering the first stage of vision....\n");
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
         pmap1Left  += width>>1 - 1;
         unsigned char* pmap1Right  = map1_yarp->getRawImage();        
@@ -477,7 +470,7 @@ void selectiveAttentionProcessor::run(){
         for(int y = 0 ; y < height ; y++){
             for(int x = 0 ; x < width>>1 ; x++){
                 if (*pmap1Right++ == 255){
-                    printf("max in intesity \n");
+                    //printf("max in intesity \n");
                     xm = width>>1 + x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -486,7 +479,7 @@ void selectiveAttentionProcessor::run(){
                     break;
                 }
                 if (*pmap1Left-- == 255){
-                    printf("max in intesity \n");
+                    //printf("max in intesity \n");
                     xm = width>>1 - x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -495,7 +488,7 @@ void selectiveAttentionProcessor::run(){
                     break;
                 }
                 if (*pmap2Right++ == 255) {
-                    printf("max in motion \n");
+                    //printf("max in motion \n");
                     xm = width>>1 + x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -504,7 +497,7 @@ void selectiveAttentionProcessor::run(){
                     break;
                 }
                 if (*pmap2Left-- == 255) {
-                    printf("max in motion \n");
+                    //printf("max in motion \n");
                     xm = width>>1 - x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -540,7 +533,7 @@ void selectiveAttentionProcessor::run(){
         double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues
 
         if(!idle) {
-            printf("activating the second stage of early vision... \n");
+            //printf("activating the second stage of early vision... \n");
             if((map3Port.getInputCount())&&(k3!=0)) {
                 tmp = map3Port.read(false);
                 if(tmp!= 0) {
@@ -563,7 +556,7 @@ void selectiveAttentionProcessor::run(){
                     double value = (double) (*pmap1Right++ * (k1/sumK) + *pmap2Right++ * (k2/sumK) + *pmap3Right++ * (k3/sumK) + *pmap4Right++ * (k4/sumK));
                     //*plinear++ = value;
                     if (value >= 255) {
-                        printf("max in the second stage right \n");
+                        //printf("max in the second stage right \n");
                         xm = x + width;
                         ym = y;
                         timing = 0.5;
@@ -574,7 +567,7 @@ void selectiveAttentionProcessor::run(){
 
                     value = (double) (*pmap1Left-- * (k1/sumK) + *pmap2Left-- * (k2/sumK) + *pmap3Left-- * (k3/sumK) + *pmap4Left-- * (k4/sumK));
                     if (value >= 255) {
-                        printf("max in the second stage left \n");
+                        //printf("max in the second stage left \n");
                         xm = x - width;
                         ym = y;
                         timing = 0.5;
@@ -601,9 +594,8 @@ void selectiveAttentionProcessor::run(){
         
 
         //2. processing of the input images
-        printf("processing the whole compilation of feature maps \n ");
-
-        if(!idle){
+        if(!idle||idle) {
+            //printf("processing the whole compilation of feature maps \n ");
             timing = 1.0;
             if((map5Port.getInputCount())&&(k5!=0)) {
                 tmp = map5Port.read(false);
@@ -655,7 +647,7 @@ void selectiveAttentionProcessor::run(){
             unsigned char maxValue=0;
             
             // combination of all the feature maps
-            printf("combining the feature maps \n");
+            //printf("combining the feature maps \n");
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < width ; x++){
                     unsigned char value;
@@ -689,7 +681,7 @@ void selectiveAttentionProcessor::run(){
             }
             
             //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
-            printf("trasforming the logpolar image into cartesian \n");
+            //printf("trasforming the logpolar image into cartesian \n");
             plinear = linearCombinationImage.getRawImage();
             unsigned char* pImage = inputLogImage->getRawImage();
             int padding3C = inputLogImage->getPadding();
@@ -709,11 +701,12 @@ void selectiveAttentionProcessor::run(){
             ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();  // preparing the cartesian image for inhibith a portion of the saliency map            
             
             // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
-            int outputXSize=xSizeValue;
-            int outputYSize=ySizeValue;
+            int outputXSize = xSizeValue;
+            int outputYSize = ySizeValue;
             outputCartImage.resize(outputXSize,outputYSize);
             threshCartImage.resize(outputXSize,outputYSize);
             threshCartImage.zero();
+            printf("outputing cartesian image dimension %d,%d-> %d,%d \n", width,height , intermCartOut->width() , intermCartOut->height());
             trsf.logpolarToCart(*intermCartOut,*inputLogImage);
 
             //code for preparing the inhibition of return 
