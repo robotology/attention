@@ -41,9 +41,12 @@
 
 #define KirschOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>
 #define KirschOutputImagePtr float
-#define KIRSCH_FLICKER 10
 #define KIRSCH_SHIFT 50
 #define KIRSCH_FACTOR .0005
+#define USE_PROPORTIONAL_KIRSCH
+#define KIRSCH_FLICKER 10
+
+
 
 
 
@@ -78,31 +81,71 @@ static float GN7[7] = {      -0.1063f,
                            -0.1063f
                     };
 
-// Kirsch matrix is non-separable, these directions are 8 namely N, NE, E, ...
-static float K1[9] = {+3,  	+3,  	+3,
+// Kirsch matrix is non-separable, these directions are 8 namely N, NE, E, ... Can be seen as rotation around the centre
+/*static float K1[9] = {  +3,  	+3,  	+3,
                         +3, 	0, 	+3,
                         -5, 	-5, 	-5};
-static float K2[9] = {+3,  	+3,  	+3,
+
+static float K2[9] = {  +3,  	+3,  	+3,
                         -5, 	0, 	+3,
                         -5, 	-5, 	+3};
-static float K3[9] = {  5,  	+3,  	+3,
+
+static float K3[9] = {  -5,  	+3,  	+3,
                         -5, 	0, 	+3,
                         -5, 	+3, 	+3};
-static float K4[9] = {-5,  	-5,  	+3,
+
+static float K4[9] = {  -5,  	-5,  	+3,
                         -5, 	0, 	+3,
                         +3, 	+3, 	+3};
-static float K5[9] = {-5,  	-5,  	-5,
+
+static float K5[9] = {  -5,  	-5,  	-5,
                         +3, 	0, 	+3,
                         +3, 	+3, 	+3};
-static float K6[9] = {+3,  	-5,  	-5,
+
+static float K6[9] = {  +3,  	-5,  	-5,
                         +3, 	0, 	-5,
                         +3, 	+3, 	+3};
-static float K7[9] = {+3,  	+3,  	-5,
+
+static float K7[9] = {  +3,  	+3,  	-5,
                         +3, 	0, 	-5,
                         +3, 	+3, 	-5};
-static float K8[9] = {+3,  	+3,  	+3,
+
+static float K8[9] = {  +3,  	+3,  	+3,
                         +3, 	0, 	-5,
                         +3, 	-5, 	-5};
+*/
+//alternative
+static float K1[9] = {  -3,  	-3,  	-3,
+                        -3, 	0, 	-3,
+                        +5, 	+5, 	+5};
+
+static float K2[9] = {  -3,  	-3,  	-3,
+                        +5, 	0, 	-3,
+                        +5, 	+5, 	-3};
+
+static float K3[9] = {  +5,  	-3,  	-3,
+                        +5, 	0, 	-3,
+                        +5, 	-3, 	-3};
+
+static float K4[9] = {  +5,  	+5,  	-3,
+                        +5, 	0, 	-3,
+                        -3, 	-3, 	-3};
+
+static float K5[9] = {  +5,  	+5,  	+5,
+                        -3, 	0, 	-3,
+                        -3, 	-3, 	-3};
+
+static float K6[9] = {  -3,  	+5,  	+5,
+                        -3, 	0, 	+5,
+                        -3, 	-3, 	-3};
+
+static float K7[9] = {  -3,  	-3,  	+5,
+                        -3, 	0, 	+5,
+                        -3, 	-3, 	+5};
+
+static float K8[9] = {  -3,  	-3,  	-3,
+                        -3, 	0, 	+5,
+                        -3, 	+5, 	+5};
 
 const int maxKernelSize = 5;
 
