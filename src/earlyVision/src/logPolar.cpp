@@ -106,7 +106,7 @@ bool replicateBorderLogpolar(yarp::sig::Image& dest, const yarp::sig::Image& src
 
 // beginning of logPolar methods on logPolar object
 
-// implementation of the ILogpolarAPI interface.
+// implementation of the ILogpolarAPI_LOGPOLAR interface.
 bool logpolarTransformVisual::allocLookupTables(int mode, int necc, int nang, int w, int h, double overlap) {
     //
     if (allocated()) {
@@ -135,7 +135,7 @@ bool logpolarTransformVisual::allocLookupTables(int mode, int necc, int nang, in
             return false;
         }
 
-        RCbuildC2LMap (scaleFact, ELLIPTICAL, PAD_BYTES(w*MONO_PIXEL_SIZE, YARP_IMAGE_ALIGN));
+        RCbuildC2LMap (scaleFact, ELLIPTICAL, PAD_BYTES(w*MONO_PI_LOGPOLARXEL_SIZE, YARP_IMAGE_ALIGN));
     }
 
     if (l2cTable == 0 && (mode & L2C)) {
@@ -145,7 +145,7 @@ bool logpolarTransformVisual::allocLookupTables(int mode, int necc, int nang, in
             return false;
         }
 
-        RCbuildL2CMap (scaleFact, 0, 0, ELLIPTICAL, PAD_BYTES(nang*MONO_PIXEL_SIZE, YARP_IMAGE_ALIGN));
+        RCbuildL2CMap (scaleFact, 0, 0, ELLIPTICAL, PAD_BYTES(nang*MONO_PI_LOGPOLARXEL_SIZE, YARP_IMAGE_ALIGN));
     }
     return true;
 }
@@ -211,7 +211,7 @@ void logpolarTransformVisual::RCdeAllocateL2CTable ()
 double logpolarTransformVisual::RCgetLogIndex ()
 {
     double logIndex;
-    logIndex = (1.0 + sin (PI / nang_)) / (1.0 - sin (PI / nang_));
+    logIndex = (1.0 + sin (PI_LOGPOLAR / nang_)) / (1.0 - sin (PI_LOGPOLAR / nang_));
     return logIndex;
 }
 
@@ -228,7 +228,7 @@ double logpolarTransformVisual::RCcomputeScaleFactor ()
 		cSize = height_;
 
     double totalRadius;
-    double angle = (2.0 * PI / nang_);   // Angular size of one pixel
+    double angle = (2.0 * PI_LOGPOLAR / nang_);   // Angular size of one pixel
     double sinus = sin (angle / 2.0);
 
     lambda = (1.0 + sinus) / (1.0 - sinus);
@@ -258,7 +258,7 @@ int logpolarTransformVisual::RCbuildC2LMap (double scaleFact, int mode, int padd
         cSize = height_;
 
     const double precision = 10.0;
-    double angle = (2.0 * PI / nang_);   // Angular size of one pixel
+    double angle = (2.0 * PI_LOGPOLAR / nang_);   // Angular size of one pixel
     double sinus = sin (angle / 2.0);
     double tangent = sinus / cos (angle / 2.0);
 
@@ -464,7 +464,7 @@ int logpolarTransformVisual::RCbuildC2LMap (double scaleFact, int mode, int padd
                                 j = 0;
                                 while ((j < mapsize) && (table->position[j] != 0)) {
                                     //
-                                    if (table->position[j] == (MONO_PIXEL_SIZE * (inty * (width_ + padding) + intx))) {
+                                    if (table->position[j] == (MONO_PI_LOGPOLARXEL_SIZE * (inty * (width_ + padding) + intx))) {
                                         weight[j]++;
                                         found = true;
                                         j = mapsize;
@@ -475,7 +475,7 @@ int logpolarTransformVisual::RCbuildC2LMap (double scaleFact, int mode, int padd
                                 if (!found)
                                     for (j = 0; j < mapsize; j++) {
                                         if (table->position[j] == 0) {
-                                            table->position[j] = MONO_PIXEL_SIZE * (inty * (width_ + padding) + intx);
+                                            table->position[j] = MONO_PI_LOGPOLARXEL_SIZE * (inty * (width_ + padding) + intx);
                                             weight[j]++;
                                             break;
                                         }
@@ -618,7 +618,7 @@ int logpolarTransformVisual::RCbuildL2CMap (double scaleFact, int hOffset, int v
 	if (width_ > height_)
 		cSize = height_;
 
-    double angle = (2.0 * PI / nang_);   // Angular size of one pixel
+    double angle = (2.0 * PI_LOGPOLAR / nang_);   // Angular size of one pixel
     double sinus = sin (angle / 2.0);
     double tangent = sinus / cos (angle / 2.0);
     int fov;                    // Number of rings in fovea
@@ -868,14 +868,14 @@ int logpolarTransformVisual::RCbuildL2CMap (double scaleFact, int hOffset, int v
                                 found = false;
 
                                 for (j = 0; j < partCtr[(inty + vOffset) * width_ + intx + hOffset]; j++) {
-                                    if (table [(inty + vOffset) * width_ + intx + hOffset].position[j] == MONO_PIXEL_SIZE * (rho * nang_ + theta) + (padding * rho)) {
+                                    if (table [(inty + vOffset) * width_ + intx + hOffset].position[j] == MONO_PI_LOGPOLARXEL_SIZE * (rho * nang_ + theta) + (padding * rho)) {
                                         found = true;
                                         break;
                                     }
                                 }
 
                                 if (!found) {
-                                    table[(inty + vOffset) * width_ + intx + hOffset].position[table [(inty + vOffset) * width_ + intx + hOffset].iweight] = MONO_PIXEL_SIZE * (rho * nang_ + theta) + (padding * rho);
+                                    table[(inty + vOffset) * width_ + intx + hOffset].position[table [(inty + vOffset) * width_ + intx + hOffset].iweight] = MONO_PI_LOGPOLARXEL_SIZE * (rho * nang_ + theta) + (padding * rho);
                                     table[(inty + vOffset) * width_ + intx + hOffset].iweight++;
                                 }
                             }

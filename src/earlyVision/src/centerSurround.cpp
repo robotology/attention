@@ -48,19 +48,19 @@ CenterSurround::CenterSurround(int width,int height, double sigma_)
     for (int ng=0;ng<ngauss;ng++){
         psizeWidth[ng]   = (int)ceil( ( (double)srcsizeWidth )/double(1<< ng) );//pow(2.0f, ng));
         psizeHeight[ng]  = (int)ceil( ( ((double)srcsizeHeight)/ ( (double)srcsizeWidth) ) * psizeWidth[ng] );
-        pyramid[ng]         = cvCreateImage(cvSize(psizeWidth[ng],psizeHeight[ng]),IPL_DEPTH_32F,1);
-        pyramid_gauss[ng]   = cvCreateImage(cvSize(psizeWidth[ng],psizeHeight[ng]),IPL_DEPTH_32F,1);
-        gauss[ng]           = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);
+        pyramid[ng]         = cvCreateMat(psizeHeight[ng],psizeWidth[ng],CV_32FC1);
+        pyramid_gauss[ng]   = cvCreateMat(psizeHeight[ng],psizeWidth[ng],CV_32FC1);
+        gauss[ng]           = cvCreateMat(srcsizeHeight,srcsizeWidth,CV_32FC1);
         
     }
 
     
-    im_in_32f  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);   
-    tmp_im_32f = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1); 
+    im_in_32f  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1); 
+    tmp_im_32f = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);
     cs_tot_32f = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);
     cs_tot_8u  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_8U,1);
 
-    // initialize LANCZOS window for filtering in spatial domain
+/*    // initialize LANCZOS window for filtering in spatial domain
 
     float ONE_BY_N_1 = 1/(N_LANCZOS -1);        
     for(int i=0; i<N_LANCZOS; ++i){
@@ -72,6 +72,8 @@ CenterSurround::CenterSurround(int width,int height, double sigma_)
     
     LanczosHorConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short > (N_LANCZOS,LANCZOS_VECTOR,0,.5,0);
     LanczosVerConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short > (N_LANCZOS,LANCZOS_VECTOR,1,.5,0);
+
+*/
     
 
 }
@@ -84,18 +86,18 @@ CenterSurround::~CenterSurround() {
     cvReleaseImage(&cs_tot_8u);
     
     for (int ng=0;ng<ngauss;ng++) {
-        cvReleaseImage(&pyramid[ng]);
-        cvReleaseImage(&pyramid_gauss[ng]);
-        cvReleaseImage(&gauss[ng]);
+        cvReleaseMat(&pyramid[ng]);
+        cvReleaseMat(&pyramid_gauss[ng]);
+        cvReleaseMat(&gauss[ng]);
     }
-    delete LanczosHorConvolution;
-    delete LanczosVerConvolution;
+    //delete LanczosHorConvolution;
+    //delete LanczosVerConvolution;
 }
 
 void CenterSurround::proc_im_8u(IplImage* input_8u, IplImage* output8u)
 {
     //convert im precision to 32f and process as normal:
-    cvConvertScale(input_8u,im_in_32f,0.003922,0);  //  0.003922 = 1/255.0    
+    cvConvertScale(input_8u,im_in_32f,0.003922,0);  //  0.003922 = 1/255.0   
     proc_im_32f(im_in_32f,output8u);
 }
 
@@ -123,9 +125,9 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
 
     
     
-  	//norm8u: This scaling can be avoided
-  	double minPixelVal, maxPixelVal;
-    minPixelVal = 1000; // arbitrary
+  	//This scaling can be avoided
+  	//double minPixelVal, maxPixelVal;
+    /*minPixelVal = 1000; // arbitrary
     maxPixelVal = -1000;
   	float* ptrcs_tot_32f = (float*)cs_tot_32f->imageData; 
     for(int i=0; i<cs_tot_32f->height;i++){
@@ -134,14 +136,13 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
             minPixelVal = minPixelVal> now? now:minPixelVal;
             maxPixelVal = maxPixelVal<now? now:maxPixelVal;
         }
-    }
+    }*/
 
-  	if (maxPixelVal == minPixelVal){maxPixelVal=255.0f;minPixelVal=0.0f;}
+  	//if (maxPixelVal == minPixelVal)
+    //maxPixelVal=255.0f;minPixelVal=0.0f;
   	
-    cvConvertScale(cs_tot_32f,output8u,255/(maxPixelVal - minPixelVal),-255*minPixelVal/(maxPixelVal-minPixelVal));
-    //cvNamedWindow("image in float");
-    //cvShowImage("image in float",cs_tot_32f);
-    //cvWaitKey(0);
+    cvConvertScale(cs_tot_32f,output8u,255,0);
+    
     
 }
 
@@ -159,9 +160,10 @@ void CenterSurround::make_pyramid( IplImage* im_32f)
     //others:
     sd = 0.5;
     su = 2.0;
+    int interpolation = CV_INTER_CUBIC;// IPPI_INTER_LANCZOS is not available in openCV, CV_INTER_AREA is rough
     for (int sg=1;sg<ngauss;sg++){
         //Downsize previous pyramid image by half:
-        int interpolation = CV_INTER_AREA;// IPPI_INTER_LANCZOS is not available in openCV
+        
         
         cvResize(pyramid[sg-1],pyramid[sg],interpolation);
         

@@ -54,8 +54,10 @@
 //#include <Eigen/Dense>
 
 
-
+#ifndef PI
 #define PI 3.1415926535897932384626433832795
+#endif
+
 #define MONO_PIXEL_SIZE 1
 
 

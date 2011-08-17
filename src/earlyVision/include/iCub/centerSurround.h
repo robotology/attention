@@ -43,6 +43,7 @@
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
+#include "opencv2/imgproc/imgproc.hpp"
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -51,6 +52,7 @@
 
 #define ngs 4
 #define N_LANCZOS 7     // 'a' for LANCZOS
+#define _PI_CS 3.14159265358979
 	
 class CenterSurround { 
 public:
@@ -76,12 +78,12 @@ public:
     /**
      * returns gaussians
      */
-	IplImage* get_gauss(int s){return gauss[s];}
+	CvMat* get_gauss(int s){return gauss[s];}
 
     /**
      * returns pyramids
      */
-	IplImage* get_pyramid(int s){return pyramid[s];}
+	CvMat* get_pyramid(int s){return pyramid[s];}
 
     /**
      * get center surround image in 32f precision
@@ -104,8 +106,9 @@ private:
 
     
 	// Store IplImages for each level of pyramid
-	IplImage *pyramid[ngs],*pyramid_gauss[ngs],*gauss[ngs];
-	IplImage *cs_tot_32f,*cs_tot_8u,*tmp_im_32f,*im_in_32f;
+	CvMat *pyramid[ngs],*pyramid_gauss[ngs],*gauss[ngs];
+	IplImage *cs_tot_32f,*cs_tot_8u,*im_in_32f,*tmp_im_32f;
+	
 
 	int ngauss;
 
@@ -120,9 +123,9 @@ private:
 	// factors for down and up sampling and sigma for Gaussian
 	double sd,su,sigma;
 
-	float LANCZOS_VECTOR[N_LANCZOS];
+	/*float LANCZOS_VECTOR[N_LANCZOS];
 	convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short >* LanczosHorConvolution;
-	convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short >* LanczosVerConvolution;
+	convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short >* LanczosVerConvolution;*/
     
 };
 

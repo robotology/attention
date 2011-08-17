@@ -39,8 +39,11 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>
 
-#define PI 3.1415926535897932384626433832795
-#define MONO_PIXEL_SIZE 1
+
+#define PI_LOGPOLAR 3.1415926535897932384626433832795
+
+
+#define MONO_PI_LOGPOLARXEL_SIZE 1
 #define KERNEL_ROW 7
 #define KERNEL_COL 7
 // patches for now

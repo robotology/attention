@@ -323,8 +323,16 @@ void earlyVisionThread::run() {
     while (isStopping() != true) {
         
         inputImage  = imagePortIn.read(true);
+        /*IplImage *imgRGB;
+        imgRGB = cvLoadImage("logPtemp.jpg");
+        inputImage->resize(imgRGB->width,imgRGB->height);
+        inputImage->zero();
+        cvAdd(imgRGB,(IplImage*)inputImage->getIplImage(),(IplImage*)inputImage->getIplImage());
         
-        
+        //cvNamedWindow("cnvt");
+        //cvShowImage("cnvt",(IplImage*)inputImage->getIplImage());
+        //cvWaitKey(0);
+*/
         if (inputImage != NULL) {
             if (!resized) {
                 resize(inputImage->width(), inputImage->height());
@@ -451,8 +459,7 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     
     centerSurr  = new CenterSurround( width,height,1.0 );
 
-    //inputExtImage = new ImageOf<PixelRgb>;
-    //inputExtImage->resize( this->width, this->height );
+    
     isYUV = true;
 	img_Y->resize( this->width, this->height );
 
@@ -504,14 +511,7 @@ void earlyVisionThread::extractPlanes() {
     uchar* ptrUnXtnIntensImg;
     uchar* inputPointer;
 
-    // for CS, these planes are of extended size
-    /*Ipp8u* CSPlane[3];
-    CSPlane[0] = first_plane;
-    CSPlane[1] = second_plane;
-    CSPlane[2] = third_plane;
-    int padPlane1 = f_psb - this->width;
-    int padPlane2 = s_psb - this->width;
-    int padPlane3 = t_psb - this->width;*/
+    
     
     // Pointers to raw plane image
     shift[0] = (uchar*) redPlane->getRawImage(); 
@@ -630,7 +630,8 @@ void earlyVisionThread::centerSurrounding(){
         
         //performs centre-surround uniqueness analysis on first plane
         centerSurr->proc_im_8u( (IplImage*)Yplane->getIplImage(),(IplImage*)img_Y->getIplImage());
-        
+        cvNamedWindow("Yplane");
+        cvShowImage("Yplane",(IplImage*)img_Y->getIplImage());
         cvSet(cs_tot_32f,cvScalar(0));
         
         
@@ -638,13 +639,13 @@ void earlyVisionThread::centerSurrounding(){
             //performs centre-surround uniqueness analysis on second plane:
             centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
-            //cvNamedWindow("AfterCSofUplane");
-            //vShowImage("AfterCSofUplane",cs_tot_32f);
+            cvNamedWindow("AfterCSofUplane");
+            cvShowImage("AfterCSofUplane",cs_tot_32f);
             //Colour process V:performs centre-surround uniqueness analysis:
             centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
-            //cvNamedWindow("AfterCSofVplane");
-            //cvShowImage("AfterCSofVplane",cs_tot_32f);
+            cvNamedWindow("AfterCSofVplane");
+            cvShowImage("AfterCSofVplane",cs_tot_32f);
             
             //get min max   
             double valueMin = 1000;
@@ -655,9 +656,10 @@ void earlyVisionThread::centerSurrounding(){
                 valueMax = 255.0f; valueMin = 0.0f;
             }
             cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
-            //cvNamedWindow("AfterCSscale");
-            //cvShowImage("AfterCSscale",(IplImage*)img_UV->getIplImage());
-            //cvWaitKey(0);
+            //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);
+            cvNamedWindow("AfterCSscale");
+            cvShowImage("AfterCSscale",(IplImage*)img_UV->getIplImage());
+            cvWaitKey(0);
             
             
             
@@ -956,10 +958,7 @@ void earlyVisionThread::edgesExtract() {
     tmpMonoSobelImage2->zero();     // This can be removed 
     sobel2DYConvolution->convolve2D(intensImg,tmpMonoSobelImage2);
     
-    /*cvNamedWindow("edgesY");
-    //cvShowImage("edgesY",(IplImage*)tmpMonoSobelImage2->getIplImage());
-    //cvNamedWindow("edgesX");
-    //cvShowImage("edgesX",(IplImage*)tmpMonoSobelImage1->getIplImage());*/
+    
     
 
     //clearing up the previous value
@@ -1103,8 +1102,7 @@ void earlyVisionThread::cropImage(int* corners, IplImage* imageToBeCropped, IplI
     // very lame cropping
     int imgWidth = corners[2]-corners[0];
     int imgHeight = corners[3]-corners[1];
-    //cvReleaseImage(&retImage);
-    //retImage = cvCreateImage(cvSize(imgWidth,imgHeight),IPL_DEPTH_8U, 1 );
+    
     cvSet(retImage,cvScalar(0));
 
     
