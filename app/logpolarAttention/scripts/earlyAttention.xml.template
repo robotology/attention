@@ -75,22 +75,27 @@
 	<to>/selectiveAttentionEngine/icub/left_cam/map1:i</to>
 	<protocol>shmem</protocol>
    </connection>
-      <connection>
+   <connection>
+	<from>/logPolarTransform/icub/left_cam/image:o</from>
+	<to>/earlyMotion/icub/left_cam/image:i</to>
+	<protocol>shmem</protocol>
+   </connection>
+   <connection>
 	<from>/earlyMotion/icub/left_cam/motion:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam/map2:i</to>
 	<protocol>shmem</protocol>
    </connection>
-      <connection>
+   <connection>
 	<from>/earlyVision/icub/left_cam/chrominance:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam/map3:i</to>
 	<protocol>shmem</protocol>
    </connection>
-      <connection>
+   <connection>
 	<from>/earlyVision/icub/left_cam/orientation:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam/map4:i</to>
 	<protocol>shmem</protocol>
    </connection>
-      <connection>
+   <connection>
 	<from>/earlyVision/icub/left_cam/edges:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam/map5:i</to>
 	<protocol>shmem</protocol>
@@ -100,7 +105,5 @@
 	<to>/selectiveAttentionEngine/icub/left_cam/map6:i</to>
 	<protocol>shmem</protocol>
    </connection>
-
-    
 </application>
 
