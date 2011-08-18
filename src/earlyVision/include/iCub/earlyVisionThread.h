@@ -148,6 +148,7 @@ sobel2DYConvolution;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;  
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort45;
@@ -198,10 +199,7 @@ sobel2DYConvolution;
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_V;         // extended output image, also reused for hsv
 	
     
-    // Ports for CS
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > CSPort1;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > CSPort2;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > CSPort3;
+    
     
     yarp::os::Stamp St;
 

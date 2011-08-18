@@ -130,6 +130,7 @@ earlyVisionThread::earlyVisionThread() {
     img_Y = new ImageOf<PixelMono>;
 	img_UV = new ImageOf<PixelMono>;
 	img_V = new ImageOf<PixelMono>;
+    isYUV = true;
 	
 	
     
@@ -227,15 +228,35 @@ bool earlyVisionThread::threadInit() {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
-    if (!intenPort.open(getName("/intensity:o").c_str())) {
-        cout <<": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
+
+    if(isYUV){
+        if (!intenPort.open(getName("/intensity:o").c_str())) {
+            cout <<": unable to open port "  << endl;
+            return false;  // unable to open; let RFModule know so that it won't run
+        }
+        
+        if (!chromPort.open(getName("/chrominance:o").c_str())) {
+            cout << ": unable to open port "  << endl;
+            return false;  // unable to open; let RFModule know so that it won't run
+        }
     }
 
-    
-    if (!chromPort.open(getName("/chrominance:o").c_str())) {
+    else{
+       
+        if (!intenPort.open(getName("/H:o").c_str())) {
+            cout <<": unable to open port "  << endl;
+            return false;  // unable to open; let RFModule know so that it won't run
+        }
+        
+        if (!chromPort.open(getName("/S:o").c_str())) {
+            cout << ": unable to open port "  << endl;
+            return false;  // unable to open; let RFModule know so that it won't run
+        }
+
+        if (!VofHSVPort.open(getName("/V:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
+        } 
     }
     
     if (!edgesPort.open(getName("/edges:o").c_str())) {
@@ -275,19 +296,7 @@ bool earlyVisionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }   
 
-    // CS ports
-    if (!CSPort1.open(getName("/centerSurround1:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!CSPort2.open(getName("/centerSurround2:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!CSPort3.open(getName("/centerSurround3:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
+    
     
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
@@ -366,7 +375,7 @@ void earlyVisionThread::run() {
             edgesExtract();
                     
 
-            if((intensImg!=0)&&(intenPort.getOutputCount())) {
+            /*if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
             }
@@ -375,6 +384,7 @@ void earlyVisionThread::run() {
                 chromPort.prepare() = *(Yplane);
                 chromPort.write();
                 }
+            */
 
             if((edges!=0)&&(edgesPort.getOutputCount())) {
                 edgesPort.prepare() = *(edges);
@@ -548,9 +558,13 @@ void earlyVisionThread::extractPlanes() {
             }
 
             // RGB to Y'UV conversion
-            *YUV[0] = .299* (*shift[0]) + .587 * (*shift[1]) + .114 * (*shift[2]);
-            *YUV[1] = -.14713* (*shift[0]) + -.28886 * (*shift[1]) + .436 * (*shift[2]);
-            *YUV[2] = .615* (*shift[0]) + -.51499 * (*shift[1]) + -.10001 * (*shift[2]);
+            float r = (float)*shift[0];
+            float g = (float)*shift[1];
+            float b = (float)*shift[2];
+
+            *YUV[0] = 0.299*r + 0.587*g + 0.114*b;
+            *YUV[1] = (r-*YUV[0])*0.713 + 128.0;
+            *YUV[2] = (b-*YUV[0])*0.564 + 128.0;
 
             ptrIntensityImg++;
             YUV[0]++;
@@ -621,17 +635,18 @@ void earlyVisionThread::filtering() {
 void earlyVisionThread::centerSurrounding(){
 
         // Allocate temporarily
-        ImageOf<PixelMono>& _Y = CSPort1.prepare();
+        ImageOf<PixelMono>& _Y = intenPort.prepare();
         _Y.resize(this->width_orig,this->height_orig);
-        ImageOf<PixelMono>& _UV = CSPort2.prepare();
+        ImageOf<PixelMono>& _UV = chromPort.prepare();
         _UV.resize(this->width_orig,this->height_orig);
-        ImageOf<PixelMono>& _V = CSPort3.prepare();
+        
+        ImageOf<PixelMono>& _V = VofHSVPort.prepare();
         _V.resize(this->width_orig,this->height_orig);
+        
         
         //performs centre-surround uniqueness analysis on first plane
         centerSurr->proc_im_8u( (IplImage*)Yplane->getIplImage(),(IplImage*)img_Y->getIplImage());
-        /*cvNamedWindow("Yplane");
-          cvShowImage("Yplane",(IplImage*)img_Y->getIplImage());*/
+        
         cvSet(cs_tot_32f,cvScalar(0));
         
         
@@ -639,13 +654,11 @@ void earlyVisionThread::centerSurrounding(){
             //performs centre-surround uniqueness analysis on second plane:
             centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
-            /*cvNamedWindow("AfterCSofUplane");
-              cvShowImage("AfterCSofUplane",cs_tot_32f);*/
+            
             //Colour process V:performs centre-surround uniqueness analysis:
             centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
-            /*cvNamedWindow("AfterCSofVplane");
-              cvShowImage("AfterCSofVplane",cs_tot_32f);*/
+            
             
             //get min max   
             double valueMin = 1000;
@@ -657,9 +670,7 @@ void earlyVisionThread::centerSurrounding(){
             }
             cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
             //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);
-            /*cvNamedWindow("AfterCSscale");
-            cvShowImage("AfterCSscale",(IplImage*)img_UV->getIplImage());
-            cvWaitKey(0);*/
+            
             
             
             
@@ -673,11 +684,6 @@ void earlyVisionThread::centerSurrounding(){
         }
 
 
-        /*cvNamedWindow("Y");
-        //cvShowImage("Y",(IplImage*)img_Y->getIplImage());
-        //cvNamedWindow("UV");
-        //cvShowImage("UV",(IplImage*)img_UV->getIplImage());
-        //cvWaitKey(0);*/
         
             
         
@@ -722,17 +728,17 @@ void earlyVisionThread::centerSurrounding(){
 
         
         //output Y centre-surround results to ports
-        if ( CSPort1.getOutputCount()>0 ){
-            CSPort1.write();
+        if (intenPort.getOutputCount()>0 ){
+            intenPort.write();
         }
 
         //output UV centre-surround results to ports
-        if ( CSPort2.getOutputCount()>0 ){
-            CSPort2.write();
+        if ( chromPort.getOutputCount()>0 ){
+            chromPort.write();
         }
         //output UV centre-surround results to ports
-        if ( !isYUV && CSPort3.getOutputCount()>0 ){
-            CSPort3.write();
+        if ( !isYUV && VofHSVPort.getOutputCount()>0 ){
+            VofHSVPort.write();
         }
 
 #ifdef DEBUG_OPENCV
@@ -891,8 +897,7 @@ void earlyVisionThread::orientation() {
                     for(int i=0; i<4; ++i){
                         //float tmpV = 255.0 *abs(*p[i]);
                         float tmpV = normalizingRatio[i]*(*p[i] - kirschLimits[i][1]);
-                        //*ori[i] = tmpV>255?255:tmpV<0?0:(unsigned char)tmpV;
-                        *ori[i] = abs(*p[i]) * 255;
+                        *ori[i] = tmpV>255?255:tmpV<0?0:(unsigned char)tmpV;
                     }
                 }
                 
