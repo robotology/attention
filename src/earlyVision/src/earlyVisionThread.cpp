@@ -630,8 +630,8 @@ void earlyVisionThread::centerSurrounding(){
         
         //performs centre-surround uniqueness analysis on first plane
         centerSurr->proc_im_8u( (IplImage*)Yplane->getIplImage(),(IplImage*)img_Y->getIplImage());
-        cvNamedWindow("Yplane");
-        cvShowImage("Yplane",(IplImage*)img_Y->getIplImage());
+        /*cvNamedWindow("Yplane");
+          cvShowImage("Yplane",(IplImage*)img_Y->getIplImage());*/
         cvSet(cs_tot_32f,cvScalar(0));
         
         
@@ -639,13 +639,13 @@ void earlyVisionThread::centerSurrounding(){
             //performs centre-surround uniqueness analysis on second plane:
             centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
-            cvNamedWindow("AfterCSofUplane");
-            cvShowImage("AfterCSofUplane",cs_tot_32f);
+            /*cvNamedWindow("AfterCSofUplane");
+              cvShowImage("AfterCSofUplane",cs_tot_32f);*/
             //Colour process V:performs centre-surround uniqueness analysis:
             centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
             cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
-            cvNamedWindow("AfterCSofVplane");
-            cvShowImage("AfterCSofVplane",cs_tot_32f);
+            /*cvNamedWindow("AfterCSofVplane");
+              cvShowImage("AfterCSofVplane",cs_tot_32f);*/
             
             //get min max   
             double valueMin = 1000;
@@ -657,9 +657,9 @@ void earlyVisionThread::centerSurrounding(){
             }
             cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
             //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);
-            cvNamedWindow("AfterCSscale");
+            /*cvNamedWindow("AfterCSscale");
             cvShowImage("AfterCSscale",(IplImage*)img_UV->getIplImage());
-            cvWaitKey(0);
+            cvWaitKey(0);*/
             
             
             
