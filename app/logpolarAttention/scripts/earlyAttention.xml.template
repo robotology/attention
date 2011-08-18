@@ -105,5 +105,15 @@
 	<to>/selectiveAttentionEngine/icub/left_cam/map6:i</to>
 	<protocol>shmem</protocol>
    </connection>
+   <connection>
+	<from>/selectiveAttentionEngine/icub/left_cam/cmd:o</from>
+	<to>/attPrioritiser/cmd:i</to>
+	<protocol>shmem</protocol>
+   </connection>
+   <connection>
+	<from>/attPrioritiser/cmd:i</from>
+	<to>/gazeArbiter/icub/left_cam/cmd:i</to>
+	<protocol>shmem</protocol>
+   </connection> 
 </application>
 
