@@ -891,7 +891,8 @@ void earlyVisionThread::orientation() {
                     for(int i=0; i<4; ++i){
                         //float tmpV = 255.0 *abs(*p[i]);
                         float tmpV = normalizingRatio[i]*(*p[i] - kirschLimits[i][1]);
-                        *ori[i] = tmpV>255?255:tmpV<0?0:(unsigned char)tmpV;
+                        //*ori[i] = tmpV>255?255:tmpV<0?0:(unsigned char)tmpV;
+                        *ori[i] = abs(*p[i]) * 255;
                     }
                 }
                 
