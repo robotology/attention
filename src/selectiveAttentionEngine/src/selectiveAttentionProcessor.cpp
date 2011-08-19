@@ -469,8 +469,8 @@ void selectiveAttentionProcessor::run(){
         // exploring the image from rho=0 and from theta = 0
         for(int y = 0 ; y < height ; y++){
             for(int x = 0 ; x < width>>1 ; x++){
-                if (*pmap1Right++ == 255){
-                    //printf("max in intesity \n");
+                /*if (*pmap1Right++ == 255){
+                    printf("max in intesity Right %d \n", (unsigned char) *pmap1Right);
                     xm = width>>1 + x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -479,7 +479,7 @@ void selectiveAttentionProcessor::run(){
                     break;
                 }
                 if (*pmap1Left-- == 255){
-                    //printf("max in intesity \n");
+                    printf("max in intensity Left \n");
                     xm = width>>1 - x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -488,7 +488,7 @@ void selectiveAttentionProcessor::run(){
                     break;
                 }
                 if (*pmap2Right++ == 255) {
-                    //printf("max in motion \n");
+                    printf("max in motion Right %d \n", (unsigned char)*pmap2Right);
                     xm = width>>1 + x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -497,7 +497,7 @@ void selectiveAttentionProcessor::run(){
                     break;
                 }
                 if (*pmap2Left-- == 255) {
-                    //printf("max in motion \n");
+                    printf("max in motion Left \n");
                     xm = width>>1 - x;
                     ym = y;
                     y = height;// for jumping out of the outer loop
@@ -505,6 +505,7 @@ void selectiveAttentionProcessor::run(){
                     timing = 0.1;
                     break;
                 }
+                */
             }
             pmap1Right += rowSize - width>>1 - 1;
             pmap1Left  += rowSize + width>>1 - 1;
@@ -521,6 +522,7 @@ void selectiveAttentionProcessor::run(){
         pmap2Left  += width>>1 - 1;
         pmap2Right = map2_yarp->getRawImage();
         pmap2Right += width>>1;
+
         unsigned char* pmap3Left  = map3_yarp->getRawImage();
         pmap3Left  += width>>1 - 1;
         unsigned char* pmap3Right = map3_yarp->getRawImage();
@@ -594,8 +596,8 @@ void selectiveAttentionProcessor::run(){
         
 
         //2. processing of the input images
-        if(!idle||idle) {
-            //printf("processing the whole compilation of feature maps \n ");
+        if(!idle) {
+            printf("processing the whole compilation of feature maps \n ");
             timing = 1.0;
             if((map5Port.getInputCount())&&(k5!=0)) {
                 tmp = map5Port.read(false);
@@ -633,7 +635,7 @@ void selectiveAttentionProcessor::run(){
                     //idle=false;
                 }
             }
-        
+           
             unsigned char* pmap1 = map1_yarp->getRawImage();
             unsigned char* pmap2 = map2_yarp->getRawImage();  
             unsigned char* pmap3 = map3_yarp->getRawImage();
@@ -681,7 +683,7 @@ void selectiveAttentionProcessor::run(){
             }
             
             //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
-            //printf("trasforming the logpolar image into cartesian \n");
+            printf("trasforming the logpolar image into cartesian \n");
             plinear = linearCombinationImage.getRawImage();
             unsigned char* pImage = inputLogImage->getRawImage();
             int padding3C = inputLogImage->getPadding();
@@ -937,6 +939,7 @@ void selectiveAttentionProcessor::run(){
         // maxresponse: when within the linear combination one region fires
         // the rest is a constant rate firing
         if((diff * 1000 > saccadeInterv)||(idle)||(maxResponse)) {
+            printf("gazePerforming after %d idle %d maxResponse %d \n", saccadeInterv, idle, maxResponse);
             if(gazePerform) {
                 Vector px(2);
                 // ratio maps the WTA to an image 320,240 (see definition) because it is what iKinGazeCtrl asks
@@ -1023,7 +1026,8 @@ void selectiveAttentionProcessor::run(){
                 
                 
                 if(outputCmdPort.getOutputCount()){
-                    if(!handFixation) {                        
+                    if(!handFixation) {            
+                        printf("sending saccade mono \n");
                         Bottle& commandBottle=outputCmdPort.prepare();
                         commandBottle.clear();
                         commandBottle.addString("SAC_MONO");

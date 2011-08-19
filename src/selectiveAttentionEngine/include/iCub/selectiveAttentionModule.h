@@ -72,17 +72,17 @@
 #define COMMAND_VOCAB_DIRECTIONAL_DBG_IMAGE_ARRAY_NAME VOCAB3('d','a','n')
 //option for the set command
 #define COMMAND_VOCAB_LHAND VOCAB4('l','h','a','n')
-#define COMMAND_VOCAB_TIME VOCAB4('t','i','m','e')
-#define COMMAND_VOCAB_K1 VOCAB2('k','1')
-#define COMMAND_VOCAB_K2 VOCAB2('k','2')
-#define COMMAND_VOCAB_K3 VOCAB2('k','3')
-#define COMMAND_VOCAB_K4 VOCAB2('k','4')
-#define COMMAND_VOCAB_K5 VOCAB2('k','5')
-#define COMMAND_VOCAB_K6 VOCAB2('k','6')
-#define COMMAND_VOCAB_KC1 VOCAB3('k','c','1')
-#define COMMAND_VOCAB_KMOT VOCAB4('k','m','o','t')
-#define COMMAND_VOCAB_DEF VOCAB3('d','e','f')
-#define COMMAND_VOCAB_MOT VOCAB3('m','o','t')
+#define COMMAND_VOCAB_TIME  VOCAB4('t','i','m','e')
+#define COMMAND_VOCAB_K1    VOCAB2('k','1')
+#define COMMAND_VOCAB_K2    VOCAB2('k','2')
+#define COMMAND_VOCAB_K3    VOCAB2('k','3')
+#define COMMAND_VOCAB_K4    VOCAB2('k','4')
+#define COMMAND_VOCAB_K5    VOCAB2('k','5')
+#define COMMAND_VOCAB_K6    VOCAB2('k','6')
+#define COMMAND_VOCAB_KC1   VOCAB3('k','c','1')
+#define COMMAND_VOCAB_KMOT  VOCAB4('k','m','o','t')
+#define COMMAND_VOCAB_DEF   VOCAB3('d','e','f')
+#define COMMAND_VOCAB_MOT   VOCAB3('m','o','t')
 
 /**
 *
