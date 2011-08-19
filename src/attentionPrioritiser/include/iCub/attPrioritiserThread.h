@@ -27,6 +27,9 @@
 #ifndef _ATT_PRIORITISER_THREAD_H_
 #define _ATT_PRIORITISER_THREAD_H_
 
+#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
+
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
@@ -58,7 +61,7 @@
 * the correct interface function of the iKinGazeCtrl.
 */
 
-class attPrioritiserThread : public yarp::os::RateThread, public observer{
+class attPrioritiserThread : public yarp::os::RateThread, public observer {
 private:
     std::string name;                       // rootname of all the ports opened by this thread
     std::string robot;                      // name of the robot read by the ResourceFinder
@@ -115,16 +118,16 @@ private:
     CvPoint point;                          // point result of the search
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgLeftIn;                                 // input image 3 channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* imgRightIn;                                // input mono image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* imgRightIn;                               // input mono image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inLeftPort;        // input image port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inRightPort;       // output image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inRightPort;      // output image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb > > templatePort;     // port for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
     yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                            // image for the segmented object of the zdf
-    yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
+    yarp::os::Port feedbackPort;                                                        // port necessary to communicate the status of the system
     yarp::os::BufferedPort<yarp::os::Bottle> outputPort;                                // port necessary to send the gaze command to the gazeArbiter
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                            // image for the inhibition of return
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                          // image for the inhibition of return
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze

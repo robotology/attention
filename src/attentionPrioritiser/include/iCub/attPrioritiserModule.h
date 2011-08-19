@@ -147,7 +147,10 @@
  * 06/07/11 : created the module                                                                            @author Rea
  * 07/07/11 : added the function that calculates the correlation between two log-polar images               @author Rea
  * 11/07/11 : changed the cycle for exploring the image in the correlation function                         @author Rea                                      
+ * 19/08/11 : added a new feedback port to control earlier processes                                        @author Rea
 */
+
+
 
 #include <iostream>
 #include <string>

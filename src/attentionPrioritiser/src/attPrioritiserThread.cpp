@@ -210,8 +210,8 @@ bool attPrioritiserThread::threadInit() {
     search_roi.width   = search_roi.height   = search_size;
 
     //opening port section 
-    string rootNameStatus("");rootNameStatus.append(getName("/status:o"));
-    statusPort.open(rootNameStatus.c_str());
+    string rootNameStatus("");rootNameStatus.append(getName("/feedback:o"));
+    feedbackPort.open(rootNameStatus.c_str());
     string rootNameOutput("");rootNameOutput.append(getName("/cmd:o"));
     outputPort.open(rootNameOutput.c_str());
     string rootNameTiming("");rootNameTiming.append(getName("/timing:o"));
@@ -247,7 +247,7 @@ void attPrioritiserThread::interrupt() {
     //inCommandPort
     inLeftPort.interrupt();
     inRightPort.interrupt();
-    statusPort.interrupt();
+    feedbackPort.interrupt();
     templatePort.interrupt();
     inhibitionPort.interrupt();
     blobDatabasePort.interrupt();
@@ -293,7 +293,7 @@ void attPrioritiserThread::getPoint(CvPoint& p) {
 
 
 void attPrioritiserThread::run() {
-    Bottle& status = statusPort.prepare();
+    //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
@@ -332,6 +332,16 @@ void attPrioritiserThread::run() {
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     
     if(allowedTransitions(3)>0) {
+        
+        //forcing in idle early processes during oculomotor actions
+        if(feedbackPort.getOutputCount()) {
+            Bottle* sent = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SUSPEND);
+            feedbackPort.write(*sent, *received);
+        }
+
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
@@ -362,8 +372,8 @@ void attPrioritiserThread::run() {
             commandBottle.addDouble(zDistance);
             outputPort.write();
             
-            //post-saccadic connection
-            // wait for accpomplished saccadic event
+            // post-saccadic connection
+            // wait for accomplished saccadic event
             while(!correcting) {
                 Time::delay(0.1);
             }
@@ -447,6 +457,16 @@ void attPrioritiserThread::run() {
         //printf("No transition \n");
     }
 
+    //resume early processes
+    if(feedbackPort.getOutputCount()) {
+        printf("feedback resetting \n");
+        Bottle* sent = new Bottle();
+        Bottle* received = new Bottle();    
+        sent->clear();
+        sent->addVocab(COMMAND_VOCAB_RESUME);
+        feedbackPort.write(*sent, *received);
+    }
+
     
     //printf("--------------------------------------------------------->%d \n",done);
             
@@ -475,10 +495,15 @@ void attPrioritiserThread::run() {
 
 void attPrioritiserThread::threadRelease() {
     inLeftPort.close();
+    printf("closing right port \n");
     inRightPort.close();
-    statusPort.close();
+    printf("closing feedback port \n");
+    feedbackPort.close();
+    printf("closing template port \n");
     templatePort.close();
+    printf("closing database port \n");
     blobDatabasePort.close();
+    printf("closing inhibition port \n");
     inhibitionPort.close();
     timingPort.close();
     printf("successfully closed all the ports \n");
@@ -503,6 +528,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         ConstString name = arg->get(0).asString();
         
         if(!strcmp(name.c_str(),"SAC_MONO")) {
+            printf("saccade mono \n");
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
@@ -548,7 +574,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // saccade accomplished           
             mutex.wait();
             correcting = true;
-            
             mutex.post();
         }
         else {
