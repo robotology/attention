@@ -111,7 +111,11 @@ private:
     KirschOutputImage *o0;
     KirschOutputImage *o45;
     KirschOutputImage *o90;
-    KirschOutputImage *oM45;    
+    KirschOutputImage *oM45;
+    KirschOutputImage *tmpKirschCartImage1; 
+    KirschOutputImage *tmpKirschCartImage2;
+    KirschOutputImage *tmpKirschCartImage3;
+    KirschOutputImage *tmpKirschCartImage4;   
     
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
@@ -122,6 +126,24 @@ private:
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution45;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution90;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolutionM45;
+
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalPos0;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalPos45;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalPos90;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalPosM45;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalNeg0;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalNeg45;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalNeg90;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschSalNegM45;
+
 
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
 sobel2DXConvolution;
@@ -294,6 +316,8 @@ public:
     */
     void centerSurrounding();
 
+    
+
     /**
     * Creating color opponency maps
     */
@@ -303,6 +327,11 @@ public:
     * Calculating orientation
     */
     void orientation();
+
+    /**
+    * Combining oriented images to get saliency map for orientation
+    */
+    void combineOrientationsForSaliency();
 
     /**
     * applying sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
