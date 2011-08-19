@@ -111,8 +111,13 @@
 	<protocol>shmem</protocol>
    </connection>
    <connection>
-	<from>/attPrioritiser/cmd:i</from>
+	<from>/attPrioritiser/cmd:o</from>
 	<to>/gazeArbiter/icub/left_cam/cmd:i</to>
+	<protocol>shmem</protocol>
+   </connection>
+   <connection>
+	<from>/gazeArbiter/icub/left_cam/status:o</from>
+	<to>/attPrioritiser/cmd:i</to>
 	<protocol>shmem</protocol>
    </connection>
    <connection>
