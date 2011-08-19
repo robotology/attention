@@ -244,7 +244,6 @@ public:
     bool interruptModule();                       // interrupt, e.g., the ports 
     bool close();                                 // close and shut down the module
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
-    double getPeriod(); 
     bool updateModule();
 };
 

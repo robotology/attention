@@ -626,7 +626,6 @@ void gazeArbiterThread::run() {
                 igaze->lookAtFixationPoint(px);
                 printf("saccadic event : started \n",xObject,yObject,zObject);
             }
-
             Time::delay(0.05);
             igaze->checkMotionDone(&done);
             timeout =timeoutStop - timeoutStart;
@@ -709,6 +708,11 @@ void gazeArbiterThread::run() {
                 }
             }
             // saccade accomplished
+            //sending the acknowledgement vergence_accomplished
+            status = statusPort.prepare();
+            status.clear();
+            status.addString("SAC_ACC");
+            statusPort.write();
             //accomplished_flag = true;
         }
     }
