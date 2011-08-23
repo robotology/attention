@@ -165,6 +165,8 @@ class earlyVisionModule:public yarp::os::RFModule
    yarp::os::Port handlerPort;      // a port to handle messages 
    /* pointer to a new thread to be created and started in configure() and stopped in close() */
    earlyVisionThread *evThread;
+   
+   
 
 public:
    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
@@ -173,6 +175,7 @@ public:
    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
    double getPeriod(); 
    bool updateModule();
+   
 };
 
 

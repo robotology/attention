@@ -48,7 +48,8 @@
 
 #include <iCub/convolve.h>
 #include <iCub/config.h>
-#include "iCub/centerSurround.h"
+#include <iCub/centerSurround.h>
+#include <iCub/chrominanceThread.h>
 
 
 //#include <Eigen/Dense>
@@ -73,9 +74,9 @@
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8
 #endif
+ #define RATE_OF_INTEN_THREAD 33    // approx 30 Hz
 
-
-class earlyVisionThread : public yarp::os::Thread 
+class earlyVisionThread : public yarp::os::RateThread 
 {
 private:
     
@@ -108,41 +109,16 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelHorz;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelVert;
 
-    KirschOutputImage *o0;
-    KirschOutputImage *o45;
-    KirschOutputImage *o90;
-    KirschOutputImage *oM45;
-    KirschOutputImage *tmpKirschCartImage1; 
-    KirschOutputImage *tmpKirschCartImage2;
-    KirschOutputImage *tmpKirschCartImage3;
-    KirschOutputImage *tmpKirschCartImage4;   
+      
     
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
 
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution0;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolution90;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >* kirschConvolutionM45;
+    
 
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPos0;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPos45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPos90;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPosM45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNeg0;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNeg45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNeg90;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNegM45;
+    
 
 
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
@@ -154,7 +130,7 @@ sobel2DYConvolution;
     
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* cartIntensImg;          //yarp cartesian intensity image for orientation
+    
   
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane;           // image of the green channel
@@ -163,38 +139,36 @@ sobel2DYConvolution;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Yplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Uplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Vplane;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnYplane;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
+    
 
     double gK[4][KERNEL_ROW][KERNEL_COL];
 
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;  
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;
+    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort45;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort90;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPortM45;
+    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;  
+
+
+    
     
 
 
     
 
-    iCub::logpolar::logpolarTransform trsf; //reference to the converter for logpolar transform
     
-    logpolarTransformVisual lpMono;
-    int xSizeValue;         // x dimension of the remapped cartesian image
-    int ySizeValue;         // y dimension of the remapped cartesian image
-    double overlap;         // overlap in the remapping
-    int numberOfRings;      // number of rings in the remapping
-    int numberOfAngles;     // number of angles in the remapping
     
-    //IppiSize srcsize, origsize;
-    CenterSurround *centerSurr; 
+    
+    
+    
+    
    
     /*Ipp8u *orig;        //extended input image
     Ipp8u *colour;      //extended rgb+a image
@@ -206,20 +180,9 @@ sobel2DYConvolution;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *third_plane;      //extended plane either v or s
     */
     //Ipp8u *tmp;         //extended tmp containing alpha
-    IplImage *cs_tot_32f; //extended
-    IplImage *cs_tot_8u; 
-    IplImage *ycs_out;     //final extended intensity center surround image
-    IplImage *scs_out;     //final extended intensity center surround image
-    IplImage *vcs_out;     //final extended intensity center surround image
-    IplImage *colcs_out;   //final extended coulour center surround image
-    int img_psb, psb4, psb, ycs_psb, col_psb, psb_32f, f_psb, s_psb, t_psb; //images rowsizes
-    int ncsscale;
+    
     bool isYUV;
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_Y;          // extended output image, also reused for hsv
-	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_UV;         // extended output image, also reused for hsv
-    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_V;         // extended output image, also reused for hsv
-	
     
     
     
@@ -228,12 +191,13 @@ sobel2DYConvolution;
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
+    bool chromeThreadRunning;
     int sobelIsNormalized;
-    int kirschIsNormalized;
-
+    
+   
     int minVal;
     float sobelLimits[2];   // maximum and minimum of Sobel operator results
-    float kirschLimits[4][2];   //maximum and minimum of Kirsch operator for each orientation
+    
 
 public:
     /**
@@ -311,23 +275,13 @@ public:
     */
     void filtering();
 
-    /**
-    * Center-surrounding
-    */
-    void centerSurrounding();
-
-    
-
+   
     /**
     * Creating color opponency maps
     */
     void colorOpponency();
 
-    /**
-    * Calculating orientation
-    */
-    void orientation();
-
+   
     /**
     * Combining oriented images to get saliency map for orientation
     */
@@ -375,7 +329,7 @@ public:
     void cropCircleImage(int* center, float radius, IplImage* srcImg);
 
 
-
+    chrominanceThread *chromeThread;
     
     
 };

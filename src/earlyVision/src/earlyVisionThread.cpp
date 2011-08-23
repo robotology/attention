@@ -25,6 +25,7 @@
 
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/earlyVisionThread.h>
+
 #include <cstring>
 
 #define ONE_BY_ROOT_TWO 0.707106781
@@ -44,7 +45,7 @@ inline T max(T a, T b, T c) {
     return a;
 }
 
-earlyVisionThread::earlyVisionThread() {
+earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
@@ -70,15 +71,7 @@ earlyVisionThread::earlyVisionThread() {
     tmpMonoSobelImage1  = new SobelOutputImage;
     tmpMonoSobelImage2  = new SobelOutputImage;
 
-    o0      = new KirschOutputImage;
-    o45     = new KirschOutputImage;
-    o90     = new KirschOutputImage;
-    oM45    = new KirschOutputImage;
     
-    tmpKirschCartImage1  = new KirschOutputImage;
-    tmpKirschCartImage2  = new KirschOutputImage;
-    tmpKirschCartImage3  = new KirschOutputImage;
-    tmpKirschCartImage4  = new KirschOutputImage;
     
     
 
@@ -94,7 +87,7 @@ earlyVisionThread::earlyVisionThread() {
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
     unXtnIntensImg      = new ImageOf<PixelMono>;
-    cartIntensImg       = new ImageOf<PixelMono>;
+   
     
     redPlane            = new ImageOf<PixelMono>;
     greenPlane          = new ImageOf<PixelMono>;
@@ -104,26 +97,17 @@ earlyVisionThread::earlyVisionThread() {
     Yplane            = new ImageOf<PixelMono>;
     Uplane            = new ImageOf<PixelMono>;
     Vplane            = new ImageOf<PixelMono>;
+    
+    unXtnYplane            = new ImageOf<PixelMono>;
+    unXtnUplane            = new ImageOf<PixelMono>;
+    unXtnVplane            = new ImageOf<PixelMono>;
 
     gaborPosHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
     gaborPosVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
     gaborNegHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
     gaborNegVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);
 
-    kirschConvolution0 =  new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschConvolution45 =  new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K6,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschConvolution90 =  new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K5,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschConvolutionM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(3,3,K7,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-
-    kirschSalPos0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(13,13,r1,1,0,KIRSCH_FLICKER);
-    kirschSalPos45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(13,13,r2,1,0,KIRSCH_FLICKER);
-    kirschSalPos90 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(13,13,r3,1,0,KIRSCH_FLICKER);
-    kirschSalPosM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(13,13,r4,1,0,KIRSCH_FLICKER);
-
-    kirschSalNeg0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(19,19,rn1,1,0,KIRSCH_FLICKER);
-    kirschSalNeg45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(19,19,rn2,1,0,KIRSCH_FLICKER);
-    kirschSalNeg90 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(19,19,rn3,1,0,KIRSCH_FLICKER);
-    kirschSalNegM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(19,19,rn4,1,0,KIRSCH_FLICKER);
+   
 
     
     sobel2DXConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DXgrad,SOBEL_FACTOR,SOBEL_SHIFT);
@@ -132,50 +116,22 @@ earlyVisionThread::earlyVisionThread() {
     sobelLimits[0] = 0;
     sobelLimits[1] = 2.0;
 
-    kirschIsNormalized = 0;
-    kirschLimits[0][0] = 0;
-    kirschLimits[0][1] = 2.0;
-    kirschLimits[1][0] = 0;
-    kirschLimits[1][1] = 2.0;
-    kirschLimits[2][0] = 0;
-    kirschLimits[2][1] = 2.0;
-    kirschLimits[3][0] = 0;
-    kirschLimits[3][1] = 2.0;
+    
     
 
-    img_Y = new ImageOf<PixelMono>;
-	img_UV = new ImageOf<PixelMono>;
-	img_V = new ImageOf<PixelMono>;
-    isYUV = true;
+    
 	
 	
     
     
-    
-    // Let us initialize IplImage pointers to NULL
-
-    //hRG =vRG=hGR=vGR=hBY=vBY= NULL;
-
-    //16 bit image to avoid overflow in Sobel operator
-    //tempHRG=tempVRG=tempHGR=tempVGR=tempHBY=tempVBY=NULL;    
+       
           
     
     lambda = 0.3f;
     resized = false;
-
-    //Logpolar to cartesian and vice versa
-    xSizeValue = CART_ROW_SIZE ;         
-    ySizeValue = CART_COL_SIZE;          // y dimension of the remapped cartesian image
-    overlap = 1.0;         // overlap in the remapping
-    numberOfRings = COL_SIZE;      // 152, number of rings in the remapping
-    numberOfAngles = ROW_SIZE;     // number of angles in the remapping   
     
-    //Logpolar to cartesian and vice versa
-    xSizeValue = 320 ;         
-    ySizeValue = 240;          // y dimension of the remapped cartesian image
-    overlap = 1.0;         // overlap in the remapping
-    numberOfRings = 152;      // number of rings in the remapping
-    numberOfAngles = 252;     // number of angles in the remapping
+
+    
 }
 
 earlyVisionThread::~earlyVisionThread() {
@@ -202,29 +158,12 @@ earlyVisionThread::~earlyVisionThread() {
     delete gaborPosVerConvolution;    
     delete gaborNegHorConvolution;    
     delete gaborNegVerConvolution;
-    delete kirschConvolution0;
-    delete kirschConvolution45;
-    delete kirschConvolution90;
-    delete kirschConvolutionM45;
-    delete kirschSalPos0;
-    delete kirschSalPos45;
-    delete kirschSalPos90;
-    delete kirschSalPosM45;
     delete sobel2DXConvolution;
     delete sobel2DYConvolution;
-    delete o0;
-    delete o45;
-    delete o90;
-    delete oM45;
-    delete tmpKirschCartImage1;    
-    delete tmpKirschCartImage2;    
-    delete tmpKirschCartImage3;    
-    delete tmpKirschCartImage4;    
     delete edges;
     delete YofYUV;
     delete intensImg;
     delete unXtnIntensImg;
-    delete cartIntensImg;
     delete redPlane;
     delete greenPlane;
     delete bluePlane;
@@ -232,19 +171,23 @@ earlyVisionThread::~earlyVisionThread() {
     delete Yplane;
     delete Uplane;
     delete Vplane;
+    delete unXtnYplane;
+    delete unXtnUplane;
+    delete unXtnVplane;
 
     // CS
-    delete centerSurr;
-    delete img_Y;
-    delete img_UV;
-    delete img_V;
+    
 
     
     
 }
 
 bool earlyVisionThread::threadInit() {
-    printf("opening ports \n");
+    printf("opening ports by main thread\n");
+
+    chromeThread = new chrominanceThread();
+    chromeThread->setName(getName("chrome").c_str());
+    chromeThread->start();
     /* open ports */ 
     
    
@@ -253,57 +196,20 @@ bool earlyVisionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
  
-    if(isYUV){
-        if (!intenPort.open(getName("/intensity:o").c_str())) {
-            cout <<": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
-        
-        if (!chromPort.open(getName("/chrominance:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
-    }
-
-    else{
-       
-        if (!intenPort.open(getName("/H:o").c_str())) {
-            cout <<": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
-        
-        if (!chromPort.open(getName("/S:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
-
-        if (!VofHSVPort.open(getName("/V:o").c_str())) {
-        cout << ": unable to open port "  << endl;
+    
+    if (!intenPort.open(getName("/intensity:o").c_str())) {
+        cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
-        } 
     }
+        
+        
     
     if (!edgesPort.open(getName("/edges:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-    if (!orientPort0.open(getName("/orient0:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!orientPort45.open(getName("/orient45:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!orientPort90.open(getName("/orient90:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!orientPortM45.open(getName("/orientM45:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
+    
 
     if (!colorOpp1Port.open(getName("/colorOppR+G-:o").c_str())) {
         cout << ": unable to open port "  << endl;
@@ -319,19 +225,6 @@ bool earlyVisionThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }   
-
-   
-    
-    //initializing logpolar mapping
-    cout << "||| initializing the logpolar mapping" << endl;
-
-    
-
-    if (!lpMono.allocLookupTables(BOTH, numberOfRings, numberOfAngles, xSizeValue, ySizeValue, overlap)) {
-        cerr << "can't allocate lookup tables for mono" << endl;
-        return false;
-    }
-    cout << "|-| lookup table allocation for mono done" << endl;
 
     
 
@@ -353,20 +246,20 @@ std::string earlyVisionThread::getName(const char* p) {
 void earlyVisionThread::run() {
     
     
-    while (isStopping() != true) {
-        
+     
+        //printf("running early vision thread \n");
         inputImage  = imagePortIn.read(true);
         //cvSaveImage("logPolarFromCam.jpg",inputImage);
- /*       IplImage *imgRGB;
+        /*IplImage *imgRGB;
         imgRGB = cvLoadImage("logPtemp.jpg");
         inputImage->resize(imgRGB->width,imgRGB->height);
         inputImage->zero();
         cvAdd(imgRGB,(IplImage*)inputImage->getIplImage(),(IplImage*)inputImage->getIplImage());
- */       
-        cvNamedWindow("cnvt");
-        cvShowImage("cnvt",(IplImage*)inputImage->getIplImage());
+       
+        //cvNamedWindow("cnvt");
+        //cvShowImage("cnvt",(IplImage*)inputImage->getIplImage());
         //cvWaitKey(0);
-
+        */
         if (inputImage != NULL) {
             if (!resized) {
                 resize(inputImage->width(), inputImage->height());
@@ -385,16 +278,15 @@ void earlyVisionThread::run() {
                       
             // gaussian filtering of the of RGB and Y
             filtering();
+
             
-            // Center-surround
-            centerSurrounding();
+            
+            
 
             // colourOpponency map construction
             colorOpponency();
 
-            //printf("before colour opponency \n");
-            orientation();
-            // apply sobel operators on the colourOpponency maps and combine via maximisation of the 3 edges
+            
 
             
             edgesExtract();
@@ -423,7 +315,7 @@ void earlyVisionThread::run() {
             
             
         }
-    }
+    
 }
 
 
@@ -468,16 +360,7 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     intensImg->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);
 
-    cartIntensImg->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    // for Kirsch
-    o0->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    o45->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    o90->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    oM45->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    tmpKirschCartImage1->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    tmpKirschCartImage2->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    tmpKirschCartImage3->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    tmpKirschCartImage4->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    
     
 
     redPlane->resize(width, height);
@@ -487,29 +370,19 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     Yplane->resize(width, height);
     Uplane->resize(width, height);
     Vplane->resize(width, height);
-    
-    // allocating for CS ncsscale = 4;   
 
-    cs_tot_32f  = cvCreateImage( cvSize(width, height),IPL_DEPTH_32F, 1  );
-    colcs_out   = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
-    ycs_out     = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
-    scs_out     = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
-    vcs_out     = cvCreateImage( cvSize(width, height),IPL_DEPTH_8U, 1  );
+    unXtnYplane->resize(width_orig, height_orig);
+    unXtnUplane->resize(width_orig, height_orig);
+    unXtnVplane->resize(width_orig, height_orig);
     
     
-    centerSurr  = new CenterSurround( width,height,1.0 );
-
+    
     
     isYUV = true;
-	img_Y->resize( this->width, this->height );
+	
 
     
-
-    img_UV->resize( this->width, this->height );
-
     
-
-    img_V->resize( this->width, this->height );
 
     
    
@@ -540,11 +413,14 @@ void earlyVisionThread::extender(int maxSize) {
 
 void earlyVisionThread::extractPlanes() {
 
+    //chromeThread->setFlagForDataReady(false);           
     // We extract color planes from the RGB image. Planes are red,blue, green and yellow (AM of red & green)
     uchar* shift[4];
     uchar* YUV[3];
+    uchar* unXtnYUV[3];
     int padInput;
     int padUnX;
+    int padUnXtnYUV;
     int padMono;
     uchar* tmpIntensityImage;
     uchar* ptrIntensityImg;
@@ -561,18 +437,26 @@ void earlyVisionThread::extractPlanes() {
 
     YUV[0] = (uchar*) Yplane->getRawImage(); 
     YUV[1] = (uchar*) Uplane->getRawImage(); 
-    YUV[2] = (uchar*) Vplane->getRawImage(); 
+    YUV[2] = (uchar*) Vplane->getRawImage();
+
+    unXtnYUV[0] = (uchar*) unXtnYplane->getRawImage(); 
+    unXtnYUV[1] = (uchar*) unXtnUplane->getRawImage(); 
+    unXtnYUV[2] = (uchar*) unXtnVplane->getRawImage(); 
+
+ 
     ptrIntensityImg   = (uchar*) intensImg->getRawImage();
     ptrUnXtnIntensImg = (uchar*) unXtnIntensImg->getRawImage();
     inputPointer      = (uchar*) extendedInputImage->getRawImage();
     padInput          = extendedInputImage->getPadding();
     padMono           = redPlane->getPadding();
     padUnX            = unXtnIntensImg->getPadding();
+    padUnXtnYUV       = unXtnYplane->getPadding();
     
 
     const int h = extendedInputImage->height();
     const int w = extendedInputImage->width();
 
+    
     for(int r = 0; r < h; r++) {       
         
         for(int c = 0; c < w; c++) {
@@ -582,19 +466,25 @@ void earlyVisionThread::extractPlanes() {
 
             *shift[3]++ = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
             *ptrIntensityImg = ONE_BY_ROOT_THREE * sqrt(*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]);
-            if(r>=maxKernelSize && c >=maxKernelSize && c< w-maxKernelSize){
-                *ptrUnXtnIntensImg++ = *ptrIntensityImg;
-                
-            }
+            
 
             // RGB to Y'UV conversion
-            float r = (float)*shift[0];
-            float g = (float)*shift[1];
-            float b = (float)*shift[2];
+            float red = (float)*shift[0];
+            float green = (float)*shift[1];
+            float blue = (float)*shift[2];
 
-            *YUV[0] = 0.299*r + 0.587*g + 0.114*b;
-            *YUV[1] = (r-*YUV[0])*0.713 + 128.0;
-            *YUV[2] = (b-*YUV[0])*0.564 + 128.0;
+            *YUV[0] = 0.299*red + 0.587*green + 0.114*blue;
+            *YUV[1] = (red-*YUV[0])*0.713 + 128.0;
+            *YUV[2] = (blue-*YUV[0])*0.564 + 128.0;
+
+            if(r>=maxKernelSize && c >=maxKernelSize && c< w-maxKernelSize){
+                *ptrUnXtnIntensImg++ = *ptrIntensityImg;
+                *unXtnYUV[0]++ = *YUV[0];
+                *unXtnYUV[1]++ = *YUV[1];
+                *unXtnYUV[2]++ = *YUV[2];
+                
+                
+            }
 
             ptrIntensityImg++;
             YUV[0]++;
@@ -608,7 +498,11 @@ void earlyVisionThread::extractPlanes() {
         inputPointer += padInput;
         ptrIntensityImg += padMono;
         if(r>=maxKernelSize){
+            
             ptrUnXtnIntensImg += padUnX;
+            unXtnYUV[0] += padUnXtnYUV;
+            unXtnYUV[1] += padUnXtnYUV;
+            unXtnYUV[2] += padUnXtnYUV;
         }
         shift[0] += padMono;
         shift[1] += padMono;
@@ -621,7 +515,13 @@ void earlyVisionThread::extractPlanes() {
                 
     } 
 
-    lpMono.logpolarToCart(*cartIntensImg,*unXtnIntensImg);
+    
+
+    if(!chromeThread->getFlagForDataReady()){
+        chromeThread->copyRelevantPlanes(unXtnIntensImg,unXtnYplane,unXtnUplane,unXtnVplane);
+    }
+    
+    
 
 }
 
@@ -662,125 +562,6 @@ void earlyVisionThread::filtering() {
     
 }
 
-void earlyVisionThread::centerSurrounding(){
-
-        // Allocate temporarily
-        ImageOf<PixelMono>& _Y = intenPort.prepare();
-        _Y.resize(this->width_orig,this->height_orig);
-        ImageOf<PixelMono>& _UV = chromPort.prepare();
-        _UV.resize(this->width_orig,this->height_orig);
-        
-        ImageOf<PixelMono>& _V = VofHSVPort.prepare();
-        _V.resize(this->width_orig,this->height_orig);
-        
-        
-        //performs centre-surround uniqueness analysis on first plane
-        centerSurr->proc_im_8u( (IplImage*)Yplane->getIplImage(),(IplImage*)img_Y->getIplImage());
-        
-        cvSet(cs_tot_32f,cvScalar(0));
-        
-        
-        if ( isYUV ){
-            //performs centre-surround uniqueness analysis on second plane:
-            centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),scs_out );
-            cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
-            
-            //Colour process V:performs centre-surround uniqueness analysis:
-            centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), vcs_out);
-            cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
-            
-            
-            //get min max   
-            double valueMin = 1000;
-            double valueMax = -1000;
-            img_UV->zero();     // this is not strictly required
-          	cvMinMaxLoc(cs_tot_32f,&valueMin,&valueMax);            
-            if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ 
-                valueMax = 255.0f; valueMin = 0.0f;
-            }
-            cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
-            //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);
-            
-            
-            
-            
-        }
-        else{
-            //performs centre-surround uniqueness analysis on second plane:
-            centerSurr->proc_im_8u( (IplImage*)Uplane->getIplImage(),(IplImage*)img_UV->getIplImage() );
-            //Colour process V:performs centre-surround uniqueness analysis:
-            centerSurr->proc_im_8u( (IplImage*)Vplane->getIplImage(), (IplImage*)img_V->getIplImage());           
-
-        }
-
-
-        
-            
-        
-       
-
-        //this is nasty, resizes the images...
-        unsigned char* imgY = img_Y->getPixelAddress( maxKernelSize, maxKernelSize );
-        unsigned char* imgUV = img_UV->getPixelAddress( maxKernelSize, maxKernelSize );
-        unsigned char* imgV;
-        unsigned char* imgVo;
-
-        if (!isYUV){
-           imgV = img_V->getPixelAddress( maxKernelSize, maxKernelSize );
-           imgVo = _V.getRawImage();
-        }
-        
-        unsigned char* imgYo = _Y.getRawImage();
-        unsigned char* imgUVo = _UV.getRawImage();
-        int rowsize= _Y.getRowSize();
-        int rowsize2= img_Y->getRowSize();
-
-        for(int row=0; row<height_orig; row++) {
-            for(int col=0; col<width_orig; col++) {
-                *imgYo  = *imgY;
-                *imgUVo = *imgUV;
-                if (!isYUV) {
-                    *imgVo = *imgV;
-                    imgVo++;  imgV++;          
-                }
-                imgYo++;  imgUVo++;
-                imgY++;   imgUV++;
-            }    
-            imgYo+=rowsize - width_orig;
-            imgUVo+=rowsize - width_orig;
-            imgY+=rowsize2 - width_orig;
-            imgUV+=rowsize2 - width_orig;
-            if (!isYUV) {
-                imgVo+=rowsize - width_orig;
-                imgV+=rowsize2 - width_orig;       
-            }
-        }
-
-        
-        //output Y centre-surround results to ports
-        if (intenPort.getOutputCount()>0 ){
-            intenPort.write();
-        }
-
-        //output UV centre-surround results to ports
-        if ( chromPort.getOutputCount()>0 ){
-            chromPort.write();
-        }
-        //output UV centre-surround results to ports
-        if ( !isYUV && VofHSVPort.getOutputCount()>0 ){
-            VofHSVPort.write();
-        }
-
-#ifdef DEBUG_OPENCV
-        cvNamedWindow("CS_Y");
-        cvShowImage("CS_Y", (IplImage*)_Y.getIplImage());
-        cvNamedWindow("CS_UV");
-        cvShowImage("CS_UV", (IplImage*)_UV.getIplImage());
-        cvNamedWindow("CS_V");
-        cvShowImage("CS_V", (IplImage*)_V.getIplImage());
-#endif
-       
-}
 
 
 void earlyVisionThread::colorOpponency(){
@@ -859,200 +640,7 @@ void earlyVisionThread::colorOpponency(){
 
 }
 
-void earlyVisionThread::orientation() {
 
-    int cartesWidth  = cartIntensImg->width();
-    int cartesHeight = cartIntensImg->height();
-
-    // orientation port
-    ImageOf<PixelMono>& ori0   = orientPort0.prepare();    
-    ImageOf<PixelMono>& ori45  = orientPort45.prepare();    
-    ImageOf<PixelMono>& ori90  = orientPort90.prepare();    
-    ImageOf<PixelMono>& oriM45 = orientPortM45.prepare();
-    
-    ori0.resize(cartesWidth,cartesHeight);
-    ori45.resize(cartesWidth,cartesHeight);
-    ori90.resize(cartesWidth,cartesHeight);
-    oriM45.resize(cartesWidth,cartesHeight);
-
-    ori0.zero();
-    ori45.zero();
-    ori90.zero();
-    oriM45.zero();
- /*      
-    // Using Kirsch matrix
-    kirschConvolution0->convolve2D(cartIntensImg,o0);
-    kirschConvolution45->convolve2D(cartIntensImg,o45);
-    kirschConvolution90->convolve2D(cartIntensImg,o90);
-    kirschConvolutionM45->convolve2D(cartIntensImg,oM45);
- */
-    // using Kirsch cum positive Gaussian matrix
-    kirschSalPos0->convolve2D(cartIntensImg,o0);
-    kirschSalPos45->convolve2D(cartIntensImg,o45);
-    kirschSalPos90->convolve2D(cartIntensImg,o90);
-    kirschSalPos45->convolve2D(cartIntensImg,oM45); 
-
-    // using Kirsch cum Negative gaussian matrix
-    kirschSalNeg0->convolve2D(cartIntensImg,tmpKirschCartImage1); 
-    kirschSalNeg45->convolve2D(cartIntensImg,tmpKirschCartImage2); 
-    kirschSalNeg90->convolve2D(cartIntensImg,tmpKirschCartImage3); 
-    kirschSalNegM45->convolve2D(cartIntensImg,tmpKirschCartImage4); 
-
-/*    cvNamedWindow("pos90");
-    cvShowImage("pos90",(IplImage*)o90->getIplImage());
-    cvNamedWindow("neg0");
-    cvShowImage("neg0",(IplImage*)o0->getIplImage());
-    cvNamedWindow("neg45");
-    cvShowImage("neg45",(IplImage*)o45->getIplImage());
-    cvNamedWindow("negM45");
-    cvShowImage("negM45",(IplImage*)oM45->getIplImage());
-    cvWaitKey(0);
-      
-*/
-    uchar* ori[4]= {(uchar*)ori0.getRawImage(),
-                    (uchar*)ori45.getRawImage(),
-                    (uchar*)ori90.getRawImage(),
-                    (uchar*)oriM45.getRawImage()};
-
-    KirschOutputImagePtr* p[4] = { (KirschOutputImagePtr*)o0->getRawImage(),
-                                    (KirschOutputImagePtr*)o45->getRawImage(),
-                                    (KirschOutputImagePtr*)o90->getRawImage(),
-                                    (KirschOutputImagePtr*)oM45->getRawImage()};
-
-    KirschOutputImagePtr* n[4] = { (KirschOutputImagePtr*)tmpKirschCartImage1->getRawImage(),
-                                    (KirschOutputImagePtr*)tmpKirschCartImage2->getRawImage(),
-                                    (KirschOutputImagePtr*)tmpKirschCartImage3->getRawImage(),
-                                    (KirschOutputImagePtr*)tmpKirschCartImage4->getRawImage()};
-
-     
-    const int pad_output = ori0.getPadding() / sizeof(uchar);
-    int padK             = o0->getPadding()  / sizeof(KirschOutputImagePtr);    
-
-    // LATER: Do not consider extended portion
-#ifdef USE_PROPORTIONAL_KIRSCH
-    float normalizingRatio[4];
-    normalizingRatio[0] = 255.0 / (kirschLimits[0][0] - kirschLimits[0][1]);
-    normalizingRatio[1] = 255.0 / (kirschLimits[1][0] - kirschLimits[1][1]);
-    normalizingRatio[2] = 255.0 / (kirschLimits[2][0] - kirschLimits[2][1]);
-    normalizingRatio[3] = 255.0 / (kirschLimits[3][0] - kirschLimits[3][1]);
-#endif
-
-    float multiplier = 255*.75;
-    float multiplierForNeg = .5;
-    for (int row = 0; row < ori0.height(); row++) {
-        for (int col = 0; col < ori0.width(); col++) {
-
-//#ifdef USE_PROPORTIONAL_KIRSCH //-------------------------------------
-            //if() {
-                //printf("second proportional kirsch \n");
-                //if (row < CART_ROW_SIZE) {
-              /*  if(kirschIsNormalized < KIRSCH_FLICKER){
-
-                        float tmpV0 = (abs(*p[0])-.33*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *255 ;
-                        float tmpV1 = (abs(*p[1])-.33*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *255 ;
-                        float tmpV2 = (abs(*p[2])-.33*(abs(*n[1])+abs(*n[0])+abs(*n[3]))) *255 ;
-                        float tmpV3 = (abs(*p[3])-.33*(abs(*n[1])+abs(*n[2])+abs(*n[0]))) *255 ;
-                    
-                        kirschLimits[0][0] = kirschLimits[0][0] < tmpV0 ? tmpV0 : kirschLimits[0][0]; // max
-                        kirschLimits[0][1] = kirschLimits[0][1] > tmpV0 ? tmpV0 : kirschLimits[0][1]; // min
-                        kirschLimits[1][0] = kirschLimits[1][0] < tmpV1 ? tmpV1 : kirschLimits[1][0]; // max
-                        kirschLimits[1][1] = kirschLimits[1][1] > tmpV1] ? tmpV1 : kirschLimits[1][1]; // min
-
-                        kirschLimits[2][0] = kirschLimits[2][0] < tmpV2 ? tmpV2 : kirschLimits[2][0]; // max
-                        kirschLimits[2][1] = kirschLimits[2][1] > tmpV2 ? tmpV2 : kirschLimits[2][1]; // min
-                        kirschLimits[3][0] = kirschLimits[3][0] < tmpV3 ? tmpV3 : kirschLimits[3][0]; // max
-                        kirschLimits[3][1] = kirschLimits[3][1] > tmpV3 ? tmpV3 : kirschLimits[3][1]; // min
-
-                        *ori[0] = tmpV0;
-                        *ori[1] = tmpV1 ;
-                        *ori[2] = tmpV2 ;
-                        *ori[3] = tmpV3 ;
-                                                
-                    
-                }
-                else {
-                   
-                        //float tmpV = 255.0 *abs(*p[i]);
-                        float tmpV0 = normalizingRatio[0]*(*p[0] - kirschLimits[0][1]);
-                        float tmpV1 = normalizingRatio[1]*(*p[1] - kirschLimits[1][1]);
-                        float tmpV2 = normalizingRatio[2]*(*p[2] - kirschLimits[2][1]);
-                        float tmpV3 = normalizingRatio[3]*(*p[3] - kirschLimits[3][1]);
-                        *ori[0] = tmpV0>255?255:tmpV0<0?0:(unsigned char)tmpV0;
-                        *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
-                        *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
-                        *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
-                        
-                }
-                
-            
-#else //--------------------------------------------------------------
-*/
-                float tmpV0 = (abs(*p[0])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *multiplier ;
-                float tmpV1 = (abs(*p[1])-multiplierForNeg*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *multiplier ;
-                float tmpV2 = (abs(*p[2])-multiplierForNeg*(abs(*n[1])+abs(*n[0])+abs(*n[3]))) *multiplier ;
-                float tmpV3 = (abs(*p[3])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[0]))) *multiplier ;
-                *ori[0] = tmpV0>255?255:tmpV0<0?0:(unsigned char)tmpV0;
-                *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
-                *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
-                *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;           
-//#endif //---------------------------------------------------------------
-            ori[0]++;
-            p[0]++;
-            n[0]++;
-            ori[1]++;
-            p[1]++;
-            n[1]++;
-            ori[2]++;
-            p[2]++;
-            n[2]++;
-            ori[3]++;
-            p[3]++;
-            n[3]++;             
-            
-        }
-        // padding
-        ori[0] += pad_output;
-        p[0] += padK; 
-        n[0] += padK; 
-        ori[1] += pad_output;
-        p[1] += padK; 
-        n[1] += padK; 
-        ori[2] += pad_output;
-        p[1] += padK; 
-        n[2] += padK; 
-        ori[3] += pad_output;
-        p[3] += padK; 
-        n[3] += padK; 
-               
-    } 
-
-    kirschIsNormalized++;
-
-#ifdef DEBUG_OPENCV
-    cvNamedWindow("Original");
-    cvShowImage("Original",(IplImage*)cartIntensImg->getIplImage());
-    cvNamedWindow("Orient0");
-    cvShowImage("Orient0",  (IplImage*)ori0.getIplImage());
-    cvNamedWindow("Orient45");
-    cvShowImage("Orient45", (IplImage*)ori45.getIplImage());
-    cvNamedWindow("Orient90");
-    cvShowImage("Orient90", (IplImage*)ori90.getIplImage());
-    cvNamedWindow("OrientM45");
-    cvShowImage("OrientM45",(IplImage*)oriM45.getIplImage());
-    cvWaitKey(0);
-#endif
-     
-    orientPort0.write();
-    orientPort45.write();
-    orientPort90.write();
-    orientPortM45.write();  
-}
-
-void combineOrientationsForSaliency(){
-
-    
-
-}
 
 void earlyVisionThread::edgesExtract() {
     
@@ -1241,16 +829,11 @@ void earlyVisionThread::cropCircleImage(int* center, float radius, IplImage* src
 
 
 void earlyVisionThread::threadRelease() {
+
+    
     
 
-    trsf.freeLookupTables();
-    lpMono.freeLookupTables();
-
-    cvReleaseImage(&cs_tot_32f); 
-    cvReleaseImage(&colcs_out);
-    cvReleaseImage(&ycs_out);
-    cvReleaseImage(&scs_out);
-    cvReleaseImage(&vcs_out);
+    
     
 
     
@@ -1266,25 +849,12 @@ void earlyVisionThread::onStop() {
 
     imagePortIn.interrupt();
     intenPort.interrupt();
-    chromPort.interrupt();
     edgesPort.interrupt();
-    orientPort0.interrupt();
-    orientPort45.interrupt();
-    orientPort90.interrupt();
-    orientPortM45.interrupt();
-    colorOpp1Port.interrupt();
-    colorOpp2Port.interrupt();
-    colorOpp3Port.interrupt();
     
     
     imagePortIn.close();
     intenPort.close();
-    chromPort.close();
     edgesPort.close();
-    orientPort0.close();
-    orientPort45.close();
-    orientPort90.close();
-    orientPortM45.close();
     colorOpp1Port.close();
     colorOpp2Port.close();
     colorOpp3Port.close();

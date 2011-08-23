@@ -64,21 +64,26 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     */
     handlerPortName =  "";
     handlerPortName += getName();         // use getName() rather than a literal 
-
+/*
     if (!handlerPort.open(handlerPortName.c_str())) {           
         cout << getName() << ": Unable to open port " << handlerPortName << endl;  
         return false;
     }
 
     attach(handlerPort);                  // attach to port
-
+*/
     /* create the thread and pass pointers to the module parameters */
     printf("trying to start the main thread \n");
     evThread = new earlyVisionThread();
     evThread->setName(getName().c_str());
+
     
+
+    printf("flag done \n");
     /* now start the thread to do the work */
-    evThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    evThread->start(); // this calls threadInit() and it if returns true, it then calls run()   
+        
+    
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
@@ -98,6 +103,8 @@ bool earlyVisionModule::close()
     //delete evThread;
     return true;
 }
+
+
 
 bool earlyVisionModule::respond(const Bottle& command, Bottle& reply) 
 {
@@ -131,4 +138,5 @@ double earlyVisionModule::getPeriod()
     /* module periodicity (seconds), called implicitly by myModule */
     return 0.1;
 }
+
 

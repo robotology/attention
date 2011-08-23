@@ -97,7 +97,7 @@ CenterSurround::~CenterSurround() {
 void CenterSurround::proc_im_8u(IplImage* input_8u, IplImage* output8u)
 {
     //convert im precision to 32f and process as normal:
-    cvConvertScale(input_8u,im_in_32f,0.003922,0);  //  0.003922 = 1/255.0   
+    cvConvertScale(input_8u,im_in_32f,0.003922,0);  //  0.003922 = 1/255.0     
     proc_im_32f(im_in_32f,output8u);
 }
 
@@ -140,8 +140,14 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
 
   	//if (maxPixelVal == minPixelVal)
     //maxPixelVal=255.0f;minPixelVal=0.0f;
-  	
+  	 
+    
+                
     cvConvertScale(cs_tot_32f,output8u,255,0);
+
+    
+    
+    
     
     
 }
