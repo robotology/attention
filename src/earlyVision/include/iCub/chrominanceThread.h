@@ -32,25 +32,14 @@
 #include <yarp/os/Stamp.h>
 /* Log-Polar includes */
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
-//#include <yarp/sig/IplImage.h>
-
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_fft_complex.h>
-#include <gsl/gsl_sort_double.h>
-#include <gsl/gsl_statistics.h>
-
-
 #include <iCub/logPolar.h>
-
 #include <iCub/convolve.h>
 #include <iCub/config.h>
 #include <iCub/centerSurround.h>
 
-
-//#include <Eigen/Dense>
 
 
 #ifndef PI
@@ -65,10 +54,6 @@
 #define CART_ROW_SIZE 320
 #define CART_COL_SIZE 240
 
-#define POS_GAUSSIAN 5
-#define NEG_GAUSSIAN 7
-
-#define RATE_OF_CHROME_THREAD 50    // 20 Hz
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
@@ -209,68 +194,40 @@ public:
     * @param width width of the input image
     * @param height height of the input image
     */
-    void resize(int width, int height);
-    
+    void resize(int width, int height);    
     /**
     * function that resizes the cartesian image
     * @param width width of the input image
     * @param height height of the input image
     */
     void resizeCartesian(int width, int height);
-
     
-
-    void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I,yarp::sig::ImageOf<yarp::sig::PixelMono> *Y,yarp::sig::ImageOf<yarp::sig::PixelMono> *U, yarp::sig::ImageOf<yarp::sig::PixelMono> *V);
-
-    
-
-   
-    
-
-    
-
-    
-
-
-
-    
+    /**
+    * function that copies the images from the main thread
+    * @param I intensity image
+    * @param Y Y of YUV image
+    * @param U U of YUV image
+    * @param V V of YUV image
+    */
+    void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I,yarp::sig::ImageOf<yarp::sig::PixelMono> *Y,yarp::sig::ImageOf<yarp::sig::PixelMono> *U, yarp::sig::ImageOf<yarp::sig::PixelMono> *V);    
 
     /**
     * Center-surrounding
     */
-    void centerSurrounding();
-    
-
-    
-    void orientation();
-
-    
-
-   
-
+    void centerSurrounding();    
 
     /**
-    * function which crops the image
-    * @param corners int array defining the crop boundaries in (left-top,right-bottom) fashion
-    * @param imageToBeCropped source image that needs to be cropped
-    * @param retImage The final cropped image
+    * Orientation using Kirsch kernel on Gaussian smoothened intensity. (Refer config.h)
     */
-    void cropImage(int* corners, IplImage* imageToBeCropped, IplImage* retImage);
+    void orientation();    
 
-
-    /**
-    * function that crops in-place a given circle (center, radius form) from source image
-    * @param center center of circle in (int,int) array
-    * @param radius radius of circle
-    * @param srcImage source image that will be changed after cropping
+    /* Some handy get-set methods
     */
-    void cropCircleImage(int* center, float radius, IplImage* srcImg);
-
-
     inline yarp::sig::ImageOf<yarp::sig::PixelMono>* getCartesianImage(){
         return this->cartIntensImg;
     }
 
+    
     inline bool getFlagForDataReady(){
         
          return this->dataReadyForChromeThread;
@@ -291,14 +248,9 @@ public:
     inline void setFlagForThreadProcessing(bool v){
          //atomic operation
          chromeThreadProcessing = v;         
-    }
-    
-    
+    }   
     
 };
-
-
-
 
 #endif  //_CHROME_THREAD_H_
 

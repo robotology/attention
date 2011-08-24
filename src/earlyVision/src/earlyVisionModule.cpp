@@ -64,14 +64,14 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     */
     handlerPortName =  "";
     handlerPortName += getName();         // use getName() rather than a literal 
-/*
+
     if (!handlerPort.open(handlerPortName.c_str())) {           
         cout << getName() << ": Unable to open port " << handlerPortName << endl;  
         return false;
     }
 
     attach(handlerPort);                  // attach to port
-*/
+
     /* create the thread and pass pointers to the module parameters */
     printf("trying to start the main thread \n");
     evThread = new earlyVisionThread();

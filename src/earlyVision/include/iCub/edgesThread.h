@@ -65,8 +65,6 @@
 #define POS_GAUSSIAN 5
 #define NEG_GAUSSIAN 7
 
-#define RATE_OF_EDGES_THREAD 100    // 10 Hz
-
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8

@@ -46,7 +46,7 @@ edgesThread::edgesThread():RateThread(RATE_OF_EDGES_THREAD) {
     intensityImage      = new ImageOf<PixelMono>;
     tmpMonoSobelImage1  = new SobelOutputImage;
     tmpMonoSobelImage2  = new SobelOutputImage;
-    intensityImage      = NULL;
+    //intensityImage      = NULL;
 
     sobel2DXConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DXgrad,SOBEL_FACTOR,SOBEL_SHIFT);
     sobel2DYConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DYgrad,SOBEL_FACTOR,SOBEL_SHIFT);
@@ -69,12 +69,12 @@ edgesThread::~edgesThread() {
 bool edgesThread::threadInit() {
     printf("opening ports by chrominance thread \n");
     /* open ports */    
- /*   
+    
     if (!edges.open(getName("/edges:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }    
-  */  
+    
     return true;
 }
 
@@ -94,12 +94,13 @@ void edgesThread::run() {
     //printf("running chrome thread \n");
     
 
-        // skip if data is not ready yet  
+        // skip if data is not ready yet
+        //while(!getFlagForDataReady()) {};  
         if(getFlagForDataReady() && resized) {              
 
             // extract edges
             edgesExtract();  
-
+            setFlagForDataReady(false);
             
         }       
         
@@ -123,15 +124,13 @@ void edgesThread::resize(int width_orig,int height_orig) {
 
 void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
     
-    if(!getFlagForThreadProcessing() && I->getRawImage() != NULL ){ 
-        
+    if(!getFlagForThreadProcessing() && I->getRawImage() != NULL ){         
     
        setFlagForDataReady(false);
         // allocate
         if(!resized){
             resize(I->width(), I->height());
-        }
-        
+        }        
 
         // deep-copy
         memcpy( (uchar*)intensityImage->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());
@@ -155,8 +154,8 @@ void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
 
 void edgesThread::edgesExtract() {
     
-    //ImageOf<PixelMono>& edgesPortImage = edges.prepare();
-    ImageOf<PixelMono> edgesPortImage;
+    ImageOf<PixelMono>& edgesPortImage = edges.prepare();
+    //ImageOf<PixelMono> edgesPortImage;
     edgesPortImage.resize(intensityImage->width(),intensityImage->height());
 
     setFlagForThreadProcessing(true);
@@ -214,11 +213,12 @@ void edgesThread::edgesExtract() {
 
 #ifdef DEBUG_OPENCV
     cvNamedWindow("Edges");
-    cvShowImage("Edges", (IplImage*)edges->getIplImage());
-    cvWaitKey(2);
+    cvShowImage("Edges", (IplImage*)edgesPortImage.getIplImage());
+    cvWaitKey(1);
+    //cvDestroyWindow("Edges");
 #endif
-    
-    //edges.write();
+    //printf("Done with edges \n");
+    edges.write();
     
 }
 

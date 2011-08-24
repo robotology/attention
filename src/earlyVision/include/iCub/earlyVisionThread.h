@@ -75,7 +75,7 @@
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8
 #endif
- #define RATE_OF_INTEN_THREAD 33    // approx 30 Hz
+ 
 
 class earlyVisionThread : public yarp::os::RateThread 
 {

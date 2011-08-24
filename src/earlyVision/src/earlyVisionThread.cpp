@@ -60,18 +60,11 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     tmpMonoLPImage      = new ImageOf<PixelMono>;
     tmpMono16LPImage    = new ImageOf<PixelMono16>;
     tmpMono16LPImage1   = new ImageOf<PixelMono16>;
-    tmpMono16LPImage2   = new ImageOf<PixelMono16>;
-    //tmpMonoSobelImage1  = new SobelOutputImage;
-    //tmpMonoSobelImage2  = new SobelOutputImage;
-    //tmpMonoLPImageSobelHorz      = new ImageOf<PixelMono>;
-    //tmpMonoLPImageSobelVert      = new ImageOf<PixelMono>;    
-
-    //edges               = new yarp::sig::ImageOf<yarp::sig::PixelMono>;
+    tmpMono16LPImage2   = new ImageOf<PixelMono16>;    
     
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
-    unXtnIntensImg      = new ImageOf<PixelMono>;
-   
+    unXtnIntensImg      = new ImageOf<PixelMono>;   
     
     redPlane            = new ImageOf<PixelMono>;
     greenPlane          = new ImageOf<PixelMono>;
@@ -91,12 +84,6 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     gaborNegHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
     gaborNegVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
 
-    
-    //sobel2DXConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DXgrad,SOBEL_FACTOR,SOBEL_SHIFT);
-    //sobel2DYConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DYgrad,SOBEL_FACTOR,SOBEL_SHIFT);
-    //sobelIsNormalized = 0;
-    //sobelLimits[0] = 0;
-    //sobelLimits[1] = 2.0;       
     
     lambda = 0.3f;
     resized = false;    
@@ -118,17 +105,10 @@ earlyVisionThread::~earlyVisionThread() {
     delete tmpMono16LPImage;
     delete tmpMono16LPImage1;
     delete tmpMono16LPImage2;
-    //delete tmpMonoLPImageSobelHorz;
-    //delete tmpMonoLPImageSobelVert;
-    //delete tmpMonoSobelImage1;
-    //delete tmpMonoSobelImage2;
     delete gaborPosHorConvolution;    
     delete gaborPosVerConvolution;    
     delete gaborNegHorConvolution;    
     delete gaborNegVerConvolution;
-    //delete sobel2DXConvolution;
-    //delete sobel2DYConvolution;
-    //delete edges;
     delete YofYUV;
     delete intensImg;
     delete unXtnIntensImg;
@@ -152,32 +132,22 @@ bool earlyVisionThread::threadInit() {
     chromeThread->setName(getName("/chrome").c_str());
     chromeThread->start();
 
-    //edThread = new edgesThread();
-    //edThread->setName(getName("/edges").c_str());
-    //edThread->start();
+    edThread = new edgesThread();
+    edThread->setName(getName("/edges").c_str());
+    edThread->start();
 
     /* open ports */ 
     
- /*  
+   
     if (!imagePortIn.open(getName("/imageRGB:i").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
-    }
- 
-    
+    } 
+   
     if (!intenPort.open(getName("/intensity:o").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
-    }
-        
-        
-    
-    if (!edgesPort.open(getName("/edges:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-
-    
+    }   
 
     if (!colorOpp1Port.open(getName("/colorOppR+G-:o").c_str())) {
         cout << ": unable to open port "  << endl;
@@ -192,11 +162,8 @@ bool earlyVisionThread::threadInit() {
     if (!colorOpp3Port.open(getName("/colorOppB+Y-:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
-    }   
+    }
 
- */   
-
-    
     return true;
 }
 
@@ -213,17 +180,15 @@ std::string earlyVisionThread::getName(const char* p) {
 
 void earlyVisionThread::run() {   
      
-        //printf("running early vision thread \n");
-        //inputImage  = imagePortIn.read(true);
-        //cvSaveImage("logPolarFromCam.jpg",inputImage);
-        IplImage *imgRGB;
+        inputImage  = imagePortIn.read(false);
+        /*IplImage *imgRGB;
         imgRGB = cvLoadImage("logPtemp.jpg");
         inputImage->resize(imgRGB->width,imgRGB->height);
         inputImage->zero();
         cvAdd(imgRGB,(IplImage*)inputImage->getIplImage(),(IplImage*)inputImage->getIplImage());
         cvWaitKey(2);
         cvReleaseImage(&imgRGB);
-       
+       */
         //cvNamedWindow("cnvt");
         //cvShowImage("cnvt",(IplImage*)inputImage->getIplImage());
         //cvWaitKey(0);

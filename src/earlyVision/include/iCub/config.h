@@ -30,6 +30,9 @@
 #ifndef _CONFIG_EARLY_VISION_H
 #define _CONFIG_EARLY_VISION_H
 
+#define RATE_OF_EDGES_THREAD 100    // 10 Hz
+#define RATE_OF_INTEN_THREAD 33    // approx 30 Hz
+#define RATE_OF_CHROME_THREAD 67    // 15 Hz
 
 // Definitions for Sobel filter, for edge detection
 #define SobelOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>

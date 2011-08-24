@@ -156,7 +156,7 @@ bool chrominanceThread::threadInit() {
     printf("opening ports by chrominance thread \n");
     /* open ports */ 
    
-  /* 
+   
     if(isYUV){
         
         
@@ -201,7 +201,7 @@ bool chrominanceThread::threadInit() {
     }
 
     
- */   
+    
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
 
@@ -250,9 +250,7 @@ void chrominanceThread::run() {
 
             //printf("before colour opponency \n");
             orientation();
-            setFlagForThreadProcessing(false);
-
-            
+            setFlagForThreadProcessing(false);           
 
             setFlagForDataReady(false);
             
@@ -372,13 +370,13 @@ void chrominanceThread::centerSurrounding(){
 
         
         // Allocate temporarily
-        ImageOf<PixelMono> _Y,_UV,_V;
-        //ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
+        //ImageOf<PixelMono> _Y,_UV,_V;
+        ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
         _Y.resize(this->widthLP,this->heightLP);
-        //ImageOf<PixelMono>& _UV = chromPort.prepare();
+        ImageOf<PixelMono>& _UV = chromPort.prepare();
         _UV.resize(this->widthLP,this->heightLP);
         
-        //ImageOf<PixelMono>& _V = VofHSVPort.prepare();
+        ImageOf<PixelMono>& _V = VofHSVPort.prepare();
         _V.resize(this->widthLP,this->heightLP);
         //cvNamedWindow("test");
         //cvShowImage("test",(IplImage*)(cartIntensImg->getIplImage()));
@@ -388,9 +386,9 @@ void chrominanceThread::centerSurrounding(){
                 //performs centre-surround uniqueness analysis on first plane
                 
                 centerSurr->proc_im_8u( (IplImage*)chromUnXtnIntensImg->getIplImage(),(IplImage*)_Y.getIplImage());
-                cvNamedWindow("_Y");
-                cvShowImage("_Y",(IplImage*)chromUnXtnIntensImg->getIplImage());
-                cvWaitKey(2);
+                //cvNamedWindow("_Y");
+                //cvShowImage("_Y",(IplImage*)chromUnXtnIntensImg->getIplImage());
+                //cvWaitKey(2);
                 cvSet(cs_tot_32f,cvScalar(0));
                 //cvNamedWindow("test");
                 //cvShowImage("test",(IplImage*)(chromUplane->getIplImage()));
@@ -534,24 +532,18 @@ void chrominanceThread::orientation() {
     ori45.zero();
     ori90.zero();
     oriM45.zero();
- /*      
-    // Using Kirsch matrix
-    kirschConvolution0->convolve2D(cartIntensImg,o0);
-    kirschConvolution45->convolve2D(cartIntensImg,o45);
-    kirschConvolution90->convolve2D(cartIntensImg,o90);
-    kirschConvolutionM45->convolve2D(cartIntensImg,oM45);
- */
+ 
     // using Kirsch cum positive Gaussian matrix
     kirschSalPos0->convolve2D(cartIntensImg,o0);
-    //kirschSalPos45->convolve2D(cartIntensImg,o45);
-    //kirschSalPos90->convolve2D(cartIntensImg,o90);
-    //kirschSalPos45->convolve2D(cartIntensImg,oM45); 
+    kirschSalPos45->convolve2D(cartIntensImg,o45);
+    kirschSalPos90->convolve2D(cartIntensImg,o90);
+    kirschSalPos45->convolve2D(cartIntensImg,oM45); 
 
     // using Kirsch cum Negative gaussian matrix
-    //kirschSalNeg0->convolve2D(cartIntensImg,tmpKirschCartImage1); 
-    //kirschSalNeg45->convolve2D(cartIntensImg,tmpKirschCartImage2); 
-    //kirschSalNeg90->convolve2D(cartIntensImg,tmpKirschCartImage3); 
-    //kirschSalNegM45->convolve2D(cartIntensImg,tmpKirschCartImage4); 
+    kirschSalNeg0->convolve2D(cartIntensImg,tmpKirschCartImage1); 
+    kirschSalNeg45->convolve2D(cartIntensImg,tmpKirschCartImage2); 
+    kirschSalNeg90->convolve2D(cartIntensImg,tmpKirschCartImage3); 
+    kirschSalNegM45->convolve2D(cartIntensImg,tmpKirschCartImage4); 
 
 
     
@@ -632,62 +624,62 @@ void chrominanceThread::orientation() {
                    
                         //float tmpV = 255.0 *abs(*p[i]);
                         float tmpV0 = normalizingRatio[0]*(*p[0] - kirschLimits[0][1]);
-                        //float tmpV1 = normalizingRatio[1]*(*p[1] - kirschLimits[1][1]);
-                        //float tmpV2 = normalizingRatio[2]*(*p[2] - kirschLimits[2][1]);
-                        //float tmpV3 = normalizingRatio[3]*(*p[3] - kirschLimits[3][1]);
+                        float tmpV1 = normalizingRatio[1]*(*p[1] - kirschLimits[1][1]);
+                        float tmpV2 = normalizingRatio[2]*(*p[2] - kirschLimits[2][1]);
+                        float tmpV3 = normalizingRatio[3]*(*p[3] - kirschLimits[3][1]);
                         *ori[0] = tmpV0>255?255:tmpV0<0?0:(unsigned char)tmpV0;
-                        //*ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
-                        //*ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
-                        //*ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
+                        *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
+                        *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
+                        *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
                         
                 }
                 
             
 #else //--------------------------------------------------------------
 
-                //float tmpV0 =  (abs(*p[0])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *multiplier ;
-                //float tmpV1 = (abs(*p[1])-multiplierForNeg*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *multiplier ;
-                //float tmpV2 = (abs(*p[2])-multiplierForNeg*(abs(*n[1])+abs(*n[0])+abs(*n[3]))) *multiplier ;
-                //float tmpV3 = (abs(*p[3])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[0]))) *multiplier ;
-                *ori[0] = abs(*p[0]);//tmpV0>255?255:tmpV0<0?0:(unsigned char)tmpV0;
-                //*ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
-                //*ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
-                //*ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;  
+                float tmpV0 =  (abs(*p[0])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *multiplier ;
+                float tmpV1 = (abs(*p[1])-multiplierForNeg*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *multiplier ;
+                float tmpV2 = (abs(*p[2])-multiplierForNeg*(abs(*n[1])+abs(*n[0])+abs(*n[3]))) *multiplier ;
+                float tmpV3 = (abs(*p[3])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[0]))) *multiplier ;
+                *ori[0] = tmpV0>255?255:tmpV0<0?0:(unsigned char)tmpV0;
+                *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
+                *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
+                *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;  
              
 #endif //---------------------------------------------------------------
             ori[0]++;
             p[0]++;
-            //n[0]++;
-            //ori[1]++;
-            //p[1]++;
-            //n[1]++;
-            //ori[2]++;
-            //p[2]++;
-            //n[2]++;
-            //ori[3]++;
-            //p[3]++;
-            //n[3]++;             
+            n[0]++;
+            ori[1]++;
+            p[1]++;
+            n[1]++;
+            ori[2]++;
+            p[2]++;
+            n[2]++;
+            ori[3]++;
+            p[3]++;
+            n[3]++;             
             
         }
         // padding
         ori[0] += pad_output;
         p[0] += padK; 
-        //n[0] += padK; 
-        //ori[1] += pad_output;
-        //p[1] += padK; 
-        //n[1] += padK; 
-        //ori[2] += pad_output;
-        //p[1] += padK; 
-        //n[2] += padK; 
-        //ori[3] += pad_output;
-        //p[3] += padK; 
-        //n[3] += padK; 
+        n[0] += padK; 
+        ori[1] += pad_output;
+        p[1] += padK; 
+        n[1] += padK; 
+        ori[2] += pad_output;
+        p[1] += padK; 
+        n[2] += padK; 
+        ori[3] += pad_output;
+        p[3] += padK; 
+        n[3] += padK; 
                
     } 
 
     kirschIsNormalized++;
 
-#ifdef DEBUG_OPENCV
+//#ifdef DEBUG_OPENCV
     cvNamedWindow("Original");
     cvShowImage("Original",(IplImage*)cartIntensImg->getIplImage());
     cvNamedWindow("Orient0");
@@ -698,13 +690,13 @@ void chrominanceThread::orientation() {
     cvShowImage("Orient90", (IplImage*)ori90.getIplImage());
     cvNamedWindow("OrientM45");
     cvShowImage("OrientM45",(IplImage*)oriM45.getIplImage());
-    cvWaitKey(0);
-#endif
+    cvWaitKey(1);
+//#endif
      
     orientPort0.write();
-    //orientPort45.write();
-    //orientPort90.write();
-    //orientPortM45.write();
+    orientPort45.write();
+    orientPort90.write();
+    orientPortM45.write();
     
 
     //printf("STOP orientation \n \n");
@@ -717,42 +709,6 @@ void chrominanceThread::orientation() {
 
 
 
-
-
-void chrominanceThread::cropImage(int* corners, IplImage* imageToBeCropped, IplImage* retImage){
-
-    // very lame cropping
-    int imgWidth = corners[2]-corners[0];
-    int imgHeight = corners[3]-corners[1];
-    
-    cvSet(retImage,cvScalar(0));
-
-    
-    uchar* originDestImg = (uchar*)retImage->imageData;
-    uchar* originSourImg = (uchar*)imageToBeCropped->imageData;
-    int widthDest = retImage->widthStep;
-    int widthSour = imageToBeCropped->widthStep;
-    uchar* sourceRow = originSourImg;
-    uchar* destRow = originDestImg;
-    size_t stride = imgWidth*sizeof(uchar);
-    for(int i = 0; i<imgHeight; ++i){
-        
-        memcpy((originDestImg+ i * widthDest),(originSourImg + (i+corners[1])*widthSour + corners[0]),stride);
-    } 
-    return ;
-    
-}
-
-void chrominanceThread::cropCircleImage(int* center, float radius, IplImage* srcImg) {
-    radius -= 4;
-    for(int i=0; i< srcImg->height; ++i){
-        for(int j=0; j< srcImg->width; ++j){
-            if((i - center[0])*(i - center[0]) + (j - center[1])*(j - center[1]) >= radius*radius) {
-                *(srcImg->imageData + i*srcImg->widthStep + j) = 0; //blacken the pixel out of circle
-            }
-        }
-    }
-}
 
 
 
