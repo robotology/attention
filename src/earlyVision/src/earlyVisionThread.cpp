@@ -71,16 +71,9 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     tmpMonoSobelImage1  = new SobelOutputImage;
     tmpMonoSobelImage2  = new SobelOutputImage;
 
-    
-    
-    
-
     tmpMonoLPImageSobelHorz      = new ImageOf<PixelMono>;
     tmpMonoLPImageSobelVert      = new ImageOf<PixelMono>;
 
-    
-    
-    
 
     edges               = new yarp::sig::ImageOf<yarp::sig::PixelMono>;
     
@@ -116,17 +109,7 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     sobelLimits[0] = 0;
     sobelLimits[1] = 2.0;
 
-    
-    
 
-    
-	
-	
-    
-    
-       
-          
-    
     lambda = 0.3f;
     resized = false;
     
@@ -186,7 +169,7 @@ bool earlyVisionThread::threadInit() {
     printf("opening ports by main thread\n");
 
     chromeThread = new chrominanceThread();
-    chromeThread->setName(getName("chrome").c_str());
+    chromeThread->setName(getName("/chrome").c_str());
     chromeThread->start();
     /* open ports */ 
     

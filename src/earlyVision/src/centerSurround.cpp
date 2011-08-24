@@ -140,20 +140,12 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
 
   	//if (maxPixelVal == minPixelVal)
     //maxPixelVal=255.0f;minPixelVal=0.0f;
-  	 
-    
-                
+  	                
     cvConvertScale(cs_tot_32f,output8u,255,0);
-
-    
-    
-    
-    
-    
+     
 }
 
-void CenterSurround::make_pyramid( IplImage* im_32f)
-{
+void CenterSurround::make_pyramid( IplImage* im_32f) {
     //copy im to pyramid[0]:
     cvCopy(im_32f,pyramid[0],NULL);
 
@@ -183,8 +175,7 @@ void CenterSurround::make_pyramid( IplImage* im_32f)
         
         
         cvResize(pyramid_gauss[sg],gauss[sg],interpolation);
-        
-    
+            
     }
 }
 
