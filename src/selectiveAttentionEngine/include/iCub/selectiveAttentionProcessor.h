@@ -59,7 +59,7 @@ private:
     //IppiSize srcsizeCart;           //IppiSize reference to the dimension of the input image cartesian
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmp;              //temporary mono image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmp2;              //temporary rgb image
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *intermCartOut;     //temporary rgb image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *intermCartOut;     //temporary rgb image
     yarp::os::BufferedPort<yarp::os::Bottle> vergencePort;      //port dedicated to the communication with the vergence
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > thImagePort;              //port for the output the WTA
@@ -75,6 +75,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiCartPort;             //where the image of cuncurrent inhibition of return can be sent (cartesian)
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiPort;                 //where the image of cuncurrent inhibition of return can be sent 
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > testPort;
     yarp::os::BufferedPort<yarp::os::Bottle > centroidPort;                                     // output port where the centroid coordinate is sent
     yarp::os::BufferedPort<yarp::os::Bottle > gazeCoordPort;                                    // port that is dedicated to the streaming out gaze coordinates
     yarp::os::BufferedPort<yarp::os::Bottle > outputCmdPort;                                    // port that is dedicated to sending the typology of the gaze behaviour and some params
@@ -455,20 +456,20 @@ public:
     yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         //yarp image of regions of skin colour
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputLogImage;     //3channel image representing the saliencymap in logpolar
     
-        IplImage *cvImage16; // tmp IPLImage necessary for edge detection 16 bit
-        IplImage *cvImage8; //tmp IPLImage necessary for edge detection 16 bit
-        //Ipp8u* im_out;
+    IplImage *cvImage16; // tmp IPLImage necessary for edge detection 16 bit
+    IplImage *cvImage8; //tmp IPLImage necessary for edge detection 16 bit
+    //Ipp8u* im_out;
 
-        int inputImage_flag;  //processor flag
-        
-        static const int CONVMAX_TH=100; //parameter of the findEdges function
-        static const int CONVSEQ_TH=500; //parameter of the findEdges function
-        
-        yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombinationImage; //result of the combination
-        int centroid_x; //center of gravity of the selective attention (x position)
-        int centroid_y; //center of gravity of the selective attention (y position)
-        
-        
+    int inputImage_flag;  //processor flag
+    
+    static const int CONVMAX_TH=100; //parameter of the findEdges function
+    static const int CONVSEQ_TH=500; //parameter of the findEdges function
+    
+    yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombinationImage; //result of the combination
+    int centroid_x; //center of gravity of the selective attention (x position)
+    int centroid_y; //center of gravity of the selective attention (y position)
+    
+    
 };
 
 
