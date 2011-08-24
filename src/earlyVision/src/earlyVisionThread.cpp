@@ -49,33 +49,24 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
-    extendedInputImage  = new ImageOf<PixelRgb>;
-    
+    extendedInputImage  = new ImageOf<PixelRgb>;    
     Rplus               = new ImageOf<PixelMono>;
     Rminus              = new ImageOf<PixelMono>;
     Gplus               = new ImageOf<PixelMono>;
     Gminus              = new ImageOf<PixelMono>;
     Bplus               = new ImageOf<PixelMono>;
     Bminus              = new ImageOf<PixelMono>;
-    Yminus              = new ImageOf<PixelMono>;
-
-    
+    Yminus              = new ImageOf<PixelMono>;    
     tmpMonoLPImage      = new ImageOf<PixelMono>;
-
     tmpMono16LPImage    = new ImageOf<PixelMono16>;
     tmpMono16LPImage1   = new ImageOf<PixelMono16>;
     tmpMono16LPImage2   = new ImageOf<PixelMono16>;
+    //tmpMonoSobelImage1  = new SobelOutputImage;
+    //tmpMonoSobelImage2  = new SobelOutputImage;
+    //tmpMonoLPImageSobelHorz      = new ImageOf<PixelMono>;
+    //tmpMonoLPImageSobelVert      = new ImageOf<PixelMono>;    
 
-    
-
-    tmpMonoSobelImage1  = new SobelOutputImage;
-    tmpMonoSobelImage2  = new SobelOutputImage;
-
-    tmpMonoLPImageSobelHorz      = new ImageOf<PixelMono>;
-    tmpMonoLPImageSobelVert      = new ImageOf<PixelMono>;
-
-
-    edges               = new yarp::sig::ImageOf<yarp::sig::PixelMono>;
+    //edges               = new yarp::sig::ImageOf<yarp::sig::PixelMono>;
     
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
@@ -98,23 +89,17 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     gaborPosHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
     gaborPosVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
     gaborNegHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
-    gaborNegVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);
-
-   
+    gaborNegVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
 
     
-    sobel2DXConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DXgrad,SOBEL_FACTOR,SOBEL_SHIFT);
-    sobel2DYConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DYgrad,SOBEL_FACTOR,SOBEL_SHIFT);
-    sobelIsNormalized = 0;
-    sobelLimits[0] = 0;
-    sobelLimits[1] = 2.0;
-
-
+    //sobel2DXConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DXgrad,SOBEL_FACTOR,SOBEL_SHIFT);
+    //sobel2DYConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DYgrad,SOBEL_FACTOR,SOBEL_SHIFT);
+    //sobelIsNormalized = 0;
+    //sobelLimits[0] = 0;
+    //sobelLimits[1] = 2.0;       
+    
     lambda = 0.3f;
-    resized = false;
-    
-
-    
+    resized = false;    
 }
 
 earlyVisionThread::~earlyVisionThread() {
@@ -133,17 +118,17 @@ earlyVisionThread::~earlyVisionThread() {
     delete tmpMono16LPImage;
     delete tmpMono16LPImage1;
     delete tmpMono16LPImage2;
-    delete tmpMonoLPImageSobelHorz;
-    delete tmpMonoLPImageSobelVert;
-    delete tmpMonoSobelImage1;
-    delete tmpMonoSobelImage2;
+    //delete tmpMonoLPImageSobelHorz;
+    //delete tmpMonoLPImageSobelVert;
+    //delete tmpMonoSobelImage1;
+    //delete tmpMonoSobelImage2;
     delete gaborPosHorConvolution;    
     delete gaborPosVerConvolution;    
     delete gaborNegHorConvolution;    
     delete gaborNegVerConvolution;
-    delete sobel2DXConvolution;
-    delete sobel2DYConvolution;
-    delete edges;
+    //delete sobel2DXConvolution;
+    //delete sobel2DYConvolution;
+    //delete edges;
     delete YofYUV;
     delete intensImg;
     delete unXtnIntensImg;
@@ -157,12 +142,7 @@ earlyVisionThread::~earlyVisionThread() {
     delete unXtnYplane;
     delete unXtnUplane;
     delete unXtnVplane;
-
-    // CS
-    
-
-    
-    
+       
 }
 
 bool earlyVisionThread::threadInit() {
@@ -171,9 +151,14 @@ bool earlyVisionThread::threadInit() {
     chromeThread = new chrominanceThread();
     chromeThread->setName(getName("/chrome").c_str());
     chromeThread->start();
+
+    //edThread = new edgesThread();
+    //edThread->setName(getName("/edges").c_str());
+    //edThread->start();
+
     /* open ports */ 
     
-   
+ /*  
     if (!imagePortIn.open(getName("/imageRGB:i").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
@@ -209,7 +194,7 @@ bool earlyVisionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }   
 
-    
+ */   
 
     
     return true;
@@ -226,23 +211,23 @@ std::string earlyVisionThread::getName(const char* p) {
     return str;
 }
 
-void earlyVisionThread::run() {
-    
-    
+void earlyVisionThread::run() {   
      
         //printf("running early vision thread \n");
-        inputImage  = imagePortIn.read(true);
+        //inputImage  = imagePortIn.read(true);
         //cvSaveImage("logPolarFromCam.jpg",inputImage);
-        /*IplImage *imgRGB;
+        IplImage *imgRGB;
         imgRGB = cvLoadImage("logPtemp.jpg");
         inputImage->resize(imgRGB->width,imgRGB->height);
         inputImage->zero();
         cvAdd(imgRGB,(IplImage*)inputImage->getIplImage(),(IplImage*)inputImage->getIplImage());
+        cvWaitKey(2);
+        cvReleaseImage(&imgRGB);
        
         //cvNamedWindow("cnvt");
         //cvShowImage("cnvt",(IplImage*)inputImage->getIplImage());
         //cvWaitKey(0);
-        */
+        
         if (inputImage != NULL) {
             if (!resized) {
                 resize(inputImage->width(), inputImage->height());
@@ -260,20 +245,13 @@ void earlyVisionThread::run() {
              //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
                       
             // gaussian filtering of the of RGB and Y
-            filtering();
-
-            
-            
-            
+            filtering();           
 
             // colourOpponency map construction
-            colorOpponency();
+            colorOpponency();         
 
             
-
-            
-            edgesExtract();
-                    
+            //edgesExtract();                    
 
             /*if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
@@ -286,19 +264,15 @@ void earlyVisionThread::run() {
                 }
             */
 
-            if((edges!=0)&&(edgesPort.getOutputCount())) {
-                edgesPort.prepare() = *(edges);
-                edgesPort.write();
-            }
-
+            //if((edges!=0)&&(edgesPort.getOutputCount())) {
+                //edgesPort.prepare() = *(edges);
+                //edgesPort.write();
+           // }
             
 #ifdef DEBUG_OPENCV
             cvWaitKey(0);
-#endif
-            
-            
-        }
-    
+#endif           
+        }    
 }
 
 
@@ -310,9 +284,7 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     this->height_orig = inputImage->height();//height_orig;
     
     width = this->width_orig+2*maxKernelSize;
-    height = this->height_orig+maxKernelSize;
-
-    
+    height = this->height_orig+maxKernelSize;    
     
     //resizing yarp image 
     filteredInputImage->resize(this->width_orig, this->height_orig);
@@ -324,27 +296,19 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     Bplus->resize(width, height);
     Bminus->resize(width, height);
     Yminus->resize(width, height);
-
     
     tmpMonoLPImage->resize(width, height);
     tmpMono16LPImage->resize(width, height);
     tmpMono16LPImage1->resize(width, height);
     tmpMono16LPImage2->resize(width, height);
-    tmpMonoLPImageSobelHorz->resize(width, height);
-    tmpMonoLPImageSobelVert->resize(width, height);
-    tmpMonoSobelImage1->resize(width,height);
-    tmpMonoSobelImage2->resize(width,height);
+    //tmpMonoLPImageSobelHorz->resize(width, height);
+    //tmpMonoLPImageSobelVert->resize(width, height);
+    //tmpMonoSobelImage1->resize(width,height);
+    //tmpMonoSobelImage2->resize(width,height);    
 
-    
-    
-    
-
-    edges->resize(width, height);
+    //edges->resize(width, height);
     intensImg->resize(width, height);
-    unXtnIntensImg->resize(this->width_orig,this->height_orig);
-
-    
-    
+    unXtnIntensImg->resize(this->width_orig,this->height_orig);    
 
     redPlane->resize(width, height);
     greenPlane->resize(width, height);
@@ -356,19 +320,9 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
 
     unXtnYplane->resize(width_orig, height_orig);
     unXtnUplane->resize(width_orig, height_orig);
-    unXtnVplane->resize(width_orig, height_orig);
+    unXtnVplane->resize(width_orig, height_orig);    
     
-    
-    
-    
-    isYUV = true;
-	
-
-    
-    
-
-    
-   
+    isYUV = true;   
     
 }
 
@@ -408,9 +362,7 @@ void earlyVisionThread::extractPlanes() {
     uchar* tmpIntensityImage;
     uchar* ptrIntensityImg;
     uchar* ptrUnXtnIntensImg;
-    uchar* inputPointer;
-
-    
+    uchar* inputPointer;    
     
     // Pointers to raw plane image
     shift[0] = (uchar*) redPlane->getRawImage(); 
@@ -500,8 +452,12 @@ void earlyVisionThread::extractPlanes() {
 
     
 
-    if(!chromeThread->getFlagForDataReady()){
+    if(!chromeThread->getFlagForThreadProcessing()){
         chromeThread->copyRelevantPlanes(unXtnIntensImg,unXtnYplane,unXtnUplane,unXtnVplane);
+    }
+
+    if(!edThread->getFlagForThreadProcessing()){
+        edThread->copyRelevantPlanes(unXtnIntensImg);
     }
     
     
@@ -601,7 +557,7 @@ void earlyVisionThread::colorOpponency(){
         pBY += padOpponents;
 
     }
-
+/*
     if(colorOpp1Port.getOutputCount()) {
         colorOpp1Port.write();
     }
@@ -611,7 +567,7 @@ void earlyVisionThread::colorOpponency(){
     if(colorOpp3Port.getOutputCount()) {
         colorOpp3Port.write();
     }
-    
+*/    
 #ifdef DEBUG_OPENCV
     cvNamedWindow("ColorOppRG");
     cvShowImage("ColorOppRG", (IplImage*)coRG.getIplImage());
@@ -624,7 +580,7 @@ void earlyVisionThread::colorOpponency(){
 }
 
 
-
+/*
 void earlyVisionThread::edgesExtract() {
     
     // X derivative 
@@ -633,10 +589,7 @@ void earlyVisionThread::edgesExtract() {
 
     // Y derivative
     tmpMonoSobelImage2->zero();     // This can be removed 
-    sobel2DYConvolution->convolve2D(intensImg,tmpMonoSobelImage2);
-    
-    
-    
+    sobel2DYConvolution->convolve2D(intensImg,tmpMonoSobelImage2);    
 
     //clearing up the previous value
     edges->zero();
@@ -689,7 +642,7 @@ void earlyVisionThread::edgesExtract() {
     
     
 }
-
+*/
 
 
 
@@ -811,15 +764,7 @@ void earlyVisionThread::cropCircleImage(int* center, float radius, IplImage* src
 
 
 
-void earlyVisionThread::threadRelease() {
-
-    
-    
-
-    
-    
-
-    
+void earlyVisionThread::threadRelease() {    
     
     printf("Release complete!\n");
     resized = false;    
@@ -832,12 +777,12 @@ void earlyVisionThread::onStop() {
 
     imagePortIn.interrupt();
     intenPort.interrupt();
-    edgesPort.interrupt();
+    //edgesPort.interrupt();
     
     
     imagePortIn.close();
     intenPort.close();
-    edgesPort.close();
+    //edgesPort.close();
     colorOpp1Port.close();
     colorOpp2Port.close();
     colorOpp3Port.close();

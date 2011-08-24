@@ -50,6 +50,7 @@
 #include <iCub/config.h>
 #include <iCub/centerSurround.h>
 #include <iCub/chrominanceThread.h>
+#include <iCub/edgesThread.h>
 
 
 //#include <Eigen/Dense>
@@ -104,10 +105,10 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage1;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage2;
-    SobelOutputImage *tmpMonoSobelImage1;
-    SobelOutputImage *tmpMonoSobelImage2;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelHorz;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelVert;
+    //SobelOutputImage *tmpMonoSobelImage1;
+    //SobelOutputImage *tmpMonoSobelImage2;
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelHorz;
+    //yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelVert;
 
       
     
@@ -121,12 +122,12 @@ private:
     
 
 
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
+    /*convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
 sobel2DXConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
 sobel2DYConvolution;
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;*/
     
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
@@ -150,24 +151,11 @@ sobel2DYConvolution;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;  
     
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;
+    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;  
-
-
-    
-    
-
-
-    
-
-    
-    
-    
-    
-    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;   
     
    
     /*Ipp8u *orig;        //extended input image
@@ -181,22 +169,18 @@ sobel2DYConvolution;
     */
     //Ipp8u *tmp;         //extended tmp containing alpha
     
-    bool isYUV;
-
-    
-    
+    bool isYUV;   
     
     yarp::os::Stamp St;
 
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
-    bool chromeThreadRunning;
-    int sobelIsNormalized;
+    //int sobelIsNormalized;
     
    
     int minVal;
-    float sobelLimits[2];   // maximum and minimum of Sobel operator results
+    //float sobelLimits[2];   // maximum and minimum of Sobel operator results
     
 
 public:
@@ -290,7 +274,7 @@ public:
     /**
     * applying sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
     */
-    void edgesExtract();
+    //void edgesExtract();
 
     /**
     * function that given a list of images combines them linearly using given weights
@@ -328,7 +312,7 @@ public:
     */
     void cropCircleImage(int* center, float radius, IplImage* srcImg);
 
-
+    edgesThread *edThread;
     chrominanceThread *chromeThread;
     
     

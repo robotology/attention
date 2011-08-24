@@ -157,6 +157,7 @@ kirschSalNegM45;
     bool kirschIsNormalized;
     bool chromIsInitialized;
     bool dataReadyForChromeThread;
+    bool chromeThreadProcessing;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_Y;          // extended output image, also reused for hsv
 	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_UV;         // extended output image, also reused for hsv
@@ -281,6 +282,16 @@ public:
          dataReadyForChromeThread = v;         
     }
 
+    inline bool getFlagForThreadProcessing(){
+        
+         return this->chromeThreadProcessing;
+         
+    }
+
+    inline void setFlagForThreadProcessing(bool v){
+         //atomic operation
+         chromeThreadProcessing = v;         
+    }
     
     
     
