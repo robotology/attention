@@ -45,7 +45,7 @@
 #define KirschOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>
 #define KirschOutputImagePtr float
 #define KIRSCH_SHIFT 0
-#define KIRSCH_FACTOR .008
+#define KIRSCH_FACTOR .1
 //#define USE_PROPORTIONAL_KIRSCH
 #define KIRSCH_FLICKER 10
 #define KIRSCH_POS_KERNEL 3

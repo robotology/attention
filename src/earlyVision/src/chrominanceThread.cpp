@@ -554,11 +554,11 @@ void chrominanceThread::orientation() {
     normalizingRatio[3] = 255.0 / (kirschLimits[3][0] - kirschLimits[3][1]);
 #endif
 
-    float multiplier = 1.0;
-    float multiplierForNeg = .5;
+    float multiplier = 1;
+    float multiplierForNeg = .33;
     for (int row = 0; row < ori0.height(); row++) {
         for (int col = 0; col < ori0.width(); col++) {
-
+/*
 #ifdef USE_PROPORTIONAL_KIRSCH //-------------------------------------
             //if() {
                 //printf("second proportional kirsch \n");
@@ -599,13 +599,13 @@ void chrominanceThread::orientation() {
                         *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
                         *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
                         *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
-                        *ptrTotKir = tmpV0;//max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
+                        *ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
                         
                 }
                 
             
 #else //--------------------------------------------------------------
-
+*/
                 float tmpV0 = (abs(*p[0])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *multiplier ;
                 float tmpV1 = (abs(*p[1])-multiplierForNeg*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *multiplier ;
                 float tmpV2 = (abs(*p[2])-multiplierForNeg*(abs(*n[0])+abs(*n[1])+abs(*n[3]))) *multiplier ;
@@ -616,7 +616,7 @@ void chrominanceThread::orientation() {
                 *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3; 
                 *ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
              
-#endif //---------------------------------------------------------------
+//#endif //---------------------------------------------------------------
             ori[0]++;
             p[0]++;
             n[0]++;
@@ -662,15 +662,9 @@ void chrominanceThread::orientation() {
 
 //#ifdef DEBUG_OPENCV
     cvNamedWindow("Original");
-    cvShowImage("Original",(IplImage*)totalKirsch->getIplImage());
-    cvNamedWindow("Orient0");
-    cvShowImage("Orient0",  (IplImage*)totImg.getIplImage());
-    cvNamedWindow("Orient45");
-    cvShowImage("Orient45", (IplImage*)ori45.getIplImage());
-    cvNamedWindow("Orient90");
-    cvShowImage("Orient90", (IplImage*)ori90.getIplImage());
-    cvNamedWindow("OrientM45");
-    cvShowImage("OrientM45",(IplImage*)oM45->getIplImage());
+    cvShowImage("Original",(IplImage*)cartIntensImg->getIplImage());
+    cvNamedWindow("Sum");
+    cvShowImage("Sum",  (IplImage*)totImg.getIplImage());    
     cvWaitKey(2);
 //#endif
      
@@ -764,7 +758,6 @@ void chrominanceThread::threadRelease() {
     delete tmpKirschCartImage4;
     delete totalKirsch;    
     delete cartIntensImg;
-    // CS
     delete centerSurr;
     delete img_Y;
     delete img_UV;
