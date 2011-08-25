@@ -59,15 +59,13 @@ edgesThread::edgesThread():RateThread(RATE_OF_EDGES_THREAD) {
 
 edgesThread::~edgesThread() {
     
-    delete intensityImage;
-    delete tmpMonoSobelImage1;
-    delete tmpMonoSobelImage2;
+    
     
     
 }
 
 bool edgesThread::threadInit() {
-    printf("opening ports by chrominance thread \n");
+    printf("opening ports by edges thread \n");
     /* open ports */    
     
     if (!edges.open(getName("/edges:o").c_str())) {
@@ -91,7 +89,7 @@ std::string edgesThread::getName(const char* p) {
 
 void edgesThread::run() {
     
-    //printf("running chrome thread \n");
+    //printf("running edges thread \n");
     
 
         // skip if data is not ready yet
@@ -125,7 +123,7 @@ void edgesThread::resize(int width_orig,int height_orig) {
 void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
     
     if(!getFlagForThreadProcessing() && I->getRawImage() != NULL ){         
-    
+        //printf("going to copy relevant planes in edges thread\n");
        setFlagForDataReady(false);
         // allocate
         if(!resized){
@@ -153,7 +151,7 @@ void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
 
 
 void edgesThread::edgesExtract() {
-    
+    //printf("going to edge extract planes in edges thread\n");
     ImageOf<PixelMono>& edgesPortImage = edges.prepare();
     //ImageOf<PixelMono> edgesPortImage;
     edgesPortImage.resize(intensityImage->width(),intensityImage->height());
@@ -226,17 +224,17 @@ void edgesThread::edgesExtract() {
 
 void edgesThread::threadRelease() {
     
-    printf("Release complete!\n");   
+    printf("Releasing\n");
+
+    //deallocating resources
+    delete intensityImage;
+    delete tmpMonoSobelImage1;
+    delete tmpMonoSobelImage2;
     
-}
-
-void edgesThread::onStop() {
-
-    printf("calling on-stop\n");
-
     edges.interrupt();
     edges.close();
-    printf("done with on-stop\n");
+
+    printf("done with release\n");
     
 }
 

@@ -97,6 +97,7 @@ kirschSalNegM45;
     KirschOutputImage *tmpKirschCartImage2;
     KirschOutputImage *tmpKirschCartImage3;
     KirschOutputImage *tmpKirschCartImage4;
+    KirschOutputImage *totalKirsch;
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
@@ -105,6 +106,7 @@ kirschSalNegM45;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort45;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort90;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPortM45;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > totalOrientImagePort;
     
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* cartIntensImg;          //yarp cartesian intensity image for orientation
@@ -140,7 +142,7 @@ kirschSalNegM45;
     int ncsscale;
     bool isYUV;
     bool kirschIsNormalized;
-    bool chromIsInitialized;
+    bool resized;
     bool dataReadyForChromeThread;
     bool chromeThreadProcessing;
 
@@ -219,7 +221,10 @@ public:
     /**
     * Orientation using Kirsch kernel on Gaussian smoothened intensity. (Refer config.h)
     */
-    void orientation();    
+    void orientation();
+
+    void maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage);    
+   
 
     /* Some handy get-set methods
     */
@@ -248,7 +253,7 @@ public:
     inline void setFlagForThreadProcessing(bool v){
          //atomic operation
          chromeThreadProcessing = v;         
-    }   
+    }  
     
 };
 

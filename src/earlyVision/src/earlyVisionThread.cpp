@@ -91,37 +91,7 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
 
 earlyVisionThread::~earlyVisionThread() {
     
-    delete inputImage;
-    delete filteredInputImage;
-    delete extendedInputImage;
-    delete Rplus;
-    delete Rminus;
-    delete Gplus;
-    delete Gminus;
-    delete Bplus;
-    delete Bminus;
-    delete Yminus;
-    delete tmpMonoLPImage;
-    delete tmpMono16LPImage;
-    delete tmpMono16LPImage1;
-    delete tmpMono16LPImage2;
-    delete gaborPosHorConvolution;    
-    delete gaborPosVerConvolution;    
-    delete gaborNegHorConvolution;    
-    delete gaborNegVerConvolution;
-    delete YofYUV;
-    delete intensImg;
-    delete unXtnIntensImg;
-    delete redPlane;
-    delete greenPlane;
-    delete bluePlane;
-    delete yellowPlane;
-    delete Yplane;
-    delete Uplane;
-    delete Vplane;
-    delete unXtnYplane;
-    delete unXtnUplane;
-    delete unXtnVplane;
+    
        
 }
 
@@ -730,30 +700,59 @@ void earlyVisionThread::cropCircleImage(int* center, float radius, IplImage* src
 
 
 void earlyVisionThread::threadRelease() {    
-    
-    printf("Release complete!\n");
-    resized = false;    
-    
-}
+    printf("Releasing\n");
 
-void earlyVisionThread::onStop() {
+    resized = false;
 
-    printf("calling on-stop\n");
-
+    // deallocating resources
+    delete inputImage;
+    delete filteredInputImage;
+    delete extendedInputImage;
+    delete Rplus;
+    delete Rminus;
+    delete Gplus;
+    delete Gminus;
+    delete Bplus;
+    delete Bminus;
+    delete Yminus;
+    delete tmpMonoLPImage;
+    delete tmpMono16LPImage;
+    delete tmpMono16LPImage1;
+    delete tmpMono16LPImage2;
+    delete gaborPosHorConvolution;    
+    delete gaborPosVerConvolution;    
+    delete gaborNegHorConvolution;    
+    delete gaborNegVerConvolution;
+    delete YofYUV;
+    delete intensImg;
+    delete unXtnIntensImg;
+    delete redPlane;
+    delete greenPlane;
+    delete bluePlane;
+    delete yellowPlane;
+    delete Yplane;
+    delete Uplane;
+    delete Vplane;
+    delete unXtnYplane;
+    delete unXtnUplane;
+    delete unXtnVplane;
+   
     imagePortIn.interrupt();
     intenPort.interrupt();
-    //edgesPort.interrupt();
-    
+    colorOpp1Port.interrupt();
+    colorOpp2Port.interrupt();
+    colorOpp3Port.interrupt();    
     
     imagePortIn.close();
     intenPort.close();
-    //edgesPort.close();
     colorOpp1Port.close();
     colorOpp2Port.close();
     colorOpp3Port.close();
     
-    printf("done with on-stop\n");
+    printf("done with release\n");
     
 }
+
+
 
 
