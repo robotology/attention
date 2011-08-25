@@ -466,25 +466,26 @@ void selectiveAttentionProcessor::run(){
         ImageOf<PixelMono>& tmpImage = testPort.prepare();
         tmpImage.resize(252,152);
         tmpImage.zero();
+        int halfwidth = width>>1;
         unsigned char* ptmp        = tmpImage.getRawImage();
-        ptmp       += width>>1;
+        ptmp       += halfwidth - 1;
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
-        pmap1Left  += width>>1 - 1;
+        pmap1Left  += halfwidth - 1;
         unsigned char* pmap1Right  = map1_yarp->getRawImage();        
-        pmap1Right += width>>1;
+        pmap1Right += halfwidth;
         unsigned char* pmap2Left   = map2_yarp->getRawImage();        
-        pmap2Left  += width>>1 - 1;
+        pmap2Left  += halfwidth - 1;
         unsigned char* pmap2Right  = map2_yarp->getRawImage();        
-        pmap2Right += width>>1;
+        pmap2Right += halfwidth;
         int padding = map1_yarp->getPadding();
         int rowSize = map1_yarp->getRowSize();
         // exploring the image from rho=0 and from theta = 0
         double value;
-        int halfwidth = width>>1;
+        
                 
         for(int y = 0 ; y < 152 ; y++){
             for(int x = 0 ; x < halfwidth ; x++){
-                *ptmp = *pmap2Right;
+                
                 if(*pmap2Right>=255){
                     printf("max Motion !!!!!!!! \n"); 
                     printf("max Motion !!!!!!!! \n"); 
@@ -495,7 +496,7 @@ void selectiveAttentionProcessor::run(){
                     printf("max Motion !!!!!!!! \n"); 
                 }
                 unsigned char value =  *pmap2Right;
-
+                
                 if (*pmap2Right >= 255) {
                     printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
                     xm = halfwidth + x;
@@ -506,10 +507,10 @@ void selectiveAttentionProcessor::run(){
                     break;
                 }                
                 pmap2Right++;
-                ptmp++;
-                
-                
+
+                                               
                 value = (double) *pmap2Left;
+                *ptmp = *pmap2Left;
                 if (*pmap2Left >= 255) {
                     printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
                     xm = halfwidth - x;
@@ -519,7 +520,8 @@ void selectiveAttentionProcessor::run(){
                     timing = 0.1;
                     break;
                 }
-                pmap2Left++;
+                pmap2Left--;
+                ptmp--;
 
                 value = (double) *pmap1Right;
                 if (value >= 255.0){
@@ -543,39 +545,39 @@ void selectiveAttentionProcessor::run(){
                     timing = 0.1;
                     break;
                 }
-                pmap1Left++;
+                pmap1Left--;
                 
             }
-            pmap1Right += rowSize - halfwidth ;
-            pmap1Left  += rowSize + halfwidth - 1 ;
-            pmap2Right += rowSize - halfwidth ;
-            ptmp       += rowSize - halfwidth ;
-            pmap2Left  += rowSize + halfwidth - 1;
+            pmap1Right += rowSize - halfwidth;
+            pmap1Left  += rowSize + halfwidth;
+            pmap2Right += rowSize - halfwidth;
+            ptmp       += rowSize + halfwidth;
+            pmap2Left  += rowSize + halfwidth;
         }
         
         //tmpImage = *(map2_yarp);
         testPort.write();
 
         pmap1Left  = map1_yarp->getRawImage();
-        pmap1Left  += width>>1 - 1;
+        pmap1Left  += halfwidth - 1;
         pmap1Right = map1_yarp->getRawImage();
-        pmap1Right += width>>1;
+        pmap1Right += halfwidth;
     
         pmap2Left  = map2_yarp->getRawImage();
-        pmap2Left  += width>>1 - 1;
+        pmap2Left  += halfwidth - 1;
         pmap2Right = map2_yarp->getRawImage();
-        pmap2Right += width>>1;
+        pmap2Right += halfwidth;
 
         unsigned char* pmap3Left  = map3_yarp->getRawImage();
-        pmap3Left  += width>>1 - 1;
+        pmap3Left  += halfwidth - 1;
         unsigned char* pmap3Right = map3_yarp->getRawImage();
-        pmap3Right += width>>1;
+        pmap3Right += halfwidth;
         unsigned char* pmap4Left  = map4_yarp->getRawImage();
-        pmap4Left  += width>>1 - 1;
+        pmap4Left  += halfwidth - 1;
         unsigned char* pmap4Right = map4_yarp->getRawImage();
-        pmap4Right += width>>1;
+        pmap4Right += halfwidth;
 
-        if(false) {
+        if(!idle) {
             //printf("activating the second stage of early vision... \n");
             if((map3Port.getInputCount())&&(k3!=0)) {
                 tmp = map3Port.read(false);
@@ -594,7 +596,7 @@ void selectiveAttentionProcessor::run(){
             
             //------ second stage of response  ----------------            
             for(int y = 0 ; y < height; y++){
-                for(int x = 0 ; x < width>>1; x++){
+                for(int x = 0 ; x < halfwidth; x++){
                     //unsigned char value = *pmap1++ + *pmap2++ + *pmap3++ + *pmap4++;
                     double value = (double) (*pmap1Right++ * (k1/sumK) + *pmap2Right++ * (k2/sumK) + *pmap3Right++ * (k3/sumK) + *pmap4Right++ * (k4/sumK));
                     //*plinear++ = value;
@@ -620,14 +622,14 @@ void selectiveAttentionProcessor::run(){
                     }                     
                 }
 
-                pmap1Right += rowSize - width>>1 - 1;
-                pmap1Left  += rowSize + width>>1 - 1;
-                pmap2Right += rowSize - width>>1 - 1;
-                pmap2Left  += rowSize + width>>1 - 1;
-                pmap3Right += rowSize - width>>1 - 1;
-                pmap3Left  += rowSize + width>>1 - 1;
-                pmap4Right += rowSize - width>>1 - 1;
-                pmap4Left  += rowSize + width>>1 - 1;
+                pmap1Right += rowSize - halfwidth;
+                pmap1Left  += rowSize + halfwidth;
+                pmap2Right += rowSize - halfwidth;
+                pmap2Left  += rowSize + halfwidth;
+                pmap3Right += rowSize - halfwidth;
+                pmap3Left  += rowSize + halfwidth;
+                pmap4Right += rowSize - halfwidth;
+                pmap4Left  += rowSize + halfwidth;
             }            
         }//end of the idle after first two stages of response
         
@@ -637,7 +639,7 @@ void selectiveAttentionProcessor::run(){
         
 
         //2. processing of the input images
-        if(false) {
+        if(!idle) {
             //printf("processing the whole compilation of feature maps \n ");
             timing = 1.0;
             if((map5Port.getInputCount())&&(k5!=0)) {
