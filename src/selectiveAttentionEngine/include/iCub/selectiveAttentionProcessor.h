@@ -49,7 +49,6 @@ const int THREAD_RATE=30;
  *This code groups together a series of useful functions that can be used for ImageProcessing
  */
 
-
 class selectiveAttentionProcessor:public yarp::os::RateThread {
 private:
     int psb;                          //width step of 8u images
@@ -115,6 +114,8 @@ private:
     bool directSaccade;             // when it is on the module sends commands directly to the iKinGazeCtrl
     bool maxResponse;               // flag that is set to TRUE when the response in combination of saliency maps is max
     bool handFixation;              // flag that indicates whether the robot fixates its hand
+    bool earlystage;                // flag that allows the early stage and eventually the reduction in response
+    bool secondstage;               // flag that allows the second stage and eventually the reduction in response
     yarp::os::Semaphore mutex;      // semaphore for the respond function
     
     double z;                                   // distance [m]

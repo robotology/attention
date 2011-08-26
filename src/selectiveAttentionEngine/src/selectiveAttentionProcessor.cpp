@@ -121,6 +121,8 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
 
 selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThread(rateThread) {
     this->inImage = new ImageOf<PixelRgb>;
+    earlystage = false;
+    secondstage = false;
     reinit_flag = false;
     inputImage_flag = 0;
     idle = true;
@@ -184,10 +186,10 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(ImageOf<PixelRgb>* inpu
 }
 
 void selectiveAttentionProcessor::reinitialise(int width, int height){
-    this->width=width;
-    this->height=height;
+    this->width  = width;
+    this->height = height;
 
-    inImage=new ImageOf<PixelRgb>;
+    inImage = new ImageOf<PixelRgb>;
     inImage->resize(width,height);
    
     map1_yarp->resize(width,height);
@@ -210,6 +212,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     
     faceMask->resize(width,height);
     faceMask->zero();
+
     inputLogImage = new ImageOf<PixelRgb>;
     inputLogImage->resize(width,height);
 
@@ -458,106 +461,113 @@ void selectiveAttentionProcessor::run(){
         }
 
         double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
-
+        unsigned char* pmap1Left   = map1_yarp->getRawImage();
+        unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
+        unsigned char* pmap2Left   = map2_yarp->getRawImage();  
+        unsigned char* pmap2Right  = map2_yarp->getRawImage();
+        int padding = map1_yarp->getPadding();
+        int rowSize = map1_yarp->getRowSize();
+        int halfwidth = width>>1;
 
         // ------------ early stage of response ---------------
         //printf("entering the first stage of vision....\n");
+        if(earlystage) {
 
-        ImageOf<PixelMono>& tmpImage = testPort.prepare();
-        tmpImage.resize(252,152);
-        tmpImage.zero();
-        int halfwidth = width>>1;
-        unsigned char* ptmp        = tmpImage.getRawImage();
-        ptmp       += halfwidth - 1;
-        unsigned char* pmap1Left   = map1_yarp->getRawImage();
-        pmap1Left  += halfwidth - 1;
-        unsigned char* pmap1Right  = map1_yarp->getRawImage();        
-        pmap1Right += halfwidth;
-        unsigned char* pmap2Left   = map2_yarp->getRawImage();        
-        pmap2Left  += halfwidth - 1;
-        unsigned char* pmap2Right  = map2_yarp->getRawImage();        
-        pmap2Right += halfwidth;
-        int padding = map1_yarp->getPadding();
-        int rowSize = map1_yarp->getRowSize();
-        // exploring the image from rho=0 and from theta = 0
-        double value;
-        
-                
-        for(int y = 0 ; y < 152 ; y++){
-            for(int x = 0 ; x < halfwidth ; x++){
-                
-                if(*pmap2Right>=255){
-                    printf("max Motion !!!!!!!! \n"); 
-                    printf("max Motion !!!!!!!! \n"); 
-                    printf("max Motion !!!!!!!! \n"); 
-                    printf("max Motion !!!!!!!! \n"); 
-                    printf("max Motion !!!!!!!! \n"); 
-                    printf("max Motion !!!!!!!! \n"); 
-                    printf("max Motion !!!!!!!! \n"); 
-                }
-                unsigned char value =  *pmap2Right;
-                
-                if (*pmap2Right >= 255) {
-                    printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
-                    xm = halfwidth + x;
-                    ym = y;
-                    y = height;// for jumping out of the outer loop
-                    idle = true;
-                    timing = 0.1;
-                    break;
-                }                
-                pmap2Right++;
+            ImageOf<PixelMono>& tmpImage = testPort.prepare();
+            tmpImage.resize(height,width);
+            tmpImage.zero();
 
-                                               
-                value = (double) *pmap2Left;
-                *ptmp = *pmap2Left;
-                if (*pmap2Left >= 255) {
-                    printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
-                    xm = halfwidth - x;
-                    ym = y;
-                    y = height;// for jumping out of the outer loop
-                    idle = true;
-                    timing = 0.1;
-                    break;
+            unsigned char* ptmp        = tmpImage.getRawImage();
+            ptmp       += halfwidth - 1;            
+            pmap1Left  += halfwidth - 1;                   
+            pmap1Right += halfwidth;                  
+            pmap2Left  += halfwidth - 1;                  
+            pmap2Right += halfwidth;
+            
+            // exploring the image from rho=0 and from theta = 0
+            double value;
+            
+            for(int y = 0 ; y < 152 ; y++){
+                for(int x = 0 ; x < halfwidth ; x++){
+                    
+                    if(*pmap2Right>=255){
+                        printf("max Motion !!!!!!!! \n"); 
+                        printf("max Motion !!!!!!!! \n"); 
+                        printf("max Motion !!!!!!!! \n"); 
+                        printf("max Motion !!!!!!!! \n"); 
+                        printf("max Motion !!!!!!!! \n"); 
+                        printf("max Motion !!!!!!!! \n"); 
+                        printf("max Motion !!!!!!!! \n"); 
+                    }
+                    unsigned char value =  *pmap2Right;
+                    
+                    if (*pmap2Right >= 255) {
+                        printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
+                        xm = halfwidth + x;
+                        ym = y;
+                        y = height;// for jumping out of the outer loop
+                        idle = true;
+                        timing = 0.1;
+                        break;
+                    }                
+                    pmap2Right++;
+                    
+                    
+                    value = (double) *pmap2Left;
+                    *ptmp = *pmap2Left;
+                    if (*pmap2Left >= 255) {
+                        printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
+                        xm = halfwidth - x;
+                        ym = y;
+                        y = height;// for jumping out of the outer loop
+                        idle = true;
+                        timing = 0.1;
+                        break;
+                    }
+                    pmap2Left--;
+                    ptmp--;
+                    
+                    value = (double) *pmap1Right;
+                    if (value >= 255.0){
+                        printf("max in intesity Right %d \n", (unsigned char) *pmap1Right);                    
+                        xm = halfwidth + x;
+                        ym = y;
+                        y = height;// for jumping out of the outer loop
+                        idle =  true;
+                        timing = 0.1;
+                        break;
+                    }
+                    pmap1Right++;
+                    
+                    value = (double) *pmap1Left;
+                    if (value >= 255.0){
+                        printf("max in intensity Left %d \n", (unsigned char) *pmap1Left);                    
+                        xm = halfwidth - x;
+                        ym = y;
+                        y = height;// for jumping out of the outer loop
+                        idle =  true;
+                        timing = 0.1;
+                        break;
+                    }
+                    pmap1Left--;
+                    
                 }
-                pmap2Left--;
-                ptmp--;
-
-                value = (double) *pmap1Right;
-                if (value >= 255.0){
-                    printf("max in intesity Right %d \n", (unsigned char) *pmap1Right);                    
-                    xm = halfwidth + x;
-                    ym = y;
-                    y = height;// for jumping out of the outer loop
-                    idle =  true;
-                    timing = 0.1;
-                    break;
-                }
-                pmap1Right++;
-
-                value = (double) *pmap1Left;
-                if (value >= 255.0){
-                    printf("max in intensity Left %d \n", (unsigned char) *pmap1Left);                    
-                    xm = halfwidth - x;
-                    ym = y;
-                    y = height;// for jumping out of the outer loop
-                    idle =  true;
-                    timing = 0.1;
-                    break;
-                }
-                pmap1Left--;
-                
+                pmap1Right += rowSize - halfwidth;
+                pmap1Left  += rowSize + halfwidth;
+                pmap2Right += rowSize - halfwidth;
+                ptmp       += rowSize + halfwidth;
+                pmap2Left  += rowSize + halfwidth;
             }
-            pmap1Right += rowSize - halfwidth;
-            pmap1Left  += rowSize + halfwidth;
-            pmap2Right += rowSize - halfwidth;
-            ptmp       += rowSize + halfwidth;
-            pmap2Left  += rowSize + halfwidth;
-        }
-        
-        //tmpImage = *(map2_yarp);
-        testPort.write();
+            
+            //tmpImage = *(map2_yarp);
+            testPort.write();
 
+        } //end of the eearly stage
+
+
+
+        //reading the second set of maps
+        
         pmap1Left  = map1_yarp->getRawImage();
         pmap1Left  += halfwidth - 1;
         pmap1Right = map1_yarp->getRawImage();
@@ -577,23 +587,25 @@ void selectiveAttentionProcessor::run(){
         unsigned char* pmap4Right = map4_yarp->getRawImage();
         pmap4Right += halfwidth;
 
-        if(!idle) {
+
+        if((map3Port.getInputCount())&&(k3!=0)) {
+            tmp = map3Port.read(false);
+            if(tmp!= 0) {
+                copy_C1R(tmp,map3_yarp);
+                //idle=false;
+            }
+        }
+        if((map4Port.getInputCount())&&(k4!=0)) {
+            tmp = map4Port.read(false);
+            if(tmp!= 0) {
+                copy_C1R(tmp,map4_yarp);
+                //idle=false;
+            }
+        }
+        
+        if((!idle)&&(secondstage)) {
             //printf("activating the second stage of early vision... \n");
-            if((map3Port.getInputCount())&&(k3!=0)) {
-                tmp = map3Port.read(false);
-                if(tmp!= 0) {
-                    copy_C1R(tmp,map3_yarp);
-                    //idle=false;
-                }
-            }
-            if((map4Port.getInputCount())&&(k4!=0)) {
-                tmp = map4Port.read(false);
-                if(tmp!= 0) {
-                    copy_C1R(tmp,map4_yarp);
-                    //idle=false;
-                }
-            }
-            
+             
             //------ second stage of response  ----------------            
             for(int y = 0 ; y < height; y++){
                 for(int x = 0 ; x < halfwidth; x++){
