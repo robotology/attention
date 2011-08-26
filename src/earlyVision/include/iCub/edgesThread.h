@@ -20,7 +20,7 @@
 
 /**
  * @file edgesThread.h
- * @brief Definition of a thread that computes chrominance and orientation (see earlyVisionModule.h).
+ * @brief Definition of a thread that extracts edges based on Sobel filter (see earlyVisionModule.h).
  */
 
 #ifndef _EDGES_THREAD_H_
@@ -79,22 +79,12 @@ private:
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
 sobel2DXConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
-sobel2DYConvolution;
-
+sobel2DYConvolution;    
     
-    
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edges;
-    
-
-    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edges;    
 
     int widthLP;         // original width of logpolar image
-    int heightLP;
-    
-    
-    
-   
-    
+    int heightLP;   
     
     bool edgesThreadIsProcessing;
     bool dataReadyForEdgesThread;
@@ -104,13 +94,8 @@ sobel2DYConvolution;
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *intensityImage;  // unextended intensity image 
     SobelOutputImage *tmpMonoSobelImage1;
     SobelOutputImage *tmpMonoSobelImage2;
-    float sobelLimits[2];   // maximum and minimum of Sobel operator results 
-
-    
-    std::string name;       // rootname of all the ports opened by this thread
-    
-
-    
+    float sobelLimits[2];   // maximum and minimum of Sobel operator results    
+    std::string name;       // rootname of all the ports opened by this thread    
 
 public:
     /**
@@ -155,10 +140,14 @@ public:
     */
     void resizeCartesian(int width, int height);    
 
+    /**
+    * To copy relevant planes, in this case it is intensity image, which is used to extract edges via Sobel operator
+    * @param I intensity image
+    */
     void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I); 
 
     /**
-    * applying sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
+    * applying Sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
     */
     void edgesExtract();
 

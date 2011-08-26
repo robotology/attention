@@ -20,7 +20,7 @@
 
 /**
  * @file edgesThread.cpp
- * @brief Implementation of the early stage of vision thread (see edgesThread.h).
+ * @brief Implementation of the early stage of edges thread (see edgesThread.h).
  */
 
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
@@ -168,7 +168,7 @@ void edgesThread::edgesExtract() {
     setFlagForThreadProcessing(false);    
 
     //clearing up the previous value
-    //edges->zero();
+    edgesPortImage.zero();
 
     uchar* pedges= (uchar*)edgesPortImage.getRawImage();
     SobelOutputImagePtr* ptrHorz = (SobelOutputImagePtr*)tmpMonoSobelImage1->getRawImage();
@@ -196,7 +196,6 @@ void edgesThread::edgesExtract() {
                 *pedges = (uchar)(normalizingRatio*(rg-sobelLimits[1]));
             }
             
-            
             pedges++;
             ptrHorz++; ptrVert++;
             
@@ -212,7 +211,7 @@ void edgesThread::edgesExtract() {
 #ifdef DEBUG_OPENCV
     cvNamedWindow("Edges");
     cvShowImage("Edges", (IplImage*)edgesPortImage.getIplImage());
-    cvWaitKey(1);
+    cvWaitKey(2);
     //cvDestroyWindow("Edges");
 #endif
     //printf("Done with edges \n");

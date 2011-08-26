@@ -34,6 +34,8 @@ class convolve {
         int kernelWidth;        // width of the kernel. When 1D kernel is applied in horizontal, this is length
         int kernelHeight;       // height of the kernel. When 1D kernel is applied in vertical, this is length       
         float* kernel;          // pointer to kernel values
+        float** listOfKernels;  // pointer to pointers to many kernels
+        int nbrOfKernels;       // number of kernels in the list of kernels, default 0
         int direction;          // direction in which kernel is applied,(0,1,2) for (horizontal,vertical,both)
         float factor;           // scaling factor applied to kernel multiplication
         int shift;              // shift in values applied to kernel multiplication
@@ -53,6 +55,8 @@ class convolve {
             this->kernelWidth   = 0;
             this->kernelHeight  = 0;
             this->kernel        = NULL;
+            this->listOfKernels = NULL;
+            this->nbrOfKernels  = 0;
             this->direction     = -1;
             this->factor        = 0;
             this->shift         = 0;
@@ -76,6 +80,8 @@ class convolve {
             this->kernelWidth   = width;
             this->kernelHeight  = height;
             this->kernel        = kernel;
+            this->listOfKernels = NULL;
+            this->nbrOfKernels  = 0;
             this->direction     = 2;
             this->factor        = scale;
             this->shift         = shift;
@@ -111,6 +117,8 @@ class convolve {
                 this->kernelWidth   = 0;                
             }
             this->kernel        = kernel;
+            this->listOfKernels = NULL;
+            this->nbrOfKernels  = 0;
             this->direction     = direction;
             this->factor        = scale;
             this->shift         = shift;
@@ -135,6 +143,37 @@ class convolve {
         ~convolve(){
             //nothing 
         };
+    /**
+     * For a list of inseparable 2D kernels 
+     * @param width width of kernel
+     * @param height height of kernel
+     * @param kernel pointer to float array representing kernel values
+     * @param scale scaling factor applied to kernel multiplication
+     * @param shift shift in values applied to kernel multiplication
+     * @param flicker count of kernel operations where the min and max will be calculated to normalise it later
+     */
+        convolve(int width,int height,float** kernelList, int kernelNbrs, float scale=1,int shift=0,int flicker=0){
+        
+            this->kernelWidth   = width;
+            this->kernelHeight  = height;
+            this->kernel        = NULL;
+            this->listOfKernels = kernelList;
+            this->nbrOfKernels  = kernelNbrs;
+            this->direction     = 2;
+            this->factor        = scale;
+            this->shift         = shift;
+            this->counter       = 0;
+            this->flicker       = flicker;
+            this->limits[0]     = -10000;       // max
+            this->limits[1]     = 10000;        // min
+            if(listOfKernels == NULL || nbrOfKernels < 1 || width <0 || height<0){
+                this->kernelIsDefined = false;
+            }
+            else {
+                this->kernelIsDefined = true;               
+            }
+            assert(this->kernelIsDefined);
+        };
 
     /**
      * For setting a kernel. This could be used to reuse a kernel object
@@ -148,11 +187,13 @@ class convolve {
      * @param downLimit the lower limit observed in kernel output during convolution(used for normalising)
      */
 
-        void setKernelParameters(int width,int height,float* kernel, float scale,int shift,int flicker, float upLimit, float downLimit){
+        void setKernelParameters(int width,int height,float* kernel, float** kernelList, int kernelNbrs, float scale,int shift,int flicker, float upLimit, float downLimit){
         
             this->kernelWidth   = width;
             this->kernelHeight  = height;
             this->kernel        = kernel;
+            this->listOfKernels = kernelList;
+            this->nbrOfKernels  = kernelNbrs;            
             this->direction     = 2;
             this->factor        = scale;
             this->shift         = shift;
@@ -308,6 +349,73 @@ class convolve {
         
 
 };
+
+    /**
+     * For list of 2D convolution ie convolving a list of matrix with a matrix. This is unavoidable when kernel 
+     *  is non-seperable
+     * @param img input image
+     * @param resImg list of resultant image after applying the kernels respectively
+     * @param borderType an integer parameter for type of border 0: kernel from (0,0) 1: kernel all within
+     */
+ /*       void convolve2Dlist(inputImage* img,outputImage** resImg, int borderType = 0){
+            
+            assert(kernelIsDefined);
+            int rowSize         = img->getRowSize()/sizeof(ptrInput);
+            int resRowSize = resImg->getRowSize()/sizeof(ptrOutput);
+            const int nbr_kernels = this->nbrOfKernels;
+            float* kerStartPt[nbr_kernels];
+            int padOutput[nbr_kernels];
+            ptrOutput* res[nbr_kernels];
+            
+            ptrInput* mat = (ptrInput*)img->getRawImage();
+            ptrInput* currPtrImage = (ptrInput*)img->getRawImage();
+            int rowPos = 0; int pixPos =0;
+            for(
+            ptrOutput* res = (ptrOutput*)resImg->getRawImage();            
+            int padOutput = resImg->getPadding()/sizeof(ptrOutput);
+            float* kerStartPt = this->kernel; 
+            float scalingVal = 1.0/(limits[0] -limits[1]);           
+            int shiftSqKernel = 0;
+            if(borderType == 1){
+                shiftSqKernel = kernelWidth/2;
+            }
+            for(int i=shiftSqKernel;i<resImg->height()-shiftSqKernel;++i){
+                int eff_ht = min(img->height(),i+kernelHeight/2)-_max(0,i-kernelHeight/2)+1;
+                for(int j=shiftSqKernel;j<resImg->width()-shiftSqKernel;++j){
+                    // current pixel point is anchor
+                    int eff_wd = min(img->width(), j + kernelWidth/2)- _max(0,j-kernelWidth/2)+1;
+                    currPtrImage = mat + rowSize*_max(0,i-kernelHeight/2)+_max(0,j-kernelWidth/2);
+                    kerStartPt = kernel + _max(0,kernelHeight/2 -i)*kernelWidth + _max(0,kernelWidth/2-j);
+                    float sum = 0;
+                    for(int k=0; k<eff_ht;++k){
+                        for(int l=0;l<eff_wd;++l){
+                           sum += *currPtrImage++ * *kerStartPt++*factor;
+                        }
+                        // shift the pointers
+                        currPtrImage += rowSize - eff_wd-1;
+                        kerStartPt += _max(0,j+kernelWidth/2-img->width());
+                    }
+
+                    
+                    if(this->counter<this->flicker){
+                                this->limits[0] = this->limits[0]<sum?sum:this->limits[0];
+                                this->limits[1] = this->limits[1]>sum?sum:this->limits[1];
+                                this->counter++;
+                                   
+                        } 
+                    *res++ = sum;
+                        
+                    
+                }
+                res += padOutput;
+            }
+
+                    
+   
+        }
+        
+
+};*/
   
 #endif    
 

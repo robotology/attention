@@ -33,11 +33,13 @@
  *
  * This is a module that applies various bio-inspired (early visual feature cues) transformations on the input image:
  *
- * - extract color planes R,G,B,Y
- * - computes YUV (chrominance) maps based on RGB colours
- * - extract edges based on sobel operator applied over intensity
- * - extract orientation applying Kirsch operator over intensity
- * - extract color opponency maps   
+ * 1. extract color planes R,G,B,Y 
+ * 2. extract color opponency maps   
+ * 3. computes YUV (chrominance) maps based on RGB colours
+ * 4. extract orientation applying Kirsch operator over intensity
+ * 5. extract edges based on sobel operator applied over intensity
+ * where (1,2),(3,4) and 5 are done by earlyVision thread, chrominance thread and edges thread respectively. These thread
+ * have different frequencies (motivated from biological observation in primate vision).
  * 
  * \section lib_sec Libraries
  *
@@ -164,8 +166,7 @@ class earlyVisionModule:public yarp::os::RFModule
 
    yarp::os::Port handlerPort;      // a port to handle messages 
    /* pointer to a new thread to be created and started in configure() and stopped in close() */
-   earlyVisionThread *evThread;
-   
+   earlyVisionThread *evThread; 
    
 
 public:

@@ -34,9 +34,9 @@
 #define ONE_BY_ROOT_THREE 0.577350269
 #define NO_DEBUG_OPENCV //DEBUG_OPENCV //
 
-#define RATE_OF_EDGES_THREAD 100    // 10 Hz
+#define RATE_OF_EDGES_THREAD 100    // 30 Hz
 #define RATE_OF_INTEN_THREAD 33    // approx 30 Hz
-#define RATE_OF_CHROME_THREAD 67    // 15 Hz
+#define RATE_OF_CHROME_THREAD 50    // 15 Hz
 
 // Definitions for Sobel filter, for edge detection
 #define SobelOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>
@@ -55,7 +55,9 @@
 #define KIRSCH_POS_KERNEL 3
 #define KIRSCH_NEG_KERNEL 7
 
- 
+#ifndef PI
+#define PI 3.1415926535897932384626433832795
+#endif 
 
 
 

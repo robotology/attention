@@ -29,11 +29,8 @@
 #include <cstring>
 #include <sys/time.h>
 
+#include <time.h>
 
-#define ONE_BY_ROOT_TWO 0.707106781
-#define ONE_BY_ROOT_THREE 0.577350269
-#define USE_PROPORTIONAL_KIRSCH
-#define NO_DEBUG_OPENCV //DEBUG_OPENCV //
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -42,9 +39,7 @@ using namespace std;
 
 
 
-chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
-    
-    
+chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {    
     
     chromeThreadProcessing      = false;
     dataReadyForChromeThread    = false;
@@ -65,15 +60,8 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     tmpKirschCartImage2  = new KirschOutputImage;
     tmpKirschCartImage3  = new KirschOutputImage;
     tmpKirschCartImage4  = new KirschOutputImage;
-    totalKirsch          = new KirschOutputImage;
-    
-    
-
-   
-    
-    cartIntensImg       = new ImageOf<PixelMono>;
-    
-    
+    totalKirsch          = new KirschOutputImage;    
+    cartIntensImg       = new ImageOf<PixelMono>;    
 
     kirschSalPos0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
     kirschSalPos45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r2,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
@@ -83,10 +71,7 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     kirschSalNeg0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
     kirschSalNeg45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn2,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
     kirschSalNeg90 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn3,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalNegM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn4,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-
-    
-    
+    kirschSalNegM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn4,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);    
 
     kirschIsNormalized = 0;
     kirschLimits[0][0] = 0;
@@ -102,14 +87,7 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     img_Y = new ImageOf<PixelMono>;
 	img_UV = new ImageOf<PixelMono>;
 	img_V = new ImageOf<PixelMono>;
-    isYUV = true;
-	
-	
-    
-    
-    
-    
-    
+    isYUV = true;    
 
     //Logpolar to cartesian and vice versa
     xSizeValue = CART_ROW_SIZE ;         
@@ -127,11 +105,7 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
 */
 }
 
-chrominanceThread::~chrominanceThread() {
-    
-    
-
-    
+chrominanceThread::~chrominanceThread() {    
     
 }
 
@@ -218,13 +192,17 @@ void chrominanceThread::run() {
           if(getFlagForDataReady() && resized){  
                                
                 setFlagForThreadProcessing(true);
+                struct timeval st,lpTime,csTime,oriTime;
+                gettimeofday(&st, NULL);
                 lpMono.logpolarToCart(*cartIntensImg,*chromUnXtnIntensImg);
-
+                gettimeofday(&lpTime, NULL);
                 // Center-surround
                 centerSurrounding();
-
+                gettimeofday(&csTime, NULL);
                 //printf("before colour opponency \n");
                 orientation();
+                gettimeofday(&oriTime, NULL);
+                printf("LgP %ld cs%ld ori%ld \n",lpTime.tv_usec-st.tv_usec,csTime.tv_usec-lpTime.tv_usec,oriTime.tv_usec-csTime.tv_usec);
                 setFlagForThreadProcessing(false);           
 
                 setFlagForDataReady(false);
@@ -357,21 +335,15 @@ void chrominanceThread::centerSurrounding(){
                 //cvShowImage("test",(IplImage*)(chromUplane->getIplImage()));
                 //cvWaitKey(0);
                 
-                if (isYUV){
-
-                    
-                    
+                if (isYUV){                 
                 
                     //performs centre-surround uniqueness analysis on second plane:
                     centerSurr->proc_im_8u( (IplImage*)(chromUplane->getIplImage()),scs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
-
-                      
+                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?                    
                     
                     //Colour process V:performs centre-surround uniqueness analysis:
                     centerSurr->proc_im_8u( (IplImage*)(this->chromVplane->getIplImage()), vcs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
-                    
+                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);                   
                     
                     //get min max   
                     double valueMin = 1000;
@@ -382,18 +354,14 @@ void chrominanceThread::centerSurrounding(){
                         valueMax = 255.0f; valueMin = 0.0f;
                     }
                     cvConvertScale(cs_tot_32f,(IplImage*)_UV.getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
-                    //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);
-                    
-                    
-                    
+                    //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);                   
                     
                 }
                 else{
                     //performs centre-surround uniqueness analysis on second plane:
                     centerSurr->proc_im_8u( (IplImage*)(this->chromUplane->getIplImage()),(IplImage*)_UV.getIplImage() );
                     //Colour process V:performs centre-surround uniqueness analysis:
-                    centerSurr->proc_im_8u( (IplImage*)(this->chromVplane->getIplImage()), (IplImage*)_V.getIplImage());           
-
+                    centerSurr->proc_im_8u( (IplImage*)(this->chromVplane->getIplImage()), (IplImage*)_V.getIplImage());
                 }
 
 
@@ -468,12 +436,9 @@ void chrominanceThread::centerSurrounding(){
             
 
     }
-        //printf("STOP center surround \n");
+        
        
 }
-
-
-
 
 void chrominanceThread::orientation() {
     //printf("start orientation \n");
@@ -492,38 +457,23 @@ void chrominanceThread::orientation() {
     ori90.resize(cartesWidth,cartesHeight);
     oriM45.resize(cartesWidth,cartesHeight);
     totImg.resize(cartesWidth,cartesHeight);
-/*
-    ori0.zero();
-    ori45.zero();
-    ori90.zero();
-    oriM45.zero();
-    totImg.zero();
-*/
- 
+
+    struct timeval stCon, PosCon, NegCon;
+    gettimeofday(&stCon,NULL);
     // using Kirsch cum positive Gaussian matrix
     kirschSalPos0->convolve2D(cartIntensImg,o0);
     kirschSalPos45->convolve2D(cartIntensImg,o45);
     kirschSalPos90->convolve2D(cartIntensImg,o90);
-    kirschSalPos45->convolve2D(cartIntensImg,oM45); 
+    kirschSalPos45->convolve2D(cartIntensImg,oM45);
+    gettimeofday(&PosCon,NULL); 
 
     // using Kirsch cum Negative gaussian matrix
     kirschSalNeg0->convolve2D(cartIntensImg,tmpKirschCartImage1); 
     kirschSalNeg45->convolve2D(cartIntensImg,tmpKirschCartImage2); 
     kirschSalNeg90->convolve2D(cartIntensImg,tmpKirschCartImage3); 
-    kirschSalNegM45->convolve2D(cartIntensImg,tmpKirschCartImage4);   
-
-/*    cvNamedWindow("pos90");
-    cvShowImage("pos90",(IplImage*)o90->getIplImage());
-    cvNamedWindow("neg0");
-    cvShowImage("neg0",(IplImage*)o0->getIplImage());
-    cvNamedWindow("neg45");
-    cvShowImage("neg45",(IplImage*)o45->getIplImage());
-    cvNamedWindow("negM45");
-    cvShowImage("negM45",(IplImage*)oM45->getIplImage());
-    cvWaitKey(0);
-      
-*/
-
+    kirschSalNegM45->convolve2D(cartIntensImg,tmpKirschCartImage4);
+    gettimeofday(&NegCon,NULL); 
+    printf("pos %ld neg%ld \n",PosCon.tv_usec-stCon.tv_usec,NegCon.tv_usec-PosCon.tv_usec);  
 
     uchar* ori[4]= {(uchar*)ori0.getRawImage(),
                     (uchar*)ori45.getRawImage(),
@@ -560,7 +510,7 @@ void chrominanceThread::orientation() {
     float multiplierForNeg = .33;
     for (int row = 0; row < ori0.height(); row++) {
         for (int col = 0; col < ori0.width(); col++) {
-/*
+
 #ifdef USE_PROPORTIONAL_KIRSCH //-------------------------------------
             //if() {
                 //printf("second proportional kirsch \n");
@@ -607,18 +557,20 @@ void chrominanceThread::orientation() {
                 
             
 #else //--------------------------------------------------------------
-*/
+
                 float tmpV0 = (abs(*p[0])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *multiplier ;
                 float tmpV1 = (abs(*p[1])-multiplierForNeg*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *multiplier ;
                 float tmpV2 = (abs(*p[2])-multiplierForNeg*(abs(*n[0])+abs(*n[1])+abs(*n[3]))) *multiplier ;
                 float tmpV3 = (abs(*p[3])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[0]))) *multiplier ;
-                *ori[0] = tmpV0>255?255:tmpV0<0?0:(unsigned char)tmpV0;
-                *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
-                *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
-                *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3; 
+                float l = 0;
+                float u = 255;
+                *ori[0] = max(l,min(u,255*tmpV0));
+                *ori[1] = max(l,min(u,255*tmpV1));
+                *ori[2] = max(l,min(u,255*tmpV2));
+                *ori[3] = max(l,min(u,255*tmpV3));
                 *ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
              
-//#endif //---------------------------------------------------------------
+#endif //---------------------------------------------------------------
             ori[0]++;
             p[0]++;
             n[0]++;
@@ -653,15 +605,8 @@ void chrominanceThread::orientation() {
 
     kirschIsNormalized++;
 
-
-    IplImage* imagesToMaxAdd[2] = {(IplImage*)ori0.getIplImage(),(IplImage*)ori90.getIplImage()};
-    //totalKirsch->zero();
-    //cvSub((IplImage*)o0->getIplImage(),(IplImage*)o90->getIplImage(),(IplImage*)totalKirsch->getIplImage());
     cvConvertScale((IplImage*)totalKirsch->getIplImage(),(IplImage*)totImg.getIplImage(),255,0);
-    //convertFloatToUchar(totalKirsch,&totImg,255*.75);
-    //cvAdd((IplImage*)ori0.getIplImage(),(IplImage*)ori90.getIplImage(),(IplImage*)ori45.getIplImage());
-    //maxImages(imagesToMaxAdd,2,(IplImage*)totImg.getIplImage());
-
+    
 #ifdef DEBUG_OPENCV
     cvNamedWindow("Original");
     cvShowImage("Original",(IplImage*)cartIntensImg->getIplImage());
@@ -674,47 +619,10 @@ void chrominanceThread::orientation() {
     orientPort45.write();
     orientPort90.write();
     orientPortM45.write();
-    totalOrientImagePort.write();
-    
-
-    //printf("STOP orientation \n \n");
+    totalOrientImagePort.write();    
   
 }
 
-void chrominanceThread::maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage) {
-    
-    cvSet(resultantImage,cvScalar(0));
-    uchar* resImageOrigin = (uchar*)resultantImage->imageData;
-    int resImageWidth = resultantImage->widthStep;
-    uchar* tmpResultImage = (uchar*)resultantImage->imageData;
-    for(int i=0; i< numberOfImages; ++i){
-        IplImage* tmpImageTobeAdded = ImagesTobeAdded[i];
-        if(tmpImageTobeAdded != 0){   // save yourself some pain    
-            uchar* tmpImage = (uchar*)tmpImageTobeAdded->imageData;
-            //Images must be same size, type etc
-            int h = tmpImageTobeAdded->height;
-            int w = tmpImageTobeAdded->width;
-            if(h > resultantImage->height || w > resultantImage->width) {
-                printf("Image too big. \n");
-                continue ;
-            }
-            uchar* imgToBeAddOrigin = (uchar*)tmpImageTobeAdded->imageData;
-            int imgToBeAddWidth = tmpImageTobeAdded->widthStep;
-            for(int j=0; j<h; ++j){
-                tmpImage = imgToBeAddOrigin + j* imgToBeAddWidth; 
-                tmpResultImage = resImageOrigin + j*resImageWidth;
-                for(int k=0; k<w; ++k){
-                    unsigned char valNow = (unsigned char)(*tmpImage);
-                    if(*tmpResultImage < valNow) *tmpResultImage = valNow; 
-                    //*tmpResultImage = (unsigned char)(*tmpImage) * itsWt;
-                    *tmpImage++;
-                    *tmpResultImage++;
-                }
-            }
-        }
-    }
-
-}
 
 void chrominanceThread::threadRelease() {    
 

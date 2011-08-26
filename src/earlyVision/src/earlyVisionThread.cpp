@@ -185,11 +185,11 @@ void earlyVisionThread::run() {
             
             //edgesExtract();                    
 
-            /*if((intensImg!=0)&&(intenPort.getOutputCount())) {
+            if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
             }
-
+            /*
             if((Yplane!=0)&&(chromPort.getOutputCount())) {
                 chromPort.prepare() = *(Yplane);
                 chromPort.write();
@@ -489,7 +489,7 @@ void earlyVisionThread::colorOpponency(){
         pBY += padOpponents;
 
     }
-/*
+
     if(colorOpp1Port.getOutputCount()) {
         colorOpp1Port.write();
     }
@@ -499,7 +499,7 @@ void earlyVisionThread::colorOpponency(){
     if(colorOpp3Port.getOutputCount()) {
         colorOpp3Port.write();
     }
-*/    
+    
 #ifdef DEBUG_OPENCV
     cvNamedWindow("ColorOppRG");
     cvShowImage("ColorOppRG", (IplImage*)coRG.getIplImage());
@@ -510,190 +510,6 @@ void earlyVisionThread::colorOpponency(){
 #endif
 
 }
-
-
-/*
-void earlyVisionThread::edgesExtract() {
-    
-    // X derivative 
-    tmpMonoSobelImage1->zero();
-    sobel2DXConvolution->convolve2D(intensImg,tmpMonoSobelImage1);
-
-    // Y derivative
-    tmpMonoSobelImage2->zero();     // This can be removed 
-    sobel2DYConvolution->convolve2D(intensImg,tmpMonoSobelImage2);    
-
-    //clearing up the previous value
-    edges->zero();
-
-    uchar* pedges= (uchar*)edges->getRawImage();
-    SobelOutputImagePtr* ptrHorz = (SobelOutputImagePtr*)tmpMonoSobelImage1->getRawImage();
-    SobelOutputImagePtr* ptrVert = (SobelOutputImagePtr*)tmpMonoSobelImage2->getRawImage();
-     
-    const int pad_edges = edges->getPadding()/sizeof(uchar);
-    int padHorz = tmpMonoSobelImage1->getPadding()/sizeof(SobelOutputImagePtr);
-    int padVert = tmpMonoSobelImage2->getPadding()/sizeof(SobelOutputImagePtr);
-
-    // LATER: Do not consider extended portion
-    float normalizingRatio = 255.0/(sobelLimits[0]-sobelLimits[1]);
-    for (int row = 0; row < edges->height(); row++) {
-        for (int col = 0; col < edges->width(); col++) {
-
-            if (row < height_orig) {
-                double rg = sqrt((*ptrHorz ) * (*ptrHorz ) + (*ptrVert ) * (*ptrVert ))*0.707106781;
-                
-                if(sobelIsNormalized < SOBEL_FLICKER){
-                    sobelLimits[0] = sobelLimits[0]<rg?rg:sobelLimits[0];   // max
-                    sobelLimits[1] = sobelLimits[1]>rg?rg:sobelLimits[1];   //min
-                    *pedges = (uchar)(255*rg);
-                    
-                }
-                else {
-                    *pedges = (uchar)(normalizingRatio*(rg-sobelLimits[1]));
-                }
-            }
-            else
-                *pedges = 0;
-            
-            pedges++;
-            ptrHorz++; ptrVert++;
-            
-        }
-        // padding
-        pedges += pad_edges;
-        ptrHorz += padHorz;
-        ptrVert += padVert;        
-    } 
-
-    sobelIsNormalized++;
-
-#ifdef DEBUG_OPENCV
-    cvNamedWindow("Edges");
-    cvShowImage("Edges", (IplImage*)edges->getIplImage());
-#endif
-    
-    
-}
-*/
-
-
-
-void earlyVisionThread::maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage) {
-    
-    cvSet(resultantImage,cvScalar(0));
-    uchar* resImageOrigin = (uchar*)resultantImage->imageData;
-    int resImageWidth = resultantImage->widthStep;
-    uchar* tmpResultImage = (uchar*)resultantImage->imageData;
-    for(int i=0; i< numberOfImages; ++i){
-        IplImage* tmpImageTobeAdded = ImagesTobeAdded[i];
-        if(tmpImageTobeAdded != 0){   // save yourself some pain    
-            uchar* tmpImage = (uchar*)tmpImageTobeAdded->imageData;
-            //Images must be same size, type etc
-            int h = tmpImageTobeAdded->height;
-            int w = tmpImageTobeAdded->width;
-            if(h > resultantImage->height || w > resultantImage->width) {
-                printf("Image too big. \n");
-                continue ;
-            }
-            uchar* imgToBeAddOrigin = (uchar*)tmpImageTobeAdded->imageData;
-            int imgToBeAddWidth = tmpImageTobeAdded->widthStep;
-            for(int j=0; j<h; ++j){
-                tmpImage = imgToBeAddOrigin + j* imgToBeAddWidth; 
-                tmpResultImage = resImageOrigin + j*resImageWidth;
-                for(int k=0; k<w; ++k){
-                    unsigned char valNow = (unsigned char)(*tmpImage);
-                    if(*tmpResultImage < valNow) *tmpResultImage = valNow; 
-                    //*tmpResultImage = (unsigned char)(*tmpImage) * itsWt;
-                    *tmpImage++;
-                    *tmpResultImage++;
-                }
-            }
-        }
-    }
-
-}
-
-void earlyVisionThread::addImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resImage, float* weights) {
-    IplImage* resultantImage;
-    cvSet(resImage,cvScalar(0));
-    resultantImage = cvCreateImage(cvGetSize(ImagesTobeAdded[0]),IPL_DEPTH_32F,1); 
-    int upperThreshold = 255;
-    int lowerThreshold = -30;
-    cvSet(resultantImage,cvScalar(0));
-    float* resImageOrigin = (float*)resultantImage->imageData;
-    int resImageWidth = resultantImage->widthStep/sizeof(float);
-    float* tmpResultImage = (float*)resultantImage->imageData;
-    for(int i=0; i< numberOfImages; ++i){
-        IplImage* tmpImageTobeAdded = ImagesTobeAdded[i];
-        if(tmpImageTobeAdded != NULL){   // save yourself some pain    
-            uchar* tmpImage = (uchar*)tmpImageTobeAdded->imageData;
-            //Images must be same size, type etc
-            int h = tmpImageTobeAdded->height;
-            int w = tmpImageTobeAdded->width;
-            if(h > resultantImage->height || w > resultantImage->width) {
-                printf("Image too big. \n");
-                return ;
-            }
-            float itsWt = weights[i];
-            uchar* imgToBeAddOrigin = (uchar*)tmpImageTobeAdded->imageData;
-            int imgToBeAddWidth = tmpImageTobeAdded->widthStep;
-            for(int j=0; j<h; ++j){
-                tmpImage = imgToBeAddOrigin + j* imgToBeAddWidth; 
-                tmpResultImage = resImageOrigin + j*resImageWidth;
-                for(int k=0; k<w; ++k){
-                    float valNow = (*tmpImage)* itsWt;
-                    //if(*tmpResultImage < valNow) *tmpResultImage = valNow;
-                    if((valNow + *tmpResultImage) > upperThreshold) *tmpResultImage = 255;
-                    else if((valNow + *tmpResultImage) < lowerThreshold) *tmpResultImage = 0;
-                    else *tmpResultImage = *tmpResultImage + valNow ;
-                    *tmpImage++;
-                    *tmpResultImage++;
-                }
-            }
-        }
-    }
-
-    cvConvertScaleAbs(resultantImage,resImage,1.00,0.0);
-
-    cvReleaseImage(&resultantImage);
-
-}
-
-void earlyVisionThread::cropImage(int* corners, IplImage* imageToBeCropped, IplImage* retImage){
-
-    // very lame cropping
-    int imgWidth = corners[2]-corners[0];
-    int imgHeight = corners[3]-corners[1];
-    
-    cvSet(retImage,cvScalar(0));
-
-    
-    uchar* originDestImg = (uchar*)retImage->imageData;
-    uchar* originSourImg = (uchar*)imageToBeCropped->imageData;
-    int widthDest = retImage->widthStep;
-    int widthSour = imageToBeCropped->widthStep;
-    uchar* sourceRow = originSourImg;
-    uchar* destRow = originDestImg;
-    size_t stride = imgWidth*sizeof(uchar);
-    for(int i = 0; i<imgHeight; ++i){
-        
-        memcpy((originDestImg+ i * widthDest),(originSourImg + (i+corners[1])*widthSour + corners[0]),stride);
-    } 
-    return ;
-    
-}
-
-void earlyVisionThread::cropCircleImage(int* center, float radius, IplImage* srcImg) {
-    radius -= 4;
-    for(int i=0; i< srcImg->height; ++i){
-        for(int j=0; j< srcImg->width; ++j){
-            if((i - center[0])*(i - center[0]) + (j - center[1])*(j - center[1]) >= radius*radius) {
-                *(srcImg->imageData + i*srcImg->widthStep + j) = 0; //blacken the pixel out of circle
-            }
-        }
-    }
-}
-
 
 
 void earlyVisionThread::threadRelease() {    

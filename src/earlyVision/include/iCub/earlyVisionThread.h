@@ -21,7 +21,7 @@
 /**
  * @file earlyVisionThread.h
  * @brief Definition of a thread that receives images and does the computation for the
- * early vision module (see earlyVisionModule.h).
+ * early vision module via two other threads (see earlyVisionModule.h).
  */
 
 #ifndef _VISUAL_FEATURE_THREAD_H_
@@ -56,20 +56,8 @@
 //#include <Eigen/Dense>
 
 
-#ifndef PI
-#define PI 3.1415926535897932384626433832795
-#endif
 
 #define MONO_PIXEL_SIZE 1
-
-
-#define ROW_SIZE 252
-#define COL_SIZE 152
-#define CART_ROW_SIZE 320
-#define CART_COL_SIZE 240
-
-#define POS_GAUSSIAN 5
-#define NEG_GAUSSIAN 7
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
@@ -105,30 +93,13 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage1;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage2;
-    //SobelOutputImage *tmpMonoSobelImage1;
-    //SobelOutputImage *tmpMonoSobelImage2;
-    //yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelHorz;
-    //yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImageSobelVert;
-
-      
+    
     
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
-
-    
-
-    
-
-
-    /*convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
-sobel2DXConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,SobelOutputImage ,SobelOutputImagePtr >*
-sobel2DYConvolution;
-
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;*/
-    
+        
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
     
@@ -150,39 +121,19 @@ sobel2DYConvolution;
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;  
-    
-    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;
-    
+        
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;   
-    
-   
-    /*Ipp8u *orig;        //extended input image
-    Ipp8u *colour;      //extended rgb+a image
-    Ipp8u *yuva_orig;   //extended yuv+a image    
-    Ipp8u** pyuva;      //extended yuv+a image used to extract y, u and v plane*/
-    
-    /*yarp::sig::ImageOf<yarp::sig::PixelMono> *first_plane;      //extended plane either y or h
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *second_plane;      //extended plane either u or v
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *third_plane;      //extended plane either v or s
-    */
-    //Ipp8u *tmp;         //extended tmp containing alpha
-    
+        
     bool isYUV;   
     
     yarp::os::Stamp St;
 
     
     std::string name;       // rootname of all the ports opened by this thread
-    bool resized;           // flag to check if the variables have been already resized
-    //int sobelIsNormalized;
+    bool resized;           // flag to check if the variables have been already resized   
     
-   
-    int minVal;
-    //float sobelLimits[2];   // maximum and minimum of Sobel operator results
-    
-
 public:
     /**
     * constructor
@@ -253,7 +204,6 @@ public:
     void extractPlanes();
 
 
-
     /**
     * gaussing filtering of the of image planes extracted
     */
@@ -263,63 +213,12 @@ public:
     /**
     * Creating color opponency maps
     */
-    void colorOpponency();
-
-   
-    /**
-    * Combining oriented images to get saliency map for orientation
-    */
-    void combineOrientationsForSaliency();
-
-    /**
-    * applying sobel operators on the colourOpponency maps and combining via maximisation of the 3 edges
-    */
-    //void edgesExtract();
-
-    /**
-    * function that given a list of images combines them linearly using given weights
-    * @param imageList List of images
-    * @param numOfImages Number of images
-    * @param retImage Returned image, after combining them thus
-    * @param weights weights of linear combination
-    */    
-    void addImages(IplImage** imageList, int numOfImages,IplImage* retImage, float* weights);
-
-    /**
-    * function that given a list of images combines taking maximum for that location
-    * @param imageList List of images
-    * @param numOfImages Number of images
-    * @param retImage Returned image, after combining them thus
-    */
-    void maxImages(IplImage** imageList, int numOfImages,IplImage* retImage);
-    
-
-
-    /**
-    * function which crops the image
-    * @param corners int array defining the crop boundaries in (left-top,right-bottom) fashion
-    * @param imageToBeCropped source image that needs to be cropped
-    * @param retImage The final cropped image
-    */
-    void cropImage(int* corners, IplImage* imageToBeCropped, IplImage* retImage);
-
-
-    /**
-    * function that crops in-place a given circle (center, radius form) from source image
-    * @param center center of circle in (int,int) array
-    * @param radius radius of circle
-    * @param srcImage source image that will be changed after cropping
-    */
-    void cropCircleImage(int* center, float radius, IplImage* srcImg);
+    void colorOpponency();   
 
     edgesThread *edThread;
-    chrominanceThread *chromeThread;
-    
+    chrominanceThread *chromeThread;    
     
 };
-
-
-
 
 #endif  //_VISUAL_FEATURE_THREAD_H_
 

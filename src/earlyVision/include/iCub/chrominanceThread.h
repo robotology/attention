@@ -149,17 +149,9 @@ kirschSalNegM45;
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_Y;          // extended output image, also reused for hsv
 	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_UV;         // extended output image, also reused for hsv
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_V;         // extended output image, also reused for hsv
-	
-    
-    
-    
-    yarp::os::Stamp St;
-    
 
-    
     std::string name;       // rootname of all the ports opened by this thread
     
-
     float kirschLimits[4][2];   //maximum and minimum of Kirsch operator for each orientation
 
 public:
