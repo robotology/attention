@@ -28,10 +28,7 @@
 
 #include <cstring>
 
-#define ONE_BY_ROOT_TWO 0.707106781
-#define ONE_BY_ROOT_THREE 0.577350269
-#define USE_PROPORTIONAL_KIRSCH
-#define NO_DEBUG_OPENCV //DEBUG_OPENCV //
+
 
 using namespace yarp::os;
 using namespace yarp::sig;

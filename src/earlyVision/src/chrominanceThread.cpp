@@ -27,6 +27,8 @@
 #include <iCub/chrominanceThread.h>
 
 #include <cstring>
+#include <sys/time.h>
+
 
 #define ONE_BY_ROOT_TWO 0.707106781
 #define ONE_BY_ROOT_THREE 0.577350269
@@ -660,13 +662,13 @@ void chrominanceThread::orientation() {
     //cvAdd((IplImage*)ori0.getIplImage(),(IplImage*)ori90.getIplImage(),(IplImage*)ori45.getIplImage());
     //maxImages(imagesToMaxAdd,2,(IplImage*)totImg.getIplImage());
 
-//#ifdef DEBUG_OPENCV
+#ifdef DEBUG_OPENCV
     cvNamedWindow("Original");
     cvShowImage("Original",(IplImage*)cartIntensImg->getIplImage());
     cvNamedWindow("Sum");
     cvShowImage("Sum",  (IplImage*)totImg.getIplImage());    
     cvWaitKey(2);
-//#endif
+#endif
      
     orientPort0.write();
     orientPort45.write();
