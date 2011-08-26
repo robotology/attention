@@ -54,6 +54,8 @@
 #define KIRSCH_FLICKER 10
 #define KIRSCH_POS_KERNEL 3
 #define KIRSCH_NEG_KERNEL 7
+#define NBR_KIRSCH_NEG_KERNELS 4
+#define NBR_KIRSCH_POS_KERNELS 4
 
 #ifndef PI
 #define PI 3.1415926535897932384626433832795
@@ -481,7 +483,7 @@ static float rn4[7*7] = {
 -0.00099038,-0.00033769,-0.00017605,5.3275e-05,0.00028322,0.00044465,0.0008552
 };
 
-
+static float* listOfNeg[4]={rn1,rn2,rn3,rn4};
 
 /*
 static float Sobel3XHorz[3] = {1.3161f, 0 ,-1.3161f};

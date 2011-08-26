@@ -131,6 +131,29 @@ bool earlyVisionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
+    if(isYUV){
+        
+
+        if (!chromPort.open(getName("/chrominance:o").c_str())) {
+            cout << ": unable to open port "  << endl;
+            return false;  // unable to open; let RFModule know so that it won't run
+        }
+    }
+
+    else{
+        
+        if (!chromPort.open(getName("/S:o").c_str())) {
+            cout << ": unable to open port "  << endl;
+            return false;  // unable to open; let RFModule know so that it won't run
+        }
+    
+    }
+    
+    if (!intensityCSPort.open(getName("/centSurrIntensity:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+
     return true;
 }
 
@@ -182,13 +205,15 @@ void earlyVisionThread::run() {
             // colourOpponency map construction
             colorOpponency();         
 
-            
+            centerSurrounding();
             //edgesExtract();                    
 
             if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
             }
+
+            
             /*
             if((Yplane!=0)&&(chromPort.getOutputCount())) {
                 chromPort.prepare() = *(Yplane);
@@ -252,9 +277,21 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
 
     unXtnYplane->resize(width_orig, height_orig);
     unXtnUplane->resize(width_orig, height_orig);
-    unXtnVplane->resize(width_orig, height_orig);    
+    unXtnVplane->resize(width_orig, height_orig);
+
+    // allocating for CS ncsscale = 4;   
+
+    cs_tot_32f  = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_32F, 1  );
+    colcs_out   = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    ycs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    scs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    vcs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     
-    isYUV = true;   
+    
+    centerSurr  = new CenterSurround( width_orig,height_orig,1.0 );
+
+    
+    isYUV = true; 
     
 }
 
@@ -377,15 +414,14 @@ void earlyVisionThread::extractPlanes() {
         shift[3] += padMono;
         YUV[0] += padMono;
         YUV[1] += padMono;
-        YUV[2] += padMono;
-        
+        YUV[2] += padMono;       
                 
     } 
 
     
 
     if(!chromeThread->getFlagForThreadProcessing()){
-        chromeThread->copyRelevantPlanes(unXtnIntensImg,unXtnYplane,unXtnUplane,unXtnVplane);
+        chromeThread->copyRelevantPlanes(unXtnIntensImg);
     }
 
     if(!edThread->getFlagForThreadProcessing()){
@@ -511,6 +547,136 @@ void earlyVisionThread::colorOpponency(){
 
 }
 
+void earlyVisionThread::centerSurrounding(){
+
+        //printf("Going to centerSurrounding planes in chrome thread\n");
+        
+        // Allocate temporarily
+        //ImageOf<PixelMono> _Y,_UV,_V;
+        ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
+        _Y.resize(this->width_orig,this->height_orig);
+        ImageOf<PixelMono>& _UV = chromPort.prepare();
+        _UV.resize(this->width_orig,this->height_orig);
+        
+        ImageOf<PixelMono>& _V = VofHSVPort.prepare();
+        _V.resize(this->width_orig,this->height_orig);
+        //cvNamedWindow("test");
+        //cvShowImage("test",(IplImage*)(cartIntensImg->getIplImage()));
+        //cvWaitKey(0);
+        
+        if(true){
+                //performs centre-surround uniqueness analysis on first plane
+                
+                centerSurr->proc_im_8u( (IplImage*)unXtnYplane->getIplImage(),(IplImage*)_Y.getIplImage());
+                //cvNamedWindow("_Y");
+                //cvShowImage("_Y",(IplImage*)unXtnYplane->getIplImage());
+                //cvWaitKey(2);
+                cvSet(cs_tot_32f,cvScalar(0));
+                //cvNamedWindow("test");
+                //cvShowImage("test",(IplImage*)(chromUplane->getIplImage()));
+                //cvWaitKey(0);
+                
+                if (isYUV){                 
+                
+                    //performs centre-surround uniqueness analysis on second plane:
+                    centerSurr->proc_im_8u( (IplImage*)(unXtnUplane->getIplImage()),scs_out);
+                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?                    
+                    
+                    //Colour process V:performs centre-surround uniqueness analysis:
+                    centerSurr->proc_im_8u( (IplImage*)(this->unXtnVplane->getIplImage()), vcs_out);
+                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);                   
+                    
+                    //get min max   
+                    double valueMin = 1000;
+                    double valueMax = -1000;
+                    //img_UV->zero();     // this is not strictly required
+                  	cvMinMaxLoc(cs_tot_32f,&valueMin,&valueMax);            
+                    if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ 
+                        valueMax = 255.0f; valueMin = 0.0f;
+                    }
+                    cvConvertScale(cs_tot_32f,(IplImage*)_UV.getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
+                    //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);                   
+                    
+                }
+                else{
+                    //performs centre-surround uniqueness analysis on second plane:
+                    centerSurr->proc_im_8u( (IplImage*)(this->unXtnUplane->getIplImage()),(IplImage*)_UV.getIplImage() );
+                    //Colour process V:performs centre-surround uniqueness analysis:
+                    centerSurr->proc_im_8u( (IplImage*)(this->unXtnVplane->getIplImage()), (IplImage*)_V.getIplImage());
+                }               
+                    
+                
+ /*              
+
+                //this is nasty, resizes the images...
+                unsigned char* imgY = img_Y->getPixelAddress( maxKernelSize, maxKernelSize );
+                unsigned char* imgUV = img_UV->getPixelAddress( maxKernelSize, maxKernelSize );
+                unsigned char* imgV;
+                unsigned char* imgVo;
+
+                if (!isYUV){
+                   imgV = img_V->getPixelAddress( maxKernelSize, maxKernelSize );
+                   imgVo = _V.getRawImage();
+                }
+                
+                unsigned char* imgYo = _Y.getRawImage();
+                unsigned char* imgUVo = _UV.getRawImage();
+                int rowsize= _Y.getRowSize();
+                int rowsize2= img_Y->getRowSize();
+
+                for(int row=0; row<height_orig; row++) {
+                    for(int col=0; col<width_orig; col++) {
+                        *imgYo  = *imgY;
+                        *imgUVo = *imgUV;
+                        if (!isYUV) {
+                            *imgVo = *imgV;
+                            imgVo++;  imgV++;          
+                        }
+                        imgYo++;  imgUVo++;
+                        imgY++;   imgUV++;
+                    }    
+                    imgYo+=rowsize - width_orig;
+                    imgUVo+=rowsize - width_orig;
+                    imgY+=rowsize2 - width_orig;
+                    imgUV+=rowsize2 - width_orig;
+                    if (!isYUV) {
+                        imgVo+=rowsize - width_orig;
+                        imgV+=rowsize2 - width_orig;       
+                    }
+                }
+
+  */              
+                //output Y centre-surround results to ports
+                if (intensityCSPort.getOutputCount() ){
+                    intensityCSPort.write();
+                }
+
+                //output UV centre-surround results to ports
+                if ( chromPort.getOutputCount() ){
+                    chromPort.write();
+                }
+                //output UV centre-surround results to ports
+                if ( !isYUV && VofHSVPort.getOutputCount()){
+                    VofHSVPort.write();
+                }
+
+                
+        #ifdef DEBUG_OPENCV
+                cvNamedWindow("CS_Y");
+                cvShowImage("CS_Y", (IplImage*)_Y.getIplImage());
+                cvNamedWindow("CS_UV");
+                cvShowImage("CS_UV", (IplImage*)_UV.getIplImage());
+                cvNamedWindow("CS_V");
+                cvShowImage("CS_V", (IplImage*)_V.getIplImage());
+                cvWaitKey(2);
+        #endif
+                
+            
+
+    }
+        
+       
+}
 
 void earlyVisionThread::threadRelease() {    
     printf("Releasing\n");

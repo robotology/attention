@@ -114,13 +114,22 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnYplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
-    
 
-    double gK[4][KERNEL_ROW][KERNEL_COL];
+    IplImage *cs_tot_32f; //extended
+    IplImage *cs_tot_8u; 
+    IplImage *ycs_out;     //final extended intensity center surround image
+    IplImage *scs_out;     //final extended intensity center surround image
+    IplImage *vcs_out;     //final extended intensity center surround image
+    IplImage *colcs_out;   //final extended coulour center surround image
+
+    CenterSurround *centerSurr;    
 
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;  
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;  
         
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
@@ -185,6 +194,11 @@ public:
     void extender(int extDimension); 
 
     void extender(yarp::sig::ImageOf<yarp::sig::PixelMono>* origImage,int extDimension);
+
+    /**
+    * Center-surrounding
+    */
+    void centerSurrounding();  
 
      /**
     * function that maps logpolar image to cartesian

@@ -46,9 +46,7 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     resized                     = false;
     //*(this->dataReadyForChromeThread) = false;
 
-    chromYplane = new ImageOf<PixelMono>;
-    chromUplane = new ImageOf<PixelMono>;
-    chromVplane = new ImageOf<PixelMono>;
+    
     chromUnXtnIntensImg = new ImageOf<PixelMono>;
 
     o0      = new KirschOutputImage;
@@ -60,7 +58,11 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     tmpKirschCartImage2  = new KirschOutputImage;
     tmpKirschCartImage3  = new KirschOutputImage;
     tmpKirschCartImage4  = new KirschOutputImage;
-    totalKirsch          = new KirschOutputImage;    
+    totalKirsch          = new KirschOutputImage; 
+    listOfNegKir[0]      = new KirschOutputImage;    
+    listOfNegKir[1]      = new KirschOutputImage;    
+    listOfNegKir[2]      = new KirschOutputImage;    
+    listOfNegKir[3]      = new KirschOutputImage;    
     cartIntensImg       = new ImageOf<PixelMono>;    
 
     kirschSalPos0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
@@ -71,7 +73,9 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     kirschSalNeg0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
     kirschSalNeg45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn2,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
     kirschSalNeg90 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn3,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalNegM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn4,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);    
+    kirschSalNegM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn4,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
+    kirschListOfNegKernels = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,listOfNeg,NBR_KIRSCH_NEG_KERNELS,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
+    
 
     kirschIsNormalized = 0;
     kirschLimits[0][0] = 0;
@@ -84,10 +88,7 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     kirschLimits[3][1] = 2.0;
     
 
-    img_Y = new ImageOf<PixelMono>;
-	img_UV = new ImageOf<PixelMono>;
-	img_V = new ImageOf<PixelMono>;
-    isYUV = true;    
+    
 
     //Logpolar to cartesian and vice versa
     xSizeValue = CART_ROW_SIZE ;         
@@ -114,28 +115,7 @@ bool chrominanceThread::threadInit() {
     /* open ports */ 
    
    
-    if(isYUV){
-        
-        
-        if (!chromPort.open(getName("/chrominance:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
-    }
-
-    else{
-        
-        if (!chromPort.open(getName("/S:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
     
-    }
-    
-    if (!intensityCSPort.open(getName("/centSurrIntensity:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
 
     if (!orientPort0.open(getName("/orient0:o").c_str())) {
         cout << ": unable to open port "  << endl;
@@ -197,7 +177,7 @@ void chrominanceThread::run() {
                 lpMono.logpolarToCart(*cartIntensImg,*chromUnXtnIntensImg);
                 gettimeofday(&lpTime, NULL);
                 // Center-surround
-                centerSurrounding();
+                //centerSurrounding();
                 gettimeofday(&csTime, NULL);
                 //printf("before colour opponency \n");
                 orientation();
@@ -230,24 +210,12 @@ void chrominanceThread::resize(int width_orig,int height_orig) {
     tmpKirschCartImage3->resize(CART_ROW_SIZE, CART_COL_SIZE);
     tmpKirschCartImage4->resize(CART_ROW_SIZE, CART_COL_SIZE);
     totalKirsch->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    
-
-    // allocating for CS ncsscale = 4;   
-
-    cs_tot_32f  = cvCreateImage( cvSize(widthLP, heightLP),IPL_DEPTH_32F, 1  );
-    colcs_out   = cvCreateImage( cvSize(widthLP, heightLP),IPL_DEPTH_8U, 1  );
-    ycs_out     = cvCreateImage( cvSize(widthLP, heightLP),IPL_DEPTH_8U, 1  );
-    scs_out     = cvCreateImage( cvSize(widthLP, heightLP),IPL_DEPTH_8U, 1  );
-    vcs_out     = cvCreateImage( cvSize(widthLP, heightLP),IPL_DEPTH_8U, 1  );
+    listOfNegKir[0]->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    listOfNegKir[1]->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    listOfNegKir[2]->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    listOfNegKir[3]->resize(CART_ROW_SIZE, CART_COL_SIZE);   
     
     
-    centerSurr  = new CenterSurround( widthLP,heightLP,1.0 );
-
-    
-    isYUV = true;
-	img_Y->resize( this->widthLP, this->heightLP );
-    img_UV->resize( this->widthLP, this->heightLP );
-    img_V->resize( this->widthLP, this->heightLP );
     resized = true;
    
     
@@ -255,37 +223,24 @@ void chrominanceThread::resize(int width_orig,int height_orig) {
 
 
 
-void chrominanceThread::copyRelevantPlanes(ImageOf<PixelMono> *I,ImageOf<PixelMono> *Y, ImageOf<PixelMono> *U,ImageOf<PixelMono> *V){
+void chrominanceThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
     
-    if(!getFlagForThreadProcessing() && I->getRawImage() != NULL && U->getRawImage() != NULL  && V->getRawImage() != NULL  && Y->getRawImage() != NULL ){ 
+    if(!getFlagForThreadProcessing() && I->getRawImage() != NULL  ){ 
         //printf("Going to copy relevant planes in chrome thread\n");
         setFlagForDataReady(false);
         if(!resized){
             resize(I->width(), I->height()); 
         }
         int widthI = I->width();
-        int widthY = Y->width();
-        int widthU = U->width();
-        int widthV = V->width();
         int heightI = I->height();
-        int heightY = Y->height();
-        int heightU = U->height();
-        int heightV = V->height();
-
         
         
         // allocate
         chromUnXtnIntensImg->resize(I->width(), I->height());
-        chromYplane->resize(Y->width(), Y->height());
-        chromUplane->resize(U->width(), U->height());
-        chromVplane->resize(V->width(), V->height()); 
-
+        
         // copy
         memcpy( (uchar*)chromUnXtnIntensImg->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());
-        memcpy( (uchar*)chromYplane->getRawImage(),(uchar*)Y->getRawImage(),Y->getRawImageSize());
-        memcpy( (uchar*)chromUplane->getRawImage(),(uchar*)U->getRawImage(),U->getRawImageSize());
-        memcpy( (uchar*)chromVplane->getRawImage(),(uchar*)V->getRawImage(),V->getRawImageSize());
-    
+        
         /*
 
         // CAUTION:shallow copy
@@ -305,140 +260,6 @@ void chrominanceThread::copyRelevantPlanes(ImageOf<PixelMono> *I,ImageOf<PixelMo
 }
 
 
-
-void chrominanceThread::centerSurrounding(){
-
-        //printf("Going to centerSurrounding planes in chrome thread\n");
-        
-        // Allocate temporarily
-        //ImageOf<PixelMono> _Y,_UV,_V;
-        ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
-        _Y.resize(this->widthLP,this->heightLP);
-        ImageOf<PixelMono>& _UV = chromPort.prepare();
-        _UV.resize(this->widthLP,this->heightLP);
-        
-        ImageOf<PixelMono>& _V = VofHSVPort.prepare();
-        _V.resize(this->widthLP,this->heightLP);
-        //cvNamedWindow("test");
-        //cvShowImage("test",(IplImage*)(cartIntensImg->getIplImage()));
-        //cvWaitKey(0);
-        
-        if(true){
-                //performs centre-surround uniqueness analysis on first plane
-                
-                centerSurr->proc_im_8u( (IplImage*)chromUnXtnIntensImg->getIplImage(),(IplImage*)_Y.getIplImage());
-                //cvNamedWindow("_Y");
-                //cvShowImage("_Y",(IplImage*)chromUnXtnIntensImg->getIplImage());
-                //cvWaitKey(2);
-                cvSet(cs_tot_32f,cvScalar(0));
-                //cvNamedWindow("test");
-                //cvShowImage("test",(IplImage*)(chromUplane->getIplImage()));
-                //cvWaitKey(0);
-                
-                if (isYUV){                 
-                
-                    //performs centre-surround uniqueness analysis on second plane:
-                    centerSurr->proc_im_8u( (IplImage*)(chromUplane->getIplImage()),scs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?                    
-                    
-                    //Colour process V:performs centre-surround uniqueness analysis:
-                    centerSurr->proc_im_8u( (IplImage*)(this->chromVplane->getIplImage()), vcs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);                   
-                    
-                    //get min max   
-                    double valueMin = 1000;
-                    double valueMax = -1000;
-                    img_UV->zero();     // this is not strictly required
-                  	cvMinMaxLoc(cs_tot_32f,&valueMin,&valueMax);            
-                    if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ 
-                        valueMax = 255.0f; valueMin = 0.0f;
-                    }
-                    cvConvertScale(cs_tot_32f,(IplImage*)_UV.getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
-                    //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);                   
-                    
-                }
-                else{
-                    //performs centre-surround uniqueness analysis on second plane:
-                    centerSurr->proc_im_8u( (IplImage*)(this->chromUplane->getIplImage()),(IplImage*)_UV.getIplImage() );
-                    //Colour process V:performs centre-surround uniqueness analysis:
-                    centerSurr->proc_im_8u( (IplImage*)(this->chromVplane->getIplImage()), (IplImage*)_V.getIplImage());
-                }
-
-
-                
-                    
-                
- /*              
-
-                //this is nasty, resizes the images...
-                unsigned char* imgY = img_Y->getPixelAddress( maxKernelSize, maxKernelSize );
-                unsigned char* imgUV = img_UV->getPixelAddress( maxKernelSize, maxKernelSize );
-                unsigned char* imgV;
-                unsigned char* imgVo;
-
-                if (!isYUV){
-                   imgV = img_V->getPixelAddress( maxKernelSize, maxKernelSize );
-                   imgVo = _V.getRawImage();
-                }
-                
-                unsigned char* imgYo = _Y.getRawImage();
-                unsigned char* imgUVo = _UV.getRawImage();
-                int rowsize= _Y.getRowSize();
-                int rowsize2= img_Y->getRowSize();
-
-                for(int row=0; row<heightLP; row++) {
-                    for(int col=0; col<widthLP; col++) {
-                        *imgYo  = *imgY;
-                        *imgUVo = *imgUV;
-                        if (!isYUV) {
-                            *imgVo = *imgV;
-                            imgVo++;  imgV++;          
-                        }
-                        imgYo++;  imgUVo++;
-                        imgY++;   imgUV++;
-                    }    
-                    imgYo+=rowsize - widthLP;
-                    imgUVo+=rowsize - widthLP;
-                    imgY+=rowsize2 - widthLP;
-                    imgUV+=rowsize2 - widthLP;
-                    if (!isYUV) {
-                        imgVo+=rowsize - widthLP;
-                        imgV+=rowsize2 - widthLP;       
-                    }
-                }
-
-  */              
-                //output Y centre-surround results to ports
-                if (intensityCSPort.getOutputCount() ){
-                    intensityCSPort.write();
-                }
-
-                //output UV centre-surround results to ports
-                if ( chromPort.getOutputCount() ){
-                    chromPort.write();
-                }
-                //output UV centre-surround results to ports
-                if ( !isYUV && VofHSVPort.getOutputCount()){
-                    VofHSVPort.write();
-                }
-
-                
-        #ifdef DEBUG_OPENCV
-                cvNamedWindow("CS_Y");
-                cvShowImage("CS_Y", (IplImage*)_Y.getIplImage());
-                cvNamedWindow("CS_UV");
-                cvShowImage("CS_UV", (IplImage*)_UV.getIplImage());
-                cvNamedWindow("CS_V");
-                cvShowImage("CS_V", (IplImage*)_V.getIplImage());
-                cvWaitKey(2);
-        #endif
-                
-            
-
-    }
-        
-       
-}
 
 void chrominanceThread::orientation() {
     //printf("start orientation \n");
@@ -472,6 +293,11 @@ void chrominanceThread::orientation() {
     kirschSalNeg45->convolve2D(cartIntensImg,tmpKirschCartImage2); 
     kirschSalNeg90->convolve2D(cartIntensImg,tmpKirschCartImage3); 
     kirschSalNegM45->convolve2D(cartIntensImg,tmpKirschCartImage4);
+
+/*
+    kirschListOfNegKernels->convolve2Dlist(cartIntensImg,listOfNegKir);
+*/
+
     gettimeofday(&NegCon,NULL); 
     printf("pos %ld neg%ld \n",PosCon.tv_usec-stCon.tv_usec,NegCon.tv_usec-PosCon.tv_usec);  
 
@@ -630,30 +456,17 @@ void chrominanceThread::threadRelease() {
 
     lpMono.freeLookupTables();
 
-    cvReleaseImage(&cs_tot_32f); 
-    cvReleaseImage(&colcs_out);
-    cvReleaseImage(&ycs_out);
-    cvReleaseImage(&scs_out);
-    cvReleaseImage(&vcs_out);
-
-    intensityCSPort.interrupt();
-    chromPort.interrupt();
     orientPort0.interrupt();
     orientPort45.interrupt();
     orientPort90.interrupt();
     orientPortM45.interrupt();    
     
-    intensityCSPort.close();
-    chromPort.close();
     orientPort0.close();
     orientPort45.close();
     orientPort90.close();
     orientPortM45.close();
 
     //deallocating resources
-    delete chromYplane;
-    delete chromUplane;
-    delete chromVplane;
     delete kirschSalPos0;
     delete kirschSalPos45;
     delete kirschSalPos90;
@@ -666,12 +479,9 @@ void chrominanceThread::threadRelease() {
     delete tmpKirschCartImage2;    
     delete tmpKirschCartImage3;    
     delete tmpKirschCartImage4;
-    delete totalKirsch;    
+    delete totalKirsch;
+    delete []listOfNegKir;        
     delete cartIntensImg;
-    delete centerSurr;
-    delete img_Y;
-    delete img_UV;
-    delete img_V;
     
     printf("done with release\n");
     

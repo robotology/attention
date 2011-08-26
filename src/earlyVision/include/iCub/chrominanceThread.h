@@ -82,6 +82,10 @@ kirschSalNeg45;
 kirschSalNeg90;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
 kirschSalNegM45;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschListOfPosKernels;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
+kirschListOfNegKernels;
 
     // pointers to planes defined in earlyVision
     yarp::sig::ImageOf<yarp::sig::PixelMono> *chromYplane;
@@ -98,10 +102,10 @@ kirschSalNegM45;
     KirschOutputImage *tmpKirschCartImage3;
     KirschOutputImage *tmpKirschCartImage4;
     KirschOutputImage *totalKirsch;
+    KirschOutputImage *listOfPosKir[4];
+    KirschOutputImage *listOfNegKir[4];
     
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;
+    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort45;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort90;
@@ -127,29 +131,14 @@ kirschSalNegM45;
     int heightLP;
     int heightCr;
     
-    //IppiSize srcsize, origsize;
-    CenterSurround *centerSurr; 
-   
+    //IppiSize srcsize, origsize;   
     
-    //Ipp8u *tmp;         //extended tmp containing alpha
-    IplImage *cs_tot_32f; //extended
-    IplImage *cs_tot_8u; 
-    IplImage *ycs_out;     //final extended intensity center surround image
-    IplImage *scs_out;     //final extended intensity center surround image
-    IplImage *vcs_out;     //final extended intensity center surround image
-    IplImage *colcs_out;   //final extended coulour center surround image
-    int img_psb, psb4, psb, ycs_psb, col_psb, psb_32f, f_psb, s_psb, t_psb; //images rowsizes
-    int ncsscale;
-    bool isYUV;
     bool kirschIsNormalized;
     bool resized;
     bool dataReadyForChromeThread;
     bool chromeThreadProcessing;
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_Y;          // extended output image, also reused for hsv
-	yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_UV;         // extended output image, also reused for hsv
-    yarp::sig::ImageOf<yarp::sig::PixelMono>  *img_V;         // extended output image, also reused for hsv
-
+    
     std::string name;       // rootname of all the ports opened by this thread
     
     float kirschLimits[4][2];   //maximum and minimum of Kirsch operator for each orientation
@@ -199,16 +188,10 @@ public:
     /**
     * function that copies the images from the main thread
     * @param I intensity image
-    * @param Y Y of YUV image
-    * @param U U of YUV image
-    * @param V V of YUV image
     */
-    void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I,yarp::sig::ImageOf<yarp::sig::PixelMono> *Y,yarp::sig::ImageOf<yarp::sig::PixelMono> *U, yarp::sig::ImageOf<yarp::sig::PixelMono> *V);    
+    void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I);    
 
-    /**
-    * Center-surrounding
-    */
-    void centerSurrounding();    
+      
 
     /**
     * Orientation using Kirsch kernel on Gaussian smoothened intensity. (Refer config.h)
