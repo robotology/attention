@@ -136,7 +136,7 @@ void earlyMotionThread::run() {
                 resized = true;
             }
             else {
-                //filterInputImage();
+                filterInputImage();
             }
             
             
@@ -156,7 +156,7 @@ void earlyMotionThread::run() {
                 temporalSubtraction(&out);
                 motionPort.write();
             }            
-            if(count % 10 == 0) {
+            if(count % 1 == 0) {
                 temporalStore();
                 count=1;
             }
@@ -230,7 +230,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     unsigned char* pimageT4 = imageT4->getRawImage();    
     
     unsigned char diff10, diff21, diff32, diff20, diff30, diff40;
-
+    unsigned char max = 0;
     for(int row = 0; row < height_orig; row++) {
         for(int col = 0; col < width_orig ; col++) {
             diff10 = (*pin      - *pimageT1) * (*pin      - *pimageT1);
@@ -248,17 +248,19 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
             //diff30 = (diff30 > 150) ? diff30 : 0;
             //diff40 = (diff40 > 150) ? diff40 : 0;
             
-            *pout += floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp((2 * row)  / (double)height_orig) - 1));
+            *pout += (unsigned char) floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * row)   / (double)height_orig) - 1));
+            if(*pout > max) {
+                max = *pout;
+            }
             
-            //if(*pout > 200){
-            //    printf("255 \n");
-            //    *pout = 255;
+            if(*pout >= 255){
+               printf("255 \n");
+            //*pout = 255;
                 //*(pout + 1) = 255;
                 //*(pout - 1) = 255;
                 //*(pout - rowsize) = 255;
                 //*(pout + rowsize) = 255;
-            //}
-                     
+            }                     
             pout++;
             pin++;
             pimageT1++;
@@ -274,8 +276,10 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
         pimageT4 += padding;
     }
     
-    ImageOf<PixelFloat>* imageTmp = new ImageOf<PixelFloat>;
-    imageTmp->resize(width_orig,height_orig);
+    //printf("max %d \n", max);
+    
+    //ImageOf<PixelFloat>* imageTmp = new ImageOf<PixelFloat>;
+    //imageTmp->resize(width_orig,height_orig);
     //convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar> convHoriz(9,&G9[0],0,0.8,-50);  
     //convHoriz.convolve1D(outputImage,imageTmp);
     //convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar> convVert(9,&G9[0],1,0.8,-50);  
@@ -293,8 +297,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     //    pout += padding;
     //       ptmp += paddingTmp;
     //}
-    
-    delete imageTmp;
+    //delete imageTmp;
 }
 
 
