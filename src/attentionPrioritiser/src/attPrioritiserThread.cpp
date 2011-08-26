@@ -345,7 +345,7 @@ void attPrioritiserThread::run() {
         state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
-            printf("Planned Saccade \n");
+            printf("----------------------- Planned Saccade ------------------- \n");
             printf("initialising the planner thread %f \n", time);
             sacPlanner->setSaccadicTarget(u,v);
             timeoutStart = Time::now();
@@ -353,10 +353,11 @@ void attPrioritiserThread::run() {
        
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
+            printf("waiting for planned saccade \n");
             while(timeout < time) {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
-                printf("ps \n");
+                //printf("ps \n");
             }
             // activating the sacPlanner
             sacPlanner->setSaccadicTarget(u,v);
@@ -405,10 +406,11 @@ void attPrioritiserThread::run() {
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Express Saccade  -----------------------
         if(!executing) {                       
-            printf("Express Saccade \n");
+            printf("------------------ Express Saccade --------------- \n");
             timeoutStart = Time::now();
             collectionLocation[0 + 0] = u;
             collectionLocation[0 * 2 + 1] = v;
+            printf("express saccade in position %d %d \n", u,v);
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
             if(timeout < time) {
@@ -438,8 +440,8 @@ void attPrioritiserThread::run() {
                 commandBottle.addDouble(zDistance);
                 outputPort.write();
                 
-                allowedTransitions(2) = 0;
-                executing = false;
+                //allowedTransitions(2) = 0;
+                //executing = false;
             }
         }
     }
@@ -447,7 +449,7 @@ void attPrioritiserThread::run() {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         // ----------------  Smooth Pursuit  -----------------------
         if(!executing) {                       
-            printf("Smooth Pursuit \n");
+            printf("------------- Smooth Pursuit ---------------------\n");
         }
     }
     else if(allowedTransitions(0)>0) {
@@ -458,8 +460,9 @@ void attPrioritiserThread::run() {
     }
 
     //resume early processes
+    //printf("          SENDING COMMAND OF RESUME      \n");
     if(feedbackPort.getOutputCount()) {
-        printf("feedback resetting \n");
+        //printf("feedback resetting \n");
         Bottle* sent = new Bottle();
         Bottle* received = new Bottle();    
         sent->clear();
@@ -479,8 +482,8 @@ void attPrioritiserThread::run() {
     }
     if(allowedTransitions(2)>0) {
         mutex.wait();
-        //allowedTransitions(2) = 0;
-        //executing = false;
+        allowedTransitions(2) = 0;
+        executing = false;
         printf ("Transition request 2 reset \n");
         mutex.post();
     }
@@ -493,32 +496,7 @@ void attPrioritiserThread::run() {
     }
 }
 
-void attPrioritiserThread::threadRelease() {
-    inLeftPort.close();
-    printf("closing right port \n");
-    inRightPort.close();
-    printf("closing feedback port \n");
-    feedbackPort.close();
-    printf("closing template port \n");
-    templatePort.close();
-    printf("closing database port \n");
-    blobDatabasePort.close();
-    printf("closing inhibition port \n");
-    inhibitionPort.close();
-    timingPort.close();
-    printf("successfully closed all the ports \n");
-    delete eyeL;
-    delete eyeR;
-    printf("successfully deleted eyes references \n");
-    //igaze->restoreContext(originalContext);
-    printf("successfully restored previous gaze context \n");
-    
-    //delete clientGazeCtrl;
-    printf("deleting the clientPlanner \n");
-    sacPlanner->stop();
-    delete sacPlanner;
-    printf("deleting the sacPlanner \n");
-}
+
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     printf("ACK. Aware of observable asking for attention \n");
@@ -582,6 +560,30 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
     }
 }
 
- 
 
-
+void attPrioritiserThread::threadRelease() {
+    inLeftPort.close();
+    printf("closing right port \n");
+    inRightPort.close();
+    printf("closing feedback port \n");
+    feedbackPort.close();
+    printf("closing template port \n");
+    templatePort.close();
+    printf("closing database port \n");
+    blobDatabasePort.close();
+    printf("closing inhibition port \n");
+    inhibitionPort.close();
+    timingPort.close();
+    printf("successfully closed all the ports \n");
+    delete eyeL;
+    delete eyeR;
+    printf("successfully deleted eyes references \n");
+    //igaze->restoreContext(originalContext);
+    printf("successfully restored previous gaze context \n");
+    
+    //delete clientGazeCtrl;
+    printf("deleting the clientPlanner \n");
+    sacPlanner->stop();
+    delete sacPlanner;
+    printf("deleting the sacPlanner \n");
+}
