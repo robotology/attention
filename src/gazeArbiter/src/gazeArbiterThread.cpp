@@ -113,10 +113,13 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     numberState = 4; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
-    firstVer = false;
-    visualCorrection = false;
-    isOnWings = false;
-    onDvs =  false;
+    
+    //boolean flag initialisation
+    firstVer         = false;
+    visualCorrection = true;
+    isOnWings        = false;
+    onDvs            = false;
+    
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
@@ -554,16 +557,18 @@ void gazeArbiterThread::run() {
                     accomplished_flag = false;  
                 }
                 else if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
-                    printf("                    OutOfRange ...........[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
+                    printf("                    OutOfRange ._._._._._.[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
                     accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
                     Vector px(3);
                     px[0] = -0.5 + xOffset;
-                    px[1] = 0.0 + yOffset;
-                    px[2] = 0.3 + zOffset;
+                    px[1] =  0.0 + yOffset;
+                    px[2] =  0.3 + zOffset;
                     igaze->lookAtFixationPoint(px);
+                    printf("waiting for motion done \n");
                     u = width / 2;
                     v = height / 2;
-                    waitMotionDone();
+                    //waitMotionDone();
+                    printf("resetting the position: success! \n");
                     return;
                 }
                 else {
@@ -571,9 +576,10 @@ void gazeArbiterThread::run() {
                 }
                 
                 printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
+
                 if (!isOnWings) {
                     printf("starting mono saccade with NO offset \n");
-                    //if(tracker->getInputCount()) {
+                    if(tracker->getInputCount()) {
                         double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
                         if (onDvs) {
@@ -583,6 +589,7 @@ void gazeArbiterThread::run() {
                         }
                         while (dist > 10) {
                             if(visualCorrection){
+                                printf("starting visual correction \n");
                                 tracker->init(u,v);
                                 tracker->waitInitTracker();
                                 Time::delay(0.05);
@@ -598,12 +605,12 @@ void gazeArbiterThread::run() {
                                 dx = (double) (point.x - px(0));
                                 dy = (double) (point.y - px(1));
                                 dist = sqrt(dx * dx + dy * dy);
-                                u = width / 2;
+                                u = width  / 2;
                                 v = height / 2;
                             }
                         }
                         printf("saccadic event : started %d %d %f \n",u,v,zDistance);
-                        //}
+                    }
                 }
                 else {
                     // monocular with stereo offsets 
@@ -631,22 +638,24 @@ void gazeArbiterThread::run() {
             timeout =timeoutStop - timeoutStart;
             //printf ("timeout %d \n", timeout);
 
+            
             //constant time of 10 sec after which the action is considered not performed
-            timeoutStart=Time::now();
+            timeoutStart = Time::now();
             while ((!done)&&(timeout < TIMEOUT_CONST)) {
                 while((!done)&&(timeout < TIMEOUT_CONST)) {
                     timeoutStop = Time::now();
-                    timeout =timeoutStop - timeoutStart;
+                    timeout = timeoutStop - timeoutStart;
+                    printf("saccade timeout %f %d \n", timeout, done);
                     Time::delay(0.005);
-                    igaze->checkMotionDone(&done);
-                    
+                    igaze->checkMotionDone(&done);                    
                 }
+
                 if(timeout >= TIMEOUT_CONST) {
-                    Vector v(3);
-                    printf("TIMEOUT in reaching with a saccade \n");
+                    Vector v(3);                    
 
                     timetotStop = Time::now();
                     timetot = timetotStop - timetotStart;
+                    printf("TIMEOUT in reaching with a saccade %f <---- \n", timetot);
                     timing = timingPort.prepare();
                     timing.clear();
                     timing.addDouble(-1);
@@ -656,24 +665,30 @@ void gazeArbiterThread::run() {
                     igaze->stopControl();
                     igaze->lookAtFixationPoint(v);
                     timeoutStart = Time::now();
-                    timeout = 0;
+                    timeout = TIMEOUT_CONST;
                 }
                 else {
                     printf("saccade_accomplished \n");
                 }
             }
+            
+            
             //correcting the macrosaccade using the visual feedback (only if required)
+            timeoutStart = Time::now();
+            timeout = 0;
             if (visualCorrection) {
+                printf("Using visual correction \n");
                 double error = 1000.0;
-                while(( error > 1)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
+                while(( error > 2)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
                     timeoutStop = Time::now();
-                    timeout =timeoutStop - timeoutStart;
-                    //printf("timeout in correcting  %d \n", timeout);
+                    timeout = timeoutStop - timeoutStart;
+                    
                     //corrected the error
-                    double errorx = (width / 2.0)  - point.x;
+                    double errorx = (width  / 2.0) - point.x;
                     double errory = (height / 2.0) - point.y;
+                    printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
                     Vector px(2);
-                    px(0) = (width / 2.0) - errorx;
+                    px(0) = (width  / 2.0) - errorx;
                     px(1) = (height / 2.0) - errory;
                     error = sqrt(errorx * errorx + errory * errory);
                     //printf("norm error %f \n", error);
@@ -789,6 +804,11 @@ void gazeArbiterThread::run() {
 
             if((mono)) {                
                 if((phi < 0.05)&&(phi>-0.05)&&(!accomplished_flag)) {
+
+                    printf("VERGENCE ACCOMPLISHED \n");
+                    printf("VERGENCE ACCOMPLISHED \n");
+                    printf("VERGENCE ACCOMPLISHED \n");
+                    
                     //code for accomplished vergence
                     timetotStop = Time::now();
                     timetot = timetotStop - timetotStart;
@@ -890,9 +910,7 @@ void gazeArbiterThread::run() {
                         //}
                     }
                     inhibitionPort.prepare() = *inhibitionImage;
-                    inhibitionPort.write();
-                    printf("IMAGE just sent on the port \n");
-                    
+                    inhibitionPort.write();                    
 
                     //calculating the 3d position and sending it to database
                     u = 160; 
@@ -923,10 +941,7 @@ void gazeArbiterThread::run() {
                     q[6]=head[3]* ratio;
                     q[7]=head[4]* ratio;
                     double ver = head[5];
-                    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);
-                    
-                        
-                        
+                    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);                        
                             
                     Vector x(3);
                     printf("varDistance %f \n", varDistance);
@@ -1026,7 +1041,7 @@ void gazeArbiterThread::run() {
                 
                 if(accomplished_flag){
                     if((phi>0.4)||(phi<-0.4)) {
-                        printf("the vergence is asking to revise its previouos measure ........");
+                        printf("the vergence is asking to revise its previouos measure ........ \n");
                         //accomplished_flag = false;
                     }
                     else {
@@ -1035,8 +1050,7 @@ void gazeArbiterThread::run() {
                 }
                 
 
-                //printf("------------- VERGENCE   ----------------- \n");
-            
+                //printf("------------- VERGENCE   ----------------- \n");            
             
                 //calculating the magnitude of the 3d vector
                 igaze->getAngles(anglesVect);
@@ -1069,7 +1083,7 @@ void gazeArbiterThread::run() {
                 //printf("norm error %f \n", error);
                 int camSel = 0;
                 
-                px(0) = (width / 2.0);
+                px(0) = (width  / 2.0);
                 px(1) = (height / 2.0);
                 
                 printf("----------------------------------varDistance %f \n", varDistance);
@@ -1150,33 +1164,32 @@ void gazeArbiterThread::run() {
     
     //printf("--------------------------------------------------------->%d \n",done);
             
-        if(allowedTransitions(3)>0) {
-            //igaze->checkMotionDone(&done);  // the only action that should not be tracking therefore it make wait till the end
-            //if (done) {
-            //    mutex.wait();
-                allowedTransitions(3) = 0;
-                executing = false;  //executing=false allows new action commands
-                printf ("\n\n\n\n\n\n\n\n\n");
-                //    mutex.post();
-                // printf("saccadic event : done \n");
-                //}
-            
-        }
-        if(allowedTransitions(2)>0) {
-            mutex.wait();
-            allowedTransitions(2) = 0;
-            executing = false;
-            mutex.post();
-        }
-        if(allowedTransitions(1)>0) {
-            //mutex.wait();
-            allowedTransitions(1) = 0;
-            executing = false;
-            //printf ("\n\n\n\n\n\n\n\n\n");
-            //mutex.post();
-            printf("vergence command : done \n");
-        }
-
+    if(allowedTransitions(3)>0) {
+        //igaze->checkMotionDone(&done);  // the only action that should not be tracking therefore it make wait till the end
+        //if (done) {
+        //    mutex.wait();
+        allowedTransitions(3) = 0;
+        executing = false;  //executing=false allows new action commands
+        printf ("\n\n\n\n\n\n\n\n\n");
+        //    mutex.post();
+        // printf("saccadic event : done \n");
+        //}
+        
+    }
+    if(allowedTransitions(2)>0) {
+        mutex.wait();
+        allowedTransitions(2) = 0;
+        executing = false;
+        mutex.post();
+    }
+    if(allowedTransitions(1)>0) {
+        //mutex.wait();
+        allowedTransitions(1) = 0;
+        executing = false;
+        //printf ("\n\n\n\n\n\n\n\n\n");
+        //mutex.post();
+        //printf("vergence command : done \n");
+    }    
 }
 
 void gazeArbiterThread::threadRelease() {
