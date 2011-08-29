@@ -71,7 +71,7 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     }
 
     attach(handlerPort);                  // attach to port
-
+    printf("Handler port is attached \n");
     /* create the thread and pass pointers to the module parameters */
     printf("trying to start the main thread \n");
     evThread = new earlyVisionThread();
@@ -108,23 +108,126 @@ bool earlyVisionModule::close()
 
 bool earlyVisionModule::respond(const Bottle& command, Bottle& reply) 
 {
-    string helpMessage =  string(getName().c_str()) + 
-                        " commands are: \n" +  
-                        "help \n" + 
-                        "quit \n" ;
+    reply.clear();
 
-    reply.clear(); 
+    bool ok = false;
+    bool rec = false; // is the command recognized?
 
-    if (command.get(0).asString()=="quit") {
-        reply.addString("quitting");
-        return false;     
+    respondLock.wait();
+    switch (command.get(0).asVocab()) {
+    case COMMAND_VOCAB_HELP:
+        rec = true;
+        {
+            reply.addString("help");
+            reply.addString("commands are:");
+            reply.addString(" help  : to get help");
+            reply.addString(" quit  : to quit the module");
+            reply.addString(" ");
+            reply.addString(" ");
+            reply.addString(" sus   chr : to suspend chrom thread");
+            reply.addString(" sus   edg : to suspend edges thread");
+            reply.addString(" res   chr : to resume chrom thread");
+            reply.addString(" res   chr : to resume edges thread");
+            reply.addString(" ");
+            reply.addString(" ");
+            reply.addString(" w   hor <float> : to change the weightage of horizontal orientation");
+            reply.addString(" w   o45 <float> : to change the weightage of 45 deg orientation");
+            reply.addString(" w   ver <float> : to change the weightage of vertical orientation");
+            reply.addString(" w   oM45 <float> : to change the weightage of -45 deg orientation");
+            reply.addString(" ");
+            reply.addString(" ");
+            //reply.addString(helpMessage.c_str());
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_QUIT:
+        rec = true;
+        {
+            reply.addString("quitting");
+            ok = false;
+        }
+        break;
+    case COMMAND_VOCAB_WEIGHT:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()){
+            case COMMAND_VOCAB_HOR:
+                evThread->chromeThread->setWeightForOrientation(0,command.get(2).asDouble());
+                reply.addString("changed weight for horizontal orientation");
+                break;
+            case COMMAND_VOCAB_45:
+                evThread->chromeThread->setWeightForOrientation(1,command.get(2).asDouble());
+                reply.addString("changed weight for 45 deg orientation");
+                break;
+            case COMMAND_VOCAB_VER:
+                evThread->chromeThread->setWeightForOrientation(2,command.get(2).asDouble());
+                reply.addString("changed weight for vertical orientation");
+                break;
+            case COMMAND_VOCAB_M45:
+                evThread->chromeThread->setWeightForOrientation(3,command.get(2).asDouble());
+                reply.addString("changed weight for -45 deg orientation");
+                break;
+            default:
+                rec = false;
+                ok  = false;
+            
+            }
+
+        }
+        ok = true;
+        break;
+    case COMMAND_VOCAB_SUSPEND:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()){
+            case COMMAND_VOCAB_CHROME_THREAD:
+                evThread->chromeThread->suspend();
+                reply.addString("suspending chrome thread");
+                break;
+            case COMMAND_VOCAB_EDGES_THREAD:
+                evThread->edThread->suspend();
+                reply.addString("suspending edges thread");
+                break;
+            }
+        }
+        ok = true;
+        break;
+    case COMMAND_VOCAB_RESUME:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()){
+            case COMMAND_VOCAB_CHROME_THREAD:
+                evThread->chromeThread->resume();
+                reply.addString("resuming chrome thread");
+                break;
+            case COMMAND_VOCAB_EDGES_THREAD:
+                evThread->edThread->resume();
+                reply.addString("resuming edges thread");
+                break;
+            }
+        }
+        ok = true;
+        break;
+    default:
+        rec = false;
+        ok  = false;
+    }    
+
+    respondLock.post();
+
+    if (!rec){
+        ok = RFModule::respond(command,reply);
     }
-    else if (command.get(0).asString()=="help") {
-        cout << helpMessage;
-        reply.addString("ok");
+    
+    if (!ok) {
+        reply.clear();
+        reply.addVocab(COMMAND_VOCAB_FAILED);
     }
-	
-    return true;
+    else
+        reply.addVocab(COMMAND_VOCAB_OK);
+
+    return ok;
+
 }
 
 /* Called periodically every getPeriod() seconds */

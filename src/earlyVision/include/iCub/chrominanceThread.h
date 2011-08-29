@@ -92,6 +92,12 @@ kirschListOfNegKernels;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *chromUplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *chromVplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *chromUnXtnIntensImg;              //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *logPolarOrientImg;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ori0;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ori45;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ori90;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *oriM45;
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *oriAll;
    
     KirschOutputImage *o0;
     KirschOutputImage *o45;
@@ -104,6 +110,8 @@ kirschListOfNegKernels;
     KirschOutputImage *totalKirsch;
     KirschOutputImage *listOfPosKir[4];
     KirschOutputImage *listOfNegKir[4];
+
+    float wtForEachOrientation[4];
     
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
@@ -198,7 +206,19 @@ public:
     */
     void orientation();
 
-    void maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage);    
+    void maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage); 
+
+    /* to suspend and resume the thread processing
+    */
+    void suspend(){
+        printf("suspending chrome thread\n");
+        RateThread::suspend();      // LATER: some sanity checks
+    }
+
+    void resume(){
+        printf("resuming chrome thread\n");
+        RateThread::resume();
+    }   
    
 
     /* Some handy get-set methods
@@ -228,7 +248,12 @@ public:
     inline void setFlagForThreadProcessing(bool v){
          //atomic operation
          chromeThreadProcessing = v;         
-    }  
+    } 
+
+    inline void setWeightForOrientation(int orientNbr, float val){
+        assert(orientNbr>=0 && orientNbr<=3);
+        wtForEachOrientation[orientNbr] = val;
+    } 
     
 };
 

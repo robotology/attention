@@ -152,6 +152,23 @@
 //within project includes  
 #include <iCub/earlyVisionThread.h>
 
+//defining Vocabs
+#define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
+#define COMMAND_VOCAB_QUIT VOCAB4('q','u','i','t')
+#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+#define COMMAND_VOCAB_OK VOCAB2('o','k')
+#define COMMAND_VOCAB_SUSPEND VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RESUME VOCAB3('r','e','s')
+#define COMMAND_VOCAB_HOR VOCAB3('h','o','r')
+#define COMMAND_VOCAB_VER VOCAB3('v','e','r')
+#define COMMAND_VOCAB_45 VOCAB3('o','4','5')
+#define COMMAND_VOCAB_M45 VOCAB4('o','M','4','5')
+#define COMMAND_VOCAB_WEIGHT VOCAB1('w')
+#define COMMAND_VOCAB_CHROME_THREAD VOCAB3('c','h','r')
+#define COMMAND_VOCAB_EDGES_THREAD VOCAB3('e','d','g')
+
+
+
 class earlyVisionModule:public yarp::os::RFModule
 {
    /* module parameters */
@@ -166,7 +183,8 @@ class earlyVisionModule:public yarp::os::RFModule
 
    yarp::os::Port handlerPort;      // a port to handle messages 
    /* pointer to a new thread to be created and started in configure() and stopped in close() */
-   earlyVisionThread *evThread; 
+   earlyVisionThread *evThread;
+   yarp::os::Semaphore respondLock; // to lock updating through respond 
    
 
 public:

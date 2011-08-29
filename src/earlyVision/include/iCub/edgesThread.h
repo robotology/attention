@@ -151,6 +151,18 @@ public:
     */
     void edgesExtract();
 
+     /* to suspend and resume the thread processing
+    */
+    void suspend(){
+        printf("suspending edges thread\n");
+        RateThread::suspend();      // LATER: some sanity checks
+    }
+
+    void resume(){
+        printf("resuming edges thread\n");
+        RateThread::resume();
+    } 
+
     
     inline bool getFlagForDataReady(){
         

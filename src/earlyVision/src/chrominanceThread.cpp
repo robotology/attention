@@ -63,7 +63,13 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     listOfNegKir[1]      = new KirschOutputImage;    
     listOfNegKir[2]      = new KirschOutputImage;    
     listOfNegKir[3]      = new KirschOutputImage;    
-    cartIntensImg       = new ImageOf<PixelMono>;    
+    cartIntensImg       = new ImageOf<PixelMono>; 
+    logPolarOrientImg   = new ImageOf<PixelMono>;
+    ori0                = new ImageOf<PixelMono>;
+    ori45               = new ImageOf<PixelMono>;
+    ori90               = new ImageOf<PixelMono>;
+    oriM45              = new ImageOf<PixelMono>;
+    oriAll              = new ImageOf<PixelMono>;
 
     kirschSalPos0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
     kirschSalPos45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r2,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
@@ -86,6 +92,10 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     kirschLimits[2][1] = 2.0;
     kirschLimits[3][0] = 0;
     kirschLimits[3][1] = 2.0;
+
+    for(int i=0; i<4; ++i) {
+        wtForEachOrientation[i]= 1/4.0; // equal weights by default
+    }
     
 
     
@@ -172,19 +182,13 @@ void chrominanceThread::run() {
           if(getFlagForDataReady() && resized){  
                                
                 setFlagForThreadProcessing(true);
-                struct timeval st,lpTime,csTime,oriTime;
-                gettimeofday(&st, NULL);
                 lpMono.logpolarToCart(*cartIntensImg,*chromUnXtnIntensImg);
-                gettimeofday(&lpTime, NULL);
                 // Center-surround
                 //centerSurrounding();
-                gettimeofday(&csTime, NULL);
                 //printf("before colour opponency \n");
                 orientation();
-                gettimeofday(&oriTime, NULL);
-                printf("LgP %ld cs%ld ori%ld \n",lpTime.tv_usec-st.tv_usec,csTime.tv_usec-lpTime.tv_usec,oriTime.tv_usec-csTime.tv_usec);
-                setFlagForThreadProcessing(false);           
-
+                
+                setFlagForThreadProcessing(false);
                 setFlagForDataReady(false);
         }    
 }
@@ -201,10 +205,19 @@ void chrominanceThread::resize(int width_orig,int height_orig) {
     chromUnXtnIntensImg->resize(width_orig,height_orig);
     cartIntensImg->resize(CART_ROW_SIZE, CART_COL_SIZE);
     // for Kirsch
+    // float images
     o0->resize(CART_ROW_SIZE, CART_COL_SIZE);
     o45->resize(CART_ROW_SIZE, CART_COL_SIZE);
     o90->resize(CART_ROW_SIZE, CART_COL_SIZE);
     oM45->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    // uchar images
+    ori0->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    ori45->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    ori90->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    oriM45->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    oriAll->resize(CART_ROW_SIZE, CART_COL_SIZE);    
+    logPolarOrientImg->resize(ROW_SIZE,COL_SIZE);
+
     tmpKirschCartImage1->resize(CART_ROW_SIZE, CART_COL_SIZE);
     tmpKirschCartImage2->resize(CART_ROW_SIZE, CART_COL_SIZE);
     tmpKirschCartImage3->resize(CART_ROW_SIZE, CART_COL_SIZE);
@@ -267,26 +280,26 @@ void chrominanceThread::orientation() {
     int cartesHeight = cartIntensImg->height();
 
     // orientation port
-    ImageOf<PixelMono>& ori0   = orientPort0.prepare();    
-    ImageOf<PixelMono>& ori45  = orientPort45.prepare();    
-    ImageOf<PixelMono>& ori90  = orientPort90.prepare();    
-    ImageOf<PixelMono>& oriM45 = orientPortM45.prepare();
+    ImageOf<PixelMono>& oPort0   = orientPort0.prepare();    
+    ImageOf<PixelMono>& oPort45  = orientPort45.prepare();    
+    ImageOf<PixelMono>& oPort90  = orientPort90.prepare();    
+    ImageOf<PixelMono>& oPortM45 = orientPortM45.prepare();
     ImageOf<PixelMono>& totImg = totalOrientImagePort.prepare();
     
-    ori0.resize(cartesWidth,cartesHeight);
-    ori45.resize(cartesWidth,cartesHeight);
-    ori90.resize(cartesWidth,cartesHeight);
-    oriM45.resize(cartesWidth,cartesHeight);
-    totImg.resize(cartesWidth,cartesHeight);
+    // resize images to logpolar dimension
+    oPort0.resize(ROW_SIZE,COL_SIZE);
+    oPort45.resize(ROW_SIZE,COL_SIZE);
+    oPort90.resize(ROW_SIZE,COL_SIZE);
+    oPortM45.resize(ROW_SIZE,COL_SIZE);
+    totImg.resize(ROW_SIZE,COL_SIZE);
+    
 
-    struct timeval stCon, PosCon, NegCon;
-    gettimeofday(&stCon,NULL);
     // using Kirsch cum positive Gaussian matrix
     kirschSalPos0->convolve2D(cartIntensImg,o0);
     kirschSalPos45->convolve2D(cartIntensImg,o45);
     kirschSalPos90->convolve2D(cartIntensImg,o90);
     kirschSalPos45->convolve2D(cartIntensImg,oM45);
-    gettimeofday(&PosCon,NULL); 
+    
 
     // using Kirsch cum Negative gaussian matrix
     kirschSalNeg0->convolve2D(cartIntensImg,tmpKirschCartImage1); 
@@ -298,13 +311,12 @@ void chrominanceThread::orientation() {
     kirschListOfNegKernels->convolve2Dlist(cartIntensImg,listOfNegKir);
 */
 
-    gettimeofday(&NegCon,NULL); 
-    printf("pos %ld neg%ld \n",PosCon.tv_usec-stCon.tv_usec,NegCon.tv_usec-PosCon.tv_usec);  
+    
 
-    uchar* ori[4]= {(uchar*)ori0.getRawImage(),
-                    (uchar*)ori45.getRawImage(),
-                    (uchar*)ori90.getRawImage(),
-                    (uchar*)oriM45.getRawImage()};
+    uchar* ori[4]= {(uchar*)ori0->getRawImage(),
+                    (uchar*)ori45->getRawImage(),
+                    (uchar*)ori90->getRawImage(),
+                    (uchar*)oriM45->getRawImage()};
 
     float *ptrTotKir = (float*)totalKirsch->getRawImage();
 
@@ -319,7 +331,7 @@ void chrominanceThread::orientation() {
                                     (KirschOutputImagePtr*)tmpKirschCartImage4->getRawImage()};
 
      
-    const int pad_output = ori0.getPadding() / sizeof(uchar);
+    const int pad_output = ori0->getPadding() / sizeof(uchar);
     int padK             = o0->getPadding()  / sizeof(KirschOutputImagePtr); 
        
 
@@ -334,8 +346,8 @@ void chrominanceThread::orientation() {
 
     float multiplier = 1;
     float multiplierForNeg = .33;
-    for (int row = 0; row < ori0.height(); row++) {
-        for (int col = 0; col < ori0.width(); col++) {
+    for (int row = 0; row < ori0->height(); row++) {
+        for (int col = 0; col < ori0->width(); col++) {
 
 #ifdef USE_PROPORTIONAL_KIRSCH //-------------------------------------
             //if() {
@@ -362,8 +374,11 @@ void chrominanceThread::orientation() {
                         *ori[1] = tmpV1 ;
                         *ori[2] = tmpV2 ;
                         *ori[3] = tmpV3 ;
-                        *ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
-                                                
+                        //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
+                        *ptrTotKir =    wtForEachOrientation[0]*tmpV0 +
+                                        wtForEachOrientation[1]*tmpV1 +
+                                        wtForEachOrientation[2]*tmpV2 +
+                                        wtForEachOrientation[3]*tmpV3 ;                     
                     
                 }
                 else {
@@ -377,7 +392,11 @@ void chrominanceThread::orientation() {
                         *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
                         *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
                         *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
-                        *ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
+                        //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
+                        *ptrTotKir =    wtForEachOrientation[0]*tmpV0 +
+                                        wtForEachOrientation[1]*tmpV1 +
+                                        wtForEachOrientation[2]*tmpV2 +
+                                        wtForEachOrientation[3]*tmpV3 ; 
                         
                 }
                 
@@ -394,7 +413,11 @@ void chrominanceThread::orientation() {
                 *ori[1] = max(l,min(u,255*tmpV1));
                 *ori[2] = max(l,min(u,255*tmpV2));
                 *ori[3] = max(l,min(u,255*tmpV3));
-                *ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
+                //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
+                *ptrTotKir =    wtForEachOrientation[0]*tmpV0 +
+                                        wtForEachOrientation[1]*tmpV1 +
+                                        wtForEachOrientation[2]*tmpV2 +
+                                        wtForEachOrientation[3]*tmpV3 ;
              
 #endif //---------------------------------------------------------------
             ori[0]++;
@@ -431,13 +454,21 @@ void chrominanceThread::orientation() {
 
     kirschIsNormalized++;
 
-    cvConvertScale((IplImage*)totalKirsch->getIplImage(),(IplImage*)totImg.getIplImage(),255,0);
+    cvConvertScale((IplImage*)totalKirsch->getIplImage(),(IplImage*)oriAll->getIplImage(),255,0);
+
+    lpMono.cartToLogpolar(totImg,*oriAll);
+    lpMono.cartToLogpolar(oPort0,*ori0);
+    lpMono.cartToLogpolar(oPort45,*ori45);
+    lpMono.cartToLogpolar(oPort90,*ori90);
+    lpMono.cartToLogpolar(oPortM45,*oriM45);
+    
+    
     
 #ifdef DEBUG_OPENCV
     cvNamedWindow("Original");
-    cvShowImage("Original",(IplImage*)cartIntensImg->getIplImage());
+    cvShowImage("Original",(IplImage*)totImg.getIplImage());
     cvNamedWindow("Sum");
-    cvShowImage("Sum",  (IplImage*)totImg.getIplImage());    
+    cvShowImage("Sum",  (IplImage*)oPort0.getIplImage());    
     cvWaitKey(2);
 #endif
      
@@ -482,6 +513,12 @@ void chrominanceThread::threadRelease() {
     delete totalKirsch;
     delete []listOfNegKir;        
     delete cartIntensImg;
+    delete logPolarOrientImg;
+    delete ori0;
+    delete ori45;
+    delete ori90;
+    delete oriM45;
+    delete oriAll;
     
     printf("done with release\n");
     
