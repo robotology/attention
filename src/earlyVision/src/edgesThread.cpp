@@ -28,11 +28,6 @@
 
 #include <cstring>
 
-#define ONE_BY_ROOT_TWO 0.707106781
-#define ONE_BY_ROOT_THREE 0.577350269
-#define USE_PROPORTIONAL_KIRSCH
-#define NO_DEBUG_OPENCV //DEBUG_OPENCV //
-
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
@@ -45,8 +40,7 @@ edgesThread::edgesThread():RateThread(RATE_OF_EDGES_THREAD) {
 
     intensityImage      = new ImageOf<PixelMono>;
     tmpMonoSobelImage1  = new SobelOutputImage;
-    tmpMonoSobelImage2  = new SobelOutputImage;
-    //intensityImage      = NULL;
+    tmpMonoSobelImage2  = new SobelOutputImage;    
 
     sobel2DXConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DXgrad,SOBEL_FACTOR,SOBEL_SHIFT);
     sobel2DYConvolution = new convolve<ImageOf<PixelMono>,uchar,SobelOutputImage,SobelOutputImagePtr>(5,5,Sobel2DYgrad,SOBEL_FACTOR,SOBEL_SHIFT);
@@ -59,7 +53,7 @@ edgesThread::edgesThread():RateThread(RATE_OF_EDGES_THREAD) {
 
 edgesThread::~edgesThread() {
     
-    
+ printf("Edges thread object destroyed.\n");   
     
     
 }
@@ -89,32 +83,26 @@ std::string edgesThread::getName(const char* p) {
 
 void edgesThread::run() {
     
-    //printf("running edges thread \n");
-    
+    if(getFlagForDataReady() && resized) {              
 
-        // skip if data is not ready yet
-        //while(!getFlagForDataReady()) {};  
-        if(getFlagForDataReady() && resized) {              
-
-            // extract edges
-            edgesExtract();  
-            setFlagForDataReady(false);
+        // extract edges
+        edgesExtract();  
+        setFlagForDataReady(false);
             
-        }       
-        
+    }       
     
 }
 
-
-
-void edgesThread::resize(int width_orig,int height_orig) { 
+void edgesThread::resize(int w,int h) { 
     
-    this->widthLP = width_orig;
-    this->heightLP = height_orig;
+    this->widthLP = w;
+    this->heightLP = h;
+    this->widthUnXnt = w- 2*maxKernelSize;
+    this->heightUnXnt = h - maxKernelSize;
 
-    intensityImage->resize(width_orig,height_orig);
-    tmpMonoSobelImage1->resize(width_orig,height_orig);
-    tmpMonoSobelImage2->resize(width_orig,height_orig);
+    intensityImage->resize(w,h);
+    tmpMonoSobelImage1->resize(w,h);
+    tmpMonoSobelImage2->resize(w,h);
     resized = true;   
 }
 
@@ -127,7 +115,7 @@ void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
        setFlagForDataReady(false);
         // allocate
         if(!resized){
-            resize(I->width(), I->height());
+            resize(I->width(), I->height());        // I is the extended intensity image
         }        
 
         // deep-copy
@@ -144,26 +132,22 @@ void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
         setFlagForDataReady(true);    
         
     }
-         
-
 }
 
-
-
 void edgesThread::edgesExtract() {
-    //printf("going to edge extract planes in edges thread\n");
+    
     ImageOf<PixelMono>& edgesPortImage = edges.prepare();
-    //ImageOf<PixelMono> edgesPortImage;
-    edgesPortImage.resize(intensityImage->width(),intensityImage->height());
+    edgesPortImage.resize(widthUnXnt,heightUnXnt);
 
     setFlagForThreadProcessing(true);
+
     // X derivative 
     tmpMonoSobelImage1->zero();
     sobel2DXConvolution->convolve2D(intensityImage,tmpMonoSobelImage1);
-
+    
     // Y derivative
     tmpMonoSobelImage2->zero();     // This can be removed 
-    sobel2DYConvolution->convolve2D(intensityImage,tmpMonoSobelImage2);    
+    sobel2DYConvolution->convolve2D(intensityImage,tmpMonoSobelImage2);     
 
     setFlagForThreadProcessing(false);    
 
@@ -175,14 +159,16 @@ void edgesThread::edgesExtract() {
     SobelOutputImagePtr* ptrVert = (SobelOutputImagePtr*)tmpMonoSobelImage2->getRawImage();
      
     const int pad_edges = edgesPortImage.getPadding()/sizeof(uchar);
-    int padHorz = tmpMonoSobelImage1->getPadding()/sizeof(SobelOutputImagePtr);
-    int padVert = tmpMonoSobelImage2->getPadding()/sizeof(SobelOutputImagePtr);
+    int padHorz = tmpMonoSobelImage1->getPadding()/sizeof(SobelOutputImagePtr) + 2*maxKernelSize;
+    int padVert = tmpMonoSobelImage2->getPadding()/sizeof(SobelOutputImagePtr) + 2*maxKernelSize;
 
     // Does not consider extended portion
-    float normalizingRatio = 255.0/(sobelLimits[0]-sobelLimits[1]);
-    for (int row = 0; row < edgesPortImage.height(); row++) {
-        for (int col = 0; col < edgesPortImage.width(); col++) {
+    ptrHorz += maxKernelSize*(tmpMonoSobelImage1->getRowSize()/sizeof(SobelOutputImagePtr)) + maxKernelSize;
+    ptrVert += maxKernelSize*(tmpMonoSobelImage2->getRowSize()/sizeof(SobelOutputImagePtr)) + maxKernelSize;
 
+    float normalizingRatio = 255.0/(sobelLimits[0]-sobelLimits[1]);
+    for (int row = 0; row < this->heightUnXnt; row++) {
+        for (int col = 0; col < this->widthUnXnt; col++) {
             
             double rg = sqrt((*ptrHorz ) * (*ptrHorz ) + (*ptrVert ) * (*ptrVert ))*0.707106781;
             
@@ -202,8 +188,8 @@ void edgesThread::edgesExtract() {
         }
         // padding
         pedges += pad_edges;
-        ptrHorz += padHorz;
-        ptrVert += padVert;        
+        ptrHorz += padHorz ;
+        ptrVert += padVert ;        
     } 
 
     sobelIsNormalized++;
@@ -214,26 +200,23 @@ void edgesThread::edgesExtract() {
     cvWaitKey(2);
     //cvDestroyWindow("Edges");
 #endif
-    //printf("Done with edges \n");
+    
     edges.write();
     
 }
 
-
-
 void edgesThread::threadRelease() {
     
-    printf("Releasing\n");
+    printf("Releasing edges thread ...\n");
+    //edges.interrupt();
+    //edges.close();
 
     //deallocating resources
     delete intensityImage;
     delete tmpMonoSobelImage1;
-    delete tmpMonoSobelImage2;
-    
-    edges.interrupt();
-    edges.close();
+    delete tmpMonoSobelImage2;  
 
-    printf("done with release\n");
+    printf("Done with releasing edges thread\n");
     
 }
 

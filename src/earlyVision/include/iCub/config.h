@@ -34,6 +34,14 @@
 #define ONE_BY_ROOT_THREE 0.577350269
 #define NO_DEBUG_OPENCV //DEBUG_OPENCV //
 
+#define maxKernelSize 5
+#define ROW_SIZE 252
+#define COL_SIZE 152
+#define CART_ROW_SIZE 320
+#define CART_COL_SIZE 240
+#define XTN_ROW_SIZE ROW_SIZE+2*maxKernelSize
+#define XTN_COL_SIZE COL_SIZE+maxKernelSize
+
 #define RATE_OF_EDGES_THREAD 100    // 30 Hz
 #define RATE_OF_INTEN_THREAD 33    // approx 30 Hz
 #define RATE_OF_CHROME_THREAD 50    // 15 Hz
@@ -162,7 +170,7 @@ static float K8[9] = {  -3,  	-3,  	-3,
                         -3, 	0, 	+5,
                         -3, 	+5, 	+5};
 
-const int maxKernelSize = 5;
+
 
 
 // KIRSCH and Pos-Neg Gaussian combined, generated from MATLAB script

@@ -88,7 +88,7 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
 
 earlyVisionThread::~earlyVisionThread() {
     
-    
+  printf("earlyVisionThread::~earlyVisionThread() \n");  
        
 }
 
@@ -425,7 +425,7 @@ void earlyVisionThread::extractPlanes() {
     }
 
     if(!edThread->getFlagForThreadProcessing()){
-        edThread->copyRelevantPlanes(unXtnIntensImg);
+        edThread->copyRelevantPlanes(intensImg);
     }
     
     
@@ -549,35 +549,25 @@ void earlyVisionThread::colorOpponency(){
 
 void earlyVisionThread::centerSurrounding(){
 
-        //printf("Going to centerSurrounding planes in chrome thread\n");
+        
         
         // Allocate temporarily
-        //ImageOf<PixelMono> _Y,_UV,_V;
         ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
         _Y.resize(this->width_orig,this->height_orig);
+
         ImageOf<PixelMono>& _UV = chromPort.prepare();
         _UV.resize(this->width_orig,this->height_orig);
         
         ImageOf<PixelMono>& _V = VofHSVPort.prepare();
         _V.resize(this->width_orig,this->height_orig);
-        //cvNamedWindow("test");
-        //cvShowImage("test",(IplImage*)(cartIntensImg->getIplImage()));
-        //cvWaitKey(0);
+        
         
         if(true){
-                //performs centre-surround uniqueness analysis on first plane
-                
+                //performs centre-surround uniqueness analysis on first plane                
                 centerSurr->proc_im_8u( (IplImage*)unXtnYplane->getIplImage(),(IplImage*)_Y.getIplImage());
-                //cvNamedWindow("_Y");
-                //cvShowImage("_Y",(IplImage*)unXtnYplane->getIplImage());
-                //cvWaitKey(2);
-                cvSet(cs_tot_32f,cvScalar(0));
-                //cvNamedWindow("test");
-                //cvShowImage("test",(IplImage*)(chromUplane->getIplImage()));
-                //cvWaitKey(0);
                 
-                if (isYUV){                 
-                
+                cvSet(cs_tot_32f,cvScalar(0));                
+                if (isYUV){               
                     //performs centre-surround uniqueness analysis on second plane:
                     centerSurr->proc_im_8u( (IplImage*)(unXtnUplane->getIplImage()),scs_out);
                     cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?                    
@@ -601,51 +591,11 @@ void earlyVisionThread::centerSurrounding(){
                 else{
                     //performs centre-surround uniqueness analysis on second plane:
                     centerSurr->proc_im_8u( (IplImage*)(this->unXtnUplane->getIplImage()),(IplImage*)_UV.getIplImage() );
+
                     //Colour process V:performs centre-surround uniqueness analysis:
                     centerSurr->proc_im_8u( (IplImage*)(this->unXtnVplane->getIplImage()), (IplImage*)_V.getIplImage());
-                }               
-                    
-                
- /*              
-
-                //this is nasty, resizes the images...
-                unsigned char* imgY = img_Y->getPixelAddress( maxKernelSize, maxKernelSize );
-                unsigned char* imgUV = img_UV->getPixelAddress( maxKernelSize, maxKernelSize );
-                unsigned char* imgV;
-                unsigned char* imgVo;
-
-                if (!isYUV){
-                   imgV = img_V->getPixelAddress( maxKernelSize, maxKernelSize );
-                   imgVo = _V.getRawImage();
-                }
-                
-                unsigned char* imgYo = _Y.getRawImage();
-                unsigned char* imgUVo = _UV.getRawImage();
-                int rowsize= _Y.getRowSize();
-                int rowsize2= img_Y->getRowSize();
-
-                for(int row=0; row<height_orig; row++) {
-                    for(int col=0; col<width_orig; col++) {
-                        *imgYo  = *imgY;
-                        *imgUVo = *imgUV;
-                        if (!isYUV) {
-                            *imgVo = *imgV;
-                            imgVo++;  imgV++;          
-                        }
-                        imgYo++;  imgUVo++;
-                        imgY++;   imgUV++;
-                    }    
-                    imgYo+=rowsize - width_orig;
-                    imgUVo+=rowsize - width_orig;
-                    imgY+=rowsize2 - width_orig;
-                    imgUV+=rowsize2 - width_orig;
-                    if (!isYUV) {
-                        imgVo+=rowsize - width_orig;
-                        imgV+=rowsize2 - width_orig;       
-                    }
-                }
-
-  */              
+                }                   
+             
                 //output Y centre-surround results to ports
                 if (intensityCSPort.getOutputCount() ){
                     intensityCSPort.write();
@@ -679,9 +629,12 @@ void earlyVisionThread::centerSurrounding(){
 }
 
 void earlyVisionThread::threadRelease() {    
-    printf("Releasing\n");
+    printf("Releasing earlyVision thread ... \n");
 
     resized = false;
+
+    edThread->stop();
+    chromeThread->stop();    
 
     // deallocating resources
     delete inputImage;
@@ -715,20 +668,23 @@ void earlyVisionThread::threadRelease() {
     delete unXtnYplane;
     delete unXtnUplane;
     delete unXtnVplane;
-   
-    imagePortIn.interrupt();
-    intenPort.interrupt();
-    colorOpp1Port.interrupt();
+    
+    //imagePortIn.interrupt();
+    //intenPort.interrupt();
+    /*colorOpp1Port.interrupt();
     colorOpp2Port.interrupt();
-    colorOpp3Port.interrupt();    
+    colorOpp3Port.interrupt();*/    
     
-    imagePortIn.close();
-    intenPort.close();
-    colorOpp1Port.close();
+    //imagePortIn.close();
+    //intenPort.close();
+    /*colorOpp1Port.close();
     colorOpp2Port.close();
-    colorOpp3Port.close();
+    colorOpp3Port.close();*/
+
+    //delete edThread;
+    //delete chromeThread;
     
-    printf("done with release\n");
+    printf("Done with releasing earlyVision thread.\n");
     
 }
 

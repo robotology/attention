@@ -79,7 +79,7 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
 
     
 
-    printf("flag done \n");
+    printf("\nflag done \n");
     /* now start the thread to do the work */
     evThread->start(); // this calls threadInit() and it if returns true, it then calls run()   
         
@@ -91,15 +91,20 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
 
 bool earlyVisionModule::interruptModule()
 {
-    handlerPort.interrupt();
+    printf("Interrupting early vision module..... \n");
+    //handlerPort.interrupt();
+    printf("Done with interrupting early vision module.\n");
     return true;
 }
 
 bool earlyVisionModule::close()
 {
-    handlerPort.close();
+    printf("Closing early vision module..... \n");    
     /* stop the thread */
     evThread->stop();
+    //printf("Trying to close handler port\n");
+    //handlerPort.close();
+    printf("Done with closing early vision module.\n");
     //delete evThread;
     return true;
 }
@@ -148,24 +153,31 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
         }
         break;
     case COMMAND_VOCAB_WEIGHT:
-        rec = true;
         {
             switch(command.get(1).asVocab()){
             case COMMAND_VOCAB_HOR:
                 evThread->chromeThread->setWeightForOrientation(0,command.get(2).asDouble());
                 reply.addString("changed weight for horizontal orientation");
+                rec = true;
+                ok = true;
                 break;
             case COMMAND_VOCAB_45:
                 evThread->chromeThread->setWeightForOrientation(1,command.get(2).asDouble());
                 reply.addString("changed weight for 45 deg orientation");
+                rec = true;
+                ok = true;
                 break;
             case COMMAND_VOCAB_VER:
                 evThread->chromeThread->setWeightForOrientation(2,command.get(2).asDouble());
                 reply.addString("changed weight for vertical orientation");
+                rec = true;
+                ok = true;
                 break;
             case COMMAND_VOCAB_M45:
                 evThread->chromeThread->setWeightForOrientation(3,command.get(2).asDouble());
                 reply.addString("changed weight for -45 deg orientation");
+                rec = true;
+                ok = true;
                 break;
             default:
                 rec = false;
@@ -174,39 +186,50 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
             }
 
         }
-        ok = true;
         break;
     case COMMAND_VOCAB_SUSPEND:
-        rec = true;
         {
             switch(command.get(1).asVocab()){
             case COMMAND_VOCAB_CHROME_THREAD:
                 evThread->chromeThread->suspend();
                 reply.addString("suspending chrome thread");
+                rec = true;
+                ok = true;
                 break;
             case COMMAND_VOCAB_EDGES_THREAD:
                 evThread->edThread->suspend();
                 reply.addString("suspending edges thread");
+                rec = true;
+                ok = true;
+                break;
+            default:
+                rec = false;
+                ok = false;
                 break;
             }
         }
-        ok = true;
         break;
     case COMMAND_VOCAB_RESUME:
-        rec = true;
         {
             switch(command.get(1).asVocab()){
             case COMMAND_VOCAB_CHROME_THREAD:
                 evThread->chromeThread->resume();
                 reply.addString("resuming chrome thread");
+                rec = true;
+                ok = true;
                 break;
             case COMMAND_VOCAB_EDGES_THREAD:
                 evThread->edThread->resume();
                 reply.addString("resuming edges thread");
+                rec = true;
+                ok = true;
+                break;
+            default:
+                rec = false;
+                ok = false;
                 break;
             }
         }
-        ok = true;
         break;
     default:
         rec = false;

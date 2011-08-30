@@ -43,12 +43,11 @@
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
-//#include "opencv2/imgproc/imgproc.hpp"
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 
-#include <iCub/convolve.h> // LATER: To be using this convolution than the openCV one
+#include <iCub/convolve.h> 
 
 #define ngs 4
 #define N_LANCZOS 7     // 'a' for LANCZOS

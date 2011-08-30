@@ -56,15 +56,6 @@
 
 #define MONO_PIXEL_SIZE 1
 
-
-#define ROW_SIZE 252
-#define COL_SIZE 152
-#define CART_ROW_SIZE 320
-#define CART_COL_SIZE 240
-
-#define POS_GAUSSIAN 5
-#define NEG_GAUSSIAN 7
-
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8
@@ -83,8 +74,10 @@ sobel2DYConvolution;
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edges;    
 
-    int widthLP;         // original width of logpolar image
-    int heightLP;   
+    int widthLP;         // original width of logpolar image 
+    int heightLP;
+    int widthUnXnt;
+    int heightUnXnt;   
     
     bool edgesThreadIsProcessing;
     bool dataReadyForEdgesThread;

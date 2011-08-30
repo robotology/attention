@@ -33,16 +33,10 @@
 #include <yarp/os/Stamp.h>
 /* Log-Polar includes */
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
-//#include <yarp/sig/IplImage.h>
 
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_fft_complex.h>
-#include <gsl/gsl_sort_double.h>
-#include <gsl/gsl_statistics.h>
-
 
 #include <iCub/logPolar.h>
 
@@ -51,10 +45,6 @@
 #include <iCub/centerSurround.h>
 #include <iCub/chrominanceThread.h>
 #include <iCub/edgesThread.h>
-
-
-//#include <Eigen/Dense>
-
 
 
 #define MONO_PIXEL_SIZE 1

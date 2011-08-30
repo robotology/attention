@@ -254,6 +254,10 @@ public:
         assert(orientNbr>=0 && orientNbr<=3);
         wtForEachOrientation[orientNbr] = val;
     } 
+    inline float getWeightForOrientation(int orientNbr, float val){
+        assert(orientNbr>=0 && orientNbr<=3);
+        wtForEachOrientation[orientNbr] = val;
+    }
     
 };
 
