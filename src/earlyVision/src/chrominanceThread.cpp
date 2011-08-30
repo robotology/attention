@@ -344,6 +344,14 @@ void chrominanceThread::orientation() {
 
     float multiplier = 1;
     float multiplierForNeg = .33;
+    float normalizingFactor = 1.0/(wtForEachOrientation[0]+wtForEachOrientation[1]
+                                + wtForEachOrientation[2]+wtForEachOrientation[3]);
+    normalizingFactor = min((float)1000.0,max((float).001,normalizingFactor));      //against nan
+    // normalized weights
+    float w0 = wtForEachOrientation[0]*normalizingFactor;
+    float w1 = wtForEachOrientation[1]*normalizingFactor;
+    float w2 = wtForEachOrientation[2]*normalizingFactor;
+    float w3 = wtForEachOrientation[3]*normalizingFactor;
     for (int row = 0; row < ori0->height(); row++) {
         for (int col = 0; col < ori0->width(); col++) {
 
@@ -373,10 +381,10 @@ void chrominanceThread::orientation() {
                         *ori[2] = tmpV2 ;
                         *ori[3] = tmpV3 ;
                         //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
-                        *ptrTotKir =    wtForEachOrientation[0]*tmpV0 +
-                                        wtForEachOrientation[1]*tmpV1 +
-                                        wtForEachOrientation[2]*tmpV2 +
-                                        wtForEachOrientation[3]*tmpV3 ;                     
+                        *ptrTotKir =    w0*tmpV0 +
+                                        w1*tmpV1 +
+                                        w2*tmpV2 +
+                                        w3*tmpV3 ;                     
                     
                 }
                 else {
@@ -391,10 +399,10 @@ void chrominanceThread::orientation() {
                         *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
                         *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
                         //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
-                        *ptrTotKir =    wtForEachOrientation[0]*tmpV0 +
-                                        wtForEachOrientation[1]*tmpV1 +
-                                        wtForEachOrientation[2]*tmpV2 +
-                                        wtForEachOrientation[3]*tmpV3 ; 
+                        *ptrTotKir =    w0*tmpV0 +
+                                        w1*tmpV1 +
+                                        w2*tmpV2 +
+                                        w3*tmpV3 ;  
                         
                 }
                 
@@ -412,10 +420,10 @@ void chrominanceThread::orientation() {
                 *ori[2] = max(l,min(u,255*tmpV2));
                 *ori[3] = max(l,min(u,255*tmpV3));
                 //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
-                *ptrTotKir =    wtForEachOrientation[0]*tmpV0 +
-                                        wtForEachOrientation[1]*tmpV1 +
-                                        wtForEachOrientation[2]*tmpV2 +
-                                        wtForEachOrientation[3]*tmpV3 ;
+                *ptrTotKir =    w0*tmpV0 +
+                                        w1*tmpV1 +
+                                        w2*tmpV2 +
+                                        w3*tmpV3 ; 
              
 #endif //---------------------------------------------------------------
             ori[0]++;
