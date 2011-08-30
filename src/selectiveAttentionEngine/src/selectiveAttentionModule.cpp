@@ -201,7 +201,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     /* parses the value of the coefficient map3 */
     k3       = rf.check("k3", 
-                           Value(0.2), 
+                           Value(0.4), 
                            "coefficient map1 (double)").asDouble();
     currentProcessor->setK3(k3);
 
@@ -247,6 +247,18 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     kc1       = rf.check("kc1", 
                            Value(0.0), 
                            "coefficient map cartesian1 (double)").asDouble();
+
+    //checking if the earlyResponse stages are activated
+    if (rf.check("earlyStage")) {
+        currentProcessor->setEarlyStage(true);
+        printf("earlyStage active .... \n");
+    }
+    else {
+        currentProcessor->setEarlyStage(false);
+        printf("earlyStage not active \n");
+        //the default value for arbiter->visualCorrection is false
+    }
+    
     currentProcessor->setKC1(kc1);
     currentProcessor->setRobotName(robotName);
     currentProcessor->start();

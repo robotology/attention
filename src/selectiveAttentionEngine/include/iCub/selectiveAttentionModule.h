@@ -172,6 +172,7 @@
  * - set kc1 : coefficient for linear combination of cartesian images
  * - set lhan : forces to redirect saccades only where the hand is located
  * 
+ * - earlyStage : set active the earlySTage asynchronous process
  * 
  * \section in_files_sec Input Data Files
  * none
@@ -227,7 +228,8 @@
  * @09/08/11 : changed the names of the ports to better align it to the biology                  author:Rea\n
  * @11/08/11 : changed the visiting algorithm for the image                                      author:Rea\n
  * @25/08/11 : added flags to be compatible with the previous versions of the visual att.        author:Rea\n
-*/
+ * @30/08/11 : setting the flag of the earlyStage using resource finder                          author:Rea\n
+ */
 
 
 class selectiveAttentionModule : public yarp::os::RFModule {

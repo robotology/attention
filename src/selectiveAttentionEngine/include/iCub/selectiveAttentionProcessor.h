@@ -296,10 +296,16 @@ public:
     void setSaccadicInterval(int interval);
     
     /*
-     * function that declare whether to perform saccadic movement with gazeControl
+     * function that declares whether to perform saccadic movement with gazeControl
      * @param value It is true when the saccadic movement is performed
      */
     void setGazePerform(bool value);
+
+    /*
+     * function that declares whether to earlyStage is active
+     * @param value It is true when earlyStage is active
+     */
+    void setEarlyStage(bool value) {earlystage = value; };
     
     /**
      * function that returns the value of the saccadicInterval
