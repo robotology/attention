@@ -81,10 +81,8 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
 
     printf("\nflag done \n");
     /* now start the thread to do the work */
-    evThread->start(); // this calls threadInit() and it if returns true, it then calls run()   
-        
+    evThread->start(); // this calls threadInit() and it if returns true, it then calls run()        
     
-
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
 }
@@ -117,6 +115,7 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
 
     bool ok = false;
     bool rec = false; // is the command recognized?
+    double wt=0;
 
     respondLock.wait();
     switch (command.get(0).asVocab()) {
@@ -152,41 +151,98 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
             ok = false;
         }
         break;
-    case COMMAND_VOCAB_WEIGHT:
+    case COMMAND_VOCAB_SET:
         {
             switch(command.get(1).asVocab()){
-            case COMMAND_VOCAB_HOR:
-                evThread->chromeThread->setWeightForOrientation(0,command.get(2).asDouble());
-                reply.addString("changed weight for horizontal orientation");
-                rec = true;
-                ok = true;
-                break;
-            case COMMAND_VOCAB_45:
-                evThread->chromeThread->setWeightForOrientation(1,command.get(2).asDouble());
-                reply.addString("changed weight for 45 deg orientation");
-                rec = true;
-                ok = true;
-                break;
-            case COMMAND_VOCAB_VER:
-                evThread->chromeThread->setWeightForOrientation(2,command.get(2).asDouble());
-                reply.addString("changed weight for vertical orientation");
-                rec = true;
-                ok = true;
-                break;
-            case COMMAND_VOCAB_M45:
-                evThread->chromeThread->setWeightForOrientation(3,command.get(2).asDouble());
-                reply.addString("changed weight for -45 deg orientation");
-                rec = true;
-                ok = true;
-                break;
-            default:
-                rec = false;
-                ok  = false;
-            
-            }
+            case COMMAND_VOCAB_WEIGHT:
+                {
+                    switch(command.get(2).asVocab()){
+                    case COMMAND_VOCAB_HOR:
+                        evThread->chromeThread->setWeightForOrientation(0,command.get(2).asDouble());
+                        reply.addString("changed weight for horizontal orientation");
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_45:
+                        evThread->chromeThread->setWeightForOrientation(1,command.get(2).asDouble());
+                        reply.addString("changed weight for 45 deg orientation");
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_VER:
+                        evThread->chromeThread->setWeightForOrientation(2,command.get(2).asDouble());
+                        reply.addString("changed weight for vertical orientation");
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_M45:
+                        evThread->chromeThread->setWeightForOrientation(3,command.get(2).asDouble());
+                        reply.addString("changed weight for -45 deg orientation");
+                        rec = true;
+                        ok = true;
+                        break;
+                    default:
+                        rec = false;
+                        ok  = false;
+                    
+                    }
 
+                }
+            break;
+            }
         }
         break;
+
+    case COMMAND_VOCAB_GET:
+        {
+            switch(command.get(1).asVocab()){
+            case COMMAND_VOCAB_WEIGHT:
+                {
+                    switch(command.get(2).asVocab()){
+                    case COMMAND_VOCAB_HOR:
+                        wt = evThread->chromeThread->getWeightForOrientation(0);
+                        reply.clear();
+                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_45:
+                        wt = evThread->chromeThread->getWeightForOrientation(1);
+                        reply.clear();
+                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_VER:
+                        wt = evThread->chromeThread->getWeightForOrientation(2);
+                        reply.clear();
+                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_M45:
+                        wt = evThread->chromeThread->getWeightForOrientation(3);
+                        reply.clear();
+                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;
+                    default:
+                        rec = false;
+                        ok  = false;
+                    
+                    }
+
+                }
+            break;
+            }
+        }
+        break;
+
     case COMMAND_VOCAB_SUSPEND:
         {
             switch(command.get(1).asVocab()){
