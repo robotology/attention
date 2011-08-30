@@ -95,9 +95,9 @@ void edgesThread::run() {
 
 void edgesThread::resize(int w,int h) { 
     
-    this->widthLP = w;
+    this->widthLP  = w;
     this->heightLP = h;
-    this->widthUnXnt = w- 2*maxKernelSize;
+    this->widthUnXnt  = w - 2*maxKernelSize;
     this->heightUnXnt = h - maxKernelSize;
 
     intensityImage->resize(w,h);
@@ -119,13 +119,10 @@ void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
         }        
 
         // deep-copy
-        memcpy( (uchar*)intensityImage->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());
-        
+        memcpy( (uchar*)intensityImage->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());        
     
         /*
-
         // CAUTION:shallow copy
-
         intensityImage = I;
         */      
         
@@ -208,8 +205,8 @@ void edgesThread::edgesExtract() {
 void edgesThread::threadRelease() {
     
     printf("Releasing edges thread ...\n");
-    //edges.interrupt();
-    //edges.close();
+    edges.interrupt();
+    edges.close();
 
     //deallocating resources
     delete intensityImage;

@@ -629,12 +629,15 @@ void earlyVisionThread::centerSurrounding(){
 }
 
 void earlyVisionThread::threadRelease() {    
-    printf("Releasing earlyVision thread ... \n");
+    
 
     resized = false;
-
+    
+    printf("----Releasing earlyVision thread ... \n");
     edThread->stop();
+    printf("----Releasing chrome thread ... \n");
     chromeThread->stop();    
+    printf("-----Chrome thread correctly closed \n");
 
     // deallocating resources
     delete inputImage;
@@ -669,21 +672,20 @@ void earlyVisionThread::threadRelease() {
     delete unXtnUplane;
     delete unXtnVplane;
     
-    //imagePortIn.interrupt();
-    //intenPort.interrupt();
-    /*colorOpp1Port.interrupt();
-    colorOpp2Port.interrupt();
-    colorOpp3Port.interrupt();*/    
-    
-    //imagePortIn.close();
-    //intenPort.close();
-    /*colorOpp1Port.close();
-    colorOpp2Port.close();
-    colorOpp3Port.close();*/
+    printf("correctly deleting the images \n");
+    imagePortIn.interrupt();
+    intenPort.interrupt();
+    imagePortIn.close();
+    intenPort.close();
 
-    //delete edThread;
-    //delete chromeThread;
+    colorOpp1Port.interrupt();
+    colorOpp2Port.interrupt();
+    colorOpp3Port.interrupt();
     
+    colorOpp1Port.close();
+    colorOpp2Port.close();
+    colorOpp3Port.close();
+ 
     printf("Done with releasing earlyVision thread.\n");
     
 }

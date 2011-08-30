@@ -484,15 +484,15 @@ void chrominanceThread::threadRelease() {
 
     lpMono.freeLookupTables();
     
-    //orientPort0.interrupt();
-    //orientPort45.interrupt();
-    //orientPort90.interrupt();
-    //orientPortM45.interrupt();    
+    orientPort0.interrupt();
+    orientPort45.interrupt();
+    orientPort90.interrupt();
+    orientPortM45.interrupt();    
     
-    //orientPort0.close();
-    //orientPort45.close();
-    //orientPort90.close();
-    //orientPortM45.close();
+    orientPort0.close();
+    orientPort45.close();
+    orientPort90.close();
+    orientPortM45.close();
 
     //deallocating resources
     delete chromUnXtnIntensImg;
