@@ -168,6 +168,7 @@
 #define COMMAND_VOCAB_VER VOCAB3('v','e','r')
 #define COMMAND_VOCAB_45 VOCAB3('o','4','5')
 #define COMMAND_VOCAB_M45 VOCAB4('o','M','4','5')
+#define COMMAND_VOCAB_BRIGHT VOCAB3('b','r','t')
 #define COMMAND_VOCAB_WEIGHT VOCAB1('w')
 #define COMMAND_VOCAB_CHROME_THREAD VOCAB3('c','h','r')
 #define COMMAND_VOCAB_EDGES_THREAD VOCAB3('e','d','g')

@@ -91,7 +91,7 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     for(int i=0; i<4; ++i) {
         wtForEachOrientation[i]= 1/4.0; // equal weights by default
     }    
-
+    brightness = 1.0;           // hence no change by default
     //Logpolar to cartesian and vice versa
     xSizeValue = CART_ROW_SIZE ;         
     ySizeValue = CART_COL_SIZE;          // y dimension of the remapped cartesian image
@@ -133,6 +133,10 @@ bool chrominanceThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
     if (!totalOrientImagePort.open(getName("/sumOrientations:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!totalOrientCartImgPort.open(getName("/sumOrientationsInCart:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -381,10 +385,11 @@ void chrominanceThread::orientation() {
                         *ori[2] = tmpV2 ;
                         *ori[3] = tmpV3 ;
                         //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
-                        *ptrTotKir =    w0*tmpV0 +
+                        *ptrTotKir =    (w0*tmpV0 +
                                         w1*tmpV1 +
                                         w2*tmpV2 +
-                                        w3*tmpV3 ;                     
+                                        w3*tmpV3 )*
+                                        brightness;                     
                     
                 }
                 else {
@@ -399,10 +404,11 @@ void chrominanceThread::orientation() {
                         *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
                         *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
                         //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
-                        *ptrTotKir =    w0*tmpV0 +
+                        *ptrTotKir =    (w0*tmpV0 +
                                         w1*tmpV1 +
                                         w2*tmpV2 +
-                                        w3*tmpV3 ;  
+                                        w3*tmpV3 )*
+                                        brightness;  
                         
                 }
                 
@@ -420,10 +426,11 @@ void chrominanceThread::orientation() {
                 *ori[2] = max(l,min(u,255*tmpV2));
                 *ori[3] = max(l,min(u,255*tmpV3));
                 //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
-                *ptrTotKir =    w0*tmpV0 +
+                *ptrTotKir =    (w0*tmpV0 +
                                         w1*tmpV1 +
                                         w2*tmpV2 +
-                                        w3*tmpV3 ; 
+                                        w3*tmpV3 )*
+                                        brightness;  
              
 #endif //---------------------------------------------------------------
             ori[0]++;
@@ -481,7 +488,12 @@ void chrominanceThread::orientation() {
     orientPort45.write();
     orientPort90.write();
     orientPortM45.write();
-    totalOrientImagePort.write();    
+    totalOrientImagePort.write();
+    
+    if(totalOrientCartImgPort.getOutputCount()){
+        totalOrientCartImgPort.prepare() = *oriAll;
+        totalOrientCartImgPort.write();
+    }    
   
 }
 
@@ -495,12 +507,15 @@ void chrominanceThread::threadRelease() {
     orientPort0.interrupt();
     orientPort45.interrupt();
     orientPort90.interrupt();
-    orientPortM45.interrupt();    
+    orientPortM45.interrupt();        
     
     orientPort0.close();
     orientPort45.close();
     orientPort90.close();
     orientPortM45.close();
+    
+    totalOrientCartImgPort.interrupt();
+    totalOrientCartImgPort.close();
 
     //deallocating resources
     delete chromUnXtnIntensImg;

@@ -112,6 +112,7 @@ kirschListOfNegKernels;
     KirschOutputImage *listOfNegKir[4];
 
     float wtForEachOrientation[4];
+    float brightness;                                   // this adjusts overall brightness 
     
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
@@ -119,6 +120,7 @@ kirschListOfNegKernels;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort90;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPortM45;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > totalOrientImagePort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > totalOrientCartImgPort;
     
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* cartIntensImg;          //yarp cartesian intensity image for orientation
@@ -257,6 +259,14 @@ public:
     inline float getWeightForOrientation(int orientNbr){
         assert(orientNbr>=0 && orientNbr<=3);
         return wtForEachOrientation[orientNbr];
+    }
+
+    inline void setBrightness(float val){
+        this->brightness = val;
+    }
+
+    inline float getBrightness(){
+        return this->brightness;
     }
     
 };

@@ -116,12 +116,14 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
     bool ok = false;
     bool rec = false; // is the command recognized?
     double wt=0;
+    double brightness=0;
 
     respondLock.wait();
     switch (command.get(0).asVocab()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
+            reply.addString("many");    // what used to work
             reply.addString("help");
             reply.addString("commands are:");
             reply.addString(" help  : to get help");
@@ -134,10 +136,14 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
             reply.addString(" res   chr : to resume edges thread");
             reply.addString(" ");
             reply.addString(" ");
-            reply.addString(" w   hor <float> : to change the weightage of horizontal orientation");
-            reply.addString(" w   o45 <float> : to change the weightage of 45 deg orientation");
-            reply.addString(" w   ver <float> : to change the weightage of vertical orientation");
-            reply.addString(" w   oM45 <float> : to change the weightage of -45 deg orientation");
+            reply.addString(" set w   hor <float> : to change the weightage of horizontal orientation");
+            reply.addString(" set w   o45 <float> : to change the weightage of 45 deg orientation");
+            reply.addString(" set w   ver <float> : to change the weightage of vertical orientation");
+            reply.addString(" set w   oM45 <float> : to change the weightage of -45 deg orientation");
+            reply.addString(" get w   hor  : to get the weightage of horizontal orientation");
+            reply.addString(" get w   o45  : to get the weightage of 45 deg orientation");
+            reply.addString(" get w   ver  : to get the weightage of vertical orientation");
+            reply.addString(" get w   oM45 : to get the weightage of -45 deg orientation");
             reply.addString(" ");
             reply.addString(" ");
             //reply.addString(helpMessage.c_str());
@@ -178,6 +184,12 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
                     case COMMAND_VOCAB_M45:
                         evThread->chromeThread->setWeightForOrientation(3,command.get(2).asDouble());
                         reply.addString("changed weight for -45 deg orientation");
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_BRIGHT:
+                        evThread->chromeThread->setBrightness(command.get(2).asDouble());
+                        reply.addString("changed brightness for overall image");
                         rec = true;
                         ok = true;
                         break;
@@ -231,6 +243,14 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
                         rec = true;
                         ok = true;
                         break;
+                    case COMMAND_VOCAB_BRIGHT:
+                        brightness = evThread->chromeThread->getBrightness();
+                        reply.clear();
+                        reply.addVocab(COMMAND_VOCAB_BRIGHT); // ?? Needed
+                        reply.addDouble(brightness);
+                        rec = true;
+                        ok = true;
+                        break;                                    
                     default:
                         rec = false;
                         ok  = false;
