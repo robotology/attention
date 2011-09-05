@@ -38,7 +38,7 @@ using namespace yarp::sig::draw;
 
 
 // Image Receiver
-//static YARPImgRecv *ptr_imgRecv;
+// static YARPImgRecv *ptr_imgRecv;
 // Image to Display
 static yarp::sig::ImageOf<yarp::sig::PixelRgb> *ptr_inputImg=0;
 // Semaphore
