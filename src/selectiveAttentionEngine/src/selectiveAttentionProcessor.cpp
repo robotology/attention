@@ -134,12 +134,12 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     cLoop=0;
     endInt=0;
     startInt=Time::now();
-    saccadeInterv=3000; //milliseconds
-    
+    saccadeInterv=3000; //milliseconds    
 
     // images initialisation
     edges_yarp  = new ImageOf <PixelMono>;
     tmp         = new ImageOf <PixelMono>;
+    habituation = new ImageOf <PixelMono>;
     
     map1_yarp   = new ImageOf <PixelMono>;
     map2_yarp   = new ImageOf <PixelMono>;
@@ -159,8 +159,8 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
 }
 
 selectiveAttentionProcessor::~selectiveAttentionProcessor(){
-    printf("Destructor \n");
     delete inImage;
+    delete habituation;
     delete edges_yarp;
 
     delete map1_yarp;

@@ -49,8 +49,8 @@ static yarp::sig::ImageOf<yarp::sig::PixelRgb>* _outputImage;
 static selectiveAttentionModule *selectiveAttentionModule;
 
 
-#define _imgRecv (*(ptr_imgRecv))
-#define _inputImg (*(ptr_inputImg))
+#define _imgRecv   (*(ptr_imgRecv))
+#define _inputImg  (*(ptr_inputImg))
 #define _semaphore (*(ptr_semaphore))
 
 
