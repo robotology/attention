@@ -71,7 +71,7 @@
 	<protocol>shmem</protocol>
    </connection>	
    <connection>
-	<from>/earlyVision/icub/left_cam/chrome/centSurrIntensity:o</from>
+	<from>/earlyVision/icub/left_cam/centSurrIntensity:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam/intensity:i</to>
 	<protocol>shmem</protocol>
    </connection>
@@ -86,7 +86,7 @@
 	<protocol>shmem</protocol>
    </connection>
    <connection>
-	<from>/earlyVision/icub/left_cam/chrome/chrominance:o</from>
+	<from>/earlyVision/icub/left_cam/chrominance:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam/chrominance:i</to>
 	<protocol>shmem</protocol>
    </connection>
