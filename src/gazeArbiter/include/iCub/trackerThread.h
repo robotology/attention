@@ -84,6 +84,8 @@ public:
         firstConsistencyCheck = true;
         running = false;
         init_success = false;
+        point.x = 0;
+        point.y = 0;
 
         return true;
     }

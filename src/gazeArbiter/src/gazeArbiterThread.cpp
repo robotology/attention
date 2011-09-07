@@ -41,7 +41,7 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068     // distance in meters between eyes
-#define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
+#define TIMEOUT_CONST 15    // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
  
@@ -629,7 +629,7 @@ void gazeArbiterThread::run() {
             timeout = timeoutStop - timeoutStart;
             printf ("checkMotionDone %d \n", done);
             
-            /*
+            
             //TODO :  check why check motion done returns always false
             //constant time of 10 sec after which the action is considered not performed
             timeoutStart = Time::now();
@@ -637,7 +637,7 @@ void gazeArbiterThread::run() {
                 while((!done)&&(timeout < TIMEOUT_CONST)) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
-                    //printf("saccade timeout %f %d \n", timeout, done);
+                    printf("saccade timeout %f %d \n", timeout, done);
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);                    
                 }
@@ -663,7 +663,7 @@ void gazeArbiterThread::run() {
                     printf("saccade_accomplished \n");
                 }
             }
-            */
+            
             
             //correcting the macrosaccade using the visual feedback (only if required)
             timeoutStart = Time::now();
@@ -671,19 +671,19 @@ void gazeArbiterThread::run() {
             if (visualCorrection) {
                 printf("Using visual correction \n");
                 double error = 1000.0;
-                while(( error > 1)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
+                while(( error > 4)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                     
                     //corrected the error
                     double errorx = (width  >> 1) - point.x;
                     double errory = (height >> 1) - point.y;
-                    //printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
+                    printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
                     Vector px(2);
-                    px(0) = (width  >> 1)- 1 - errorx;
-                    px(1) = (height >> 1)- 1 - errory;
+                    px(0) = (width  >> 1) - errorx;
+                    px(1) = (height >> 1) - errory;
                     error = sqrt(errorx * errorx + errory * errory);
-                    //printf("norm error %f \n", error);
+                    printf("norm error %f \n", error);
                     int camSel = 0;
                     igaze->lookAtMonoPixel(camSel,px,zDistance);
                     tracker->getPoint(point);
@@ -1031,8 +1031,13 @@ void gazeArbiterThread::run() {
                     return;
                 }
                 
+
+                /*
+                 *section for revising the vergence
+                 */
+                /*
                 if(accomplished_flag){
-                    if((phi>0.4)||(phi<-0.4)) {
+                    if((phi>0.1)||(phi<-0.1)) {
                         printf("the vergence is asking to revise its previouos measure ........ \n");
                         //accomplished_flag = false;
                     }
@@ -1040,13 +1045,14 @@ void gazeArbiterThread::run() {
                         return;
                     }
                 }
-                
+                */
 
                 //printf("------------- VERGENCE   ----------------- \n");            
             
                 //calculating the magnitude of the 3d vector
                 igaze->getAngles(anglesVect);
                 phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
+                printf("phiTOT %f \n", phiTOT);
                 //phiTOT = phiTOT + phi;
                 //double magnitude = sqrt ( x1 * x1 + y1 * y1 + z1 * z1);
                 varDistance = BASELINE / (2 * sin (phiTOT / 2));     //in m after it is fixation state
@@ -1062,27 +1068,37 @@ void gazeArbiterThread::run() {
                 //tracker->getPoint(point);
                 double error = 1000;                                         
                 timeoutStart=Time::now();
-                while ((error > 2.0)&&(timeout < 10)) {
+                //while ((error > 2.0)&&(timeout < 10)) {
                 
                     timeoutStop = Time::now();
                     timeout =timeoutStop - timeoutStart;
                     //corrected the error
                     tracker->getPoint(point);
-                    double errorx = 160 - point.x;
-                    double errory = 120 - point.y;
-                    //printf ("error %f,%f \n",errorx, errory);
                     Vector px(2);
-                    error = sqrt(errorx * errorx + errory * errory);
-                    //printf("norm error %f \n", error);
                     int camSel = 0;
-                    
-                    px(0) = (width>>1)  - 1 - errorx;
-                    px(1) = (height>>1) - 1 - errory;
-                    
-                    printf("----------------------------------varDistance %f for image (%d, %d) \n", varDistance, width>>1, height>>1);
+                    if((point.x == 0)&& (point.y == 0)) {
+                        printf("no visual correction initialised");
+                        px(0) = (width>>1)  - 1;
+                        px(1) = (height>>1) - 1;                        
+                    }
+                    else {
+                        double errorx = 160 - point.x;
+                        double errory = 120 - point.y;
+                        //tracker->init(u,v);
+                        //tracker->waitInitTracker();
+                        //printf ("error %f,%f \n",errorx, errory);
+                        
+                        error = sqrt(errorx * errorx + errory * errory);
+                        //printf("norm error %f \n", error);
+                                              
+                        px(0) = (width>>1)  - 1 - errorx;
+                        px(1) = (height>>1) - 1 - errory;
+                    }
+                        
+                    printf("----------------------------------varDistance %f,%f->%f->%f \n",phi, anglesVect[2], phiTOT,varDistance);
                     igaze->lookAtMonoPixel(camSel,px,varDistance);
                     Time::delay(0.1);                                        
-                }
+                    //}
             
                
                 /*
@@ -1180,7 +1196,7 @@ void gazeArbiterThread::run() {
         executing = false;
         //printf ("\n\n\n\n\n\n\n\n\n");
         //mutex.post();
-        //printf("vergence command : done \n");
+        // printf("vergence command : done \n");
     }    
 }
 
