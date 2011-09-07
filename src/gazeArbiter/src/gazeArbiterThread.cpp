@@ -42,6 +42,8 @@ using namespace iCub::iKin;
 #define PI  3.14159265
 #define BASELINE 0.068     // distance in meters between eyes
 #define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
+#define INHIB_WIDTH 320
+#define INHIB_HEIGHT 240
  
 static Vector orVector (Vector &a, Vector &b) {
     int dim = a.length();
@@ -284,8 +286,8 @@ bool gazeArbiterThread::threadInit() {
   
     template_size = 20;
     search_size = 100;
-    point.x = 320;
-    point.y = 240;
+    point.x = INHIB_WIDTH;
+    point.y = INHIB_HEIGHT;
 
     template_roi.width = template_roi.height = template_size;
     search_roi.width   = search_roi.height   = search_size;
@@ -306,13 +308,13 @@ bool gazeArbiterThread::threadInit() {
     firstConsistencyCheck=true;
 
     inhibitionImage = new ImageOf<PixelMono>;
-    inhibitionImage->resize(320,240);
+    inhibitionImage->resize(INHIB_WIDTH,INHIB_HEIGHT);
     inhibitionImage->zero();
     unsigned char* pinhi = inhibitionImage->getRawImage();
-    int padding = inhibitionImage->getPadding();
-    int rowsizeInhi = inhibitionImage->getRowSize();
-    int ym = 240>>1;
-    int xm = 320>>1;
+    int padding          = inhibitionImage->getPadding();
+    int rowsizeInhi      = inhibitionImage->getRowSize();
+    int ym = INHIB_HEIGHT >> 1;
+    int xm = INHIB_WIDTH  >> 1;
     //calculating the peek value
     int dx = 90.0;
     int dy = 90.0;
@@ -369,25 +371,6 @@ bool gazeArbiterThread::threadInit() {
 
     printf("     \n zmax = %f \n", zmax);
 
-    //pinhi = inhibitionImage->getRawImage();
-    //*pinhi = 255;
-    //pinhi += rowsizeInhi - 1;
-    //*pinhi = 255;
-    //pinhi += 1 + rowsizeInhi * 230;
-    //*pinhi = 255;
-    //pinhi += rowsizeInhi - 1;
-    //*pinhi = 255;
-
-
-    //for(int y = 0; y < 240; y++) {
-    //    for(int x = 0;x < 320; x++) {
-    //        if((x > 160-20) && (x < 160+20) && (y > 120-20) && (y<120+20))
-    //            *pinhi++ = (unsigned char) 255;
-    //        else
-    //            *pinhi++ = (unsigned char) 0;
-    //   }
-    //    pinhi += padding;
-    //}
     
     return true;
 }
@@ -508,7 +491,7 @@ void gazeArbiterThread::run() {
                 // find the 3D position from the 2D projection,
                 // knowing the distance z from the camera
                 Vector xe = yarp::math::operator *(*invPrj, x);
-                xe[3]=1.0;  // impose homogeneous coordinates 
+                xe[3] = 1.0;  // impose homogeneous coordinates 
                 printf("imposing homogeneous coordinates \n");
                 
                 Vector xo;
@@ -519,11 +502,11 @@ void gazeArbiterThread::run() {
                     qw[0]=torso[0] * ratio;
                     qw[1]=torso[1] * ratio;
                     qw[2]=torso[2] * ratio;
-                    qw[3]=head[0] * ratio;
-                    qw[4]=head[1] * ratio;
-                    qw[5]=head[2] * ratio;
-                    qw[6]=0.0*CTRL_DEG2RAD;
-                    qw[7]=0.0*CTRL_DEG2RAD;
+                    qw[3]=head[0]  * ratio;
+                    qw[4]=head[1]  * ratio;
+                    qw[5]=head[2]  * ratio;
+                    qw[6]=0.0 * CTRL_DEG2RAD;
+                    qw[7]=0.0 * CTRL_DEG2RAD;
                 
                     double ver = head[5];
                     xo = yarp::math::operator *(eye->getH(qw),xe);
@@ -536,11 +519,11 @@ void gazeArbiterThread::run() {
                     q[0]=torso[0] * ratio;
                     q[1]=torso[1] * ratio;
                     q[2]=torso[2] * ratio;
-                    q[3]=head[0] * ratio;
-                    q[4]=head[1] * ratio;
-                    q[5]=head[2] * ratio;
-                    q[6]=head[3] * ratio;
-                    q[7]=head[4] * ratio;
+                    q[3]=head[0]  * ratio;
+                    q[4]=head[1]  * ratio;
+                    q[5]=head[2]  * ratio;
+                    q[6]=head[3]  * ratio;
+                    q[7]=head[4]  * ratio;
                     double ver = head[5];
 
                     xo = yarp::math::operator *(eye->getH(q),xe);
@@ -565,7 +548,7 @@ void gazeArbiterThread::run() {
                     px[2] =  0.3 + zOffset;
                     igaze->lookAtFixationPoint(px);
                     printf("waiting for motion done \n");
-                    u = width / 2;
+                    u = width  / 2;
                     v = height / 2;
                     //waitMotionDone();
                     printf("resetting the position: success! \n");
@@ -583,9 +566,9 @@ void gazeArbiterThread::run() {
                         double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
                         if (onDvs) {
-                             u = (((((u - 64)/ 128.0)/ 7.4) * 4) * 320) + 160;
-                             v = (((((v - 64)/ 128.0)/ 7.4) * 4) * 240) + 120;
-                             printf("onDvs active %d %d \n", u,v);
+                            u = (((((u - 64)/ 128.0) / 7.4) * 4) * 320) + 160;
+                            v = (((((v - 64)/ 128.0) / 7.4) * 4) * 240) + 120;
+                            printf("onDvs active %d %d \n", u,v);
                         }
                         while (dist > 10) {
                             if(visualCorrection){
@@ -599,8 +582,10 @@ void gazeArbiterThread::run() {
                             px(1) = v;
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            dist = 0;
-                            if(visualCorrection){
+                            igaze->checkMotionDone(&done);
+                            dist = 10;
+                            /*
+                              if(visualCorrection){
                                 tracker->getPoint(point);
                                 dx = (double) (point.x - px(0));
                                 dy = (double) (point.y - px(1));
@@ -608,6 +593,8 @@ void gazeArbiterThread::run() {
                                 u = width  / 2;
                                 v = height / 2;
                             }
+                            */
+                            printf("correcting distance %f \n", dist);
                         }
                         printf("saccadic event : started %d %d %f \n",u,v,zDistance);
                     }
@@ -617,14 +604,14 @@ void gazeArbiterThread::run() {
                     Vector fp;
                     printf("monocular with stereo offsets \n");
                     fp.resize(3,0.0);
-                    fp[0]=xo[0];
-                    fp[1]=xo[1];
-                    fp[2]=xo[2];
+                    fp[0] = xo[0];
+                    fp[1] = xo[1];
+                    fp[2] = xo[2];
                     igaze->lookAtFixationPoint(fp);
                     visualCorrection = false;
                 }
             }
-            else {
+            else {   // for non-mono saccades
                 Vector px(3);
                 printf("saccadic event to the absolute 3d point with offset %f, %f, %f \n",xOffset, yOffset, zOffset );
                 px[0] = xObject;
@@ -633,19 +620,24 @@ void gazeArbiterThread::run() {
                 igaze->lookAtFixationPoint(px);
                 printf("saccadic event : started \n",xObject,yObject,zObject);
             }
-            Time::delay(0.05);
-            igaze->checkMotionDone(&done);
-            timeout =timeoutStop - timeoutStart;
-            //printf ("timeout %d \n", timeout);
 
+            //Time::delay(0.05);
+            //Vector px(2);
+            //px(0) = 160; px(1) = 120;
+            //igaze->lookAtMonoPixel(1,px,0.5);
+            //igaze->waitMotionDone();
+            timeout = timeoutStop - timeoutStart;
+            printf ("checkMotionDone %d \n", done);
             
+            /*
+            //TODO :  check why check motion done returns always false
             //constant time of 10 sec after which the action is considered not performed
             timeoutStart = Time::now();
             while ((!done)&&(timeout < TIMEOUT_CONST)) {
                 while((!done)&&(timeout < TIMEOUT_CONST)) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
-                    printf("saccade timeout %f %d \n", timeout, done);
+                    //printf("saccade timeout %f %d \n", timeout, done);
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);                    
                 }
@@ -671,7 +663,7 @@ void gazeArbiterThread::run() {
                     printf("saccade_accomplished \n");
                 }
             }
-            
+            */
             
             //correcting the macrosaccade using the visual feedback (only if required)
             timeoutStart = Time::now();
@@ -679,17 +671,17 @@ void gazeArbiterThread::run() {
             if (visualCorrection) {
                 printf("Using visual correction \n");
                 double error = 1000.0;
-                while(( error > 2)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
+                while(( error > 1)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                     
                     //corrected the error
-                    double errorx = (width  / 2.0) - point.x;
-                    double errory = (height / 2.0) - point.y;
-                    printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
+                    double errorx = (width  >> 1) - point.x;
+                    double errory = (height >> 1) - point.y;
+                    //printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
                     Vector px(2);
-                    px(0) = (width  / 2.0) - errorx;
-                    px(1) = (height / 2.0) - errory;
+                    px(0) = (width  >> 1)- 1 - errorx;
+                    px(1) = (height >> 1)- 1 - errory;
                     error = sqrt(errorx * errorx + errory * errory);
                     //printf("norm error %f \n", error);
                     int camSel = 0;
@@ -1070,27 +1062,27 @@ void gazeArbiterThread::run() {
                 //tracker->getPoint(point);
                 double error = 1000;                                         
                 timeoutStart=Time::now();
-                //while ((error > 2.0)&&(timeout < 10)) {
+                while ((error > 2.0)&&(timeout < 10)) {
                 
-                //timeoutStop = Time::now();
-                // timeout =timeoutStop - timeoutStart;
-                //corrected the error
-                //double errorx = 160 - point.x;
-                //double errory = 120 - point.y;
-                //printf ("error %f,%f \n",errorx, errory);
-                Vector px(2);
-                //error = sqrt(errorx * errorx + errory * errory);
-                //printf("norm error %f \n", error);
-                int camSel = 0;
-                
-                px(0) = (width  / 2.0);
-                px(1) = (height / 2.0);
-                
-                printf("----------------------------------varDistance %f \n", varDistance);
-                igaze->lookAtMonoPixel(camSel,px,varDistance);
-                
-                //tracker->getPoint(point);
-                //}
+                    timeoutStop = Time::now();
+                    timeout =timeoutStop - timeoutStart;
+                    //corrected the error
+                    tracker->getPoint(point);
+                    double errorx = 160 - point.x;
+                    double errory = 120 - point.y;
+                    //printf ("error %f,%f \n",errorx, errory);
+                    Vector px(2);
+                    error = sqrt(errorx * errorx + errory * errory);
+                    //printf("norm error %f \n", error);
+                    int camSel = 0;
+                    
+                    px(0) = (width>>1)  - 1 - errorx;
+                    px(1) = (height>>1) - 1 - errory;
+                    
+                    printf("----------------------------------varDistance %f for image (%d, %d) \n", varDistance, width>>1, height>>1);
+                    igaze->lookAtMonoPixel(camSel,px,varDistance);
+                    Time::delay(0.1);                                        
+                }
             
                
                 /*
@@ -1135,7 +1127,7 @@ void gazeArbiterThread::run() {
                 
                 
                 //  double elev = (anglesVect[1] * PI) / 180;
-                //(anglesVect[0]-(180 - (anglesVect[2] + phi)/2 - anglesVect[2]/2 - beta))/20
+                // (anglesVect[0]-(180 - (anglesVect[2] + phi)/2 - anglesVect[2]/2 - beta))/20
                 //  gazeVect[0] =(- anglesVect[2] / 80) * cos(elev) ; //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
                 //  gazeVect[1] =(anglesVect[2] / 80) * sin(elev) ;   //tilt
                 //  gazeVect[2] = phi ;                              //vergence  
@@ -1144,7 +1136,7 @@ void gazeArbiterThread::run() {
             
                 gazeVect[0] = 0 ;                //version (- anglesVect[2] / 80) * cos(elev) *  -o[1];
                 gazeVect[1] = 0 ;                //tilt
-                gazeVect[2] = phi;              //vergence  
+                gazeVect[2] = phi;               //vergence  
                 //igaze->lookAtRelAngles(gazeVect);
                 executing = true;
                 //status = statusPort.prepare();

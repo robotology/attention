@@ -174,31 +174,32 @@
  * 
  */
 
-/* CHANGE LOG
- * 21/12/10 : vergence only after the robot has kept the fixation point with the cyclopic eye       @author Rea
- * 04/01/11 : changed the algorithm that translates the vergence event into a saccadic event        @author Rea 
- * 04/01/11 : added flag that discriminates between vergence after a mono saccadic event            @author Rea 
- * 06/01/11 : added new check to avoid situation in which the saccadic event stuck                  @author Rea
- * 10/01/11 : changed the fixation command after monoLeft from absolute to monoLeft fixed image     @author Rea
- * 18/01/11 : introduced the right eye image as input of the vergence algorithm                     @author Rea
- * 26/01/11 : added resume/suspend and port for status communication                                @author Rea
- * 31/01/11 : checkpoint that controls whether there is a action performing and waits till not      @author Rea
- * 01/02/11 : added xoffset, yoffset and zoffset for 3D target                                      @author Rea
- * 30/02/11 : added new parameters for input image dimensioning                                     @author Rea 
- * 30/02/11 : removed imprecision in the case the tracker does not initialise                       @author Rea  
- * 24/04/11 : added fixed neck pitch option                                                         @author Rea
- * 28/03/11 : added the limits for the allowed fixation points in 3d space                          @author Rea
- * 29/03/11 : added new parameters to the config file and embedded previously added ones            @author Rea
- * 06/04/11 : added a new port for acquiring the template and sending it to the objectsColl.        @author Rea
- * 11/04/11 : introduced boolean flag for allowing refinement of the final position                 @author Rea 
- * 11/04/11 : new limit for avoiding the robot to attend too close to the body                      @author Rea
- * 16/04/11 : moved the execution at the beginning of saccade and the table not vergence accompli   @author Rea
- * 16/04/11 : plotted the texture on the small pciture in the GUI                                   @author Rea
- * 16/04/11 : added original context restore                                                        @author Rea
- * 05/05/11 : added the mapping between the dvs camera and the original dimension in the eyes       @author Rea
- * 20/05/11 : put together the command for choosing between onDvs and onHead                        @author Rea   
- * 03/06/11 : added new output image where the area around WTA is selected                          @author Rea 
- * 09/06/11 : added the port in order to plot out the timing of the whole fixation deployment       @author Rea
+/* \section change_log CHANGE LOG
+ * 21/12/10 : vergence only after the robot has kept the fixation point with the cyclopic eye       author Rea
+ * 04/01/11 : changed the algorithm that translates the vergence event into a saccadic event        author Rea 
+ * 04/01/11 : added flag that discriminates between vergence after a mono saccadic event            author Rea 
+ * 06/01/11 : added new check to avoid situation in which the saccadic event stuck                  author Rea
+ * 10/01/11 : changed the fixation command after monoLeft from absolute to monoLeft fixed image     author Rea
+ * 18/01/11 : introduced the right eye image as input of the vergence algorithm                     author Rea
+ * 26/01/11 : added resume/suspend and port for status communication                                author Rea
+ * 31/01/11 : checkpoint that controls whether there is a action performing and waits till not      author Rea
+ * 01/02/11 : added xoffset, yoffset and zoffset for 3D target                                      author Rea
+ * 30/02/11 : added new parameters for input image dimensioning                                     author Rea 
+ * 30/02/11 : removed imprecision in the case the tracker does not initialise                       author Rea  
+ * 24/04/11 : added fixed neck pitch option                                                         author Rea
+ * 28/03/11 : added the limits for the allowed fixation points in 3d space                          author Rea
+ * 29/03/11 : added new parameters to the config file and embedded previously added ones            author Rea
+ * 06/04/11 : added a new port for acquiring the template and sending it to the objectsColl.        author Rea
+ * 11/04/11 : introduced boolean flag for allowing refinement of the final position                 author Rea 
+ * 11/04/11 : new limit for avoiding the robot to attend too close to the body                      author Rea
+ * 16/04/11 : moved the execution at the beginning of saccade and the table not vergence accompli   author Rea
+ * 16/04/11 : plotted the texture on the small pciture in the GUI                                   author Rea
+ * 16/04/11 : added original context restore                                                        author Rea
+ * 05/05/11 : added the mapping between the dvs camera and the original dimension in the eyes       author Rea
+ * 20/05/11 : put together the command for choosing between onDvs and onHead                        author Rea   
+ * 03/06/11 : added new output image where the area around WTA is selected                          author Rea 
+ * 09/06/11 : added the port in order to plot out the timing of the whole fixation deployment       author Rea
+ * 07/09/11 : corrected the values of the lookAtMonoPixel aligning it to change in iKinGaze         author Rea \n 
 */
 
 
