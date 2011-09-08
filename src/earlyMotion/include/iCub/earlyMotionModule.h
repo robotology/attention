@@ -133,8 +133,8 @@
  */
 
 /**
- * CHANGE LOG
- * 08/08/11 : added a factor to compensate for logpolar noise in fovea                  @Rea
+ * \section change_log CHANGE LOG
+ * 08/08/11 : added a factor to compensate for logpolar noise in fovea                  \author Rea \n
  */
 
 
