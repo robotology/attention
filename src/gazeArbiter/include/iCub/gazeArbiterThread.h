@@ -88,6 +88,7 @@ private:
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
     int width, height;                      // dimension of the image
+    int countVerNull;                       // counter of the null vergence angles
     double phi;                             // value passed for vergence
     double phiTOT;                          // accumulator of increments of vergence angles
     bool mono;                              // flag that indicates whether the saccade is mono or not

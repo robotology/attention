@@ -41,7 +41,7 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068     // distance in meters between eyes
-#define TIMEOUT_CONST 15    // time constant after which the motion is considered not-performed    
+#define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
  
@@ -113,7 +113,8 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 
 gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
-    numberState = 4; //null, vergence, smooth pursuit, saccade
+    numberState  = 4; //null, vergence, smooth pursuit, saccade
+    countVerNull = 0;
     configFile = _configFile;
     
     //boolean flag initialisation
@@ -795,7 +796,11 @@ void gazeArbiterThread::run() {
             
 
             if((mono)) {                
-                if((phi < 0.05)&&(phi>-0.05)&&(!accomplished_flag)) {
+                if((phi < 0.05)&&(phi>-0.05) && (!accomplished_flag)) {
+                    countVerNull++;
+                    printf("CountVerNull %d \n", countVerNull);
+                }
+                if((countVerNull > 3) && (!accomplished_flag)) {
 
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
@@ -816,6 +821,7 @@ void gazeArbiterThread::run() {
                     status.addString("vergence_accomplished");
                     statusPort.write();
                     accomplished_flag = true;
+                    countVerNull = 0;
                     
 
                     //sending an image for inhibition of return 
@@ -1037,7 +1043,7 @@ void gazeArbiterThread::run() {
                  */
                 /*
                 if(accomplished_flag){
-                    if((phi>0.1)||(phi<-0.1)) {
+                    if((phi > 0.2) || (phi < -0.2)) {
                         printf("the vergence is asking to revise its previouos measure ........ \n");
                         //accomplished_flag = false;
                     }
@@ -1046,6 +1052,7 @@ void gazeArbiterThread::run() {
                     }
                 }
                 */
+                
 
                 //printf("------------- VERGENCE   ----------------- \n");            
             
@@ -1250,7 +1257,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             mutex.post();
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
-            phi = arg->get(1).asDouble();
+            phi = arg->get(1).asDouble();            
             mutex.wait();
             stateRequest[1] = 1;
             //executing = false;
