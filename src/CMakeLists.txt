@@ -33,7 +33,7 @@ else(IPP_FOUND)
 endif(IPP_FOUND)
 
 if(IPOPT_FOUND)
-    #add_subdirectory(gazeArbiter)
+    add_subdirectory(gazeArbiter)
 else(IPOPT_FOUND)
     message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
 endif(IPOPT_FOUND)
