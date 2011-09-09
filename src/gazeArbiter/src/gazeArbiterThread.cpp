@@ -800,7 +800,7 @@ void gazeArbiterThread::run() {
                     countVerNull++;
                     printf("CountVerNull %d \n", countVerNull);
                 }
-                if((countVerNull > 3) && (!accomplished_flag)) {
+                if((countVerNull >= 3) && (!accomplished_flag)) {
 
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
