@@ -323,7 +323,6 @@ bool selectiveAttentionProcessor::threadInit(){
     armRobotDevice->view(armEnc);
     armEnc->getAxes(&jointNum);
 
-
     // SET UP the CARTESIAN INTERFACE
     localName = name + "/cartArm";
     remoteName = "/" + robotName + "/cartesianController/left_arm";
@@ -1405,6 +1404,7 @@ void selectiveAttentionProcessor::threadRelease(){
     portionRequestPort.close();
 
     delete clientGazeCtrl;
+    delete cartCtrlDevice;
 }
 
 void selectiveAttentionProcessor::suspend() {
