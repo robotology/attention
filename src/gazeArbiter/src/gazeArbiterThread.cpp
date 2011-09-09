@@ -1032,7 +1032,7 @@ void gazeArbiterThread::run() {
                     
                     blobDatabasePort.write(request, reply);                     
                     
-                    
+                    //delay after vergence accomplished ... needed to allow other module to call the control
                     Time::delay(1);
                     return;
                 }
@@ -1215,6 +1215,7 @@ void gazeArbiterThread::threadRelease() {
     blobDatabasePort.close();
     inhibitionPort.close();
     timingPort.close();
+    tracker->stop();
     delete eyeL;
     delete eyeR;
     igaze->restoreContext(originalContext);
