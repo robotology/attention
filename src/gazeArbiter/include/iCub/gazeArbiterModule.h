@@ -1,6 +1,6 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/* 
+/** 
  * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Rea Francesco
  * email:   francesco.rea@iit.it
@@ -39,8 +39,7 @@
  * Every behaviour has a particular priority and the controller of this machine has to take the priority into account and send the correct output to the
  * kinematic control of the gaze.
  * The Observables receive gaze request from the lower level and report these to the Observer
-
-
+ *
  * \section lib_sec Libraries
  * YARP.
  *
@@ -174,7 +173,7 @@
  * 
  */
 
-/* \section change_log CHANGE LOG
+/** \section change_log CHANGE LOG
  * 21/12/10 : vergence only after the robot has kept the fixation point with the cyclopic eye       \author Rea \n
  * 04/01/11 : changed the algorithm that translates the vergence event into a saccadic event        \author Rea \n
  * 04/01/11 : added flag that discriminates between vergence after a mono saccadic event            \author Rea \n
@@ -199,8 +198,9 @@
  * 20/05/11 : put together the command for choosing between onDvs and onHead                        \author Rea \n
  * 03/06/11 : added new output image where the area around WTA is selected                          \author Rea \n
  * 09/06/11 : added the port in order to plot out the timing of the whole fixation deployment       \author Rea \n
- * 07/09/11 : corrected the values of the lookAtMonoPixel aligning it to change in iKinGaze         \author Rea\n 
+ * 07/09/11 : corrected the values of the lookAtMonoPixel aligning it to change in iKinGaze         \author Rea \n 
  * 08/09/11 : added a counter for null vergence angle to integrate vergence commands                \author Rea \n
+ * 10/09/11 : added the value -1 to write on the timing port when novel saccade on not accomplished \author Rea \n 
  */
 
 

@@ -556,7 +556,17 @@ void gazeArbiterThread::run() {
                     return;
                 }
                 else {
-                    accomplished_flag = false;
+                    //sending the timing value -1 when new saccade comes and
+                    //vergence action not fineshed
+                    if(!accomplished_flag){
+                        timing = timingPort.prepare();
+                        timing.clear();
+                        timing.addDouble(-1);
+                        timingPort.write();
+                    }
+                    else {
+                        accomplished_flag = false;
+                    }
                 }
                 
                 printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
@@ -1100,10 +1110,11 @@ void gazeArbiterThread::run() {
                                               
                         px(0) = (width>>1)  - 1 - errorx;
                         px(1) = (height>>1) - 1 - errory;
+                        igaze->lookAtMonoPixel(camSel,px,varDistance);
                     }
                         
                     printf("----------------------------------varDistance %f,%f->%f->%f \n",phi, anglesVect[2], phiTOT,varDistance);
-                    igaze->lookAtMonoPixel(camSel,px,varDistance);
+                    
                     Time::delay(0.1);                                        
                     //}
             

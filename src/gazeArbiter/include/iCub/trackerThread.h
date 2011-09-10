@@ -63,9 +63,10 @@ protected:
 
     ImageOf<PixelMono> imgMonoIn;
     ImageOf<PixelMono> imgMonoPrev;
-
-    BufferedPort<ImageOf<PixelBgr> > inPort;
-    BufferedPort<ImageOf<PixelBgr> > outPort;
+    
+    BufferedPort<ImageOf<PixelBgr> > inPort;     // current image 
+    BufferedPort<ImageOf<PixelBgr> > outPort;    // output image extracted from the current
+    BufferedPort<ImageOf<PixelMono> > tmplPort;   // template image where the template is extracted
 
 public:
     /************************************************************************/
@@ -80,6 +81,7 @@ public:
 
         inPort.open(("/"+name+"/img:i").c_str());
         outPort.open(("/"+name+"/img:o").c_str());
+        tmplPort.open(("/"+name+"/tmpl:o").c_str());
 
         firstConsistencyCheck = true;
         running = false;
@@ -118,8 +120,10 @@ public:
             cvCvtColor(pImgBgrIn->getIplImage(),imgMonoIn.getIplImage(),CV_BGR2GRAY);
 
             // copy input-image into output-image
-            ImageOf<PixelBgr> &imgBgrOut=outPort.prepare();
-            imgBgrOut=*pImgBgrIn;
+            ImageOf<PixelBgr> &imgBgrOut   = outPort.prepare();
+            ImageOf<PixelMono> &imgTemplate = tmplPort.prepare();
+            imgBgrOut   = *pImgBgrIn;
+            imgTemplate = imgMonoPrev;
 
             if (running)
             {
@@ -162,9 +166,9 @@ public:
 
             // send out output-image
             outPort.write();
-
+            tmplPort.write();
             // save data for next cycle
-            imgMonoPrev=imgMonoIn;            
+            imgMonoPrev = imgMonoIn;            
         }
     }
 
