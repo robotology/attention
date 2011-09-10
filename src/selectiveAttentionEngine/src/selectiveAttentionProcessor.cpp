@@ -302,7 +302,7 @@ bool selectiveAttentionProcessor::threadInit(){
         return false;
     }
 
-    
+    /*
     // set up the ARM MOTOR INTERFACE	
     name = getName("");
     string localName = "/" + name + "/armCtrl";
@@ -339,7 +339,7 @@ bool selectiveAttentionProcessor::threadInit(){
        return false;
     }
     cartCtrlDevice->view(armCart);
-    
+    */
 
     return true;
 }
@@ -1404,7 +1404,7 @@ void selectiveAttentionProcessor::threadRelease(){
     portionRequestPort.close();
 
     delete clientGazeCtrl;
-    delete cartCtrlDevice;
+    //delete cartCtrlDevice;
 }
 
 void selectiveAttentionProcessor::suspend() {
