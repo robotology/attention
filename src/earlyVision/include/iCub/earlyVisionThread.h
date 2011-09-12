@@ -66,7 +66,7 @@ private:
     double wHorizontal;                 // value of the weight of orizontal orientation
     double wVertical;                   // value of the weight of vertical orientation
     double w45Degrees;                  // value of the weight of 45 degrees orientation
-    double wM45Degrees;                  // value of the weight of minus 45 degrees orientation    
+    double wM45Degrees;                 // value of the weight of minus 45 degrees orientation    
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;

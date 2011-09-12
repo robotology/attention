@@ -63,6 +63,15 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     double wM45Degrees     = rf.check("wM45degrees", 
                            Value(0.0), 
                            "weight minus 45 degrees orientation (Double)").asDouble();   
+    
+    printf("weight set for the linear combination in orientation \n");
+    printf("weight horizontal direction       : %f \n",wHorizontal );
+    printf("weight vertical direction         : %f \n",wVertical );
+    printf("weight 45 degress direction       : %f \n",w45Degrees );
+    printf("weight minus 45 degrees direction : %f \n",wM45Degrees );
+    
+    
+
 
     /*
     * before continuing, set the module name before getting any other parameters, 
@@ -97,10 +106,11 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     printf("trying to start the main thread \n");
     evThread = new earlyVisionThread();
     evThread->setName(getName().c_str());
+    evThread->setWHorizontal(wHorizontal);
+    evThread->setWVertical(wVertical);
+    evThread->setW45Degrees(w45Degrees);
+    evThread->setWM45Degrees(wM45Degrees);
 
-    
-
-    printf("\nflag done \n");
     /* now start the thread to do the work */
     evThread->start(); // this calls threadInit() and it if returns true, it then calls run()        
     

@@ -97,14 +97,14 @@ bool earlyVisionThread::threadInit() {
 
     chromeThread = new chrominanceThread();
     chromeThread->setName(getName("/chrome").c_str());
+    chromeThread->setWHorizontal();
     chromeThread->start();
 
     edThread = new edgesThread();
     edThread->setName(getName("/edges").c_str());
     edThread->start();
 
-    /* open ports */ 
-    
+    /* open ports */     
    
     if (!imagePortIn.open(getName("/imageRGB:i").c_str())) {
         cout <<": unable to open port "  << endl;

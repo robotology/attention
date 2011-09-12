@@ -135,8 +135,12 @@ kirschListOfNegKernels;
     double overlap;         // overlap in the remapping
     int numberOfRings;      // number of rings in the remapping
     int numberOfAngles;     // number of angles in the remapping
+    double wHorizontal;     // value of the weight of orizontal orientation
+    double wVertical;       // value of the weight of vertical orientation
+    double w45Degrees;      // value of the weight of 45 degrees orientation
+    double wM45Degrees;     // value of the weight of minus 45 degrees orientation    
 
-    int widthLP;         // original width of logpolar image
+    int widthLP;            // original width of logpolar image
     int widthCr;
     int heightLP;
     int heightCr;
@@ -149,11 +153,12 @@ kirschListOfNegKernels;
     bool chromeThreadProcessing;
 
     
-    std::string name;       // rootname of all the ports opened by this thread
+    std::string name;           // rootname of all the ports opened by this thread
     
-    float kirschLimits[4][2];   //maximum and minimum of Kirsch operator for each orientation
+    float kirschLimits[4][2];   // maximum and minimum of Kirsch operator for each orientation
 
 public:
+    
     /**
     * constructor
     */
@@ -174,6 +179,9 @@ public:
     * @param str rootname as a string
     */
     void setName(std::string str);
+
+
+    setWHorizontal
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter
@@ -201,13 +209,35 @@ public:
     */
     void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I);    
 
-      
+    /**
+    * function that set the value for the weight horizontal orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setWHorizontal(double value) { wHorizontal = value; };
 
+    /**
+    * function that set the value for the weight vertical orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setWVertical(double value) { wVertical = value; };
+
+    /**
+    * function that set the value for the weight 45 degrees orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setW45Degrees(double value) { w45Degrees = value; };
+
+    /**
+    * function that set the value for the weight minus 45 degrees orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setWM45Degrees(double value) { wM45Degrees = value; };
+    
     /**
     * Orientation using Kirsch kernel on Gaussian smoothened intensity. (Refer config.h)
     */
     void orientation();
-
+    
     void maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage); 
 
     /* to suspend and resume the thread processing
@@ -223,8 +253,9 @@ public:
     }   
    
 
-    /* Some handy get-set methods
-    */
+    /**
+     *   Some handy get-set methods
+     */
     inline yarp::sig::ImageOf<yarp::sig::PixelMono>* getCartesianImage(){
         return this->cartIntensImg;
     }
@@ -255,7 +286,8 @@ public:
     inline void setWeightForOrientation(int orientNbr, float val){
         assert(orientNbr>=0 && orientNbr<=3);
         wtForEachOrientation[orientNbr] = val;
-    } 
+    }
+    
     inline float getWeightForOrientation(int orientNbr){
         assert(orientNbr>=0 && orientNbr<=3);
         return wtForEachOrientation[orientNbr];
