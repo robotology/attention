@@ -38,32 +38,31 @@ using namespace std;
 
 bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
-
+    
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
                            Value("/earlyVision"), 
                            "module name (string)").asString();
 
     /* get the weight for the horizontal orientation */
-    moduleName            = rf.check("whorizontal", 
+    double wHorizontal    = rf.check("whorizontal", 
                            Value(2.0), 
                            "weight horiziontal orientation (Double)").asDouble();
 
     /* get the weight for the vertical orientation */
-    moduleName            = rf.check("wvertical", 
+    double wVertical       = rf.check("wvertical", 
                            Value(2.0), 
                            "weight vertical orientation (Double)").asDouble();
 
     /* get the weight for the 45 degrees orientation */
-    moduleName            = rf.check("w45degrees", 
-                           Value(2.0), 
+    double w45Degrees      = rf.check("w45degrees", 
+                           Value(0.0), 
                            "weight 45 degrees orientation (Double)").asDouble();
 
     /* get the weight for the minus 45 degrees orientation */
-    moduleName            = rf.check("wM45degrees", 
-                           Value(2.0), 
-                           "weight minus 45 degrees orientation (Double)").asDouble();
-    
+    double wM45Degrees     = rf.check("wM45degrees", 
+                           Value(0.0), 
+                           "weight minus 45 degrees orientation (Double)").asDouble();   
 
     /*
     * before continuing, set the module name before getting any other parameters, 

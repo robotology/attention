@@ -55,16 +55,18 @@
 #endif
  
 
-class earlyVisionThread : public yarp::os::RateThread 
-{
+class earlyVisionThread : public yarp::os::RateThread  {
 private:
     
 
-    //int psb;
     int width_orig, height_orig;        // dimension of the input image (original)
     int width, height;                  // dimension of the extended input image (extending)
     int width_cart, height_cart;        // dimension of the cartesian width and height    
     float lambda;                       // costant for the temporal filter
+    double wHorizontal;                 // value of the weight of orizontal orientation
+    double wVertical;                   // value of the weight of vertical orientation
+    double w45Degrees;                  // value of the weight of 45 degrees orientation
+    double wM45Degrees;                  // value of the weight of minus 45 degrees orientation    
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
@@ -105,12 +107,12 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
-    IplImage *cs_tot_32f; //extended
+    IplImage *cs_tot_32f;  // extended
     IplImage *cs_tot_8u; 
-    IplImage *ycs_out;     //final extended intensity center surround image
-    IplImage *scs_out;     //final extended intensity center surround image
-    IplImage *vcs_out;     //final extended intensity center surround image
-    IplImage *colcs_out;   //final extended coulour center surround image
+    IplImage *ycs_out;     // final extended intensity center surround image
+    IplImage *scs_out;     // final extended intensity center surround image
+    IplImage *vcs_out;     // final extended intensity center surround image
+    IplImage *colcs_out;   // final extended coulour center surround image
 
     CenterSurround *centerSurr;    
 
@@ -156,6 +158,30 @@ public:
     void setName(std::string str);
     
     /**
+    * function that set the value for the weight horizontal orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setWHorizontal(double value) { wHorizontal = value; };
+
+    /**
+    * function that set the value for the weight vertical orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setWVertical(double value) { wVertical = value; };
+
+    /**
+    * function that set the value for the weight 45 degrees orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setW45Degrees(double value) { w45Degrees = value; };
+
+    /**
+    * function that set the value for the weight minus 45 degrees orientation in linear combination
+    * @param value double value of the weight
+    */
+    void setWM45Degrees(double value) { wM45Degrees = value; };
+    
+    /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added
     * @return rootname 
@@ -178,11 +204,15 @@ public:
 
     /**
     * function that extendes the original image of the desired value for future convolutions (in-place operation)
-    * @param origImage originalImage
     * @param extDimension dimension of the extention on each of the sides of the image
     */
     void extender(int extDimension); 
 
+    /**
+    * function that extendes the original image of the desired value for future convolutions (in-place operation)
+    * @param origImage originalImage
+    * @param extDimension dimension of the extention on each of the sides of the image
+    */
     void extender(yarp::sig::ImageOf<yarp::sig::PixelMono>* origImage,int extDimension);
 
     /**
@@ -207,7 +237,6 @@ public:
     */
     void extractPlanes();
 
-
     /**
     * gaussing filtering of the of image planes extracted
     */
@@ -218,9 +247,9 @@ public:
     * Creating color opponency maps
     */
     void colorOpponency();   
-
-    edgesThread *edThread;
-    chrominanceThread *chromeThread;    
+    
+    edgesThread *edThread;                 // thread that extract edges
+    chrominanceThread *chromeThread;       // thread that extract orientation information 
     
 };
 
