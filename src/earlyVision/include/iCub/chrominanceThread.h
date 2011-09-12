@@ -1,22 +1,21 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/* 
- * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Shashank Pathak
- * email:   shashank.pathak@iit.it
- * website: www.robotcub.org 
- * Permission is granted to copy, distribute, and/or modify this program
- * under the terms of the GNU General Public License, version 2 or any
- * later version published by the Free Software Foundation.
- *
- * A copy of the license can be found at
- * http://www.robotcub.org/icub/license/gpl.txt
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details
- */
+/*
+  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Francesco Rea, Shashank Pathak
+  * email: francesco.rea@iit.it, shashank.pathak@iit.it
+  * Permission is granted to copy, distribute, and/or modify this program
+  * under the terms of the GNU General Public License, version 2 or any
+  * later version published by the Free Software Foundation.
+  *
+  * A copy of the license can be found at
+  * http://www.robotcub.org/icub/license/gpl.txt
+  *
+  * This program is distributed in the hope that it will be useful, but
+  * WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  * Public License for more details
+*/
 
 /**
  * @file chrominanceThread.h
@@ -180,8 +179,6 @@ public:
     */
     void setName(std::string str);
 
-
-    setWHorizontal
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter

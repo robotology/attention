@@ -97,7 +97,10 @@ bool earlyVisionThread::threadInit() {
 
     chromeThread = new chrominanceThread();
     chromeThread->setName(getName("/chrome").c_str());
-    chromeThread->setWHorizontal();
+    chromeThread->setWHorizontal(wHorizontal);
+    chromeThread->setWVertical(wVertical);
+    chromeThread->setW45Degrees(w45Degrees);
+    chromeThread->setWM45Degrees(wM45Degrees);
     chromeThread->start();
 
     edThread = new edgesThread();
