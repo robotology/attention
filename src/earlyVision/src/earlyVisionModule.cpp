@@ -43,6 +43,28 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     moduleName            = rf.check("name", 
                            Value("/earlyVision"), 
                            "module name (string)").asString();
+
+    /* get the weight for the horizontal orientation */
+    moduleName            = rf.check("whorizontal", 
+                           Value(2.0), 
+                           "weight horiziontal orientation (Double)").asDouble();
+
+    /* get the weight for the vertical orientation */
+    moduleName            = rf.check("wvertical", 
+                           Value(2.0), 
+                           "weight vertical orientation (Double)").asDouble();
+
+    /* get the weight for the 45 degrees orientation */
+    moduleName            = rf.check("w45degrees", 
+                           Value(2.0), 
+                           "weight 45 degrees orientation (Double)").asDouble();
+
+    /* get the weight for the minus 45 degrees orientation */
+    moduleName            = rf.check("wM45degrees", 
+                           Value(2.0), 
+                           "weight minus 45 degrees orientation (Double)").asDouble();
+    
+
     /*
     * before continuing, set the module name before getting any other parameters, 
     * specifically the port names which are dependent on the module name
@@ -123,7 +145,7 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addString("many");    // what used to work
+            //reply.addString("many");    // what used to work
             reply.addString("help");
             reply.addString("commands are:");
             reply.addString(" help  : to get help");
@@ -164,31 +186,31 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
                 {
                     switch(command.get(2).asVocab()){
                     case COMMAND_VOCAB_HOR:
-                        evThread->chromeThread->setWeightForOrientation(0,command.get(2).asDouble());
+                        evThread->chromeThread->setWeightForOrientation(0,command.get(3).asDouble());
                         reply.addString("changed weight for horizontal orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_45:
-                        evThread->chromeThread->setWeightForOrientation(1,command.get(2).asDouble());
+                        evThread->chromeThread->setWeightForOrientation(1,command.get(3).asDouble());
                         reply.addString("changed weight for 45 deg orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_VER:
-                        evThread->chromeThread->setWeightForOrientation(2,command.get(2).asDouble());
+                        evThread->chromeThread->setWeightForOrientation(2,command.get(3).asDouble());
                         reply.addString("changed weight for vertical orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_M45:
-                        evThread->chromeThread->setWeightForOrientation(3,command.get(2).asDouble());
+                        evThread->chromeThread->setWeightForOrientation(3,command.get(3).asDouble());
                         reply.addString("changed weight for -45 deg orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_BRIGHT:
-                        evThread->chromeThread->setBrightness(command.get(2).asDouble());
+                        evThread->chromeThread->setBrightness((float)(command.get(3).asDouble()));
                         reply.addString("changed brightness for overall image");
                         rec = true;
                         ok = true;

@@ -388,8 +388,7 @@ void chrominanceThread::orientation() {
                         *ptrTotKir =    (w0*tmpV0 +
                                         w1*tmpV1 +
                                         w2*tmpV2 +
-                                        w3*tmpV3 )*
-                                        brightness;                     
+                                        w3*tmpV3 );//*brightness;                     
                     
                 }
                 else {
@@ -407,8 +406,7 @@ void chrominanceThread::orientation() {
                         *ptrTotKir =    (w0*tmpV0 +
                                         w1*tmpV1 +
                                         w2*tmpV2 +
-                                        w3*tmpV3 )*
-                                        brightness;  
+                                        w3*tmpV3 );//*brightness;  
                         
                 }
                 
@@ -426,11 +424,10 @@ void chrominanceThread::orientation() {
                 *ori[2] = max(l,min(u,255*tmpV2));
                 *ori[3] = max(l,min(u,255*tmpV3));
                 //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
-                *ptrTotKir =    (w0*tmpV0 +
+                *ptrTotKir =  2 *  (w0*tmpV0 +
                                         w1*tmpV1 +
                                         w2*tmpV2 +
-                                        w3*tmpV3 )*
-                                        brightness;  
+                                        w3*tmpV3 );//*brightness;  
              
 #endif //---------------------------------------------------------------
             ori[0]++;
@@ -467,7 +464,7 @@ void chrominanceThread::orientation() {
 
     kirschIsNormalized++;
 
-    cvConvertScale((IplImage*)totalKirsch->getIplImage(),(IplImage*)oriAll->getIplImage(),255,0);
+    cvConvertScale((IplImage*)totalKirsch->getIplImage(),(IplImage*)oriAll->getIplImage(),255*brightness,0);
 
     // Converting cartesian images back to logpolar
     lpMono.cartToLogpolar(totImg,*oriAll);

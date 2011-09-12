@@ -263,6 +263,7 @@ public:
 
     inline void setBrightness(float val){
         this->brightness = val;
+        printf("received brightness val%lf and set to%f\n",val,this->brightness);        
     }
 
     inline float getBrightness(){

@@ -63,8 +63,20 @@
  *
  * - \c robot \c icub \n 
  *   specifies the name of the robot (used to form the root of robot port names)
+ * 
+ * - \c whorizontal \c 2.0 \n
+ *   specifies the value for the weight in the combination of orientation
  *
+ * - \c wvertical \c 2.0 \n
+ *   specifies the value for the weight in the combination of orientation
  *
+ * - \c w45degrees \c 2.0 \n
+ *   specifies the value for the weight in the combination of orientation
+ *
+ * - \c wM45degrees \c 2.0 \n
+ *   specifies the value for the weight in the combination of orientation
+ *
+ * 
  * <b>Configuration File Parameters</b>
  *
  * The following key-value pairs can be specified as parameters in the configuration file 
@@ -139,6 +151,11 @@
  * 
  */
 
+
+/**
+ * \section changel_log CHANGE LOG
+ * 12/09/11 : added factor 2 for the combination of orientation and introduced parameters for weights configuration \author Rea \n
+ */
 
 #include <iostream>
 #include <string>
