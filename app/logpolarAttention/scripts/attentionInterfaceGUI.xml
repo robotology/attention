@@ -9,14 +9,14 @@
 <module>
    <name>yarpview</name>
    <parameters>--name /leftLogPolarImage --x 000 --y 0 --RefreshTime 33</parameters>
-   <node>icub15</node>
+   <node>icub14</node>
    <tag>leftLogPolarImage</tag>
 </module>
 
 <module>
    <name>yarpview</name>
    <parameters>--name /rightLogPolarImage --x 340 --y 0 --RefreshTime 33</parameters>
-   <node>icub15</node>
+   <node>icub14</node>
    <tag>rightLogpolarImage</tag>
 </module>
 
@@ -24,38 +24,45 @@
 		<name>selAttentionInterface</name>
 		<parameters>--name /selectiveAttentionInterface/icub/left_cam --x 700 --y 0</parameters>
 		<tag>selectiveAttInterfaceLeft</tag>
-		<node>icub15</node>
+		<node>icub14</node>
 </module>
 <module>
 		<name>zdfControl</name>
 		<parameters>--x 900 --y 0</parameters>
 		<tag>zdf control</tag>
-		<node>icub15</node>
+		<node>icub14</node>
 </module>
 <module>
 		<name>yarpview</name>
 		<parameters>--name /icub/left_cam/attentionCartesian --x 000 --y 340 --RefreshTime 33</parameters>
 		<tag>attCartLeft</tag>
-		<node>icub15</node>
+		<node>icub14</node>
 </module>
 <module>
 		<name>yarpview</name>
 		<parameters>--name /icub/left_cam/combinationView --x 340 --y 340 --RefreshTime 33</parameters>
 		<tag>combViewLeft</tag>
-		<node>icub15</node>
+		<node>icub14</node>
 </module>
 <module>
       <name>yarpview</name>
       <parameters>--name /view/Seg --x 680 --y 360 --RefreshTime 33</parameters>
-      <node>icub15</node>
+      <node>icub14</node>
 	  <tag>view Seg</tag>
 </module>
 
 <module>
       <name>yarpview</name>
       <parameters>--name /matchViewer --x 000 --y 660 --RefreshTime 33</parameters>
-      <node>icub15</node>
-	  <tag>matchTrackerView</tag>
+      <node>icub14</node>
+      <tag>matchTrackerView</tag>
+</module>
+
+<module>
+      <name>yarpview</name>
+      <parameters>--name /mosaicView --x 680 --y 660 --RefreshTime 33</parameters>
+      <node>icub14</node>
+      <tag>mosaicViewer</tag>
 </module>
 
 <connection>
@@ -104,6 +111,10 @@
   		<to>/matchViewer</to>
   		<protocol>udp</protocol>
 </connection>
-
+<connection>
+		<from>/mosaic/icub/image:o</from>
+  		<to>/mosaicView</to>
+  		<protocol>udp</protocol>
+</connection>
 
 </application>
