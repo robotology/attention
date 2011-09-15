@@ -485,22 +485,17 @@ void selectiveAttentionProcessor::run(){
             
             // exploring the image from rho=0 and from theta = 0
             double value;
+            double threshold = 100;
             
             for(int y = 0 ; y < 152 ; y++){
                 for(int x = 0 ; x < halfwidth ; x++){
                     
                     if(*pmap2Right>=255){
-                        printf("max Motion !!!!!!!! \n"); 
-                        printf("max Motion !!!!!!!! \n"); 
-                        printf("max Motion !!!!!!!! \n"); 
-                        printf("max Motion !!!!!!!! \n"); 
-                        printf("max Motion !!!!!!!! \n"); 
-                        printf("max Motion !!!!!!!! \n"); 
-                        printf("max Motion !!!!!!!! \n"); 
+                        printf("max in motion Left \n"); 
                     }
-                    unsigned char value =  *pmap2Right;
+                    value = (k2/sumK) *  (double) *pmap2Right ;
                     
-                    if (*pmap2Right >= 255) {
+                    if (value >= threshold) {
                         printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
                         xm = halfwidth + x;
                         ym = y;
@@ -512,9 +507,9 @@ void selectiveAttentionProcessor::run(){
                     pmap2Right++;
                     
                     
-                    value = (double) *pmap2Left;
+                    value = (k2/sumK) * (double) *pmap2Left;
                     *ptmp = *pmap2Left;
-                    if (*pmap2Left >= 255) {
+                    if (value >= threshold) {
                         printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
                         xm = halfwidth - x;
                         ym = y;
@@ -526,9 +521,9 @@ void selectiveAttentionProcessor::run(){
                     pmap2Left--;
                     ptmp--;
                     
-                    value = (double) *pmap1Right;
-                    if (value >= 255.0){
-                        printf("max in intesity Right %d \n", (unsigned char) *pmap1Right);                    
+                    value = (k1/sumK) * (double) *pmap1Right;
+                    if (value >= threshold){
+                        printf("max in intesity Right %f with %f \n",value, k1);                    
                         xm = halfwidth + x;
                         ym = y;
                         y = height;// for jumping out of the outer loop
@@ -538,9 +533,9 @@ void selectiveAttentionProcessor::run(){
                     }
                     pmap1Right++;
                     
-                    value = (double) *pmap1Left;
-                    if (value >= 255.0){
-                        printf("max in intensity Left %d \n", (unsigned char) *pmap1Left);                    
+                    value = (k1/sumK) * (double) *pmap1Left;
+                    if (value >= threshold){
+                        printf("max in intensity Left %f \n",value);                    
                         xm = halfwidth - x;
                         ym = y;
                         y = height;// for jumping out of the outer loop
@@ -563,10 +558,7 @@ void selectiveAttentionProcessor::run(){
 
         } //end of the eearly stage
 
-
-
         //reading the second set of maps
-        
         pmap1Left  = map1_yarp->getRawImage();
         pmap1Left  += halfwidth - 1;
         pmap1Right = map1_yarp->getRawImage();
