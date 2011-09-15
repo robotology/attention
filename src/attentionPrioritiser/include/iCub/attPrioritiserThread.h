@@ -94,6 +94,7 @@ private:
     int width, height;                      // dimension of the image
     double phi;                             // value passed for vergence
     double phiTOT;                          // accumulator of increments of vergence angles
+    bool postSaccCorrection;                // flag that allows post saccadic corrections
     bool mono;                              // flag that indicates whether the saccade is mono or not
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
     bool accomplished_flag;                 // flag for the accomplished vergence

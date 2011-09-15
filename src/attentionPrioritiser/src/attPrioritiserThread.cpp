@@ -184,6 +184,7 @@ attPrioritiserThread::~attPrioritiserThread() {
 
 bool attPrioritiserThread::threadInit() {
     done=true;
+    postSaccCorrection = false;
     executing = false;
     correcting = false;
     printf("starting the thread.... \n");
@@ -372,33 +373,35 @@ void attPrioritiserThread::run() {
             outputPort.write();
             
             // post-saccadic connection
-            // wait for accomplished saccadic event
-            while(!correcting) {
+            if(postSaccCorrection) {
+                // wait for accomplished saccadic event
+                while(!correcting) {
+                    Time::delay(0.1);
+                }
+                correcting = false;   // resetting the correction flag
+                sacPlanner->setCompare(true);
+                sacPlanner->wakeup();
                 Time::delay(0.1);
-            }
-            correcting = false;   // resetting the correction flag
-            sacPlanner->setCompare(true);
-            sacPlanner->wakeup();
-            Time::delay(0.1);
-
-            // correction or second saccade??
-            double corr = sacPlanner->getCorrValue();
-            printf("received the response from the planner %f \n", corr);
-            if(corr < THCORR) {
-                //getDirection and calculating the pixel dimension of the correction
-                double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
-                printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
-                int xVar = (int) floor(cos(dirRad) * corrStep);
-                int yVar = (int) floor(sin(dirRad) * corrStep);
-                Bottle& commandBottle=outputPort.prepare();
-                commandBottle.clear();
-                commandBottle.addString("SAC_MONO");
-                commandBottle.addInt(160 + xVar);
-                commandBottle.addInt(120 + yVar);
-                commandBottle.addDouble(zDistance);
-                outputPort.write();
-            }            
-        }                
+                
+                // correction or second saccade??
+                double corr = sacPlanner->getCorrValue();
+                printf("received the response from the planner %f \n", corr);
+                if(corr < THCORR) {
+                    //getDirection and calculating the pixel dimension of the correction
+                    double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
+                    printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
+                    int xVar = (int) floor(cos(dirRad) * corrStep);
+                    int yVar = (int) floor(sin(dirRad) * corrStep);
+                    Bottle& commandBottle=outputPort.prepare();
+                    commandBottle.clear();
+                    commandBottle.addString("SAC_MONO");
+                    commandBottle.addInt(160 + xVar);
+                    commandBottle.addInt(120 + yVar);
+                    commandBottle.addDouble(zDistance);
+                    outputPort.write();
+                }            
+            } //end of postsaccadic correction                
+        }
     }
     else if(allowedTransitions(2)>0) {
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
