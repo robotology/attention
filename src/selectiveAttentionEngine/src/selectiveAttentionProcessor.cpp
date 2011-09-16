@@ -141,12 +141,12 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     tmp         = new ImageOf <PixelMono>;
     habituation = new ImageOf <PixelMono>;
     
-    map1_yarp   = new ImageOf <PixelMono>;
-    map2_yarp   = new ImageOf <PixelMono>;
-    map3_yarp   = new ImageOf <PixelMono>;
-    map4_yarp   = new ImageOf <PixelMono>;
-    map5_yarp   = new ImageOf <PixelMono>;
-    map6_yarp   = new ImageOf <PixelMono>;
+    map1_yarp   = new ImageOf <PixelMono>; // intensity
+    map2_yarp   = new ImageOf <PixelMono>; // motion
+    map3_yarp   = new ImageOf <PixelMono>; // chrominance
+    map4_yarp   = new ImageOf <PixelMono>; // orientation
+    map5_yarp   = new ImageOf <PixelMono>; // edges 
+    map6_yarp   = new ImageOf <PixelMono>; // blob
     motion_yarp = new ImageOf <PixelMono>;
     cart1_yarp  = new ImageOf <PixelMono>;
     faceMask    = new ImageOf <PixelMono>;
@@ -435,6 +435,7 @@ void selectiveAttentionProcessor::run(){
         }
     
         //printf("reading input signals \n");
+        // reading intensity map
         tmp=map1Port.read(false);
         if((tmp == 0)&&(!reinit_flag)){
             return;
@@ -451,6 +452,8 @@ void selectiveAttentionProcessor::run(){
                 //idle=false;
             }
         }
+
+        //reading motion map
         if((map2Port.getInputCount())&&(k2!=0)) {
             tmp = map2Port.read(false);
             if(tmp != 0) {
@@ -993,8 +996,7 @@ void selectiveAttentionProcessor::run(){
                 px[1] = round(ym / ratioY);        // divided by ratioY because the iKinGazeCtrl receives coordinates in image plane of 320,240
                 centroid_x = round(xm / ratioX);   // centroid_x is the value of gazeCoordinate streamed out
                 centroid_y = round(ym / ratioY);   // centroid_y is the value of gazeCoordinate streamed out
-                
-                
+                                
                 //if(vergencePort.getOutputCount()) {
                 //    //suspending any vergence control;
                 //    Bottle& command=vergencePort.prepare();
