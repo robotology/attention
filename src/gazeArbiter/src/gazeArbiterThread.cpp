@@ -665,7 +665,7 @@ void gazeArbiterThread::run() {
                     timingPort.write();
 
                     v(0)= -0.5; v(1) = 0; v(2) = 0.5;
-                    igaze->stopControl();
+                    //igaze->stopControl();
                     igaze->lookAtFixationPoint(v);
                     timeoutStart = Time::now();
                     timeout = TIMEOUT_CONST;
@@ -726,11 +726,13 @@ void gazeArbiterThread::run() {
                 }
             }
             // saccade accomplished
+            //----------------------------------
             //sending the acknowledgement vergence_accomplished
             status = statusPort.prepare();
             status.clear();
             status.addString("SAC_ACC");
             statusPort.write();
+            //-----------------
             //accomplished_flag = true;
         }
     }
@@ -810,12 +812,17 @@ void gazeArbiterThread::run() {
                     countVerNull++;
                     printf("CountVerNull %d \n", countVerNull);
                 }
-                if((countVerNull >= 3) && (!accomplished_flag)) {
+                if((countVerNull >= 2) && (!accomplished_flag)) {
 
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
-                    
+                    //sending the acknowledgement vergence_accomplished
+                    status = statusPort.prepare();
+                    status.clear();
+                    status.addString("vergence_accomplished");
+                    statusPort.write();
+                                        
                     //code for accomplished vergence
                     timetotStop = Time::now();
                     timetot = timetotStop - timetotStart;
@@ -823,13 +830,7 @@ void gazeArbiterThread::run() {
                     timing.clear();
                     timing.addDouble(timetot);
                     timingPort.write();
-                    
 
-                    //sending the acknowledgement vergence_accomplished
-                    status = statusPort.prepare();
-                    status.clear();
-                    status.addString("vergence_accomplished");
-                    statusPort.write();
                     accomplished_flag = true;
                     countVerNull = 0;
                     
