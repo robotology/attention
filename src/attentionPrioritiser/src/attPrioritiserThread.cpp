@@ -333,8 +333,7 @@ void attPrioritiserThread::run() {
     //printf("state: %s \n", state.toString().c_str());
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     
-    allowedTransitions(3) = 0;
-    if(allowedTransitions(1)>0) {
+    if(allowedTransitions(3)>0) {
         
         //forcing in idle early processes during oculomotor actions
         if(feedbackPort.getOutputCount()) {
