@@ -42,9 +42,9 @@
 #define XTN_ROW_SIZE ROW_SIZE+2*maxKernelSize
 #define XTN_COL_SIZE COL_SIZE+maxKernelSize
 
-#define RATE_OF_EDGES_THREAD 100    // 30 Hz
-#define RATE_OF_INTEN_THREAD 33    // approx 30 Hz
-#define RATE_OF_CHROME_THREAD 50    // 15 Hz
+#define RATE_OF_EDGES_THREAD  33   // 30 Hz
+#define RATE_OF_INTEN_THREAD 33    // approx 30 Hz, has main loop, extract planes and center-surround YUV
+#define RATE_OF_CHROME_THREAD 50    // 20 Hz has orientation
 
 // Definitions for Sobel filter, for edge detection
 #define SobelOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>

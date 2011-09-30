@@ -1,6 +1,4 @@
-
-
-// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+// -*- mode:C++; tab-width():4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /* 
  * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
@@ -19,6 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
+
 
 /**
  * \file centsur.h
@@ -83,6 +82,11 @@ public:
      * returns pyramids
      */
 	CvMat* get_pyramid(int s){return pyramid[s];}
+	
+	/**
+     * returns Gaussian smoothened pyramids
+     */
+	CvMat* get_pyramid_gauss(int s){return pyramid_gauss[s];}
 
     /**
      * get center surround image in 32f precision

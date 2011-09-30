@@ -1,23 +1,21 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/* 
- * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Rea Francesco, Shashank Pathak
- * email:   francesco.rea@iit.it, shashank.pathak@iit.it
- * website: www.robotcub.org 
- * Permission is granted to copy, distribute, and/or modify this program
- * under the terms of the GNU General Public License, version 2 or any
- * later version published by the Free Software Foundation.
- *
- * A copy of the license can be found at
- * http://www.robotcub.org/icub/license/gpl.txt
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details
- */
-
+/*
+  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Rea Francesco, Shashank Pathak
+  * email:francesco.rea@iit.it, shashank.pathak@iit.it
+  * Permission is granted to copy, distribute, and/or modify this program
+  * under the terms of the GNU General Public License, version 2 or any
+  * later version published by the Free Software Foundation.
+  *
+  * A copy of the license can be found at
+  *http://www.robotcub.org/icub/license/gpl.txt
+  *
+  * This program is distributed in the hope that it will be useful, but
+  * WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  * Public License for more details
+*/
 /**
  * @file earlyVisionThread.cpp
  * @brief Implementation of the early stage of vision thread (see earlyVisionThread.h).
@@ -75,6 +73,14 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     unXtnYplane            = new ImageOf<PixelMono>;
     unXtnUplane            = new ImageOf<PixelMono>;
     unXtnVplane            = new ImageOf<PixelMono>;
+    
+    YofYUVpy          = new ImageOf<PixelMono>;
+    UofYUVpy          = new ImageOf<PixelMono>;
+    VofYUVpy          = new ImageOf<PixelMono>;
+    RplusUnex           = new ImageOf<PixelMono>;
+    GplusUnex           = new ImageOf<PixelMono>;
+    BplusUnex           = new ImageOf<PixelMono>;
+    
 
     gaborPosHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
     gaborPosVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
@@ -83,7 +89,9 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
 
     
     lambda = 0.3f;
-    resized = false;    
+    resized = false;
+    
+        
 }
 
 earlyVisionThread::~earlyVisionThread() {
@@ -110,6 +118,10 @@ bool earlyVisionThread::threadInit() {
     /* open ports */     
    
     if (!imagePortIn.open(getName("/imageRGB:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    } 
+    if (!imagePortOut.open(getName("/imageRGB:o").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     } 
@@ -180,11 +192,9 @@ void earlyVisionThread::run() {
         inputImage->zero();
         cvAdd(imgRGB,(IplImage*)inputImage->getIplImage(),(IplImage*)inputImage->getIplImage());
         cvWaitKey(2);
-        cvReleaseImage(&imgRGB);
-       */
-        //cvNamedWindow("cnvt");
-        //cvShowImage("cnvt",(IplImage*)inputImage->getIplImage());
-        //cvWaitKey(0);
+        cvReleaseImage(&imgRGB);*/
+       
+        
         
         if (inputImage != NULL) {
             if (!resized) {
@@ -192,7 +202,10 @@ void earlyVisionThread::run() {
                 filteredInputImage->zero(); 
                 resized = true;
             }
-            
+            if((inputImage!=0)&&(imagePortOut.getOutputCount())) {
+                imagePortOut.prepare() = *(inputImage);
+                imagePortOut.write();
+            }
             filterInputImage();
             
             extender(maxKernelSize);
@@ -201,6 +214,9 @@ void earlyVisionThread::run() {
             // extract RGB and Y planes
             extractPlanes();
              //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
+               
+            centerSurrounding();
+            //edgesExtract();  
                       
             // gaussian filtering of the of RGB and Y
             filtering();           
@@ -208,8 +224,7 @@ void earlyVisionThread::run() {
             // colourOpponency map construction
             colorOpponency();         
 
-            centerSurrounding();
-            //edgesExtract();                    
+                              
 
             if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
@@ -282,6 +297,16 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     unXtnUplane->resize(width_orig, height_orig);
     unXtnVplane->resize(width_orig, height_orig);
 
+    YofYUVpy->resize(width_orig, height_orig);
+    UofYUVpy->resize(width_orig, height_orig);
+    VofYUVpy->resize(width_orig, height_orig);
+    
+    // Note, resizing 
+    RplusUnex->resize(width_orig, height_orig);
+    GplusUnex->resize(width_orig, height_orig);
+    BplusUnex->resize(width_orig, height_orig);
+    
+    
     // allocating for CS ncsscale = 4;   
 
     cs_tot_32f  = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_32F, 1  );
@@ -367,6 +392,7 @@ void earlyVisionThread::extractPlanes() {
     for(int r = 0; r < h; r++) {       
         
         for(int c = 0; c < w; c++) {
+            // assuming order of color channels is R,G,B. For some format it could be B,G,R.
             *shift[0] = *inputPointer++;
             *shift[1] = *inputPointer++;
             *shift[2] = *inputPointer++;
@@ -380,9 +406,15 @@ void earlyVisionThread::extractPlanes() {
             float green = (float)*shift[1];
             float blue = (float)*shift[2];
 
-            *YUV[0] = 0.299*red + 0.587*green + 0.114*blue;
-            *YUV[1] = (red-*YUV[0])*0.713 + 128.0;
-            *YUV[2] = (blue-*YUV[0])*0.564 + 128.0;
+            int Y, U, V;
+            Y = 0.299*red + 0.587*green + 0.114*blue;
+            U = (blue-*YUV[0])*0.564 ;//+128.0;
+            V = (red-*YUV[0])*0.713 ;//+128.0;
+            
+            *YUV[0] = max(16,min(235,Y));
+            *YUV[1] = max(16,min(235,U));
+            *YUV[2] = max(16,min(235,V));
+            
 
             if(r>=maxKernelSize && c >=maxKernelSize && c< w-maxKernelSize){
                 *ptrUnXtnIntensImg++ = *ptrIntensityImg;
@@ -421,8 +453,6 @@ void earlyVisionThread::extractPlanes() {
                 
     } 
 
-    
-
     if(!chromeThread->getFlagForThreadProcessing()){
         chromeThread->copyRelevantPlanes(unXtnIntensImg);
     }
@@ -439,18 +469,21 @@ void earlyVisionThread::filtering() {
     // We gaussian blur the image planes extracted before, one with positive Gaussian and then negative
     
     //Positive
-    tmpMonoLPImage->zero();
+    // This is calculated via first scale of YUV planes
+    /*tmpMonoLPImage->zero();
     gaborPosHorConvolution->convolve1D(redPlane,tmpMonoLPImage);
     gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Rplus);
     
 
     tmpMonoLPImage->zero();
-    gaborPosHorConvolution->convolve1D(bluePlane,tmpMonoLPImage);
+    gaborPosHorConvolution->convolve1D(redPlane,tmpMonoLPImage);
     gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Bplus);
 
     tmpMonoLPImage->zero();
     gaborPosHorConvolution->convolve1D(greenPlane,tmpMonoLPImage);
-    gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Gplus);
+    gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Gplus);*/  
+    
+    
        
     
     //Negative
@@ -546,6 +579,7 @@ void earlyVisionThread::colorOpponency(){
     cvShowImage("ColorOppGR", (IplImage*)coGR.getIplImage());
     cvNamedWindow("ColorOppBY");
     cvShowImage("ColorOppBY", (IplImage*)coBY.getIplImage());
+    cvWaitKey(2);
 #endif
 
 }
@@ -564,20 +598,41 @@ void earlyVisionThread::centerSurrounding(){
         ImageOf<PixelMono>& _V = VofHSVPort.prepare();
         _V.resize(this->width_orig,this->height_orig);
         
+        YofYUVpy->zero();
+        VofYUVpy->zero();
+        UofYUVpy->zero();
+        Rplus->zero();
+        Bplus->zero();
+        Gplus->zero();
+        
+        
+        //float YUV2RGBCoeff[9]={1, 0, 1.403,
+                                //1, -.344, -.714,
+                                //1, 1.77, 0
+                                //};
+                                //{-2.488,  3.489,  0.000,
+                                 //3.596, -1.983, -0.498,
+                                //-3.219,  1.061,  2.563};
+                                
         
         if(true){
                 //performs centre-surround uniqueness analysis on first plane                
                 centerSurr->proc_im_8u( (IplImage*)unXtnYplane->getIplImage(),(IplImage*)_Y.getIplImage());
+                cvConvertScale(centerSurr->get_pyramid_gauss(0),(IplImage*)YofYUVpy->getIplImage(),255,0);
+                               
+                
                 
                 cvSet(cs_tot_32f,cvScalar(0));                
                 if (isYUV){               
                     //performs centre-surround uniqueness analysis on second plane:
                     centerSurr->proc_im_8u( (IplImage*)(unXtnUplane->getIplImage()),scs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?                    
+                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
+                    cvConvertScale(centerSurr->get_pyramid_gauss(0),(IplImage*)UofYUVpy->getIplImage(),255,0);
                     
                     //Colour process V:performs centre-surround uniqueness analysis:
                     centerSurr->proc_im_8u( (IplImage*)(this->unXtnVplane->getIplImage()), vcs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);                   
+                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
+                    cvConvertScale(centerSurr->get_pyramid_gauss(0),(IplImage*)VofYUVpy->getIplImage(),255,0);          
                     
                     //get min max   
                     double valueMin = 1000;
@@ -588,6 +643,62 @@ void earlyVisionThread::centerSurrounding(){
                         valueMax = 255.0f; valueMin = 0.0f;
                     }
                     cvConvertScale(cs_tot_32f,(IplImage*)_UV.getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
+                    
+                    // calculate RGB from YUV uchar planes
+                    uchar* ptrYplane = (uchar*)YofYUVpy->getRawImage();
+                    uchar* ptrUplane = (uchar*)UofYUVpy->getRawImage();
+                    uchar* ptrVplane = (uchar*)VofYUVpy->getRawImage();
+                    uchar* ptrRplane = (uchar*)RplusUnex->getRawImage();
+                    uchar* ptrGplane = (uchar*)GplusUnex->getRawImage();
+                    uchar* ptrBplane = (uchar*)BplusUnex->getRawImage();
+                    int padImage = YofYUVpy->getPadding();
+                    int red, green, blue;
+                    int htYUV = YofYUVpy->height();
+                    int wdYUV = YofYUVpy->width();
+                    for(int i=0 ; i< htYUV; ++i){
+                        for(int j=0; j< wdYUV; ++j){
+                            // should use bit-wise ops?
+                            red = *ptrYplane + 1.403* *ptrVplane;
+                            green = *ptrYplane - 0.344* *ptrUplane - 0.714* *ptrVplane;
+                            blue = *ptrYplane + 1.770* *ptrUplane;
+                            
+                            *ptrRplane++ = max(0,min(255,red));
+                            *ptrGplane++ = max(0,min(255,green));
+                            *ptrBplane++ = max(0,min(255,blue));
+                            ptrYplane++;
+                            ptrUplane++;
+                            ptrVplane++;
+                        }
+                        ptrRplane += padImage;
+                        ptrGplane += padImage;
+                        ptrBplane += padImage;
+                        ptrYplane += padImage;
+                        ptrUplane += padImage;
+                        ptrVplane += padImage;
+                        
+                   }          
+                    
+                    
+                    iCub::logpolar::replicateBorderLogpolar(*Rplus, *RplusUnex, maxKernelSize);  
+                    iCub::logpolar::replicateBorderLogpolar(*Gplus, *GplusUnex, maxKernelSize);
+                    iCub::logpolar::replicateBorderLogpolar(*Bplus, *BplusUnex, maxKernelSize);
+                    
+                    #ifdef DEBUG_OPENCV
+                    cvNamedWindow("YofYUVpy");
+                    cvShowImage("YofYUVpy",(IplImage*)YofYUVpy->getIplImage());
+                    cvNamedWindow("UofYUVpy");
+                    cvShowImage("UofYUVpy",(IplImage*)UofYUVpy->getIplImage());
+                    cvNamedWindow("VofYUVpy");
+                    cvShowImage("VofYUVpy",(IplImage*)VofYUVpy->getIplImage());
+                    cvNamedWindow("redPlane");
+                    cvShowImage("redPlane", (IplImage*)redPlane->getIplImage());
+                    cvNamedWindow("greenPlane");
+                    cvShowImage("greenPlane", (IplImage*)greenPlane->getIplImage());
+                    cvNamedWindow("bluePlane");
+                    cvShowImage("bluePlane", (IplImage*)bluePlane->getIplImage());
+                    cvWaitKey(2);
+                    #endif
+                    
                     //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);                   
                     
                 }
@@ -630,6 +741,28 @@ void earlyVisionThread::centerSurrounding(){
         
        
 }
+
+void earlyVisionThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double multFactor, double shiftFactor){
+
+    IplImage stub, *toBeAddedImage;
+    toBeAddedImage = cvGetImage(cvMatAdded, &stub);
+    assert( sourceImage->width == toBeAddedImage->width && sourceImage->height == toBeAddedImage->height );
+    float *ptrSrc, *ptrToBeAdded;
+    ptrSrc = (float*)sourceImage->imageData;
+    ptrToBeAdded = (float*)toBeAddedImage->imageData;
+    int padImage = sourceImage->widthStep/sizeof(float) - sourceImage->width; //assuming monochromatic uchar image
+    for(int i=0 ; i< sourceImage->height; ++i){
+        for(int j=0; j< sourceImage->width; ++j){
+            *ptrSrc = *ptrSrc + (multFactor* *ptrToBeAdded + shiftFactor); // in-place
+            ptrSrc++;
+            ptrToBeAdded++;
+        }
+        ptrSrc += padImage;
+        ptrToBeAdded += padImage;
+   }
+   
+}
+
 
 void earlyVisionThread::threadRelease() {    
     
@@ -674,11 +807,19 @@ void earlyVisionThread::threadRelease() {
     delete unXtnYplane;
     delete unXtnUplane;
     delete unXtnVplane;
+    delete YofYUVpy;
+    delete UofYUVpy;
+    delete VofYUVpy;
+    delete RplusUnex;
+    delete GplusUnex;
+    delete BplusUnex;
     
     printf("correctly deleting the images \n");
     imagePortIn.interrupt();
+    imagePortOut.interrupt();
     intenPort.interrupt();
     imagePortIn.close();
+    imagePortOut.close();
     intenPort.close();
 
     colorOpp1Port.interrupt();

@@ -1,4 +1,4 @@
-// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+// -*- mode:C++; tab-width():4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /* 
  * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
@@ -17,6 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
+
 
 /**
  * @file earlyVisionThread.h
@@ -80,6 +81,18 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Bminus;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Yminus;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *YofYUV;
+    
+    // these RGB planes are calculated via YUV, hence as float images rounded to uchar in last step
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* YofYUVpy;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* UofYUVpy;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* VofYUVpy;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* RplusUnex;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* GplusUnex;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* BplusUnex;
+    
+    // a set of LUT for YUV to RGB conversion (on stack)
+    //float YUV2RGB[3][256];
+    //bool setYUV2RGB;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
@@ -118,6 +131,7 @@ private:
 
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
@@ -246,7 +260,17 @@ public:
     /**
     * Creating color opponency maps
     */
-    void colorOpponency();   
+    void colorOpponency(); 
+    
+    /**
+    * Adding two images in-place with an element-wise weightage factor and shift factor A(I) = A(I) + multFactor.*B(I) .+ shiftFactor
+    * @param sourceImage to which other image will be added
+    * @param toBeAddedImage the image which will be added
+    * @param multFactor factor of multiplication
+    * @param shiftFactor value added to each pixel
+    */
+    void addFloatImage(IplImage* sourceImage, CvMat* toBeAddedImage, double multFactor, double shiftFactor);
+      
     
     edgesThread *edThread;                 // thread that extract edges
     chrominanceThread *chromeThread;       // thread that extract orientation information 
