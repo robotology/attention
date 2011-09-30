@@ -408,8 +408,8 @@ void earlyVisionThread::extractPlanes() {
 
             int Y, U, V;
             Y = 0.299*red + 0.587*green + 0.114*blue;
-            U = (blue-*YUV[0])*0.564 ;//+128.0;
-            V = (red-*YUV[0])*0.713 ;//+128.0;
+            U = (blue-*YUV[0])*0.564 +128.0;
+            V = (red-*YUV[0])*0.713 +128.0;
             
             *YUV[0] = max(16,min(235,Y));
             *YUV[1] = max(16,min(235,U));
