@@ -306,7 +306,7 @@ public:
      * function that declares whether to earlyStage is active
      * @param value It is true when earlyStage is active
      */
-    void setEarlyStage(bool value) {earlystage = value; };
+    void setEarlyStage(bool value) {earlystage = value;secondstage = value; };
     
     /**
      * function that returns the value of the saccadicInterval

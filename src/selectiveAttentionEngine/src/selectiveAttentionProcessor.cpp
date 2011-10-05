@@ -461,17 +461,22 @@ void selectiveAttentionProcessor::run(){
                 //idle=false;
             }
         }
+        
+        ImageOf<PixelMono>& linearCombinationImage = linearCombinationPort.prepare();
+        linearCombinationImage.resize(width,height);
 
         double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
-        unsigned char maxValue     = 0;
+        unsigned char  maxValue    = 0;
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
         unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
         unsigned char* pmap2Left   = map2_yarp->getRawImage();  
         unsigned char* pmap2Right  = map2_yarp->getRawImage();
-        unsigned char* pmap3Left  = map3_yarp->getRawImage();
-        unsigned char* pmap3Right = map3_yarp->getRawImage();
-        unsigned char* pmap4Left  = map4_yarp->getRawImage();
-        unsigned char* pmap4Right = map4_yarp->getRawImage();
+        unsigned char* pmap3Left   = map3_yarp->getRawImage();
+        unsigned char* pmap3Right  = map3_yarp->getRawImage();
+        unsigned char* pmap4Left   = map4_yarp->getRawImage();
+        unsigned char* pmap4Right  = map4_yarp->getRawImage();
+        unsigned char* plinearLeft = linearCombinationImage.getRawImage();
+        unsigned char* plinearRight= linearCombinationImage.getRawImage();    
         unsigned char* pmap1       = map1_yarp->getRawImage();
         unsigned char* pmap2       = map2_yarp->getRawImage();  
         unsigned char* pmap3       = map3_yarp->getRawImage();
@@ -481,15 +486,12 @@ void selectiveAttentionProcessor::run(){
         unsigned char* pface       = faceMask ->getRawImage();
         unsigned char* plinear     = linearCombinationImage.getRawImage();
 
-        ImageOf<PixelMono>& linearCombinationImage=linearCombinationPort.prepare();
-        linearCombinationImage.resize(width,height);
-
-
         int ratioX    = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
         int ratioY    = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
         int padding   = map1_yarp->getPadding();
         int rowSize   = map1_yarp->getRowSize();
-        int halfwidth = width>>1;
+        int halfwidth = width  >> 1;
+        int halfheight= height >> 1; 
 
         // ------------ early stage of response ---------------
         //printf("entering the first stage of vision....\n");
@@ -500,24 +502,26 @@ void selectiveAttentionProcessor::run(){
             tmpImage.zero();
 
             unsigned char* ptmp        = tmpImage.getRawImage();
-            ptmp       += halfwidth - 1;            
-            pmap1Left  += halfwidth - 1;                   
-            pmap1Right += halfwidth;                  
-            pmap2Left  += halfwidth - 1;                  
-            pmap2Right += halfwidth;
+            ptmp         += halfwidth - 1;            
+            pmap1Left    += halfwidth - 1;                   
+            pmap1Right   += halfwidth;                  
+            pmap2Left    += halfwidth - 1;                  
+            pmap2Right   += halfwidth;
+            plinearLeft  += halfwidth - 1;
+            plinearRight += halfwidth;
             
             // exploring the image from rho=0 and from theta = 0
             double value;
             double threshold = 100;
             
-            for(int y = 0 ; y < 152 ; y++){
+            for(int y = 0 ; y < halfheight ; y++){
                 for(int x = 0 ; x < halfwidth ; x++){
                     
-                    if(*pmap2Right>=255){
+                    if(*pmap2Right >= 255){
                         printf("max in motion Left \n"); 
                     }
-                    value = (k2/sumK) *  (double) *pmap2Right ;
-                    
+                    value = (k2/sumK) *  (double) *pmap2Right ;                   
+                    *plinearRight = value;
                     if (value >= threshold) {
                         printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
                         xm = halfwidth + x;
@@ -529,10 +533,11 @@ void selectiveAttentionProcessor::run(){
                         //break;
                     }                
                     pmap2Right++;
-                    
+                                        
                     
                     value = (k2/sumK) * (double) *pmap2Left;
                     *ptmp = *pmap2Left;
+                    *plinearLeft = value;
                     if (value >= threshold) {
                         printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
                         xm = halfwidth - x;
@@ -543,6 +548,7 @@ void selectiveAttentionProcessor::run(){
                         //idle = true;                        
                         //break;
                     }
+
                     pmap2Left--;
                     ptmp--;
                     
@@ -572,12 +578,19 @@ void selectiveAttentionProcessor::run(){
                     }
                     pmap1Left--;
                     
+                    // moving pointer of the plinear
+                    // in this version only the motion map is saved in the plinear
+                    plinearRight++;
+                    plinearLeft--;
                 }
                 pmap1Right += rowSize - halfwidth;
                 pmap1Left  += rowSize + halfwidth;
                 pmap2Right += rowSize - halfwidth;
-                ptmp       += rowSize + halfwidth;
                 pmap2Left  += rowSize + halfwidth;
+                
+                ptmp       += rowSize + halfwidth;
+                plinearRight += rowSize - halfwidth;
+                plinearLeft  += rowSize + halfwidth;
             }
             
             //tmpImage = *(map2_yarp);
@@ -601,6 +614,11 @@ void selectiveAttentionProcessor::run(){
         pmap3Left  += halfwidth - 1;
         pmap4Left  += halfwidth - 1;
 
+        plinearLeft  = linearCombinationImage.getRawImage();
+        plinearRight = linearCombinationImage.getRawImage();
+        plinearLeft += halfwidth - 1;
+        plinearRight+= halfwidth;
+
         if((map3Port.getInputCount())&&(k3!=0)) {
             tmp = map3Port.read(false);
             if(tmp!= 0) {
@@ -623,7 +641,7 @@ void selectiveAttentionProcessor::run(){
                 for(int x = 0 ; x < halfwidth; x++){
                     //unsigned char value = *pmap1++ + *pmap2++ + *pmap3++ + *pmap4++;
                     double value = (double) (*pmap1Right++ * (k1/sumK) + *pmap2Right++ * (k2/sumK) + *pmap3Right++ * (k3/sumK) + *pmap4Right++ * (k4/sumK));
-                    //*plinear++ = value;
+                    *plinearRight++ = value;
                     if (value >= 255) {
                         //printf("max in the second stage right \n");
                         xm = x + width;
@@ -636,6 +654,7 @@ void selectiveAttentionProcessor::run(){
                     } 
 
                     value = (double) (*pmap1Left-- * (k1/sumK) + *pmap2Left-- * (k2/sumK) + *pmap3Left-- * (k3/sumK) + *pmap4Left-- * (k4/sumK));
+                    *plinearLeft++ = value;
                     if (value >= 255) {
                         //printf("max in the second stage left \n");
                         xm = x - width;
@@ -648,14 +667,16 @@ void selectiveAttentionProcessor::run(){
                     }                     
                 }
 
-                pmap1Right += rowSize - halfwidth;
-                pmap1Left  += rowSize + halfwidth;
-                pmap2Right += rowSize - halfwidth;
-                pmap2Left  += rowSize + halfwidth;
-                pmap3Right += rowSize - halfwidth;
-                pmap3Left  += rowSize + halfwidth;
-                pmap4Right += rowSize - halfwidth;
-                pmap4Left  += rowSize + halfwidth;
+                pmap1Right   += rowSize - halfwidth;
+                pmap1Left    += rowSize + halfwidth;
+                pmap2Right   += rowSize - halfwidth;
+                pmap2Left    += rowSize + halfwidth;
+                pmap3Right   += rowSize - halfwidth;
+                pmap3Left    += rowSize + halfwidth;
+                pmap4Right   += rowSize - halfwidth;
+                pmap4Left    += rowSize + halfwidth;
+                plinearLeft  += rowSize - halfwidth;
+                plinearRight += rowSize + halfwidth;
             }            
         }//end of the idle after first two stages of response
         
@@ -699,10 +720,7 @@ void selectiveAttentionProcessor::run(){
                     copy_8u_C1R(tmp,inhi_yarp);
                     //idle=false;
                 }
-            }
-           
-
-            
+            }            
             
             // combination of all the feature maps
             //printf("combining the feature maps \n");
@@ -738,14 +756,19 @@ void selectiveAttentionProcessor::run(){
                 pface   += padding;
             }
             
+            
+//********************************************************************************************
+cartSpace:
             //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
             //printf("trasforming the logpolar image into cartesian \n");
-cartSpace:
             plinear = linearCombinationImage.getRawImage();
             unsigned char* pImage = inputLogImage->getRawImage();
             int padding3C = inputLogImage->getPadding();
             maxValue = 0;
-            for(int y = 0 ;  y < height ; y++) {
+            
+            //TODO: reduce the cycle steps if the maximum has been already found
+            
+            for(int y = 0 ; y < height ; y++) {
                 for(int x = 0 ; x < width ; x++) {
                     *pImage++ = (unsigned char) *plinear;
                     *pImage++ = (unsigned char) *plinear;
@@ -808,6 +831,8 @@ cartSpace:
             int paddingOutput    = outputCartImage.getPadding();
             //adding cartesian and finding the max value
             //removed downsampling of the image.
+            
+            
             maxResponse = false;
             for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
                 for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
