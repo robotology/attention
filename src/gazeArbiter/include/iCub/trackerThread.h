@@ -75,13 +75,17 @@ public:
     /************************************************************************/
     virtual bool threadInit()
     {
-        name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
+        //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
         template_size = 20; //rf.check("template_size",Value(20)).asInt();
         search_size = 100; //rf.check("search_size",Value(100)).asInt();
 
-        inPort.open(("/"+name+"/img:i").c_str());
-        outPort.open(("/"+name+"/img:o").c_str());
-        tmplPort.open(("/"+name+"/tmpl:o").c_str());
+        //inPort.open(("/"+name+"/img:i").c_str());
+        //outPort.open(("/"+name+"/img:o").c_str());
+        //tmplPort.open(("/"+name+"/tmpl:o").c_str());
+
+        inPort.open((name+"/img:i").c_str());
+        outPort.open((name+"/img:o").c_str());
+        tmplPort.open((name+"/tmpl:o").c_str());
 
         firstConsistencyCheck = true;
         running = false;
@@ -91,6 +95,22 @@ public:
 
         return true;
     }
+
+    /************************************************************************/
+    
+    void setName(string str) {
+        name=str;
+        printf("name: %s \n", name.c_str());
+    }
+
+    /************************************************************************/
+    
+    std::string getName(const char* p) {
+        string str(name);
+        str.append(p);
+        return str;
+    }
+    
 
     /************************************************************************/
 

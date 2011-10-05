@@ -160,6 +160,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     printf("starting the tracker.... \n");
     ResourceFinder* rf = new ResourceFinder();
     tracker = new trackerThread(*rf);
+    tracker->setName(getName("").c_str());
     tracker->start();
     printf("tracker successfully started \n");
 }

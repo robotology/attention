@@ -201,6 +201,7 @@
  * 07/09/11 : corrected the values of the lookAtMonoPixel aligning it to change in iKinGaze         <b>author:Rea<\b> \n 
  * 08/09/11 : added a counter for null vergence angle to integrate vergence commands                <b>author:Rea<\b> \n
  * 10/09/11 : added the value -1 to write on the timing port when novel saccade on not accomplished <b>author:Rea<\b> \n 
+ * 05/10/11 : changed the name of the matchTracker to rootname of the module                        <b>author:Rea<\b> \n              
  */
 
 
