@@ -726,6 +726,7 @@ void gazeArbiterThread::run() {
                     }
                 }
             }
+            printf("saccade accomplished \n");
             // saccade accomplished
             //----------------------------------
             //sending the acknowledgement vergence_accomplished
