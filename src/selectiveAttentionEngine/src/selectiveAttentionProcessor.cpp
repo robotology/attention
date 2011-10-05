@@ -463,12 +463,32 @@ void selectiveAttentionProcessor::run(){
         }
 
         double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
+        unsigned char maxValue     = 0;
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
         unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
         unsigned char* pmap2Left   = map2_yarp->getRawImage();  
         unsigned char* pmap2Right  = map2_yarp->getRawImage();
-        int padding = map1_yarp->getPadding();
-        int rowSize = map1_yarp->getRowSize();
+        unsigned char* pmap3Left  = map3_yarp->getRawImage();
+        unsigned char* pmap3Right = map3_yarp->getRawImage();
+        unsigned char* pmap4Left  = map4_yarp->getRawImage();
+        unsigned char* pmap4Right = map4_yarp->getRawImage();
+        unsigned char* pmap1       = map1_yarp->getRawImage();
+        unsigned char* pmap2       = map2_yarp->getRawImage();  
+        unsigned char* pmap3       = map3_yarp->getRawImage();
+        unsigned char* pmap4       = map4_yarp->getRawImage();
+        unsigned char* pmap5       = map5_yarp->getRawImage();
+        unsigned char* pmap6       = map6_yarp->getRawImage();
+        unsigned char* pface       = faceMask ->getRawImage();
+        unsigned char* plinear     = linearCombinationImage.getRawImage();
+
+        ImageOf<PixelMono>& linearCombinationImage=linearCombinationPort.prepare();
+        linearCombinationImage.resize(width,height);
+
+
+        int ratioX    = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
+        int ratioY    = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
+        int padding   = map1_yarp->getPadding();
+        int rowSize   = map1_yarp->getRowSize();
         int halfwidth = width>>1;
 
         // ------------ early stage of response ---------------
@@ -502,10 +522,11 @@ void selectiveAttentionProcessor::run(){
                         printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
                         xm = halfwidth + x;
                         ym = y;
-                        y = height;// for jumping out of the outer loop
-                        idle = true;
                         timing = 0.1;
-                        break;
+                        goto cartSpace;
+                        //y = height;// for jumping out of the outer loop
+                        //idle = true;                        
+                        //break;
                     }                
                     pmap2Right++;
                     
@@ -516,10 +537,11 @@ void selectiveAttentionProcessor::run(){
                         printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
                         xm = halfwidth - x;
                         ym = y;
-                        y = height;// for jumping out of the outer loop
-                        idle = true;
                         timing = 0.1;
-                        break;
+                        goto cartSpace;
+                        //y = height;// for jumping out of the outer loop
+                        //idle = true;                        
+                        //break;
                     }
                     pmap2Left--;
                     ptmp--;
@@ -529,10 +551,11 @@ void selectiveAttentionProcessor::run(){
                         printf("max in intesity Right %f with %f \n",value, k1);                    
                         xm = halfwidth + x;
                         ym = y;
-                        y = height;// for jumping out of the outer loop
-                        idle =  true;
                         timing = 0.1;
-                        break;
+                        goto cartSpace;
+                        //y = height;// for jumping out of the outer loop
+                        //idle =  true;                        
+                        //break;
                     }
                     pmap1Right++;
                     
@@ -541,10 +564,11 @@ void selectiveAttentionProcessor::run(){
                         printf("max in intensity Left %f \n",value);                    
                         xm = halfwidth - x;
                         ym = y;
-                        y = height;// for jumping out of the outer loop
-                        idle =  true;
                         timing = 0.1;
-                        break;
+                        goto cartSpace;
+                        //y = height;// for jumping out of the outer loop
+                        //idle =  true;                        
+                        //break;
                     }
                     pmap1Left--;
                     
@@ -563,24 +587,19 @@ void selectiveAttentionProcessor::run(){
 
         //reading the second set of maps
         pmap1Left  = map1_yarp->getRawImage();
-        pmap1Left  += halfwidth - 1;
         pmap1Right = map1_yarp->getRawImage();
+        pmap1Left  += halfwidth - 1;        
         pmap1Right += halfwidth;
     
         pmap2Left  = map2_yarp->getRawImage();
-        pmap2Left  += halfwidth - 1;
         pmap2Right = map2_yarp->getRawImage();
+        pmap2Left  += halfwidth - 1;
         pmap2Right += halfwidth;
 
-        unsigned char* pmap3Left  = map3_yarp->getRawImage();
-        pmap3Left  += halfwidth - 1;
-        unsigned char* pmap3Right = map3_yarp->getRawImage();
         pmap3Right += halfwidth;
-        unsigned char* pmap4Left  = map4_yarp->getRawImage();
-        pmap4Left  += halfwidth - 1;
-        unsigned char* pmap4Right = map4_yarp->getRawImage();
         pmap4Right += halfwidth;
-
+        pmap3Left  += halfwidth - 1;
+        pmap4Left  += halfwidth - 1;
 
         if((map3Port.getInputCount())&&(k3!=0)) {
             tmp = map3Port.read(false);
@@ -597,9 +616,8 @@ void selectiveAttentionProcessor::run(){
             }
         }
         
-        if((!idle)&&(secondstage)) {
-            //printf("activating the second stage of early vision... \n");
-             
+        if(secondstage) {
+            //printf("activating the second stage of early vision... \n");             
             //------ second stage of response  ----------------            
             for(int y = 0 ; y < height; y++){
                 for(int x = 0 ; x < halfwidth; x++){
@@ -611,9 +629,10 @@ void selectiveAttentionProcessor::run(){
                         xm = x + width;
                         ym = y;
                         timing = 0.5;
-                        y = height;    // for jumping out of outer loop
-                        idle =  true;
-                        break;
+                        goto cartSpace;
+                        //y = height;    // for jumping out of outer loop
+                        //idle =  true;
+                        //break;
                     } 
 
                     value = (double) (*pmap1Left-- * (k1/sumK) + *pmap2Left-- * (k2/sumK) + *pmap3Left-- * (k3/sumK) + *pmap4Left-- * (k4/sumK));
@@ -622,9 +641,10 @@ void selectiveAttentionProcessor::run(){
                         xm = x - width;
                         ym = y;
                         timing = 0.5;
-                        y = height;   // for jumping out of the outer loop
-                        idle =  true;
-                        break;
+                        goto cartSpace;
+                        //y = height;   // for jumping out of the outer loop
+                        //idle =  true;
+                        //break;
                     }                     
                 }
 
@@ -640,12 +660,8 @@ void selectiveAttentionProcessor::run(){
         }//end of the idle after first two stages of response
         
 
-        int ratioX = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
-        int ratioY = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
-        
-
         //2. processing of the input images
-        if(!idle) {
+        //if(!idle) {
             //printf("processing the whole compilation of feature maps \n ");
             timing = 1.0;
             if((map5Port.getInputCount())&&(k5!=0)) {
@@ -685,17 +701,8 @@ void selectiveAttentionProcessor::run(){
                 }
             }
            
-            unsigned char* pmap1 = map1_yarp->getRawImage();
-            unsigned char* pmap2 = map2_yarp->getRawImage();  
-            unsigned char* pmap3 = map3_yarp->getRawImage();
-            unsigned char* pmap4 = map4_yarp->getRawImage();
-            unsigned char* pmap5 = map5_yarp->getRawImage();
-            unsigned char* pmap6 = map6_yarp->getRawImage();
-            unsigned char* pface = faceMask ->getRawImage();
-            ImageOf<PixelMono>& linearCombinationImage=linearCombinationPort.prepare();
-            linearCombinationImage.resize(width,height);
-            unsigned char* plinear = linearCombinationImage.getRawImage();
-            unsigned char maxValue=0;
+
+            
             
             // combination of all the feature maps
             //printf("combining the feature maps \n");
@@ -733,6 +740,7 @@ void selectiveAttentionProcessor::run(){
             
             //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
             //printf("trasforming the logpolar image into cartesian \n");
+cartSpace:
             plinear = linearCombinationImage.getRawImage();
             unsigned char* pImage = inputLogImage->getRawImage();
             int padding3C = inputLogImage->getPadding();
@@ -977,7 +985,7 @@ void selectiveAttentionProcessor::run(){
             //    pThres += rowsizeThresh - (dx + 1) ;
             //}
             
-        } //end of the last idle.
+            //} //end of the last idle.
 
         //---------- SECTION 2 ----------
         // ------- requiring the saccade ---------------
