@@ -512,21 +512,25 @@ void selectiveAttentionProcessor::run(){
             
             // exploring the image from rho=0 and from theta = 0
             double value;
-            double threshold = 100;
+            double threshold = 255;
             
-            for(int y = 0 ; y < halfheight ; y++){
+            for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < halfwidth ; x++){
                     
-                    if(*pmap2Right >= 255){
-                        printf("max in motion Left \n"); 
-                    }
-                    value = (k2/sumK) *  (double) *pmap2Right ;                   
+                    
+                    //value = (k2/sumK) *  (double) *pmap2Right ;                   
+                    value = *pmap2Right;
+                    //if(*pmap2Right >= 255){
+                    //    printf("max in motion Left %d \n", value); 
+                    //}
                     *plinearRight = value;
                     if (value >= threshold) {
-                        printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
+                        //printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
+                        *plinearRight = 255;
                         xm = halfwidth + x;
                         ym = y;
                         timing = 0.1;
+                        //printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle = true;                        
@@ -535,14 +539,17 @@ void selectiveAttentionProcessor::run(){
                     pmap2Right++;
                                         
                     
-                    value = (k2/sumK) * (double) *pmap2Left;
+                    //value = (k2/sumK) * (double) *pmap2Left;
+                    value = *pmap2Left;
                     *ptmp = *pmap2Left;
                     *plinearLeft = value;
                     if (value >= threshold) {
                         printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
+                        *plinearLeft = 255;
                         xm = halfwidth - x;
                         ym = y;
                         timing = 0.1;
+                        //printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle = true;                        
@@ -571,6 +578,7 @@ void selectiveAttentionProcessor::run(){
                         xm = halfwidth - x;
                         ym = y;
                         timing = 0.1;
+ ;
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle =  true;                        
@@ -583,12 +591,12 @@ void selectiveAttentionProcessor::run(){
                     plinearRight++;
                     plinearLeft--;
                 }
-                pmap1Right += rowSize - halfwidth;
-                pmap1Left  += rowSize + halfwidth;
-                pmap2Right += rowSize - halfwidth;
-                pmap2Left  += rowSize + halfwidth;
+                pmap1Right   += rowSize - halfwidth;
+                pmap1Left    += rowSize + halfwidth;
+                pmap2Right   += rowSize - halfwidth;
+                pmap2Left    += rowSize + halfwidth;
                 
-                ptmp       += rowSize + halfwidth;
+                ptmp         += rowSize + halfwidth;
                 plinearRight += rowSize - halfwidth;
                 plinearLeft  += rowSize + halfwidth;
             }
@@ -597,6 +605,7 @@ void selectiveAttentionProcessor::run(){
             testPort.write();
 
         } //end of the eearly stage
+
 
         //reading the second set of maps
         pmap1Left  = map1_yarp->getRawImage();
@@ -608,16 +617,6 @@ void selectiveAttentionProcessor::run(){
         pmap2Right = map2_yarp->getRawImage();
         pmap2Left  += halfwidth - 1;
         pmap2Right += halfwidth;
-
-        pmap3Right += halfwidth;
-        pmap4Right += halfwidth;
-        pmap3Left  += halfwidth - 1;
-        pmap4Left  += halfwidth - 1;
-
-        plinearLeft  = linearCombinationImage.getRawImage();
-        plinearRight = linearCombinationImage.getRawImage();
-        plinearLeft += halfwidth - 1;
-        plinearRight+= halfwidth;
 
         if((map3Port.getInputCount())&&(k3!=0)) {
             tmp = map3Port.read(false);
@@ -634,6 +633,22 @@ void selectiveAttentionProcessor::run(){
             }
         }
         
+        pmap3Left   = map3_yarp->getRawImage();
+        pmap3Right  = map3_yarp->getRawImage();
+        pmap4Left   = map4_yarp->getRawImage();
+        pmap4Right  = map4_yarp->getRawImage();
+
+
+        pmap3Right += halfwidth;
+        pmap4Right += halfwidth;
+        pmap3Left  += halfwidth - 1;
+        pmap4Left  += halfwidth - 1;
+
+        plinearLeft  = linearCombinationImage.getRawImage();
+        plinearRight = linearCombinationImage.getRawImage();
+        plinearLeft += halfwidth - 1;
+        plinearRight+= halfwidth;
+       
         if(secondstage) {
             //printf("activating the second stage of early vision... \n");             
             //------ second stage of response  ----------------            
@@ -643,7 +658,7 @@ void selectiveAttentionProcessor::run(){
                     double value = (double) (*pmap1Right++ * (k1/sumK) + *pmap2Right++ * (k2/sumK) + *pmap3Right++ * (k3/sumK) + *pmap4Right++ * (k4/sumK));
                     *plinearRight++ = value;
                     if (value >= 255) {
-                        //printf("max in the second stage right \n");
+                        printf("max in the second stage right \n");
                         xm = x + width;
                         ym = y;
                         timing = 0.5;
@@ -654,9 +669,9 @@ void selectiveAttentionProcessor::run(){
                     } 
 
                     value = (double) (*pmap1Left-- * (k1/sumK) + *pmap2Left-- * (k2/sumK) + *pmap3Left-- * (k3/sumK) + *pmap4Left-- * (k4/sumK));
-                    *plinearLeft++ = value;
+                    *plinearLeft-- = value;
                     if (value >= 255) {
-                        //printf("max in the second stage left \n");
+                        printf("max in the second stage left \n");
                         xm = x - width;
                         ym = y;
                         timing = 0.5;
@@ -675,15 +690,15 @@ void selectiveAttentionProcessor::run(){
                 pmap3Left    += rowSize + halfwidth;
                 pmap4Right   += rowSize - halfwidth;
                 pmap4Left    += rowSize + halfwidth;
-                plinearLeft  += rowSize - halfwidth;
-                plinearRight += rowSize + halfwidth;
+                plinearRight += rowSize - halfwidth;
+                plinearLeft  += rowSize + halfwidth;
             }            
         }//end of the idle after first two stages of response
         
 
         //2. processing of the input images
         //if(!idle) {
-            //printf("processing the whole compilation of feature maps \n ");
+        //printf("processing the whole compilation of feature maps \n ");
             timing = 1.0;
             if((map5Port.getInputCount())&&(k5!=0)) {
                 tmp = map5Port.read(false);
@@ -854,6 +869,7 @@ cartSpace:
                     }
                     if(value == 255) {
                         maxResponse = true;
+                        printf("maxResponse!!!!!! ");
                         xm = (float) x;
                         ym = (float) y;
                         startInt = 0;      // forces the immediate saccade to the very salient object
