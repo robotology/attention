@@ -435,6 +435,16 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(2)>0) {
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Express Saccade  -----------------------
+
+        //forcing in idle early processes during oculomotor actions
+        if(feedbackPort.getOutputCount()) {
+            Bottle* sent = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SUSPEND);
+            feedbackPort.write(*sent, *received);
+        }
+
         if(!executing) {                       
             printf("------------------ Express Saccade --------------- \n");
             
@@ -451,6 +461,11 @@ void attPrioritiserThread::run() {
             commandBottle.addInt(centroid_y);
             commandBottle.addDouble(zDistance);
             outputPort.write();
+
+
+            while(!correcting) {
+                Time::delay(0.5);
+            }
 
             //Time::delay(3.0);
             
@@ -489,6 +504,18 @@ void attPrioritiserThread::run() {
             }
             */
         }
+
+                //resume early processes
+        //printf("          SENDING COMMAND OF RESUME      \n");
+        if(feedbackPort.getOutputCount()) {
+            //printf("feedback resetting \n");
+            Bottle* sent = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_RESUME);
+            feedbackPort.write(*sent, *received);
+        }
+        
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
