@@ -157,12 +157,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
 
     printf("extracting kinematic informations \n");
 
-    printf("starting the tracker.... \n");
-    ResourceFinder* rf = new ResourceFinder();
-    tracker = new trackerThread(*rf);
-    tracker->setName(getName("").c_str());
-    tracker->start();
-    printf("tracker successfully started \n");
+
 }
 
 gazeArbiterThread::~gazeArbiterThread() {
@@ -370,10 +365,15 @@ bool gazeArbiterThread::threadInit() {
         }
         pinhi += rowsizeInhi - (dx + 1) ;
     }
-
     printf("     \n zmax = %f \n", zmax);
 
-    
+    printf("starting the tracker.... \n");
+    ResourceFinder* rf = new ResourceFinder();
+    tracker = new trackerThread(*rf);
+    tracker->setName(getName("/matchTracker").c_str());
+    tracker->start();
+    printf("tracker successfully started \n");
+
     return true;
 }
 
