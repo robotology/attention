@@ -435,8 +435,8 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(2)>0) {
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Express Saccade  -----------------------
-
-        //forcing in idle early processes during oculomotor actions
+        // forcing in idle early processes during oculomotor actions
+        // not postsaccadic correction
         if(feedbackPort.getOutputCount()) {
             Bottle* sent = new Bottle();
             Bottle* received = new Bottle();    
@@ -462,10 +462,18 @@ void attPrioritiserThread::run() {
             commandBottle.addDouble(zDistance);
             outputPort.write();
 
-
-            while(!correcting) {
-                Time::delay(0.5);
+            //correcting is set when the saccade is accomplished
+            while((!correcting)&&(timeout < 5.0)) {
+                timeoutStop = Time::now();
+                timeout = timeoutStop - timeoutStart;
+                Time::delay(0.1);
             }
+            if(timeout > 2.0) {
+                printf("Express Saccade timed out \n");
+            }
+            else {
+                printf("Express Saccade  accomplished \n");
+            }        
 
             //Time::delay(3.0);
             
@@ -505,7 +513,7 @@ void attPrioritiserThread::run() {
             */
         }
 
-                //resume early processes
+        //resume early processes
         //printf("          SENDING COMMAND OF RESUME      \n");
         if(feedbackPort.getOutputCount()) {
             //printf("feedback resetting \n");
@@ -556,8 +564,6 @@ void attPrioritiserThread::run() {
         mutex.post();
     }
 }
-
-
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     printf("ACK. Aware of observable asking for attention \n");
