@@ -300,10 +300,13 @@ void attPrioritiserThread::run() {
     //mutex.wait();
     //Vector-vector element-wise product operator between stateRequest possible transitions
     if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)) {
+        printf("stateRequest: %s \n", stateRequest.toString().c_str());
+        printf("state: %s \n", state.toString().c_str());
         Vector c(4);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c );
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0;
+        printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     }
     
     /*
@@ -334,7 +337,100 @@ void attPrioritiserThread::run() {
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     
     if(allowedTransitions(3)>0) {
-        
+        state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        // ----------------  Express Saccade  -----------------------
+        // forcing in idle early processes during oculomotor actions
+        // not postsaccadic correction
+        printf("------------------ Express Saccade --------------- \n");
+            
+        if(feedbackPort.getOutputCount()) {
+            Bottle* sent = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SUSPEND);
+            feedbackPort.write(*sent, *received);
+        }
+
+        if(!executing) {                       
+            
+            collectionLocation[0 + 0] = u;
+            collectionLocation[0 * 2 + 1] = v;
+            printf("express saccade in position %d %d \n", u,v);
+            
+            int centroid_x = u;
+            int centroid_y = v;
+            Bottle& commandBottle=outputPort.prepare();
+            commandBottle.clear();
+            commandBottle.addString("SAC_MONO");
+            commandBottle.addInt(centroid_x);
+            commandBottle.addInt(centroid_y);
+            commandBottle.addDouble(zDistance);
+            outputPort.write();
+
+            //correcting is set when the saccade is accomplished
+            while((!correcting)&&(timeout < 5.0)) {
+                timeoutStop = Time::now();
+                timeout = timeoutStop - timeoutStart;
+                Time::delay(0.1);
+            }
+            if(timeout > 2.0) {
+                printf("Express Saccade timed out \n");
+            }
+            else {
+                printf("Express Saccade  accomplished \n");
+            }        
+
+            //Time::delay(3.0);
+            
+            /*
+            timeoutStop = Time::now();
+            timeout = timeoutStop - timeoutStart;
+            if(timeout < time) {
+                timeoutStop = Time::now();
+                timeout = timeoutStop - timeoutStart;
+                printf("es \n");
+            }
+            else {    
+                executing = true;
+                //execution here
+                int centroid_x, centroid_y;                
+                
+                printf("executing the centroid of the group of saccades \n");
+                int j = 0;
+                for(j = 0; j < 1; j++) {
+                    centroid_x += collectionLocation[j * 2];
+                    centroid_y += collectionLocation[j * 2 + 1];
+                }
+                centroid_x =(int) floor(centroid_x / j);
+                centroid_y =(int) floor(centroid_y / j);
+
+                Bottle& commandBottle=outputPort.prepare();
+                commandBottle.clear();
+                commandBottle.addString("SAC_MONO");
+                commandBottle.addInt(centroid_x);
+                commandBottle.addInt(centroid_y);
+                commandBottle.addDouble(zDistance);
+                outputPort.write();
+                
+                //allowedTransitions(2) = 0;
+                //executing = false;
+            }
+            */
+        }
+
+        //resume early processes
+        //printf("          SENDING COMMAND OF RESUME      \n");
+        if(feedbackPort.getOutputCount()) {
+            //printf("feedback resetting \n");
+            Bottle* sent = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_RESUME);
+            feedbackPort.write(*sent, *received);
+        }        
+    }    
+    else if(allowedTransitions(2)>0) {
+        state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         //forcing in idle early processes during oculomotor actions
         if(feedbackPort.getOutputCount()) {
             Bottle* sent = new Bottle();
@@ -344,7 +440,6 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
         }
 
-        state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
             printf("----------------------- Planned Saccade ------------------- \n");
@@ -432,99 +527,6 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
         }
     }
-    else if(allowedTransitions(2)>0) {
-        state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
-        // ----------------  Express Saccade  -----------------------
-        // forcing in idle early processes during oculomotor actions
-        // not postsaccadic correction
-        if(feedbackPort.getOutputCount()) {
-            Bottle* sent = new Bottle();
-            Bottle* received = new Bottle();    
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SUSPEND);
-            feedbackPort.write(*sent, *received);
-        }
-
-        if(!executing) {                       
-            printf("------------------ Express Saccade --------------- \n");
-            
-            collectionLocation[0 + 0] = u;
-            collectionLocation[0 * 2 + 1] = v;
-            printf("express saccade in position %d %d \n", u,v);
-            
-            int centroid_x = u;
-            int centroid_y = v;
-            Bottle& commandBottle=outputPort.prepare();
-            commandBottle.clear();
-            commandBottle.addString("SAC_MONO");
-            commandBottle.addInt(centroid_x);
-            commandBottle.addInt(centroid_y);
-            commandBottle.addDouble(zDistance);
-            outputPort.write();
-
-            //correcting is set when the saccade is accomplished
-            while((!correcting)&&(timeout < 5.0)) {
-                timeoutStop = Time::now();
-                timeout = timeoutStop - timeoutStart;
-                Time::delay(0.1);
-            }
-            if(timeout > 2.0) {
-                printf("Express Saccade timed out \n");
-            }
-            else {
-                printf("Express Saccade  accomplished \n");
-            }        
-
-            //Time::delay(3.0);
-            
-            /*
-            timeoutStop = Time::now();
-            timeout = timeoutStop - timeoutStart;
-            if(timeout < time) {
-                timeoutStop = Time::now();
-                timeout = timeoutStop - timeoutStart;
-                printf("es \n");
-            }
-            else {    
-                executing = true;
-                //execution here
-                int centroid_x, centroid_y;                
-                
-                printf("executing the centroid of the group of saccades \n");
-                int j = 0;
-                for(j = 0; j < 1; j++) {
-                    centroid_x += collectionLocation[j * 2];
-                    centroid_y += collectionLocation[j * 2 + 1];
-                }
-                centroid_x =(int) floor(centroid_x / j);
-                centroid_y =(int) floor(centroid_y / j);
-
-                Bottle& commandBottle=outputPort.prepare();
-                commandBottle.clear();
-                commandBottle.addString("SAC_MONO");
-                commandBottle.addInt(centroid_x);
-                commandBottle.addInt(centroid_y);
-                commandBottle.addDouble(zDistance);
-                outputPort.write();
-                
-                //allowedTransitions(2) = 0;
-                //executing = false;
-            }
-            */
-        }
-
-        //resume early processes
-        //printf("          SENDING COMMAND OF RESUME      \n");
-        if(feedbackPort.getOutputCount()) {
-            //printf("feedback resetting \n");
-            Bottle* sent = new Bottle();
-            Bottle* received = new Bottle();    
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_RESUME);
-            feedbackPort.write(*sent, *received);
-        }
-        
-    }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         // ----------------  Smooth Pursuit  -----------------------
@@ -579,12 +581,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             time =  arg->get(4).asDouble();
             printf("saccade mono time: %f \n", time);
             mutex.wait();
-            if(time < 0.2) {
-                stateRequest[2] = 1;
+            if(time <= 0.5) {
+                printf("setting stateRequest[3] \n");
+                Time::delay(3.0);
+                stateRequest[3] = 1;
                 timeoutStart = Time::now();
             } 
             else {
-                stateRequest[3] = 1;
+                printf("setting stateRequest[2] \n");
+                stateRequest[2] = 1;
             }
             //executing = false;
             mutex.post();
@@ -597,14 +602,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             yObject = arg->get(2).asDouble();
             zObject = arg->get(3).asDouble();
             mutex.wait();
-            stateRequest[3] = 1;
+            stateRequest[2] = 1;
             //executing = false;
             mutex.post();
             mono = false;
         }
         else if(!strcmp(name.c_str(),"PUR")) {
             mutex.wait();
-            stateRequest[2] = 1;
+            stateRequest[1] = 1;
             //executing = false;
             mutex.post();
         }
@@ -619,7 +624,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // saccade accomplished           
             mutex.wait();
             correcting = true;
-            executing = false;
+            //executing = false;
             mutex.post();
         }
         else {
