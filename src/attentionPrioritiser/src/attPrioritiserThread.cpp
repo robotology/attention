@@ -535,6 +535,7 @@ void attPrioritiserThread::run() {
         }
     }
     else if(allowedTransitions(0)>0) {
+        // ----------------  No Action - StandBy  -----------------------
         state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
     }
     else {
@@ -543,8 +544,9 @@ void attPrioritiserThread::run() {
     
     //printf("--------------------------------------------------------->%d \n",done);
             
-    if(allowedTransitions(3)>0) {      
+    if(allowedTransitions(3)>0) {
         mutex.wait();
+        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(3) = 0;
         executing = false;  //executing=false allows new action commands
         // execution = false moved to after the SAC_ACC is received
@@ -553,6 +555,7 @@ void attPrioritiserThread::run() {
     }
     if(allowedTransitions(2)>0) {
         mutex.wait();
+        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(2) = 0;
         executing = false;
         printf ("Transition request 2 reset \n");
@@ -560,6 +563,7 @@ void attPrioritiserThread::run() {
     }
     if(allowedTransitions(1)>0) {
         mutex.wait();
+        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
         executing = false;
         printf ("Transition request 1 reset \n");
@@ -583,7 +587,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.wait();
             if(time <= 0.5) {
                 printf("setting stateRequest[3] \n");
-                Time::delay(3.0);
                 stateRequest[3] = 1;
                 timeoutStart = Time::now();
             } 
