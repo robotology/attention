@@ -368,12 +368,12 @@ void attPrioritiserThread::run() {
             outputPort.write();
 
             //correcting is set when the saccade is accomplished
-            while((!correcting)&&(timeout < 5.0)) {
+            while((!correcting)&&(timeout < 2.0)) {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
                 Time::delay(0.1);
             }
-            if(timeout > 2.0) {
+            if(timeout >= 2.0) {
                 printf("Express Saccade timed out \n");
             }
             else {
