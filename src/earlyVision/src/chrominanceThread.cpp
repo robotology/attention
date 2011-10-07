@@ -167,14 +167,12 @@ void chrominanceThread::run() {
         // we are not interested in orientations, so do nothing
     }
     else{
-        if(getFlagForDataReady() && resized){
-                                   
+        if(getFlagForDataReady() && resized){                                   
             setFlagForThreadProcessing(true);
             lpMono.logpolarToCart(*cartIntensImg,*chromUnXtnIntensImg);        
             orientation();        
             setFlagForThreadProcessing(false);
             setFlagForDataReady(false);
-
         }
     }    
 }
@@ -240,9 +238,7 @@ void chrominanceThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
         memcpy( (uchar*)chromUnXtnIntensImg->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());
         
         /*
-
         // CAUTION:shallow copy
-
         chromUnXtnIntensImg = I;
         chromYplane = Y;
         chromUplane = U;

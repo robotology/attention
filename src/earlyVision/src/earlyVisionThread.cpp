@@ -66,38 +66,35 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     bluePlane           = new ImageOf<PixelMono>;
     yellowPlane         = new ImageOf<PixelMono>;
 
-    Yplane            = new ImageOf<PixelMono>;
-    Uplane            = new ImageOf<PixelMono>;
-    Vplane            = new ImageOf<PixelMono>;
+    Yplane              = new ImageOf<PixelMono>;
+    Uplane              = new ImageOf<PixelMono>;
+    Vplane              = new ImageOf<PixelMono>;
     
-    unXtnYplane            = new ImageOf<PixelMono>;
-    unXtnUplane            = new ImageOf<PixelMono>;
-    unXtnVplane            = new ImageOf<PixelMono>;
+    unXtnYplane         = new ImageOf<PixelMono>;
+    unXtnUplane         = new ImageOf<PixelMono>;
+    unXtnVplane         = new ImageOf<PixelMono>;
     
-    YofYUVpy          = new ImageOf<PixelMono>;
-    UofYUVpy          = new ImageOf<PixelMono>;
-    VofYUVpy          = new ImageOf<PixelMono>;
+    YofYUVpy            = new ImageOf<PixelMono>;
+    UofYUVpy            = new ImageOf<PixelMono>;
+    VofYUVpy            = new ImageOf<PixelMono>;
     RplusUnex           = new ImageOf<PixelMono>;
     GplusUnex           = new ImageOf<PixelMono>;
     BplusUnex           = new ImageOf<PixelMono>;
     
 
-    gaborPosHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
-    gaborPosVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
-    gaborNegHorConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
-    gaborNegVerConvolution =  new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
+    gaborPosHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
+    gaborPosVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
+    gaborNegHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
+    gaborNegVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
 
     
-    lambda = 0.3f;
+    lambda  = 0.3f;
     resized = false;
-    
-        
+    isYUV   = true;
 }
 
 earlyVisionThread::~earlyVisionThread() {
-    
-  printf("earlyVisionThread::~earlyVisionThread() \n");  
-       
+    printf("earlyVisionThread::~earlyVisionThread() \n");      
 }
 
 bool earlyVisionThread::threadInit() {
@@ -146,22 +143,17 @@ bool earlyVisionThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-    if(isYUV){
-        
-
+    if(isYUV){        
         if (!chromPort.open(getName("/chrominance:o").c_str())) {
             cout << ": unable to open port "  << endl;
             return false;  // unable to open; let RFModule know so that it won't run
         }
     }
-
-    else{
-        
+    else{        
         if (!chromPort.open(getName("/S:o").c_str())) {
             cout << ": unable to open port "  << endl;
             return false;  // unable to open; let RFModule know so that it won't run
-        }
-    
+        }    
     }
     
     if (!intensityCSPort.open(getName("/centSurrIntensity:o").c_str())) {
