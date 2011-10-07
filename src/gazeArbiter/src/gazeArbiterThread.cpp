@@ -739,6 +739,7 @@ void gazeArbiterThread::run() {
         }
     }
     else if(allowedTransitions(2)>0) {
+        // ----------------  SMOOTH PURSUIT -----------------------  
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
     }
     else if(allowedTransitions(1)>0) {
