@@ -143,11 +143,12 @@
 
 /** 
  * CHANGE LOG:
- * 06/07/11 : created the module                                                                            @author Rea
- * 07/07/11 : added the function that calculates the correlation between two log-polar images               @author Rea
- * 11/07/11 : changed the cycle for exploring the image in the correlation function                         @author Rea                                      
- * 19/08/11 : added a new feedback port to control earlier processes                                        @author Rea
-*/
+ * 06/07/11 : created the module                                                                            author Rea  \n
+ * 07/07/11 : added the function that calculates the correlation between two log-polar images               author Rea  \n
+ * 11/07/11 : changed the cycle for exploring the image in the correlation function                         author Rea  \n                                      
+ * 19/08/11 : added a new feedback port to control earlier processes                                        author Rea  \n
+ * 07/10/11 : added the enable and disable commands for express saccades.                                   author Rea  \n       
+ */
 
 
 

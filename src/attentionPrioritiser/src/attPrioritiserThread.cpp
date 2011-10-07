@@ -361,10 +361,16 @@ void attPrioritiserThread::run() {
             int centroid_y = v;
             Bottle& commandBottle=outputPort.prepare();
             commandBottle.clear();
+            commandBottle.addString("COR_OFF");
+            outputPort.write();
+            commandBottle.clear();
             commandBottle.addString("SAC_MONO");
             commandBottle.addInt(centroid_x);
             commandBottle.addInt(centroid_y);
             commandBottle.addDouble(zDistance);
+            outputPort.write();
+            commandBottle.clear();
+            commandBottle.addString("COR_ON");
             outputPort.write();
 
             //correcting is set when the saccade is accomplished
