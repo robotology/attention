@@ -525,12 +525,12 @@ void selectiveAttentionProcessor::run(){
                     //}
                     *plinearRight = value;
                     if (value >= threshold) {
-                        //printf("max in motion Right %d \n", (unsigned char)*pmap2Right);                    
+                        printf("max in motion Right \n");                    
                         *plinearRight = 255;
                         xm = halfwidth + x;
                         ym = y;
                         timing = 0.1;
-                        //printf("Jumping to cartSpace \n");
+                        printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle = true;                        
@@ -549,7 +549,7 @@ void selectiveAttentionProcessor::run(){
                         xm = halfwidth - x;
                         ym = y;
                         timing = 0.1;
-                        //printf("Jumping to cartSpace \n");
+                        printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle = true;                        
@@ -558,13 +558,16 @@ void selectiveAttentionProcessor::run(){
 
                     pmap2Left--;
                     ptmp--;
+
+                    /*
                     
                     value = (k1/sumK) * (double) *pmap1Right;
                     if (value >= threshold){
-                        printf("max in intesity Right %f with %f \n",value, k1);                    
+                        printf("max in intesity Right \n");                    
                         xm = halfwidth + x;
                         ym = y;
                         timing = 0.1;
+                        printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle =  true;                        
@@ -578,18 +581,20 @@ void selectiveAttentionProcessor::run(){
                         xm = halfwidth - x;
                         ym = y;
                         timing = 0.1;
- ;
+                        printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle =  true;                        
                         //break;
                     }
                     pmap1Left--;
+                    */
                     
                     // moving pointer of the plinear
                     // in this version only the motion map is saved in the plinear
                     plinearRight++;
                     plinearLeft--;
+                    
                 }
                 pmap1Right   += rowSize - halfwidth;
                 pmap1Left    += rowSize + halfwidth;
@@ -777,6 +782,7 @@ cartSpace:
             //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
             //printf("trasforming the logpolar image into cartesian \n");
             plinear = linearCombinationImage.getRawImage();
+            int rowsize = linearCombinationImage.getRowSize();
             unsigned char* pImage = inputLogImage->getRawImage();
             int padding3C = inputLogImage->getPadding();
             maxValue = 0;
@@ -785,6 +791,16 @@ cartSpace:
             
             for(int y = 0 ; y < height ; y++) {
                 for(int x = 0 ; x < width ; x++) {
+                    // in the conversion between cartesian and logpolar the single maxresponse pixel can go lost
+                    // enhancing the response of the neightbourhood 
+                    if(*plinear >= 255) {
+                        printf("maxResponse in 3 channel conversion \n");
+                        plinear++;              *plinear = 255;
+                        plinear -= 2;           *plinear = 255;
+                        plinear += 1 + rowsize; *plinear = 255;
+                        plinear += 2 * rowsize; *plinear = 255;
+                        plinear -= rowsize;
+                    }
                     *pImage++ = (unsigned char) *plinear;
                     *pImage++ = (unsigned char) *plinear;
                     *pImage++ = (unsigned char) *plinear;
@@ -797,6 +813,7 @@ cartSpace:
             ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
             ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();  // preparing the cartesian image for inhibith a portion of the saliency map            
             
+
             // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
             int outputXSize = xSizeValue;
             int outputYSize = ySizeValue;
@@ -814,13 +831,15 @@ cartSpace:
                 Vector angles(3);
                 bool b = igaze->getAngles(angles);
                 //printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
-                Bottle* sent = new Bottle();
+                Bottle* sent     = new Bottle();
                 Bottle* received = new Bottle();    
                 sent->clear();
                 sent->addString("fetch");
                 sent->addDouble(angles[0]);
                 sent->addDouble(angles[1]);
                 portionRequestPort.write(*sent, *received);
+                delete sent;
+                delete received;
             }
             Time::delay(0.05);
             if(inhiCartPort.getInputCount()) {            
@@ -851,7 +870,11 @@ cartSpace:
             maxResponse = false;
             for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
                 for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
-                    double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
+                    //double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
+                    double combinValue   = (double)  *pInter;
+                    if(combinValue >= 255.0) {
+                        printf("maxResponse for combinValue \n");
+                    }
                     if(*pinhicart > 10) {
                         combinValue = 0;
                     }
@@ -948,6 +971,7 @@ cartSpace:
                 xm = xm / countMaxes;
                 ym = ym / countMaxes;
             }
+
             //representation of red lines where the WTA point is
             //representation of the vertical line
             pImage = outputCartImage.getRawImage();
@@ -1029,8 +1053,8 @@ cartSpace:
             //} //end of the last idle.
 
         //---------- SECTION 2 ----------
-        // ------- requiring the saccade ---------------
-        //controlling the heading of the robot
+        // requiring the saccade starting from xm,ym coordinates
+        // controlling the heading of the robot
         endInt=Time::now();
         double diff = endInt - startInt;
         // idle: when any of the first two stages of response fires

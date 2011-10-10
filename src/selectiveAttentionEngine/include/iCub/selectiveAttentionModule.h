@@ -232,6 +232,7 @@
  * 30/08/11 : setting the flag of the earlyStage using resource finder                          <b>author:Rea</b>\n
  * 05/09/11 : adding the habituation image for storing space-dependent behaviour to suppress    <b>author:Rea</b>\n
  * 05/10/11 : adding the fast reaction in saccade from early stage and enabled second stage     <b>author:Rea</b>\n
+ * 10/10/11 : enhanced the response in logpolar to allow the presence of the response in cart.  <b>author:Rea</b>\n
  */
 
 
