@@ -344,36 +344,47 @@ void attPrioritiserThread::run() {
         printf("------------------ Express Saccade --------------- \n");
             
         if(feedbackPort.getOutputCount()) {
-            Bottle* sent = new Bottle();
+            Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SUSPEND);
             feedbackPort.write(*sent, *received);
+            delete sent;
+            delete received;
+            Time::delay(0.5);
         }
 
         if(!executing) {                       
-            
+            correcting =  false;
             collectionLocation[0 + 0] = u;
             collectionLocation[0 * 2 + 1] = v;
             printf("express saccade in position %d %d \n", u,v);
             
             int centroid_x = u;
             int centroid_y = v;
-            Bottle& commandBottle=outputPort.prepare();
+            //Bottle& commandBottleOFF = outputPort.prepare();
+            //commandBottleOFF.clear();
+            //commandBottleOFF.addString("COR_OFF");
+            //outputPort.write();
+            //Time::delay(0.5);
+            bool port_is_writing;
+            Bottle& commandBottle = outputPort.prepare();
             commandBottle.clear();
-            commandBottle.addString("COR_OFF");
-            outputPort.write();
-            commandBottle.clear();
-            commandBottle.addString("SAC_MONO");
+            commandBottle.addString("SAC_EXPR");
             commandBottle.addInt(centroid_x);
             commandBottle.addInt(centroid_y);
+            zDistance = 0.6;
             commandBottle.addDouble(zDistance);
             outputPort.write();
-            commandBottle.clear();
-            commandBottle.addString("COR_ON");
-            outputPort.write();
+            
+            //Bottle& commandBottleON = outputPort.prepare();
+            //commandBottleON.clear();
+            //commandBottleON.addString("COR_ON");
+            //outputPort.write();
 
-            //correcting is set when the saccade is accomplished
+            //correcting flag is set when the saccade is accomplished
+            timeout = 0;
+            timeoutStart = Time::now();
             while((!correcting)&&(timeout < 2.0)) {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
@@ -386,7 +397,7 @@ void attPrioritiserThread::run() {
                 printf("Express Saccade  accomplished \n");
             }        
 
-            //Time::delay(3.0);
+            Time::delay(1.0);
             
             /*
             timeoutStop = Time::now();
@@ -428,11 +439,13 @@ void attPrioritiserThread::run() {
         //printf("          SENDING COMMAND OF RESUME      \n");
         if(feedbackPort.getOutputCount()) {
             //printf("feedback resetting \n");
-            Bottle* sent = new Bottle();
+            Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_RESUME);
             feedbackPort.write(*sent, *received);
+            delete sent;
+            delete received;
         }        
     }    
     else if(allowedTransitions(2)>0) {
@@ -526,11 +539,13 @@ void attPrioritiserThread::run() {
         //printf("          SENDING COMMAND OF RESUME      \n");
         if(feedbackPort.getOutputCount()) {
             //printf("feedback resetting \n");
-            Bottle* sent = new Bottle();
+            Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_RESUME);
             feedbackPort.write(*sent, *received);
+            delete sent;
+            delete received;
         }
     }
     else if(allowedTransitions(1)>0) {
