@@ -649,7 +649,7 @@ void gazeArbiterThread::run() {
                 while((!done)&&(timeout < TIMEOUT_CONST)) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
-                    printf("saccade timeout %f %d \n", timeout, done);
+                    //printf("saccade timeout %f %d \n", timeout, done);
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);                    
                 }
@@ -690,12 +690,12 @@ void gazeArbiterThread::run() {
                     //corrected the error
                     double errorx = (width  >> 1) - point.x;
                     double errory = (height >> 1) - point.y;
-                    printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
+                    //printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
                     Vector px(2);
                     px(0) = (width  >> 1) - errorx;
                     px(1) = (height >> 1) - errory;
                     error = sqrt(errorx * errorx + errory * errory);
-                    printf("norm error %f \n", error);
+                    //printf("norm error %f \n", error);
                     int camSel = 0;
                     igaze->lookAtMonoPixel(camSel,px,zDistance);
                     tracker->getPoint(point);
@@ -1245,10 +1245,27 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         ConstString name = arg->get(0).asString();
         
         if(!strcmp(name.c_str(),"SAC_MONO")) {
+            // monocular saccades with visualFeedback
+            printf("MONO SACCADE request \n");
+            u = arg->get(1).asInt();
+            v = arg->get(2).asInt();
+            zDistance = arg->get(3).asDouble();
+            //mutex.wait();
+            //setVisualFeedback(true);
+            //stateRequest[3] = 1;
+            //mutex.post();
+            timetotStart = Time::now();
+            mono = true;
+            firstVer = true;
+        }
+        if(!strcmp(name.c_str(),"SAC_EXPR")) {
+            // monocular saccades without visualfeedback
+            printf("EXPRESS SACCADE request \n");
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
             mutex.wait();
+            setVisualFeedback(false);
             stateRequest[3] = 1;
             //executing = false;
             mutex.post();
@@ -1256,6 +1273,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             mono = true;
             firstVer = true;
         }
+        
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
             xObject = arg->get(1).asDouble();
             yObject = arg->get(2).asDouble();
@@ -1277,6 +1295,20 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             mutex.wait();
             stateRequest[1] = 1;
             //executing = false;
+            mutex.post();
+        }
+        else if(!strcmp(name.c_str(),"COR_OFF")) {            
+            printf("visual correction disabled \n");
+            Time::delay(5);
+            mutex.wait();
+            setVisualFeedback(false);
+            mutex.post();
+        }
+        else if(!strcmp(name.c_str(),"COR_ON")) {   
+            printf("visual correction enabled \n");
+            Time::delay(5);
+            mutex.wait();
+            setVisualFeedback(true);
             mutex.post();
         }
         else {
