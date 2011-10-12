@@ -253,13 +253,13 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
                 max = *pout;
             }
             
-            if(*pout >= 255){
+            if(*pout >= 245){
                printf("255 \n");
-            //*pout = 255;
-                //*(pout + 1) = 255;
-                //*(pout - 1) = 255;
-                //*(pout - rowsize) = 255;
-                //*(pout + rowsize) = 255;
+               //*pout = 255;
+               //*(pout + 1) = 255;
+               //*(pout - 1) = 255;
+               //*(pout - rowsize) = 255;
+               //*(pout + rowsize) = 255;
             }                     
             pout++;
             pin++;

@@ -72,6 +72,19 @@ inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     }
 }
 
+inline void crossAssign(unsigned char* p,int value, int rowsize) {
+    
+    // in the conversion between cartesian and logpolar the single maxresponse pixel can go lost
+    // enhancing the response of the neightbourhood 
+    *p = value;
+    p++;              *p = value;
+    p -= 2;           *p = value;
+    p += 1 + rowsize; *p = value;
+    p -= 2 * rowsize; *p = value;
+    p += rowsize;
+ 
+}                    
+
 void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     bool hue = false;
     bool sat = false;
@@ -516,8 +529,7 @@ void selectiveAttentionProcessor::run(){
             
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < halfwidth ; x++){
-                    
-                    
+                                        
                     //value = (k2/sumK) *  (double) *pmap2Right ;                   
                     value = *pmap2Right;
                     //if(*pmap2Right >= 255){
@@ -527,6 +539,7 @@ void selectiveAttentionProcessor::run(){
                     if (value >= threshold) {
                         printf("max in motion Right \n");                    
                         *plinearRight = 255;
+                        crossAssign(plinearRight, 255, rowSize);
                         xm = halfwidth + x;
                         ym = y;
                         timing = 0.1;
@@ -546,6 +559,7 @@ void selectiveAttentionProcessor::run(){
                     if (value >= threshold) {
                         printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
                         *plinearLeft = 255;
+                        crossAssign(plinearLeft, 255, rowSize);
                         xm = halfwidth - x;
                         ym = y;
                         timing = 0.1;
@@ -791,16 +805,7 @@ cartSpace:
             
             for(int y = 0 ; y < height ; y++) {
                 for(int x = 0 ; x < width ; x++) {
-                    // in the conversion between cartesian and logpolar the single maxresponse pixel can go lost
-                    // enhancing the response of the neightbourhood 
-                    if(*plinear >= 255) {
-                        printf("maxResponse in 3 channel conversion \n");
-                        plinear++;              *plinear = 255;
-                        plinear -= 2;           *plinear = 255;
-                        plinear += 1 + rowsize; *plinear = 255;
-                        plinear += 2 * rowsize; *plinear = 255;
-                        plinear -= rowsize;
-                    }
+                    
                     *pImage++ = (unsigned char) *plinear;
                     *pImage++ = (unsigned char) *plinear;
                     *pImage++ = (unsigned char) *plinear;

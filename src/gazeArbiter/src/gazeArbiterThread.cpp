@@ -1250,10 +1250,10 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
-            //mutex.wait();
-            //setVisualFeedback(true);
-            //stateRequest[3] = 1;
-            //mutex.post();
+            mutex.wait();
+            setVisualFeedback(true);
+            stateRequest[3] = 1;
+            mutex.post();
             timetotStart = Time::now();
             mono = true;
             firstVer = true;
