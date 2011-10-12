@@ -74,10 +74,12 @@ private:
     short numberState;                      // stores the number of the state in which the control can be
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
-    bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
-    bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
-    bool isOnWings;                         // flag that gives information on where the cameras are mounted
-    bool onDvs;                             // flag for remapping dvs location into standard dimension
+    //bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
+    //bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
+    //bool isOnWings;                         // flag that gives information on where the cameras are mounted
+    //bool onDvs;                             // flag for remapping dvs location into standard dimension
+    bool firstVergence;                     // flag that allows the inhibition for train of vergence commands 
+    bool ver_accomplished;                  // flag that enables again visual feature extraction inhibition off
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
     int* collectionLocation;                // collection of location for the center of gravity saccade
@@ -95,6 +97,7 @@ private:
     int width, height;                      // dimension of the image
     double phi;                             // value passed for vergence
     double phiTOT;                          // accumulator of increments of vergence angles
+     
     bool postSaccCorrection;                // flag that allows post saccadic corrections
     bool mono;                              // flag that indicates whether the saccade is mono or not
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
@@ -247,17 +250,17 @@ public:
     /**
     * function that sets the value of the parameter onWings
     */
-    void setOnWings(int value) { value?isOnWings=true:isOnWings=false; };
+    //void setOnWings(int value) { value?isOnWings=true:isOnWings=false; };
     
     /**
     * function that sets the value of the parameter onDvs
     */
-    void setOnDvs  (int value) { value?onDvs=true:onDvs=false; };
+    //void setOnDvs  (int value) { value?onDvs=true:onDvs=false; };
 
     /**
     * function that sets the value of the visualCorrection for a visual feedback in saccade
     */
-    void setVisualFeedback  (int value) { value?visualCorrection=true:visualCorrection=false; };
+    //void setVisualFeedback  (int value) { value?visualCorrection=true:visualCorrection=false; };
 
     /**
      * function that sets the value head pitch to which the head is blocked

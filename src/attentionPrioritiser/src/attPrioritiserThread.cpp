@@ -131,12 +131,12 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
     collectionLocation = new int[4*2];
-    numberState = 4; //null, vergence, smooth pursuit, saccade
+    numberState = 5; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
     firstVer = false;
-    visualCorrection = false;
-    isOnWings = false;
-    onDvs =  false;
+    //visualCorrection = false;
+    //isOnWings = false;
+    //onDvs =  false;
     done=true;
     postSaccCorrection = true;
     executing = false;
@@ -145,26 +145,29 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
 
-    Matrix trans(4,4);
-    trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0;
-    trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0;
-    trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0;
-    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 0.0 ; trans(3,3) = 1.0;
+    Matrix trans(5,5);
+    trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0;
+    trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0; trans(0,4) = 1.0;
+    trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0; trans(0,4) = 1.0;
+    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 0.0 ; trans(3,3) = 1.0; trans(0,4) = 1.0;
+    trans(4,0) = 1.0 ; trans(4,1) = 1.0 ; trans(4,2) = 0.0 ; trans(4,3) = 1.0; trans(0,4) = 1.0;
     stateTransition=trans;
 
-    Vector req(4);
+    Vector req(5);
     req(0) = 0;
     req(1) = 0;
     req(2) = 0;
     req(3) = 0;
+    req(4) = 0;
     stateRequest = req;
     allowedTransitions = req;
 
-    Vector s(4);
+    Vector s(5);
     s(0) = 1;
     s(1) = 0;
     s(2) = 0;
     s(3) = 0;
+    s(4) = 0;
     state = s;
     
     Vector t(3);
@@ -225,7 +228,7 @@ bool attPrioritiserThread::threadInit() {
     
     inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
-    firstConsistencyCheck=true;
+    //firstConsistencyCheck=true;
 
     inhibitionImage = new ImageOf<PixelMono>;
     inhibitionImage->resize(320,240);
@@ -336,8 +339,8 @@ void attPrioritiserThread::run() {
     //printf("state: %s \n", state.toString().c_str());
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     
-    if(allowedTransitions(3)>0) {
-        state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+    if(allowedTransitions(4)>0) {
+        state(4) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Express Saccade  -----------------------
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
@@ -448,8 +451,8 @@ void attPrioritiserThread::run() {
             delete received;
         }        
     }    
-    else if(allowedTransitions(2)>0) {
-        state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
+    else if(allowedTransitions(3)>0) {
+        state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         //forcing in idle early processes during oculomotor actions
         if(feedbackPort.getOutputCount()) {
             Bottle* sent = new Bottle();
@@ -548,16 +551,69 @@ void attPrioritiserThread::run() {
             delete received;
         }
     }
-    else if(allowedTransitions(1)>0) {
-        state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
+    else if(allowedTransitions(2)>0) {
+        state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Smooth Pursuit  -----------------------
         if(!executing) {                       
             printf("------------- Smooth Pursuit ---------------------\n");
         }
     }
-    else if(allowedTransitions(0)>0) {
-        // ----------------  No Action - StandBy  -----------------------
-        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
+    else if(allowedTransitions(1)>0) {
+        // ----------------  Vergence  -----------------------
+        state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1; state(0) = 0;
+
+        printf("------------------ Vergence --------------- \n");
+            
+        if((feedbackPort.getOutputCount())&&(firstVergence)) {
+            Bottle* sent     = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SUSPEND);
+            feedbackPort.write(*sent, *received);
+            delete sent;
+            delete received;
+            Time::delay(0.5);
+            firstVergence =  false;
+        }
+
+        if(!executing) {                       
+            correcting =  false;
+            collectionLocation[0 + 0] = u;
+            collectionLocation[0 * 2 + 1] = v;
+            printf("express saccade in position %d %d \n", u,v);
+            
+            int centroid_x = u;
+            int centroid_y = v;
+            //Bottle& commandBottleOFF = outputPort.prepare();
+            //commandBottleOFF.clear();
+            //commandBottleOFF.addString("COR_OFF");
+            //outputPort.write();
+            //Time::delay(0.5);
+
+            if(ver_accomplished) {
+                //resume early processes
+                //printf("          SENDING COMMAND OF RESUME      \n");
+                if(feedbackPort.getOutputCount()) {
+                    //printf("feedback resetting \n");
+                    Bottle* sent     = new Bottle();
+                    Bottle* received = new Bottle();    
+                    sent->clear();
+                    sent->addVocab(COMMAND_VOCAB_RESUME);
+                    feedbackPort.write(*sent, *received);
+                    delete sent;
+                    delete received;
+                }
+                firstVergence = true;
+            }
+            else {
+                bool port_is_writing;
+                Bottle& commandBottle = outputPort.prepare();
+                commandBottle.clear();
+                commandBottle.addString("VER_REL");
+                commandBottle.addDouble(phi);
+                outputPort.write();
+            }                        
+        }   
     }
     else {
         //printf("No transition \n");
@@ -565,12 +621,20 @@ void attPrioritiserThread::run() {
     
     //printf("--------------------------------------------------------->%d \n",done);
             
+    if(allowedTransitions(4)>0) {
+        mutex.wait();
+        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        allowedTransitions(4) = 0;
+        executing = false;  //executing=false allows new action commands
+        // execution = false moved to after the SAC_ACC is received
+        printf ("Transition request 4 reset \n");
+        mutex.post();
+    }
     if(allowedTransitions(3)>0) {
         mutex.wait();
         state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(3) = 0;
-        executing = false;  //executing=false allows new action commands
-        // execution = false moved to after the SAC_ACC is received
+        executing = false;
         printf ("Transition request 3 reset \n");
         mutex.post();
     }
@@ -607,13 +671,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("saccade mono time: %f \n", time);
             mutex.wait();
             if(time <= 0.5) {
-                printf("setting stateRequest[3] \n");
-                stateRequest[3] = 1;
+                printf("setting stateRequest[4] \n");
+                stateRequest[4] = 1;
                 timeoutStart = Time::now();
             } 
             else {
-                printf("setting stateRequest[2] \n");
-                stateRequest[2] = 1;
+                printf("setting stateRequest[3] \n");
+                stateRequest[3] = 1;
             }
             //executing = false;
             mutex.post();
@@ -626,14 +690,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             yObject = arg->get(2).asDouble();
             zObject = arg->get(3).asDouble();
             mutex.wait();
-            stateRequest[2] = 1;
+            stateRequest[3] = 1;
             //executing = false;
             mutex.post();
             mono = false;
         }
         else if(!strcmp(name.c_str(),"PUR")) {
             mutex.wait();
-            stateRequest[1] = 1;
+            stateRequest[2] = 1;
             //executing = false;
             mutex.post();
         }
@@ -648,6 +712,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // saccade accomplished           
             mutex.wait();
             correcting = true;
+            //executing = false;
+            mutex.post();
+        }
+        else if(!strcmp(name.c_str(),"VER_ACC")) {
+            // saccade accomplished           
+            mutex.wait();
+            ver_accomplished = true;
             //executing = false;
             mutex.post();
         }

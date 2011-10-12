@@ -86,14 +86,14 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     prioritiser->setName(getName().c_str());
     prioritiser->setRobotName(robotName);
     
-    if (rf.check("visualFeedback")) {
-        prioritiser->setVisualFeedback(true);
-        printf("visualFeedback required \n");
-    }
-    else {
-        printf("visualFeedback  not required \n");
+    //if (rf.check("visualFeedback")) {
+    //    prioritiser->setVisualFeedback(true);
+    //    printf("visualFeedback required \n");
+    //}
+    //else {
+    //    printf("visualFeedback  not required \n");
         //the default value for prioritiser->visualCorrection is false
-    }
+    //}
 
     /* get the dimension of the image for the thread parametric control */
     width                  = rf.check("width", 
@@ -174,14 +174,15 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
                            Value("standard"), 
                            "indicates mapping with which the image plane is moved").asString();
     printf("mode seleected: %s \n", mode.c_str());
-    if(!strcmp("onWings", mode.c_str())) {
-        printf("onWings %d true \n", onWings);
-        prioritiser->setOnWings(true);
-    }
-    else if(!strcmp("onDvs", mode.c_str())) {
-        printf("onDvs true  \n");
-        prioritiser->setOnDvs(true);
-    } 
+    
+    //if(!strcmp("onWings", mode.c_str())) {
+    //    printf("onWings %d true \n", onWings);
+    //    prioritiser->setOnWings(true);
+    //}
+    //else if(!strcmp("onDvs", mode.c_str())) {
+    //    printf("onDvs true  \n");
+    //    prioritiser->setOnDvs(true);
+    //} 
        
    
 
