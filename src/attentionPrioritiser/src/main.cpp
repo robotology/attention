@@ -29,12 +29,12 @@
 using namespace yarp::os;
 using namespace yarp::sig;
 
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 int main(int argc, char * argv[])
 {
     Network yarp;
-    YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
     Time::turboBoost();
     attPrioritiserModule module; 
 
@@ -44,6 +44,7 @@ int main(int argc, char * argv[])
     rf.setDefaultContext("logpolarAttention/conf");           //overridden by --context parameter
     rf.configure("ICUB_ROOT", argc, argv);
  
+    printf("running the module \n");
     module.runModule(rf);
     return 0;
 }

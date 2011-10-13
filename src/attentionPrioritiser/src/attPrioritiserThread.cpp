@@ -302,13 +302,14 @@ void attPrioritiserThread::run() {
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
     //Vector-vector element-wise product operator between stateRequest possible transitions
-    if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)) {
+    if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)) {
         printf("stateRequest: %s \n", stateRequest.toString().c_str());
         printf("state: %s \n", state.toString().c_str());
-        Vector c(4);
+        Vector c(5);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c );
-        stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0;
+        // resetting the requests
+        stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
         printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     }
     
@@ -340,7 +341,7 @@ void attPrioritiserThread::run() {
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     
     if(allowedTransitions(4)>0) {
-        state(4) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Express Saccade  -----------------------
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
@@ -623,7 +624,7 @@ void attPrioritiserThread::run() {
             
     if(allowedTransitions(4)>0) {
         mutex.wait();
-        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(4) = 0;
         executing = false;  //executing=false allows new action commands
         // execution = false moved to after the SAC_ACC is received
@@ -632,7 +633,7 @@ void attPrioritiserThread::run() {
     }
     if(allowedTransitions(3)>0) {
         mutex.wait();
-        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(3) = 0;
         executing = false;
         printf ("Transition request 3 reset \n");
@@ -640,7 +641,7 @@ void attPrioritiserThread::run() {
     }
     if(allowedTransitions(2)>0) {
         mutex.wait();
-        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(2) = 0;
         executing = false;
         printf ("Transition request 2 reset \n");
@@ -648,7 +649,7 @@ void attPrioritiserThread::run() {
     }
     if(allowedTransitions(1)>0) {
         mutex.wait();
-        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
         executing = false;
         printf ("Transition request 1 reset \n");

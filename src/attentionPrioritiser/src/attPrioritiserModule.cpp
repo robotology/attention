@@ -79,9 +79,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         configFile.clear();
     }
 
+
+    printf("running the prioCollectorThread \n");
     collector=new prioCollectorThread();
     collector->setName(getName().c_str());
     
+    printf("running the prioritiser \n");
     prioritiser=new attPrioritiserThread(configFile);
     prioritiser->setName(getName().c_str());
     prioritiser->setRobotName(robotName);
