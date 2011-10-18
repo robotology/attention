@@ -352,7 +352,7 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SUSPEND);
+            sent->addVocab(COMMAND_VOCAB_INH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -402,7 +402,7 @@ void attPrioritiserThread::run() {
                 printf("Express Saccade  accomplished \n");
             }        
 
-            Time::delay(1.0);
+            Time::delay(0.1);
             
             /*
             timeoutStop = Time::now();
@@ -447,11 +447,12 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_RESUME);
+            sent->addVocab(COMMAND_VOCAB_NINH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
-        }        
+        }
+        Time::delay(1.0);
     }    
     else if(allowedTransitions(3)>0) {
         state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
@@ -460,7 +461,7 @@ void attPrioritiserThread::run() {
             Bottle* sent = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SUSPEND);
+            sent->addVocab(COMMAND_VOCAB_INH);
             feedbackPort.write(*sent, *received);
         }
 
@@ -483,7 +484,7 @@ void attPrioritiserThread::run() {
             // activating the sacPlanner
             sacPlanner->setSaccadicTarget(u,v);
             sacPlanner->wakeup();
-            Time::delay(0.1);
+            Time::delay(1.0);
             
             // executing the saccade
             Bottle& commandBottle=outputPort.prepare();
@@ -535,7 +536,7 @@ void attPrioritiserThread::run() {
                 } 
                 */
 
-                Time::delay(0.5);
+                Time::delay(1.0);
                 
             } //end of postsaccadic correction                
         }
@@ -547,11 +548,12 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_RESUME);
+            sent->addVocab(COMMAND_VOCAB_NINH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
         }
+        Time::delay(1.0);
     }
     else if(allowedTransitions(2)>0) {
         state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;

@@ -28,7 +28,8 @@
 
 #define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
 #define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
-
+#define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
+#define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
