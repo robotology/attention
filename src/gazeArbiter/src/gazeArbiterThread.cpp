@@ -810,7 +810,8 @@ void gazeArbiterThread::run() {
             */
             
 
-            if((mono)) {                
+            if((mono)) { 
+                printf("phi: %f \n", phi);
                 if((phi < 0.05)&&(phi>-0.05) && (!accomplished_flag)) {
                     countVerNull++;
                     printf("CountVerNull %d \n", countVerNull);
@@ -825,6 +826,7 @@ void gazeArbiterThread::run() {
                     status.clear();
                     status.addString("VER_ACC");
                     statusPort.write();
+                    Time::delay(0.5);
                                         
                     //code for accomplished vergence
                     timetotStop = Time::now();
