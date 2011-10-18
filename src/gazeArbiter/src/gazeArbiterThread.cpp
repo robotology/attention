@@ -541,8 +541,8 @@ void gazeArbiterThread::run() {
                 if(onDvs){
                     accomplished_flag = false;  
                 }
-                else if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (x[2] < zmin) || (x[2] > zmax)) {
-                    printf("                    OutOfRange ._._._._._.[%f,%f] [%f,%f] [%f,%f] \n",xmin, xmax, ymin, ymax, zmin, zmax);
+                else if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (xo[2] < zmin) || (xo[2] > zmax)) {
+                    printf("                    OutOfRange ._._._._._.[%f,%f,%f] [%f,%f,%f] [%f,%f,%f] \n",xmin, xo[0], xmax, ymin, xo[1],ymax, zmin, xo[2], zmax);
                     accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
                     Vector px(3);
                     px[0] = -0.5 + xOffset;
@@ -823,7 +823,7 @@ void gazeArbiterThread::run() {
                     //sending the acknowledgement vergence_accomplished
                     status = statusPort.prepare();
                     status.clear();
-                    status.addString("vergence_accomplished");
+                    status.addString("VER_ACC");
                     statusPort.write();
                                         
                     //code for accomplished vergence
