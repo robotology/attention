@@ -356,7 +356,7 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
-            Time::delay(0.5);
+            Time::delay(0.1);
         }
 
         if(!executing) {                       
@@ -535,7 +535,7 @@ void attPrioritiserThread::run() {
                 } 
                 */
 
-                Time::delay(2.0);
+                Time::delay(0.5);
                 
             } //end of postsaccadic correction                
         }
@@ -575,7 +575,7 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
-            Time::delay(1.0);
+            Time::delay(0.2);
             firstVergence =  false;
         }
 
