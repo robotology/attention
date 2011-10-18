@@ -134,6 +134,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     numberState = 5; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
     firstVer = false;
+    firstVergence = true;
     //visualCorrection = false;
     //isOnWings = false;
     //onDvs =  false;
@@ -566,6 +567,7 @@ void attPrioritiserThread::run() {
         printf("------------------ Vergence --------------- \n");
             
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
+            printf("vergence: sending suspend command \n");
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
@@ -573,15 +575,15 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
-            Time::delay(0.5);
+            Time::delay(1.0);
             firstVergence =  false;
         }
 
         if(!executing) {                       
-            correcting =  false;
-            collectionLocation[0 + 0] = u;
-            collectionLocation[0 * 2 + 1] = v;
-            printf("express saccade in position %d %d \n", u,v);
+            //correcting =  false;
+            //collectionLocation[0 + 0] = u;
+            //collectionLocation[0 * 2 + 1] = v;
+            printf("vergence in relative angle %f \n", phi);
             
             int centroid_x = u;
             int centroid_y = v;
@@ -593,7 +595,7 @@ void attPrioritiserThread::run() {
 
             if(ver_accomplished) {
                 //resume early processes
-                //printf("          SENDING COMMAND OF RESUME      \n");
+                printf("vergence: accomplished sending resume command \n");
                 if(feedbackPort.getOutputCount()) {
                     //printf("feedback resetting \n");
                     Bottle* sent     = new Bottle();
@@ -607,6 +609,7 @@ void attPrioritiserThread::run() {
                 firstVergence = true;
             }
             else {
+                printf("vergence: sending relative angle to the gazeArbiter \n");
                 bool port_is_writing;
                 Bottle& commandBottle = outputPort.prepare();
                 commandBottle.clear();
@@ -705,7 +708,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"VER_REL")) {
             phi = arg->get(1).asDouble();
             mutex.wait();
-            stateRequest[1] = 1;
+            ver_accomplished = false;
+            stateRequest[1]  = 1;
             //executing = false;
             mutex.post();
         }
@@ -717,14 +721,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();
         }
         else if(!strcmp(name.c_str(),"VER_ACC")) {
-            // saccade accomplished           
+            // vergence accomplished           
+            printf("Vergence accomplished \n");
             mutex.wait();
             ver_accomplished = true;
+            stateRequest[1]  = 1;
             //executing = false;
             mutex.post();
         }
         else {
-            printf("Command has not been recognised \n");
+            printf("Command %s has not been recognised \n",name.c_str());
         }
     }
 }
