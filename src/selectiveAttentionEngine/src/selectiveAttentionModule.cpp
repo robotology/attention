@@ -482,6 +482,24 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             ok = true;
         }
         break;
+
+    case COMMAND_VOCAB_INH:
+        rec = true;
+        {
+            printf("Inhibition of feature extraction activated \n");
+            currentProcessor->suspend();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_NINH:
+        rec = true;
+        {
+            printf("Inhibition of feature extraction deactivated \n");
+            currentProcessor->resume();
+            currentProcessor->setCounterMotion(0);
+            ok = true;
+        }
+        break;
     case COMMAND_VOCAB_NAME:
         rec = true;
         {

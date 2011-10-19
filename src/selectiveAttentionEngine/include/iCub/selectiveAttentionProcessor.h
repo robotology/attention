@@ -87,6 +87,7 @@ private:
     //yarp::sig::ImageOf<yarp::sig::PixelMono>* outputImagePlane; //temp variable for plane extraction;
     int cLoop;      //counter of the loop
     int camSel;     //select the image plane: left or right ( 0: left, 1: right )
+    int counterMotion; 
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *image_out;         // temp variable for plane extraction;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *image_tmp;        // temp variable for plane extraction;
     int targetRED;          // value read from the blobFinder component (red intensity of the target)
@@ -271,6 +272,13 @@ public:
      * @param overlap value of the overlapping
      */
     void setOverlap(double overlap);
+
+    /**
+     * set the counter of the motion feature maps. Activates the motion feature
+     * extraction after a predefined lapse of time. This avoids responses after discontin.
+     * @param value integer associated with counter
+     */
+    void setCounterMotion(double value) {counterMotion = value; };
     
     /**
      * function that declares the number of rings of the image has to be remapped
