@@ -64,6 +64,7 @@
 
 class attPrioritiserThread : public yarp::os::RateThread, public observer {
 private:
+    int cUpdate;                            // counter of updates
     std::string name;                       // rootname of all the ports opened by this thread
     std::string robot;                      // name of the robot read by the ResourceFinder
     std::string configFile;                 // configuration file of cameras (LEFT RIGHT)

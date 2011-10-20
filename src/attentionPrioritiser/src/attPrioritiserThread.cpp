@@ -130,6 +130,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 
 attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
+    cUpdate = 0;
     collectionLocation = new int[4*2];
     numberState = 5; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
@@ -452,7 +453,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
-        Time::delay(1.0);
+        Time::delay(0.5);
     }    
     else if(allowedTransitions(3)>0) {
         state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
@@ -484,7 +485,7 @@ void attPrioritiserThread::run() {
             // activating the sacPlanner
             sacPlanner->setSaccadicTarget(u,v);
             sacPlanner->wakeup();
-            Time::delay(1.0);
+            Time::delay(0.5);
             
             // executing the saccade
             Bottle& commandBottle=outputPort.prepare();
@@ -553,7 +554,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
-        Time::delay(1.0);
+        Time::delay(0.5);
     }
     else if(allowedTransitions(2)>0) {
         state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
@@ -579,7 +580,9 @@ void attPrioritiserThread::run() {
             delete received;
             Time::delay(0.2);
             firstVergence =  false;
+            timeoutStart = Time::now();
         }
+        
 
         if(!executing) {                       
             //correcting =  false;
@@ -595,7 +598,10 @@ void attPrioritiserThread::run() {
             //outputPort.write();
             //Time::delay(0.5);
 
-            if(ver_accomplished) {
+            timeoutStop = Time::now();
+            timeout = timeoutStop - timeoutStart;
+
+            if((ver_accomplished)||(timeout>5.0)) {
                 //resume early processes
                 printf("vergence: accomplished sending resume command \n");
                 if(feedbackPort.getOutputCount()) {
@@ -663,6 +669,7 @@ void attPrioritiserThread::run() {
 }
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
+    cUpdate++;
     printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
         //printf("bottle: %s ", arg->toString().c_str());
@@ -709,11 +716,22 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
             phi = arg->get(1).asDouble();
-            mutex.wait();
-            ver_accomplished = false;
-            stateRequest[1]  = 1;
-            //executing = false;
-            mutex.post();
+            if(firstVergence){
+                if((phi!=0)&&(cUpdate %10 == 0)){
+                    mutex.wait();
+                    ver_accomplished = false;
+                    stateRequest[1]  = 1;
+                    //executing = false;
+                    mutex.post();
+                }
+            }
+            else {
+                mutex.wait();
+                ver_accomplished = false;
+                stateRequest[1]  = 1;
+                //executing = false;
+                mutex.post();
+            }            
         }
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
             // saccade accomplished           
