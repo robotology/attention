@@ -431,14 +431,17 @@ void gazeArbiterThread::run() {
     Bottle& status = statusPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
-    //printf("stateRequest: %s \n", stateRequest.toString().c_str());
+    
     //mutex.wait();
     //Vector-vector element-wise product operator between stateRequest possible transitions
     if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)) {
+        printf("stateRequest: %s \n", stateRequest.toString().c_str());
         Vector c(4);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c );
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0;
+        printf("state: %s \n", state.toString().c_str());
+        printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     }
 
     if(inLeftPort.getInputCount()){
@@ -746,7 +749,7 @@ void gazeArbiterThread::run() {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         // ----------------  VERGENCE -----------------------     
         //printf("vergence_accomplished : %d \n",accomplished_flag);
-        //printf("Entering in VERGENCE \n");
+        printf("Entering in VERGENCE \n");
         if(!executing) {
             Vector gazeVect(3);
             Vector objectVect(3);
@@ -822,11 +825,12 @@ void gazeArbiterThread::run() {
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
                     //sending the acknowledgement vergence_accomplished
-                    status = statusPort.prepare();
-                    status.clear();
-                    status.addString("VER_ACC");
+                    Bottle& status2 = statusPort.prepare();
+                    status2.clear();
+                    status2.addString("VER_ACC");
                     statusPort.write();
-                    Time::delay(0.5);
+                    //delete &status2;
+                    
                                         
                     //code for accomplished vergence
                     timetotStop = Time::now();
@@ -1099,10 +1103,12 @@ void gazeArbiterThread::run() {
                     tracker->getPoint(point);
                     Vector px(2);
                     int camSel = 0;
-                    if((point.x == 0)&& (point.y == 0)) {
-                        printf("no visual correction initialised");
+                    //if((point.x == 0)&& (point.y == 0)) {
+                    if(true){
                         px(0) = (width>>1)  - 1;
-                        px(1) = (height>>1) - 1;                        
+                        px(1) = (height>>1) - 1; 
+                        printf("no visual correction initialised %f %f \n", px(0), px(1));
+                        igaze->lookAtMonoPixel(camSel,px,varDistance);                       
                     }
                     else {
                         double errorx = 160 - point.x;
@@ -1114,8 +1120,8 @@ void gazeArbiterThread::run() {
                         error = sqrt(errorx * errorx + errory * errory);
                         //printf("norm error %f \n", error);
                                               
-                        px(0) = (width>>1)  - 1 - errorx;
-                        px(1) = (height>>1) - 1 - errory;
+                        px(0) = (width>>1)  - 1 - errorx;   //159 - errorx
+                        px(1) = (height>>1) - 1 - errory;   //119 - errory
                         igaze->lookAtMonoPixel(camSel,px,varDistance);
                     }
                         
@@ -1295,6 +1301,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"VER_REL")) {
             phi = arg->get(1).asDouble();            
             mutex.wait();
+            mono = true;
             stateRequest[1] = 1;
             //executing = false;
             mutex.post();
