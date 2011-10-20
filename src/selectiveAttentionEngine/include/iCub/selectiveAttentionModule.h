@@ -83,7 +83,7 @@
 #define COMMAND_VOCAB_KMOT  VOCAB4('k','m','o','t')
 #define COMMAND_VOCAB_DEF   VOCAB3('d','e','f')
 #define COMMAND_VOCAB_MOT   VOCAB3('m','o','t')
-#define COMMAND_VOCAB_INH   VOCAB3('m','o','t')
+#define COMMAND_VOCAB_INH   VOCAB3('i','n','h')
 #define COMMAND_VOCAB_NINH  VOCAB4('n','i','n','h')
 
 /**
