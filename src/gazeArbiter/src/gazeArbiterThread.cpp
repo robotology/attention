@@ -695,8 +695,8 @@ void gazeArbiterThread::run() {
                     double errory = (height >> 1) - point.y;
                     //printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
                     Vector px(2);
-                    px(0) = (width  >> 1) - errorx;
-                    px(1) = (height >> 1) - errory;
+                    px(0) = (width  >> 1) - 1 - errorx;    // subtracting 1 for the center of image
+                    px(1) = (height >> 1) - 1 - errory;    // subtracting 1 for the center of image
                     error = sqrt(errorx * errorx + errory * errory);
                     //printf("norm error %f \n", error);
                     int camSel = 0;
