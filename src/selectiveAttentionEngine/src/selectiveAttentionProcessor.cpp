@@ -43,7 +43,7 @@ using namespace iCub::logpolar;
 #define YSIZE_DIM        240   // original mapping
 #define TIME_CONST       50    // number of times period rateThread to send motion command
 #define BASELINE         0.068 // distance in millimeters between eyes
-#define MAXCOUNTERMOTION 50   
+#define MAXCOUNTERMOTION 20   
 
 template<class T>
 
@@ -527,6 +527,7 @@ void selectiveAttentionProcessor::run(){
             // exploring the image from rho=0 and from theta = 0
             double value;
             double threshold = 255;
+            double thresholdInt =255;
             
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < halfwidth ; x++){
@@ -575,14 +576,18 @@ void selectiveAttentionProcessor::run(){
                         
                         pmap2Left--;
                         ptmp--;
+                        
                     }
                     
-
                     
                     // ----------- intensity ---------------------
-                    value = (k1/sumK) * (double) *pmap1Right;
-                    if (value >= threshold){
+                    //value = (k1/sumK) * (double) *pmap1Right;
+                    value = *pmap1Right * 0.8;
+                    //*plinearRight = value;
+                    if (value >= thresholdInt){
                         printf("max in intesity Right \n");                    
+                        //*plinearRight = 255;
+                        //crossAssign(plinearRight, 255, rowSize);
                         xm = halfwidth + x;
                         ym = y;
                         timing = 0.1;
@@ -594,9 +599,14 @@ void selectiveAttentionProcessor::run(){
                     }
                     pmap1Right++;
                     
-                    value = (k1/sumK) * (double) *pmap1Left;
-                    if (value >= threshold){
-                        printf("max in intensity Left %f \n",value);                    
+                    
+                    //value = (k1/sumK) * (double) *pmap1Left;
+                    value = *pmap1Left * 0.8;
+                    //*plinearLeft = value;
+                    if (value >= thresholdInt){
+                        printf("max in intensity Left \n");
+                        //*plinearRight = 255;
+                        //crossAssign(plinearLeft, 255, rowSize);                   
                         xm = halfwidth - x;
                         ym = y;
                         timing = 0.1;
@@ -607,6 +617,8 @@ void selectiveAttentionProcessor::run(){
                         //break;
                     }
                     pmap1Left--;
+                    
+                    
                     
                     
                     // moving pointer of the plinear
@@ -624,9 +636,12 @@ void selectiveAttentionProcessor::run(){
                 plinearRight += rowSize - halfwidth;
                 plinearLeft  += rowSize + halfwidth;
             }
+            //handling the counterMotion
             counterMotion++;
-            if(counterMotion >= MAXCOUNTERMOTION) counterMotion = MAXCOUNTERMOTION;
-            printf("counterMotion %d \n", counterMotion);
+            if(counterMotion >= MAXCOUNTERMOTION){ 
+                counterMotion = MAXCOUNTERMOTION;
+            }
+            //printf("counterMotion %d \n", counterMotion);
             //tmpImage = *(map2_yarp);
             testPort.write();
 
@@ -825,7 +840,6 @@ cartSpace:
             ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
             ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();  // preparing the cartesian image for inhibith a portion of the saliency map            
             
-
             // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
             int outputXSize = xSizeValue;
             int outputYSize = ySizeValue;
