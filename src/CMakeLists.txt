@@ -15,8 +15,8 @@ add_subdirectory(repeater)
 add_subdirectory(selectiveAttentionEngine)
 add_subdirectory(selAttentionInterface)
 add_subdirectory(salBlobFinderInterface)
+add_subdirectory(vergence)
 add_subdirectory(visualFeatureExtractor)
-
 add_subdirectory(zdfControl)
 
 if(IPP_FOUND)
