@@ -148,6 +148,7 @@
  * 11/07/11 : changed the cycle for exploring the image in the correlation function                         author Rea  \n                                      
  * 19/08/11 : added a new feedback port to control earlier processes                                        author Rea  \n
  * 07/10/11 : added the enable and disable commands for express saccades.                                   author Rea  \n       
+ * 26/10/11 : reduced all the temporal constants to 50ms                                                    author Rea  \n  
  */
 
 

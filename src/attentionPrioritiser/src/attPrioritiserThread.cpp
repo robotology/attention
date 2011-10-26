@@ -357,7 +357,7 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
-            Time::delay(0.1);
+            Time::delay(0.05);
         }
 
         if(!executing) {                       
@@ -394,7 +394,7 @@ void attPrioritiserThread::run() {
             while((!correcting)&&(timeout < 2.0)) {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
-                Time::delay(0.1);
+                Time::delay(0.05);
             }
             if(timeout >= 2.0) {
                 printf("Express Saccade timed out \n");
@@ -403,7 +403,7 @@ void attPrioritiserThread::run() {
                 printf("Express Saccade  accomplished \n");
             }        
 
-            Time::delay(0.1);
+            Time::delay(0.05);
             
             /*
             timeoutStop = Time::now();
@@ -453,7 +453,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
-        Time::delay(0.5);
+        Time::delay(0.05);
     }    
     else if(allowedTransitions(3)>0) {
         state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
@@ -485,7 +485,7 @@ void attPrioritiserThread::run() {
             // activating the sacPlanner
             sacPlanner->setSaccadicTarget(u,v);
             sacPlanner->wakeup();
-            Time::delay(0.5);
+            Time::delay(0.05);
             
             // executing the saccade
             Bottle& commandBottle=outputPort.prepare();
@@ -504,7 +504,7 @@ void attPrioritiserThread::run() {
                 while((!correcting)&&(timeout < 5.0)) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
-                    Time::delay(0.1);
+                    Time::delay(0.05);
                 }
                 if(timeout > 5.0) {
                     printf("Saccade accomplished timeout \n");
@@ -515,7 +515,7 @@ void attPrioritiserThread::run() {
                 correcting = false;   // resetting the correction flag
                 sacPlanner->setCompare(true);
                 sacPlanner->wakeup();
-                Time::delay(0.1);
+                Time::delay(0.05);
                 
                 /*
                 // correction or second saccade??
@@ -537,7 +537,7 @@ void attPrioritiserThread::run() {
                 } 
                 */
 
-                Time::delay(1.0);
+                Time::delay(0.05);
                 
             } //end of postsaccadic correction                
         }
@@ -554,7 +554,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
-        Time::delay(0.5);
+        Time::delay(0.05);
     }
     else if(allowedTransitions(2)>0) {
         state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
@@ -578,7 +578,7 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
-            Time::delay(0.2);
+            Time::delay(0.05);
             firstVergence =  false;
             timeoutStart = Time::now();
         }
