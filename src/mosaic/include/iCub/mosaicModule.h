@@ -139,9 +139,10 @@
 
 
 /**
- * CHANGE LOG:
- * 24/03/11 : moved multiple addition out of the loop                                 @author Rea
- * 28/03/11 : added the command to represent the 3d position on the image plane       @author Rea
+ * /section change_log CHANGE LOG:
+ * 24/03/11 : moved multiple addition out of the loop                                 author: Rea /n
+ * 28/03/11 : added the command to represent the 3d position on the image plane       author: Rea /n
+ * 26/10/11 : added the attenuation variable                                          author: Rea /n            
  */
 
 #include <iostream>
@@ -207,7 +208,6 @@ public:
     double getPeriod();
 
     
-
     /**
     *  unimplemented
     */ 

@@ -32,7 +32,6 @@
 #include <yarp/dev/all.h>
 #include <yarp/os/RateThread.h>
 #include <iCub/iKin/iKinInv.h>
-//#include <iCub/iKin/iKinIpOpt.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/ctrl/pids.h>
 
@@ -79,22 +78,23 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portionPort;       // port used to send the portion of the mosaic requested
 
     yarp::dev::PolyDriver *polyTorso, *drvHead;             // polydriver for the control of the torso and head
-    iCub::iKin::iCubEye *eyeL;                              //reference to the left eye
-    iCub::iKin::iCubEye *eyeR;                              //reference to the right eye
-    iCub::iKin::iCubEye *eyeCyclopic;                       //reference to the mosaic plane
-    yarp::dev::IEncoders *encTorso,*encHead;              // encoders of the torso and head
+    iCub::iKin::iCubEye *eyeL;                              // reference to the left eye
+    iCub::iKin::iCubEye *eyeR;                              // reference to the right eye
+    iCub::iKin::iCubEye *eyeCyclopic;                       // reference to the mosaic plane
+    yarp::dev::IEncoders *encTorso,*encHead;                // encoders of the torso and head
     yarp::sig::Matrix *invPrjL, *invPrjR;                   // inverse of prjection matrix
     yarp::sig::Matrix *PrjL, *PrjR;                         // projection matrix
     yarp::sig::Matrix *cyclopicPrj;                         // projection on the cyclopic plane  
-    yarp::sig::Matrix *eyeHL, *eyeHR;                                // rototranslation matrix for the considered eye
+    yarp::sig::Matrix *eyeHL, *eyeHR;                       // rototranslation matrix for the considered eye
     yarp::sig::Matrix *eyeH0;
     yarp::sig::Matrix *inveyeH0;
     double cxl, cyl, fxl, fyl, cxr, cyr, fxr, fyr;
     int count;
-    std::string name;       // rootname of all the ports opened by this thread
-    bool resized;           // flag to check if the variables have been already resized
-    bool rectified;         // flag set whenever the rectification is required
-    bool forgettingFactor;  // flag that allows reduction of the inhibition in time
+    std::string name;                                       // rootname of all the ports opened by this thread
+    bool resized;                                           // flag to check if the variables have been already resized
+    bool rectified;                                         // flag set whenever the rectification is required
+    bool forgettingFactor;                                  // flag that allows reduction of the inhibition in time
+    bool attenuation;                                       // attenuatuion effect
 public:
     /**
     * constructor default
@@ -227,6 +227,12 @@ public:
      * @param elevation angle of gaze interested in
      */    
     void setFetchPortion(float azimuth, float elevation);
+
+    /**
+     * function set attentuation flag for temporal smoothing of the image
+     * @param valeu value to assign to the attenuation flag
+     */    
+    void setAttenuation(bool value){attenuation =  value; forgettingFactor = value; };
     
 };
 

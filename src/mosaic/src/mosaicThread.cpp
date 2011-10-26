@@ -1306,12 +1306,13 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
                     outTemp++;        
                 }
                 else {
-                    *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; 
+                    //*outTemp = 0; outTemp++; *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; 
+                    *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; 
                 }
             }
             else {
-                //*outTemp = 0; outTemp++; *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; 
-                outTemp += 3;   
+                *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; 
+                //outTemp += 3;   
             }           
             pMemoryLocation++;
             inpTemp++;
