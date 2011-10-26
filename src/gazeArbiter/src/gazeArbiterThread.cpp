@@ -15,8 +15,7 @@
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License fo
- r more details
+ * Public License for more details
  */
 
 /**
@@ -597,6 +596,7 @@ void gazeArbiterThread::run() {
                             px(1) = v;
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
+                            Time::delay(0.05);
                             igaze->checkMotionDone(&done);
                             dist = 10;
                             /*
@@ -675,7 +675,7 @@ void gazeArbiterThread::run() {
                     timeout = TIMEOUT_CONST;
                 }
                 else {
-                    printf("saccade_accomplished \n");
+                    printf("checkMotionDone %d \n", done);
                 }
             }
             
@@ -1053,7 +1053,7 @@ void gazeArbiterThread::run() {
                     blobDatabasePort.write(request, reply);                     
                     
                     //delay after vergence accomplished ... needed to allow other module to call the control
-                    Time::delay(1);
+                    Time::delay(0.05);
                     return;
                 }
                 
@@ -1127,7 +1127,7 @@ void gazeArbiterThread::run() {
                         
                     printf("----------------------------------varDistance %f,%f->%f->%f \n",phi, anglesVect[2], phiTOT,varDistance);
                     
-                    Time::delay(0.1);                                        
+                    Time::delay(0.05);                                        
                     //}
             
                
@@ -1205,11 +1205,11 @@ void gazeArbiterThread::run() {
     if(allowedTransitions(3)>0) {
         //igaze->checkMotionDone(&done);  // the only action that should not be tracking therefore it make wait till the end
         //if (done) {
-        //    mutex.wait();
+        mutex.wait();
         allowedTransitions(3) = 0;
         executing = false;  //executing=false allows new action commands
         printf ("\n\n\n\n\n\n\n\n\n");
-        //    mutex.post();
+        mutex.post();
         // printf("saccadic event : done \n");
         //}
         
@@ -1221,11 +1221,11 @@ void gazeArbiterThread::run() {
         mutex.post();
     }
     if(allowedTransitions(1)>0) {
-        //mutex.wait();
+        printf("resetting vergence \n");
+        mutex.wait();
         allowedTransitions(1) = 0;
         executing = false;
-        //printf ("\n\n\n\n\n\n\n\n\n");
-        //mutex.post();
+        mutex.post();
         // printf("vergence command : done \n");
     }    
 }
@@ -1308,14 +1308,14 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"COR_OFF")) {            
             printf("visual correction disabled \n");
-            Time::delay(5);
+            Time::delay(0.05);
             mutex.wait();
             setVisualFeedback(false);
             mutex.post();
         }
         else if(!strcmp(name.c_str(),"COR_ON")) {   
             printf("visual correction enabled \n");
-            Time::delay(5);
+            Time::delay(0.05);
             mutex.wait();
             setVisualFeedback(true);
             mutex.post();

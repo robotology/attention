@@ -204,6 +204,7 @@
  * 05/10/11 : changed the name of the matchTracker to rootname of the module                        author: Rea \n              
  * 18/10/11 : changed the strings that indicates the vergence success to VER_ACC                    author: Rea \n                          
  * 20/10/11 : subtracted 1 to the y and x of the visual correction in saccadic event                author: Rea \n         
+ * 26/10/11 : reduce all the temporal constant to 50ms. Trying to improve the response              author: Rea \n
 */
 
 
