@@ -312,12 +312,12 @@ bool gazeArbiterThread::threadInit() {
     int ym = INHIB_HEIGHT >> 1;
     int xm = INHIB_WIDTH  >> 1;
     //calculating the peek value
-    int dx = 90.0;
-    int dy = 90.0;
+    int dx = 50.0;
+    int dy = 50.0;
     double sx = (dx / 2) / 3 ; //0.99 percentile
     double sy = (dy / 2) / 3 ;
-    double vx = 18; //sx * sx; // variance          
-    double vy = 18; //sy * sy;
+    double vx = 9; //sx * sx; // variance          
+    double vy = 9; //sy * sy;
     
     double rho = 0;
     
@@ -354,16 +354,14 @@ bool gazeArbiterThread::threadInit() {
             if (z > 1) {
                 z = 1;
             }
-            //if (z < 0.3) {
-            //    z = 0.3;
-            //}
-            
-            
+
             //set the image 
             *pinhi++ = 255 * z;                    
         }
-        pinhi += rowsizeInhi - (dx + 1) ;
+        //pinhi += rowsizeInhi - dx  ; //odd
+        pinhi += rowsizeInhi - (dx + 1) ;  //even
     }
+
     printf("     \n zmax = %f \n", zmax);
 
     printf("starting the tracker.... \n");
@@ -844,8 +842,7 @@ void gazeArbiterThread::run() {
                     countVerNull = 0;
                     
 
-                    //sending an image for inhibition of return 
-                    
+                    //sending an image for inhibition of return                     
                     if(imgLeftIn!=NULL){
                         unsigned char* pinhi = inhibitionImage->getRawImage();
                         inhibitionImage->resize(320,240);
