@@ -109,6 +109,13 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
         configFile.clear();
     }
 
+
+
+    /* create the thread and pass pointers to the module parameters */
+    mThread = new mosaicThread(robotName, configFile);
+    mThread->setName(getName().c_str());
+    
+    
     //checking if the attenuation variable is on
     if (rf.check("attenuation")) {
         mThread->setAttenuation(true);
@@ -119,11 +126,6 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
         printf("attenuation not active \n");
 
     }
-
-    /* create the thread and pass pointers to the module parameters */
-    mThread = new mosaicThread(robotName, configFile);
-    mThread->setName(getName().c_str());
-    
     
     
     // setting the dimension after threadinit to use some correct variables    
