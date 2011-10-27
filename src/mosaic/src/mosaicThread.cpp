@@ -296,8 +296,8 @@ bool mosaicThread::threadInit() {
     //*eyeH0 = eyeL->getH(q);
     Matrix& eyeH_ref = *eyeH0;
     
-    inveyeH0 = new Matrix(pinv(eyeH_ref.transposed()).transposed());
-
+    inveyeH0   = new Matrix(pinv(eyeH_ref.transposed()).transposed());
+    startTimer = Time::now();
     printf("initilisation successfully ended \n");
     return true;
 }
@@ -391,8 +391,8 @@ void mosaicThread::fetchPortion(ImageOf<PixelRgb> *image) {
     //printf("trying to fetch a particular position on the mosaic %f %f \n", azimuth, elevation);
     //determine the shift based on the focal length
     int mosaicX, mosaicY;
-    int shiftx =(int) floor( fxl   * 1.0  * tan(((azimuth + BIASX)  * 3.14) / 180));
-    int shifty =(int) floor( -fyl  * 1.0 *    tan((elevation * 3.14) / 180));
+    int shiftx =(int) floor( fxl   * 1.0 * tan(((azimuth + BIASX)  * 3.14) / 180));
+    int shifty =(int) floor( -fyl  * 1.0 * tan ((elevation * 3.14) / 180));
     
     unsigned char* mosaic = outputImageMosaic->getRawImage();
     unsigned char* portion =  image->getRawImage();
@@ -1070,9 +1070,9 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         xeRight = yarp::math::operator *(*invPrjR, x);
         xeRight[3]=1.0;  // impose homogeneous coordinates
         xoRight  = yarp::math::operator *(*eyeHR,xeRight);
-        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
-        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
-        cr[0].x = x_hat[0]/z;   cr[0].y = x_hat[1]/z;
+        xeRight  = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat    = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[0].x  = x_hat[0]/z;   cr[0].y = x_hat[1]/z;
         
 
         //___________________________________________________________
@@ -1086,17 +1086,17 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         xeLeft = yarp::math::operator *(*invPrjL, x);
         xeLeft[3]=1.0;  // impose homogeneous coordinates
         xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);                
-        xeLeft = yarp::math::operator *(*inveyeH0,xoLeft);
-        x_hat = yarp::math::operator *(*cyclopicPrj, xeLeft);
+        xeLeft  = yarp::math::operator *(*inveyeH0,xoLeft);
+        x_hat   = yarp::math::operator *(*cyclopicPrj, xeLeft);
         c1[1].x = x_hat[0]/z;   c1[1].y = x_hat[1]/z;
         printf("onPlane %f %f %f \n \n",x_hat[0]/z, x_hat[1]/z, x_hat[2]);
         //------------------------------------------
-        xeRight = yarp::math::operator *(*invPrjR, x);
-        xeRight[3]=1.0;  // impose homogeneous coordinates
+        xeRight  = yarp::math::operator *(*invPrjR, x);
+        xeRight[3] = 1.0;  // impose homogeneous coordinates
         xoRight  = yarp::math::operator *(*eyeHR,xeRight); 
-        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
-        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
-        cr[1].x = x_hat[0]/z;   cr[1].y = x_hat[1]/z;
+        xeRight  = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat    = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[1].x  = x_hat[0]/z;   cr[1].y = x_hat[1]/z;
         
 
         //__________________________________________________________
@@ -1110,17 +1110,17 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         xeLeft = yarp::math::operator *(*invPrjL, x);
         xeLeft[3]=1.0;  // impose homogeneous coordinates
         xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);
-        xeLeft = yarp::math::operator *(*inveyeH0,xoLeft);       
-        x_hat = yarp::math::operator *(*cyclopicPrj, xeLeft);
+        xeLeft  = yarp::math::operator *(*inveyeH0,xoLeft);       
+        x_hat   = yarp::math::operator *(*cyclopicPrj, xeLeft);
         c1[2].x = x_hat[0]/z;   c1[2].y = x_hat[1]/z;
         printf("onPlane %f %f %f \n \n",x_hat[0]/z, x_hat[1]/z, x_hat[2]);
         //------------------------------------------
         xeRight = yarp::math::operator *(*invPrjR, x);
-        xeRight[3]=1.0;  // impose homogeneous coordinates
-        xoRight  = yarp::math::operator *(*eyeHR,xeRight);
-        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
-        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
-        cr[2].x = x_hat[0]/z;   cr[2].y = x_hat[1]/z;
+        xeRight[3]= 1.0;  // impose homogeneous coordinates
+        xoRight   = yarp::math::operator *(*eyeHR,xeRight);
+        xeRight   = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat     = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[2].x   = x_hat[0]/z;   cr[2].y = x_hat[1]/z;
         
         //________________________________________________________
 
@@ -1132,18 +1132,18 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         //------------------------------------
         xeLeft = yarp::math::operator *(*invPrjL, x);
         xeLeft[3]=1.0;  // impose homogeneous coordinates
-        xoLeft  = yarp::math::operator *(*eyeHL,xeLeft);               
-        xeLeft = yarp::math::operator *(*inveyeH0,xoLeft);
-        x_hat = yarp::math::operator *(*cyclopicPrj, xeLeft);
-        c1[3].x = x_hat[0]/z;   c1[3].y = x_hat[1]/z;
+        xoLeft   = yarp::math::operator *(*eyeHL,xeLeft);               
+        xeLeft   = yarp::math::operator *(*inveyeH0,xoLeft);
+        x_hat    = yarp::math::operator *(*cyclopicPrj, xeLeft);
+        c1[3].x  = x_hat[0]/z;   c1[3].y = x_hat[1]/z;
         printf("onPlane %f %f %f \n \n",x_hat[0]/z, x_hat[1]/z, x_hat[2]);
         //------------------------------------
         xeRight = yarp::math::operator *(*invPrjR, x);
-        xeRight[3]=1.0;  // impose homogeneous coordinates
-        xoRight  = yarp::math::operator *(*eyeHR,xeRight); 
-        xeRight = yarp::math::operator *(*inveyeH0,xoRight);
-        x_hat = yarp::math::operator *(*cyclopicPrj, xeRight);
-        cr[3].x = x_hat[0]/z;   cr[3].y = x_hat[1]/z;
+        xeRight[3]= 1.0;  // impose homogeneous coordinates
+        xoRight   = yarp::math::operator *(*eyeHR,xeRight); 
+        xeRight   = yarp::math::operator *(*inveyeH0,xoRight);
+        x_hat     = yarp::math::operator *(*cyclopicPrj, xeRight);
+        cr[3].x   = x_hat[0]/z;   cr[3].y = x_hat[1]/z;
 
         printf("dimension %f %f",  c1[1].x - c1[0].x , c1[3].x - c1[2].x);
         double dimensionX = c1[1].x - c1[0].x;              
@@ -1296,7 +1296,7 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
             unsigned char blue  = *(outTemp + 2);
             
             if((red <= 20) && (green <= 20) && (blue <= 20)) {           
-                if(*inpTemp > 0) {
+                if(*inpTemp > 10) {
                     unsigned char value = (unsigned char) *inpTemp;
                     *outTemp = value;
                     outTemp++;
@@ -1306,13 +1306,24 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
                     outTemp++;        
                 }
                 else {
-                    //*outTemp = 0; outTemp++; *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; 
-                    *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; 
+                    *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; *outTemp = 0; outTemp++; 
+                    /*
+                    if(outTemp > 0) {
+                        *outTemp -= 1; outTemp++;
+                    }
+                    if(outTemp > 0) {
+                        *outTemp -= 1; outTemp++;
+                    }
+                    if(outTemp > 0) {
+                        *outTemp -= 1; outTemp++;
+                    }
+                    */
                 }
             }
             else {
-                *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; 
-                //outTemp += 3;   
+                //*outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; *outTemp -= 1; outTemp++; 
+
+                outTemp += 3;   
             }           
             pMemoryLocation++;
             inpTemp++;
@@ -1321,23 +1332,31 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         outTemp      =  lineOutTemp = lineOutTemp + (rowSize + mPad);
     }
     
-    /*
+    
+    forgettingFactor = true;
     if(forgettingFactor) {
+        //extracting temporal decay
+        endTimer = Time::now();
+        double diff =  endTimer - startTimer;
+        temporalDecay = diff;
+        int temporalDecayInt = (int) temporalDecay;
+
+        printf("forgetting fCT image %d %d %d \n",width, height, temporalDecayInt);
         outTemp = outputImageMosaic->getRawImage();
         int paddingOut = outputImageMosaic->getPadding();
-        for(i = 0 ; i < 640 ; ++i) {
-            for(j = 0 ; j < 480 ; ++j) {
+        for(i = 0 ; i < width ; ++i) {
+            for(j = 0 ; j < height ; ++j) {
                 unsigned char red = *outTemp;
                 unsigned char green = *(outTemp + 1);
                 unsigned char blue  = *(outTemp + 2);
                 
-                if((red > 10) && (green > 10) && (blue > 10) ) {               
+                if((red > temporalDecayInt) && (green > temporalDecayInt) && (blue > temporalDecayInt) ) {               
                     
-                    *outTemp = (unsigned char)  red - 10;
+                    *outTemp = (unsigned char)  red   - temporalDecayInt;
                     outTemp++;
-                    *outTemp = (unsigned char)  red - 10;
+                    *outTemp = (unsigned char)  green - temporalDecayInt;
                     outTemp++;
-                    *outTemp = (unsigned char)  red - 10;
+                    *outTemp = (unsigned char)  blue  - temporalDecayInt;
                     outTemp++;                 
                 }
                 else {
@@ -1346,8 +1365,9 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
             }
             outTemp      += paddingOut;
         }
+        startTimer = Time::now();
     }
-    */
+    
     
     
     /*
