@@ -107,6 +107,118 @@ void logGabor::FFT2D(double input2DArray[COL_SIZE][2*ROW_SIZE], double FFTed[COL
   
 }
 
+// Overloading FFT calculation method, input is real image for forward direction optimization
+void logGabor::FFT2D(ImageOf<PixelMono>*  inputImage, double FFTed[COL_SIZE][2*ROW_SIZE], bool forward){
+
+    //const int h = COL_SIZE;
+    //const int w = ROW_SIZE;
+    //double FFTed[h][2*w];
+    // Calculate FFT of each row
+    int pad = inputImage->getPadding();
+    uchar* ptrInptImg =(uchar*)inputImage->getRawImage(); 
+    // Calculate FFT of each row
+    for(int i= 0; i < COL_SIZE; ++i){
+        // get a row and convert to complex
+        double currentRow[2*ROW_SIZE];
+        for(int j = 0; j < 2*ROW_SIZE; ++j){
+            //currentRow[2*j]=input2DRealArray[i][j];
+            //currentRow[2*j+1]=0;
+            currentRow[j] = *ptrInptImg++;//input2DArray[i][j];
+        }
+        // Calculate FFT of this row
+        if(forward)
+            gsl_fft_complex_forward(currentRow, 1, ROW_SIZE,wt_row,wk_row);
+        else
+            gsl_fft_complex_inverse (currentRow, 1, ROW_SIZE,wt_row,wk_row);
+        // store this
+        for(int j = 0; j < 2*ROW_SIZE; ++j){
+            FFTed[i][j]=currentRow[j];
+        }
+        // shift for padding
+        ptrInptImg += pad;  
+    }
+    
+
+    // Calculate FFT of each column
+    for(int i=0; i<ROW_SIZE; ++i){
+        // get a column
+        double currentCol[2*COL_SIZE];
+        for(int j=0; j<COL_SIZE; ++j){
+            currentCol[2*j]=FFTed[j][2*i];
+            currentCol[2*j+1]=FFTed[j][2*i+1];
+        }
+        // Calculate FFT of this column
+        if(forward)
+            gsl_fft_complex_forward (currentCol, 1, COL_SIZE,wt_col,wk_col);
+        else
+            gsl_fft_complex_inverse (currentCol, 1, COL_SIZE,wt_col,wk_col);
+        // store this
+        for(int j = 0; j < COL_SIZE; ++j){
+            FFTed[j][2*i]=currentCol[2*j];
+            FFTed[j][2*i+1]=currentCol[2*j+1];
+        }
+    }
+
+    // FFTed now has 2D FFT of input2DArray by column wise FFT of row-wise FFT of input2DArray 
+  
+}
+
+// Overloading FFT calculation method, input is real image for forward direction optimization
+void logGabor::FFT2D(double input2DArray[COL_SIZE][2*ROW_SIZE], ImageOf<PixelFloat>* FFTRealImage,ImageOf<PixelFloat>* FFTCplxImage, bool forward){
+
+    //const int h = COL_SIZE;
+    //const int w = ROW_SIZE;
+    //double FFTed[h][2*w];
+    // Calculate FFT of each row
+    int padR = FFTRealImage->getPadding();
+    int padC = FFTCplxImage->getPadding();
+    uchar* ptrInptImg =(uchar*)inputImage->getRawImage(); 
+    // Calculate FFT of each row
+    for(int i= 0; i < COL_SIZE; ++i){
+        // get a row and convert to complex
+        double currentRow[2*ROW_SIZE];
+        for(int j = 0; j < 2*ROW_SIZE; ++j){
+            //currentRow[2*j]=input2DRealArray[i][j];
+            //currentRow[2*j+1]=0;
+            currentRow[j] = input2DArray[i][j];
+        }
+        // Calculate FFT of this row
+        if(forward)
+            gsl_fft_complex_forward(currentRow, 1, ROW_SIZE,wt_row,wk_row);
+        else
+            gsl_fft_complex_inverse (currentRow, 1, ROW_SIZE,wt_row,wk_row);
+        // store this
+        for(int j = 0; j < 2*ROW_SIZE; ++j){
+            FFTed[i][j]=currentRow[j];
+        }
+         
+    }
+    
+
+    // Calculate FFT of each column
+    for(int i=0; i<ROW_SIZE; ++i){
+        // get a column
+        double currentCol[2*COL_SIZE];
+        for(int j=0; j<COL_SIZE; ++j){
+            currentCol[2*j]=FFTed[j][2*i];
+            currentCol[2*j+1]=FFTed[j][2*i+1];
+        }
+        // Calculate FFT of this column
+        if(forward)
+            gsl_fft_complex_forward (currentCol, 1, COL_SIZE,wt_col,wk_col);
+        else
+            gsl_fft_complex_inverse (currentCol, 1, COL_SIZE,wt_col,wk_col);
+        // store this
+        for(int j = 0; j < COL_SIZE; ++j){
+            FFTed[j][2*i]=currentCol[2*j];
+            FFTed[j][2*i+1]=currentCol[2*j+1];
+        }
+    }
+
+    // FFTed now has 2D FFT of input2DArray by column wise FFT of row-wise FFT of input2DArray 
+  
+}
+
 void logGabor::setLogGabor(int m, double sigmaF, double minWave, double cuttoff_butterworth, int sharpness_butterworth){
 
     /* Setting up log-Gabor filter */   
@@ -180,6 +292,55 @@ void logGabor::setLogGabor(int m, double sigmaF, double minWave, double cuttoff_
 
     logGaborReady = true;
 
+}
+
+void logGabor::applyGaussianOnLogGabor(float sigmaX, float meanX,float sigmaY, float meanY, float scale, int ori, int scl, int centerX, int centerY){
+    logGaborComplexArray* gaussNinverse = new logGaborComplexArray[2];
+    // set Gaussian to this
+    for(int i=0; i<COL_SIZE; ++i){
+        for(int j=0; j<ROW_SIZE; ++j){
+
+            double x = (double)abs(centerX-j);
+            double y = (double)abs(centerY-i);
+            gaussNinverse[0][i][2*j]= scale * exp(-.5*pow((x-meanX)/sigmaX,2) - .5*pow((y-meanY)/sigmaY,2));
+            gaussNinverse[0][i][2*j+1]= scale * exp(-.5*pow((x-meanX)/sigmaX,2) - .5*pow((y-meanY)/sigmaY,2));
+        }
+    }
+
+    FFT2D(gaussNinverse[0],gaussNinverse[1],true);
+
+    // Apply the iFFT to the Log-Gabor
+    int scaleOfFilter, countScl, orientOfFilter, countOri;
+    if(scl<0){
+        countScl = LOG_GABOR_SCALE;
+        scaleOfFilter = 0;
+    }
+    else {
+        countScl = scl+1;
+        scaleOfFilter = scl;
+    }
+    if(ori<0){
+        countOri = LOG_GABOR_ORIENTATION;
+        orientOfFilter = 0;
+    }
+    else {
+        countOri = ori+1;
+        orientOfFilter = ori;
+    }
+
+
+    for(;scaleOfFilter<countScl; ++scaleOfFilter){ //for each scale    
+        for(;orientOfFilter<countOri; ++orientOfFilter){  //for each orientation
+            for(int i=0; i<COL_SIZE; ++i){
+                for(int j=0; j<ROW_SIZE; ++j){
+                    logGaborFilter[orientOfFilter][scaleOfFilter][i][j] *= gaussNinverse[1][i][2*j]; // only real part?
+                }
+            }
+        }
+    } 
+            
+
+    
 }
 
 void logGabor::getOneLogGabor(ImageOf<PixelMono>* inputImage,ImageOf<PixelFloat>* outputRealImage,ImageOf<PixelFloat>* outputImgImage, int scale, int orient){

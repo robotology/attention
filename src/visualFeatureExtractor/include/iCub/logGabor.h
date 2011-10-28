@@ -95,12 +95,27 @@ public:
     /**
     * function that sets up log-Gabor filters
     * @param m factor of scaling between the filters
-    * @param sigmaF std deviation of the Gaussian of the filters
+    * @param sigmaF for std deviation of the Gaussian of the filters
     * @param minWav minimum wavelength
     * @param cuttoff_butterworth cutoff frequency for Butterworth filter
     * @param sharpness_butterworth order by which the filter decays higher frequencies  
     */
     void setLogGabor(int m=2, double sigmaF=.65, double minWave=3, double cuttoff_butterworth=.45, int sharpness_butterworth=15);
+
+    /**
+    * function that applies FFT domain Gaussian on log-Gabor
+    * @param sigmaX for std deviation of applied Gaussian in first direction
+    * @param meanX mean of applied Gaussian in first direction
+    * @param sigmaY for std deviation of applied Gaussian in second direction
+    * @param meanY mean of applied Gaussian in second direction
+    * @param scale scaling of applied Gaussian 
+    * @param ori Orientation of log-Gabor on which Gaussian is applied, by default on all
+    * @param scl Scale of log-Gabor on which Gaussian is applied, by default on all 
+    * @param centerX the x- direction center of Gaussian applied
+    * @param centerY the y- direction center of Gaussian applied
+    */
+    void applyGaussianOnLogGabor(float sigmaX, float meanX,float sigmaY, float meanY, float scale=1.0,int ori=-1,int scl=-1, int centerX = ROW_SIZE/2, int centerY = COL_SIZE/2);
+
 
     /**
     * function that applies a particular (given orientation and given scale) log Gabor on image

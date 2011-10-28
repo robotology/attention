@@ -1343,12 +1343,12 @@ visualFilterThread::visualFilterThread() {
     intFilScale[3] =1;   // factor 10
     intFilShift[3] = 251;
 
-    intFactor = 20;
-    intSig = 65;
+    intFactor = 25;
+    intSig = 60;
     intMinWav = 30; 
     intScale = 0;
     intOrient = 0;
-    intCutoff = 45;
+    intCutoff = 55;
     intSharpness = 15;
        
 
@@ -2084,13 +2084,13 @@ void visualFilterThread::orientation() {
     im = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_8U, 1 );
     filImageReal = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_32F, 1 );
     filImageCplx = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_32F, 1 );
-    imRGB= cvLoadImage("320x240.jpg");
+    imRGB= cvLoadImage("320x240c.jpg");
     cvCvtColor(imRGB,im,CV_RGB2GRAY);
     cvNamedWindow("loaded image");
     cvShowImage("loaded image",im);
     cvWaitKey(10);
 
-     ImageOf<PixelRgb>* myImg;
+    ImageOf<PixelRgb>* myImg;
     myImg = new ImageOf<PixelRgb>;
     myImg->resize(imRGB->width,imRGB->height);
     myImg->wrapIplImage(imRGB);
@@ -2122,6 +2122,8 @@ void visualFilterThread::orientation() {
     while(true){
 
     myGabor->setLogGabor();
+    //myGabor->applyGaussianOnLogGabor(ROW_SIZE/3.0,0,COL_SIZE/3.0,0);
+/*
     // initialize sums
     for(int i=0; i<COL_SIZE; ++i){
         for(int j=0; j<ROW_SIZE; ++j){
@@ -2131,7 +2133,7 @@ void visualFilterThread::orientation() {
         }
     }
 
-    for(int o=0; o<1; ++o){ //LOG_GABOR_ORIENTATION
+    for(int o=0; o<LOG_GABOR_ORIENTATION; ++o){ //LOG_GABOR_ORIENTATION
         for(int s=0; s<LOG_GABOR_SCALE; ++s){
             cvShowImage("log-Gabor",NULL);
             cvShowImage("Addition of Images",NULL);
@@ -2139,7 +2141,7 @@ void visualFilterThread::orientation() {
             cvShowImage("Addition of Images3",NULL);
             cvWaitKey(2);
             
-            setLogGabor();
+            //setLogGabor();
 
             
             //cvWaitKey(0);
@@ -2168,8 +2170,8 @@ void visualFilterThread::orientation() {
 
             for(int i= 0; i<COL_SIZE; ++i){
                 for(int j= 0; j<ROW_SIZE; ++j){
-                    FFTnIFFT[0][i][2*j] =(double)logGaborFilter[o][s][i][j];  // first scale first orientation
-                    FFTnIFFT[0][i][2*j+1] =0;//*= logGaborFilter[o][s][i][j]; // may not work
+                    FFTnIFFT[0][i][2*j] *=(double)logGaborFilter[o][s][i][j];  // first scale first orientation
+                    FFTnIFFT[0][i][2*j+1]*= logGaborFilter[o][s][i][j]; // may not work
                 }
             }
             
@@ -2185,7 +2187,7 @@ void visualFilterThread::orientation() {
                     if(!notSetMinMax) FFTnIFFT[1][i][2*j] -= .04*(maxInLG - minInLG);
                     FFTnIFFT[1][i][2*j] = FFTnIFFT[1][i][2*j]<0?0:FFTnIFFT[1][i][2*j]; 
                     sumOfAllImages[i][2*j] += (float) FFTnIFFT[1][i][2*j]*((double)weightInSumming[o][s]*.01);
-                    logGaborRealImages[o][i][2*j] += (float) FFTnIFFT[1][i][2*j]*100;//((double)weightInSumming[o][s]*.01);
+                    logGaborRealImages[o][i][2*j] += (float) FFTnIFFT[1][i][2*j]*((double)weightInSumming[o][s]*.01);
 
                     if(notSetMinMax){
                         if(FFTnIFFT[1][i][2*j]>maxInLG) maxInLG = FFTnIFFT[1][i][2*j];
@@ -2198,14 +2200,14 @@ void visualFilterThread::orientation() {
                 }
             }
             
-            /*
+            
             cvNamedWindow("logGabor Real");
             cvShowImage("logGabor Real",filImageReal);
             cvNamedWindow("logGabor Complex");
             cvShowImage("logGabor Complex",filImageCplx);   
             cvWaitKey(10);
             cvSet(filImageReal, cvScalar(0));
-            cvSet(filImageReal, cvScalar(0));*/
+            cvSet(filImageReal, cvScalar(0));
             
 
             } // end of each scale
@@ -2230,7 +2232,7 @@ void visualFilterThread::orientation() {
         ptrRealImg = (float*)filImageReal->imageData;
         for(int i= 0; i<COL_SIZE; ++i){
                 for(int j= 0; j<ROW_SIZE; ++j){
-                    *ptrRealImg++=100.0*logGaborRealImages[0][i][2*j];
+                    *ptrRealImg++=logGaborRealImages[0][i][2*j];
                     
                 }
             }
@@ -2239,7 +2241,7 @@ void visualFilterThread::orientation() {
         cvNamedWindow("Orient 0");
         cvShowImage("Orient 0",filImageReal);
 
-        
+   */     
     
     myRes1->resize(myMono->width(), myMono->height());
     myRes2->resize(myMono->width(), myMono->height());
@@ -2258,7 +2260,7 @@ void visualFilterThread::orientation() {
 
     
         
-/*
+
         ptrRealImg = (float*)filImageReal->imageData;
         for(int i= 0; i<COL_SIZE; ++i){
                 for(int j= 0; j<ROW_SIZE; ++j){
@@ -2318,7 +2320,7 @@ void visualFilterThread::orientation() {
 
         cvNamedWindow("Orient 5");
         cvShowImage("Orient 5",filImageReal);
-*/
+
         cvWaitKey(10);
 
     } // end temp endless loop
@@ -3176,7 +3178,7 @@ void visualFilterThread::setLogGabor(){
                         logGaborFilter[orientOfFilter][scaleOfFilter][i][j] = exp(-pow(log(radius[row][col]),2)/(2*pow(log(sigmaF),2)));     // LATER: optimize
 
                         // Apply butterworth lowpass filter
-                        logGaborFilter[orientOfFilter][scaleOfFilter][i][j] = logGaborFilter[orientOfFilter][scaleOfFilter][i][j]/(1.0+ pow((radius[row][col]/cuttoff_butterworth),sharpness_butterworth));
+                        logGaborFilter[orientOfFilter][scaleOfFilter][i][j] = logGaborFilter[orientOfFilter][scaleOfFilter][i][j]/(1.0+ pow((radius[row][col]/cuttoff_butterworth),2*sharpness_butterworth));
                     }
 
                     deltaTheta = abs(atan2(sin(theta[row][col])*cos(ang) - cos(theta[row][col])* sin(ang), cos(theta[row][col])*cos(ang) + sin(theta[row][col])*sin(ang)));
