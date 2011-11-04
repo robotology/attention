@@ -151,19 +151,20 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     counterMotion = 0;
 
     // images initialisation
-    edges_yarp  = new ImageOf <PixelMono>;
-    tmp         = new ImageOf <PixelMono>;
-    habituation = new ImageOf <PixelMono>;
+    edges_yarp       = new ImageOf <PixelMono>;
+    tmp              = new ImageOf <PixelMono>;
+    habituation      = new ImageOf <PixelMono>;
     
-    map1_yarp   = new ImageOf <PixelMono>; // intensity
-    map2_yarp   = new ImageOf <PixelMono>; // motion
-    map3_yarp   = new ImageOf <PixelMono>; // chrominance
-    map4_yarp   = new ImageOf <PixelMono>; // orientation
-    map5_yarp   = new ImageOf <PixelMono>; // edges 
-    map6_yarp   = new ImageOf <PixelMono>; // blob
-    motion_yarp = new ImageOf <PixelMono>;
-    cart1_yarp  = new ImageOf <PixelMono>;
-    faceMask    = new ImageOf <PixelMono>;
+    map1_yarp        = new ImageOf <PixelMono>; // intensity
+    map2_yarp        = new ImageOf <PixelMono>; // motion
+    map3_yarp        = new ImageOf <PixelMono>; // chrominance
+    map4_yarp        = new ImageOf <PixelMono>; // orientation
+    map5_yarp        = new ImageOf <PixelMono>; // edges 
+    map6_yarp        = new ImageOf <PixelMono>; // blob
+    motion_yarp      = new ImageOf <PixelMono>;
+    cart1_yarp       = new ImageOf <PixelMono>;
+    faceMask         = new ImageOf <PixelMono>;
+    habituationImage = new ImageOf <PixelMono>;
 
     tmp=new ImageOf<PixelMono>;
     hueMap = 0;
@@ -192,6 +193,7 @@ selectiveAttentionProcessor::~selectiveAttentionProcessor(){
     delete image_out;
     delete image_tmp;
     delete intermCartOut;
+    delete habituationImage;
 }
 
 selectiveAttentionProcessor::selectiveAttentionProcessor(ImageOf<PixelRgb>* inputImage):RateThread(THREAD_RATE) {
@@ -227,21 +229,24 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     faceMask->resize(width,height);
     faceMask->zero();
 
-    inputLogImage = new ImageOf<PixelRgb>;
+    inputLogImage    = new ImageOf<PixelRgb>;   
+    intermCartOut    = new ImageOf<PixelRgb>;
+    motion_yarp      = new ImageOf<PixelMono>;
+    cart1_yarp       = new ImageOf<PixelMono>;
+    inhicart_yarp    = new ImageOf<PixelMono>;
+    habituationImage = new ImageOf<PixelMono>;
+
     inputLogImage->resize(width,height);
-
-    intermCartOut = new ImageOf<PixelRgb>;
     intermCartOut->resize(xSizeValue,ySizeValue);
-
-    motion_yarp = new ImageOf<PixelMono>;
     motion_yarp->resize(xSizeValue,ySizeValue);
-    motion_yarp->zero();
-    cart1_yarp = new ImageOf<PixelMono>;
     cart1_yarp->resize(xSizeValue,ySizeValue);
-    cart1_yarp->zero();
-    inhicart_yarp = new ImageOf<PixelMono>;
     inhicart_yarp->resize(xSizeValue,ySizeValue);
+    habituationImage->resize(xSizeValue,ySizeValue);
+
+    motion_yarp->zero();     
+    cart1_yarp->zero();      
     inhicart_yarp->zero();
+    habituationImage->resize(xSizeValue,ySizeValue);     
 }
 
 void selectiveAttentionProcessor::resizeImages(int width,int height) {
@@ -253,8 +258,8 @@ void selectiveAttentionProcessor::resizeImages(int width,int height) {
     image_out->resize(width,height);
     image_tmp->resize(width,height);
 
-    cvImage16= cvCreateImage(cvSize(width,height),IPL_DEPTH_16S,1);
-    cvImage8= cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1);
+    cvImage16 = cvCreateImage(cvSize(width,height),IPL_DEPTH_16S,1);
+    cvImage8  = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1);
 }
 
 /**
@@ -354,6 +359,8 @@ bool selectiveAttentionProcessor::threadInit(){
     }
     cartCtrlDevice->view(armCart);
     */
+
+    habituationStart = Time::now();
 
     return true;
 }
@@ -498,14 +505,17 @@ void selectiveAttentionProcessor::run(){
         unsigned char* pmap5       = map5_yarp->getRawImage();
         unsigned char* pmap6       = map6_yarp->getRawImage();
         unsigned char* pface       = faceMask ->getRawImage();
+        unsigned char* pHabituationImage  = habituationImage->getRawImage();
         unsigned char* plinear     = linearCombinationImage.getRawImage();
 
-        int ratioX    = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
-        int ratioY    = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
-        int padding   = map1_yarp->getPadding();
-        int rowSize   = map1_yarp->getRowSize();
-        int halfwidth = width  >> 1;
-        int halfheight= height >> 1; 
+        int ratioX     = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
+        int ratioY     = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
+        int padding    = map1_yarp->getPadding();
+        int rowSize    = map1_yarp->getRowSize();
+        int halfwidth  = width  >> 1;
+        int halfheight = height >> 1;
+
+        double timeVariable;
 
         // ------------ early stage of response ---------------
         //printf("entering the first stage of vision....\n");
@@ -779,7 +789,10 @@ void selectiveAttentionProcessor::run(){
             }            
             
             // combination of all the feature maps
+            // thresholding for habituation comes at this stage because express response resets habituation
             //printf("combining the feature maps \n");
+            habituationStop = Time::now();
+            timeVariable    = habituationStop - habituationStart;
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < width ; x++){
                     unsigned char value;
@@ -789,6 +802,20 @@ void selectiveAttentionProcessor::run(){
                     else {
                         double combinValue = (double) ((*pmap1 * (k1/sumK) + *pmap2 * (k2/sumK) + *pmap3 * (k3/sumK) + *pmap4 * (k4/sumK) + *pface * (k5/sumK) + *pmap6 * (k6/sumK)));
                         value=(unsigned char)ceil(combinValue);
+                    }
+                    
+                    if(value < thresholdHabituation) {                        
+                        *pHabituationImage = round((double)*pHabituationImage * 2 + 1);
+                    }
+                    else {
+                        *pHabituationImage = round((double)*pHabituationImage / 2 - 1);  
+                    }
+                    
+                    if(*pHabituationImage > 255) {
+                        *pHabituationImage = 255;
+                    }
+                    else if(habituationImage < 0) {
+                        *pHabituationImage = 0;
                     }
                 
                     pmap1++;
@@ -812,6 +839,8 @@ void selectiveAttentionProcessor::run(){
                 pface   += padding;
             }
             
+            habituationStart = Time::now();
+            
             
 //********************************************************************************************
 cartSpace:
@@ -823,11 +852,9 @@ cartSpace:
             int padding3C = inputLogImage->getPadding();
             maxValue = 0;
             
-            //TODO: reduce the cycle steps if the maximum has been already found
-            
+            //TODO: reduce the cycle steps if the maximum has been already found            
             for(int y = 0 ; y < height ; y++) {
-                for(int x = 0 ; x < width ; x++) {
-                    
+                for(int x = 0 ; x < width ; x++) {                    
                     *pImage++ = (unsigned char) *plinear;
                     *pImage++ = (unsigned char) *plinear;
                     *pImage++ = (unsigned char) *plinear;

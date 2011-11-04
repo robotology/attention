@@ -74,7 +74,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiCartPort;             // where the image of cuncurrent inhibition of return can be sent (cartesian)
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiPort;                 // where the image of cuncurrent inhibition of return can be sent 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > testPort;                 // debug mode port for testing the appearance of a particular image in the process
-    
+        
     yarp::os::BufferedPort<yarp::os::Bottle> vergencePort;                                      //port dedicated to the communication with the vergence
     yarp::os::BufferedPort<yarp::os::Bottle > centroidPort;                                     // output port where the centroid coordinate is sent
     yarp::os::BufferedPort<yarp::os::Bottle > gazeCoordPort;                                    // port that is dedicated to the streaming out gaze coordinates
@@ -136,6 +136,8 @@ private:
     double startInt;                        // time variable for saccade activation
     double endInt;                          // time variable for saccade activation
     double saccadeInterv;                   // time costant between two different saccades (milliseconds)
+    double habituationStop;                 // stop time counter for habituation
+    double habituationStart;                // start time counter for habituation
     time_t start2, end2;
     
     double k1;          // coefficient for the linear combination of log-polar maps
@@ -146,6 +148,10 @@ private:
     double k6;          // coefficient for the linear combination of log-polar maps
     double kmotion;     // coefficient of the linear combination of the motion
     double kc1;         // coeffiencient for the linear combination of the cartesian maps
+
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* habituationImage; // mono image for habituation process
+
+    static const int thresholdHabituation = 200;
     
 public:
     /**
@@ -454,23 +460,24 @@ public:
     void copy_C1R(yarp::sig::ImageOf<yarp::sig::PixelMono>* src, yarp::sig::ImageOf<yarp::sig::PixelMono>* dest);
     
     
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> * inImage;          //input image  of the processing
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> * inImage;          // input image  of the processing
     yarp::sig::ImageOf<yarp::sig::PixelRgb> * inColourImage;    // input image  of the processing
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* hueMap;           //hue map reference
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* satMap;           //saturation map reference
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map1_yarp;        //saliency map coming from the 1st source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map2_yarp;        //saliency map coming from the 2nd source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map3_yarp;        //saliency map coming from the 3rd source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map4_yarp;        //saliency map coming from the 4th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map5_yarp;        //saliency map coming from the 5th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map6_yarp;        //saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* motion_yarp;      //saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       //saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhicart_yarp;    //cartesian input of the inhibition of return
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        //logpolar input of the inhibition of return
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* edges_yarp;       //yarp image of the composition of all the edges
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         //yarp image of regions of skin colour
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputLogImage;     //3channel image representing the saliencymap in logpolar
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* hueMap;           // hue map reference
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* satMap;           // saturation map reference
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map1_yarp;        // saliency map coming from the 1st source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map2_yarp;        // saliency map coming from the 2nd source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map3_yarp;        // saliency map coming from the 3rd source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map4_yarp;        // saliency map coming from the 4th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map5_yarp;        // saliency map coming from the 5th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map6_yarp;        // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* motion_yarp;      // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhicart_yarp;    // cartesian input of the inhibition of return
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        // logpolar input of the inhibition of return
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* edges_yarp;       // yarp image of the composition of all the edges
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         // yarp image of regions of skin colour
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>*  inputLogImage;    // 3channel image representing the saliencymap in logpolar
+    
     
     IplImage *cvImage16; // tmp IPLImage necessary for edge detection 16 bit
     IplImage *cvImage8; //tmp IPLImage necessary for edge detection 16 bit
@@ -478,8 +485,8 @@ public:
 
     int inputImage_flag;  //processor flag
     
-    static const int CONVMAX_TH=100; //parameter of the findEdges function
-    static const int CONVSEQ_TH=500; //parameter of the findEdges function
+    static const int CONVMAX_TH = 100; //parameter of the findEdges function
+    static const int CONVSEQ_TH = 500; //parameter of the findEdges function
     
     yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombinationImage; //result of the combination
     int centroid_x; //center of gravity of the selective attention (x position)
