@@ -43,7 +43,7 @@ using namespace iCub::logpolar;
 #define YSIZE_DIM        240   // original mapping
 #define TIME_CONST       50    // number of times period rateThread to send motion command
 #define BASELINE         0.068 // distance in millimeters between eyes
-#define MAXCOUNTERMOTION 20   
+#define MAXCOUNTERMOTION 40   
 
 template<class T>
 
@@ -165,6 +165,7 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     cart1_yarp       = new ImageOf <PixelMono>;
     faceMask         = new ImageOf <PixelMono>;
     habituationImage = new ImageOf <PixelMono>;
+    habituationImage = new ImageOf <Float>;
 
     tmp=new ImageOf<PixelMono>;
     hueMap = 0;
@@ -194,6 +195,7 @@ selectiveAttentionProcessor::~selectiveAttentionProcessor(){
     delete image_tmp;
     delete intermCartOut;
     delete habituationImage;
+    delete habituationFloat;
 }
 
 selectiveAttentionProcessor::selectiveAttentionProcessor(ImageOf<PixelRgb>* inputImage):RateThread(THREAD_RATE) {
@@ -235,6 +237,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     cart1_yarp       = new ImageOf<PixelMono>;
     inhicart_yarp    = new ImageOf<PixelMono>;
     habituationImage = new ImageOf<PixelMono>;
+    habituationFloat = new ImageOf<Float>;
 
     inputLogImage->resize(width,height);
     intermCartOut->resize(xSizeValue,ySizeValue);
@@ -242,6 +245,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     cart1_yarp->resize(xSizeValue,ySizeValue);
     inhicart_yarp->resize(xSizeValue,ySizeValue);
     habituationImage->resize(xSizeValue,ySizeValue);
+    habituationFloat->resize(xSizeValue,ySizeValue);
 
     motion_yarp->zero();     
     cart1_yarp->zero();      
@@ -506,6 +510,7 @@ void selectiveAttentionProcessor::run(){
         unsigned char* pmap6       = map6_yarp->getRawImage();
         unsigned char* pface       = faceMask ->getRawImage();
         unsigned char* pHabituationImage  = habituationImage->getRawImage();
+        float*         pHabituationFloat  = habituationFloat->getRawImage();
         unsigned char* plinear     = linearCombinationImage.getRawImage();
 
         int ratioX     = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
@@ -537,7 +542,7 @@ void selectiveAttentionProcessor::run(){
             // exploring the image from rho=0 and from theta = 0
             double value;
             double threshold = 255;
-            double thresholdInt =255;
+            double thresholdInt = 225;
             
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < halfwidth ; x++){
@@ -557,7 +562,7 @@ void selectiveAttentionProcessor::run(){
                             xm = halfwidth + x;
                             ym = y;
                             timing = 0.1;
-                            printf("Jumping to cartSpace \n");
+                            //printf("Jumping to cartSpace \n");
                             goto cartSpace;
                             //y = height;// for jumping out of the outer loop
                             //idle = true;                        
@@ -577,7 +582,7 @@ void selectiveAttentionProcessor::run(){
                             xm = halfwidth - x;
                             ym = y;
                             timing = 0.1;
-                            printf("Jumping to cartSpace \n");
+                            //printf("Jumping to cartSpace \n");
                             goto cartSpace;
                             //y = height;// for jumping out of the outer loop
                             //idle = true;                        
@@ -592,16 +597,16 @@ void selectiveAttentionProcessor::run(){
                     
                     // ----------- intensity ---------------------
                     //value = (k1/sumK) * (double) *pmap1Right;
-                    value = *pmap1Right * 0.8;
+                    value = 0.80 * (double) *pmap1Right;
                     //*plinearRight = value;
                     if (value >= thresholdInt){
-                        printf("max in intesity Right \n");                    
+                        printf("max in intesity Right %f \n",value);                    
                         //*plinearRight = 255;
                         //crossAssign(plinearRight, 255, rowSize);
                         xm = halfwidth + x;
                         ym = y;
                         timing = 0.1;
-                        printf("Jumping to cartSpace \n");
+                        //printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle =  true;                        
@@ -611,16 +616,16 @@ void selectiveAttentionProcessor::run(){
                     
                     
                     //value = (k1/sumK) * (double) *pmap1Left;
-                    value = *pmap1Left * 0.8;
+                    value = 0.85 * (double)*pmap1Left;
                     //*plinearLeft = value;
                     if (value >= thresholdInt){
-                        printf("max in intensity Left \n");
+                        printf("max in intensity Left %f \n",value);
                         //*plinearRight = 255;
                         //crossAssign(plinearLeft, 255, rowSize);                   
                         xm = halfwidth - x;
                         ym = y;
                         timing = 0.1;
-                        printf("Jumping to cartSpace \n");
+                        //printf("Jumping to cartSpace \n");
                         goto cartSpace;
                         //y = height;// for jumping out of the outer loop
                         //idle =  true;                        
@@ -651,7 +656,9 @@ void selectiveAttentionProcessor::run(){
             if(counterMotion >= MAXCOUNTERMOTION){ 
                 counterMotion = MAXCOUNTERMOTION;
             }
-            //printf("counterMotion %d \n", counterMotion);
+            if(counterMotion == MAXCOUNTERMOTION - 1 ){
+                printf("counterMotion %d going to remove magnocellular suppression\n", counterMotion);
+            }
             //tmpImage = *(map2_yarp);
             testPort.write();
 
@@ -804,19 +811,31 @@ void selectiveAttentionProcessor::run(){
                         value=(unsigned char)ceil(combinValue);
                     }
                     
-                    if(value < thresholdHabituation) {                        
-                        *pHabituationImage = round((double)*pHabituationImage * 2 + 1);
+                    if((value < thresholdHabituation)&&(value >100)) {                        
+                        //*pHabituationImage = round((double)*pHabituationImage * 2 + 1);
+                        *pHabituationFloat += 0.1;
+                        *pHabituationImage = round(*pHabituationFloat);
                     }
                     else {
-                        *pHabituationImage = round((double)*pHabituationImage / 2 - 1);  
+                        //*pHabituationImage = round((double)*pHabituationImage / 2 - 1);  
+                        *pHabituationFloat -= 0.1;
+                        *pHabituationImage = round(*pHabituationFloat);
+                        
                     }
                     
-                    if(*pHabituationImage > 255) {
+                    
+                    
+                    if(*pHabituationImage >= 255) {
                         *pHabituationImage = 255;
                     }
-                    else if(habituationImage < 0) {
+                    else if(habituationImage <= 0) {
                         *pHabituationImage = 0;
                     }
+
+                    printf("pHabituation %d \n", *pHabituationImage);
+
+                    pHabituationImage++;
+                    pHabituationFloat++;
                 
                     pmap1++;
                     pmap2++;
@@ -826,7 +845,15 @@ void selectiveAttentionProcessor::run(){
                     pmap6++;
                     pface++;
                     
-                    *plinear = value;
+                    if(value >= *pHabituationImage) {
+                        *plinear = value - *pHabituationImage;
+                    }
+                    else {
+                        *plinear = 0;
+                    }
+                    
+                    //*plinear = max (0, min (255, (int) *plinear));
+                    
                     plinear++;
                 }
                 pmap1   += padding;
@@ -837,6 +864,9 @@ void selectiveAttentionProcessor::run(){
                 pmap6   += padding;
                 plinear += padding;
                 pface   += padding;
+
+                pHabituationImage += padding;
+                pHabituationFloat += padding;
             }
             
             habituationStart = Time::now();
@@ -925,9 +955,9 @@ cartSpace:
                 for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
                     //double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
                     double combinValue   = (double)  *pInter;
-                    if(combinValue >= 255.0) {
-                        printf("maxResponse for combinValue \n");
-                    }
+                    //if(combinValue >= 255.0) {
+                    //    printf("maxResponse for combinValue \n");
+                    //}
                     if(*pinhicart > 10) {
                         combinValue = 0;
                     }

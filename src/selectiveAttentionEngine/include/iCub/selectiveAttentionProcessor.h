@@ -150,6 +150,7 @@ private:
     double kc1;         // coeffiencient for the linear combination of the cartesian maps
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* habituationImage; // mono image for habituation process
+    float[][]* habituation; // mono image for habituation process
 
     static const int thresholdHabituation = 200;
     
