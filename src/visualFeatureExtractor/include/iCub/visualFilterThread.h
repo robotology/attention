@@ -1,4 +1,5 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
 /* 
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Rea Francesco
@@ -789,4 +790,3 @@ public:
 #endif  //_VISUAL_FEATURE_THREAD_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
-
