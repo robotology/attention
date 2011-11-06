@@ -153,7 +153,7 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     // images initialisation
     edges_yarp       = new ImageOf <PixelMono>;
     tmp              = new ImageOf <PixelMono>;
-    habituation      = new ImageOf <PixelMono>;
+    
     
     map1_yarp        = new ImageOf <PixelMono>; // intensity
     map2_yarp        = new ImageOf <PixelMono>; // motion
@@ -165,8 +165,8 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     cart1_yarp       = new ImageOf <PixelMono>;
     faceMask         = new ImageOf <PixelMono>;
     habituationImage = new ImageOf <PixelMono>;
-    habituationImage = new ImageOf <Float>;
-
+    linearCombinationPrev = new ImageOf <PixelMono>;
+    
     tmp=new ImageOf<PixelMono>;
     hueMap = 0;
     satMap = 0;
@@ -195,7 +195,9 @@ selectiveAttentionProcessor::~selectiveAttentionProcessor(){
     delete image_tmp;
     delete intermCartOut;
     delete habituationImage;
-    delete habituationFloat;
+
+    delete habituation;
+    delete linearCombinationPrev;
 }
 
 selectiveAttentionProcessor::selectiveAttentionProcessor(ImageOf<PixelRgb>* inputImage):RateThread(THREAD_RATE) {
@@ -231,26 +233,29 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     faceMask->resize(width,height);
     faceMask->zero();
 
-    inputLogImage    = new ImageOf<PixelRgb>;   
-    intermCartOut    = new ImageOf<PixelRgb>;
-    motion_yarp      = new ImageOf<PixelMono>;
-    cart1_yarp       = new ImageOf<PixelMono>;
-    inhicart_yarp    = new ImageOf<PixelMono>;
-    habituationImage = new ImageOf<PixelMono>;
-    habituationFloat = new ImageOf<Float>;
-
+    inputLogImage         = new ImageOf<PixelRgb>;   
+    intermCartOut         = new ImageOf<PixelRgb>;
+    motion_yarp           = new ImageOf<PixelMono>;
+    cart1_yarp            = new ImageOf<PixelMono>;
+    inhicart_yarp         = new ImageOf<PixelMono>;
+    habituationImage      = new ImageOf<PixelMono>;
+    linearCombinationPrev = new ImageOf<PixelMono>;
+        
     inputLogImage->resize(width,height);
     intermCartOut->resize(xSizeValue,ySizeValue);
     motion_yarp->resize(xSizeValue,ySizeValue);
     cart1_yarp->resize(xSizeValue,ySizeValue);
     inhicart_yarp->resize(xSizeValue,ySizeValue);
     habituationImage->resize(xSizeValue,ySizeValue);
-    habituationFloat->resize(xSizeValue,ySizeValue);
+    linearCombinationPrev->resize(xSizeValue,ySizeValue);
 
     motion_yarp->zero();     
     cart1_yarp->zero();      
     inhicart_yarp->zero();
-    habituationImage->resize(xSizeValue,ySizeValue);     
+    habituationImage->zero();     
+    linearCombinationPrev->zero();
+
+    habituation      = new float[width * height];
 }
 
 void selectiveAttentionProcessor::resizeImages(int width,int height) {
@@ -510,8 +515,10 @@ void selectiveAttentionProcessor::run(){
         unsigned char* pmap6       = map6_yarp->getRawImage();
         unsigned char* pface       = faceMask ->getRawImage();
         unsigned char* pHabituationImage  = habituationImage->getRawImage();
-        float*         pHabituationFloat  = habituationFloat->getRawImage();
+        float * pHabituation              = habituation;
+        
         unsigned char* plinear     = linearCombinationImage.getRawImage();
+        unsigned char* plinearprev = linearCombinationPrev->getRawImage();
 
         int ratioX     = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
         int ratioY     = ySizeValue / YSIZE_DIM;    //introduced the ration between the dimension of the remapping and 240
@@ -811,32 +818,32 @@ void selectiveAttentionProcessor::run(){
                         value=(unsigned char)ceil(combinValue);
                     }
                     
-                    if((value < thresholdHabituation)&&(value >100)) {                        
-                        //*pHabituationImage = round((double)*pHabituationImage * 2 + 1);
-                        *pHabituationFloat += 0.1;
-                        *pHabituationImage = round(*pHabituationFloat);
+                    if((value < thresholdHabituation)&&(value > 0)&&(abs((double)*plinearprev - value) <= 20.0)) {                          //&&(abs((double)*plinearprev - value) <= 10.0)
+                    //*pHabituationImage = round((double)*pHabituationImage * 2 + 1);                        
+                        if(*pHabituation <= 254.0) {
+                            *pHabituation += exp(timeVariable / 50);
+                        }
+                        *pHabituationImage = round(*pHabituation);
                     }
                     else {
                         //*pHabituationImage = round((double)*pHabituationImage / 2 - 1);  
-                        *pHabituationFloat -= 0.1;
-                        *pHabituationImage = round(*pHabituationFloat);
+                        if(*pHabituation >= 1.0) {
+                            *pHabituation -= exp(timeVariable / 50);
+                        }
+                        *pHabituationImage = round(*pHabituation);
                         
+                    }                    
+                                        
+                    if(*pHabituation >= 255) {
+                        *pHabituation = 255;
+                    }
+                    else if(*pHabituation <= 0) {
+                        *pHabituation = 0;
                     }
                     
-                    
-                    
-                    if(*pHabituationImage >= 255) {
-                        *pHabituationImage = 255;
-                    }
-                    else if(habituationImage <= 0) {
-                        *pHabituationImage = 0;
-                    }
+                    // printf("pHabituation %f \n", *pHabituation);
+                    //*pHabituation = 0;                    
 
-                    printf("pHabituation %d \n", *pHabituationImage);
-
-                    pHabituationImage++;
-                    pHabituationFloat++;
-                
                     pmap1++;
                     pmap2++;
                     pmap3++;
@@ -851,25 +858,29 @@ void selectiveAttentionProcessor::run(){
                     else {
                         *plinear = 0;
                     }
+                    double alfa  = 0.6;
+                    *plinearprev =round( 0.6 * (double)*plinearprev + (1 - 0.6) * (double)*plinear);  //saving the actual value in the prevstep image
                     
                     //*plinear = max (0, min (255, (int) *plinear));
-                    
+                    pHabituationImage++;
+                    pHabituation++;
                     plinear++;
+                    plinearprev++;
                 }
-                pmap1   += padding;
-                pmap2   += padding;
-                pmap3   += padding;
-                pmap4   += padding;
-                pmap5   += padding;
-                pmap6   += padding;
-                plinear += padding;
-                pface   += padding;
+                pmap1       += padding;
+                pmap2       += padding;
+                pmap3       += padding;
+                pmap4       += padding;
+                pmap5       += padding;
+                pmap6       += padding;
+                plinear     += padding;
+                plinearprev += padding;
+                pface       += padding;
 
                 pHabituationImage += padding;
-                pHabituationFloat += padding;
             }
             
-            habituationStart = Time::now();
+            
             
             
 //********************************************************************************************
@@ -1144,6 +1155,8 @@ cartSpace:
         // maxresponse: when within the linear combination one region fires
         // the rest is a constant rate firing
         if((diff * 1000 > saccadeInterv)||(idle)||(maxResponse)) {
+            habituationStart = Time::now(); //resetting exponential of habituation
+            memset(habituation, 0, height * width * sizeof(float));
             printf("gazePerforming after %d idle %d maxResponse %d \n", saccadeInterv, idle, maxResponse);
             if(gazePerform) {
                 Vector px(2);

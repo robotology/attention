@@ -58,7 +58,6 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmp;               // temporary mono image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmp2;              // temporary rgb image
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *intermCartOut;     // temporary rgb image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *habituation;       // martix where the space-dependent habituation factor is saved
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > thImagePort;              // port for the output the WTA
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  imageCartOut;             // port for sending cartesian image result
@@ -71,6 +70,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;               // input port for the flow motion
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;                // input port for the 1st cartesian saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
+    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiCartPort;             // where the image of cuncurrent inhibition of return can be sent (cartesian)
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiPort;                 // where the image of cuncurrent inhibition of return can be sent 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > testPort;                 // debug mode port for testing the appearance of a particular image in the process
@@ -150,9 +150,9 @@ private:
     double kc1;         // coeffiencient for the linear combination of the cartesian maps
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* habituationImage; // mono image for habituation process
-    float[][]* habituation; // mono image for habituation process
+    float* habituation; // mono image for habituation process
 
-    static const int thresholdHabituation = 200;
+    static const int thresholdHabituation = 240;
     
 public:
     /**
@@ -489,7 +489,8 @@ public:
     static const int CONVMAX_TH = 100; //parameter of the findEdges function
     static const int CONVSEQ_TH = 500; //parameter of the findEdges function
     
-    yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombinationImage; //result of the combination
+    yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombinationImage;     //result of the combination
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationPrev;      //result of the combination (previous time sample)
     int centroid_x; //center of gravity of the selective attention (x position)
     int centroid_y; //center of gravity of the selective attention (y position)
     
