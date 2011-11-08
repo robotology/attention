@@ -20,13 +20,13 @@
 
 
 /**
- * @file earlyVisionThread.h
+ * @file logOFThread.h
  * @brief Definition of a thread that receives images and does the computation for the
  * early vision module via two other threads (see earlyVisionModule.h).
  */
 
-#ifndef _VISUAL_FEATURE_THREAD_H_
-#define _VISUAL_FEATURE_THREAD_H_
+#ifndef _LOG_OF_THREAD_H_
+#define _LOG_OF_THREAD_H_
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -39,13 +39,12 @@
 #include <cvaux.h>
 #include <highgui.h>
 
-#include <iCub/logPolar.h>
-
+//#include <iCub/logPolar.h>
 #include <iCub/convolve.h>
 #include <iCub/config.h>
-#include <iCub/centerSurround.h>
-#include <iCub/chrominanceThread.h>
-#include <iCub/edgesThread.h>
+//#include <iCub/centerSurround.h>
+//#include <iCub/chrominanceThread.h>
+//#include <iCub/edgesThread.h>
 
 
 #define MONO_PIXEL_SIZE 1
@@ -56,7 +55,7 @@
 #endif
  
 
-class earlyVisionThread : public yarp::os::RateThread  {
+class logOFThread : public yarp::os::RateThread  {
 private:
     
 
@@ -127,8 +126,7 @@ private:
     IplImage *vcs_out;     // final extended intensity center surround image
     IplImage *colcs_out;   // final extended coulour center surround image
 
-    CenterSurround *centerSurr;    
-
+    //CenterSurround *centerSurr;    
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
@@ -153,12 +151,12 @@ public:
     /**
     * constructor
     */
-    earlyVisionThread();
+    logOFThread();
 
     /**
      * destructor
      */
-    ~earlyVisionThread();
+    ~logOFThread();
 
     bool threadInit();     
     void threadRelease();
@@ -272,8 +270,8 @@ public:
     void addFloatImage(IplImage* sourceImage, CvMat* toBeAddedImage, double multFactor, double shiftFactor);
       
     
-    edgesThread *edThread;                 // thread that extract edges
-    chrominanceThread *chromeThread;       // thread that extract orientation information 
+    //edgesThread *edThread;                 // thread that extract edges
+    //chrominanceThread *chromeThread;       // thread that extract orientation information 
     
 };
 
