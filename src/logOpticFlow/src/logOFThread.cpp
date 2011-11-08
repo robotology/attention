@@ -15,18 +15,16 @@
   * WITHOUT ANY WARRANTY; without even the implied warranty of
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
-*/
+  */
 /**
- * @file earlyVisionThread.cpp
- * @brief Implementation of the early stage of vision thread (see earlyVisionThread.h).
+ * @file logOFThread.cpp
+ * @brief Implementation of the early stage of vision thread (see logOFThread.h).
  */
 
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
-#include <iCub/earlyVisionThread.h>
+#include <iCub/logOFThread.h>
 
 #include <cstring>
-
-
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -40,7 +38,7 @@ inline T max(T a, T b, T c) {
     return a;
 }
 
-earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
+logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
@@ -93,11 +91,11 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     isYUV   = true;
 }
 
-earlyVisionThread::~earlyVisionThread() {
-    printf("earlyVisionThread::~earlyVisionThread() \n");      
+logOFThread::~logOFThread() {
+    printf("logOFThread::~logOFThread() \n");      
 }
 
-bool earlyVisionThread::threadInit() {
+bool logOFThread::threadInit() {
     printf("opening ports by main thread\n");
 
     chromeThread = new chrominanceThread();
@@ -164,18 +162,18 @@ bool earlyVisionThread::threadInit() {
     return true;
 }
 
-void earlyVisionThread::setName(string str) {
+void logOFThread::setName(string str) {
     this->name=str;
     printf("name: %s", name.c_str());
 }
 
-std::string earlyVisionThread::getName(const char* p) {
+std::string logOFThread::getName(const char* p) {
     string str(name);
     str.append(p);
     return str;
 }
 
-void earlyVisionThread::run() {   
+void logOFThread::run() {   
      
         inputImage  = imagePortIn.read(false);
         /*IplImage *imgRGB;
@@ -216,8 +214,6 @@ void earlyVisionThread::run() {
             // colourOpponency map construction
             colorOpponency();         
 
-                              
-
             if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
@@ -244,7 +240,7 @@ void earlyVisionThread::run() {
 
 
 
-void earlyVisionThread::resize(int width_orig,int height_orig) {
+void logOFThread::resize(int width_orig,int height_orig) {
 
 
     this->width_orig = inputImage->width();//width_orig;
@@ -315,7 +311,7 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     
 }
 
-void earlyVisionThread::filterInputImage() {
+void logOFThread::filterInputImage() {
     
     int i;
     const int szInImg = inputImage->getRawImageSize();
@@ -326,18 +322,15 @@ void earlyVisionThread::filterInputImage() {
     const float ul = 1.0f - lambda;
     for (i = 0; i < szInImg; i++) { // assuming same size
         *pFilteredInpImg = (unsigned char)(lambda * *pCurr++ + ul * *pFilteredInpImg++ + .5f);
-        
     }
-    
 }
 
 
-void earlyVisionThread::extender(int maxSize) {
+void logOFThread::extender(int maxSize) {
     iCub::logpolar::replicateBorderLogpolar(*extendedInputImage, *filteredInputImage, maxSize);    
-    
 }
 
-void earlyVisionThread::extractPlanes() {
+void logOFThread::extractPlanes() {
 
     //chromeThread->setFlagForDataReady(false);           
     // We extract color planes from the RGB image. Planes are red,blue, green and yellow (AM of red & green)
@@ -457,7 +450,7 @@ void earlyVisionThread::extractPlanes() {
 
 }
 
-void earlyVisionThread::filtering() {
+void logOFThread::filtering() {
     // We gaussian blur the image planes extracted before, one with positive Gaussian and then negative
     
     //Positive
@@ -499,7 +492,7 @@ void earlyVisionThread::filtering() {
 
 
 
-void earlyVisionThread::colorOpponency(){
+void logOFThread::colorOpponency(){
 
     // get opponent colors for eg R+G- from R+ and G- channels
     // Finding color opponency now
@@ -576,7 +569,7 @@ void earlyVisionThread::colorOpponency(){
 
 }
 
-void earlyVisionThread::centerSurrounding(){
+void logOFThread::centerSurrounding(){
 
         
         
@@ -734,7 +727,7 @@ void earlyVisionThread::centerSurrounding(){
        
 }
 
-void earlyVisionThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double multFactor, double shiftFactor){
+void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double multFactor, double shiftFactor){
 
     IplImage stub, *toBeAddedImage;
     toBeAddedImage = cvGetImage(cvMatAdded, &stub);
@@ -756,7 +749,7 @@ void earlyVisionThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, 
 }
 
 
-void earlyVisionThread::threadRelease() {    
+void logOFThread::threadRelease() {    
     
 
     resized = false;

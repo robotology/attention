@@ -22,7 +22,7 @@
  * @brief main code for the early vision module; this is part of the logpolar attention system.
  */
 
-#include "iCub/earlyVisionModule.h" 
+#include "iCub/logOFModule.h" 
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -30,11 +30,11 @@ using namespace yarp::sig;
 
 int main(int argc, char * argv[]) {
     Network yarp;
-    earlyVisionModule module; 
+    logOFModule module; 
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("earlyVisionModule.ini"); //overridden by --from parameter
+    rf.setDefaultConfigFile("logOFModule.ini");       //overridden by --from parameter
     rf.setDefaultContext("logpolarAttention/conf");   //overridden by --context parameter
     rf.configure("ICUB_ROOT", argc, argv);
  

@@ -19,11 +19,11 @@
 
 
 /**
- * @file earlyVisionModule.cpp
- * @brief Implementation of the early Vision Module (see earlyVisionModule.h header file).
+ * @file logOFModule.cpp
+ * @brief Implementation of the log-polar opticFlow Module (see logOFModule.h header file).
  */
 
-#include "iCub/earlyVisionModule.h"
+#include "iCub/logOFModule.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -36,7 +36,7 @@ using namespace std;
  *  equivalent of the "open" method.
  */
 
-bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
+bool logOFModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
     
     /* get the module name which will form the stem of all module port names */
@@ -118,7 +118,7 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
                         // so that it will then run the module
 }
 
-bool earlyVisionModule::interruptModule()
+bool logOFModule::interruptModule()
 {
     printf("Interrupting early vision module..... \n");
     //handlerPort.interrupt();
@@ -126,7 +126,7 @@ bool earlyVisionModule::interruptModule()
     return true;
 }
 
-bool earlyVisionModule::close()
+bool logOFModule::close()
 {
     printf("Closing early vision module..... \n");    
     /* stop the thread */
@@ -140,7 +140,7 @@ bool earlyVisionModule::close()
 
 
 
-bool earlyVisionModule::respond(const Bottle& command, Bottle& reply) 
+bool logOFModule::respond(const Bottle& command, Bottle& reply) 
 {
     reply.clear();
 
@@ -361,12 +361,12 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
 }
 
 /* Called periodically every getPeriod() seconds */
-bool earlyVisionModule::updateModule()
+bool logOFModule::updateModule()
 {
     return true;
 }
 
-double earlyVisionModule::getPeriod()
+double logOFModule::getPeriod()
 {
     /* module periodicity (seconds), called implicitly by myModule */
     return 0.1;
