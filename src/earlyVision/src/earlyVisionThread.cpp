@@ -40,6 +40,8 @@ inline T max(T a, T b, T c) {
     return a;
 }
 
+
+
 earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
@@ -85,7 +87,12 @@ earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     gaborPosHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
     gaborPosVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
     gaborNegHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
-    gaborNegVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
+    gaborNegVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);
+    
+    gaborFiveByFive[0] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,Gab0,1.0,0);
+    gaborFiveByFive[1] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,Gab45,1.0,0);
+    gaborFiveByFive[2] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,Gab90,1.0,0);
+    gaborFiveByFive[3] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,GabM45,1.0,0);  
 
     
     lambda  = 0.3f;
@@ -160,6 +167,16 @@ bool earlyVisionThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+    
+    //initializing logpolar mapping
+    cout << "||| initializing the logpolar mapping" << endl;
+    
+
+    if (!lpTrans.allocLookupTables(BOTH, COL_SIZE, ROW_SIZE, CART_ROW_SIZE, CART_COL_SIZE, 1.0)) {
+        cerr << "can't allocate lookup tables for mono" << endl;
+        return false;
+    }
+    cout << "|-| lookup table allocation for mono done" << endl;
 
     return true;
 }
@@ -177,15 +194,18 @@ std::string earlyVisionThread::getName(const char* p) {
 
 void earlyVisionThread::run() {   
      
+        
+                
         inputImage  = imagePortIn.read(false);
         /*IplImage *imgRGB;
-        imgRGB = cvLoadImage("logPtemp.jpg");
+        imgRGB = cvLoadImage("logPVert.jpg");
         inputImage->resize(imgRGB->width,imgRGB->height);
         inputImage->zero();
         cvAdd(imgRGB,(IplImage*)inputImage->getIplImage(),(IplImage*)inputImage->getIplImage());
-        cvWaitKey(2);
-        cvReleaseImage(&imgRGB);*/
-       
+        cvNamedWindow("image");
+        cvShowImage("image",(IplImage*)inputImage->getIplImage());
+        //cvWaitKey(0);*/
+        
         
         
         if (inputImage != NULL) {
@@ -268,12 +288,7 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     tmpMono16LPImage->resize(width, height);
     tmpMono16LPImage1->resize(width, height);
     tmpMono16LPImage2->resize(width, height);
-    //tmpMonoLPImageSobelHorz->resize(width, height);
-    //tmpMonoLPImageSobelVert->resize(width, height);
-    //tmpMonoSobelImage1->resize(width,height);
-    //tmpMonoSobelImage2->resize(width,height);    
-
-    //edges->resize(width, height);
+    
     intensImg->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);    
 
@@ -306,7 +321,6 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
     ycs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     scs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     vcs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
-    
     
     centerSurr  = new CenterSurround( width_orig,height_orig,1.0 );
 
@@ -446,7 +460,7 @@ void earlyVisionThread::extractPlanes() {
     } 
 
     if(!chromeThread->getFlagForThreadProcessing()){
-        chromeThread->copyRelevantPlanes(unXtnIntensImg);
+        //chromeThread->copyRelevantPlanes(unXtnIntensImg);
     }
 
     if(!edThread->getFlagForThreadProcessing()){
@@ -611,7 +625,19 @@ void earlyVisionThread::centerSurrounding(){
                 //performs centre-surround uniqueness analysis on first plane                
                 centerSurr->proc_im_8u( (IplImage*)unXtnYplane->getIplImage(),(IplImage*)_Y.getIplImage());
                 cvConvertScale(centerSurr->get_pyramid_gauss(0),(IplImage*)YofYUVpy->getIplImage(),255,0);
-                               
+                
+                // Send it to other thread
+                CvMat* toSend[GABOR_SCALES], *toSendGauss[GABOR_SCALES];
+                for(int i=0; i<GABOR_SCALES; ++i){
+                    //toSend[i] = centerSurr->get_pyramid_gauss(i);
+                    toSendGauss[i] = centerSurr->get_gauss(i);
+                }
+                chromeThread->setFlagForDataReady(false);
+                chromeThread->copyScalesOfImages(unXtnIntensImg,toSendGauss);
+                //while(!chromeThread->getFlagForDataReady()) {};
+                
+                
+                
                 
                 
                 cvSet(cs_tot_32f,cvScalar(0));                

@@ -60,60 +60,27 @@
 #endif
 
 
+
 class chrominanceThread : public yarp::os::RateThread{ 
 
 private:
-    
-
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPos0;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPos45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPos90;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalPosM45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNeg0;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNeg45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNeg90;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschSalNegM45;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschListOfPosKernels;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr >*
-kirschListOfNegKernels;
-
-    // pointers to planes defined in earlyVision
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *chromYplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *chromUplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *chromVplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *chromUnXtnIntensImg;              //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *logPolarOrientImg;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ori0;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ori45;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ori90;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *oriM45;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *oriAll;
    
-    KirschOutputImage *o0;
-    KirschOutputImage *o45;
-    KirschOutputImage *o90;
-    KirschOutputImage *oM45;
-    KirschOutputImage *tmpKirschCartImage1;
-    KirschOutputImage *tmpKirschCartImage2;
-    KirschOutputImage *tmpKirschCartImage3;
-    KirschOutputImage *tmpKirschCartImage4;
-    KirschOutputImage *totalKirsch;
-    KirschOutputImage *listOfPosKir[4];
-    KirschOutputImage *listOfNegKir[4];
-
-    float wtForEachOrientation[4];
-    float brightness;                                   // this adjusts overall brightness 
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *chromUnXtnIntensImg;              //yarp intensity image
     
     
+    //convolve<yarp::sig::ImageOf<yarp::sig::PixelFloat>,float,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,float >* gaborFiveByFive[4];
+    yarp::sig::ImageOf<yarp::sig::PixelFloat>* imageAtScale[GABOR_SCALES];
+    yarp::sig::ImageOf<yarp::sig::PixelFloat>* imageForAScale[GABOR_SCALES];
+    yarp::sig::ImageOf<yarp::sig::PixelFloat>* gaussUpScaled[GABOR_SCALES];
+    yarp::sig::ImageOf<yarp::sig::PixelFloat>* tempCSScaleOne;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* imageInCartMono;
+    int weightIntensityAtScale[GABOR_SCALES];
+    int weightGaborAtScale[GABOR_SCALES];
+        
+    CvMat* gaborKernels[GABOR_ORIS];
+    CvPoint anchor;
+   
+    // Ports to output different orientation images    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort45;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort90;
@@ -123,8 +90,7 @@ kirschListOfNegKernels;
     
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* cartIntensImg;          //yarp cartesian intensity image for orientation
-
-    
+        
 
     //iCub::logpolar::logpolarTransform trsf; //reference to the converter for logpolar transform
     
@@ -133,11 +99,7 @@ kirschListOfNegKernels;
     int ySizeValue;         // y dimension of the remapped cartesian image
     double overlap;         // overlap in the remapping
     int numberOfRings;      // number of rings in the remapping
-    int numberOfAngles;     // number of angles in the remapping
-    double wHorizontal;     // value of the weight of orizontal orientation
-    double wVertical;       // value of the weight of vertical orientation
-    double w45Degrees;      // value of the weight of 45 degrees orientation
-    double wM45Degrees;     // value of the weight of minus 45 degrees orientation    
+    int numberOfAngles;     // number of angles in the remapping       
 
     int widthLP;            // original width of logpolar image
     int widthCr;
@@ -146,16 +108,17 @@ kirschListOfNegKernels;
     
     //IppiSize srcsize, origsize;   
     
-    bool kirschIsNormalized;
     bool resized;
     bool dataReadyForChromeThread;
     bool chromeThreadProcessing;
-
     
     std::string name;           // rootname of all the ports opened by this thread
     
-    float kirschLimits[4][2];   // maximum and minimum of Kirsch operator for each orientation
-
+    //Deprecated
+    double wtForEachOrientation[GABOR_ORIS];
+    float brightness;
+    
+   
 public:
     
     /**
@@ -204,38 +167,40 @@ public:
     * function that copies the images from the main thread
     * @param I intensity image
     */
-    void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I);    
+    void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I);   
+    
+    void copyScalesOfImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *I, CvMat **toBeCopiedGauss);
 
     /**
     * function that set the value for the weight horizontal orientation in linear combination
     * @param value double value of the weight
     */
-    void setWHorizontal(double value) { wHorizontal = value; };
+    void setWHorizontal(double value) { wtForEachOrientation[0] = value; };
 
     /**
     * function that set the value for the weight vertical orientation in linear combination
     * @param value double value of the weight
     */
-    void setWVertical(double value) { wVertical = value; };
+    void setWVertical(double value) { wtForEachOrientation[2] = value; };
 
     /**
     * function that set the value for the weight 45 degrees orientation in linear combination
     * @param value double value of the weight
     */
-    void setW45Degrees(double value) { w45Degrees = value; };
+    void setW45Degrees(double value) { wtForEachOrientation[1] = value; };
 
     /**
     * function that set the value for the weight minus 45 degrees orientation in linear combination
     * @param value double value of the weight
     */
-    void setWM45Degrees(double value) { wM45Degrees = value; };
+    void setWM45Degrees(double value) { wtForEachOrientation[3] = value; };
     
     /**
-    * Orientation using Kirsch kernel on Gaussian smoothened intensity. (Refer config.h)
+    * Orientation using Gabor kernel on Gaussian smoothened intensity. (Refer config.h)
     */
     void orientation();
     
-    void maxImages(IplImage** ImagesTobeAdded, int numberOfImages,IplImage* resultantImage); 
+    
 
     /* to suspend and resume the thread processing
     */
@@ -249,7 +214,7 @@ public:
         RateThread::resume();
     }   
    
-
+    
     /**
      *   Some handy get-set methods
      */
@@ -268,7 +233,7 @@ public:
          //atomic operation
          dataReadyForChromeThread = v;         
     }
-
+    
     inline bool getFlagForThreadProcessing(){
         
          return this->chromeThreadProcessing;
@@ -281,12 +246,12 @@ public:
     } 
 
     inline void setWeightForOrientation(int orientNbr, float val){
-        assert(orientNbr>=0 && orientNbr<=3);
+        assert(orientNbr>=0 && orientNbr< GABOR_ORIS);
         wtForEachOrientation[orientNbr] = val;
     }
     
     inline float getWeightForOrientation(int orientNbr){
-        assert(orientNbr>=0 && orientNbr<=3);
+        assert(orientNbr>=0 && orientNbr< GABOR_ORIS);
         return wtForEachOrientation[orientNbr];
     }
 

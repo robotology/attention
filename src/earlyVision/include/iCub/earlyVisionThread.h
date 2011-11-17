@@ -59,7 +59,7 @@
 class earlyVisionThread : public yarp::os::RateThread  {
 private:
     
-
+    logpolarTransformVisual lpTrans;
     int width_orig, height_orig;        // dimension of the input image (original)
     int width, height;                  // dimension of the extended input image (extending)
     int width_cart, height_cart;        // dimension of the cartesian width and height    
@@ -107,6 +107,9 @@ private:
         
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelFloat>,float,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,float >* gaborFiveByFive[4];
+    CvMat *gaborizedImg[GABOR_ORIS*GABOR_SCALES];                                        // assuming 4 orientations with 4 scales each
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* visualizingImage;
     
   
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
@@ -126,7 +129,8 @@ private:
     IplImage *scs_out;     // final extended intensity center surround image
     IplImage *vcs_out;     // final extended intensity center surround image
     IplImage *colcs_out;   // final extended coulour center surround image
-
+    
+    
     CenterSurround *centerSurr;    
 
 

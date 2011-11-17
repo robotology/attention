@@ -34,7 +34,22 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
+int powTailRecurse( int base, int power, int result){    
+    if(power ==1)
+        return result;
+    else 
+        return powTailRecurse(base,power-1,result*base);
+}
 
+int pow(int base, int power){
+    assert( base!= 0 || power != 0); // sorry for 0 to power 0 !
+    if(base == 1 || base == 0 )
+        return base;            
+    else if(power == 0)
+        return 1;
+    else
+        return powTailRecurse(base,power,base);
+}
 
 
 chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {    
@@ -42,54 +57,14 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     chromeThreadProcessing      = false;
     dataReadyForChromeThread    = false;
     resized                     = false;
-        
+            
     chromUnXtnIntensImg = new ImageOf<PixelMono>;
 
-    o0      = new KirschOutputImage;
-    o45     = new KirschOutputImage;
-    o90     = new KirschOutputImage;
-    oM45    = new KirschOutputImage;
     
-    tmpKirschCartImage1  = new KirschOutputImage;
-    tmpKirschCartImage2  = new KirschOutputImage;
-    tmpKirschCartImage3  = new KirschOutputImage;
-    tmpKirschCartImage4  = new KirschOutputImage;
-    totalKirsch          = new KirschOutputImage; 
     cartIntensImg       = new ImageOf<PixelMono>; 
-    logPolarOrientImg   = new ImageOf<PixelMono>;
     
-    ori0                = new ImageOf<PixelMono>;
-    ori45               = new ImageOf<PixelMono>;
-    ori90               = new ImageOf<PixelMono>;
-    oriM45              = new ImageOf<PixelMono>;
-    oriAll              = new ImageOf<PixelMono>;
-
-    kirschSalPos0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalPos45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r2,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalPos90 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r3,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalPosM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_POS_KERNEL,KIRSCH_POS_KERNEL,r4,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-
-    kirschSalNeg0 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn1,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalNeg45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn2,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalNeg90 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn3,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    kirschSalNegM45 = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,rn4,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
-    //kirschListOfNegKernels = new convolve<ImageOf<PixelMono>,uchar,KirschOutputImage,KirschOutputImagePtr>(KIRSCH_NEG_KERNEL,KIRSCH_NEG_KERNEL,listOfNeg,NBR_KIRSCH_NEG_KERNELS,KIRSCH_FACTOR,KIRSCH_SHIFT,KIRSCH_FLICKER);
     
-
-    kirschIsNormalized = 0;
-    kirschLimits[0][0] = 0;
-    kirschLimits[0][1] = 2.0;
-    kirschLimits[1][0] = 0;
-    kirschLimits[1][1] = 2.0;
-    kirschLimits[2][0] = 0;
-    kirschLimits[2][1] = 2.0;
-    kirschLimits[3][0] = 0;
-    kirschLimits[3][1] = 2.0;
-
-    for(int i=0; i<4; ++i) {
-        wtForEachOrientation[i]= 1/4.0; // equal weights by default
-    }    
-    brightness = 1.0;           // hence no change by default
+    
     //Logpolar to cartesian and vice versa
     xSizeValue = CART_ROW_SIZE ;         
     ySizeValue = CART_COL_SIZE;          // y dimension of the remapped cartesian image
@@ -97,13 +72,34 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     numberOfRings = COL_SIZE;      // 152, number of rings in the remapping
     numberOfAngles = ROW_SIZE;     // number of angles in the remapping   
     
- /*   //Logpolar to cartesian and vice versa
-    xSizeValue = 320 ;         
-    ySizeValue = 240;          // y dimension of the remapped cartesian image
-    overlap = 1.0;         // overlap in the remapping
-    numberOfRings = 152;      // number of rings in the remapping
-    numberOfAngles = 252;     // number of angles in the remapping
-*/
+    
+    //gaborFiveByFive[0] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,Gab0,GABOR_SCALE_FACTOR,GABOR_SHIFT,GABOR_FLICKER);
+    //gaborFiveByFive[1] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,Gab45,GABOR_SCALE_FACTOR,GABOR_SHIFT,GABOR_FLICKER);
+    //gaborFiveByFive[2] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,Gab90,GABOR_SCALE_FACTOR,GABOR_SHIFT,GABOR_FLICKER);
+    //gaborFiveByFive[3] = new convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >(5,5,GabM45,GABOR_SCALE_FACTOR,GABOR_SHIFT,GABOR_FLICKER);
+    
+    
+    double* gabsDouble[4] = {Gab0D,Gab45D,Gab90D,GabM45D};
+    float* gabsfloat[4] = {Gab0,Gab45,Gab90,GabM45};
+    for(int i=0 ; i<GABOR_ORIS; ++i){
+        gaborKernels[i] = cvCreateMat( 5,5, CV_64FC1 );
+        *gaborKernels[i] = cvMat( 5, 5, CV_64FC1, gabsDouble[i] );
+    }
+            
+    anchor = cv::Point(2,2);
+    
+    for(int i=0; i<GABOR_SCALES; ++i){
+        imageForAScale[i] = new ImageOf<PixelFloat>;
+        imageAtScale[i] = new ImageOf<PixelFloat>;
+        gaussUpScaled[i] = new ImageOf<PixelFloat>;
+        weightGaborAtScale[i] = 750;
+        weightIntensityAtScale[i] = 510;
+    }
+    tempCSScaleOne = new ImageOf<PixelFloat>;
+    imageInCartMono = new ImageOf<PixelMono>;
+                
+    
+ 
 }
 
 chrominanceThread::~chrominanceThread() {    
@@ -147,6 +143,17 @@ bool chrominanceThread::threadInit() {
         return false;
     }
     cout << "|-| lookup table allocation for mono done" << endl;
+    
+    cvNamedWindow("Adjusting weights");
+    cvResizeWindow("Adjusting weights",600,400);
+    
+    for(int i=0 ; i<GABOR_ORIS; ++i){
+        char nameWtInten[20], nameWtGabor[20];
+        sprintf(nameWtInten,"wtInten orient#:%d",i);
+        sprintf(nameWtGabor,"wtGabor orient#:%d",i);
+        cvCreateTrackbar(nameWtInten,"Adjusting weights", &weightIntensityAtScale[i], 1000, NULL); // no callback
+        cvCreateTrackbar(nameWtGabor,"Adjusting weights", &weightGaborAtScale[i], 1000, NULL); // no callback
+    }
    
     return true;
 }
@@ -163,18 +170,21 @@ std::string chrominanceThread::getName(const char* p) {
 }
 
 void chrominanceThread::run() {
-    if(totalOrientCartImgPort.getOutputCount()< 1 && totalOrientImagePort.getOutputCount()<1){
+    //if(totalOrientCartImgPort.getOutputCount()< 1 && totalOrientImagePort.getOutputCount()<1){
         // we are not interested in orientations, so do nothing
-    }
-    else{
-        if(getFlagForDataReady() && resized){                                   
+    //}
+    //else{
+        if(!resized){
+            this->resize(ROW_SIZE,COL_SIZE);
+        }
+        else if(getFlagForDataReady()){                                   
             setFlagForThreadProcessing(true);
-            lpMono.logpolarToCart(*cartIntensImg,*chromUnXtnIntensImg);        
+            //lpMono.logpolarToCart(*cartIntensImg,*chromUnXtnIntensImg);        
             orientation();        
             setFlagForThreadProcessing(false);
             setFlagForDataReady(false);
         }
-    }    
+    //}    
 }
 
 void chrominanceThread::resize(int width_orig,int height_orig) {  
@@ -188,30 +198,28 @@ void chrominanceThread::resize(int width_orig,int height_orig) {
 
     chromUnXtnIntensImg->resize(width_orig,height_orig);
     cartIntensImg->resize(CART_ROW_SIZE, CART_COL_SIZE);
-
-    // for Kirsch
-    // float images
-    o0->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    o45->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    o90->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    oM45->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    // uchar images
-    ori0->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    ori45->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    ori90->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    oriM45->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    oriAll->resize(CART_ROW_SIZE, CART_COL_SIZE);    
-    logPolarOrientImg->resize(ROW_SIZE,COL_SIZE);
-
-    tmpKirschCartImage1->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    tmpKirschCartImage2->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    tmpKirschCartImage3->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    tmpKirschCartImage4->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    totalKirsch->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    /*listOfNegKir[0]->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    listOfNegKir[1]->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    listOfNegKir[2]->resize(CART_ROW_SIZE, CART_COL_SIZE);
-    listOfNegKir[3]->resize(CART_ROW_SIZE, CART_COL_SIZE); */
+   
+    
+    for(int j=0; j<GABOR_SCALES; ++j){
+        
+        imageForAScale[j]->resize(ROW_SIZE,COL_SIZE);
+        gaussUpScaled[j]->resize(ROW_SIZE,COL_SIZE);
+        
+        int factor = pow(2,j);
+        int widthTemp = ROW_SIZE/factor;
+        int heightTemp = COL_SIZE/factor;
+        int cartWidthTemp = CART_ROW_SIZE/factor;
+        int cartHeightTemp = CART_COL_SIZE/factor;
+        
+        //patch
+        if(j==3){
+            widthTemp += 1;
+            heightTemp += 1;
+        }
+        
+        imageAtScale[j]->resize(cartWidthTemp,cartHeightTemp);
+       
+    }
     
     resized = true;
     
@@ -235,261 +243,175 @@ void chrominanceThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
         chromUnXtnIntensImg->resize(I->width(), I->height());
         
         // copy
-        memcpy( (uchar*)chromUnXtnIntensImg->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());
+        memcpy( (uchar*)chromUnXtnIntensImg->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());        
         
-        /*
-        // CAUTION:shallow copy
-        chromUnXtnIntensImg = I;
-        chromYplane = Y;
-        chromUplane = U;
-        chromVplane = V; 
-        */         
+        // set the flag to convey to other thread(s)        
         setFlagForDataReady(true);       
     }   
 
 }
 
-void chrominanceThread::orientation() {
-    //printf("start orientation \n");
-    int cartesWidth  = cartIntensImg->width();
-    int cartesHeight = cartIntensImg->height();
-
-    // orientation port
-    ImageOf<PixelMono>& oPort0   = orientPort0.prepare();    
-    ImageOf<PixelMono>& oPort45  = orientPort45.prepare();    
-    ImageOf<PixelMono>& oPort90  = orientPort90.prepare();    
-    ImageOf<PixelMono>& oPortM45 = orientPortM45.prepare();
-    ImageOf<PixelMono>& totImg = totalOrientImagePort.prepare();
-    
-    // resize images to logpolar dimension
-    oPort0.resize(ROW_SIZE,COL_SIZE);
-    oPort45.resize(ROW_SIZE,COL_SIZE);
-    oPort90.resize(ROW_SIZE,COL_SIZE);
-    oPortM45.resize(ROW_SIZE,COL_SIZE);
-    totImg.resize(ROW_SIZE,COL_SIZE);
-    
-
-    // using Kirsch cum positive Gaussian matrix
-    /*
-    kirschSalPos0->convolve2D(cartIntensImg,o0);
-    kirschSalPos45->convolve2D(cartIntensImg,o45);
-    kirschSalPos90->convolve2D(cartIntensImg,o90);
-    kirschSalPos45->convolve2D(cartIntensImg,oM45);   
-    
-
-    // using Kirsch cum Negative gaussian matrix
-    kirschSalNeg0->convolve2D(cartIntensImg,tmpKirschCartImage1); 
-    kirschSalNeg45->convolve2D(cartIntensImg,tmpKirschCartImage2); 
-    kirschSalNeg90->convolve2D(cartIntensImg,tmpKirschCartImage3); 
-    kirschSalNegM45->convolve2D(cartIntensImg,tmpKirschCartImage4);
-    */
-
-    kirschSalPos0->convolve2DRegion(cartIntensImg,o0,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2);
-    kirschSalPos45->convolve2DRegion(cartIntensImg,o45,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2);
-    kirschSalPos90->convolve2DRegion(cartIntensImg,o90,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2);
-    kirschSalPosM45->convolve2DRegion(cartIntensImg,oM45,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2);
-
-    kirschSalNeg0->convolve2DRegion(cartIntensImg,tmpKirschCartImage1,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2);
-    kirschSalNeg45->convolve2DRegion(cartIntensImg,tmpKirschCartImage2,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2); 
-    kirschSalNeg90->convolve2DRegion(cartIntensImg,tmpKirschCartImage3,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2); 
-    kirschSalNegM45->convolve2DRegion(cartIntensImg,tmpKirschCartImage4,0,cartIntensImg->height()/2,
-                                    cartIntensImg->width()/2,cartIntensImg->width()/2,
-                                    cartIntensImg->height()/2);
-    
-
-/*
-    kirschListOfNegKernels->convolve2Dlist(cartIntensImg,listOfNegKir);
-*/  
-
-    uchar* ori[4]= {(uchar*)ori0->getRawImage(),
-                    (uchar*)ori45->getRawImage(),
-                    (uchar*)ori90->getRawImage(),
-                    (uchar*)oriM45->getRawImage()};
-
-    float *ptrTotKir = (float*)totalKirsch->getRawImage();
-
-    KirschOutputImagePtr* p[4] = { (KirschOutputImagePtr*)o0->getRawImage(),
-                                    (KirschOutputImagePtr*)o45->getRawImage(),
-                                    (KirschOutputImagePtr*)o90->getRawImage(),
-                                    (KirschOutputImagePtr*)oM45->getRawImage()};
-
-    KirschOutputImagePtr* n[4] = { (KirschOutputImagePtr*)tmpKirschCartImage1->getRawImage(),
-                                    (KirschOutputImagePtr*)tmpKirschCartImage2->getRawImage(),
-                                    (KirschOutputImagePtr*)tmpKirschCartImage3->getRawImage(),
-                                    (KirschOutputImagePtr*)tmpKirschCartImage4->getRawImage()};
-
-     
-    const int pad_output = ori0->getPadding() / sizeof(uchar);
-    int padK             = o0->getPadding()  / sizeof(KirschOutputImagePtr);     
-
-    
-#ifdef USE_PROPORTIONAL_KIRSCH
-    float normalizingRatio[4];
-    normalizingRatio[0] = 255.0 / (kirschLimits[0][0] - kirschLimits[0][1]);
-    normalizingRatio[1] = 255.0 / (kirschLimits[1][0] - kirschLimits[1][1]);
-    normalizingRatio[2] = 255.0 / (kirschLimits[2][0] - kirschLimits[2][1]);
-    normalizingRatio[3] = 255.0 / (kirschLimits[3][0] - kirschLimits[3][1]);
-#endif
-
-    float multiplier = 1;
-    float multiplierForNeg = .33;
-    float normalizingFactor = 1.0/(wtForEachOrientation[0]+wtForEachOrientation[1]
-                                + wtForEachOrientation[2]+wtForEachOrientation[3]);
-    normalizingFactor = min((float)1000.0,max((float).001,normalizingFactor));      //against nan
-    // normalized weights
-    float w0 = wtForEachOrientation[0]*normalizingFactor;
-    float w1 = wtForEachOrientation[1]*normalizingFactor;
-    float w2 = wtForEachOrientation[2]*normalizingFactor;
-    float w3 = wtForEachOrientation[3]*normalizingFactor;
-    for (int row = 0; row < ori0->height(); row++) {
-        for (int col = 0; col < ori0->width(); col++) {
-
-#ifdef USE_PROPORTIONAL_KIRSCH //-------------------------------------
-            //if() {
-                //printf("second proportional kirsch \n");
-                //if (row < CART_ROW_SIZE) {
-                if(kirschIsNormalized < KIRSCH_FLICKER){
-
-                        float tmpV0 = (abs(*p[0])-.33*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *255 ;
-                        float tmpV1 = (abs(*p[1])-.33*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *255 ;
-                        float tmpV2 = (abs(*p[2])-.33*(abs(*n[1])+abs(*n[0])+abs(*n[3]))) *255 ;
-                        float tmpV3 = (abs(*p[3])-.33*(abs(*n[1])+abs(*n[2])+abs(*n[0]))) *255 ;
-                    
-                        kirschLimits[0][0] = kirschLimits[0][0] < tmpV0 ? tmpV0 : kirschLimits[0][0]; // max
-                        kirschLimits[0][1] = kirschLimits[0][1] > tmpV0 ? tmpV0 : kirschLimits[0][1]; // min
-                        kirschLimits[1][0] = kirschLimits[1][0] < tmpV1 ? tmpV1 : kirschLimits[1][0]; // max
-                        kirschLimits[1][1] = kirschLimits[1][1] > tmpV1 ? tmpV1 : kirschLimits[1][1]; // min
-
-                        kirschLimits[2][0] = kirschLimits[2][0] < tmpV2 ? tmpV2 : kirschLimits[2][0]; // max
-                        kirschLimits[2][1] = kirschLimits[2][1] > tmpV2 ? tmpV2 : kirschLimits[2][1]; // min
-                        kirschLimits[3][0] = kirschLimits[3][0] < tmpV3 ? tmpV3 : kirschLimits[3][0]; // max
-                        kirschLimits[3][1] = kirschLimits[3][1] > tmpV3 ? tmpV3 : kirschLimits[3][1]; // min
-
-                        *ori[0] = tmpV0;
-                        *ori[1] = tmpV1 ;
-                        *ori[2] = tmpV2 ;
-                        *ori[3] = tmpV3 ;
-                        //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3)); 
-                        *ptrTotKir =    (w0*tmpV0 +
-                                        w1*tmpV1 +
-                                        w2*tmpV2 +
-                                        w3*tmpV3 );//*brightness;                     
-                    
-                }
-                else {
-                   
-                        //float tmpV = 255.0 *abs(*p[i]);
-                        float tmpV0 = normalizingRatio[0]*(*p[0] - kirschLimits[0][1]);
-                        float tmpV1 = normalizingRatio[1]*(*p[1] - kirschLimits[1][1]);
-                        float tmpV2 = normalizingRatio[2]*(*p[2] - kirschLimits[2][1]);
-                        float tmpV3 = normalizingRatio[3]*(*p[3] - kirschLimits[3][1]);
-                        *ori[0] = tmpV0>255?255:tmpV0<0?0:(unsigned char)tmpV0;
-                        *ori[1] = tmpV1>255?255:tmpV1<0?0:(unsigned char)tmpV1;
-                        *ori[2] = tmpV2>255?255:tmpV2<0?0:(unsigned char)tmpV2;
-                        *ori[3] = tmpV3>255?255:tmpV3<0?0:(unsigned char)tmpV3;
-                        //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
-                        *ptrTotKir =    (w0*tmpV0 +
-                                        w1*tmpV1 +
-                                        w2*tmpV2 +
-                                        w3*tmpV3 );//*brightness;  
-                        
-                }
-                
-            
-#else //--------------------------------------------------------------
-
-                float tmpV0 = (abs(*p[0])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[3]))) *multiplier ;
-                float tmpV1 = (abs(*p[1])-multiplierForNeg*(abs(*n[0])+abs(*n[2])+abs(*n[3]))) *multiplier ;
-                float tmpV2 = (abs(*p[2])-multiplierForNeg*(abs(*n[0])+abs(*n[1])+abs(*n[3]))) *multiplier ;
-                float tmpV3 = (abs(*p[3])-multiplierForNeg*(abs(*n[1])+abs(*n[2])+abs(*n[0]))) *multiplier ;
-                float l = 0;
-                float u = 255;
-                *ori[0] = max(l,min(u,255*tmpV0));
-                *ori[1] = max(l,min(u,255*tmpV1));
-                *ori[2] = max(l,min(u,255*tmpV2));
-                *ori[3] = max(l,min(u,255*tmpV3));
-                //*ptrTotKir = max(max(tmpV0,tmpV1),max(tmpV2,tmpV3));
-                *ptrTotKir =  2 *  (w0*tmpV0 +
-                                        w1*tmpV1 +
-                                        w2*tmpV2 +
-                                        w3*tmpV3 );//*brightness;  
-             
-#endif //---------------------------------------------------------------
-            ori[0]++;
-            p[0]++;
-            n[0]++;
-            ori[1]++;
-            p[1]++;
-            n[1]++;
-            ori[2]++;
-            p[2]++;
-            n[2]++;
-            ori[3]++;
-            p[3]++;
-            n[3]++;
-            ptrTotKir++;             
+void chrominanceThread::copyScalesOfImages(ImageOf<PixelMono> *I, CvMat **toBeCopiedGauss){
+    if(!getFlagForThreadProcessing() && resized){ 
+        setFlagForDataReady(false);
+        lpMono.logpolarToCart(*cartIntensImg,*I);
+        IplImage* floatImage = cvCreateImage(cvSize(cartIntensImg->width(),cartIntensImg->height()),32,1);
+        cvConvertScale((IplImage*)cartIntensImg->getIplImage(),floatImage,1.0/255.0,0.0);
+        for(int i=0; i<GABOR_SCALES; ++i){
+            cvCopy(toBeCopiedGauss[i],(IplImage*)gaussUpScaled[i]->getIplImage());
+            cvResize(floatImage,(IplImage*)imageAtScale[i]->getIplImage());
             
         }
-        // padding
-        ori[0] += pad_output;
-        p[0] += padK; 
-        n[0] += padK; 
-        ori[1] += pad_output;
-        p[1] += padK; 
-        n[1] += padK; 
-        ori[2] += pad_output;
-        p[1] += padK; 
-        n[2] += padK; 
-        ori[3] += pad_output;
-        p[3] += padK; 
-        n[3] += padK;
-        ptrTotKir += padK; 
-               
-    } 
+        cvReleaseImage(&floatImage);
+        setFlagForDataReady(true); 
+   } 
 
-    kirschIsNormalized++;
+}
 
-    cvConvertScale((IplImage*)totalKirsch->getIplImage(),(IplImage*)oriAll->getIplImage(),255*brightness,0);
-
-    // Converting cartesian images back to logpolar
-    lpMono.cartToLogpolar(totImg,*oriAll);
-    lpMono.cartToLogpolar(oPort0,*ori0);
-    lpMono.cartToLogpolar(oPort45,*ori45);
-    lpMono.cartToLogpolar(oPort90,*ori90);
-    lpMono.cartToLogpolar(oPortM45,*oriM45);    
+void chrominanceThread::orientation() {
+ 
+        
+    //----------------------------------------------------------------------------------------------------------//
+    if(getFlagForDataReady()){
+     //Checking!
+                ImageOf<PixelFloat>  *temp2 = new ImageOf<PixelFloat>;                
+                ImageOf<PixelFloat>* imageInCart = new ImageOf<PixelFloat>;
+                                
+                ImageOf<PixelMono>* imageInCartMonoLogP = new ImageOf<PixelMono>;
+                
+                imageInCart->resize(CART_ROW_SIZE,CART_COL_SIZE);
+                imageInCartMono->resize(CART_ROW_SIZE,CART_COL_SIZE);
+                imageInCartMonoLogP->resize(ROW_SIZE,COL_SIZE);
+                imageInCart->zero();
+                        
+                //By now we have all scales of Y-image in pyramid for  0,45,90 and -45, scales are 4
+                for(int eachOrient=0; eachOrient<GABOR_ORIS; ++eachOrient){                    
+                               
+                    tempCSScaleOne->resize(ROW_SIZE,COL_SIZE);
+                    for(int eachScale=0; eachScale<GABOR_SCALES; ++eachScale){
+                        int factor = pow(2,eachScale);
+                        int widthTemp = CART_ROW_SIZE/factor;
+                        int heightTemp = CART_COL_SIZE/factor;
+                        /*
+                        //patch
+                        if(eachScale==3){
+                            widthTemp += 1;
+                            heightTemp += 1;
+                        }*/
+                        temp2->resize(widthTemp,heightTemp);
+                        temp2->zero();
+                            
+                        cvFilter2D((IplImage*)imageAtScale[eachScale]->getIplImage(),(IplImage*)temp2->getIplImage(),gaborKernels[eachOrient],anchor);
+                        imageInCart->zero();
+                        imageInCartMono->zero();
+                        cvResize((IplImage*)temp2->getIplImage(),(IplImage*)imageInCart->getIplImage(),CV_INTER_CUBIC);
+                        cvConvertScale((IplImage*)imageInCart->getIplImage(),(IplImage*)imageInCartMono->getIplImage(),255*255,0);
+                        lpMono.cartToLogpolar(*imageInCartMonoLogP,*imageInCartMono);
+                        cvConvertScale((IplImage*)imageInCartMonoLogP->getIplImage(),(IplImage*)imageForAScale[eachScale]->getIplImage(),1.0/255.0,0.0);                            
+                        
+                    }
+                        
+                    // Combine the images for each orient
+                    float* imgHdrTot = (float*)tempCSScaleOne->getRawImage();
+                    float* imgPtrTot = (float*)tempCSScaleOne->getRawImage();
+                    int rowSize = tempCSScaleOne->getRowSize()/sizeof(float);
+                    tempCSScaleOne->zero();                      
+                       
+                    float *scaleImgPtr, *scaleImgHdr, *intensityImgPtr, *intensityImgHdr, *intensityImgPtrSec, *intensityImgHdrSec;
+                    int scaleImgRowSize, intensityImgRowSize;
+                     
+                   for(int scaleNow = 0; scaleNow <GABOR_SCALES-1; ++scaleNow){
+                        scaleImgPtr = (float*)imageForAScale[scaleNow]->getRawImage();
+                        scaleImgHdr = (float*)imageForAScale[scaleNow]->getRawImage();
+                        scaleImgRowSize = imageForAScale[scaleNow]->getRowSize()/sizeof(float);
+                        intensityImgPtr = (float*)gaussUpScaled[scaleNow+1]->getRawImage();
+                        intensityImgHdr = (float*)gaussUpScaled[scaleNow+1]->getRawImage();
+                        intensityImgPtrSec = (float*)gaussUpScaled[scaleNow+2]->getRawImage();
+                        intensityImgHdrSec = (float*)gaussUpScaled[scaleNow+2]->getRawImage();
+                        intensityImgRowSize = gaussUpScaled[scaleNow+1]->getRowSize()/sizeof(float);
+                        
+                        for(int i=0; i<tempCSScaleOne->height(); ++i){
+                            imgPtrTot = imgHdrTot+rowSize*i;
+                            scaleImgPtr = scaleImgHdr + scaleImgRowSize*i;
+                            intensityImgPtr = intensityImgHdr + intensityImgRowSize*i;                                
+                            intensityImgPtrSec = intensityImgHdrSec + intensityImgRowSize*i;                                
+                            for(int j=0; j<tempCSScaleOne->width(); ++j){
+                                //weightGaborAtScale[scaleNow] = 1000.0;
+                                //weightIntensityAtScale[scaleNow+1] = weightIntensityAtScale[scaleNow+2] =500.0;
+                                *imgPtrTot += max(0.0,*scaleImgPtr*((float)weightGaborAtScale[scaleNow]-500.0)/1000.0 
+                                             - (*intensityImgPtr*((float)weightIntensityAtScale[scaleNow+1]-500.0)/1000.0 
+                                              + *intensityImgPtrSec*((float)weightIntensityAtScale[scaleNow+2]-500.0)/500.0 )/2.0);
+                                imgPtrTot++;
+                                scaleImgPtr++;
+                                intensityImgPtr++;
+                                intensityImgPtrSec++;
+                            }
+                        }
+                   }
+                   
+                    scaleImgPtr = (float*)imageForAScale[GABOR_SCALES-2]->getRawImage();
+                    scaleImgHdr = (float*)imageForAScale[GABOR_SCALES-2]->getRawImage();
+                    scaleImgRowSize = imageForAScale[GABOR_SCALES-2]->getRowSize()/sizeof(float);
+                    intensityImgPtr = (float*)gaussUpScaled[GABOR_SCALES-1]->getRawImage();
+                    intensityImgHdr = (float*)gaussUpScaled[GABOR_SCALES-1]->getRawImage();                        
+                    intensityImgRowSize = gaussUpScaled[GABOR_SCALES-1]->getRowSize()/sizeof(float);
+                    
+                    for(int i=0; i<tempCSScaleOne->height(); ++i){
+                        imgPtrTot = imgHdrTot+rowSize*i;
+                        scaleImgPtr = scaleImgHdr + scaleImgRowSize*i;
+                        intensityImgPtr = intensityImgHdr + intensityImgRowSize*i;                                
+                        for(int j=0; j<tempCSScaleOne->width(); ++j){
+                            //weightGaborAtScale[GABOR_SCALES-2] = 1000.0;
+                            //weightIntensityAtScale[GABOR_SCALES-1]  =500.0;
+                            *imgPtrTot += max(0.0,*scaleImgPtr *((float)weightGaborAtScale[GABOR_SCALES-2]-500.0)/500.0 - *intensityImgPtr *((float)weightIntensityAtScale[GABOR_SCALES-1]-500.0)/500.0);
+                            imgPtrTot++;
+                            scaleImgPtr++;
+                            intensityImgPtr++;                                
+                        }
+                    }
+                       
+                       
+                   // we have now result for this orientation
+                   imageInCartMono->zero();
+                   imageInCartMonoLogP->zero();
+                                      
+                   cvConvertScale((IplImage*)tempCSScaleOne->getIplImage(),(IplImage*)imageInCartMonoLogP->getIplImage(),255,0);
+                   lpMono.logpolarToCart(*imageInCartMono,*imageInCartMonoLogP);
+                   cvWaitKey(2);
+                   
+                   if(eachOrient == 0){
+                        orientPort0.prepare() = *imageInCartMono;
+                        orientPort0.write();
+                        }
+                    if(eachOrient == 1){
+                        orientPort45.prepare() = *imageInCartMono;
+                        orientPort45.write();
+                        }
+                    if(eachOrient == 2){
+                        orientPort90.prepare() = *imageInCartMono;
+                        orientPort90.write();
+                        }
+                    if(eachOrient == 3){
+                        orientPortM45.prepare() = *imageInCartMono;
+                        orientPortM45.write();
+                        }
+                         
+                       
+                                
+                }
+                //cvWaitKey(0);
+                delete temp2;
+                delete imageInCart;
+                delete imageInCartMonoLogP;
+                
+    }
     
-#ifdef DEBUG_OPENCV
-    cvNamedWindow("Original");
-    cvShowImage("Original",(IplImage*)totImg.getIplImage());
-    cvNamedWindow("Sum");
-    cvShowImage("Sum",  (IplImage*)oPort0.getIplImage());    
-    cvWaitKey(2);
-#endif
-     
-    orientPort0.write();
-    orientPort45.write();
-    orientPort90.write();
-    orientPortM45.write();
-    totalOrientImagePort.write();
+    /*totalOrientImagePort.write();
     
     if(totalOrientCartImgPort.getOutputCount()){
         totalOrientCartImgPort.prepare() = *oriAll;
         totalOrientCartImgPort.write();
-    }    
+    } */   
   
 }
 
@@ -515,37 +437,18 @@ void chrominanceThread::threadRelease() {
 
     //deallocating resources
     delete chromUnXtnIntensImg;
-
-    delete o0;
-    delete o45;
-    delete o90;
-    delete oM45;
-
-    delete tmpKirschCartImage1;    
-    delete tmpKirschCartImage2;    
-    delete tmpKirschCartImage3;    
-    delete tmpKirschCartImage4;
-    delete totalKirsch;
-
-    delete ori0;
-    delete ori45;
-    delete ori90;
-    delete oriM45;
-    delete oriAll;
-
-    delete cartIntensImg;
-    delete logPolarOrientImg;
-
-    delete kirschSalPos0;
-    delete kirschSalPos45;
-    delete kirschSalPos90;
-    delete kirschSalPosM45;
-    delete kirschSalNeg0;
-    delete kirschSalNeg45;
-    delete kirschSalNeg90;
-    delete kirschSalNegM45;    
+    delete cartIntensImg;   
+    for(int i=0; i<GABOR_SCALES; ++i){
+        delete imageForAScale[i];
+        delete imageAtScale[i];
+        delete gaussUpScaled[i];        
+    }
     
     printf("Done with releasing chrominance thread.\n");
+    delete tempCSScaleOne;
+    delete imageInCartMono;  
+    
+    
     
 }
 
