@@ -184,10 +184,10 @@ std::string chrominanceThread::getName(const char* p) {
 }
 
 void chrominanceThread::run() {
-    //if(totalOrientCartImgPort.getOutputCount()< 1 && totalOrientImagePort.getOutputCount()<1){
+    if(totalOrientCartImgPort.getOutputCount()< 1 && totalOrientImagePort.getOutputCount()<1){
         // we are not interested in orientations, so do nothing
-    //}
-    //else{
+    }
+    else{
         if(!resized){
             this->resize(ROW_SIZE,COL_SIZE);
         }
@@ -198,7 +198,7 @@ void chrominanceThread::run() {
             setFlagForThreadProcessing(false);
             setFlagForDataReady(false);
         }
-    //}    
+    }    
 }
 
 void chrominanceThread::resize(int width_orig,int height_orig) {  
@@ -301,6 +301,10 @@ void chrominanceThread::orientation() {
                 ImageOf<PixelMono>& totalImage = totalOrientCartImgPort.prepare();
                 totalImage.resize(CART_ROW_SIZE,CART_COL_SIZE);
                 totalImage.zero();
+                
+                ImageOf<PixelMono>& totalImageLP = totalOrientImagePort.prepare();
+                totalImageLP.resize(ROW_SIZE,COL_SIZE);
+                totalImageLP.zero();
                         
                 //By now we have all scales of Y-image in pyramid for  0,45,90 and -45, scales are 4
                 for(int eachOrient=0; eachOrient<GABOR_ORIS; ++eachOrient){                    
@@ -436,21 +440,20 @@ void chrominanceThread::orientation() {
                          
                        
                                 
-                }
-                //cvWaitKey(0);
+                }// end of orientations
+                lpMono.cartToLogpolar(totalImageLP,totalImage);
+                
                 delete temp2;
                 delete imageInCart;
                 delete imageInCartMonoLogP;
                 
-    }
+    
     
     totalOrientCartImgPort.write();
-    //totalOrientImagePort.write();
+    totalOrientImagePort.write();
+     
     
-    /*if(totalOrientCartImgPort.getOutputCount()){
-        totalOrientCartImgPort.prepare() = *oriAll;
-        totalOrientCartImgPort.write();
-    }*/    
+    }   
   
 }
 
@@ -473,6 +476,8 @@ void chrominanceThread::threadRelease() {
     
     totalOrientCartImgPort.interrupt();
     totalOrientCartImgPort.close();
+    totalOrientImagePort.interrupt();
+    totalOrientImagePort.close();
 
     //deallocating resources
     delete chromUnXtnIntensImg;
