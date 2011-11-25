@@ -84,6 +84,7 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     for(int i=0 ; i<GABOR_ORIS; ++i){
         gaborKernels[i] = cvCreateMat( 5,5, CV_64FC1 );
         *gaborKernels[i] = cvMat( 5, 5, CV_64FC1, gabsDouble[i] );
+        wtForEachOrientation[i] = 1.0/(float)GABOR_ORIS;
     }
             
     anchor = cv::Point(2,2);
@@ -283,6 +284,10 @@ void chrominanceThread::orientation() {
                 imageInCartMono->resize(CART_ROW_SIZE,CART_COL_SIZE);
                 imageInCartMonoLogP->resize(ROW_SIZE,COL_SIZE);
                 imageInCart->zero();
+                
+                ImageOf<PixelMono>& totalImage = totalOrientCartImgPort.prepare();
+                totalImage.resize(CART_ROW_SIZE,CART_COL_SIZE);
+                totalImage.zero();
                         
                 //By now we have all scales of Y-image in pyramid for  0,45,90 and -45, scales are 4
                 for(int eachOrient=0; eachOrient<GABOR_ORIS; ++eachOrient){                    
@@ -395,6 +400,26 @@ void chrominanceThread::orientation() {
                         orientPortM45.prepare() = *imageInCartMono;
                         orientPortM45.write();
                         }
+                    
+                    uchar* oriImgPtr = (uchar*)imageInCartMono->getRawImage();
+                    uchar* oriImgHdr = (uchar*)imageInCartMono->getRawImage();
+                    int oriImgRowSize = imageInCartMono->getRowSize()/sizeof(uchar);
+                    uchar* totImgPtr = (uchar*)totalImage.getRawImage();
+                    uchar* totImgHdr = (uchar*)totalImage.getRawImage();
+                    int totImgRowSize = totalImage.getRowSize()/sizeof(uchar);
+                    
+                    
+                    for(int i=0; i<imageInCartMono->height(); ++i){
+                        totImgPtr = totImgHdr+totImgRowSize*i;
+                        oriImgPtr = oriImgHdr + oriImgRowSize*i;
+                        for(int j=0; j<imageInCartMono->width(); ++j){
+                            //weightGaborAtScale[GABOR_SCALES-2] = 1000.0;
+                            //weightIntensityAtScale[GABOR_SCALES-1]  =500.0;
+                            *totImgPtr += (*oriImgPtr)*wtForEachOrientation[eachOrient];
+                            totImgPtr++;
+                            oriImgPtr++;                                                  
+                        }
+                    } 
                          
                        
                                 
@@ -406,12 +431,13 @@ void chrominanceThread::orientation() {
                 
     }
     
-    /*totalOrientImagePort.write();
+    totalOrientCartImgPort.write();
+    //totalOrientImagePort.write();
     
-    if(totalOrientCartImgPort.getOutputCount()){
+    /*if(totalOrientCartImgPort.getOutputCount()){
         totalOrientCartImgPort.prepare() = *oriAll;
         totalOrientCartImgPort.write();
-    } */   
+    }*/    
   
 }
 
