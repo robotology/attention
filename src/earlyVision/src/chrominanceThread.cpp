@@ -93,9 +93,22 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
         imageForAScale[i] = new ImageOf<PixelFloat>;
         imageAtScale[i] = new ImageOf<PixelFloat>;
         gaussUpScaled[i] = new ImageOf<PixelFloat>;
-        weightGaborAtScale[i] = 750;
-        weightIntensityAtScale[i] = 510;
+        //weightGaborAtScale[i] = 750;
+        //weightIntensityAtScale[i] = 510;
     }
+    
+    //default values set here
+    weightGaborAtScale[0] = 1000;
+    weightGaborAtScale[1] = 780;
+    weightGaborAtScale[2] = 610;
+    weightGaborAtScale[3] = 500; //Not used
+    
+    weightIntensityAtScale[0] = 500; //not used
+    weightIntensityAtScale[1] = 582;
+    weightIntensityAtScale[2] = 550;
+    weightIntensityAtScale[3] = 520;
+    
+    
     tempCSScaleOne = new ImageOf<PixelFloat>;
     imageInCartMono = new ImageOf<PixelMono>;
                 
@@ -144,7 +157,7 @@ bool chrominanceThread::threadInit() {
         return false;
     }
     cout << "|-| lookup table allocation for mono done" << endl;
-    
+#ifdef GABOR_CONFIG_WINDOW 
     cvNamedWindow("Adjusting weights");
     cvResizeWindow("Adjusting weights",600,400);
     
@@ -155,7 +168,7 @@ bool chrominanceThread::threadInit() {
         cvCreateTrackbar(nameWtInten,"Adjusting weights", &weightIntensityAtScale[i], 1000, NULL); // no callback
         cvCreateTrackbar(nameWtGabor,"Adjusting weights", &weightGaborAtScale[i], 1000, NULL); // no callback
     }
-   
+#endif
     return true;
 }
 

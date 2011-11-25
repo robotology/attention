@@ -52,6 +52,7 @@
 #define GABOR_FLICKER 0
 #define GABOR_SCALE_FACTOR 1.0
 #define GABOR_SHIFT 0
+#define NO_GABOR_CONFIG_WINDOW // use GABOR_CONFIG_WINDOW for setting weights interactively
 
 // Definitions for Sobel filter, for edge detection
 #define SobelOutputImage yarp::sig::ImageOf<yarp::sig::PixelFloat>
