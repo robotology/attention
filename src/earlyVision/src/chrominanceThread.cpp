@@ -99,14 +99,14 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     
     //default values set here
     weightGaborAtScale[0] = 1000;
-    weightGaborAtScale[1] = 780;
-    weightGaborAtScale[2] = 610;
+    weightGaborAtScale[1] = 775;
+    weightGaborAtScale[2] = 515;
     weightGaborAtScale[3] = 500; //Not used
     
     weightIntensityAtScale[0] = 500; //not used
-    weightIntensityAtScale[1] = 582;
-    weightIntensityAtScale[2] = 550;
-    weightIntensityAtScale[3] = 520;
+    weightIntensityAtScale[1] = 670;
+    weightIntensityAtScale[2] = 670;
+    weightIntensityAtScale[3] = 670;
     
     
     tempCSScaleOne = new ImageOf<PixelFloat>;
