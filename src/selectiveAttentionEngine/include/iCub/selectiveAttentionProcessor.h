@@ -322,6 +322,12 @@ public:
      * @param value It is true when earlyStage is active
      */
     void setEarlyStage(bool value) {earlystage = value;secondstage = value; };
+
+    /*
+     * function that declares whether to secondStage is active
+     * @param value it is true when secondStage is active
+     */
+    void setSecondStage(bool value) {secondstage = value;secondstage = value; };
     
     /**
      * function that returns the value of the saccadicInterval

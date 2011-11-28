@@ -248,7 +248,9 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
                            Value(0.0), 
                            "coefficient map cartesian1 (double)").asDouble();
 
-    //checking if the earlyResponse stages are activated
+    /*
+     *checking if the earlyResponse stages are activated
+     */
     if (rf.check("earlyStage")) {
         currentProcessor->setEarlyStage(true);
         printf("earlyStage active .... \n");
@@ -256,6 +258,19 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     else {
         currentProcessor->setEarlyStage(false);
         printf("earlyStage not active \n");
+        //the default value for arbiter->visualCorrection is false
+    }
+
+    /*
+     * checking if the second stages is active
+     */
+    if (rf.check("secondStage")) {
+        currentProcessor->setSecondStage(true);
+        printf("secondStage active .... \n");
+    }
+    else {
+        currentProcessor->setSecondStage(false);
+        printf("secondStage not active \n");
         //the default value for arbiter->visualCorrection is false
     }
     
