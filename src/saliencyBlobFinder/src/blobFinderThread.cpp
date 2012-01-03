@@ -115,37 +115,37 @@ blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string 
     resized_flag = false;
     configFile = _configFile;
 
-    outContrastLP=new ImageOf<PixelMono>;
-    outMeanColourLP=new ImageOf<PixelBgr>;
+    outContrastLP   = new ImageOf<PixelMono>;
+    outMeanColourLP = new ImageOf<PixelBgr>;
 
-    _procImage = new ImageOf<PixelRgb>;
+    _procImage    = new ImageOf<PixelRgb>;
     _outputImage3 = new ImageOf<PixelRgb>;
 
-    ptr_inputImg = new ImageOf<yarp::sig::PixelRgb>; 
-    ptr_inputImgRed = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_inputImgGreen = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_inputImgBlue = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_inputImg       = new ImageOf<yarp::sig::PixelRgb>; 
+    ptr_inputImgRed    = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_inputImgGreen  = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_inputImgBlue   = new ImageOf<yarp::sig::PixelMono>; 
     ptr_inputImgYellow = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_inputImgRG = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_inputImgGR = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_inputImgBY = new ImageOf<yarp::sig::PixelMono>;
+    ptr_inputImgRG     = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_inputImgGR     = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_inputImgBY     = new ImageOf<yarp::sig::PixelMono>;
 
-    ptr_tmpRplus = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpRminus = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpGplus = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpGminus = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpBplus = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpYminus = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpRpluss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpRplus   = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpRminus  = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpGplus   = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpGminus  = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpBplus   = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpYminus  = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpRpluss  = new ImageOf<yarp::sig::PixelMono>; 
     ptr_tmpRminuss = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpGpluss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpGpluss  = new ImageOf<yarp::sig::PixelMono>; 
     ptr_tmpGminuss = new ImageOf<yarp::sig::PixelMono>; 
-    ptr_tmpBpluss = new ImageOf<yarp::sig::PixelMono>; 
+    ptr_tmpBpluss  = new ImageOf<yarp::sig::PixelMono>; 
     ptr_tmpYminuss = new ImageOf<yarp::sig::PixelMono>; 
  
-    edges = new ImageOf<yarp::sig::PixelMono>; 
-    img = new ImageOf<PixelRgb>;
-    tmpImage = new ImageOf<PixelMono>;
+    edges     = new ImageOf<yarp::sig::PixelMono>; 
+    img       = new ImageOf<PixelRgb>;
+    tmpImage  = new ImageOf<PixelMono>;
     image_out = new ImageOf<PixelMono>;
     
     _inputImgRGS = new ImageOf<PixelMono>;
@@ -255,7 +255,6 @@ void blobFinderThread::resizeImages(int width, int height) {
 
     blobList = new char [width*height+1];
     
-
     ptr_inputImg->resize(width, height);
     ptr_inputImgRed->resize(width, height);
     ptr_inputImgGreen->resize(width, height);
@@ -305,6 +304,19 @@ bool blobFinderThread::threadInit() {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+    if (!rgPort.open(getName("/rg:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!grPort.open(getName("/gr:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!byPort.open(getName("/by:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    
     
     //initializing gazecontrollerclient
     Property option;
@@ -685,6 +697,9 @@ bool blobFinderThread::getOpponencies() {
 
 #ifdef OPPONENCYBYCONVOLUTION
     // We have got planes by now, so we need to convolve them and then get R+G- and others
+    printf("Convolving for opponency maps \n");
+    printf("Convolving for opponency maps \n");
+    printf("Convolving for opponency maps \n");
     //Positive
     convolve1D(5,G5,ptr_inputImgRed,ptr_tmpRpluss,.5,0);
     convolve1D(5,G5,ptr_tmpRpluss,ptr_tmpRplus,.5,1);
