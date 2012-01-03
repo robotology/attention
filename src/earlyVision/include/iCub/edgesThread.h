@@ -168,10 +168,8 @@ public:
          dataReadyForEdgesThread = v;         
     }
 
-    inline bool getFlagForThreadProcessing(){
-        
-         return this->edgesThreadIsProcessing;
-         
+    inline bool getFlagForThreadProcessing(){        
+         return this->edgesThreadIsProcessing;         
     }
 
     inline void setFlagForThreadProcessing(bool v){

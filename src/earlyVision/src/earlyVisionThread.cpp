@@ -531,11 +531,11 @@ void earlyVisionThread::colorOpponency(){
     uchar* pGR = coGR.getRawImage();
     uchar* pBY = coBY.getRawImage();
 
-    uchar* rPlus = Rplus->getRawImage();
+    uchar* rPlus  = Rplus->getRawImage();
     uchar* rMinus = Rminus->getRawImage();
-    uchar* gPlus = Gplus->getRawImage();
+    uchar* gPlus  = Gplus->getRawImage();
     uchar* gMinus = Gminus->getRawImage();
-    uchar* bPlus = Bplus->getRawImage();
+    uchar* bPlus  = Bplus->getRawImage();
     uchar* yMinus = Yminus->getRawImage();
 
     int padChannel = Rplus->getPadding();

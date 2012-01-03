@@ -110,7 +110,7 @@ void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
     
     if(!getFlagForThreadProcessing() && I->getRawImage() != NULL ){         
         //printf("going to copy relevant planes in edges thread\n");
-       setFlagForDataReady(false);
+        setFlagForDataReady(false);
         // allocate
         if(!resized){
             resize(I->width(), I->height());        // I is the extended intensity image
