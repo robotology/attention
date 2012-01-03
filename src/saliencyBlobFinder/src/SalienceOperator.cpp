@@ -511,17 +511,17 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             double RGdistance = m_boxes[i].meanRG - prg;
             double GRdistance = m_boxes[i].meanGR - pgr;
             double BYdistance = m_boxes[i].meanBY - pby;
-            printf("drg %f dgr %f dby %f   ", RGdistance, GRdistance, BYdistance);
+            //printf("drg %f dgr %f dby %f   ", RGdistance, GRdistance, BYdistance);
             salienceTD= (int) floor(sqrt((double)RGdistance*RGdistance+
                             GRdistance*GRdistance+
                             BYdistance*BYdistance));
             
 
             //salienceTD= (int) floor(255 - salienceTD/sqrt(3.0));
-            printf("SalienceTD %d", salienceTD );
-            double diff = 255.0 - salienceTD/sqrt(3.0);
+            //printf("SalienceTD %d", salienceTD );
+            double diff = 255 - salienceTD/sqrt(3.0);
             salienceTD= (int) floor(diff);
-            printf("     %f  \n", diff);
+            //printf("     %f  \n", diff);
             
             m_boxes[i].salienceBU=salienceBU;
             m_boxes[i].salienceTD=salienceTD;
@@ -563,7 +563,7 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             //calculates the salience total
             double saliencyTD_norm=a2*m_boxes[i].salienceTD+b2;
             double saliencyBU_norm=a1*m_boxes[i].salienceBU+b1;
-            //m_boxes[i].salienceTotal=pBU*saliencyBU_norm+pTD*saliencyTD_norm;
+            //m_boxes[i].salienceTotal=pBU * saliencyBU_norm + pTD * saliencyTD_norm;
             m_boxes[i].salienceTotal = saliencyTD_norm;
             //correction between salience interval
             if (m_boxes[i].salienceTotal<minSalienceTot)
@@ -646,7 +646,8 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                             z = 0.8;
                         }                       
                         
-
+                        z = 1;
+                        
                         // z is a value in the interval [0, 1]
                         //set the image outContrastLP with the value salienceTotal
                         dst(c ,r)=(PixelMono)floor((double) m_boxes[i].salienceTotal * z );
