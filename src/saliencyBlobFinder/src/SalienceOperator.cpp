@@ -47,17 +47,17 @@ SalienceOperator::SalienceOperator(const int width1, const int height1)//:_gaze(
     integralGR = new YARPIntegralImage(width1,height1,128);
     integralBY = new YARPIntegralImage(width1,height1,128);
 
-    foveaBlob = new ImageOf<PixelMono>;
-    foveaBlob->resize(width1,height1);
-    colorVQ_img = new ImageOf<PixelBgr>;
-    colorVQ_img->resize(width1,height1);
+    foveaBlob           = new ImageOf<PixelMono>;    
+    colorVQ_img         = new ImageOf<PixelBgr>;
     maxSalienceBlob_img = new ImageOf<PixelMono>;
+
+    foveaBlob->resize(width1,height1);
+    colorVQ_img->resize(width1,height1);    
     maxSalienceBlob_img->resize(width1,height1);
 
     colorVQ = new ColorVQ(width1,height1,10);
-    // malloc??
     _angShiftMap = (double *) malloc (height1 * sizeof(double));
-    for(int i=0;i<height1;i++){
+    for(int i=0;i<height1;i++) {
         _angShiftMap[i]=0.0;
     }
 
@@ -89,7 +89,6 @@ SalienceOperator::~SalienceOperator() {
     delete integralGR;
     delete integralBY;
 
-    // free??
     free(_angShiftMap);
 }
 
@@ -632,18 +631,17 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                         }
 
                         // restrincting the z gain between two thresholds
-                        if (z > 1) {
-                            z = 1;
+                        if (z > 0.95) {
+                            z = 0.95;
                         }
-                        if (z < 0.3) {
-                            z = 0.3;
-                        }
+                        if (z < 0.8) {
+                            z = 0.8;
+                        }                       
                         
 
-                        
                         // z is a value in the interval [0, 1]
                         //set the image outContrastLP with the value salienceTotal
-                        dst(c ,r)=(PixelMono)floor((double) m_boxes[i].salienceTotal * z);
+                        dst(c ,r)=(PixelMono)floor((double) m_boxes[i].salienceTotal * z );
                     }
                 }
             }
