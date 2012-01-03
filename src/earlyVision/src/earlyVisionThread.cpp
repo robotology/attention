@@ -634,11 +634,7 @@ void earlyVisionThread::centerSurrounding(){
                 }
                 chromeThread->setFlagForDataReady(false);
                 chromeThread->copyScalesOfImages(unXtnIntensImg,toSendGauss);
-                //while(!chromeThread->getFlagForDataReady()) {};
-                
-                
-                
-                
+                //while(!chromeThread->getFlagForDataReady()) {};                                
                 
                 cvSet(cs_tot_32f,cvScalar(0));                
                 if (isYUV){               
@@ -673,13 +669,27 @@ void earlyVisionThread::centerSurrounding(){
                     int red, green, blue;
                     int htYUV = YofYUVpy->height();
                     int wdYUV = YofYUVpy->width();
+                    int red_min = 255, green_min = 255, blue_min = 255;
+                    int red_max = 0, green_max = 0, blue_max = 0;
                     for(int i=0 ; i< htYUV; ++i){
                         for(int j=0; j< wdYUV; ++j){
                             // should use bit-wise ops?
-                            red = *ptrYplane + 1.403* *ptrVplane;
-                            green = *ptrYplane - 0.344* *ptrUplane - 0.714* *ptrVplane;
-                            blue = *ptrYplane + 1.770* *ptrUplane;
-                            
+                            //red   = *ptrYplane + (uchar) 1.403* *ptrVplane;
+                            //green = *ptrYplane - (uchar) 0.344* *ptrUplane - (uchar) 0.714* *ptrVplane;
+                            //blue  = *ptrYplane + (uchar) 1.770* *ptrUplane;
+                            //-------------------
+                            red   = *ptrYplane + (1.370705 * ((double)*ptrVplane - 128.0));
+                            green = *ptrYplane - (0.698001 * ((double)*ptrVplane - 128.0)) - ( 0.337633 * ((double)*ptrUplane - 128.0));
+                            blue  = *ptrYplane + (1.732446 * ((double)*ptrUplane - 128.0));
+                            red   = ((red    * 255) / 230) - 40;
+                            green = ((green  * 255) / 230) - 30;
+                            blue  = ((blue   * 255) / 230) - 30;
+                            if(red < red_min) red_min = red;
+                            if(green < green_min) green_min = green;
+                            if(blue < blue_min) blue_min = blue;
+                            if(red > red_max) red_max = red;
+                            if(green > green_max) green_max = green;
+                            if(blue > blue_max) blue_max = blue;
                             *ptrRplane++ = max(0,min(255,red));
                             *ptrGplane++ = max(0,min(255,green));
                             *ptrBplane++ = max(0,min(255,blue));
@@ -694,8 +704,10 @@ void earlyVisionThread::centerSurrounding(){
                         ptrUplane += padImage;
                         ptrVplane += padImage;
                         
-                   }          
+                    }          
                     
+                    //printf("REDMIN %d GREENMIN %d BLUEMIN %d   ", red_min, green_min, blue_min);
+                    //printf("REDMAX %d GREENMAX %d BLUEMAX %d \n", red_max, green_max, blue_max);
                     
                     iCub::logpolar::replicateBorderLogpolar(*Rplus, *RplusUnex, maxKernelSize);  
                     iCub::logpolar::replicateBorderLogpolar(*Gplus, *GplusUnex, maxKernelSize);
