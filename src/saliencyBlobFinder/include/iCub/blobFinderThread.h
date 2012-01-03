@@ -302,20 +302,50 @@ public:
     inline bool setWeightBU(double w) { weightBU = w; return true; }
 
     /**
-     * set weight of bottom-up contribution
+     * set color value of the top-down target
      */
     inline bool setTargetRed(double t)   { targetRed = t; return true; }
     
     /**
-     * set weight of bottom-up contribution
+     * set color value of the top-down target
      */
     inline bool setTargetGreen(double t) { targetGreen = t; return true; }
     
     /**
-     * set weight of bottom-up contribution
+     * set color value of the top-down target
      */
     inline bool setTargetBlue(double t)  { targetBlue = t; return true; }
 
+    /**
+     * get color value of the top-down contribution
+     */
+    inline int getTargetRG()   { return targetRG; }
+
+    /**
+     * get color value of the top-down contribution
+     */
+    inline int getTargetGR()   { return targetGR; }
+    
+    /**
+     * get color value of the top-down contribution
+     */
+    inline int getTargetBY()   { return targetBY; }
+    
+    /**
+     * get color value of the top-down contribution
+     */
+    inline int getTargetRed()   { return targetRed; }
+
+    /**
+     * get color value of the top-down contribution
+     */
+    inline int getTargetGreen()   { return targetGreen; }
+    
+    /**
+     * get color value of the top-down contribution
+     */
+    inline int getTargetBlue()   { return targetBlue; }
+ 
 
 };
 

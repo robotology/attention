@@ -874,13 +874,15 @@ void blobFinderThread::drawAllBlobs(bool stable)
     //targetRG = 0;
     //targetGR = 0;
     targetBY = 0;
-    targetRG = (targetRed>>1 - targetGreen>>1) + 127;
-    targetGR = 255 - targetRed;
+    targetRG = (targetRed/2 - targetGreen/2) + 127;
+    targetGR = (targetGreen/2 - targetRed/2) + 127;
     PixelMono targetYellow = (targetGreen + targetRed)>>1;
     //printf("targetBlue %d targetYellow %d \n", targetBlue, targetYellow);
-    targetBY = (targetBlue>>1 - targetYellow>>1) + 127;
+    targetBY = (targetBlue/2 - targetYellow/2) + 127;
     //printf("targetBY %d \n",targetBY );
     // draws the saliency of all blobs into the tagged image and returns a mono image.
+    weightBU = 0.0;
+    weightTD = 1.0;
     nBlobs=salience->DrawContrastLP2(*ptr_inputImgRG, *ptr_inputImgGR, *ptr_inputImgBY,
         *outContrastLP, *ptr_tagged, max_tag,
         weightBU, weightTD,

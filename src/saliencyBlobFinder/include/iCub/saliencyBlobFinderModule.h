@@ -188,7 +188,7 @@
 #define COMMAND_VOCAB_WBU    VOCAB3('w','b','u')
 
 /*
- * LATER: proper Doxygen documentation.
+ * @brief: module interfacing with the user
  */
 class saliencyBlobFinderModule : public yarp::os::RFModule{
 private:

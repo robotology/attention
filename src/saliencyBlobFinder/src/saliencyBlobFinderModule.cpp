@@ -61,6 +61,7 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
     minBoundingArea = rf.check("minBoundingArea", 
                                Value(225),
                                "minBoundingArea (int)").asInt();
+    cout << "Module started with min bounding area " << minBoundingArea << endl;
 
     if (!cmdPort.open(getName())) {
         cout << getName() << ": Unable to open port " << endl;
@@ -187,24 +188,45 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
             case COMMAND_VOCAB_TRED:
                 {
                     int t = command.get(2).asInt();
-                    if(0 != blobFinder)
-                        blobFinder->setTargetRed(t);
+                    if(0 != blobFinder) {
+                        blobFinder->setTargetRed(t);                    
+                        reply.addString("trg:");
+                        reply.addInt(blobFinder->getTargetRG());
+                        reply.addString("tgr:");
+                        reply.addInt(blobFinder->getTargetGR());
+                        reply.addString("tby:");
+                        reply.addInt(blobFinder->getTargetBY());
+                    }
                     ok=true;
                 }
                 break;
             case COMMAND_VOCAB_TGRE:
                 {
                     int t = command.get(2).asInt();
-                    if(0 != blobFinder)
+                    if(0 != blobFinder) {
                         blobFinder->setTargetGreen(t);
+                        reply.addString("trg:");
+                        reply.addInt(blobFinder->getTargetRG());
+                        reply.addString("tgr:");
+                        reply.addInt(blobFinder->getTargetGR());
+                        reply.addString("tby:");
+                        reply.addInt(blobFinder->getTargetBY());
+                    }
                     ok=true;
                 }
                 break;
             case COMMAND_VOCAB_TBLU:
                 {
                     int t = command.get(2).asInt();
-                    if(0 != blobFinder)
+                    if(0 != blobFinder) {
                         blobFinder->setTargetBlue(t);
+                        reply.addString("trg:");
+                        reply.addInt(blobFinder->getTargetRG());
+                        reply.addString("tgr:");
+                        reply.addInt(blobFinder->getTargetGR());
+                        reply.addString("tby:");
+                        reply.addInt(blobFinder->getTargetBY());
+                    }
                     ok=true;
                 }
                 break;

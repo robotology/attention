@@ -507,15 +507,22 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             // as the euclidian distance between the colour of the blob and the colour of the target
             //prg mono plane of RG,pgr mono plane of GR, pby mono plane of BY
             //TD is the square root of the sum of square errors between planes and means
-            double RGdistance=m_boxes[i].meanRG-prg;
-            double GRdistance=m_boxes[i].meanGR-pgr;
-            double BYdistance=m_boxes[i].meanBY-pby;
-           
+            
+            double RGdistance = m_boxes[i].meanRG - prg;
+            double GRdistance = m_boxes[i].meanGR - pgr;
+            double BYdistance = m_boxes[i].meanBY - pby;
+            printf("drg %f dgr %f dby %f   ", RGdistance, GRdistance, BYdistance);
             salienceTD= (int) floor(sqrt((double)RGdistance*RGdistance+
                             GRdistance*GRdistance+
                             BYdistance*BYdistance));
+            
 
-            salienceTD= (int) floor(255-salienceTD/sqrt(3.0));
+            //salienceTD= (int) floor(255 - salienceTD/sqrt(3.0));
+            printf("SalienceTD %d", salienceTD );
+            double diff = 255.0 - salienceTD/sqrt(3.0);
+            salienceTD= (int) floor(diff);
+            printf("     %f  \n", diff);
+            
             m_boxes[i].salienceBU=salienceBU;
             m_boxes[i].salienceTD=salienceTD;
 
@@ -556,7 +563,8 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             //calculates the salience total
             double saliencyTD_norm=a2*m_boxes[i].salienceTD+b2;
             double saliencyBU_norm=a1*m_boxes[i].salienceBU+b1;
-            m_boxes[i].salienceTotal=pBU*saliencyBU_norm+pTD*saliencyTD_norm;
+            //m_boxes[i].salienceTotal=pBU*saliencyBU_norm+pTD*saliencyTD_norm;
+            m_boxes[i].salienceTotal = saliencyTD_norm;
             //correction between salience interval
             if (m_boxes[i].salienceTotal<minSalienceTot)
                 minSalienceTot= (int) floor(m_boxes[i].salienceTotal);

@@ -31,14 +31,10 @@
 #include <string.h>
 using namespace std;
 
-#include <ippi.h>
-#include <ippcore.h>
 
 YARP_DECLARE_DEVICES(icubmod)
 
 int main(int argc, char *argv[]) {
-    /* important, makes IPP single threaded! */
-    ippSetNumThreads(1);
 
     YARP_REGISTER_DEVICES(icubmod)
 
