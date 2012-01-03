@@ -28,9 +28,9 @@
 using namespace std;
 
 saliencyBlobFinderModule::saliencyBlobFinderModule() {
-    //
+    // default values
     blobFinder = 0;
-    threadRate = 100;
+    threadRate = 33;
     minBoundingArea = 225;
     reply=new Bottle();
 }
@@ -50,13 +50,17 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
     /*
     * get the thread rate which will define the period of the processing thread
     */
-    threadRate = rf.check("ratethread", Value(33), "processing ratethread (int)").asInt();
+    threadRate = rf.check("ratethread",
+                          Value(33),
+                          "processing ratethread (int)").asInt();
     cout << "Module started with the parameter ratethread: " << threadRate << endl;
 
     /*
     * gets the minBounding area for blob neighbours definition
     */
-    minBoundingArea = rf.check("minBoundingArea", Value(225), "minBoundingArea (int)").asInt();
+    minBoundingArea = rf.check("minBoundingArea", 
+                               Value(225),
+                               "minBoundingArea (int)").asInt();
 
     if (!cmdPort.open(getName())) {
         cout << getName() << ": Unable to open port " << endl;
@@ -161,6 +165,46 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                     int w = command.get(2).asInt();
                     if(0 != blobFinder)
                         blobFinder->setMinBlobSize(w);
+                    ok=true;
+                }
+                break;
+            case COMMAND_VOCAB_WTD:
+                {
+                    int w = command.get(2).asDouble();
+                    if(0 != blobFinder)
+                        blobFinder->setWeightTD(w);
+                    ok=true;
+                }
+                break;
+            case COMMAND_VOCAB_WBU:
+                {
+                    int w = command.get(2).asDouble();
+                    if(0 != blobFinder)
+                        blobFinder->setWeightBU(w);
+                    ok=true;
+                }
+                break;
+            case COMMAND_VOCAB_TRED:
+                {
+                    int t = command.get(2).asInt();
+                    if(0 != blobFinder)
+                        blobFinder->setTargetRed(t);
+                    ok=true;
+                }
+                break;
+            case COMMAND_VOCAB_TGRE:
+                {
+                    int t = command.get(2).asInt();
+                    if(0 != blobFinder)
+                        blobFinder->setTargetGreen(t);
+                    ok=true;
+                }
+                break;
+            case COMMAND_VOCAB_TBLU:
+                {
+                    int t = command.get(2).asInt();
+                    if(0 != blobFinder)
+                        blobFinder->setTargetBlue(t);
                     ok=true;
                 }
                 break;

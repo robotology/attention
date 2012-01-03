@@ -152,14 +152,15 @@
  */
 
 /**
-* 21/12/10 : added the formulas and kinematic constraints necessary to work out the 3D point where the protoobject is seen  @author Rea
-* 05/01/11 : kinamatic calculus for 3d position of the blob in the virtual word                                             @author Rea
-* 12/01/11 : added lifeTimer property for correct forgetness of the object                                                  @author Rea
-* 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 @author Rea
-* 05/02/11 : filtered blob with a nbivariate normal                                                                         @author Rea
-* 21/03/11 : added list of the attended locations in the 3D space                                                           @author Rea
-* 22/03/11 : added the correct procedure to represent the blob in the GUI                                                   @author Rea
-* 23/03/11 : procedure to correctly populate the list of attended locations                                                 @author Rea       
+* 21/12/10 : added the formulas and kinematic constraints necessary to work out the 3D point where the protoobject is seen  author:Rea /n
+* 05/01/11 : kinamatic calculus for 3d position of the blob in the virtual word                                             author:Rea /n
+* 12/01/11 : added lifeTimer property for correct forgetness of the object                                                  author:Rea /n
+* 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 author:Rea /n
+* 05/02/11 : filtered blob with a nbivariate normal                                                                         author:Rea /n
+* 21/03/11 : added list of the attended locations in the 3D space                                                           author:Rea /n
+* 22/03/11 : added the correct procedure to represent the blob in the GUI                                                   author:Rea /n
+* 23/03/11 : procedure to correctly populate the list of attended locations                                                 author:Rea /n     
+* 03/01/12 : adding top-down parameter search                                                                               
 */
 
 #include <iostream>
@@ -171,15 +172,20 @@
 #include <iCub/blobFinderThread.h>
 
 // general command vocab's
-#define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_SET VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET VOCAB3('g','e','t')
-#define COMMAND_VOCAB_IS VOCAB2('i','s')
+#define COMMAND_VOCAB_IS     VOCAB2('i','s')
+#define COMMAND_VOCAB_OK     VOCAB2('o','k')
+#define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
 #define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_OK VOCAB2('o','k')
-#define COMMAND_VOCAB_MAXDB VOCAB3('M','d','b')         // maximum dimension of the blob drawn
-#define COMMAND_VOCAB_MINDB VOCAB3('m','d','b')         // minimum dimension of the blob drawn
-#define COMMAND_VOCAB_MBA VOCAB3('m','B','A')           // minimum dimension of the bounding area
+#define COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
+#define COMMAND_VOCAB_TGRE   VOCAB4('t','g','r','e')
+#define COMMAND_VOCAB_TBLU   VOCAB4('t','b','l','u')
+#define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
+#define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
+#define COMMAND_VOCAB_MBA    VOCAB3('m','B','A')           // minimum dimension of the bounding area
+#define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
+#define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
+#define COMMAND_VOCAB_WTD    VOCAB3('w','t','d')
+#define COMMAND_VOCAB_WBU    VOCAB3('w','b','u')
 
 /*
  * LATER: proper Doxygen documentation.

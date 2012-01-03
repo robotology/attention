@@ -290,6 +290,33 @@ public:
      * get minimum size of blobs
      */
     inline int getMinBlobSize() const { return minBLOB; }
+
+    /**
+     * set weight of top-down contribution
+     */
+    inline bool setWeightTD(double w) { weightTD = w; return true; }
+    
+    /**
+     * set weight of bottom-up contribution
+     */
+    inline bool setWeightBU(double w) { weightBU = w; return true; }
+
+    /**
+     * set weight of bottom-up contribution
+     */
+    inline bool setTargetRed(double t)   { targetRed = t; return true; }
+    
+    /**
+     * set weight of bottom-up contribution
+     */
+    inline bool setTargetGreen(double t) { targetGreen = t; return true; }
+    
+    /**
+     * set weight of bottom-up contribution
+     */
+    inline bool setTargetBlue(double t)  { targetBlue = t; return true; }
+
+
 };
 
 #endif //__BLOBFINDERTHREAD_H_
