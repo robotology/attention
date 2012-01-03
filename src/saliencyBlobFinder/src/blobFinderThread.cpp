@@ -115,6 +115,13 @@ blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string 
     resized_flag = false;
     configFile = _configFile;
 
+    targetRed   = 255;
+    targetGreen = 0;
+    targetBlue  = 0;
+
+    weightBU = 1.0;
+    weightTD = 0.0;
+
     outContrastLP   = new ImageOf<PixelMono>;
     outMeanColourLP = new ImageOf<PixelBgr>;
 
@@ -864,15 +871,20 @@ void blobFinderThread::drawAllBlobs(bool stable)
     // salience->RemoveNonValidNoRange(max_tag, BLOB_MAXSIZE, BLOB_MINSIZE);
     salience->RemoveNonValidNoRange(max_tag, maxBLOB, minBLOB);
 
-    PixelMono pixelRG = 0;
-    PixelMono pixelGR = 0;
-    PixelMono pixelBY = 0;
-
+    //targetRG = 0;
+    //targetGR = 0;
+    targetBY = 0;
+    targetRG = (targetRed>>1 - targetGreen>>1) + 127;
+    targetGR = 255 - targetRed;
+    PixelMono targetYellow = (targetGreen + targetRed)>>1;
+    //printf("targetBlue %d targetYellow %d \n", targetBlue, targetYellow);
+    targetBY = (targetBlue>>1 - targetYellow>>1) + 127;
+    //printf("targetBY %d \n",targetBY );
     // draws the saliency of all blobs into the tagged image and returns a mono image.
     nBlobs=salience->DrawContrastLP2(*ptr_inputImgRG, *ptr_inputImgGR, *ptr_inputImgBY,
         *outContrastLP, *ptr_tagged, max_tag,
-        1.0, 0.0,
-        pixelRG, pixelGR, pixelBY, 255); 
+        weightBU, weightTD,
+        targetRG, targetGR, targetBY, 255); 
 }
 
 void blobFinderThread::convolve1D(int vecSize, float* vec, ImageOf<PixelMono>* img, ImageOf<PixelMono>* resImg, float factor,int shift,int direction, int maxVal){

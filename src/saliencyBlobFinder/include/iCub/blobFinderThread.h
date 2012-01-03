@@ -104,9 +104,9 @@ private:
     YARPBox* max_boxes;                                     // pointer to the most salient blob
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *image_out;                          // image which is plotted in the drawing area
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *image_out2;                          // image which is plotted in the drawing area
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *image_out2;                          // image which is plotted in the drawing area
 
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *ptr_inputImg;                        // pointer to the input image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *ptr_inputImg;                        // pointer to the input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRed;                    // pointer to the red plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGreen;                  // pointer to the green plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBlue;                   // pointer to the input blue plane image
@@ -121,13 +121,23 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRG;                     // pointer to the input image R+G-
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGR;                     // pointer to the input image G+R-
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBY;                     // pointer to the input image B+Y-
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* _procImage;                          // pointer to the output image of the watershed algorithm
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *_procImage;                          // pointer to the output image of the watershed algorithm
 
     int maxBLOB;                                            // maxBLOB dimension
     int minBLOB;                                            // minBLOB dimension
     int max_tag;                                            // number of blobs
     int minBoundingArea;                                    // dimension of the bounding area in saliency BU algorithm
     int saddleThreshold;                                    // threshold necessary to determine the saddle point of rain falling watershed
+
+    PixelMono targetRG;                                     // target colour in colour opponency map 
+    PixelMono targetGR;                                     // target colour in colour opponency map
+    PixelMono targetBY;                                     // target colour in colour opponency map
+    PixelMono targetRed;                                    // target colour in RGB 
+    PixelMono targetGreen;                                  // target colour in RGB
+    PixelMono targetBlue;                                   // target colour in RGB
+    
+    double weightTD;                                        // weight of the Top-Down contribution
+    double weightBU;                                        // weight of the Bottom-Up contribution
 
 private: 
     /**
@@ -242,42 +252,42 @@ public:
 
 
     /**
-     *
+     * set the minimum bounding area of the blob
      */
     inline bool setMinBoundingArea(int w) { minBoundingArea = w; return true; }
 
-    /**
-     *
+    /** 
+     * get the minumum bounding area of the blob
      */
     inline int getMinBoundingArea() const { return minBoundingArea; }
 
     /**
-     *
+     * set saliency percentage area
      */
     inline bool setSaliencyPercentageArea(double p) { return salience->setPercentageArea(p); }
 
     /**
-     *
+     * get saliency percentage area
      */
     inline double getSaliencyPercentageArea() const { return salience->getPercentageArea(); }
 
     /**
-     *
+     * set maximum size of blobs
      */
     inline bool setMaxBlobSize(int s) { maxBLOB = s; return true; }
 
     /**
-     *
+     * get maximum size of blobs
      */
     inline int getMaxBlobSize() const { return maxBLOB; }
 
     /**
-     *
+     * set minimum size of blobs
      */
     inline bool setMinBlobSize(int s) { minBLOB = s; return true; }
 
     /**
-     *
+     * get minimum size of blobs
      */
     inline int getMinBlobSize() const { return minBLOB; }
 };
