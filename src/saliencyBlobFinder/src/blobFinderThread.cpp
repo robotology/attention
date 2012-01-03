@@ -43,7 +43,7 @@ const int DEFAULT_THREAD_RATE = 100;
 // defining seperate vectors (horizontal and vertical) for gaussians of size 5x5 (sigma 1) and 7x7 (sigma 3)
 // method to do so could be: 1. [u s v] = svd(G) 2. Normalize columns of u and v, by sqrt of largest singular
 // value ie s(1,1)
-static float G7[7] = {      -0.1063f,
+static float G7[7] = {     -0.1063f,
                            -0.1403f,
                            -0.1658f,
                            -0.1752f,
@@ -326,7 +326,7 @@ bool blobFinderThread::threadInit() {
         return false;
 
 
-    string robot("icub"); //<<--------- hard coded here remove asap
+    string robot("icub"); //TODO: hard coded here remove asap
 
     //initialising the head polydriver
     printf("starting the polydrive for the head.... \n");
@@ -423,7 +423,7 @@ void blobFinderThread::run() {
         if (!ret1 || !ret2)
             return;
 
-        tmpImage=edgesPort.read(false);
+        tmpImage = edgesPort.read(false);
         if (tmpImage != 0) {
             //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), edges->getRawImage(), edges->getRowSize(), srcsize);
             memcpy(edges->getRawImage(),tmpImage->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
@@ -678,23 +678,12 @@ void blobFinderThread::threadRelease() {
  * function that reads the ports for colour RGB opponency maps
  */
 bool blobFinderThread::getOpponencies() {
-/*
-    tmpImage=rgbPort.read(false);
-    if (tmpImage != NULL)
-        //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgRG->getRawImage(), ptr_inputImgRG->getRowSize(), srcsize);
-        memcpy(tmpImage->getRawImage(),ptr_inputImgRG->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
-    
-    tmpImage=grPort.read(false);
-    if (tmpImage != NULL)
-        //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgGR->getRawImage(), ptr_inputImgGR->getRowSize(), srcsize);
-        memcpy(tmpImage->getRawImage(),ptr_inputImgGR->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
-    
-    tmpImage=byPort.read(false);
-    if (tmpImage != NULL)
-        //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), ptr_inputImgBY->getRawImage(), ptr_inputImgBY->getRowSize(), srcsize);
-        memcpy(tmpImage->getRawImage(),ptr_inputImgBY->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
-*/
 
+    unsigned char* pRG = ptr_inputImgRG->getRawImage();
+    unsigned char* pGR = ptr_inputImgGR->getRawImage();
+    unsigned char* pBY = ptr_inputImgBY->getRawImage();
+
+#ifdef OPPONENCYBYCONVOLUTION
     // We have got planes by now, so we need to convolve them and then get R+G- and others
     //Positive
     convolve1D(5,G5,ptr_inputImgRed,ptr_tmpRpluss,.5,0);
@@ -717,9 +706,7 @@ bool blobFinderThread::getOpponencies() {
     convolve1D(7,G7,ptr_tmpYminuss,ptr_tmpYminus,.5,1);
 
     // Finding color opponency now
-    unsigned char* pRG = ptr_inputImgRG->getRawImage();
-    unsigned char* pGR = ptr_inputImgGR->getRawImage();
-    unsigned char* pBY = ptr_inputImgBY->getRawImage();
+
 
     unsigned char* rPlus = ptr_tmpRplus->getRawImage();
     unsigned char* rMinus = ptr_tmpRminus->getRawImage();
@@ -728,8 +715,8 @@ bool blobFinderThread::getOpponencies() {
     unsigned char* bPlus = ptr_tmpBplus->getRawImage();
     unsigned char* yMinus = ptr_tmpYminus->getRawImage();
 
-    int h = ptr_tmpRplus->height();
-    int w = ptr_tmpRplus->width(); //ASSUME: all dimensions are similar
+    int h   = ptr_tmpRplus->height();
+    int w   = ptr_tmpRplus->width(); //ASSUME: all dimensions are similar
     int pad = ptr_tmpRplus->getPadding();
 
     for(int r = 0; r < h; r++) {
@@ -757,14 +744,26 @@ bool blobFinderThread::getOpponencies() {
         pGR += pad;
         pBY += pad;
 
+    }    
+#else
+    tmpImage = rgPort.read(false);
+    if (tmpImage != 0) {
+        memcpy(pRG ,tmpImage->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
+    }
+    tmpImage = grPort.read(false);
+    if (tmpImage != 0) {
+        memcpy(pGR ,tmpImage->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
+    }
+    tmpImage = byPort.read(false);
+    if (tmpImage != 0) {
+        memcpy(pBY ,tmpImage->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
     }
     
-    
-    
-    
-    
+#endif
+
 
     return true;
+
 }
 
 /**
