@@ -234,6 +234,9 @@ bool attPrioritiserModule::close() {
 }
 
 bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
+    bool ok = false;
+    bool rec = false; // is the command recognized?
+
     string helpMessage =  string(getName().c_str()) + 
                         " commands are: \n" +  
                         "help \n" + 
@@ -258,6 +261,59 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
         prioritiser->resume();
         reply.addString("ok");
     }
+    
+    mutex.wait();
+    switch (command.get(0).asVocab()) {
+    case COMMAND_VOCAB_HELP:
+        rec = true;
+        {
+            reply.addString("many");
+            reply.addString("help");
+
+            reply.addString("");
+            reply.addString("set fn \t: general set command ");
+            reply.addString("");
+            reply.addString("");
+
+            
+            reply.addString(" ");
+            reply.addString(" ");
+
+
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_SUSPEND:
+        rec = true;
+        {
+            prioritiser->suspend();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_RESUME:
+    rec = true;
+        {
+            prioritiser->resume();
+            ok = true;
+        }
+        break;
+    default: {
+                
+    }
+        break;    
+    }
+    mutex.post();
+
+    if (!rec)
+        ok = RFModule::respond(command,reply);
+    
+    if (!ok) {
+        reply.clear();
+        reply.addVocab(COMMAND_VOCAB_FAILED);
+    }
+    else
+        reply.addVocab(COMMAND_VOCAB_OK);
+    
     
     return true;
 }

@@ -143,13 +143,14 @@
 
 /** 
  * CHANGE LOG:
- * 06/07/11 : created the module                                                                            author Rea  \n
- * 07/07/11 : added the function that calculates the correlation between two log-polar images               author Rea  \n
- * 11/07/11 : changed the cycle for exploring the image in the correlation function                         author Rea  \n                                      
- * 19/08/11 : added a new feedback port to control earlier processes                                        author Rea  \n
- * 07/10/11 : added the enable and disable commands for express saccades.                                   author Rea  \n       
- * 26/10/11 : reduced all the temporal constants to 50ms                                                    author Rea  \n  
- */
+ * 06/07/11 : created the module                                                                            author:Rea  \n
+ * 07/07/11 : added the function that calculates the correlation between two log-polar images               author:Rea  \n
+ * 11/07/11 : changed the cycle for exploring the image in the correlation function                         author:Rea  \n                                      
+ * 19/08/11 : added a new feedback port to control earlier processes                                        author:Rea  \n
+ * 07/10/11 : added the enable and disable commands for express saccades.                                   author:Rea  \n       
+ * 26/10/11 : reduced all the temporal constants to 50ms                                                    author:Rea  \n  
+ * 04/01/12 : added feedback commands to the low level visual attention                                     author:Rea  \n         
+*/
 
 
 
@@ -164,6 +165,17 @@
 //within project includes
 #include <iCub/attPrioritiserThread.h>
 #include <iCub/prioCollectorThread.h>
+
+// general command vocab's
+#define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
+#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
+#define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
+#define COMMAND_VOCAB_RUN                VOCAB3('r','u','n')
+#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
+#define COMMAND_VOCAB_IS                 VOCAB2('i','s')
+#define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
+#define COMMAND_VOCAB_OK                 VOCAB2('o','k')
 
 
 class attPrioritiserModule:public yarp::os::RFModule {
@@ -185,8 +197,10 @@ class attPrioritiserModule:public yarp::os::RFModule {
     int onWings;
     int width, height;                          // parameter set by user dimensioning input image
     yarp::os::Port handlerPort;                 // a port to handle messages 
+    
+    yarp::os::Semaphore mutex;                  // semaphore for the respond function
 
-    attPrioritiserThread* prioritiser;                 //agent that sends commands to the gaze interface
+    attPrioritiserThread* prioritiser;          //agent that sends commands to the gaze interface
     prioCollectorThread* collector;             //agent that collects commands from the lower level
 
 public:
