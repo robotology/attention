@@ -297,6 +297,29 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
             ok = true;
         }
         break;
+    case COMMAND_VOCAB_SEEK:
+        rec = true;
+        {
+            prioritiser->suspend();
+            prioritiser->seek(command.get(1).asVocab());
+            prioritiser->resume();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_FIX:
+        rec = true;
+        {
+            switch (command.get(1).asVocab()) {
+            case COMMAND_VOCAB_CENT:
+                {
+                    printf("Fixating in Center \n");
+                    prioritiser->fixCenter(1000);
+                }
+                break;
+            }
+            ok = true;
+        }
+        break;
     default: {
                 
     }

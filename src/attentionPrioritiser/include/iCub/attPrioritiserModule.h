@@ -176,9 +176,15 @@
 #define COMMAND_VOCAB_RUN                VOCAB3('r','u','n')
 #define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
 #define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
+#define COMMAND_VOCAB_FIX                VOCAB3('f','i','x')
 #define COMMAND_VOCAB_IS                 VOCAB2('i','s')
-#define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
 #define COMMAND_VOCAB_OK                 VOCAB2('o','k')
+#define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
+#define COMMAND_VOCAB_SEEK               VOCAB4('s','e','e','k')
+#define COMMAND_VOCAB_CENT               VOCAB4('c','e','n','t')
+
+
+#define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
 
 
 class attPrioritiserModule:public yarp::os::RFModule {

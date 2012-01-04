@@ -31,6 +31,11 @@
 #define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
 #define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
 
+#define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
+#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
+#define COMMAND_VOCAB_K1                 VOCAB2('k','1')
+
+
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
@@ -214,7 +219,9 @@ public:
     */
     void update(observable* o, yarp::os::Bottle * arg);
  
-
+    /**
+     * @brief return the point extracted by the tracker
+     */
     void getPoint(CvPoint& p);
 
     /**
@@ -226,7 +233,6 @@ public:
      * function that performs tracking of a point and its surroundings
      */
     void sqDiff(CvPoint &minloc);
-
 
     /**
     * function that sets the value of the parameter xOffset
@@ -253,22 +259,6 @@ public:
     */
     void setYLimits(double max,double  min) { ymax = max; ymin = min; };
 
-
-    /**
-    * function that sets the value of the parameter onWings
-    */
-    //void setOnWings(int value) { value?isOnWings=true:isOnWings=false; };
-    
-    /**
-    * function that sets the value of the parameter onDvs
-    */
-    //void setOnDvs  (int value) { value?onDvs=true:onDvs=false; };
-
-    /**
-    * function that sets the value of the visualCorrection for a visual feedback in saccade
-    */
-    //void setVisualFeedback  (int value) { value?visualCorrection=true:visualCorrection=false; };
-
     /**
      * function that sets the value head pitch to which the head is blocked
      * @param blockPitch value of the blockPitch
@@ -279,6 +269,18 @@ public:
     * function that sets the value of the parameter z limits
     */
     void setZLimits(double max,double min) { zmax = max; zmin = min; };
+
+
+    /**
+     * @brief function that activates a seeking action
+     */
+    void seek(int voc);
+    
+    /**
+     * @brief function that force the gaze to be deployed in the center
+     * @param time allowed after the saccade in fixation in ms
+     */
+    void fixCenter(int elapseTime);
 
     /**
     * function that returns only when the last action is ended

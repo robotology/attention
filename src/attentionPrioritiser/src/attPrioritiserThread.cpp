@@ -334,6 +334,35 @@ void attPrioritiserThread::getPoint(CvPoint& p) {
     //tracker->getPoint(p);
 }
 
+void attPrioritiserThread::seek(int voc) {
+    switch (voc) {
+    case COMMAND_VOCAB_RED:
+        {
+            Bottle* sent     = new Bottle();
+            Bottle* received = new Bottle();
+            printf("Seeking red coloured objects \n");
+            //setting selective attention
+            //map1
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_K1);
+            sent->addDouble(0.05);
+            feedbackSelective.write(*sent, *received);
+            
+            sent->clear();
+
+            delete sent;
+            delete received;
+        }
+        break;
+    default: {
+        
+    }
+        break;    
+    }  
+
+}
+
 
 void attPrioritiserThread::run() {
     //Bottle& status = feedbackPort.prepare();
@@ -506,60 +535,75 @@ void attPrioritiserThread::run() {
 
         // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
-            printf("----------------------- Planned Saccade ------------------- \n");
-            printf("initialising the planner thread %f \n", time);
-            sacPlanner->setSaccadicTarget(u,v);
-            timeoutStart = Time::now();
-            executing = true;
+            printf("\n \n ____________________ Planned Saccade ___________________ \n");
+            if((u==-1)||(v==-1)) {
+                printf("----------- Stereo Planned Saccade ------------  \n");
+                executing = true;
+                // executing the stereo saccade without postsaccadic correction
+                Bottle& commandBottle=outputPort.prepare();
+                commandBottle.clear();
+                commandBottle.addString("SAC_ABS");
+                commandBottle.addDouble(xObject);
+                commandBottle.addDouble(yObject);
+                commandBottle.addDouble(zObject);
+                outputPort.write();
+                
+            }
+            else {
+                printf("------- Monocular Planned Saccade -------------  \n");
+                printf("initialising the planner thread %f \n", time);
+                sacPlanner->setSaccadicTarget(u,v);
+                timeoutStart = Time::now();
+                executing = true;
        
-            timeoutStop = Time::now();
-            timeout = timeoutStop - timeoutStart;
-            printf("waiting for planned saccade \n");
-            while(timeout < time) {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
-                //printf("ps \n");
-            }
-            // activating the sacPlanner
-            sacPlanner->setSaccadicTarget(u,v);
-            sacPlanner->wakeup();
-            Time::delay(0.05);
-            
-            // executing the saccade
-            Bottle& commandBottle=outputPort.prepare();
-            commandBottle.clear();
-            commandBottle.addString("SAC_MONO");
-            commandBottle.addInt(u);
-            commandBottle.addInt(v);
-            commandBottle.addDouble(zDistance);
-            outputPort.write();
-            
-            // post-saccadic connection
-            if(postSaccCorrection) {
-                // wait for accomplished saccadic event
-                timeout = 0;
-                timeoutStart = Time::now();
-                while((!correcting)&&(timeout < 5.0)) {
+                printf("waiting for planned saccade \n");
+                while(timeout < time) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
-                    Time::delay(0.05);
+                    //printf("ps \n");
                 }
-                if(timeout > 5.0) {
-                    printf("Saccade accomplished timeout \n");
-                }
-                else {
-                    printf("Saccade accomplished command received \n");
-                }
-                correcting = false;   // resetting the correction flag
-                sacPlanner->setCompare(true);
+                // activating the sacPlanner
+                sacPlanner->setSaccadicTarget(u,v);
                 sacPlanner->wakeup();
                 Time::delay(0.05);
+            
+                // executing the saccade
+                Bottle& commandBottle=outputPort.prepare();
+                commandBottle.clear();
+                commandBottle.addString("SAC_MONO");
+                commandBottle.addInt(u);
+                commandBottle.addInt(v);
+                commandBottle.addDouble(zDistance);
+                outputPort.write();
                 
-                /*
-                // correction or second saccade??
-                double corr = sacPlanner->getCorrValue();
-                printf("received the response from the planner %f \n", corr);
-                if(corr < THCORR) {
+                // post-saccadic connection
+                if(postSaccCorrection) {
+                    // wait for accomplished saccadic event
+                    timeout = 0;
+                    timeoutStart = Time::now();
+                    while((!correcting)&&(timeout < 5.0)) {
+                        timeoutStop = Time::now();
+                        timeout = timeoutStop - timeoutStart;
+                        Time::delay(0.05);
+                    }
+                    if(timeout > 5.0) {
+                        printf("Saccade accomplished timeout \n");
+                    }
+                    else {
+                        printf("Saccade accomplished command received \n");
+                    }
+                    correcting = false;   // resetting the correction flag
+                    sacPlanner->setCompare(true);
+                    sacPlanner->wakeup();
+                    Time::delay(0.05);
+                    
+                    /*
+                    // correction or second saccade??
+                    double corr = sacPlanner->getCorrValue();
+                    printf("received the response from the planner %f \n", corr);
+                    if(corr < THCORR) {
                     //getDirection and calculating the pixel dimension of the correction
                     double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
                     printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
@@ -572,12 +616,14 @@ void attPrioritiserThread::run() {
                     commandBottle.addInt(120 + yVar);
                     commandBottle.addDouble(zDistance);
                     outputPort.write();
-                } 
-                */
-
-                Time::delay(0.05);
-                
-            } //end of postsaccadic correction                
+                    } 
+                    */
+                    
+                    Time::delay(0.05);
+                    
+                } //end of postsaccadic correction                
+            }
+            printf("-------------------------------------------------- \n");
         }
         
         //resume early processes
@@ -592,6 +638,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
+
         Time::delay(0.05);
     }
     else if(allowedTransitions(2)>0) {
@@ -599,12 +646,12 @@ void attPrioritiserThread::run() {
         // ----------------  Smooth Pursuit  -----------------------
         if(!executing) {                       
             printf("------------- Smooth Pursuit ---------------------\n");
+            printf("_____________ Smooth Pursuit _____________________\n");
         }
     }
     else if(allowedTransitions(1)>0) {
         // ----------------  Vergence  -----------------------
         state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1; state(0) = 0;
-
         printf("------------------ Vergence --------------- \n");
             
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
@@ -706,6 +753,18 @@ void attPrioritiserThread::run() {
     }
 }
 
+void attPrioritiserThread::fixCenter(int elapseTime) {
+    mutex.wait();
+    xObject = -0.9;
+    yObject = 0.0;
+    zObject = 0.5;
+    u = -1;
+    v = -1;
+    stateRequest[3] = 1;
+    mono = false;   
+    mutex.post();
+}
+
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     cUpdate++;
     printf("ACK. Aware of observable asking for attention \n");
@@ -740,6 +799,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             xObject = arg->get(1).asDouble();
             yObject = arg->get(2).asDouble();
             zObject = arg->get(3).asDouble();
+            u = -1;
+            v = -1;
             mutex.wait();
             stateRequest[3] = 1;
             //executing = false;
