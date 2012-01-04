@@ -89,6 +89,9 @@
  * 
  *  -  \c help \n
  *  -  \c quit \n
+ *  -  \c suspend \n
+ *  -  \c resume  \n
+ *  -  \c seek    \n
  *
  *    Note that the name of this port mirrors whatever is provided by the \c --name parameter value
  *    The port is attached to the terminal so that you can type in commands and receive replies.

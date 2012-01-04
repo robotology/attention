@@ -189,6 +189,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
 
 attPrioritiserThread::~attPrioritiserThread() {
     // MUST BE REMOVED THE RF AND TRACKER ALLOCATED IN THE CONSTRUCTOR
+    tracker->stop();
 }
 
 bool attPrioritiserThread::threadInit() {
@@ -227,6 +228,10 @@ bool attPrioritiserThread::threadInit() {
     blobDatabasePort.open(rootNameDatabase.c_str());
     string rootNameInhibition("");rootNameInhibition.append(getName("/inhibition:o"));
     inhibitionPort.open(rootNameInhibition.c_str());
+    string nameFBEarlyVision("");nameFBEarlyVision.append(getName("/earlyVision:o"));
+    feedbackEarlyVision.open(nameFBEarlyVision.c_str());
+    string nameFBSelective("");nameFBSelective.append(getName("/selectiveAtt:o"));
+    feedbackSelective.open(nameFBSelective.c_str());
     
     inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
@@ -249,7 +254,7 @@ bool attPrioritiserThread::threadInit() {
 }
 
 void attPrioritiserThread::interrupt() {
-    //inCommandPort
+    //interrupting ports
     inLeftPort.interrupt();
     inRightPort.interrupt();
     feedbackPort.interrupt();
@@ -258,6 +263,39 @@ void attPrioritiserThread::interrupt() {
     blobDatabasePort.interrupt();
     templatePort.interrupt();
     timingPort.interrupt();
+    feedbackEarlyVision.interrupt();
+    feedbackSelective.interrupt();
+}
+
+void attPrioritiserThread::threadRelease() {
+    inLeftPort.close();
+    printf("closing right port \n");
+    inRightPort.close();
+    printf("closing feedback port \n");
+    feedbackPort.close();
+    printf("closing template port \n");
+    templatePort.close();
+    printf("closing database port \n");
+    blobDatabasePort.close();
+    printf("closing inhibition port \n");
+    inhibitionPort.close();
+    printf("closing feedback ports \n");
+    feedbackEarlyVision.close();
+    feedbackSelective.close();
+    
+    timingPort.close();
+    printf("successfully closed all the ports \n");
+    delete eyeL;
+    delete eyeR;
+    printf("successfully deleted eyes references \n");
+    //igaze->restoreContext(originalContext);
+    printf("successfully restored previous gaze context \n");
+    
+    //delete clientGazeCtrl;
+    printf("deleting the clientPlanner \n");
+    sacPlanner->stop();
+    delete sacPlanner;
+    printf("deleting the sacPlanner \n");
 }
 
 void attPrioritiserThread::setDimension(int w, int h) {
@@ -756,29 +794,3 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 }
 
 
-void attPrioritiserThread::threadRelease() {
-    inLeftPort.close();
-    printf("closing right port \n");
-    inRightPort.close();
-    printf("closing feedback port \n");
-    feedbackPort.close();
-    printf("closing template port \n");
-    templatePort.close();
-    printf("closing database port \n");
-    blobDatabasePort.close();
-    printf("closing inhibition port \n");
-    inhibitionPort.close();
-    timingPort.close();
-    printf("successfully closed all the ports \n");
-    delete eyeL;
-    delete eyeR;
-    printf("successfully deleted eyes references \n");
-    //igaze->restoreContext(originalContext);
-    printf("successfully restored previous gaze context \n");
-    
-    //delete clientGazeCtrl;
-    printf("deleting the clientPlanner \n");
-    sacPlanner->stop();
-    delete sacPlanner;
-    printf("deleting the sacPlanner \n");
-}
