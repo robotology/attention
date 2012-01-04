@@ -631,7 +631,7 @@ void gazeArbiterThread::run() {
                 px[1] = yObject;
                 px[2] = zObject;
                 igaze->lookAtFixationPoint(px);
-                printf("saccadic event : started \n",xObject,yObject,zObject);
+                printf("saccadic event : started %f %f %f \n",xObject,yObject,zObject);
             }
 
             //Time::delay(0.05);
@@ -1283,6 +1283,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             xObject = arg->get(1).asDouble();
             yObject = arg->get(2).asDouble();
             zObject = arg->get(3).asDouble();
+            printf("received request of abs saccade in position %f %f %f \n", xObject, yObject, zObject);
             mutex.wait();
             stateRequest[3] = 1;
             //executing = false;
