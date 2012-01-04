@@ -587,14 +587,14 @@ void gazeArbiterThread::run() {
                                 printf("starting visual correction \n");
                                 tracker->init(u,v);
                                 tracker->waitInitTracker();
-                                Time::delay(0.05);
+                                Time::delay(0.01);
                             }
                             Vector px(2);
                             px(0) = u;
                             px(1) = v;
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            Time::delay(0.05);
+                            Time::delay(0.01);
                             igaze->checkMotionDone(&done);
                             dist = 10;
                             /*
@@ -702,7 +702,7 @@ void gazeArbiterThread::run() {
                     tracker->getPoint(point);
                     //printf("the point ended up in %d  %d \n",point.x, point.y);
                 }
-                Time::delay(0.05);
+                Time::delay(0.01);
                 if(timeout >= TIMEOUT_CONST) {
                     Vector px(3);
                     printf("TIMEOUT in reaching with visualFeedback \n");
@@ -722,7 +722,7 @@ void gazeArbiterThread::run() {
                     while((!done)&&(timeout < TIMEOUT_CONST)) {                        
                         timeoutStop = Time::now();
                         timeout =timeoutStop - timeoutStart;
-                        Time::delay(0.005);
+                        Time::delay(0.001);
                         igaze->checkMotionDone(&done);                        
                     }
                 }
@@ -1050,7 +1050,7 @@ void gazeArbiterThread::run() {
                     blobDatabasePort.write(request, reply);                     
                     
                     //delay after vergence accomplished ... needed to allow other module to call the control
-                    Time::delay(0.05);
+                    Time::delay(0.01);
                     return;
                 }
                 
@@ -1306,14 +1306,14 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"COR_OFF")) {            
             printf("visual correction disabled \n");
-            Time::delay(0.05);
+            Time::delay(0.01);
             mutex.wait();
             setVisualFeedback(false);
             mutex.post();
         }
         else if(!strcmp(name.c_str(),"COR_ON")) {   
             printf("visual correction enabled \n");
-            Time::delay(0.05);
+            Time::delay(0.01);
             mutex.wait();
             setVisualFeedback(true);
             mutex.post();

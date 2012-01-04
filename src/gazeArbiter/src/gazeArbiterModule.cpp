@@ -92,7 +92,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     }
     else {
         printf("visualFeedback  not required \n");
-        //the default value for arbiter->visualCorrection is false
+        arbiter->setVisualFeedback(false);
     }
 
     /* get the dimension of the image for the thread parametric control */
