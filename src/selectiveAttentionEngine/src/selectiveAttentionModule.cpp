@@ -93,7 +93,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     * get the ratethread which will define the period of the processing thread
     */
     rateThread             = rf.check("ratethread", 
-                           Value(33), 
+                           Value(20), 
                            "processing ratethread (int)").asInt();
 
 
@@ -502,7 +502,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
         rec = true;
         {
             printf("Inhibition of feature extraction activated \n");
-            currentProcessor->suspend();
+            //currentProcessor->suspend();
             ok = true;
         }
         break;
@@ -510,7 +510,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
         rec = true;
         {
             printf("Inhibition of feature extraction deactivated \n");
-            currentProcessor->resume();
+            //currentProcessor->resume();
             currentProcessor->setCounterMotion(0);
             ok = true;
         }

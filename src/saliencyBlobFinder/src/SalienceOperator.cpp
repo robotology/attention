@@ -511,7 +511,7 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
             double RGdistance = m_boxes[i].meanRG - prg;
             double GRdistance = m_boxes[i].meanGR - pgr;
             double BYdistance = m_boxes[i].meanBY - pby;
-            //printf("drg %f dgr %f dby %f   ", RGdistance, GRdistance, BYdistance);
+            //printf("i %d drg %f dgr %f dby %f   ",i, RGdistance, GRdistance, BYdistance);
             salienceTD= (int) floor(sqrt((double)RGdistance*RGdistance+
                             GRdistance*GRdistance+
                             BYdistance*BYdistance));
@@ -629,8 +629,8 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                             z = 1;
                         }
                         else {    
-                            f = ((c - ux) * (c - ux)) /(vx * vx);
-                            d = ((r - uy)  * (r - uy)) /(vy * vy);
+                            f = ((c - ux) * (c - ux)) / (vx * vx);
+                            d = ((r - uy) * (r - uy)) / (vy * vy);
                             //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
                             e = 0;
                             z = a * exp ( b * (f + d - e) );
@@ -645,8 +645,6 @@ int SalienceOperator::DrawContrastLP2(ImageOf<PixelMono>& rg, ImageOf<PixelMono>
                         if (z < 0.8) {
                             z = 0.8;
                         }                       
-                        
-                        z = 1;
                         
                         // z is a value in the interval [0, 1]
                         //set the image outContrastLP with the value salienceTotal

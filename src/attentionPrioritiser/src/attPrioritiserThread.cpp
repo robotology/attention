@@ -140,7 +140,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     //isOnWings = false;
     //onDvs =  false;
     done=true;
-    postSaccCorrection = true;
+    postSaccCorrection = false;
     executing = false;
     correcting = false;
     phiTOT = 0;
@@ -348,8 +348,50 @@ void attPrioritiserThread::seek(int voc) {
             sent->addVocab(COMMAND_VOCAB_K1);
             sent->addDouble(0.05);
             feedbackSelective.write(*sent, *received);
-            
+            //map2
             sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_K2);
+            sent->addDouble(0.05);
+            feedbackSelective.write(*sent, *received);
+            //map3
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_K3);
+            sent->addDouble(0.05);
+            feedbackSelective.write(*sent, *received);
+            //map4
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_K4);
+            sent->addDouble(0.05);
+            feedbackSelective.write(*sent, *received);
+            //map5
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_K5);
+            sent->addDouble(0.05);
+            feedbackSelective.write(*sent, *received);
+            //map6
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_K6);
+            sent->addDouble(0.75);
+            feedbackSelective.write(*sent, *received);
+            
+            //timing of the saccades
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_TIME);
+            sent->addDouble(150);
+            feedbackSelective.write(*sent, *received);
+            
+            //setting saliencyBlobFinder
+            //weight BU
+            //weight TD
+            //colour red
+            //colour green
+            //colour blue
 
             delete sent;
             delete received;
@@ -424,7 +466,7 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
-            Time::delay(0.05);
+            Time::delay(0.01);
         }
 
         if(!executing) {                       
@@ -461,7 +503,7 @@ void attPrioritiserThread::run() {
             while((!correcting)&&(timeout < 2.0)) {
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
-                Time::delay(0.05);
+                Time::delay(0.01);
             }
             if(timeout >= 2.0) {
                 printf("Express Saccade timed out \n");
@@ -470,7 +512,7 @@ void attPrioritiserThread::run() {
                 printf("Express Saccade  accomplished \n");
             }        
 
-            Time::delay(0.05);
+            Time::delay(0.01);
             
             /*
             timeoutStop = Time::now();
@@ -520,7 +562,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
-        Time::delay(0.05);
+        Time::delay(0.01);
     }    
     else if(allowedTransitions(3)>0) {
         state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
@@ -567,7 +609,7 @@ void attPrioritiserThread::run() {
                 // activating the sacPlanner
                 sacPlanner->setSaccadicTarget(u,v);
                 sacPlanner->wakeup();
-                Time::delay(0.05);
+                Time::delay(0.01);
             
                 // executing the saccade
                 Bottle& commandBottle=outputPort.prepare();
@@ -586,7 +628,7 @@ void attPrioritiserThread::run() {
                     while((!correcting)&&(timeout < 5.0)) {
                         timeoutStop = Time::now();
                         timeout = timeoutStop - timeoutStart;
-                        Time::delay(0.05);
+                        Time::delay(0.005);
                     }
                     if(timeout > 5.0) {
                         printf("Saccade accomplished timeout \n");
@@ -639,7 +681,7 @@ void attPrioritiserThread::run() {
             delete received;
         }
 
-        Time::delay(0.05);
+        Time::delay(0.005);
     }
     else if(allowedTransitions(2)>0) {
         state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;

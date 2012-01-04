@@ -164,13 +164,13 @@
  * 
  * Possible commands that this module is responsive to are:
  * - set def : set the coefficient to the default value
- * - set time : set the timing costant between different saccades (default 3000- correspond to the conf file saccadic event)
- * - set k1 : coefficient for the linear combination of map1
- * - set k2 : coefficient for the linear combination of map2
- * - set k3 : coefficient for the linear combination of map3
- * - set k4 : coefficient for the linear combination of map4
- * - set k5 : coefficient for the linear combination of map5
- * - set k6 : coefficient for the linear combination of map6
+ * - set <int> time : set the timing costant between different saccades (default 3000- correspond to the conf file saccadic event)
+ * - set <double> k1 : coefficient for the linear combination of map1
+ * - set <double> k2 : coefficient for the linear combination of map2
+ * - set <double> k3 : coefficient for the linear combination of map3
+ * - set <double> k4 : coefficient for the linear combination of map4
+ * - set <double> k5 : coefficient for the linear combination of map5
+ * - set <double> k6 : coefficient for the linear combination of map6
  * - set kmot : coefficient for the linear combination of motion detection
  * - set kc1 : coefficient for linear combination of cartesian images
  * - set lhan : forces to redirect saccades only where the hand is located

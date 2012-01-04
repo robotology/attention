@@ -40,6 +40,8 @@ const int DEFAULT_THREAD_RATE = 100;
 #define thresholdDB 250
 #define MAXMEMORY 100
 
+#define OPPONENCYBYCONVOLUTION
+
 // defining seperate vectors (horizontal and vertical) for gaussians of size 5x5 (sigma 1) and 7x7 (sigma 3)
 // method to do so could be: 1. [u s v] = svd(G) 2. Normalize columns of u and v, by sqrt of largest singular
 // value ie s(1,1)
@@ -150,10 +152,11 @@ blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string 
     ptr_tmpBpluss  = new ImageOf<yarp::sig::PixelMono>; 
     ptr_tmpYminuss = new ImageOf<yarp::sig::PixelMono>; 
  
-    edges     = new ImageOf<yarp::sig::PixelMono>; 
+    edges     = new ImageOf<PixelMono>; 
     img       = new ImageOf<PixelRgb>;
     tmpImage  = new ImageOf<PixelMono>;
     image_out = new ImageOf<PixelMono>;
+    
     
     _inputImgRGS = new ImageOf<PixelMono>;
     _inputImgGRS = new ImageOf<PixelMono>;
@@ -179,7 +182,7 @@ blobFinderThread::~blobFinderThread() {
     delete ptr_inputImgRed;     // pointer to the input image of the red plane
     delete ptr_inputImgGreen;   // pointer to the input image of the green plane
     delete ptr_inputImgBlue;    // pointer to the input image of the blue plane
-    delete ptr_inputImgYellow;    // pointer to the input image of the blue plane
+    delete ptr_inputImgYellow;  // pointer to the input image of the blue plane
     delete ptr_inputImgRG;      // pointer to the input image of the R+G- colour opponency
     delete ptr_inputImgGR;      // pointer to the input image of the G+R- colour opponency
     delete ptr_inputImgBY;      // pointer to the input image of the B+Y- colour opponency
@@ -229,11 +232,6 @@ void blobFinderThread::reinitialise(int width, int height) {
     this->width = width;
     this->height = height;
 
-    img->resize(width, height);
-    edges->resize(width, height);
-    tmpImage->resize(width, height);
-    image_out->resize(width, height);
-    
     resizeImages(width, height);
 
     reinit_flag = true;
@@ -259,6 +257,11 @@ void blobFinderThread::resizeImages(int width, int height) {
     _inputImgRGS->resize(width, height);
     _inputImgGRS->resize(width, height);
     _inputImgBYS->resize(width, height);
+    
+    img->resize(width, height);
+    edges->resize(width, height);
+    tmpImage->resize(width, height);
+    image_out->resize(width, height);
 
     blobList = new char [width*height+1];
     
@@ -311,6 +314,7 @@ bool blobFinderThread::threadInit() {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
     if (!rgPort.open(getName("/rg:i").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
@@ -320,6 +324,18 @@ bool blobFinderThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
     if (!byPort.open(getName("/by:i").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!rgOut.open(getName("/rg:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!grOut.open(getName("/gr:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!byOut.open(getName("/by:o").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -416,6 +432,30 @@ void blobFinderThread::interrupt() {
     blobDatabasePort.interrupt();
     saliencePort.interrupt();
     outputPort3.interrupt();
+    
+    rgPort.interrupt();
+    grPort.interrupt();
+    byPort.interrupt();
+    rgOut.interrupt();
+    grOut.interrupt();
+    byOut.interrupt();
+}
+
+/**
+ *	releases the thread
+ */
+void blobFinderThread::threadRelease() {
+    blobDatabasePort.close();
+    outputPort3.close();
+    saliencePort.close();
+    inputPort.close();
+    
+    rgPort.close();
+    grPort.close();
+    byPort.close();
+    rgOut.close();
+    grOut.close();
+    byOut.close();
 }
 
 /**
@@ -425,15 +465,14 @@ void blobFinderThread::run() {
     img = inputPort.read(false);
     if (0 != img) {
         if (!reinit_flag) {
-            srcsize.height=img->height();
-            srcsize.width=img->width();
-            height=img->height();
-            width=img->width();
+            srcsize.height = img->height();
+            srcsize.width  = img->width();
+            height = img->height();
+            width  = img->width();
             reinitialise(img->width(), img->height());
         }
 
-        //ippiCopy_8u_C3R(img->getRawImage(), img->getRowSize(), ptr_inputImg->getRawImage(), ptr_inputImg->getRowSize(), srcsize);
-        
+        //printf("original size %d %d \n", height, width);
         memcpy(ptr_inputImg->getRawImage(),img->getRawImage(),img->getRowSize()* img->height());
         
         bool ret1=true, ret2=true;
@@ -444,7 +483,6 @@ void blobFinderThread::run() {
 
         tmpImage = edgesPort.read(false);
         if (tmpImage != 0) {
-            //ippiCopy_8u_C1R(tmpImage->getRawImage(), tmpImage->getRowSize(), edges->getRawImage(), edges->getRowSize(), srcsize);
             memcpy(edges->getRawImage(),tmpImage->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
         }
 
@@ -683,15 +721,7 @@ void blobFinderThread::run() {
     } // if (0 != img)
 }
 
-/**
- *	releases the thread
- */
-void blobFinderThread::threadRelease() {
-    blobDatabasePort.close();
-    outputPort3.close();
-    saliencePort.close();
-    inputPort.close();
-}
+
 
 /**
  * function that reads the ports for colour RGB opponency maps
@@ -704,9 +734,7 @@ bool blobFinderThread::getOpponencies() {
 
 #ifdef OPPONENCYBYCONVOLUTION
     // We have got planes by now, so we need to convolve them and then get R+G- and others
-    printf("Convolving for opponency maps \n");
-    printf("Convolving for opponency maps \n");
-    printf("Convolving for opponency maps \n");
+    //printf("Convolving for opponency maps \n");
     //Positive
     convolve1D(5,G5,ptr_inputImgRed,ptr_tmpRpluss,.5,0);
     convolve1D(5,G5,ptr_tmpRpluss,ptr_tmpRplus,.5,1);
@@ -729,12 +757,11 @@ bool blobFinderThread::getOpponencies() {
 
     // Finding color opponency now
 
-
-    unsigned char* rPlus = ptr_tmpRplus->getRawImage();
+    unsigned char* rPlus  = ptr_tmpRplus->getRawImage();
     unsigned char* rMinus = ptr_tmpRminus->getRawImage();
-    unsigned char* gPlus = ptr_tmpGplus->getRawImage();
+    unsigned char* gPlus  = ptr_tmpGplus->getRawImage();
     unsigned char* gMinus = ptr_tmpGminus->getRawImage();
-    unsigned char* bPlus = ptr_tmpBplus->getRawImage();
+    unsigned char* bPlus  = ptr_tmpBplus->getRawImage();
     unsigned char* yMinus = ptr_tmpYminus->getRawImage();
 
     int h   = ptr_tmpRplus->height();
@@ -766,11 +793,31 @@ bool blobFinderThread::getOpponencies() {
         pGR += pad;
         pBY += pad;
 
-    }    
+    }
+
+    if((0 != ptr_inputImgRG ) &&  (rgOut.getOutputCount())) { 
+        rgOut.prepare() = *((ImageOf<PixelMono>*)ptr_inputImgRG);
+        rgOut.write();
+    }
+    if((0 != ptr_inputImgGR ) &&  (grOut.getOutputCount())) { 
+        grOut.prepare() = *((ImageOf<PixelMono>*)ptr_inputImgGR);
+        grOut.write();
+    }
+    if((0 != ptr_inputImgBY ) &&  (rgOut.getOutputCount())) { 
+        byOut.prepare() = *((ImageOf<PixelMono>*)ptr_inputImgBY);
+        byOut.write();
+    }
+    
 #else
     tmpImage = rgPort.read(false);
-    if (tmpImage != 0) {
+    if (tmpImage != 0) {        
         memcpy(pRG ,tmpImage->getRawImage(),tmpImage->getRowSize()* tmpImage->height());
+        //printf("copying the image %d %d \n", tmpImage->getRowSize(),tmpImage->height() );
+        if((0 != ptr_inputImgRG ) &&  (rgOut.getOutputCount())) { 
+            rgOut.prepare() = *((ImageOf<PixelMono>*)ptr_inputImgRG);
+            rgOut.write();
+        }
+        //printf("Success in preparing \n");
     }
     tmpImage = grPort.read(false);
     if (tmpImage != 0) {
@@ -782,14 +829,25 @@ bool blobFinderThread::getOpponencies() {
     }
     
 #endif
+    /*
 
+    
+    if((0 != ptr_inputImgGR) &&  (grOut.getOutputCount())) { 
+        grOut.prepare() = *((ImageOf<PixelMono>*)ptr_inputImgGR);
+        grOut.write();
+    }
+    if((0 != ptr_inputImgBY) &&  (byOut.getOutputCount())) { 
+        byOut.prepare() = *((ImageOf<PixelMono>*)ptr_inputImgBY);
+        byOut.write();
+    }
+    */
+    
 
     return true;
 
 }
 
 /**
- * LATER: proper Doxygen documentation here!
  * function that reads the ports for the RGB planes
  */
 bool blobFinderThread::getPlanes(ImageOf<PixelRgb>* inputImage) {
@@ -873,13 +931,14 @@ void blobFinderThread::drawAllBlobs(bool stable)
 
     //targetRG = 0;
     //targetGR = 0;
-    targetBY = 0;
+    //targetBY = 0;
     targetRG = (targetRed/2 - targetGreen/2) + 127;
     targetGR = (targetGreen/2 - targetRed/2) + 127;
     PixelMono targetYellow = (targetGreen + targetRed)>>1;
-    //printf("targetBlue %d targetYellow %d \n", targetBlue, targetYellow);
+    //printf("targetRed %d targetGreen %d targetBlue %d \n", targetRed, targetGreen, targetBlue);
     targetBY = (targetBlue/2 - targetYellow/2) + 127;
-    //printf("targetBY %d \n",targetBY );
+    //printf("targetRG %d targetGR %d targetBY %d \n",targetRG, targetGR, targetBY );
+    
     // draws the saliency of all blobs into the tagged image and returns a mono image.
     nBlobs=salience->DrawContrastLP2(*ptr_inputImgRG, *ptr_inputImgGR, *ptr_inputImgBY,
         *outContrastLP, *ptr_tagged, max_tag,

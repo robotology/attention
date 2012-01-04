@@ -58,6 +58,9 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgPort;           // port where the difference of gaussian R+G- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // port where the difference of gaussian G+R- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // port where the difference of gaussian B+Y- of the image is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgOut;           // port where the difference of gaussian R+G- is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grOut;           // port where the difference of gaussian G+R- is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byOut;           // port where the difference of gaussian B+Y- of the image is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > yellowPort;       // port where the yellow plane of the image is streamed
     yarp::os::Port blobDatabasePort;                              // port where all the blobs as bottles are sent to the objectPropertiesCollector
 

@@ -34,6 +34,13 @@
 #define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
 #define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
 #define COMMAND_VOCAB_K1                 VOCAB2('k','1')
+#define COMMAND_VOCAB_TIME               VOCAB4('t','i','m','e')
+#define COMMAND_VOCAB_K1                 VOCAB2('k','1')
+#define COMMAND_VOCAB_K2                 VOCAB2('k','2')
+#define COMMAND_VOCAB_K3                 VOCAB2('k','3')
+#define COMMAND_VOCAB_K4                 VOCAB2('k','4')
+#define COMMAND_VOCAB_K5                 VOCAB2('k','5')
+#define COMMAND_VOCAB_K6                 VOCAB2('k','6')
 
 
 #include <yarp/os/BufferedPort.h>

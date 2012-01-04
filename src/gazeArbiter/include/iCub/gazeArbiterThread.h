@@ -72,6 +72,7 @@ private:
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
     bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
+    bool availableVisualCorr;               // flag that indicates whether the visual correction is available
     bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
     bool isOnWings;                         // flag that gives information on where the cameras are mounted
     bool onDvs;                             // flag for remapping dvs location into standard dimension
@@ -248,7 +249,7 @@ public:
     /**
     * function that sets the value of the visualCorrection for a visual feedback in saccade
     */
-    void setVisualFeedback  (int value) { value?visualCorrection=true:visualCorrection=false; };
+    void setVisualFeedback(bool value) { visualCorrection = availableVisualCorr?value:false; };
 
     /**
      * function that sets the value head pitch to which the head is blocked

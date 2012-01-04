@@ -117,10 +117,11 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     configFile = _configFile;
     
     //boolean flag initialisation
-    firstVer         = false;
-    visualCorrection = true;
-    isOnWings        = false;
-    onDvs            = false;
+    firstVer            = false;
+    availableVisualCorr = false;
+    visualCorrection    = false;
+    isOnWings           = false;
+    onDvs               = false;
     
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
@@ -155,8 +156,6 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     xFix = t;
 
     printf("extracting kinematic informations \n");
-
-
 }
 
 gazeArbiterThread::~gazeArbiterThread() {
