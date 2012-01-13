@@ -2,8 +2,8 @@
 
 /* 
  * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Rea Francesco, Shashank Pathak
- * email:   francesco.rea@iit.it, shashank.pathak@iit.it
+ * Authors: Rea Francesco
+ * email:   francesco.rea@iit.it
  * website: www.robotcub.org 
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -275,7 +275,7 @@ public:
     
 };
 
-#endif  //_VISUAL_FEATURE_THREAD_H_
+#endif  //_LOG_OF_THREAD_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 

@@ -2,8 +2,8 @@
 
 /*
   * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Rea Francesco, Shashank Pathak
-  * email:francesco.rea@iit.it, shashank.pathak@iit.it
+  * Author:Rea Francesco
+  * email:francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -104,12 +104,7 @@ bool logOFModule::configure(yarp::os::ResourceFinder &rf) {
     printf("Handler port is attached \n");
     /* create the thread and pass pointers to the module parameters */
     printf("trying to start the main thread \n");
-    evThread = new earlyVisionThread();
-    evThread->setName(getName().c_str());
-    evThread->setWHorizontal(wHorizontal);
-    evThread->setWVertical(wVertical);
-    evThread->setW45Degrees(w45Degrees);
-    evThread->setWM45Degrees(wM45Degrees);
+
 
     /* now start the thread to do the work */
     evThread->start(); // this calls threadInit() and it if returns true, it then calls run()        
@@ -195,31 +190,31 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                 {
                     switch(command.get(2).asVocab()){
                     case COMMAND_VOCAB_HOR:
-                        evThread->chromeThread->setWeightForOrientation(0,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(0,command.get(3).asDouble());
                         reply.addString("changed weight for horizontal orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_45:
-                        evThread->chromeThread->setWeightForOrientation(1,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(1,command.get(3).asDouble());
                         reply.addString("changed weight for 45 deg orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_VER:
-                        evThread->chromeThread->setWeightForOrientation(2,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(2,command.get(3).asDouble());
                         reply.addString("changed weight for vertical orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_M45:
-                        evThread->chromeThread->setWeightForOrientation(3,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(3,command.get(3).asDouble());
                         reply.addString("changed weight for -45 deg orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_BRIGHT:
-                        evThread->chromeThread->setBrightness((float)(command.get(3).asDouble()));
+                        //evThread->chromeThread->setBrightness((float)(command.get(3).asDouble()));
                         reply.addString("changed brightness for overall image");
                         rec = true;
                         ok = true;
@@ -243,7 +238,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                 {
                     switch(command.get(2).asVocab()){
                     case COMMAND_VOCAB_HOR:
-                        wt = evThread->chromeThread->getWeightForOrientation(0);
+                        //wt = evThread->chromeThread->getWeightForOrientation(0);
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
                         reply.addDouble(wt);
@@ -251,7 +246,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         ok = true;
                         break;
                     case COMMAND_VOCAB_45:
-                        wt = evThread->chromeThread->getWeightForOrientation(1);
+                        //wt = evThread->chromeThread->getWeightForOrientation(1);
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
                         reply.addDouble(wt);
@@ -259,7 +254,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         ok = true;
                         break;
                     case COMMAND_VOCAB_VER:
-                        wt = evThread->chromeThread->getWeightForOrientation(2);
+                        //wt = evThread->chromeThread->getWeightForOrientation(2);
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
                         reply.addDouble(wt);
@@ -267,7 +262,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         ok = true;
                         break;
                     case COMMAND_VOCAB_M45:
-                        wt = evThread->chromeThread->getWeightForOrientation(3);
+                        //wt = evThread->chromeThread->getWeightForOrientation(3);
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
                         reply.addDouble(wt);
@@ -275,7 +270,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         ok = true;
                         break;
                     case COMMAND_VOCAB_BRIGHT:
-                        brightness = evThread->chromeThread->getBrightness();
+                        //brightness = evThread->chromeThread->getBrightness();
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_BRIGHT); // ?? Needed
                         reply.addDouble(brightness);
@@ -298,13 +293,13 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
         {
             switch(command.get(1).asVocab()){
             case COMMAND_VOCAB_CHROME_THREAD:
-                evThread->chromeThread->suspend();
+                //evThread->chromeThread->suspend();
                 reply.addString("suspending chrome thread");
                 rec = true;
                 ok = true;
                 break;
             case COMMAND_VOCAB_EDGES_THREAD:
-                evThread->edThread->suspend();
+                //evThread->edThread->suspend();
                 reply.addString("suspending edges thread");
                 rec = true;
                 ok = true;
@@ -320,13 +315,13 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
         {
             switch(command.get(1).asVocab()){
             case COMMAND_VOCAB_CHROME_THREAD:
-                evThread->chromeThread->resume();
+                //evThread->chromeThread->resume();
                 reply.addString("resuming chrome thread");
                 rec = true;
                 ok = true;
                 break;
             case COMMAND_VOCAB_EDGES_THREAD:
-                evThread->edThread->resume();
+                //evThread->edThread->resume();
                 reply.addString("resuming edges thread");
                 rec = true;
                 ok = true;

@@ -2,8 +2,8 @@
 
 /*
   * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Rea Francesco, Shashank Pathak
-  * email:francesco.rea@iit.it, shashank.pathak@iit.it
+  * Author:Rea Francesco
+  * email:francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -98,17 +98,6 @@ logOFThread::~logOFThread() {
 bool logOFThread::threadInit() {
     printf("opening ports by main thread\n");
 
-    chromeThread = new chrominanceThread();
-    chromeThread->setName(getName("/chrome").c_str());
-    chromeThread->setWHorizontal(wHorizontal);
-    chromeThread->setWVertical(wVertical);
-    chromeThread->setW45Degrees(w45Degrees);
-    chromeThread->setWM45Degrees(wM45Degrees);
-    chromeThread->start();
-
-    edThread = new edgesThread();
-    edThread->setName(getName("/edges").c_str());
-    edThread->start();
 
     /* open ports */     
    
@@ -303,8 +292,6 @@ void logOFThread::resize(int width_orig,int height_orig) {
     scs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     vcs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     
-    
-    centerSurr  = new CenterSurround( width_orig,height_orig,1.0 );
 
     
     isYUV = true; 
@@ -438,16 +425,6 @@ void logOFThread::extractPlanes() {
                 
     } 
 
-    if(!chromeThread->getFlagForThreadProcessing()){
-        chromeThread->copyRelevantPlanes(unXtnIntensImg);
-    }
-
-    if(!edThread->getFlagForThreadProcessing()){
-        edThread->copyRelevantPlanes(intensImg);
-    }
-    
-    
-
 }
 
 void logOFThread::filtering() {
@@ -466,9 +443,7 @@ void logOFThread::filtering() {
 
     tmpMonoLPImage->zero();
     gaborPosHorConvolution->convolve1D(greenPlane,tmpMonoLPImage);
-    gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Gplus);*/  
-    
-    
+    gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Gplus);*/      
        
     
     //Negative
@@ -569,9 +544,7 @@ void logOFThread::colorOpponency(){
 
 }
 
-void logOFThread::centerSurrounding(){
-
-        
+void logOFThread::centerSurrounding(){        
         
         // Allocate temporarily
         ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
@@ -598,133 +571,7 @@ void logOFThread::centerSurrounding(){
                                 //{-2.488,  3.489,  0.000,
                                  //3.596, -1.983, -0.498,
                                 //-3.219,  1.061,  2.563};
-                                
-        
-        if(true){
-                //performs centre-surround uniqueness analysis on first plane                
-                centerSurr->proc_im_8u( (IplImage*)unXtnYplane->getIplImage(),(IplImage*)_Y.getIplImage());
-                cvConvertScale(centerSurr->get_pyramid_gauss(0),(IplImage*)YofYUVpy->getIplImage(),255,0);
-                               
-                
-                
-                cvSet(cs_tot_32f,cvScalar(0));                
-                if (isYUV){               
-                    //performs centre-surround uniqueness analysis on second plane:
-                    centerSurr->proc_im_8u( (IplImage*)(unXtnUplane->getIplImage()),scs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f); // in place?
-                    cvConvertScale(centerSurr->get_pyramid_gauss(0),(IplImage*)UofYUVpy->getIplImage(),255,0);
-                    
-                    //Colour process V:performs centre-surround uniqueness analysis:
-                    centerSurr->proc_im_8u( (IplImage*)(this->unXtnVplane->getIplImage()), vcs_out);
-                    cvAdd(centerSurr->get_centsur_32f(),cs_tot_32f,cs_tot_32f);
-                    cvConvertScale(centerSurr->get_pyramid_gauss(0),(IplImage*)VofYUVpy->getIplImage(),255,0);          
-                    
-                    //get min max   
-                    double valueMin = 1000;
-                    double valueMax = -1000;
-                    //img_UV->zero();     // this is not strictly required
-                  	cvMinMaxLoc(cs_tot_32f,&valueMin,&valueMax);            
-                    if ( valueMax == valueMin || valueMin < -1000 || valueMax > 1000){ 
-                        valueMax = 255.0f; valueMin = 0.0f;
-                    }
-                    cvConvertScale(cs_tot_32f,(IplImage*)_UV.getIplImage(),255/(valueMax - valueMin),-255*valueMin/(valueMax-valueMin)); //LATER
-                    
-                    // calculate RGB from YUV uchar planes
-                    uchar* ptrYplane = (uchar*)YofYUVpy->getRawImage();
-                    uchar* ptrUplane = (uchar*)UofYUVpy->getRawImage();
-                    uchar* ptrVplane = (uchar*)VofYUVpy->getRawImage();
-                    uchar* ptrRplane = (uchar*)RplusUnex->getRawImage();
-                    uchar* ptrGplane = (uchar*)GplusUnex->getRawImage();
-                    uchar* ptrBplane = (uchar*)BplusUnex->getRawImage();
-                    int padImage = YofYUVpy->getPadding();
-                    int red, green, blue;
-                    int htYUV = YofYUVpy->height();
-                    int wdYUV = YofYUVpy->width();
-                    for(int i=0 ; i< htYUV; ++i){
-                        for(int j=0; j< wdYUV; ++j){
-                            // should use bit-wise ops?
-                            red = *ptrYplane + 1.403* *ptrVplane;
-                            green = *ptrYplane - 0.344* *ptrUplane - 0.714* *ptrVplane;
-                            blue = *ptrYplane + 1.770* *ptrUplane;
-                            
-                            *ptrRplane++ = max(0,min(255,red));
-                            *ptrGplane++ = max(0,min(255,green));
-                            *ptrBplane++ = max(0,min(255,blue));
-                            ptrYplane++;
-                            ptrUplane++;
-                            ptrVplane++;
-                        }
-                        ptrRplane += padImage;
-                        ptrGplane += padImage;
-                        ptrBplane += padImage;
-                        ptrYplane += padImage;
-                        ptrUplane += padImage;
-                        ptrVplane += padImage;
-                        
-                   }          
-                    
-                    
-                    iCub::logpolar::replicateBorderLogpolar(*Rplus, *RplusUnex, maxKernelSize);  
-                    iCub::logpolar::replicateBorderLogpolar(*Gplus, *GplusUnex, maxKernelSize);
-                    iCub::logpolar::replicateBorderLogpolar(*Bplus, *BplusUnex, maxKernelSize);
-                    
-                    #ifdef DEBUG_OPENCV
-                    cvNamedWindow("YofYUVpy");
-                    cvShowImage("YofYUVpy",(IplImage*)YofYUVpy->getIplImage());
-                    cvNamedWindow("UofYUVpy");
-                    cvShowImage("UofYUVpy",(IplImage*)UofYUVpy->getIplImage());
-                    cvNamedWindow("VofYUVpy");
-                    cvShowImage("VofYUVpy",(IplImage*)VofYUVpy->getIplImage());
-                    cvNamedWindow("redPlane");
-                    cvShowImage("redPlane", (IplImage*)redPlane->getIplImage());
-                    cvNamedWindow("greenPlane");
-                    cvShowImage("greenPlane", (IplImage*)greenPlane->getIplImage());
-                    cvNamedWindow("bluePlane");
-                    cvShowImage("bluePlane", (IplImage*)bluePlane->getIplImage());
-                    cvWaitKey(2);
-                    #endif
-                    
-                    //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);                   
-                    
-                }
-                else{
-                    //performs centre-surround uniqueness analysis on second plane:
-                    centerSurr->proc_im_8u( (IplImage*)(this->unXtnUplane->getIplImage()),(IplImage*)_UV.getIplImage() );
-
-                    //Colour process V:performs centre-surround uniqueness analysis:
-                    centerSurr->proc_im_8u( (IplImage*)(this->unXtnVplane->getIplImage()), (IplImage*)_V.getIplImage());
-                }                   
-             
-                //output Y centre-surround results to ports
-                if (intensityCSPort.getOutputCount() ){
-                    intensityCSPort.write();
-                }
-
-                //output UV centre-surround results to ports
-                if ( chromPort.getOutputCount() ){
-                    chromPort.write();
-                }
-                //output UV centre-surround results to ports
-                if ( !isYUV && VofHSVPort.getOutputCount()){
-                    VofHSVPort.write();
-                }
-
-                
-        #ifdef DEBUG_OPENCV
-                cvNamedWindow("CS_Y");
-                cvShowImage("CS_Y", (IplImage*)_Y.getIplImage());
-                cvNamedWindow("CS_UV");
-                cvShowImage("CS_UV", (IplImage*)_UV.getIplImage());
-                cvNamedWindow("CS_V");
-                cvShowImage("CS_V", (IplImage*)_V.getIplImage());
-                cvWaitKey(2);
-        #endif
-                
-            
-
-    }
-        
-       
+                                     
 }
 
 void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double multFactor, double shiftFactor){
@@ -752,13 +599,7 @@ void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double
 void logOFThread::threadRelease() {    
     
 
-    resized = false;
-    
-    printf("----Releasing earlyVision thread ... \n");
-    edThread->stop();
-    printf("----Releasing chrome thread ... \n");
-    chromeThread->stop();    
-    printf("-----Chrome thread correctly closed \n");
+    resized = false;    
 
     // deallocating resources
     delete inputImage;
