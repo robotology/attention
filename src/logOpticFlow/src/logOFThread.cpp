@@ -50,10 +50,7 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     Bplus               = new ImageOf<PixelMono>;
     Bminus              = new ImageOf<PixelMono>;
     Yminus              = new ImageOf<PixelMono>;    
-    tmpMonoLPImage      = new ImageOf<PixelMono>;
-    tmpMono16LPImage    = new ImageOf<PixelMono16>;
-    tmpMono16LPImage1   = new ImageOf<PixelMono16>;
-    tmpMono16LPImage2   = new ImageOf<PixelMono16>;    
+  
     
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
@@ -78,7 +75,8 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     RplusUnex           = new ImageOf<PixelMono>;
     GplusUnex           = new ImageOf<PixelMono>;
     BplusUnex           = new ImageOf<PixelMono>;
-    
+
+    tmpMonoLPImage      = new ImageOf<PixelMono>;
 
     gaborPosHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,0,.5,0);
     gaborPosVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
@@ -165,33 +163,23 @@ std::string logOFThread::getName(const char* p) {
 void logOFThread::run() {   
      
         inputImage  = imagePortIn.read(false);
-        /*IplImage *imgRGB;
-        imgRGB = cvLoadImage("logPtemp.jpg");
-        inputImage->resize(imgRGB->width,imgRGB->height);
-        inputImage->zero();
-        cvAdd(imgRGB,(IplImage*)inputImage->getIplImage(),(IplImage*)inputImage->getIplImage());
-        cvWaitKey(2);
-        cvReleaseImage(&imgRGB);*/
-       
-        
-        
+                      
         if (inputImage != NULL) {
             if (!resized) {
                 resize(inputImage->width(), inputImage->height());
                 filteredInputImage->zero(); 
                 resized = true;
             }
+
+            extender(maxKernelSize);
             if((inputImage!=0)&&(imagePortOut.getOutputCount())) {
-                imagePortOut.prepare() = *(inputImage);
+                imagePortOut.prepare() = *(extendedInputImage);
                 imagePortOut.write();
             }
-            filterInputImage();
-            
-            extender(maxKernelSize);
-             //printf("red plus dimension in resize3  %d %d \n", cvRedPlus->width, cvRedPlus->height);
-            
+                        
             // extract RGB and Y planes
             extractPlanes();
+
              //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
                
             centerSurrounding();
@@ -206,25 +194,12 @@ void logOFThread::run() {
             if((intensImg!=0)&&(intenPort.getOutputCount())) {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
-            }
-
-            
-            /*
-            if((Yplane!=0)&&(chromPort.getOutputCount())) {
-                chromPort.prepare() = *(Yplane);
-                chromPort.write();
-                }
-            */
-
-            //if((edges!=0)&&(edgesPort.getOutputCount())) {
-                //edgesPort.prepare() = *(edges);
-                //edgesPort.write();
-           // }
+            }            
             
 #ifdef DEBUG_OPENCV
             cvWaitKey(0);
 #endif           
-        }    
+        } // end if input image != NULL    
 }
 
 
@@ -250,15 +225,6 @@ void logOFThread::resize(int width_orig,int height_orig) {
     Yminus->resize(width, height);
     
     tmpMonoLPImage->resize(width, height);
-    tmpMono16LPImage->resize(width, height);
-    tmpMono16LPImage1->resize(width, height);
-    tmpMono16LPImage2->resize(width, height);
-    //tmpMonoLPImageSobelHorz->resize(width, height);
-    //tmpMonoLPImageSobelVert->resize(width, height);
-    //tmpMonoSobelImage1->resize(width,height);
-    //tmpMonoSobelImage2->resize(width,height);    
-
-    //edges->resize(width, height);
     intensImg->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);    
 
@@ -314,7 +280,7 @@ void logOFThread::filterInputImage() {
 
 
 void logOFThread::extender(int maxSize) {
-    iCub::logpolar::replicateBorderLogpolar(*extendedInputImage, *filteredInputImage, maxSize);    
+    iCub::logpolar::replicateBorderLogpolar(*extendedInputImage, *inputImage, maxSize);    
 }
 
 void logOFThread::extractPlanes() {
@@ -392,9 +358,7 @@ void logOFThread::extractPlanes() {
                 *ptrUnXtnIntensImg++ = *ptrIntensityImg;
                 *unXtnYUV[0]++ = *YUV[0];
                 *unXtnYUV[1]++ = *YUV[1];
-                *unXtnYUV[2]++ = *YUV[2];
-                
-                
+                *unXtnYUV[2]++ = *YUV[2];                
             }
 
             ptrIntensityImg++;
@@ -408,8 +372,7 @@ void logOFThread::extractPlanes() {
         // paddings
         inputPointer += padInput;
         ptrIntensityImg += padMono;
-        if(r>=maxKernelSize){
-            
+        if(r>=maxKernelSize){            
             ptrUnXtnIntensImg += padUnX;
             unXtnYUV[0] += padUnXtnYUV;
             unXtnYUV[1] += padUnXtnYUV;
@@ -432,7 +395,7 @@ void logOFThread::filtering() {
     
     //Positive
     // This is calculated via first scale of YUV planes
-    /*tmpMonoLPImage->zero();
+    tmpMonoLPImage->zero();
     gaborPosHorConvolution->convolve1D(redPlane,tmpMonoLPImage);
     gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Rplus);
     
@@ -443,7 +406,7 @@ void logOFThread::filtering() {
 
     tmpMonoLPImage->zero();
     gaborPosHorConvolution->convolve1D(greenPlane,tmpMonoLPImage);
-    gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Gplus);*/      
+    gaborPosVerConvolution->convolve1D(tmpMonoLPImage,Gplus);      
        
     
     //Negative
@@ -485,14 +448,14 @@ void logOFThread::colorOpponency(){
     uchar* pGR = coGR.getRawImage();
     uchar* pBY = coBY.getRawImage();
 
-    uchar* rPlus = Rplus->getRawImage();
+    uchar* rPlus  = Rplus->getRawImage();
     uchar* rMinus = Rminus->getRawImage();
-    uchar* gPlus = Gplus->getRawImage();
+    uchar* gPlus  = Gplus->getRawImage();
     uchar* gMinus = Gminus->getRawImage();
-    uchar* bPlus = Bplus->getRawImage();
+    uchar* bPlus  = Bplus->getRawImage();
     uchar* yMinus = Yminus->getRawImage();
 
-    int padChannel = Rplus->getPadding();
+    int padChannel   = Rplus->getPadding();
     int padOpponents = coRG.getPadding();
 
     for(int r = 0; r < height; r++) {
@@ -612,10 +575,9 @@ void logOFThread::threadRelease() {
     delete Bplus;
     delete Bminus;
     delete Yminus;
-    delete tmpMonoLPImage;
-    delete tmpMono16LPImage;
-    delete tmpMono16LPImage1;
-    delete tmpMono16LPImage2;
+
+
+
     delete gaborPosHorConvolution;    
     delete gaborPosVerConvolution;    
     delete gaborNegHorConvolution;    
@@ -639,6 +601,7 @@ void logOFThread::threadRelease() {
     delete RplusUnex;
     delete GplusUnex;
     delete BplusUnex;
+    delete tmpMonoLPImage;
     
     printf("correctly deleting the images \n");
     imagePortIn.interrupt();

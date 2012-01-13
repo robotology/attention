@@ -41,38 +41,9 @@ bool logOFModule::configure(yarp::os::ResourceFinder &rf) {
     
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
-                           Value("/earlyVision"), 
+                           Value("/logOpticFlow"), 
                            "module name (string)").asString();
-
-    /* get the weight for the horizontal orientation */
-    double wHorizontal    = rf.check("whorizontal", 
-                           Value(2.0), 
-                           "weight horiziontal orientation (Double)").asDouble();
-
-    /* get the weight for the vertical orientation */
-    double wVertical       = rf.check("wvertical", 
-                           Value(2.0), 
-                           "weight vertical orientation (Double)").asDouble();
-
-    /* get the weight for the 45 degrees orientation */
-    double w45Degrees      = rf.check("w45degrees", 
-                           Value(0.0), 
-                           "weight 45 degrees orientation (Double)").asDouble();
-
-    /* get the weight for the minus 45 degrees orientation */
-    double wM45Degrees     = rf.check("wM45degrees", 
-                           Value(0.0), 
-                           "weight minus 45 degrees orientation (Double)").asDouble();   
-    
-    printf("weight set for the linear combination in orientation \n");
-    printf("weight horizontal direction       : %f \n",wHorizontal );
-    printf("weight vertical direction         : %f \n",wVertical );
-    printf("weight 45 degress direction       : %f \n",w45Degrees );
-    printf("weight minus 45 degrees direction : %f \n",wM45Degrees );
-    
-    
-
-
+  
     /*
     * before continuing, set the module name before getting any other parameters, 
     * specifically the port names which are dependent on the module name
@@ -107,7 +78,11 @@ bool logOFModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* now start the thread to do the work */
+    evThread = new logOFThread();
+    evThread->setName(getName().c_str());
     evThread->start(); // this calls threadInit() and it if returns true, it then calls run()        
+
+    printf("started the thread \n");
     
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module

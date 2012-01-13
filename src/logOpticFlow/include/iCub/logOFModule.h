@@ -2,8 +2,8 @@
 
 /* 
  * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Rea Francesco, Shashank Pathak
- * email:   francesco.rea@iit.it, shashank.pathak@iit.it
+ * Authors: Rea Francesco
+ * email:   francesco.rea@iit.it
  * website: www.robotcub.org 
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -20,7 +20,7 @@
 
 /**
  * @file logOFModule.h
- * @brief Simple module that implements efficient visual feature maps extraction;
+ * @brief Simple module that implements efficient computation of the opticflow in logpolar images;
  */
 
 #ifndef _LOG_OF_MODULE_H_
@@ -31,15 +31,11 @@
  * \defgroup icub_logOpticFlow logOpticFlow
  * @ingroup icub_logpolarAttention
  *
- * This is a module that applies various bio-inspired (early visual feature cues) transformations on the input image:
+ * This is a module that computes optic flow in log polar images
  *
- * 1. extract color planes R,G,B,Y 
- * 2. extract color opponency maps   
- * 3. computes YUV (chrominance) maps based on RGB colours
- * 4. extract orientation applying Kirsch operator over intensity
- * 5. extract edges based on sobel operator applied over intensity
- * where (1,2),(3,4) and 5 are done by logOpticFlow thread, chrominance thread and edges thread respectively. These thread
- * have different frequencies (motivated from biological observation in primate vision).
+ * The computation is based on the paper Kruger (Estimation optic Flow in the log-polar plane) and a logpolar 
+ * mapping Berton, Metta ( A brief introduction on log polar mapping)
+ * 
  * 
  * \section lib_sec Libraries
  *
@@ -64,18 +60,6 @@
  * - \c robot \c icub \n 
  *   specifies the name of the robot (used to form the root of robot port names)
  * 
- * - \c whorizontal \c 2.0 \n
- *   specifies the value for the weight in the combination of orientation
- *
- * - \c wvertical \c 2.0 \n
- *   specifies the value for the weight in the combination of orientation
- *
- * - \c w45degrees \c 2.0 \n
- *   specifies the value for the weight in the combination of orientation
- *
- * - \c wM45degrees \c 2.0 \n
- *   specifies the value for the weight in the combination of orientation
- *
  * 
  * <b>Configuration File Parameters</b>
  *
@@ -143,7 +127,7 @@
  * 
  * <tt>logOpticFlow --name logOpticFlow --context logOpticFlow/conf --from logOpticFlow.ini --robot icub</tt>
  *
- * \author Rea Francesco, Shashank Pathak
+ * \author Rea Francesco
  *
  * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
@@ -154,7 +138,7 @@
 
 /**
  * \section changel_log CHANGE LOG
- * 12/09/11 : added factor 2 for the combination of orientation and introduced parameters for weights configuration \author Rea \n
+ * 13/01/12 : creation date                                                  \author Rea \n
  */
 
 #include <iostream>
@@ -222,7 +206,7 @@ public:
 };
 
 
-#endif // __EARLY_VISION_MODULE_H__
+#endif // __LOG_OF_MODULE_H__
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 

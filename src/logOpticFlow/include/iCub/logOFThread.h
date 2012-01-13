@@ -39,13 +39,8 @@
 #include <cvaux.h>
 #include <highgui.h>
 
-//#include <iCub/logPolar.h>
 #include <iCub/convolve.h>
 #include <iCub/config.h>
-//#include <iCub/centerSurround.h>
-//#include <iCub/chrominanceThread.h>
-//#include <iCub/edgesThread.h>
-
 
 #define MONO_PIXEL_SIZE 1
 
@@ -63,11 +58,7 @@ private:
     int width, height;                  // dimension of the extended input image (extending)
     int width_cart, height_cart;        // dimension of the cartesian width and height    
     float lambda;                       // costant for the temporal filter
-    double wHorizontal;                 // value of the weight of orizontal orientation
-    double wVertical;                   // value of the weight of vertical orientation
-    double w45Degrees;                  // value of the weight of 45 degrees orientation
-    double wM45Degrees;                 // value of the weight of minus 45 degrees orientation    
-
+    
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extendedInputImage;
@@ -92,20 +83,16 @@ private:
     // a set of LUT for YUV to RGB conversion (on stack)
     //float YUV2RGB[3][256];
     //bool setYUV2RGB;
+    
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImage;      // temporary mono logpolar image
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImage;
-    yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
-    yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage1;
-    yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage2;
-    
-    
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
         
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;            //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;       //yarp intensity image
     
   
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
@@ -128,8 +115,8 @@ private:
 
     //CenterSurround *centerSurr;    
 
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  imagePortIn;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  imagePortOut;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
@@ -169,29 +156,7 @@ public:
     */
     void setName(std::string str);
     
-    /**
-    * function that set the value for the weight horizontal orientation in linear combination
-    * @param value double value of the weight
-    */
-    void setWHorizontal(double value) { wHorizontal = value; };
-
-    /**
-    * function that set the value for the weight vertical orientation in linear combination
-    * @param value double value of the weight
-    */
-    void setWVertical(double value) { wVertical = value; };
-
-    /**
-    * function that set the value for the weight 45 degrees orientation in linear combination
-    * @param value double value of the weight
-    */
-    void setW45Degrees(double value) { w45Degrees = value; };
-
-    /**
-    * function that set the value for the weight minus 45 degrees orientation in linear combination
-    * @param value double value of the weight
-    */
-    void setWM45Degrees(double value) { wM45Degrees = value; };
+   
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter
