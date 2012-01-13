@@ -28,10 +28,12 @@
 #ifndef _LOG_OF_THREAD_H_
 #define _LOG_OF_THREAD_H_
 
+#include <iostream>
+
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
-#include <iostream>
 #include <yarp/os/Stamp.h>
+
 /* Log-Polar includes */
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
 
@@ -42,7 +44,10 @@
 #include <iCub/convolve.h>
 #include <iCub/config.h>
 
+#include <iCub/opticFlowComputer.h>
+
 #define MONO_PIXEL_SIZE 1
+#define COUNTCOMPUTERS 10
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
@@ -58,8 +63,11 @@ private:
     int width, height;                  // dimension of the extended input image (extending)
     int width_cart, height_cart;        // dimension of the cartesian width and height    
     float lambda;                       // costant for the temporal filter
+
+    opticFlowComputer* ofComputer[10];   // array of optic flow computers
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extendedInputImage;
     

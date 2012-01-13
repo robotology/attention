@@ -41,6 +41,7 @@ inline T max(T a, T b, T c) {
 logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
+    outputImage          = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
     extendedInputImage  = new ImageOf<PixelRgb>;    
     Rplus               = new ImageOf<PixelMono>;
@@ -82,7 +83,6 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     gaborPosVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
     gaborNegHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
     gaborNegVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
-
     
     lambda  = 0.3f;
     resized = false;
@@ -96,9 +96,7 @@ logOFThread::~logOFThread() {
 bool logOFThread::threadInit() {
     printf("opening ports by main thread\n");
 
-
-    /* open ports */     
-   
+    /* open ports */        
     if (!imagePortIn.open(getName("/imageRGB:i").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
@@ -122,12 +120,10 @@ bool logOFThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
-
     if (!colorOpp3Port.open(getName("/colorOppB+Y-:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
-
     if(isYUV){        
         if (!chromPort.open(getName("/chrominance:o").c_str())) {
             cout << ": unable to open port "  << endl;
@@ -139,12 +135,14 @@ bool logOFThread::threadInit() {
             cout << ": unable to open port "  << endl;
             return false;  // unable to open; let RFModule know so that it won't run
         }    
-    }
-    
+    }    
     if (!intensityCSPort.open(getName("/centSurrIntensity:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
+
+    
 
     return true;
 }
@@ -258,7 +256,16 @@ void logOFThread::resize(int width_orig,int height_orig) {
     scs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     vcs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     
-
+    /* initialising the optic flow computers */
+    ofComputer[0] = new opticFlowComputer(0,10,10,5);
+    ofComputer[0]->setName(getName("").c_str());
+    ofComputer[0]->setCalculusPointer(intensImg->getRawImage());
+    ofComputer[0]->setRepresenPointer(outputImage->getRawImage());
+    Semaphore* calc1 = new Semaphore();
+    Semaphore* repr1 = new Semaphore();
+    ofComputer[0]->setCalculusSem(*calc1);
+    ofComputer[0]->setCalculusSem(*repr1);
+    ofComputer[0]->start();
     
     isYUV = true; 
     
@@ -566,6 +573,7 @@ void logOFThread::threadRelease() {
 
     // deallocating resources
     delete inputImage;
+    delete outputImage;
     delete filteredInputImage;
     delete extendedInputImage;
     delete Rplus;
@@ -602,6 +610,8 @@ void logOFThread::threadRelease() {
     delete GplusUnex;
     delete BplusUnex;
     delete tmpMonoLPImage;
+
+    delete ofComputer[0];
     
     printf("correctly deleting the images \n");
     imagePortIn.interrupt();
