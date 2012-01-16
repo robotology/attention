@@ -47,7 +47,8 @@
 #include <iCub/opticFlowComputer.h>
 
 #define MONO_PIXEL_SIZE 1
-#define COUNTCOMPUTERS 21
+#define COUNTCOMPUTERSX 21
+#define COUNTCOMPUTERSY 1
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
@@ -63,12 +64,13 @@ private:
     int width_cart, height_cart;        // dimension of the cartesian width and height    
     float lambda;                       // costant for the temporal filter
 
-    opticFlowComputer* ofComputer[COUNTCOMPUTERS];   // array of optic flow computers
-    Semaphore*         calcSem[COUNTCOMPUTERS];      // array of semaphore for calculus image
-    Semaphore*         reprSem[COUNTCOMPUTERS];      // array of semaphore for representation
+    opticFlowComputer* ofComputer[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   // array of optic flow computers
+    yarp::os::Semaphore** calcSem;      // array of semaphore for calculus image
+    yarp::os::Semaphore** reprSem;      // array of semaphore for representation
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* finalOutputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extendedInputImage;
     
@@ -194,6 +196,16 @@ public:
     */
     void extender(int extDimension); 
 
+    /**
+     * @brief function that force on wait all the semaphores in a list 
+     */
+    void waitSemaphores(yarp::os::Semaphore** pointer);
+
+    /**
+     * @brief function that force on post all the semaphores in a list 
+     */
+    void postSemaphores(yarp::os::Semaphore** pointer);
+    
     /**
     * function that extendes the original image of the desired value for future convolutions (in-place operation)
     * @param origImage originalImage

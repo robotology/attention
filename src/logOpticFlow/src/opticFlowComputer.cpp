@@ -116,7 +116,7 @@ void opticFlowComputer::run() {
 
 void opticFlowComputer::representImage(){
     unsigned char* tempPointer;
-    semRepresent.wait();
+    //semRepresent.wait();
     tempPointer = represPointer;
     int rowSize = (((252 + 5)/ 8)+ 1)  * 8;
     if(represPointer!=0) {
@@ -150,7 +150,7 @@ void opticFlowComputer::representImage(){
     else {
         printf("null pointer \n");
     }
-    semRepresent.post();
+    //semRepresent.post();
     
 }
 

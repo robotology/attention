@@ -40,11 +40,14 @@ inline T max(T a, T b, T c) {
 }
 
 inline void  copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
-    int width   = src->width();
-    int height  = src->height();
-    int padding = src->getPadding();
     unsigned char* srcp = src->getRawImage();
     unsigned char* destp = dest->getRawImage();
+    
+    int height  = src->height();
+    int rowSize = src->getRowSize();
+
+    /*int width   = src->width();
+    int padding = src->getPadding();
     for (int row = 0; row < height; row++) {
         for(int col = 0; col < width; col++) {
             *destp++ = *srcp++;
@@ -53,13 +56,26 @@ inline void  copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
         }
         destp += padding;
         srcp  += padding;
-    }
+        }*/
+
+    memcpy(destp,srcp,height * rowSize * sizeof(char));
+
 }
 
 logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
+
+    calcSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+    for(int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
+        calcSem[i] = new Semaphore();
+    }
+    reprSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+    for(int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
+        reprSem[i] = new Semaphore();
+    }
     
     inputImage          = new ImageOf<PixelRgb>;
     outputImage         = new ImageOf<PixelRgb>;
+    finalOutputImage    = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
     extendedInputImage  = new ImageOf<PixelRgb>;    
     Rplus               = new ImageOf<PixelMono>;
@@ -159,9 +175,6 @@ bool logOFThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-
-    
-
     return true;
 }
 
@@ -176,6 +189,25 @@ std::string logOFThread::getName(const char* p) {
     return str;
 }
 
+void logOFThread::waitSemaphores(Semaphore** pointer) {
+    Semaphore* p;
+    //printf(" \n");
+    for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
+        p = pointer[i];
+        //printf("wait semaphores pointer i %d \n", i);
+        p->wait();
+    }
+}
+
+void logOFThread::postSemaphores(Semaphore** pointer) {
+    Semaphore* p;
+    for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
+        p = pointer[i];
+        //printf("post semaphores pointer i %d \n", i);
+        p->post();
+    }
+}
+
 void logOFThread::run() {   
      
         inputImage  = imagePortIn.read(false);
@@ -187,23 +219,25 @@ void logOFThread::run() {
                 resized = true;
             }
 
-            for (int i = 0; i < COUNTCOMPUTERS; i++) {
+            for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
                 if(!ofComputer[i]->hasStarted()) {
                     printf("the optic flow computer %d has not started \n", i);
-                    if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {
-                        //for(int col = 0; col < countXComputer; col++) {
+                    if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {                       
                             printf("init flow computer %d \n", i);
                             initFlowComputer(i);
-                            ofComputer[i]->setHasStarted(true);
-                            
-                            //}
+                            ofComputer[i]->setHasStarted(true); 
                     }
                 }
             }
             
-
+            
             extender(maxKernelSize);
+            //printf("wait before copying \n");
+            //waitSemaphores(reprSem);
             copyImage(extendedInputImage, outputImage);
+            //postSemaphores(reprSem);
+            //printf("after way \n");
+            
                                     
             // extract RGB and Y planes
             extractPlanes();
@@ -223,10 +257,18 @@ void logOFThread::run() {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
             }            
-            if((inputImage!=0)&&(imagePortOut.getOutputCount())) {
-                imagePortOut.prepare() = *(outputImage);
+
+
+            waitSemaphores(reprSem);
+            copyImage(outputImage, finalOutputImage);
+            postSemaphores(reprSem);
+
+            
+            if((inputImage!=0)&&(imagePortOut.getOutputCount())) {               
+                imagePortOut.prepare() = *(finalOutputImage);                         
                 imagePortOut.write();
             }
+            
             
 #ifdef DEBUG_OPENCV
             cvWaitKey(0);
@@ -250,6 +292,7 @@ void logOFThread::resize(int width_orig,int height_orig) {
     filteredInputImage->resize(width_orig,height_orig);
     extendedInputImage->resize(width, height);
     outputImage->resize(width, height);
+    finalOutputImage->resize(width, height);
     Rplus->resize(width, height);
     Rminus->resize(width, height);
     Gplus->resize(width, height);
@@ -297,14 +340,17 @@ void logOFThread::resize(int width_orig,int height_orig) {
     
     /* initialising the optic flow computers */
     printf("initialising the opticflow computers \n");
-    for(int col = 0; col < COUNTCOMPUTERS; col ++) {
-        ofComputer[col] = new opticFlowComputer(col,6,12 * col + 6 + 5,5);
-        ofComputer[col]->setName(getName("").c_str());
-        ofComputer[col]->setHasStarted(false);
-        ofComputer[col]->start();
-    }
-    
-  
+    for(int row = 0; row < COUNTCOMPUTERSY; row ++) {
+        for(int col = 0; col < COUNTCOMPUTERSX; col ++) {
+            ofComputer[row * COUNTCOMPUTERSX + col] = new opticFlowComputer(row * COUNTCOMPUTERSX + col,
+                                                                            12 * row + 1 + 6,
+                                                                            12 * col + 6 + 5,
+                                                                            5);
+            ofComputer[row * COUNTCOMPUTERSX + col]->setName(getName("").c_str());
+            ofComputer[row * COUNTCOMPUTERSX + col]->setHasStarted(false);
+            ofComputer[row * COUNTCOMPUTERSX + col]->start();
+        }
+    }    
 }
 
 void logOFThread::initFlowComputer(int index) {
@@ -312,8 +358,6 @@ void logOFThread::initFlowComputer(int index) {
     ofComputer[index]->setCalculusPointer(intensImg->getRawImage());
     printf("setting representation pointer %x \n", outputImage->getRawImage());
     ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
-    calcSem[index] = new Semaphore();
-    reprSem[index] = new Semaphore();
     printf("setting semaphores \n");
     ofComputer[index]->setCalculusSem(*calcSem[index]);
     ofComputer[index]->setRepresentSem(*reprSem[index]);
@@ -621,6 +665,7 @@ void logOFThread::threadRelease() {
     // deallocating resources
     delete inputImage;
     delete outputImage;
+    delete finalOutputImage;
     delete filteredInputImage;
     delete extendedInputImage;
     delete Rplus;
