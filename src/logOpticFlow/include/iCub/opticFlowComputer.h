@@ -60,9 +60,9 @@ private:
     int id;                             // identification number of the computer
     int posXi, posGamma;                // center position of the processing
     int neigh;                          // dimension of the neighborhood
-    int width_orig, height_orig;        // dimension of the input image (original)
-    int width, height;                  // dimension of the extended input image (extending)
-    int width_cart, height_cart;        // dimension of the cartesian width and height    
+    
+    int width, height;                  // dimension of the computation domain of the computer
+        
     float lambda;                       // costant for the temporal filter
     double wHorizontal;                 // value of the weight of orizontal orientation
     double wVertical;                   // value of the weight of vertical orientation
@@ -138,6 +138,7 @@ private:
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized   
+    bool hasStartedFlag;    // flag that indicates whether the thread has started
     
 public:
     /**
@@ -190,6 +191,15 @@ public:
     */
     void resizeCartesian(int width, int height);
 
+    /**
+     * @brief function that indicates whether the thread has started
+     */
+    bool hasStarted() { return hasStartedFlag; };
+
+    /**
+     * @brief function that sets the hasStarted flag
+     */
+    void setHasStarted(bool value) { hasStartedFlag =  value; };
 
     /**
      * @brief function that declares which image the computer is working on

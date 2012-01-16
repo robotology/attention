@@ -47,14 +47,13 @@
 #include <iCub/opticFlowComputer.h>
 
 #define MONO_PIXEL_SIZE 1
-#define COUNTCOMPUTERS 10
+#define COUNTCOMPUTERS 21
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8
 #endif
  
-
 class logOFThread : public yarp::os::RateThread  {
 private:
     
@@ -64,7 +63,9 @@ private:
     int width_cart, height_cart;        // dimension of the cartesian width and height    
     float lambda;                       // costant for the temporal filter
 
-    opticFlowComputer* ofComputer[10];   // array of optic flow computers
+    opticFlowComputer* ofComputer[COUNTCOMPUTERS];   // array of optic flow computers
+    Semaphore*         calcSem[COUNTCOMPUTERS];      // array of semaphore for calculus image
+    Semaphore*         reprSem[COUNTCOMPUTERS];      // array of semaphore for representation
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
@@ -242,6 +243,13 @@ public:
     */
     void addFloatImage(IplImage* sourceImage, CvMat* toBeAddedImage, double multFactor, double shiftFactor);
       
+    
+    /**
+     * @brief function that initialise a specific optic flow computer
+     * @param index id number of the computer to be initialised
+     */
+    void initFlowComputer(int index);
+
     
     //edgesThread *edThread;                 // thread that extract edges
     //chrominanceThread *chromeThread;       // thread that extract orientation information 

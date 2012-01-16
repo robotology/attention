@@ -31,7 +31,6 @@ using namespace std;
 
 
 opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THREAD) {
-    
     inputImage          = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
     extendedInputImage  = new ImageOf<PixelRgb>;    
@@ -41,9 +40,7 @@ opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THR
     Gminus              = new ImageOf<PixelMono>;
     Bplus               = new ImageOf<PixelMono>;
     Bminus              = new ImageOf<PixelMono>;
-    Yminus              = new ImageOf<PixelMono>;    
-
-   
+    Yminus              = new ImageOf<PixelMono>;       
     
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
@@ -72,6 +69,10 @@ opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THR
     lambda  = 0.3f;
     resized = false;
     isYUV   = true;
+    hasStartedFlag = false;
+
+
+    width = 12; height = 12;
 }
 
 opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() {
@@ -79,6 +80,7 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
     posXi = pXi;
     posGamma = pGamma;
     neigh = n ;
+    width = 6; height = 6;
 }
 
 opticFlowComputer::~opticFlowComputer() {
@@ -86,57 +88,6 @@ opticFlowComputer::~opticFlowComputer() {
 }
 
 bool opticFlowComputer::threadInit() {
-    printf("opening ports by main thread\n");
-
-    /* open ports */     
-   
-    if (!imagePortIn.open(getName("/imageRGBc:i").c_str())) {
-        cout <<": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    } 
-    if (!imagePortOut.open(getName("/imageRGBc:o").c_str())) {
-        cout <<": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    } 
-   
-    if (!intenPort.open(getName("/intensityc:o").c_str())) {
-        cout <<": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }   
-
-    if (!colorOpp1Port.open(getName("/colorOppR+G-c:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-
-    if (!colorOpp2Port.open(getName("/colorOppG+R-c:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-
-    if (!colorOpp3Port.open(getName("/colorOppB+Y-c:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-
-    if(isYUV){        
-        if (!chromPort.open(getName("/chrominancec:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
-    }
-    else{        
-        if (!chromPort.open(getName("/S:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }    
-    }
-    
-    if (!intensityCSPort.open(getName("/centSurrIntensityc:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-
     return true;
 }
 
@@ -154,9 +105,12 @@ std::string opticFlowComputer::getName(const char* p) {
 void opticFlowComputer::run() {   
     while(isRunning()) {
         //estimateOF();
-        // printf("represent Image \n");
-        representImage();   
-        Time::delay(0.1);
+         
+        if(hasStartedFlag) {
+            //printf("represent Image \n");
+            representImage();   
+            Time::delay(0.01);
+        }
     }
 }
 
@@ -164,13 +118,34 @@ void opticFlowComputer::representImage(){
     unsigned char* tempPointer;
     semRepresent.wait();
     tempPointer = represPointer;
+    int rowSize = (((252 + 5)/ 8)+ 1)  * 8;
     if(represPointer!=0) {
-        printf("image size %x  \n", represPointer);
-        tempPointer += posXi * 252 + posGamma;
+        //printf("image pointer %x %d %d %d \n", represPointer, posXi, posGamma, width);
+        tempPointer  = represPointer + (posXi * rowSize + posGamma) * 3;
+        *tempPointer = 255; tempPointer++;
         *tempPointer = 0; tempPointer++;
         *tempPointer = 0; tempPointer++;
-        *tempPointer = 0; tempPointer++;
-        *tempPointer = 0;
+        
+        tempPointer  = represPointer + ((posXi - width) * rowSize + (posGamma - height)) * 3;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+        
+        tempPointer  = represPointer + ((posXi - width) * rowSize + (posGamma + height)) * 3;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+        
+        tempPointer  = represPointer + ((posXi + width ) * rowSize + (posGamma - height)) * 3;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+        
+        tempPointer  = represPointer + ((posXi + width ) * rowSize + (posGamma + height)) * 3;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+        *tempPointer = 255; tempPointer++;
+             
     }
     else {
         printf("null pointer \n");
@@ -180,16 +155,10 @@ void opticFlowComputer::representImage(){
 }
 
 void opticFlowComputer::resize(int width_orig,int height_orig) {
-
-
-    this->width_orig = inputImage->width();//width_orig;
-    this->height_orig = inputImage->height();//height_orig;
-    
-    width = this->width_orig+2*maxKernelSize;
-    height = this->height_orig+maxKernelSize;    
+ 
     
     //resizing yarp image 
-    filteredInputImage->resize(this->width_orig, this->height_orig);
+    filteredInputImage->resize(width, height);
     extendedInputImage->resize(width, height);
     Rplus->resize(width, height);
     Rminus->resize(width, height);
@@ -201,7 +170,7 @@ void opticFlowComputer::resize(int width_orig,int height_orig) {
    
     //edges->resize(width, height);
     intensImg->resize(width, height);
-    unXtnIntensImg->resize(this->width_orig,this->height_orig);    
+    //    unXtnIntensImg->resize(this->width_orig,this->height_orig);    
 
     redPlane->resize(width, height);
     greenPlane->resize(width, height);
@@ -467,26 +436,13 @@ void opticFlowComputer::colorOpponency(){
 }
 
 void opticFlowComputer::centerSurrounding(){
-
-        
-        
-        // Allocate temporarily
-        ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
-        _Y.resize(this->width_orig,this->height_orig);
-
-        ImageOf<PixelMono>& _UV = chromPort.prepare();
-        _UV.resize(this->width_orig,this->height_orig);
-        
-        ImageOf<PixelMono>& _V = VofHSVPort.prepare();
-        _V.resize(this->width_orig,this->height_orig);
         
         YofYUVpy->zero();
         VofYUVpy->zero();
         UofYUVpy->zero();
         Rplus->zero();
         Bplus->zero();
-        Gplus->zero();
-        
+        Gplus->zero();        
         
         //float YUV2RGBCoeff[9]={1, 0, 1.403,
                                 //1, -.344, -.714,
@@ -522,6 +478,8 @@ void opticFlowComputer::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, 
 
 void opticFlowComputer::onStop(){
     resized = false;
+
+    printf("opticFlowComputer::onStop()");
 
     // deallocating resources
     delete inputImage;

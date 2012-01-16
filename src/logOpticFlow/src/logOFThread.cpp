@@ -31,6 +31,7 @@ using namespace yarp::sig;
 using namespace std;
 
 
+
 template<class T>
 inline T max(T a, T b, T c) {    
     if(b > a) a = b;
@@ -38,10 +39,27 @@ inline T max(T a, T b, T c) {
     return a;
 }
 
+inline void  copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
+    int width   = src->width();
+    int height  = src->height();
+    int padding = src->getPadding();
+    unsigned char* srcp = src->getRawImage();
+    unsigned char* destp = dest->getRawImage();
+    for (int row = 0; row < height; row++) {
+        for(int col = 0; col < width; col++) {
+            *destp++ = *srcp++;
+            *destp++ = *srcp++;
+            *destp++ = *srcp++;
+        }
+        destp += padding;
+        srcp  += padding;
+    }
+}
+
 logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
-    outputImage          = new ImageOf<PixelRgb>;
+    outputImage         = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
     extendedInputImage  = new ImageOf<PixelRgb>;    
     Rplus               = new ImageOf<PixelMono>;
@@ -161,7 +179,7 @@ std::string logOFThread::getName(const char* p) {
 void logOFThread::run() {   
      
         inputImage  = imagePortIn.read(false);
-                      
+                    
         if (inputImage != NULL) {
             if (!resized) {
                 resize(inputImage->width(), inputImage->height());
@@ -169,12 +187,24 @@ void logOFThread::run() {
                 resized = true;
             }
 
-            extender(maxKernelSize);
-            if((inputImage!=0)&&(imagePortOut.getOutputCount())) {
-                imagePortOut.prepare() = *(extendedInputImage);
-                imagePortOut.write();
+            for (int i = 0; i < COUNTCOMPUTERS; i++) {
+                if(!ofComputer[i]->hasStarted()) {
+                    printf("the optic flow computer %d has not started \n", i);
+                    if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {
+                        //for(int col = 0; col < countXComputer; col++) {
+                            printf("init flow computer %d \n", i);
+                            initFlowComputer(i);
+                            ofComputer[i]->setHasStarted(true);
+                            
+                            //}
+                    }
+                }
             }
-                        
+            
+
+            extender(maxKernelSize);
+            copyImage(extendedInputImage, outputImage);
+                                    
             // extract RGB and Y planes
             extractPlanes();
 
@@ -193,6 +223,10 @@ void logOFThread::run() {
                 intenPort.prepare() = *(intensImg);
                 intenPort.write();
             }            
+            if((inputImage!=0)&&(imagePortOut.getOutputCount())) {
+                imagePortOut.prepare() = *(outputImage);
+                imagePortOut.write();
+            }
             
 #ifdef DEBUG_OPENCV
             cvWaitKey(0);
@@ -204,16 +238,18 @@ void logOFThread::run() {
 
 void logOFThread::resize(int width_orig,int height_orig) {
 
-
-    this->width_orig = inputImage->width();//width_orig;
+    this->width_orig  = inputImage->width(); //width_orig;
     this->height_orig = inputImage->height();//height_orig;
     
-    width = this->width_orig+2*maxKernelSize;
-    height = this->height_orig+maxKernelSize;    
+    width  = this->width_orig   + maxKernelSize * 2;
+    height = this->height_orig  + maxKernelSize;
+    printf("expressing width and height %d %d \n", width, height);
     
     //resizing yarp image 
-    filteredInputImage->resize(this->width_orig, this->height_orig);
+    
+    filteredInputImage->resize(width_orig,height_orig);
     extendedInputImage->resize(width, height);
+    outputImage->resize(width, height);
     Rplus->resize(width, height);
     Rminus->resize(width, height);
     Gplus->resize(width, height);
@@ -256,23 +292,34 @@ void logOFThread::resize(int width_orig,int height_orig) {
     scs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     vcs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     
+    /* zeroing the images*/
+    outputImage->zero();
+    
     /* initialising the optic flow computers */
-    ofComputer[0] = new opticFlowComputer(0,10,10,5);
-    ofComputer[0]->setName(getName("").c_str());
-    ofComputer[0]->setCalculusPointer(intensImg->getRawImage());
-    ofComputer[0]->setRepresenPointer(outputImage->getRawImage());
-    Semaphore* calc1 = new Semaphore();
-    Semaphore* repr1 = new Semaphore();
-    ofComputer[0]->setCalculusSem(*calc1);
-    ofComputer[0]->setCalculusSem(*repr1);
-    ofComputer[0]->start();
+    printf("initialising the opticflow computers \n");
+    for(int col = 0; col < COUNTCOMPUTERS; col ++) {
+        ofComputer[col] = new opticFlowComputer(col,6,12 * col + 6 + 5,5);
+        ofComputer[col]->setName(getName("").c_str());
+        ofComputer[col]->setHasStarted(false);
+        ofComputer[col]->start();
+    }
     
-    isYUV = true; 
-    
+  
 }
 
-void logOFThread::filterInputImage() {
-    
+void logOFThread::initFlowComputer(int index) {
+    printf("setting calculus %x pointer \n", intensImg->getRawImage());
+    ofComputer[index]->setCalculusPointer(intensImg->getRawImage());
+    printf("setting representation pointer %x \n", outputImage->getRawImage());
+    ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
+    calcSem[index] = new Semaphore();
+    reprSem[index] = new Semaphore();
+    printf("setting semaphores \n");
+    ofComputer[index]->setCalculusSem(*calcSem[index]);
+    ofComputer[index]->setRepresentSem(*reprSem[index]);
+}
+
+void logOFThread::filterInputImage() {    
     int i;
     const int szInImg = inputImage->getRawImageSize();
     unsigned char * pFilteredInpImg = filteredInputImage->getRawImage();
@@ -567,7 +614,7 @@ void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double
 
 
 void logOFThread::threadRelease() {    
-    
+    printf("logOFThread: thread releasing \n");
 
     resized = false;    
 
@@ -584,7 +631,7 @@ void logOFThread::threadRelease() {
     delete Bminus;
     delete Yminus;
 
-
+    
 
     delete gaborPosHorConvolution;    
     delete gaborPosVerConvolution;    
@@ -611,7 +658,9 @@ void logOFThread::threadRelease() {
     delete BplusUnex;
     delete tmpMonoLPImage;
 
-    delete ofComputer[0];
+    printf("correctly freed memory of images \n");
+
+    //ofComputer[0]->stop();
     
     printf("correctly deleting the images \n");
     imagePortIn.interrupt();
