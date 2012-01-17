@@ -80,14 +80,14 @@ private:
     int xiStart, xiEnd;                 // xi value limits
     int dimComput;                      // dimension of the image area of any computer
 
-    yarp::sig::Matrix Grxi;             // gradient along the xi direction
-    yarp::sig::Matrix Grgamma;          // gradient along the gamma axis
-    yarp::sig::Matrix Grt;              // temporal gradient
-    yarp::sig::Matrix H,s,G,B,A,K,V;    // matrix of the tranformation from opticflow in log to opticflow in cart
-    yarp::sig::Matrix Kt,c,b,bwMat;
-    yarp::sig::Matrix u,v;
-    yarp::sig::Matrix wMat;
-    yarp::sig::Vector S;
+    yarp::sig::Matrix* Grxi;             // gradient along the xi direction
+    yarp::sig::Matrix* Grgamma;          // gradient along the gamma axis
+    yarp::sig::Matrix* Grt;              // temporal gradient
+    yarp::sig::Matrix *H,*s,*G,*B,*A,*K,*V;    // matrix of the tranformation from opticflow in log to opticflow in cart
+    yarp::sig::Matrix *Kt,*c,*b,*bwMat;
+    yarp::sig::Matrix *u,*v;
+    yarp::sig::Matrix *wMat;
+    yarp::sig::Vector *S;
     
     //static double const q       = 0.5 * (Na / PI);
     static double const qdouble = Na / PI;

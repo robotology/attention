@@ -119,36 +119,36 @@ opticFlowComputer::~opticFlowComputer() {
 
 bool opticFlowComputer::threadInit() {
 
-    
     q    = 0.5 * qdouble; // in rads
-
-    printf("log e = %f \n", log(2.7182));
 
     a    = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
     F    = a / (a - 1);
     rho0 = 1 / (pow (a, F) * (a - 1));
 
-    halfNeigh = floor(neigh / 2) + 1; 
+    printf("correctly initialised variables \n");
 
-      
+    halfNeigh = floor(neigh / 2) + 1; 
     gammaStart = -4; gammaEnd = 4;
     xiStart    = -4; xiEnd    = 4;
     dimComput = gammaEnd - gammaStart;
 
-    Grxi(5,5);     // matrix of xi gradient
-    Grgamma(5,5);  // matrix of gamma gradient
-    Grt(5,5);      // matrix of temporal gradient
-    H(2,2);        
-    s(2,1);
-    G(2,1);
-    B(10,2);
-    A(2,2);
+    printf("correctly initialised indexes \n");
+
+    Grxi    = new Matrix(5,5);     // matrix of xi gradient
+    Grgamma = new Matrix(5,5);     // matrix of gamma gradient
+    Grt     = new Matrix(5,5);     // matrix of temporal gradient
+    H       = new Matrix(2,2);        
+    s       = new Matrix(2,1);
+    G       = new Matrix(2,1);
+    B       = new Matrix(10,2);
+    A       = new Matrix(2,2);
     
+    printf("correctly initialised the matrices \n");
     
-    b(25,1);
-    bwMat(25,25);
-    u(dimComput,dimComput);
-    v(dimComput,dimComput);
+    b       = new Matrix(25,1);
+    bwMat   = new Matrix(25,25);
+    u       = new Matrix(dimComput,dimComput);
+    v       = new Matrix(dimComput,dimComput);
     
     Vector wVec(25);
     wVec(0)  = 0.0103; wVec(1)  = 0.0463; wVec(2)  = 0.0764; wVec(3)  = 0.0463; wVec(4)  = 0.0103;
@@ -156,8 +156,10 @@ bool opticFlowComputer::threadInit() {
     wVec(10) = 0.0764; wVec(11) = 0.3422; wVec(12) = 0.2076; wVec(13) = 0.0463; wVec(14) = 0.0764;
     wVec(15) = 0.0463; wVec(16) = 0.2076; wVec(17) = 0.3422; wVec(18) = 0.2076; wVec(19) = 0.0463;
     wVec(20) = 0.0103; wVec(21) = 0.0463; wVec(22) = 0.0764; wVec(23) = 0.0463; wVec(24) = 0.0103;
-    wMat(25,25);
+    wMat    = new Matrix(25,25);
     wMat.diagonal(wVec);
+    
+    printf("correctly initialised the weight matrix \n");
 
     return true;
 }
@@ -196,16 +198,16 @@ void opticFlowComputer::estimateOF(){
             i = 0;
             for (int dGamma = -halfNeigh; dGamma <= halfNeigh; dGamma++) {
                 for (int dXi = -halfNeigh; dXi <= halfNeigh; dXi++) {
-                    Grxi(dXi,dGamma) = 10;
-                    Grgamma(dXi,dGamma) = 10;
-                    Grt(dXi,dGamma) = 10;
+                    Grxi->operator()(dXi,dGamma) = 10;
+                    Grgamma->operator()(dXi,dGamma) = 10;
+                    Grt->operator()(dXi,dGamma) = 10;
 
                     H(0,0) =      fcos[gamma + dGamma]/log(a);
                     H(0,1) =      fsin[gamma + dGamma]/log(a);
                     H(1,0) = -q * fsin[gamma + dGamma];
                     H(1,1) =  q * fcos[gamma + dGamma];
                     
-                    s(1,0) = Grxi(dXi,dGamma); s(2,0) = Grgamma(dXi,dGamma);
+                    s(1,0) = Grxi->operator()(dXi,dGamma); s(2,0) = Grgamma->operator()(dXi,dGamma);
                     G = s * H;
                     B(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G(1,0);
                     B(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G(2,0);
@@ -214,7 +216,7 @@ void opticFlowComputer::estimateOF(){
             }
             
             A = wMat * B;
-            b = reshape(Grt,neigh * neigh, 1);
+            b = reshape(*Grt,neigh * neigh, 1);
             b = -1 * b;
             bwMat = b * wMat;
             SVD(A,K,S,V);
@@ -633,8 +635,25 @@ void opticFlowComputer::onStop(){
     delete RplusUnex;
     delete GplusUnex;
     delete BplusUnex;
+
+    printf("correctly freed memory for images \n");
     
-    printf("correctly deleting the images \n");
+    delete Grxi;
+    delete Grgamma;     // matrix of gamma gradient
+    delete Grt; 
+    delete H;           
+    delete s;   
+    delete G;
+    delete B;   
+    delete A;
+        
+    delete b;      
+    delete bwMat;  
+    delete u;      
+    delete v;      
+    
+    printf("correctly deleting matrices \n");
+
     imagePortIn.interrupt();
     imagePortOut.interrupt();
     intenPort.interrupt();
