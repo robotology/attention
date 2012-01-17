@@ -99,7 +99,9 @@ opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THR
     for (int j = 0; j < 252; j ++) {
         double gammarad = (j / 180) * PI;
         fcos[j] = sin(gammarad / q);
+        printf(" %d",fcos[j] );
         fsin[j] = cos(gammarad / q);
+        printf(" %d \n",fsin[j] );
     }
 
     width = 12; height = 12;
@@ -111,6 +113,15 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
     posGamma = pGamma;
     neigh = n ;
     width = 6; height = 6;
+
+    double q = 0.5 * qdouble;
+    for (int j = 0; j < 252; j ++) {
+        double gamma = j;
+        fcos[j] = sin(gamma / q);
+        printf(" %f",fcos[j] );
+        fsin[j] = cos(gamma / q);
+        printf(" %f \n",fsin[j]);
+    }
 }
 
 opticFlowComputer::~opticFlowComputer() {
@@ -120,16 +131,15 @@ opticFlowComputer::~opticFlowComputer() {
 bool opticFlowComputer::threadInit() {
 
     q    = 0.5 * qdouble; // in rads
-
     a    = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
     F    = a / (a - 1);
     rho0 = 1 / (pow (a, F) * (a - 1));
 
-    printf("correctly initialised variables \n");
+    printf(" \n correctly initialised variables \n");
 
     halfNeigh = floor(neigh / 2) + 1; 
-    gammaStart = -4; gammaEnd = 4;
-    xiStart    = -4; xiEnd    = 4;
+    gammaStart = posGamma - 4; gammaEnd = posGamma + 4;
+    xiStart    = posXi - 4;    xiEnd    = posXi + 4;
     dimComput = gammaEnd - gammaStart;
 
     printf("correctly initialised indexes \n");
@@ -138,9 +148,9 @@ bool opticFlowComputer::threadInit() {
     Grgamma = new Matrix(5,5);     // matrix of gamma gradient
     Grt     = new Matrix(5,5);     // matrix of temporal gradient
     H       = new Matrix(2,2);        
-    s       = new Matrix(2,1);
+    s       = new Matrix(1,2);
     G       = new Matrix(2,1);
-    B       = new Matrix(10,2);
+    B       = new Matrix(25,2);
     A       = new Matrix(2,2);
     
     printf("correctly initialised the matrices \n");
@@ -191,6 +201,7 @@ void opticFlowComputer::run() {
 
 void opticFlowComputer::estimateOF(){
     // initialisation
+    printf("opticFlowComputer::estimateOF \n");
     unsigned char* pCalc = calculusPointer;  
     double k1, k2;
   
@@ -198,36 +209,53 @@ void opticFlowComputer::estimateOF(){
     for (int gamma = gammaStart; gamma< gammaEnd; gamma++) {
         for(int xi = xiStart; xi < xiEnd; xi++) {
             i = 0;
-            for (int dGamma = -halfNeigh; dGamma <= halfNeigh; dGamma++) {
-                for (int dXi = -halfNeigh; dXi <= halfNeigh; dXi++) {
+            for (int dGamma = 0; dGamma < neigh; dGamma++) {
+                for (int dXi = 0; dXi < neigh; dXi++) {
+                    printf("inner loop %d %d \n", dGamma, dXi);
+                    
+                    H->operator()(0,0) =      fcos[gamma + halfNeigh - dGamma]/log(a);
+                    H->operator()(0,1) =      fsin[gamma + halfNeigh - dGamma]/log(a);
+                    H->operator()(1,0) = -q * fsin[gamma + halfNeigh - dGamma];
+                    H->operator()(1,1) =  q * fcos[gamma + halfNeigh - dGamma];
+                    
+                    printf("H = \n %s \n ",H->toString().c_str());
+
                     Grxi->operator()(dXi,dGamma) = 10;
                     Grgamma->operator()(dXi,dGamma) = 10;
                     Grt->operator()(dXi,dGamma) = 10;
-
-                    H->operator()(0,0) =      fcos[gamma + dGamma]/log(a);
-                    H->operator()(0,1) =      fsin[gamma + dGamma]/log(a);
-                    H->operator()(1,0) = -q * fsin[gamma + dGamma];
-                    H->operator()(1,1) =  q * fcos[gamma + dGamma];
                     
-                    s->operator()(1,0) = Grxi->operator()(dXi,dGamma); 
-                    s->operator()(2,0) = Grgamma->operator()(dXi,dGamma);
+                    printf("just calculated the gradients \n");
+                    
+                    s->operator()(0,0) = Grxi->operator()(dXi,dGamma); 
+                    s->operator()(0,1) = Grgamma->operator()(dXi,dGamma);
                     *G = *s * *H;
-                    B->operator()(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(1,0);
-                    B->operator()(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(2,0);
+                    
+                    printf("calculated the product \n ");
+                    B->operator()(i,0) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(0,0);
+                    B->operator()(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(0,1);                    
                     i = i + 1;
                 }
             }
             
+            printf("end of the neighborhood loop \n");
             *A = *wMat * *B;
+            printf("trying to reshape coefficients \n");
             *b = reshape(*Grt,neigh * neigh, 1);
+            printf("reshaped the matrix in to b =  \n");
+            printf(" %s \n", b->toString().c_str());
+            
             *b = -1 * *b;
             *bwMat = *b * *wMat;
+            printf("running the SVD \n");
             SVD(*A,*K,*S,*V);
+            printf("success in running the SVD \n");
             *Kt = K->transposed();
+            printf("finding c \n");
             *c  = *Kt * *b;
+            printf("dividing by the singular values found \n");
             k1 = c->operator()(0,0) / S->operator()(0);
             k2 = c->operator()(1,0) / S->operator()(1);
-            
+            printf("obtaining the motion field \n");
             u->operator()(xi,gamma) = V->operator()(0,0) * k1;
             v->operator()(xi,gamma) = V->operator()(1,0) * k2;
         }

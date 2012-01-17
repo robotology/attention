@@ -47,8 +47,8 @@
 #include <iCub/opticFlowComputer.h>
 
 #define MONO_PIXEL_SIZE 1
-#define COUNTCOMPUTERSX 21
-#define COUNTCOMPUTERSY 13
+#define COUNTCOMPUTERSX 1  //21
+#define COUNTCOMPUTERSY 1  //13
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
