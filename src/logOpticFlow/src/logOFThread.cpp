@@ -342,6 +342,7 @@ void logOFThread::resize(int width_orig,int height_orig) {
     printf("initialising the opticflow computers \n");
     for(int row = 0; row < COUNTCOMPUTERSY; row ++) {
         for(int col = 0; col < COUNTCOMPUTERSX; col ++) {
+            printf("\n initialising %d computer \n ",row * COUNTCOMPUTERSX + col );
             ofComputer[row * COUNTCOMPUTERSX + col] = new opticFlowComputer(row * COUNTCOMPUTERSX + col,
                                                                             12 * row + 1 + 6,
                                                                             12 * col + 6 + 5,

@@ -30,6 +30,28 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
+inline Matrix reshape(Matrix a,int col, int row) {
+    int rows = a.rows();
+    int cols = a.cols();
+    Matrix b(row,col);
+    if(rows * cols != col * row) {
+        b.zero();
+        return b;
+    }
+    int rb = 0;
+    int cb = 0;
+    for (int ra = 0; ra < rows; ra++) {
+        for(int ca = 0; ca < cols; ca++) {
+            b(rb,cb) = a(ra,ca);
+            cb++;
+            if(cb >= col){
+                rb++;
+            }
+        }
+    }
+    return b;
+}
+
 
 opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THREAD) {
     inputImage          = new ImageOf<PixelRgb>;
@@ -96,6 +118,47 @@ opticFlowComputer::~opticFlowComputer() {
 }
 
 bool opticFlowComputer::threadInit() {
+
+    
+    q    = 0.5 * qdouble; // in rads
+
+    printf("log e = %f \n", log(2.7182));
+
+    a    = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
+    F    = a / (a - 1);
+    rho0 = 1 / (pow (a, F) * (a - 1));
+
+    halfNeigh = floor(neigh / 2) + 1; 
+
+      
+    gammaStart = -4; gammaEnd = 4;
+    xiStart    = -4; xiEnd    = 4;
+    dimComput = gammaEnd - gammaStart;
+
+    Grxi(5,5);     // matrix of xi gradient
+    Grgamma(5,5);  // matrix of gamma gradient
+    Grt(5,5);      // matrix of temporal gradient
+    H(2,2);        
+    s(2,1);
+    G(2,1);
+    B(10,2);
+    A(2,2);
+    
+    
+    b(25,1);
+    bwMat(25,25);
+    u(dimComput,dimComput);
+    v(dimComput,dimComput);
+    
+    Vector wVec(25);
+    wVec(0)  = 0.0103; wVec(1)  = 0.0463; wVec(2)  = 0.0764; wVec(3)  = 0.0463; wVec(4)  = 0.0103;
+    wVec(5)  = 0.0463; wVec(6)  = 0.2076; wVec(7)  = 0.3422; wVec(8)  = 0.2076; wVec(9)  = 0.0463;
+    wVec(10) = 0.0764; wVec(11) = 0.3422; wVec(12) = 0.2076; wVec(13) = 0.0463; wVec(14) = 0.0764;
+    wVec(15) = 0.0463; wVec(16) = 0.2076; wVec(17) = 0.3422; wVec(18) = 0.2076; wVec(19) = 0.0463;
+    wVec(20) = 0.0103; wVec(21) = 0.0463; wVec(22) = 0.0764; wVec(23) = 0.0463; wVec(24) = 0.0103;
+    wMat(25,25);
+    wMat.diagonal(wVec);
+
     return true;
 }
 
@@ -124,38 +187,9 @@ void opticFlowComputer::run() {
 
 void opticFlowComputer::estimateOF(){
     // initialisation
-    //int Na = 252;
-
-    double q       = 0.5 * qdouble; // in rads
-
-    double a    = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
-    double F    = a / (a - 1);
-    double rho0 = 1 / (pow (a, F) * (a - 1));
-
-    int halfNeigh = floor(neigh / 2) + 1; 
-
-    unsigned char* pCalc = calculusPointer;    
-    int gammaStart = -4; int gammaEnd = 4;
-    int xiStart    = -4; int xiEnd    = 4;
-
-    Matrix Grxi(5,5);     // matrix of xi gradient
-    Matrix Grgamma(5,5);  // matrix of gamma gradient
-    Matrix Grt(5,5);      // matrix of temporal gradient
-    Matrix H(2,2);        // matrix of the tranformation from opticflow in log to opticflow in cart
-    Matrix s(2,1);
-    Matrix G(2,1);
-    Matrix B(10,2);
-    Matrix A(2,2);
-    
-    Vector wVec(25);
-    wVec(0)  = 0.0103; wVec(1)  = 0.0463; wVec(2)  = 0.0764; wVec(3)  = 0.0463; wVec(4)  = 0.0103;
-    wVec(5)  = 0.0463; wVec(6)  = 0.2076; wVec(7)  = 0.3422; wVec(8)  = 0.2076; wVec(9)  = 0.0463;
-    wVec(10) = 0.0764; wVec(11) = 0.3422; wVec(12) = 0.2076; wVec(13) = 0.0463; wVec(14) = 0.0764;
-    wVec(15) = 0.0463; wVec(16) = 0.2076; wVec(17) = 0.3422; wVec(18) = 0.2076; wVec(19) = 0.0463;
-    wVec(20) = 0.0103; wVec(21) = 0.0463; wVec(22) = 0.0764; wVec(23) = 0.0463; wVec(24) = 0.0103;
-    Matrix wMat(25,25);
-    wMat.diagonal(wVec);
-
+    unsigned char* pCalc = calculusPointer;  
+    double k1, k2;
+  
     int i = 0;
     for (int gamma = gammaStart; gamma< gammaEnd; gamma++) {
         for(int xi = xiStart; xi < xiEnd; xi++) {
@@ -180,7 +214,17 @@ void opticFlowComputer::estimateOF(){
             }
             
             A = wMat * B;
-  
+            b = reshape(Grt,neigh * neigh, 1);
+            b = -1 * b;
+            bwMat = b * wMat;
+            SVD(A,K,S,V);
+            Kt = K.transposed();
+            c  = Kt * b;
+            k1 = c(0,0) / S(0);
+            k2 = c(1,0) / S(1);
+            
+            u(xi,gamma) = V(0,0) * k1;
+            v(xi,gamma) = V(1,0) * k2;
         }
     }
     
@@ -189,13 +233,11 @@ void opticFlowComputer::estimateOF(){
     //A(1,0) = 1; A(1,1) = 1; A(1,2) = 1;
     //A(2,0) = 1; A(2,1) = 1; A(2,2) = 1;
 
-    Matrix U, V; Vector S;
-    yarp::math::SVD(A,U,S,V);
 }
 
 void opticFlowComputer::representImage(){
     unsigned char* tempPointer;
-    //semRepresent.wait();
+    semRepresent.wait();
     tempPointer = represPointer;
     int rowSize = (((252 + 5)/ 8)+ 1)  * 8;
     if(represPointer!=0) {
@@ -229,7 +271,7 @@ void opticFlowComputer::representImage(){
     else {
         printf("null pointer \n");
     }
-    //semRepresent.post();
+    semRepresent.post();
     
 }
 
