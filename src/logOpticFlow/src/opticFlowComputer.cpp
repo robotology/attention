@@ -149,6 +149,8 @@ bool opticFlowComputer::threadInit() {
     bwMat   = new Matrix(25,25);
     u       = new Matrix(dimComput,dimComput);
     v       = new Matrix(dimComput,dimComput);
+    printf("trying to initialise the weight matrix \n");
+
     
     Vector wVec(25);
     wVec(0)  = 0.0103; wVec(1)  = 0.0463; wVec(2)  = 0.0764; wVec(3)  = 0.0463; wVec(4)  = 0.0103;
@@ -157,7 +159,7 @@ bool opticFlowComputer::threadInit() {
     wVec(15) = 0.0463; wVec(16) = 0.2076; wVec(17) = 0.3422; wVec(18) = 0.2076; wVec(19) = 0.0463;
     wVec(20) = 0.0103; wVec(21) = 0.0463; wVec(22) = 0.0764; wVec(23) = 0.0463; wVec(24) = 0.0103;
     wMat    = new Matrix(25,25);
-    wMat.diagonal(wVec);
+    wMat->diagonal(wVec);
     
     printf("correctly initialised the weight matrix \n");
 
@@ -202,31 +204,32 @@ void opticFlowComputer::estimateOF(){
                     Grgamma->operator()(dXi,dGamma) = 10;
                     Grt->operator()(dXi,dGamma) = 10;
 
-                    H(0,0) =      fcos[gamma + dGamma]/log(a);
-                    H(0,1) =      fsin[gamma + dGamma]/log(a);
-                    H(1,0) = -q * fsin[gamma + dGamma];
-                    H(1,1) =  q * fcos[gamma + dGamma];
+                    H->operator()(0,0) =      fcos[gamma + dGamma]/log(a);
+                    H->operator()(0,1) =      fsin[gamma + dGamma]/log(a);
+                    H->operator()(1,0) = -q * fsin[gamma + dGamma];
+                    H->operator()(1,1) =  q * fcos[gamma + dGamma];
                     
-                    s(1,0) = Grxi->operator()(dXi,dGamma); s(2,0) = Grgamma->operator()(dXi,dGamma);
-                    G = s * H;
-                    B(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G(1,0);
-                    B(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G(2,0);
+                    s->operator()(1,0) = Grxi->operator()(dXi,dGamma); 
+                    s->operator()(2,0) = Grgamma->operator()(dXi,dGamma);
+                    *G = *s * *H;
+                    B->operator()(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(1,0);
+                    B->operator()(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(2,0);
                     i = i + 1;
                 }
             }
             
-            A = wMat * B;
-            b = reshape(*Grt,neigh * neigh, 1);
-            b = -1 * b;
-            bwMat = b * wMat;
-            SVD(A,K,S,V);
-            Kt = K.transposed();
-            c  = Kt * b;
-            k1 = c(0,0) / S(0);
-            k2 = c(1,0) / S(1);
+            *A = *wMat * *B;
+            *b = reshape(*Grt,neigh * neigh, 1);
+            *b = -1 * *b;
+            *bwMat = *b * *wMat;
+            SVD(*A,*K,*S,*V);
+            *Kt = K->transposed();
+            *c  = *Kt * *b;
+            k1 = c->operator()(0,0) / S->operator()(0);
+            k2 = c->operator()(1,0) / S->operator()(1);
             
-            u(xi,gamma) = V(0,0) * k1;
-            v(xi,gamma) = V(1,0) * k2;
+            u->operator()(xi,gamma) = V->operator()(0,0) * k1;
+            v->operator()(xi,gamma) = V->operator()(1,0) * k2;
         }
     }
     
