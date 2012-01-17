@@ -34,6 +34,9 @@
 #include <yarp/os/all.h>
 #include <yarp/os/Stamp.h>
 #include <yarp/os/Semaphore.h>
+#include <yarp/sig/Matrix.h>
+#include <yarp/math/SVD.h>
+
 /* Log-Polar includes */
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
 
@@ -46,7 +49,7 @@
 #include <iCub/config.h>
 
 
-
+//#define PI 3.1415
 #define MONO_PIXEL_SIZE 1
 
 // patches for now
@@ -68,6 +71,9 @@ private:
     double wVertical;                   // value of the weight of vertical orientation
     double w45Degrees;                  // value of the weight of 45 degrees orientation
     double wM45Degrees;                 // value of the weight of minus 45 degrees orientation    
+
+    float fcos[252];                    // LUT of cos(gamma)
+    float fsin[252];                    // LUT of sin(gamma)
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
@@ -220,12 +226,16 @@ public:
      * @brief function that associate a semaphore to the portion of image to represent
      */
     void setRepresentSem(yarp::os::Semaphore sem) { semRepresent = sem; };
-
-    
+   
     /**
      * @brief represent information directly in the image
      */
     void representImage();
+
+    /**
+     * @brief estimate the optical flow 
+     */
+    void estimateOF();
 
     /**
     * function that extendes the original image of the desired value for future convolutions (in-place operation)

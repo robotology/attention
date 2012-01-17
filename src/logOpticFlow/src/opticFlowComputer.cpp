@@ -70,7 +70,12 @@ opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THR
     resized = false;
     isYUV   = true;
     hasStartedFlag = false;
-
+    
+    for (int j = 0; j < 252; j ++) {
+        double gammarad = (j / 180) * PI;
+        fcos[j] = sin(gammarad);
+        fsin[j] = cos(gammarad);
+    }
 
     width = 12; height = 12;
 }
@@ -104,7 +109,7 @@ std::string opticFlowComputer::getName(const char* p) {
 
 void opticFlowComputer::run() {   
     while(isRunning()) {
-        //estimateOF();
+        estimateOF();
          
         if(hasStartedFlag) {
             //printf("represent Image \n");
@@ -112,6 +117,26 @@ void opticFlowComputer::run() {
             Time::delay(0.01);
         }
     }
+}
+
+void opticFlowComputer::estimateOF(){
+    // initialisation
+    int Na = 252;
+
+    double qdouble = Na / PI;       // in rads
+    double q       = 0.5 * qdouble; // in rads
+
+    double a = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
+    double F = a / (a - 1);
+    double rho0 = 1 / (pow (a, F) * (a - 1));
+
+    Matrix A(3,3);
+    A(0,0) = 1; A(0,1) = 1; A(0,2) = 1;
+    A(1,0) = 1; A(1,1) = 1; A(1,2) = 1;
+    A(2,0) = 1; A(2,1) = 1; A(2,2) = 1;
+
+    Matrix U, V; Vector S;
+    yarp::math::SVD(A,U,S,V);
 }
 
 void opticFlowComputer::representImage(){

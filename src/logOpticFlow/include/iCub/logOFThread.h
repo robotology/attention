@@ -48,7 +48,7 @@
 
 #define MONO_PIXEL_SIZE 1
 #define COUNTCOMPUTERSX 21
-#define COUNTCOMPUTERSY 1
+#define COUNTCOMPUTERSY 13
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
