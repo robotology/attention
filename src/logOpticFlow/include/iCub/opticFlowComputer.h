@@ -36,6 +36,7 @@
 #include <yarp/os/Semaphore.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/math/SVD.h>
+#include <yarp/math/Math.h>
 
 /* Log-Polar includes */
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
@@ -50,6 +51,7 @@
 
 
 //#define PI 3.1415
+#define Na 252
 #define MONO_PIXEL_SIZE 1
 
 // patches for now
@@ -71,6 +73,9 @@ private:
     double wVertical;                   // value of the weight of vertical orientation
     double w45Degrees;                  // value of the weight of 45 degrees orientation
     double wM45Degrees;                 // value of the weight of minus 45 degrees orientation    
+    
+    //static double const q       = 0.5 * (Na / PI);
+    static double const qdouble = Na / PI;
 
     float fcos[252];                    // LUT of cos(gamma)
     float fsin[252];                    // LUT of sin(gamma)

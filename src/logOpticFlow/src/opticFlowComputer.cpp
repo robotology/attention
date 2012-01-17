@@ -27,6 +27,7 @@
 
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace std;
 
 
@@ -71,10 +72,12 @@ opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THR
     isYUV   = true;
     hasStartedFlag = false;
     
+
+    double q = 0.5 * qdouble;
     for (int j = 0; j < 252; j ++) {
         double gammarad = (j / 180) * PI;
-        fcos[j] = sin(gammarad);
-        fsin[j] = cos(gammarad);
+        fcos[j] = sin(gammarad / q);
+        fsin[j] = cos(gammarad / q);
     }
 
     width = 12; height = 12;
@@ -121,19 +124,70 @@ void opticFlowComputer::run() {
 
 void opticFlowComputer::estimateOF(){
     // initialisation
-    int Na = 252;
+    //int Na = 252;
 
-    double qdouble = Na / PI;       // in rads
     double q       = 0.5 * qdouble; // in rads
 
-    double a = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
-    double F = a / (a - 1);
+    double a    = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
+    double F    = a / (a - 1);
     double rho0 = 1 / (pow (a, F) * (a - 1));
 
-    Matrix A(3,3);
-    A(0,0) = 1; A(0,1) = 1; A(0,2) = 1;
-    A(1,0) = 1; A(1,1) = 1; A(1,2) = 1;
-    A(2,0) = 1; A(2,1) = 1; A(2,2) = 1;
+    int halfNeigh = floor(neigh / 2) + 1; 
+
+    unsigned char* pCalc = calculusPointer;    
+    int gammaStart = -4; int gammaEnd = 4;
+    int xiStart    = -4; int xiEnd    = 4;
+
+    Matrix Grxi(5,5);     // matrix of xi gradient
+    Matrix Grgamma(5,5);  // matrix of gamma gradient
+    Matrix Grt(5,5);      // matrix of temporal gradient
+    Matrix H(2,2);        // matrix of the tranformation from opticflow in log to opticflow in cart
+    Matrix s(2,1);
+    Matrix G(2,1);
+    Matrix B(10,2);
+    Matrix A(2,2);
+    
+    Vector wVec(25);
+    wVec(0)  = 0.0103; wVec(1)  = 0.0463; wVec(2)  = 0.0764; wVec(3)  = 0.0463; wVec(4)  = 0.0103;
+    wVec(5)  = 0.0463; wVec(6)  = 0.2076; wVec(7)  = 0.3422; wVec(8)  = 0.2076; wVec(9)  = 0.0463;
+    wVec(10) = 0.0764; wVec(11) = 0.3422; wVec(12) = 0.2076; wVec(13) = 0.0463; wVec(14) = 0.0764;
+    wVec(15) = 0.0463; wVec(16) = 0.2076; wVec(17) = 0.3422; wVec(18) = 0.2076; wVec(19) = 0.0463;
+    wVec(20) = 0.0103; wVec(21) = 0.0463; wVec(22) = 0.0764; wVec(23) = 0.0463; wVec(24) = 0.0103;
+    Matrix wMat(25,25);
+    wMat.diagonal(wVec);
+
+    int i = 0;
+    for (int gamma = gammaStart; gamma< gammaEnd; gamma++) {
+        for(int xi = xiStart; xi < xiEnd; xi++) {
+            i = 0;
+            for (int dGamma = -halfNeigh; dGamma <= halfNeigh; dGamma++) {
+                for (int dXi = -halfNeigh; dXi <= halfNeigh; dXi++) {
+                    Grxi(dXi,dGamma) = 10;
+                    Grgamma(dXi,dGamma) = 10;
+                    Grt(dXi,dGamma) = 10;
+
+                    H(0,0) =      fcos[gamma + dGamma]/log(a);
+                    H(0,1) =      fsin[gamma + dGamma]/log(a);
+                    H(1,0) = -q * fsin[gamma + dGamma];
+                    H(1,1) =  q * fcos[gamma + dGamma];
+                    
+                    s(1,0) = Grxi(dXi,dGamma); s(2,0) = Grgamma(dXi,dGamma);
+                    G = s * H;
+                    B(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G(1,0);
+                    B(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G(2,0);
+                    i = i + 1;
+                }
+            }
+            
+            A = wMat * B;
+  
+        }
+    }
+    
+    //Matrix A(3,3);
+    //A(0,0) = 1; A(0,1) = 1; A(0,2) = 1;
+    //A(1,0) = 1; A(1,1) = 1; A(1,2) = 1;
+    //A(2,0) = 1; A(2,1) = 1; A(2,2) = 1;
 
     Matrix U, V; Vector S;
     yarp::math::SVD(A,U,S,V);
