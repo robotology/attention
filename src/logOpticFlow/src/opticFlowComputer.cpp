@@ -151,7 +151,10 @@ bool opticFlowComputer::threadInit() {
     s       = new Matrix(1,2);
     G       = new Matrix(2,1);
     B       = new Matrix(25,2);
-    A       = new Matrix(2,2);
+    A       = new Matrix(25,2);
+    K       = new Matrix(2,2);
+    V       = new Matrix(25,2);
+    S       = new Vector(25);
     
     printf("correctly initialised the matrices \n");
     
@@ -239,7 +242,8 @@ void opticFlowComputer::estimateOF(){
             
             printf("end of the neighborhood loop \n");
             *A = *wMat * *B;
-            printf("trying to reshape coefficients \n");
+            printf("trying to reshape coefficients after A =\n");
+            printf("%s \n",A->toString().c_str());
             *b = reshape(*Grt,neigh * neigh, 1);
             printf("reshaped the matrix in to b =  \n");
             printf(" %s \n", b->toString().c_str());
@@ -260,12 +264,6 @@ void opticFlowComputer::estimateOF(){
             v->operator()(xi,gamma) = V->operator()(1,0) * k2;
         }
     }
-    
-    //Matrix A(3,3);
-    //A(0,0) = 1; A(0,1) = 1; A(0,2) = 1;
-    //A(1,0) = 1; A(1,1) = 1; A(1,2) = 1;
-    //A(2,0) = 1; A(2,1) = 1; A(2,2) = 1;
-
 }
 
 void opticFlowComputer::representImage(){
@@ -677,6 +675,9 @@ void opticFlowComputer::onStop(){
     delete G;
     delete B;   
     delete A;
+    delete K;
+    delete s;
+    delete V;
         
     delete b;      
     delete bwMat;  
