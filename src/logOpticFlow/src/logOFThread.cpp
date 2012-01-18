@@ -343,10 +343,11 @@ void logOFThread::resize(int width_orig,int height_orig) {
     for(int row = 0; row < COUNTCOMPUTERSY; row ++) {
         for(int col = 0; col < COUNTCOMPUTERSX; col ++) {
             printf("\n initialising %d computer \n ",row * COUNTCOMPUTERSX + col );
-            ofComputer[row * COUNTCOMPUTERSX + col] = new opticFlowComputer(row * COUNTCOMPUTERSX + col,
-                                                                            12 * row + 1 + 6,
-                                                                            12 * col + 6 + 5,
-                                                                            5);
+            ofComputer[row * COUNTCOMPUTERSX + col] =
+                new opticFlowComputer(row * COUNTCOMPUTERSX + col,
+                                      12 * row + 1 + 6,
+                                      12 * col + 6 + 5,
+                                      5);
             ofComputer[row * COUNTCOMPUTERSX + col]->setName(getName("").c_str());
             ofComputer[row * COUNTCOMPUTERSX + col]->setHasStarted(false);
             ofComputer[row * COUNTCOMPUTERSX + col]->start();
@@ -357,13 +358,15 @@ void logOFThread::resize(int width_orig,int height_orig) {
 void logOFThread::initFlowComputer(int index) {
     printf("setting calculus %x pointer \n", intensImg->getRawImage());
     ofComputer[index]->setCalculusPointer(intensImg->getRawImage());
+    ofComputer[index]->setCalculusRowSize(intensImg->getRowSize());
     printf("setting representation pointer %x \n", outputImage->getRawImage());
     ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
-    ofComputer[index]->setRepresenImage((IplImage*)outputImage->getIplImage());
+    ofComputer[index]->setRepresenImage(outputImage);
     printf("setting semaphores \n");
     ofComputer[index]->setCalculusSem(*calcSem[index]);
     ofComputer[index]->setRepresentSem(*reprSem[index]);
 }
+
 
 void logOFThread::filterInputImage() {    
     int i;
