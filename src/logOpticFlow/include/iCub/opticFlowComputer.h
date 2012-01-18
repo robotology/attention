@@ -132,12 +132,13 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
-    IplImage *cs_tot_32f;  // extended
+    IplImage *cs_tot_32f;    // extended
     IplImage *cs_tot_8u; 
-    IplImage *ycs_out;     // final extended intensity center surround image
-    IplImage *scs_out;     // final extended intensity center surround image
-    IplImage *vcs_out;     // final extended intensity center surround image
-    IplImage *colcs_out;   // final extended coulour center surround image
+    IplImage *ycs_out;       // final extended intensity center surround image
+    IplImage *scs_out;       // final extended intensity center surround image
+    IplImage *vcs_out;       // final extended intensity center surround image
+    IplImage *colcs_out;     // final extended coulour center surround image
+    IplImage *represenImage; // image that is going to be represented
 
     //CenterSurround *centerSurr;    
 
@@ -146,7 +147,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;  
+  
         
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
@@ -238,6 +239,11 @@ public:
     void setRepresenPointer(unsigned char* pImage){ represPointer = pImage; };
 
     /**
+     * @brief set a representation pointer of type IplImage
+     */
+    void setRepresenImage(CvArr* image);  
+
+    /**
      * @brief function that associate a semaphore to the portion of image where computiong
      */
     void setCalculusSem(yarp::os::Semaphore sem) { semCalculus = sem; };
@@ -250,12 +256,17 @@ public:
     /**
      * @brief represent information directly in the image
      */
-    void representImage();
+    void setRepresenImage(IplImage* i) {represenImage = i;};
 
     /**
      * @brief estimate the optical flow 
      */
     void estimateOF();
+    
+    /**
+     * @brief represent the optical flow 
+     */
+    void representOF();
 
     /**
     * function that extendes the original image of the desired value for future convolutions (in-place operation)
