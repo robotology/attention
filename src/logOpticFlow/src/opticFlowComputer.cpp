@@ -30,7 +30,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-inline Matrix reshape(Matrix a,int col, int row) {
+inline Matrix reshape(Matrix a,int row, int col) {
     int rows = a.rows();
     int cols = a.cols();
     Matrix b(row,col);
@@ -46,6 +46,7 @@ inline Matrix reshape(Matrix a,int col, int row) {
             cb++;
             if(cb >= col){
                 rb++;
+                cb = 0;
             }
         }
     }
@@ -118,9 +119,9 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
     for (int j = 0; j < 252; j ++) {
         double gamma = j;
         fcos[j] = sin(gamma / q);
-        printf(" %f",fcos[j] );
+        //printf(" %f",fcos[j] );
         fsin[j] = cos(gamma / q);
-        printf(" %f \n",fsin[j]);
+        //printf(" %f \n",fsin[j]);
     }
 }
 
@@ -141,6 +142,7 @@ bool opticFlowComputer::threadInit() {
     gammaStart = posGamma - 4; gammaEnd = posGamma + 4;
     xiStart    = posXi - 4;    xiEnd    = posXi + 4;
     dimComput = gammaEnd - gammaStart;
+    printf("dimComput %d %d %d \n", dimComput, posGamma, posXi);
 
     printf("correctly initialised indexes \n");
 
@@ -151,14 +153,16 @@ bool opticFlowComputer::threadInit() {
     s       = new Matrix(1,2);
     G       = new Matrix(2,1);
     B       = new Matrix(25,2);
-    A       = new Matrix(25,2);
-    K       = new Matrix(2,2);
-    V       = new Matrix(25,2);
-    S       = new Vector(25);
+    A       = new Matrix(25,2);    
+    V       = new Matrix(2,2);
+    S       = new Vector(2);
+    K       = new Matrix(25,2);
+    Kt      = new Matrix(2,25);
     
     printf("correctly initialised the matrices \n");
     
     b       = new Matrix(25,1);
+    c       = new Matrix(2,1);
     bwMat   = new Matrix(25,25);
     u       = new Matrix(dimComput,dimComput);
     v       = new Matrix(dimComput,dimComput);
@@ -181,7 +185,7 @@ bool opticFlowComputer::threadInit() {
 
 void opticFlowComputer::setName(string str) {
     this->name=str;
-    printf("name: %s", name.c_str());
+    printf("name: %s \n", name.c_str());
 }
 
 std::string opticFlowComputer::getName(const char* p) {
@@ -192,86 +196,120 @@ std::string opticFlowComputer::getName(const char* p) {
 
 void opticFlowComputer::run() {   
     while(isRunning()) {
-        estimateOF();
-         
+        estimateOF();         
         if(hasStartedFlag) {
             //printf("represent Image \n");
-            representImage();   
+            representOF();   
             Time::delay(0.01);
-        }
+        }        
     }
 }
 
 void opticFlowComputer::estimateOF(){
     // initialisation
-    printf("opticFlowComputer::estimateOF \n");
+    unsigned char* pNeigh, *nextRow, *nextPixel;
     unsigned char* pCalc = calculusPointer;  
     double k1, k2;
   
     int i = 0;
-    for (int gamma = gammaStart; gamma< gammaEnd; gamma++) {
-        for(int xi = xiStart; xi < xiEnd; xi++) {
+    for (int gamma = 0; gamma< dimComput; gamma++) {
+        for(int xi = 0; xi < dimComput; xi++) {
             i = 0;
+            pCalc = pCalc + (posXi + xi) * 252 + (posGamma + gamma);
             for (int dGamma = 0; dGamma < neigh; dGamma++) {
                 for (int dXi = 0; dXi < neigh; dXi++) {
-                    printf("inner loop %d %d \n", dGamma, dXi);
+                    //printf("inner loop %d %d \n", dGamma, dXi);
+                    pNeigh = pCalc + (halfNeigh - dXi) * 252 + halfNeigh - dGamma;
                     
-                    H->operator()(0,0) =      fcos[gamma + halfNeigh - dGamma]/log(a);
-                    H->operator()(0,1) =      fsin[gamma + halfNeigh - dGamma]/log(a);
-                    H->operator()(1,0) = -q * fsin[gamma + halfNeigh - dGamma];
-                    H->operator()(1,1) =  q * fcos[gamma + halfNeigh - dGamma];
+                    H->operator()(0,0) =      fcos[posGamma - 4 + gamma + halfNeigh - dGamma]/log(a);
+                    H->operator()(0,1) =      fsin[posGamma - 4 + gamma + halfNeigh - dGamma]/log(a);
+                    H->operator()(1,0) = -q * fsin[posGamma - 4 + gamma + halfNeigh - dGamma];
+                    H->operator()(1,1) =  q * fcos[posGamma - 4 + gamma + halfNeigh - dGamma];
                     
-                    printf("H = \n %s \n ",H->toString().c_str());
-
-                    Grxi->operator()(dXi,dGamma) = 10;
-                    Grgamma->operator()(dXi,dGamma) = 10;
+                    //printf("H = \n %s \n ",H->toString().c_str());
+                    nextRow = pNeigh + 252;
+                    nextPixel = pNeigh + 1;
+                    Grxi->operator()(dXi,dGamma) = *pNeigh - *nextRow ;
+                    Grgamma->operator()(dXi,dGamma) = *pNeigh - *nextPixel;
                     Grt->operator()(dXi,dGamma) = 10;
-                    
-                    printf("just calculated the gradients \n");
                     
                     s->operator()(0,0) = Grxi->operator()(dXi,dGamma); 
                     s->operator()(0,1) = Grgamma->operator()(dXi,dGamma);
                     *G = *s * *H;
-                    
-                    printf("calculated the product \n ");
-                    B->operator()(i,0) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(0,0);
-                    B->operator()(i,1) = (1 / (rho0 * pow(a, xi + dXi))) * G->operator()(0,1);                    
+                   
+                    B->operator()(i,0) = (1 / (rho0 * pow(a, posXi - 4 + xi + dXi))) * G->operator()(0,0);
+                    B->operator()(i,1) = (1 / (rho0 * pow(a, posXi - 4 + xi + dXi))) * G->operator()(0,1);                    
                     i = i + 1;
                 }
             }
             
-            printf("end of the neighborhood loop \n");
             *A = *wMat * *B;
-            printf("trying to reshape coefficients after A =\n");
-            printf("%s \n",A->toString().c_str());
-            *b = reshape(*Grt,neigh * neigh, 1);
-            printf("reshaped the matrix in to b =  \n");
-            printf(" %s \n", b->toString().c_str());
             
-            *b = -1 * *b;
-            *bwMat = *b * *wMat;
-            printf("running the SVD \n");
+            //printf("trying to reshape coefficients after A =\n");
+            //printf("%s \n",A->toString().c_str());
+            *b = reshape(*Grt,neigh * neigh, 1);
+            //printf("reshaped the matrix in to wMat =  \n");
+            //printf(" %s \n", wMat->toString(1,1).c_str());
+            
+            //*b = -1 * *b;
+            *bwMat = *wMat * *b;
+            
+            /*
+            Matrix At(3,2);
+            Matrix Kt(3,2);
+            Vector St(2);
+            Matrix Vt(2,2);
+
+            At(0,0) = 1;  At(0,1) = 2;  
+            At(1,0) = 2;  At(1,1) = 2;  
+            At(2,0) = 0;  At(2,1) = -1; 
+            SVD(At, Kt, St,Vt);
+            
+
+            Matrix Ata = *A;
+            Matrix Kta = *K;
+            Vector Sta = *S;
+            Matrix Vta = *V;
+            */
+            
             SVD(*A,*K,*S,*V);
-            printf("success in running the SVD \n");
+            
+            /*
+            printf("St = \n");
+            printf("%s \n", S->toString().c_str());
+            printf("Vt = \n");            
+            printf("%s \n", V->toString().c_str());
+            */
+            
+
             *Kt = K->transposed();
-            printf("finding c \n");
-            *c  = *Kt * *b;
-            printf("dividing by the singular values found \n");
+            //printf("Kt = \n");
+            //printf("%s \n", Kt->toString().c_str());
+
+
+            *c  = *Kt * *bwMat;
+
             k1 = c->operator()(0,0) / S->operator()(0);
             k2 = c->operator()(1,0) / S->operator()(1);
-            printf("obtaining the motion field \n");
-            u->operator()(xi,gamma) = V->operator()(0,0) * k1;
-            v->operator()(xi,gamma) = V->operator()(1,0) * k2;
+
+            //u->operator()(xi,gamma)
+            double ofu = V->operator()(0,0) * k1;
+            u->operator()(xi,gamma) = ofu;
+            //v->operator()(xi,gamma) 
+            double ofv  = V->operator()(1,0) * k2;     
+            v->operator()(xi,gamma) = ofv;
+            //printf(" optic flow = (%f, %f) \n", ofu, ofv);
         }
     }
 }
 
-void opticFlowComputer::representImage(){
+void opticFlowComputer::representOF(){
     unsigned char* tempPointer;
     semRepresent.wait();
     tempPointer = represPointer;
     int rowSize = (((252 + 5)/ 8)+ 1)  * 8;
     if(represPointer!=0) {
+        //representing the limits
         //printf("image pointer %x %d %d %d \n", represPointer, posXi, posGamma, width);
         tempPointer  = represPointer + (posXi * rowSize + posGamma) * 3;
         *tempPointer = 255; tempPointer++;
@@ -297,6 +335,12 @@ void opticFlowComputer::representImage(){
         *tempPointer = 255; tempPointer++;
         *tempPointer = 255; tempPointer++;
         *tempPointer = 255; tempPointer++;
+
+        
+        //representing the vectors
+        
+        //CvScalar colorScalar = CV_RGB(50,0250)
+        cvLine(represenImage,cvPoint(posGamma + 0, posXi + 0), cvPoint(posGamma + 1, posXi + 1), cvScalar(0,0,255,0));
              
     }
     else {
@@ -354,9 +398,7 @@ void opticFlowComputer::resize(int width_orig,int height_orig) {
     scs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     vcs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     
-    
     isYUV = true; 
-    
 }
 
 void opticFlowComputer::filterInputImage() {
@@ -422,8 +464,7 @@ void opticFlowComputer::extractPlanes() {
     const int w = extendedInputImage->width();
 
     
-    for(int r = 0; r < h; r++) {       
-        
+    for(int r = 0; r < h; r++) {               
         for(int c = 0; c < w; c++) {
             // assuming order of color channels is R,G,B. For some format it could be B,G,R.
             *shift[0] = *inputPointer++;
@@ -453,9 +494,7 @@ void opticFlowComputer::extractPlanes() {
                 *ptrUnXtnIntensImg++ = *ptrIntensityImg;
                 *unXtnYUV[0]++ = *YUV[0];
                 *unXtnYUV[1]++ = *YUV[1];
-                *unXtnYUV[2]++ = *YUV[2];
-                
-                
+                *unXtnYUV[2]++ = *YUV[2];                
             }
 
             ptrIntensityImg++;

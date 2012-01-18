@@ -359,6 +359,7 @@ void logOFThread::initFlowComputer(int index) {
     ofComputer[index]->setCalculusPointer(intensImg->getRawImage());
     printf("setting representation pointer %x \n", outputImage->getRawImage());
     ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
+    ofComputer[index]->setRepresenImage((IplImage*)outputImage->getIplImage());
     printf("setting semaphores \n");
     ofComputer[index]->setCalculusSem(*calcSem[index]);
     ofComputer[index]->setRepresentSem(*reprSem[index]);
