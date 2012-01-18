@@ -67,6 +67,8 @@ private:
     int neigh;                          // dimension of the neighborhood
     
     int width, height;                  // dimension of the computation domain of the computer
+    int rowSize;                        // row size of the image
+    int calculusRowSize;                // row size of the calculus image
         
     float lambda;                       // costant for the temporal filter
     double wHorizontal;                 // value of the weight of orizontal orientation
@@ -98,7 +100,8 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extendedInputImage;
-    
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *represenImage;
+
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Rplus;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Rminus;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *Gplus;
@@ -138,7 +141,7 @@ private:
     IplImage *scs_out;       // final extended intensity center surround image
     IplImage *vcs_out;       // final extended intensity center surround image
     IplImage *colcs_out;     // final extended coulour center surround image
-    IplImage *represenImage; // image that is going to be represented
+    IplImage *represenIpl;   // image that is going to be represented
 
     //CenterSurround *centerSurr;    
 
@@ -236,12 +239,17 @@ public:
     /**
      * @brief function that declares which image the computer is working on
      */
+    void setCalculusRowSize(int value){ calculusRowSize = value; };
+
+    /**
+     * @brief function that declares which image the computer is working on
+     */
     void setRepresenPointer(unsigned char* pImage){ represPointer = pImage; };
 
     /**
      * @brief set a representation pointer of type IplImage
      */
-    void setRepresenImage(CvArr* image);  
+    void setRepresenImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* image);  
 
     /**
      * @brief function that associate a semaphore to the portion of image where computiong
@@ -256,7 +264,7 @@ public:
     /**
      * @brief represent information directly in the image
      */
-    void setRepresenImage(IplImage* i) {represenImage = i;};
+    //void setRepresenImage(IplImage* i) {represenImage = i;};
 
     /**
      * @brief estimate the optical flow 
