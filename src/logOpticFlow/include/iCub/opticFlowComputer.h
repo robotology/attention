@@ -249,7 +249,7 @@ public:
     /**
      * @brief set a representation pointer of type IplImage
      */
-    void setRepresenImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* image);  
+    void setRepresenImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* image) ;  
 
     /**
      * @brief function that associate a semaphore to the portion of image where computiong

@@ -100,9 +100,9 @@ opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THR
     for (int j = 0; j < 252; j ++) {
         double gammarad = (j / 180) * PI;
         fcos[j] = sin(gammarad / q);
-        printf(" %d",fcos[j] );
+        //printf(" %d",fcos[j] );
         fsin[j] = cos(gammarad / q);
-        printf(" %d \n",fsin[j] );
+        //printf(" %d \n",fsin[j] );
     }
 
     width = 12; height = 12;
@@ -185,7 +185,7 @@ bool opticFlowComputer::threadInit() {
 
 void opticFlowComputer::setRepresenImage(ImageOf<PixelRgb>* img) {
     represenIpl = (IplImage*) img->getIplImage();
-    rowSize = img->getRowSize();
+    rowSize = img->getRowSize() / img->getPixelSize();
     represenImage = img;
 }
 
@@ -201,10 +201,9 @@ std::string opticFlowComputer::getName(const char* p) {
 }
 
 void opticFlowComputer::run() {   
-    while(isRunning()) {
-        estimateOF();         
+    while(isRunning()) {               
         if(hasStartedFlag) {
-            //printf("represent Image \n");
+            estimateOF();              
             representOF();   
             Time::delay(0.01);
         }        
@@ -212,33 +211,39 @@ void opticFlowComputer::run() {
 }
 
 void opticFlowComputer::estimateOF(){
-    printf("estimating OF \n");
     // initialisation
     unsigned char* pNeigh, *nextRow, *nextPixel;
     unsigned char* pCalc = calculusPointer;  
     double k1, k2;
+
+    calculusRowSize = 264;
+    //printf("rowSize %d \n", calculusRowSize);
   
     int i = 0;
     for (int gamma = 0; gamma< dimComput; gamma++) {
         for(int xi = 0; xi < dimComput; xi++) {
             i = 0;
             //printf("posXi %d posGamma %d xi %d  gamma %d \n", posXi, posGamma, xi, gamma);
-            pCalc = pCalc + (posXi + xi) * 252 + (posGamma + gamma);
+            pCalc = pCalc + (posXi + xi) * calculusRowSize + (posGamma + gamma);
             for (int dGamma = 0; dGamma < neigh; dGamma++) {
                 for (int dXi = 0; dXi < neigh; dXi++) {
-                    //printf("                   inner loop %d %d %d %d \n", dGamma, dXi,  halfNeigh - dGamma, halfNeigh - dXi);
-                    pNeigh = pCalc + (dXi - halfNeigh) * 252 + dGamma - halfNeigh ;
+                    //printf("                   inner loop %d %d %d %d \n", dGamma, dXi, dGamma - halfNeigh, dXi - halfNeigh );
+                    //printf("                   jump %d  because calculusRowSize %d  \n", (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh, calculusRowSize);
+                    pNeigh = pCalc + (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh ;
+                    
+
+                    //printf("log(a) = %f \n", log(a));
                     
                     H->operator()(0,0) =      fcos[posGamma - 4 + gamma + dGamma - halfNeigh ]/log(a);
                     H->operator()(0,1) =      fsin[posGamma - 4 + gamma + dGamma - halfNeigh ]/log(a);
                     H->operator()(1,0) = -q * fsin[posGamma - 4 + gamma + dGamma - halfNeigh ];
                     H->operator()(1,1) =  q * fcos[posGamma - 4 + gamma + dGamma - halfNeigh ];
                                                          
-                    printf("H = \n %s \n ",H->toString().c_str());
+                    //printf("H = \n %s \n ",H->toString().c_str());
                     
-                    nextRow = pNeigh + 252;
+                    nextRow = pNeigh + calculusRowSize;
                     nextPixel = pNeigh + 1;
-                    Grxi->operator()(dXi,dGamma) = 10; //*pNeigh - *nextRow ;
+                    Grxi->operator()(dXi,dGamma) = (*pNeigh - *nextRow) /2 ;
                     Grgamma->operator()(dXi,dGamma) = (*pNeigh - *nextPixel) / 2;
                     Grt->operator()(dXi,dGamma) = 10;
                     
@@ -313,11 +318,13 @@ void opticFlowComputer::estimateOF(){
 }
 
 void opticFlowComputer::representOF(){
-    printf("representing OF \n");
+    
     unsigned char* tempPointer;
     semRepresent.wait();
     tempPointer = represPointer;
-    int rowSize = (((252 + 5)/ 8)+ 1)  * 8;
+    //int rowSizeC = (((252 + 5)/ 8)+ 1)  * 8;
+    //printf("representing OF %d %d  \n", rowSizeC, rowSize);
+
     if(represPointer!=0) {
         //representing the limits
         //printf("image pointer %x %d %d %d \n", represPointer, posXi, posGamma, width);
@@ -346,11 +353,9 @@ void opticFlowComputer::representOF(){
         *tempPointer = 255; tempPointer++;
         *tempPointer = 255; tempPointer++;
 
-        
         //representing the vectors        
         //CvScalar colorScalar = CV_RGB(50,0250)
-        cvLine(represenImage,cvPoint(posGamma + 0, posXi + 0), cvPoint(posGamma + 1, posXi + 1), cvScalar(0,0,255,0));
-             
+        cvLine(represenIpl,cvPoint(posGamma + 0, posXi + 0), cvPoint(posGamma + u->operator()(2,2), posXi + v->operator()(2,2)), cvScalar(0,0,255,0));             
     }
     else {
         printf("null pointer \n");
@@ -361,7 +366,6 @@ void opticFlowComputer::representOF(){
 
 void opticFlowComputer::resize(int width_orig,int height_orig) {
  
-    
     //resizing yarp image 
     filteredInputImage->resize(width, height);
     extendedInputImage->resize(width, height);

@@ -103,6 +103,7 @@ private:
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
         
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;            //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImgCopy;
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;       //yarp intensity image
     
   

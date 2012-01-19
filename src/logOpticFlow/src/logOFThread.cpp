@@ -30,8 +30,6 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-
-
 template<class T>
 inline T max(T a, T b, T c) {    
     if(b > a) a = b;
@@ -40,6 +38,29 @@ inline T max(T a, T b, T c) {
 }
 
 inline void  copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
+    unsigned char* srcp = src->getRawImage();
+    unsigned char* destp = dest->getRawImage();
+    
+    int height  = src->height();
+    int rowSize = src->getRowSize();
+
+    /*int width   = src->width();
+    int padding = src->getPadding();
+    for (int row = 0; row < height; row++) {
+        for(int col = 0; col < width; col++) {
+            *destp++ = *srcp++;
+            *destp++ = *srcp++;
+            *destp++ = *srcp++;
+        }
+        destp += padding;
+        srcp  += padding;
+        }*/
+
+    memcpy(destp,srcp,height * rowSize * sizeof(char));
+
+}
+
+inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
     unsigned char* srcp = src->getRawImage();
     unsigned char* destp = dest->getRawImage();
     
@@ -86,9 +107,9 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     Bminus              = new ImageOf<PixelMono>;
     Yminus              = new ImageOf<PixelMono>;    
   
-    
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
+    intensImgCopy       = new ImageOf<PixelMono>;
     unXtnIntensImg      = new ImageOf<PixelMono>;   
     
     redPlane            = new ImageOf<PixelMono>;
@@ -219,28 +240,35 @@ void logOFThread::run() {
                 resized = true;
             }
 
-            for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
-                if(!ofComputer[i]->hasStarted()) {
-                    printf("the optic flow computer %d has not started \n", i);
-                    if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {                       
-                            printf("init flow computer %d \n", i);
-                            initFlowComputer(i);
-                            ofComputer[i]->setHasStarted(true); 
-                    }
-                }
-            }
+            
             
             
             extender(maxKernelSize);
             //printf("wait before copying \n");
-            //waitSemaphores(reprSem);
-            copyImage(extendedInputImage, outputImage);
-            //postSemaphores(reprSem);
+            // no need for semaphores this thread is the only thread
+            copyImage(extendedInputImage, outputImage); 
             //printf("after way \n");
-            
-                                    
+                                                
             // extract RGB and Y planes
             extractPlanes();
+
+            for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
+                //printf("intensity image rowSize %d \n", intensImg->getRowSize());
+                if(!ofComputer[i]->hasStarted()) {
+                    printf("the optic flow computer %d has not started \n", i);
+                    if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {                       
+                        printf("init flow computer %d \n", i);
+                        if( (intensImg!=0) && (outputImage!=0) ) {
+                            //printf("copying the intensImg before has started \n");
+                            waitSemaphores(calcSem);
+                            copyImage(intensImg,intensImgCopy);
+                            postSemaphores(calcSem);
+                            initFlowComputer(i);
+                            ofComputer[i]->setHasStarted(true); 
+                        }
+                    }
+                }
+            }
 
              //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
                
@@ -253,11 +281,16 @@ void logOFThread::run() {
             // colourOpponency map construction
             colorOpponency();         
 
-            if((intensImg!=0)&&(intenPort.getOutputCount())) {
-                intenPort.prepare() = *(intensImg);
-                intenPort.write();
+            if(intensImg!=0) {
+                //printf("copying once intensImage not null \n");
+                waitSemaphores(calcSem);
+                copyImage(intensImg,intensImgCopy);
+                postSemaphores(calcSem);
+                if(intenPort.getOutputCount()) {
+                    intenPort.prepare() = *(intensImg);
+                    intenPort.write();
+                }
             }            
-
 
             waitSemaphores(reprSem);
             copyImage(outputImage, finalOutputImage);
@@ -303,6 +336,7 @@ void logOFThread::resize(int width_orig,int height_orig) {
     
     tmpMonoLPImage->resize(width, height);
     intensImg->resize(width, height);
+    intensImgCopy->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);    
 
     redPlane->resize(width, height);
@@ -357,9 +391,9 @@ void logOFThread::resize(int width_orig,int height_orig) {
 
 void logOFThread::initFlowComputer(int index) {
     printf("setting calculus %x pointer \n", intensImg->getRawImage());
-    ofComputer[index]->setCalculusPointer(intensImg->getRawImage());
-    ofComputer[index]->setCalculusRowSize(intensImg->getRowSize());
-    printf("setting representation pointer %x \n", outputImage->getRawImage());
+    ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
+    ofComputer[index]->setCalculusRowSize(264);
+    printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
     ofComputer[index]->setRepresenImage(outputImage);
     printf("setting semaphores \n");
@@ -689,6 +723,7 @@ void logOFThread::threadRelease() {
     delete gaborNegVerConvolution;
     delete YofYUV;
     delete intensImg;
+    delete intensImgCopy;
     delete unXtnIntensImg;
     delete redPlane;
     delete greenPlane;
