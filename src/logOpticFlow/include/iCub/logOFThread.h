@@ -47,8 +47,8 @@
 #include <iCub/opticFlowComputer.h>
 
 #define MONO_PIXEL_SIZE 1
-#define COUNTCOMPUTERSX 1  //21
-#define COUNTCOMPUTERSY 1  //13
+#define COUNTCOMPUTERSX 21  //21 columns
+#define COUNTCOMPUTERSY 6  //13 rows
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
@@ -67,6 +67,7 @@ private:
     opticFlowComputer* ofComputer[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   // array of optic flow computers
     yarp::os::Semaphore** calcSem;      // array of semaphore for calculus image
     yarp::os::Semaphore** reprSem;      // array of semaphore for representation
+    yarp::os::Semaphore** tempSem;      // array of semaphore for temporal representation of images
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
@@ -103,10 +104,10 @@ private:
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
         
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;            //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImgCopy;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImgCopy;        //copy of intensity image    
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* prevIntensImg;        //intensity image at the previous temporal frame
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;       //yarp intensity image
-    
-  
+      
     yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
     yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane;           // image of the green channel
     yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane;            // image of the blue channel

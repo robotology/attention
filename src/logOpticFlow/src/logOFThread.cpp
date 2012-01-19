@@ -85,14 +85,16 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
 
 logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
 
-    calcSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+    calcSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   
+    reprSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+    tempSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+
     for(int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
         calcSem[i] = new Semaphore();
-    }
-    reprSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
-    for(int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
         reprSem[i] = new Semaphore();
+        tempSem[i] = new Semaphore();
     }
+    
     
     inputImage          = new ImageOf<PixelRgb>;
     outputImage         = new ImageOf<PixelRgb>;
@@ -110,6 +112,7 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
     intensImgCopy       = new ImageOf<PixelMono>;
+    prevIntensImg       = new ImageOf<PixelMono>;
     unXtnIntensImg      = new ImageOf<PixelMono>;   
     
     redPlane            = new ImageOf<PixelMono>;
@@ -212,10 +215,8 @@ std::string logOFThread::getName(const char* p) {
 
 void logOFThread::waitSemaphores(Semaphore** pointer) {
     Semaphore* p;
-    //printf(" \n");
     for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
         p = pointer[i];
-        //printf("wait semaphores pointer i %d \n", i);
         p->wait();
     }
 }
@@ -224,7 +225,6 @@ void logOFThread::postSemaphores(Semaphore** pointer) {
     Semaphore* p;
     for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
         p = pointer[i];
-        //printf("post semaphores pointer i %d \n", i);
         p->post();
     }
 }
@@ -239,8 +239,6 @@ void logOFThread::run() {
                 filteredInputImage->zero(); 
                 resized = true;
             }
-
-            
             
             
             extender(maxKernelSize);
@@ -260,9 +258,14 @@ void logOFThread::run() {
                         printf("init flow computer %d \n", i);
                         if( (intensImg!=0) && (outputImage!=0) ) {
                             //printf("copying the intensImg before has started \n");
+                            waitSemaphores(tempSem);
+                            copyImage(intensImg,intensImgCopy);
+                            postSemaphores(tempSem);
+                            
                             waitSemaphores(calcSem);
                             copyImage(intensImg,intensImgCopy);
                             postSemaphores(calcSem);
+
                             initFlowComputer(i);
                             ofComputer[i]->setHasStarted(true); 
                         }
@@ -282,6 +285,10 @@ void logOFThread::run() {
             colorOpponency();         
 
             if(intensImg!=0) {
+                waitSemaphores(tempSem);
+                copyImage(intensImg,prevIntensImg);
+                postSemaphores(tempSem);
+
                 //printf("copying once intensImage not null \n");
                 waitSemaphores(calcSem);
                 copyImage(intensImg,intensImgCopy);
@@ -337,6 +344,7 @@ void logOFThread::resize(int width_orig,int height_orig) {
     tmpMonoLPImage->resize(width, height);
     intensImg->resize(width, height);
     intensImgCopy->resize(width, height);
+    prevIntensImg->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);    
 
     redPlane->resize(width, height);
@@ -396,9 +404,12 @@ void logOFThread::initFlowComputer(int index) {
     printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
     ofComputer[index]->setRepresenImage(outputImage);
+    printf("setting the image for temporal gradient \n");
+    ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
     printf("setting semaphores \n");
-    ofComputer[index]->setCalculusSem(*calcSem[index]);
-    ofComputer[index]->setRepresentSem(*reprSem[index]);
+    ofComputer[index]->setCalculusSem(calcSem[index]);
+    ofComputer[index]->setRepresentSem(reprSem[index]);
+    ofComputer[index]->setTemporalSem(tempSem[index]);
 }
 
 
@@ -698,7 +709,19 @@ void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double
 
 void logOFThread::threadRelease() {    
     printf("logOFThread: thread releasing \n");
+    imagePortIn.interrupt();
+    imagePortOut.interrupt();
+    intenPort.interrupt();
+    imagePortIn.close();
+    imagePortOut.close();
+    intenPort.close();
 
+    colorOpp1Port.interrupt();
+    colorOpp2Port.interrupt();
+    colorOpp3Port.interrupt();
+    colorOpp1Port.close();
+    colorOpp2Port.close();
+    colorOpp3Port.close();
     resized = false;    
 
     // deallocating resources
@@ -715,7 +738,7 @@ void logOFThread::threadRelease() {
     delete Bminus;
     delete Yminus;
 
-    
+    printf("correctly deleting the images \n");
 
     delete gaborPosHorConvolution;    
     delete gaborPosVerConvolution;    
@@ -724,6 +747,7 @@ void logOFThread::threadRelease() {
     delete YofYUV;
     delete intensImg;
     delete intensImgCopy;
+    delete prevIntensImg;
     delete unXtnIntensImg;
     delete redPlane;
     delete greenPlane;
@@ -743,25 +767,16 @@ void logOFThread::threadRelease() {
     delete BplusUnex;
     delete tmpMonoLPImage;
 
+    delete[] reprSem;
+    delete[] tempSem;
+    delete[] calcSem;
+
     printf("correctly freed memory of images \n");
 
-    //ofComputer[0]->stop();
-    
-    printf("correctly deleting the images \n");
-    imagePortIn.interrupt();
-    imagePortOut.interrupt();
-    intenPort.interrupt();
-    imagePortIn.close();
-    imagePortOut.close();
-    intenPort.close();
-
-    colorOpp1Port.interrupt();
-    colorOpp2Port.interrupt();
-    colorOpp3Port.interrupt();
-    
-    colorOpp1Port.close();
-    colorOpp2Port.close();
-    colorOpp3Port.close();
+    for(int j = 0 ; j < COUNTCOMPUTERSX * COUNTCOMPUTERSY; j++) {
+        printf("stopping %d computer \n", j);        
+        ofComputer[j]->stop();
+    }       
  
     printf("Done with releasing earlyVision thread.\n");
     

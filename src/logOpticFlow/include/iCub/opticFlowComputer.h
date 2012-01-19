@@ -65,7 +65,7 @@ private:
     int id;                             // identification number of the computer
     int posXi, posGamma;                // center position of the processing
     int neigh;                          // dimension of the neighborhood
-    
+   
     int width, height;                  // dimension of the computation domain of the computer
     int rowSize;                        // row size of the image
     int calculusRowSize;                // row size of the calculus image
@@ -78,14 +78,16 @@ private:
 
     double a,F,q,rho0;                  // variable of the computation
     int halfNeigh;                      // half of the neighboorhood pixels
+    int calcHalf;                       // half of the calculus area
     int gammaStart, gammaEnd;           // gamma limits
     int xiStart, xiEnd;                 // xi value limits
     int dimComput;                      // dimension of the image area of any computer
 
-    yarp::sig::Matrix* Grxi;             // gradient along the xi direction
-    yarp::sig::Matrix* Grgamma;          // gradient along the gamma axis
-    yarp::sig::Matrix* Grt;              // temporal gradient
-    yarp::sig::Matrix *H,*s,*G,*B,*A,*K,*V;    // matrix of the tranformation from opticflow in log to opticflow in cart
+    yarp::sig::Matrix *Grxi;            // gradient along the xi direction
+    yarp::sig::Matrix *Grgamma;         // gradient along the gamma axis
+    yarp::sig::Matrix *Grt;             // temporal gradient
+    yarp::sig::Matrix *H,*s,*G;
+    yarp::sig::Matrix *B,*A,*K,*V;      // matrix of the tranformation from opticflow in log to opticflow in cart
     yarp::sig::Matrix *Kt,*c,*b,*bwMat;
     yarp::sig::Matrix *u,*v;
     yarp::sig::Matrix *wMat;
@@ -102,45 +104,10 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extendedInputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *represenImage;
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Rplus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Rminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Gplus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Gminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Bplus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Bminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Yminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *YofYUV;
-    
-    // these RGB planes are calculated via YUV, hence as float images rounded to uchar in last step
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* YofYUVpy;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* UofYUVpy;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* VofYUVpy;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* RplusUnex;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* GplusUnex;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* BplusUnex;
-
+ 
         
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
-    
-  
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane;           // image of the green channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane;            // image of the blue channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowPlane;          // image of the yellow channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Yplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Uplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Vplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnYplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
-    IplImage *cs_tot_32f;    // extended
-    IplImage *cs_tot_8u; 
-    IplImage *ycs_out;       // final extended intensity center surround image
-    IplImage *scs_out;       // final extended intensity center surround image
-    IplImage *vcs_out;       // final extended intensity center surround image
-    IplImage *colcs_out;     // final extended coulour center surround image
     IplImage *represenIpl;   // image that is going to be represented
 
     //CenterSurround *centerSurr;    
@@ -157,10 +124,12 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;   
 
 
-    yarp::os::Semaphore semCalculus;      // semaphore that controls access to the assigned portion of image
+    yarp::os::Semaphore* semCalculus;     // semaphore that controls access to the assigned portion of image
+    yarp::os::Semaphore* semRepresent;    // semaphore that controls access to the assigned portion of image
+    yarp::os::Semaphore* semTemporal;     // semaphore that controls access to the assigned portion of image
     unsigned char* calculusPointer;       // pointer to the image which the computation takes place from
-    yarp::os::Semaphore semRepresent;     // semaphore that controls access to the assigned portion of image
     unsigned char* represPointer;         // pointer to the image which the flow is represented
+    unsigned char* temporalPointer;         // pointer to the previous monocromatic image
     
         
     bool isYUV;   
@@ -239,6 +208,11 @@ public:
     /**
      * @brief function that declares which image the computer is working on
      */
+    void setTemporalPointer(unsigned char* pImage){ temporalPointer = pImage; };
+    
+    /**
+     * @brief function that declares which image the computer is working on
+     */
     void setCalculusRowSize(int value){ calculusRowSize = value; };
 
     /**
@@ -254,12 +228,17 @@ public:
     /**
      * @brief function that associate a semaphore to the portion of image where computiong
      */
-    void setCalculusSem(yarp::os::Semaphore sem) { semCalculus = sem; };
+    void setCalculusSem(yarp::os::Semaphore* sem) { semCalculus = sem; };
 
     /**
      * @brief function that associate a semaphore to the portion of image to represent
      */
-    void setRepresentSem(yarp::os::Semaphore sem) { semRepresent = sem; };
+    void setRepresentSem(yarp::os::Semaphore* sem) { semRepresent = sem; };
+
+    /**
+     * @brief function that associate a semaphore to the previoud monocromatic input image
+     */
+    void setTemporalSem(yarp::os::Semaphore* sem) { semRepresent = sem; };
    
     /**
      * @brief represent information directly in the image
