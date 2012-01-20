@@ -111,31 +111,32 @@ private:
 
     IplImage *represenIpl;   // image that is going to be represented
 
-    //CenterSurround *centerSurr;    
-
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
-  
         
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;   
 
 
-    yarp::os::Semaphore* semCalculus;     // semaphore that controls access to the assigned portion of image
+    //yarp::os::Semaphore* semCalculusX;    // semaphore that controls access to the assigned portion of image
+    //yarp::os::Semaphore* semCalculusY;    // semaphore that controls access to the assigned portion of image
+
+    yarp::os::Semaphore* semCalculus;    // semaphore that controls access to the assigned portion of image
     yarp::os::Semaphore* semRepresent;    // semaphore that controls access to the assigned portion of image
     yarp::os::Semaphore* semTemporal;     // semaphore that controls access to the assigned portion of image
-    unsigned char* calculusPointer;       // pointer to the image which the computation takes place from
+
+    //unsigned char* calculusPointerX;    // pointer to the image which the computation takes place from
+    //unsigned char* calculusPointerY;    // pointer to the image which the computation takes place from
+    unsigned char* calculusPointer;      // pointer to the image which the computation takes place from
     unsigned char* represPointer;         // pointer to the image which the flow is represented
-    unsigned char* temporalPointer;         // pointer to the previous monocromatic image
-    
+    unsigned char* temporalPointer;       // pointer to the previous monocromatic image    
         
     bool isYUV;   
-    
-    
+     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized   
     bool hasStartedFlag;    // flag that indicates whether the thread has started
@@ -201,15 +202,24 @@ public:
      */
     void setHasStarted(bool value) { hasStartedFlag =  value; };
 
-    /**
-     * @brief function that declares which image the computer is working on
-     */
-    void setCalculusPointer(unsigned char* pImage){ calculusPointer = pImage; };
+    /*
+
+    void setCalculusPointerX(unsigned char* pImage){ calculusPointerX = pImage; };
+
+
+    void setCalculusPointerY(unsigned char* pImage){ calculusPointerY = pImage; };
+    */
 
     /**
      * @brief function that declares which image the computer is working on
      */
     void setTemporalPointer(unsigned char* pImage){ temporalPointer = pImage; };
+
+    /**
+     * @brief function that declares which image the computer is working on
+     */
+    void setCalculusPointer(unsigned char* pImage){ calculusPointer = pImage; };
+
     
     /**
      * @brief function that declares which image the computer is working on
@@ -226,10 +236,19 @@ public:
      */
     void setRepresenImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* image) ;  
 
+    /*
+   
+    void setCalculusXSem(yarp::os::Semaphore* sem) { semCalculusX = sem; };
+
+   
+    void setCalculusYSem(yarp::os::Semaphore* sem) { semCalculusY = sem; };
+    */
+
     /**
      * @brief function that associate a semaphore to the portion of image where computiong
      */
     void setCalculusSem(yarp::os::Semaphore* sem) { semCalculus = sem; };
+    
 
     /**
      * @brief function that associate a semaphore to the portion of image to represent

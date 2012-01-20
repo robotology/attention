@@ -119,7 +119,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
 
     bool ok = false;
     bool rec = false; // is the command recognized?
-    double vhor, vver;
+    double vhor, vver, bhor, bver;
     double wt=0;
     double brightness=0;
 
@@ -171,7 +171,8 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         
                     case COMMAND_VOCAB_GHOR:
                         vhor = command.get(3).asDouble();
-                        evThread->setGradientHoriz(vhor);
+                        bhor = command.get(4).asInt();
+                        evThread->setGradientHoriz(vhor, bhor);
                         reply.addString("changed weight for horizontal gradient");
                         rec = true;
                         ok = true;
@@ -180,11 +181,13 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         
                     case COMMAND_VOCAB_GVER:
                         vver = command.get(3).asDouble();
-                        evThread->setGradientVert(vver);
+                        bver = command.get(4).asInt();
+                        evThread->setGradientVert(vver, bver);
                         reply.addString("changed weight for vertical gradient");
                         rec = true;
                         ok = true;
-                        break;    
+                        break;  
+
                         
                     case COMMAND_VOCAB_HOR:
                         //evThread->chromeThread->setWeightForOrientation(0,command.get(3).asDouble());
@@ -192,6 +195,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         rec = true;
                         ok = true;
                         break;
+
                     case COMMAND_VOCAB_45:
                         //evThread->chromeThread->setWeightForOrientation(1,command.get(3).asDouble());
                         reply.addString("changed weight for 45 deg orientation");

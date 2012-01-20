@@ -647,12 +647,8 @@ void opticFlowComputer::onStop(){
     delete inputImage;
     delete filteredInputImage;
     delete extendedInputImage;
-    
-
-    
     delete intensImg;
     
-
     printf("correctly freed memory for images \n");
     
     delete Grxi;

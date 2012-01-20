@@ -296,7 +296,7 @@ class convolve {
      * @param borderType an integer parameter for type of border 0: kernel from (0,0) 1: kernel all within
      */
         void convolve2D(inputImage* img,outputImage* resImg, int borderType = 0){
-            printf("convolving 2d %f \n",factor);
+            printf("convolving 2d %f %d \n",factor,shift);
             assert(kernelIsDefined);
             int rowSize    = img->getRowSize()    / sizeof(ptrInput);
             int resRowSize = resImg->getRowSize() / sizeof(ptrOutput);

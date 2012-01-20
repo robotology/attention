@@ -108,16 +108,19 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
 
 logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
 
-    calcSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   
-    reprSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
-    tempSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+    //calcXSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY]; 
+    //calcYSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY]; 
+    calcSem  = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+    reprSem  = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
+    tempSem  = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
 
     for(int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
-        calcSem[i] = new Semaphore();
-        reprSem[i] = new Semaphore();
-        tempSem[i] = new Semaphore();
+        //calcXSem[i] = new Semaphore();
+        //calcYSem[i] = new Semaphore();
+        calcSem[i]  = new Semaphore();
+        reprSem[i]  = new Semaphore();
+        tempSem[i]  = new Semaphore();
     }
-    
     
     inputImage          = new ImageOf<PixelRgb>;
     outputImage         = new ImageOf<PixelRgb>;
@@ -136,7 +139,10 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     intensImg           = new ImageOf<PixelMono>;
     intensXGrad         = new ImageOf<PixelMono>;
     intensYGrad         = new ImageOf<PixelFloat>;
+    intXgrad8u          = new ImageOf<PixelMono>;
     intYgrad8u          = new ImageOf<PixelMono>;
+    //gradientImgXCopy    = new ImageOf<PixelMono>;
+    //gradientImgYCopy    = new ImageOf<PixelMono>;
     intensImgCopy       = new ImageOf<PixelMono>;
     prevIntensImg       = new ImageOf<PixelMono>;
     unXtnIntensImg      = new ImageOf<PixelMono>;   
@@ -167,8 +173,8 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     gaborPosVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
     gaborNegHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
     gaborNegVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
-    gradientHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DXgrad_small,0.6,0,0);
-    gradientVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DYgrad_small,0.6,0,0);
+    gradientHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DXgrad_small,0.6,-50,0);
+    gradientVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DYgrad_small,0.6,-50,0);
     
     lambda  = 0.3f;
     resized = false;
@@ -266,8 +272,7 @@ void logOFThread::run() {
                 resize(inputImage->width(), inputImage->height());
                 filteredInputImage->zero(); 
                 resized = true;
-            }
-            
+            }            
             
             extender(maxKernelSize);
             //printf("wait before copying \n");
@@ -287,7 +292,7 @@ void logOFThread::run() {
                         if( (intensImg!=0) && (outputImage!=0) ) {
                             //printf("copying the intensImg before has started \n");
                             waitSemaphores(tempSem);
-                            copyImage(intensImg,intensImgCopy);
+                            copyImage(intensImg,prevIntensImg);
                             postSemaphores(tempSem);
                             
                             waitSemaphores(calcSem);
@@ -318,12 +323,15 @@ void logOFThread::run() {
                 postSemaphores(tempSem);
 
                 //printf("copying once intensImage not null \n");
+                //gradientHorConvolution->convolve2D(intensImg, intXgrad8u);
                 waitSemaphores(calcSem);
                 copyImage(intensImg,intensImgCopy);
                 postSemaphores(calcSem);
 
-                gradientHorConvolution->convolve2D(intensImg, intYgrad8u);
                 //gradientVerConvolution->convolve2D(intensImg, intYgrad8u);
+                //waitSemaphores(calcYSem);
+                //copyImage(intensImg,gradientImgYCopy);
+                //postSemaphores(calcYSem);
 
                 //CvMat stub, *dst_mat, *grad_mat;
                 //dst_mat = cvGetMat(intYgrad, &stub, 0, 0);
@@ -336,7 +344,6 @@ void logOFThread::run() {
                 */
                 
                 
-
 #ifdef DEBUG_OPENCV
                 cvNamedWindow("ColorOppRG");
                 cvShowImage("ColorOppRG", intYgrad);
@@ -347,7 +354,7 @@ void logOFThread::run() {
                 
                 
                 if(intenPort.getOutputCount()) {
-                    intenPort.prepare() = *(intYgrad8u);
+                    intenPort.prepare() = *(intensImg);
                     intenPort.write();
                 }
             }            
@@ -398,7 +405,10 @@ void logOFThread::resize(int width_orig,int height_orig) {
     intensImg->resize(width, height);
     intensXGrad->resize(width, height);
     intensYGrad->resize(width, height);
+    intXgrad8u->resize(width, height);
     intYgrad8u->resize(width, height);
+    gradientImgXCopy->resize(width, height);
+    gradientImgYCopy->resize(width, height);
     intensImgCopy->resize(width, height);
     prevIntensImg->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);    
@@ -456,7 +466,9 @@ void logOFThread::resize(int width_orig,int height_orig) {
 
 void logOFThread::initFlowComputer(int index) {
     printf("setting calculus %x pointer \n", intensImg->getRawImage());
-    ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
+    ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
+    //ofComputer[index]->setCalculusPointerY(gradientImgYCopy->getRawImage());
+    //ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
     ofComputer[index]->setCalculusRowSize(264);
     printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
@@ -464,6 +476,8 @@ void logOFThread::initFlowComputer(int index) {
     printf("setting the image for temporal gradient \n");
     ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
     printf("setting semaphores \n");
+    //ofComputer[index]->setCalculusXSem(calcXSem[index]);
+    //ofComputer[index]->setCalculusYSem(calcYSem[index]);
     ofComputer[index]->setCalculusSem(calcSem[index]);
     ofComputer[index]->setRepresentSem(reprSem[index]);
     ofComputer[index]->setTemporalSem(tempSem[index]);
@@ -809,7 +823,10 @@ void logOFThread::threadRelease() {
     delete intensImg;
     delete intensXGrad;
     delete intensYGrad;
+    delete intYgrad8u; 
     delete intYgrad8u;
+    //delete gradientImgXCopy;
+    //delete gradientImgXCopy;
     delete intensImgCopy;
     delete prevIntensImg;
     delete unXtnIntensImg;
@@ -834,6 +851,8 @@ void logOFThread::threadRelease() {
     delete[] reprSem;
     delete[] tempSem;
     delete[] calcSem;
+    //delete[] calcXSem;
+    //delete[] calcYSem;
 
     printf("correctly freed memory of images \n");
 

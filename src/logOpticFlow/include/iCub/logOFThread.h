@@ -67,7 +67,9 @@ private:
     float lambda;                       // costant for the temporal filter
 
     opticFlowComputer* ofComputer[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   // array of optic flow computers
-    yarp::os::Semaphore** calcSem;      // array of semaphore for calculus image
+    yarp::os::Semaphore** calcXSem;     // array of semaphore for calculus image gradient X
+    yarp::os::Semaphore** calcYSem;     // array of semaphore for calculus image gradient X
+    yarp::os::Semaphore** calcSem;     // array of semaphore for calculus image gradient X
     yarp::os::Semaphore** reprSem;      // array of semaphore for representation
     yarp::os::Semaphore** tempSem;      // array of semaphore for temporal representation of images
     
@@ -108,10 +110,15 @@ private:
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gradientVerConvolution;
     
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;            //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensXGrad;         //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelFloat>*intensYGrad;         //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* intYgrad8u;           //yarp intensity image 8u
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImgCopy;        //copy of intensity image    
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensXGrad;          //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelFloat>*intensYGrad;          //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intXgrad8u;           //yarp gradientX image 8u
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intYgrad8u;           //yarp gradientY image 8u
+
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* gradientImgXCopy;     //copy of intensity image    
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* gradientImgYCopy;     //copy of intensity image    
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImgCopy;     //copy of intensity image    
+
     yarp::sig::ImageOf<yarp::sig::PixelMono>* prevIntensImg;        //intensity image at the previous temporal frame
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;       //yarp intensity image
       
@@ -184,7 +191,27 @@ public:
         delete gradientHorConvolution;
         gradientHorConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,
             uchar,yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar>
-            (3,3,Sobel2DXgrad_small,value,0,0);
+            (3,3,Sobel2DXgrad_small,value,-50,0);
+    };
+   
+    /**
+     * @brief reinstantiate an convolve object with a new parameter
+     */
+    void setGradientVert(double value, int bias) {
+        delete gradientVerConvolution;
+        gradientVerConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,
+            uchar,yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar>
+            (3,3,Sobel2DYgrad_small,value,bias,0);
+    };
+    
+    /**
+     * @brief reinstantiate an convolve object with a new parameter
+     */
+    void setGradientHoriz(double value, int bias) {
+        delete gradientHorConvolution;
+        gradientHorConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,
+            uchar,yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar>
+            (3,3,Sobel2DXgrad_small,value,bias,0);
     };
    
     /**
@@ -194,7 +221,7 @@ public:
         delete gradientVerConvolution;
         gradientVerConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,
             uchar,yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar>
-            (3,3,Sobel2DYgrad_small,value,0,0);
+            (3,3,Sobel2DYgrad_small,value,-50,0);
     };
 
     /**
