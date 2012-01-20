@@ -48,12 +48,14 @@
 
 #define MONO_PIXEL_SIZE 1
 #define COUNTCOMPUTERSX 21  //21 columns
-#define COUNTCOMPUTERSY 6  //13 rows
+#define COUNTCOMPUTERSY 13  //13 rows
 
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8
 #endif
+
+//#define DEBUG_OPENCV
  
 class logOFThread : public yarp::os::RateThread  {
 private:
@@ -102,8 +104,13 @@ private:
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegHorConvolution;
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
-        
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gradientHorConvolution;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gradientVerConvolution;
+    
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;            //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensXGrad;         //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelFloat>*intensYGrad;         //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* intYgrad8u;           //yarp intensity image 8u
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImgCopy;        //copy of intensity image    
     yarp::sig::ImageOf<yarp::sig::PixelMono>* prevIntensImg;        //intensity image at the previous temporal frame
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;       //yarp intensity image
@@ -120,6 +127,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
     IplImage *cs_tot_32f;  // extended
+    IplImage *int_gradx_32f;
     IplImage *cs_tot_8u; 
     IplImage *ycs_out;     // final extended intensity center surround image
     IplImage *scs_out;     // final extended intensity center surround image
@@ -169,8 +177,26 @@ public:
     */
     void setName(std::string str);
     
+    /**
+     * @brief reinstantiate an convolve object with a new parameter
+     */
+    void setGradientHoriz(double value) {
+        delete gradientHorConvolution;
+        gradientHorConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,
+            uchar,yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar>
+            (3,3,Sobel2DXgrad_small,value,0,0);
+    };
    
-    
+    /**
+     * @brief reinstantiate an convolve object with a new parameter
+     */
+    void setGradientVert(double value) {
+        delete gradientVerConvolution;
+        gradientVerConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,
+            uchar,yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar>
+            (3,3,Sobel2DYgrad_small,value,0,0);
+    };
+
     /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added

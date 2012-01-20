@@ -73,9 +73,14 @@
 #define PI 3.1415926535897932384626433832795
 #endif 
 
+// 3x3 Sobel matrix is non-separable (has rank 2), hence convolution is 2D
+static float Sobel2DXgrad_small[9] = {-1, 0, 1,
+                                      -2, 0, 2,
+                                      -1, 0, 2};
 
-
-
+static float Sobel2DYgrad_small[9] = {-1, -2, -1,
+                                       0,  0,  0,
+                                       1,  2,  1};
 
 
 // 5x5 Sobel matrix is non-separable (has rank 2), hence convolution is 2D

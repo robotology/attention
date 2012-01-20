@@ -16,6 +16,7 @@
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
   */
+
 /**
  * @file opticFlowComputer.cpp
  * @brief Implementation of the computation in a portion of the space (see opticFlowComputer.h)
@@ -52,7 +53,6 @@ inline Matrix reshape(Matrix a,int row, int col) {
     }
     return b;
 }
-
 
 opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THREAD) {
     inputImage          = new ImageOf<PixelRgb>;
@@ -94,6 +94,9 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
         fsin[j] = cos(gamma / q);
         //printf(" %f \n",fsin[j]);
     }
+
+    gradientHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DXgrad_small,0.5,.0,0);
+    gradientVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DYgrad_small,0.1,.0,0);
 }
 
 opticFlowComputer::~opticFlowComputer() {
@@ -205,8 +208,8 @@ void opticFlowComputer::estimateOF(){
         for(int xi = 0; xi < dimComput; xi++) {
             i = 0;
             //printf("posXi %d posGamma %d xi %d  gamma %d \n", posXi, posGamma, xi, gamma);
-            pCalc = pCalc + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
-            pTemp = pTemp + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
+            pCalc = calculusPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
+            pTemp = calculusPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
             for (int dGamma = 0; dGamma < neigh; dGamma++) {
                 for (int dXi = 0; dXi < neigh; dXi++) {
                     //printf("                   inner loop %d %d %d %d \n", dGamma, dXi, dGamma - halfNeigh, dXi - halfNeigh );
@@ -262,7 +265,7 @@ void opticFlowComputer::estimateOF(){
             //v->operator()(xi,gamma) 
             double ofv  = V->operator()(1,0) * k2;     
             v->operator()(xi,gamma) = ofv;
-            //printf(" optic flow = (%f, %f) \n", ofu, ofv);
+            //printf(" optic flow = (%f, %f) \n", u->operator()(xi,gamma),v->operator()(xi,gamma));
         }
     }
 }
@@ -306,8 +309,19 @@ void opticFlowComputer::representOF(){
         //representing the vectors        
         //CvScalar colorScalar = CV_RGB(50,0250)
         
-        double valueGamma = u->operator()(2,2);
-        double valueXi    = v->operator()(2,2);
+        double sumGamma, sumXi, valueGamma, valueXi;
+        sumGamma = 0; sumXi = 0;
+        for(int i = 0; i < dimComput; i++) {
+            for(int j =0; j< dimComput; j++) {
+                if(v->operator()(i,j)== v->operator()(i,j) ) {
+                    sumGamma += u->operator()(i,j);
+                    sumXi    += v->operator()(i,j);
+                }   
+            }
+        }
+        valueGamma = sumGamma / (dimComput * dimComput);
+        valueXi    = sumXi    / (dimComput * dimComput);
+        //printf("dimComput %d u %f  v %f \n", dimComput,valueGamma, valueXi);
         
         if(
            (posGamma + valueGamma < 0)       || (posXi + valueXi < 0) ||

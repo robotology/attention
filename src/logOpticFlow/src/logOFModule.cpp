@@ -96,13 +96,16 @@ bool logOFModule::interruptModule()
     return true;
 }
 
-bool logOFModule::close()
-{
-    printf("Closing early vision module..... \n");    
+bool logOFModule::close() {
+    printf("Closing logOpticFlow module..... \n");    
+       //printf("Trying to close handler port\n");
+    handlerPort.interrupt();
+    handlerPort.close();
+
+
     /* stop the thread */
     evThread->stop();
-    //printf("Trying to close handler port\n");
-    //handlerPort.close();
+ 
     printf("Done with closing early vision module.\n");
     //delete evThread;
     return true;
@@ -116,6 +119,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
 
     bool ok = false;
     bool rec = false; // is the command recognized?
+    double vhor, vver;
     double wt=0;
     double brightness=0;
 
@@ -164,6 +168,24 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
             case COMMAND_VOCAB_WEIGHT:
                 {
                     switch(command.get(2).asVocab()){
+                        
+                    case COMMAND_VOCAB_GHOR:
+                        vhor = command.get(3).asDouble();
+                        evThread->setGradientHoriz(vhor);
+                        reply.addString("changed weight for horizontal gradient");
+                        rec = true;
+                        ok = true;
+                        break;    
+                        
+                        
+                    case COMMAND_VOCAB_GVER:
+                        vver = command.get(3).asDouble();
+                        evThread->setGradientVert(vver);
+                        reply.addString("changed weight for vertical gradient");
+                        rec = true;
+                        ok = true;
+                        break;    
+                        
                     case COMMAND_VOCAB_HOR:
                         //evThread->chromeThread->setWeightForOrientation(0,command.get(3).asDouble());
                         reply.addString("changed weight for horizontal orientation");

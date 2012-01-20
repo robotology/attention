@@ -296,82 +296,81 @@ class convolve {
      * @param borderType an integer parameter for type of border 0: kernel from (0,0) 1: kernel all within
      */
         void convolve2D(inputImage* img,outputImage* resImg, int borderType = 0){
-            
+            printf("convolving 2d %f \n",factor);
             assert(kernelIsDefined);
-            int rowSize         = img->getRowSize()/sizeof(ptrInput);
-            int resRowSize = resImg->getRowSize()/sizeof(ptrOutput);
+            int rowSize    = img->getRowSize()    / sizeof(ptrInput);
+            int resRowSize = resImg->getRowSize() / sizeof(ptrOutput);
             
-            ptrInput* mat = (ptrInput*)img->getRawImage();
-            ptrOutput* res = (ptrOutput*)resImg->getRawImage();
-            int rowPos = 0; int pixPos =0;
-            ptrInput* currPtrImage = (ptrInput*)img->getRawImage();
-            int padOutput = resImg->getPadding()/sizeof(ptrOutput);
+            ptrInput*  mat          = (ptrInput*) img->getRawImage();
+            ptrOutput* res          = (ptrOutput*)resImg->getRawImage();
+            ptrInput*  currPtrImage = (ptrInput*) img->getRawImage();
+
+            int rowPos = 0; 
+            int pixPos = 0;            
+            int padOutput     = resImg->getPadding()/sizeof(ptrOutput);
             float* kerStartPt = this->kernel; 
-            float scalingVal = 1.0/(limits[0] -limits[1]);           
+            float scalingVal  = 1.0/(limits[0] -limits[1]);           
             int shiftSqKernel = 0;
+
             if(borderType == 1){
                 shiftSqKernel = kernelWidth/2;
             }
-            for(int i=shiftSqKernel;i<resImg->height()-shiftSqKernel;++i){
+
+            for(int i = shiftSqKernel ; i < resImg->height() - shiftSqKernel ; ++i){
                 int eff_ht = min(img->height(),i+kernelHeight/2)-_max(0,i-kernelHeight/2)+1;
-                for(int j=shiftSqKernel;j<resImg->width()-shiftSqKernel;++j){
+                for(int j  = shiftSqKernel ; j < resImg->width() - shiftSqKernel ; ++j){
                     // current pixel point is anchor
                     int eff_wd = min(img->width(), j + kernelWidth/2)- _max(0,j-kernelWidth/2)+1;
-                    currPtrImage = mat + rowSize*_max(0,i-kernelHeight/2)+_max(0,j-kernelWidth/2);
-                    kerStartPt = kernel + _max(0,kernelHeight/2 -i)*kernelWidth + _max(0,kernelWidth/2-j);
+                    currPtrImage = mat    + rowSize * _max(0,i-kernelHeight/2)+_max(0,j-kernelWidth/2);
+                    kerStartPt   = kernel + _max(0,kernelHeight/2 -i)*kernelWidth + _max(0,kernelWidth/2-j);
                     float sum = 0;
-                    for(int k=0; k<eff_ht;++k){
-                        for(int l=0;l<eff_wd;++l){
-                           sum += *currPtrImage++ * *kerStartPt++*factor;
+                    for(int k = 0 ; k < eff_ht ; ++k){
+                        for(int l = 0 ; l < eff_wd ; ++l){
+                           sum += *currPtrImage++ * *kerStartPt++ * factor;
                         }
                         // shift the pointers
                         currPtrImage += rowSize - eff_wd-1;
-                        kerStartPt += _max(0,j+kernelWidth/2-img->width());
+                        kerStartPt   += _max(0,j + kernelWidth / 2 - img->width());
                     }
-
-                    
                     if(this->counter<this->flicker){
-                                this->limits[0] = this->limits[0]<sum?sum:this->limits[0];
-                                this->limits[1] = this->limits[1]>sum?sum:this->limits[1];
-                                this->counter++;
-                                   
-                        } 
-                    *res++ = sum;
+                        this->limits[0] = this->limits[0] < sum ? sum : this->limits[0];
+                        this->limits[1] = this->limits[1] > sum ? sum : this->limits[1];
+                        this->counter++;
                         
-                    
+                    } 
+                    *res++ = sum;                    
                 }
                 res += padOutput;
             }
-
-                    
-   
         }
 
-     /**
+    /**
      * For list of 2D convolution ie convolving a list of matrix with a matrix. This is unavoidable when kernel 
      *  is non-seperable
      * @param img input image
      * @param resImg list of resultant image after applying the kernels respectively
      * @param borderType an integer parameter for type of border 0: kernel from (0,0) 1: kernel all within
      */
-        void convolve2Dlist(inputImage* img,outputImage** resImg, int borderType = 0){
+    void convolve2Dlist(inputImage* img,outputImage** resImg, int borderType = 0){
             
             assert(kernelIsDefined);
-            int rowSize         = img->getRowSize()/sizeof(ptrInput);
-            int resRowSize = resImg[0]->getRowSize()/sizeof(ptrOutput);
-            const int nbr_kernels = this->nbrOfKernels;
-            const int width_kernel = this->kernelWidth;
+            int rowSize    = img->getRowSize()       / sizeof(ptrInput);
+            int resRowSize = resImg[0]->getRowSize() / sizeof(ptrOutput);
+            const int nbr_kernels   = this->nbrOfKernels;
+            const int width_kernel  = this->kernelWidth;
             const int height_kernel = this->kernelHeight;
             float* kerStartPt[nbr_kernels],*kerOrigins[nbr_kernels];
+
             for(int i=0;i<nbr_kernels;++i){ 
                     kerStartPt[i] = *(this->listOfKernels+i);
                     kerOrigins[i] = *(this->listOfKernels+i);
             }
+
             int padOutput[nbr_kernels];
             ptrOutput* res[nbr_kernels];
             float sum[nbr_kernels];
             
-            ptrInput* mat = (ptrInput*)img->getRawImage();
+            ptrInput* mat          = (ptrInput*)img->getRawImage();
             ptrInput* currPtrImage = (ptrInput*)img->getRawImage();
             int rowPos = 0; int pixPos =0;
             for(int cntK=0;cntK<nbr_kernels;cntK++){

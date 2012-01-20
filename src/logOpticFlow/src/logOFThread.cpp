@@ -37,27 +37,50 @@ inline T max(T a, T b, T c) {
     return a;
 }
 
-inline void  copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
-    unsigned char* srcp = src->getRawImage();
-    unsigned char* destp = dest->getRawImage();
+inline void depthConvert(ImageOf<PixelFloat>* src, ImageOf<PixelMono>* dest) {
+    float* psrc = (float*) src->getRawImage();
+    printf("got the pointer src \n");
+    unsigned char* pdest = dest->getRawImage();
+    printf("got the pointer dest \n");
+    int height = src->height();
+    int width  = src->width();
+    int destPadding = dest->getPadding();
+    int srcPadding  = src->getPadding();
+    printf("got dimensions \n");
+    float max = 1.17; float min = 3.40; 
+    printf("before the loop \n");
+    for (int r = 0; r < height; r++) {
+        for (int c = 0; c < width; c++) {
+            if(*psrc < min) min = *psrc;
+            if(*psrc > max) max = *psrc;
+            psrc++;
+        }
+        psrc += srcPadding;
+    }
+
+    float m = (max - min) / 255;
+    float q = -min;
+
+    printf("setting the value of the dest image \n");
+
+    psrc = (float*) src->getRawImage();
+    for (int r = 0; r < height; r++) {
+        for (int c = 0; c < width; c++) {
+            *pdest++ = (unsigned char) floor((*psrc + q) / m);
+        }
+        pdest += destPadding;
+    }        
+
+    printf("after setting the dest image \n");
     
+}
+
+inline void  copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
+    unsigned char* srcp  = src->getRawImage();
+    unsigned char* destp = dest->getRawImage();
     int height  = src->height();
     int rowSize = src->getRowSize();
-
-    /*int width   = src->width();
-    int padding = src->getPadding();
-    for (int row = 0; row < height; row++) {
-        for(int col = 0; col < width; col++) {
-            *destp++ = *srcp++;
-            *destp++ = *srcp++;
-            *destp++ = *srcp++;
-        }
-        destp += padding;
-        srcp  += padding;
-        }*/
-
     memcpy(destp,srcp,height * rowSize * sizeof(char));
-
 }
 
 inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
@@ -111,6 +134,9 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
   
     YofYUV              = new ImageOf<PixelMono>;    
     intensImg           = new ImageOf<PixelMono>;
+    intensXGrad         = new ImageOf<PixelMono>;
+    intensYGrad         = new ImageOf<PixelFloat>;
+    intYgrad8u          = new ImageOf<PixelMono>;
     intensImgCopy       = new ImageOf<PixelMono>;
     prevIntensImg       = new ImageOf<PixelMono>;
     unXtnIntensImg      = new ImageOf<PixelMono>;   
@@ -141,6 +167,8 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     gaborPosVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(5,G5,1,.5,0);
     gaborNegHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,0,.5,0);
     gaborNegVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(7,GN7,1,.5,0);  
+    gradientHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DXgrad_small,0.6,0,0);
+    gradientVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DYgrad_small,0.6,0,0);
     
     lambda  = 0.3f;
     resized = false;
@@ -293,8 +321,33 @@ void logOFThread::run() {
                 waitSemaphores(calcSem);
                 copyImage(intensImg,intensImgCopy);
                 postSemaphores(calcSem);
+
+                gradientHorConvolution->convolve2D(intensImg, intYgrad8u);
+                //gradientVerConvolution->convolve2D(intensImg, intYgrad8u);
+
+                //CvMat stub, *dst_mat, *grad_mat;
+                //dst_mat = cvGetMat(intYgrad, &stub, 0, 0);
+                
+                /*
+                IplImage* intYgrad = (IplImage*) intensYGrad->getIplImage();
+                IplImage* intImg   = (IplImage*) intensImg->getIplImage();
+                cvSobel(intImg,intYgrad, 1,0);               
+                depthConvert(intensYGrad, intYgrad8u);
+                */
+                
+                
+
+#ifdef DEBUG_OPENCV
+                cvNamedWindow("ColorOppRG");
+                cvShowImage("ColorOppRG", intYgrad);
+#endif
+
+                //IplImage stub, *dst_img;
+                //dst_img = cvGetImage(src_mat, &stub);
+                
+                
                 if(intenPort.getOutputCount()) {
-                    intenPort.prepare() = *(intensImg);
+                    intenPort.prepare() = *(intYgrad8u);
                     intenPort.write();
                 }
             }            
@@ -343,6 +396,9 @@ void logOFThread::resize(int width_orig,int height_orig) {
     
     tmpMonoLPImage->resize(width, height);
     intensImg->resize(width, height);
+    intensXGrad->resize(width, height);
+    intensYGrad->resize(width, height);
+    intYgrad8u->resize(width, height);
     intensImgCopy->resize(width, height);
     prevIntensImg->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);    
@@ -371,11 +427,12 @@ void logOFThread::resize(int width_orig,int height_orig) {
     
     // allocating for CS ncsscale = 4;   
 
-    cs_tot_32f  = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_32F, 1  );
-    colcs_out   = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
-    ycs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
-    scs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
-    vcs_out     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    cs_tot_32f     = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_32F, 1  );
+    int_gradx_32f  = cvCreateImage( cvSize(width, height),IPL_DEPTH_32F, 1  );
+    colcs_out      = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    ycs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    scs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    vcs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     
     /* zeroing the images*/
     outputImage->zero();
@@ -702,8 +759,7 @@ void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double
         }
         ptrSrc += padImage;
         ptrToBeAdded += padImage;
-   }
-   
+   }   
 }
 
 
@@ -712,9 +768,14 @@ void logOFThread::threadRelease() {
     imagePortIn.interrupt();
     imagePortOut.interrupt();
     intenPort.interrupt();
+    intensityCSPort.interrupt();
+    chromPort.interrupt();
+    
     imagePortIn.close();
     imagePortOut.close();
     intenPort.close();
+    intensityCSPort.close();
+    chromPort.close();
 
     colorOpp1Port.interrupt();
     colorOpp2Port.interrupt();
@@ -746,6 +807,9 @@ void logOFThread::threadRelease() {
     delete gaborNegVerConvolution;
     delete YofYUV;
     delete intensImg;
+    delete intensXGrad;
+    delete intensYGrad;
+    delete intYgrad8u;
     delete intensImgCopy;
     delete prevIntensImg;
     delete unXtnIntensImg;

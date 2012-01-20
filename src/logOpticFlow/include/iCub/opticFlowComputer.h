@@ -104,7 +104,8 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* extendedInputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *represenImage;
 
- 
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gradientHorConvolution;
+    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gradientVerConvolution;
         
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
 
