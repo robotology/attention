@@ -108,6 +108,8 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
 
 logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
 
+    count = 0;
+
     //calcXSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY]; 
     //calcYSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY]; 
     calcSem  = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY];
@@ -121,6 +123,8 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
         reprSem[i]  = new Semaphore();
         tempSem[i]  = new Semaphore();
     }
+
+    img = 0;
     
     inputImage          = new ImageOf<PixelRgb>;
     outputImage         = new ImageOf<PixelRgb>;
@@ -264,116 +268,137 @@ void logOFThread::postSemaphores(Semaphore** pointer) {
 }
 
 void logOFThread::run() {   
-     
-        inputImage  = imagePortIn.read(false);
-                    
-        if (inputImage != NULL) {
-            if (!resized) {
-                resize(inputImage->width(), inputImage->height());
-                filteredInputImage->zero(); 
-                resized = true;
-            }            
-            
-            extender(maxKernelSize);
-            //printf("wait before copying \n");
-            // no need for semaphores this thread is the only thread
-            copyImage(extendedInputImage, outputImage); 
-            //printf("after way \n");
-                                                
-            // extract RGB and Y planes
-            extractPlanes();
+    
+    inputImage  = imagePortIn.read(false);
 
-            for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
-                //printf("intensity image rowSize %d \n", intensImg->getRowSize());
-                if(!ofComputer[i]->hasStarted()) {
-                    printf("the optic flow computer %d has not started \n", i);
-                    if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {                       
-                        printf("init flow computer %d \n", i);
-                        if( (intensImg!=0) && (outputImage!=0) ) {
-                            //printf("copying the intensImg before has started \n");
-                            waitSemaphores(tempSem);
-                            copyImage(intensImg,prevIntensImg);
-                            postSemaphores(tempSem);
-                            
-                            waitSemaphores(calcSem);
-                            copyImage(intensImg,intensImgCopy);
-                            postSemaphores(calcSem);
-
-                            initFlowComputer(i);
-                            ofComputer[i]->setHasStarted(true); 
-                        }
+    /*
+    count++;
+    //IplImage* img= cvCreateImage( cvSize(262, 157),IPL_DEPTH_8U,1); 
+    if(count % 2 == 0){
+        img = cvLoadImage("vertfinlog.jpg");
+    }
+    else {
+        img = cvLoadImage("vertinlog.jpg");
+    }
+    if(!img) {
+        printf("Could not load image file: \n");
+    }
+    else {
+        printf("image correctly opened \n");
+    }       
+    inputImage->wrapIplImage(img);
+    */
+    
+    waitSemaphores(tempSem);
+    copyImage(intensImg,prevIntensImg);
+    postSemaphores(tempSem);
+    
+    if (inputImage != NULL) {
+        if (!resized) {
+            resize(inputImage->width(), inputImage->height());
+            filteredInputImage->zero(); 
+            resized = true;
+        }            
+        
+        extender(maxKernelSize);
+        //printf("wait before copying \n");
+        // no need for semaphores this thread is the only thread
+        copyImage(extendedInputImage, outputImage); 
+        //printf("after way \n");
+        
+        // extract RGB and Y planes
+        extractPlanes();
+        
+        for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
+            //printf("intensity image rowSize %d \n", intensImg->getRowSize());
+            if(!ofComputer[i]->hasStarted()) {
+                printf("the optic flow computer %d has not started \n", i);
+                if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {                       
+                    printf("init flow computer %d \n", i);
+                    if( (intensImg!=0) && (outputImage!=0) ) {
+                        //printf("copying the intensImg before has started \n");
+                        
+                        waitSemaphores(calcSem);
+                        copyImage(intensImg,intensImgCopy);
+                        postSemaphores(calcSem);
+                        
+                        initFlowComputer(i);
+                        ofComputer[i]->setHasStarted(true); 
                     }
                 }
             }
-
-             //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
-               
-            centerSurrounding();
-            //edgesExtract();  
-                      
-            // gaussian filtering of the of RGB and Y
-            filtering();           
-
-            // colourOpponency map construction
-            colorOpponency();         
-
-            if(intensImg!=0) {
-                waitSemaphores(tempSem);
-                copyImage(intensImg,prevIntensImg);
-                postSemaphores(tempSem);
-
-                //printf("copying once intensImage not null \n");
-                //gradientHorConvolution->convolve2D(intensImg, intXgrad8u);
-                waitSemaphores(calcSem);
-                copyImage(intensImg,intensImgCopy);
-                postSemaphores(calcSem);
-
-                //gradientVerConvolution->convolve2D(intensImg, intYgrad8u);
-                //waitSemaphores(calcYSem);
-                //copyImage(intensImg,gradientImgYCopy);
-                //postSemaphores(calcYSem);
-
-                //CvMat stub, *dst_mat, *grad_mat;
-                //dst_mat = cvGetMat(intYgrad, &stub, 0, 0);
-                
-                /*
-                IplImage* intYgrad = (IplImage*) intensYGrad->getIplImage();
-                IplImage* intImg   = (IplImage*) intensImg->getIplImage();
-                cvSobel(intImg,intYgrad, 1,0);               
-                depthConvert(intensYGrad, intYgrad8u);
-                */
-                
-                
+        }
+        
+        
+        //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
+        
+        //centerSurrounding();
+        //edgesExtract();  
+        
+        // gaussian filtering of the of RGB and Y
+        //filtering();           
+        
+        // colourOpponency map construction
+        //colorOpponency();         
+        
+        
+        if(intensImg!=0) {
+            //waitSemaphores(tempSem);
+            //copyImage(intensImg,prevIntensImg);
+            //IplImage* imgbw =  cvCreateImage( cvSize(252, 152),IPL_DEPTH_8U,1);
+            //img = cvLoadImage("vertinlog.jpg");
+            //cvCvtColor(img,imgbw,CV_BGR2GRAY);
+            
+            //if(!imgbw) {
+            //    printf("Could not load image file: \n");
+            //}
+            //prevIntensImg->wrapIplImage(imgbw);
+            //postSemaphores(tempSem);
+            
+            //printf("copying once intensImage not null \n");
+            //gradientHorConvolution->convolve2D(intensImg, intXgrad8u);
+            waitSemaphores(calcSem);
+            copyImage(intensImg,intensImgCopy);
+            postSemaphores(calcSem);
+            
+            //gradientVerConvolution->convolve2D(intensImg, intYgrad8u);
+            //waitSemaphores(calcYSem);
+            //copyImage(intensImg,gradientImgYCopy);
+            //postSemaphores(calcYSem);
+            
+            //CvMat stub, *dst_mat, *grad_mat;
+            //dst_mat = cvGetMat(intYgrad, &stub, 0, 0);
+            
+            
 #ifdef DEBUG_OPENCV
-                cvNamedWindow("ColorOppRG");
-                cvShowImage("ColorOppRG", intYgrad);
+            cvNamedWindow("ColorOppRG");
+            cvShowImage("ColorOppRG", intYgrad);
 #endif
-
-                //IplImage stub, *dst_img;
-                //dst_img = cvGetImage(src_mat, &stub);
-                
-                
-                if(intenPort.getOutputCount()) {
-                    intenPort.prepare() = *(intensImg);
-                    intenPort.write();
-                }
-            }            
-
-            waitSemaphores(reprSem);
-            copyImage(outputImage, finalOutputImage);
-            postSemaphores(reprSem);
-
             
-            if((inputImage!=0)&&(imagePortOut.getOutputCount())) {               
-                imagePortOut.prepare() = *(finalOutputImage);                         
-                imagePortOut.write();
+            //IplImage stub, *dst_img;
+            //dst_img = cvGetImage(src_mat, &stub);
+                   
+            if(intenPort.getOutputCount()) {
+                intenPort.prepare() = *(intensImg);
+                intenPort.write();
             }
-            
-            
+        } 
+        
+        //outputImage->zero();
+        waitSemaphores(reprSem);
+        copyImage(outputImage, finalOutputImage);
+        postSemaphores(reprSem);
+        
+        if((inputImage!=0)&&(imagePortOut.getOutputCount())) {               
+            imagePortOut.prepare() = *(finalOutputImage);                         
+            imagePortOut.write();
+        }
+        
+        
 #ifdef DEBUG_OPENCV
-            cvWaitKey(0);
+        cvWaitKey(0);
 #endif           
-        } // end if input image != NULL    
+    } // end if input image != NULL    
 }
 
 
@@ -407,8 +432,9 @@ void logOFThread::resize(int width_orig,int height_orig) {
     intensYGrad->resize(width, height);
     intXgrad8u->resize(width, height);
     intYgrad8u->resize(width, height);
-    gradientImgXCopy->resize(width, height);
-    gradientImgYCopy->resize(width, height);
+    //gradientImgXCopy->resize(width, height);
+    //gradientImgYCopy->resize(width, height);
+    intensImg->resize(width, height);
     intensImgCopy->resize(width, height);
     prevIntensImg->resize(width, height);
     unXtnIntensImg->resize(this->width_orig,this->height_orig);    
@@ -459,17 +485,19 @@ void logOFThread::resize(int width_orig,int height_orig) {
                                       5);
             ofComputer[row * COUNTCOMPUTERSX + col]->setName(getName("").c_str());
             ofComputer[row * COUNTCOMPUTERSX + col]->setHasStarted(false);
-            ofComputer[row * COUNTCOMPUTERSX + col]->start();
+            if(row > 2) {
+                ofComputer[row * COUNTCOMPUTERSX + col]->start();
+            }
         }
     }    
 }
 
 void logOFThread::initFlowComputer(int index) {
     printf("setting calculus %x pointer \n", intensImg->getRawImage());
-    ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
+    //ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
     //ofComputer[index]->setCalculusPointerY(gradientImgYCopy->getRawImage());
-    //ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
-    ofComputer[index]->setCalculusRowSize(264);
+    ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
+    ofComputer[index]->setCalculusRowSize(intensImgCopy->getRowSize());
     printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
     ofComputer[index]->setRepresenImage(outputImage);
@@ -821,8 +849,8 @@ void logOFThread::threadRelease() {
     delete gaborNegVerConvolution;
     delete YofYUV;
     delete intensImg;
-    delete intensXGrad;
-    delete intensYGrad;
+    //delete intensXGrad;
+    //delete intensYGrad;
     delete intYgrad8u; 
     delete intYgrad8u;
     //delete gradientImgXCopy;

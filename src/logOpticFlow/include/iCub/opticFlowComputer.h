@@ -29,6 +29,7 @@
 #define _OPTIC_FLOW_COMPUTER_H_
 
 #include <iostream>
+#include <stdlib.h>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -86,18 +87,21 @@ private:
     yarp::sig::Matrix *Grxi;            // gradient along the xi direction
     yarp::sig::Matrix *Grgamma;         // gradient along the gamma axis
     yarp::sig::Matrix *Grt;             // temporal gradient
-    yarp::sig::Matrix *H,*s,*G;
+    yarp::sig::Matrix *H,*G;
+    yarp::sig::Matrix *s;
     yarp::sig::Matrix *B,*A,*K,*V;      // matrix of the tranformation from opticflow in log to opticflow in cart
-    yarp::sig::Matrix *Kt,*c,*b,*bwMat;
+    yarp::sig::Matrix *Kt,*Km;
+    yarp::sig::Matrix *c,*b,*bwMat;
     yarp::sig::Matrix *u,*v;
     yarp::sig::Matrix *wMat;
     yarp::sig::Vector *S;
+    yarp::sig::Matrix *of;
     
     //static double const q       = 0.5 * (Na / PI);
     static double const qdouble = Na / PI;
 
-    float fcos[252];                    // LUT of cos(gamma)
-    float fsin[252];                    // LUT of sin(gamma)
+    float fcos[262];                    // LUT of cos(gamma)
+    float fsin[262];                    // LUT of sin(gamma)
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
@@ -125,17 +129,18 @@ private:
     //yarp::os::Semaphore* semCalculusX;    // semaphore that controls access to the assigned portion of image
     //yarp::os::Semaphore* semCalculusY;    // semaphore that controls access to the assigned portion of image
 
-    yarp::os::Semaphore* semCalculus;    // semaphore that controls access to the assigned portion of image
+    yarp::os::Semaphore* semCalculus;     // semaphore that controls access to the assigned portion of image
     yarp::os::Semaphore* semRepresent;    // semaphore that controls access to the assigned portion of image
     yarp::os::Semaphore* semTemporal;     // semaphore that controls access to the assigned portion of image
 
     //unsigned char* calculusPointerX;    // pointer to the image which the computation takes place from
     //unsigned char* calculusPointerY;    // pointer to the image which the computation takes place from
-    unsigned char* calculusPointer;      // pointer to the image which the computation takes place from
+    unsigned char* calculusPointer;       // pointer to the image which the computation takes place from
     unsigned char* represPointer;         // pointer to the image which the flow is represented
     unsigned char* temporalPointer;       // pointer to the previous monocromatic image    
         
     bool isYUV;   
+    FILE *fout;
      
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized   

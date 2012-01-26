@@ -23,8 +23,9 @@
  */
 
 #include <iCub/opticFlowComputer.h>
-
 #include <cstring>
+
+//#define DEBUGDUMP
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -70,31 +71,32 @@ opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THR
     double q = 0.5 * qdouble;
     for (int j = 0; j < 252; j ++) {
         double gammarad = (j / 180) * PI;
-        fcos[j] = sin(gammarad / q);
-        //printf(" %d",fcos[j] );
-        fsin[j] = cos(gammarad / q);
-        //printf(" %d \n",fsin[j] );
+        fcos[j] = cos(gammarad / q);        
+        fsin[j] = sin(gammarad / q);
     }
-
     width = 12; height = 12;
 }
 
 opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() {
+ 
     id = i;
     posXi = pXi;
     posGamma = pGamma;
     neigh = n ;
     width = 6; height = 6;
 
-    double q = 0.5 * qdouble;
-    for (int j = 0; j < 252; j ++) {
-        double gamma = j;
-        fcos[j] = sin(gamma / q);
-        //printf(" %f",fcos[j] );
-        fsin[j] = cos(gamma / q);
-        //printf(" %f \n",fsin[j]);
-    }
+    fout = fopen("dump.txt","w+");
 
+    fprintf(fout, "\n \n");
+
+    double q = 0.5 * qdouble;
+    for (int j = 0; j < 262; j ++) {
+        double gamma = j;
+        fcos[j] = cos(2 * PI - (gamma - 5) / q);
+        fsin[j] = sin(2 * PI - (gamma - 5) / q);        
+        //fprintf(fout, "%d %f %f \n",j, fcos[j], fsin[j]);
+        
+    }
     gradientHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DXgrad_small,0.5,.0,0);
     gradientVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DYgrad_small,0.1,.0,0);
 }
@@ -116,7 +118,7 @@ bool opticFlowComputer::threadInit() {
     calcHalf  = (12 - 2 - 2 - 2) / 2;
     gammaStart = posGamma - 3; gammaEnd = posGamma + 3;
     xiStart    = posXi - 3;    xiEnd    = posXi + 3;
-    dimComput = gammaEnd - gammaStart;
+    dimComput = gammaEnd - gammaStart;   // 
     printf("dimComput %d %d %d \n", dimComput, posGamma, posXi);
 
     printf("correctly initialised indexes \n");
@@ -132,7 +134,9 @@ bool opticFlowComputer::threadInit() {
     V       = new Matrix(2,2);
     S       = new Vector(2);
     K       = new Matrix(25,2);
+    Km      = new Matrix(2,1);
     Kt      = new Matrix(2,25);
+    of      = new Matrix(2,1);
     
     printf("correctly initialised the matrices \n");
     
@@ -150,8 +154,10 @@ bool opticFlowComputer::threadInit() {
     wVec(10) = 0.0764; wVec(11) = 0.3422; wVec(12) = 0.2076; wVec(13) = 0.0463; wVec(14) = 0.0764;
     wVec(15) = 0.0463; wVec(16) = 0.2076; wVec(17) = 0.3422; wVec(18) = 0.2076; wVec(19) = 0.0463;
     wVec(20) = 0.0103; wVec(21) = 0.0463; wVec(22) = 0.0764; wVec(23) = 0.0463; wVec(24) = 0.0103;
+
     wMat    = new Matrix(25,25);
     wMat->diagonal(wVec);
+    //wMat->eye();
     
     printf("correctly initialised the weight matrix \n");
 
@@ -178,14 +184,18 @@ std::string opticFlowComputer::getName(const char* p) {
 void opticFlowComputer::run() {   
     while(isRunning()) {               
         if(hasStartedFlag) {
-            
+             
             semCalculus->wait();
+            //semTemporal->wait();
             estimateOF();       
+            //semTemporal->post();
             semCalculus->post();
+
             
             semRepresent->wait();
             representOF();
             semRepresent->post();
+            
             
             Time::delay(0.05);
         }        
@@ -194,13 +204,13 @@ void opticFlowComputer::run() {
 
 void opticFlowComputer::estimateOF(){
     // initialisation
-    unsigned char* pNeigh, *nextRow, *nextPixel;
-    unsigned char* pCalc = calculusPointer;  
-    unsigned char* pTemp = temporalPointer;
-    unsigned char* pPrev;
+    unsigned char *pNeigh, *nextRow, *nextPixel, *prevRow, *prevPixel;
+    unsigned char *pCalc = calculusPointer;  
+    unsigned char *pTemp = temporalPointer;
+    unsigned char *pPrev;
     double k1, k2;
 
-    calculusRowSize = 264;
+    //calculusRowSize = 264;
     //printf("rowSize %d \n", calculusRowSize);
   
     int i = 0;
@@ -209,7 +219,7 @@ void opticFlowComputer::estimateOF(){
             i = 0;
             //printf("posXi %d posGamma %d xi %d  gamma %d \n", posXi, posGamma, xi, gamma);
             pCalc = calculusPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
-            pTemp = calculusPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
+            pTemp = temporalPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
             for (int dGamma = 0; dGamma < neigh; dGamma++) {
                 for (int dXi = 0; dXi < neigh; dXi++) {
                     //printf("                   inner loop %d %d %d %d \n", dGamma, dXi, dGamma - halfNeigh, dXi - halfNeigh );
@@ -219,55 +229,117 @@ void opticFlowComputer::estimateOF(){
 
                     //printf("log(a) = %f \n", log(a));
                     
-                    H->operator()(0,0) =      fcos[posGamma - calcHalf + gamma + dGamma - halfNeigh ]/log(a);
-                    H->operator()(0,1) =      fsin[posGamma - calcHalf + gamma + dGamma - halfNeigh ]/log(a);
-                    H->operator()(1,0) = -q * fsin[posGamma - calcHalf + gamma + dGamma - halfNeigh ];
-                    H->operator()(1,1) =  q * fcos[posGamma - calcHalf + gamma + dGamma - halfNeigh ];
-                                                         
-                    //printf("H = \n %s \n ",H->toString().c_str());
+                    
+                    H->operator()(0,0) =      fcos[posGamma + gamma - calcHalf + dGamma - halfNeigh ]/log(a);
+                    H->operator()(0,1) =      fsin[posGamma + gamma - calcHalf + dGamma - halfNeigh ]/log(a);
+                    H->operator()(1,0) = -q * fsin[posGamma + gamma - calcHalf + dGamma - halfNeigh ];
+                    H->operator()(1,1) =  q * fcos[posGamma + gamma - calcHalf + dGamma - halfNeigh ];
+                    
+                    /*                    
+                    H->operator()(0,0) = 1;
+                    H->operator()(0,1) = 0;
+                    H->operator()(1,0) = 0;
+                    H->operator()(1,1) = 1;
+                    */
+
+                    /*
+                    if(posGamma + gamma - calcHalf + dGamma - halfNeigh == 130) {
+                        printf("fcos = %f \n",fcos[posGamma + gamma - calcHalf + dGamma - halfNeigh]);
+                        printf("H = \n %s \n %d ",H->toString().c_str(), calcHalf);
+                        }
+                    */
                     
                     nextRow = pNeigh + calculusRowSize;
+                    prevRow = pNeigh - calculusRowSize;
+                    
                     nextPixel = pNeigh + 1;
-                    Grxi->operator()(dXi,dGamma)    = (*pNeigh - *nextRow)   ;
-                    Grgamma->operator()(dXi,dGamma) = (*pNeigh - *nextPixel) ;
-                    Grt->operator()(dXi,dGamma)     = (*pNeigh - *pTemp)     ;
+                    prevPixel = pNeigh - 1;
+
+                    //Grxi->operator()(dXi,dGamma)    = ((*pNeigh - *nextRow)   + (*prevRow - *pNeigh)) / 2;
+                    Grxi->operator()(dXi,dGamma)    = ( - (float) *nextRow    + (float)*prevRow   ) ;
+                    //Grgamma->operator()(dXi,dGamma) = ((*pNeigh - *nextPixel) + (*prevPixel - *pNeigh)) / 2;
+                    Grgamma->operator()(dXi,dGamma) = ( - (float) *nextPixel  + (float)*prevPixel ) ;
+                    //unsigned char tdiff =(*pNeigh - *pPrev);
+                    Grt->operator()(dXi,dGamma)     = (*pNeigh - *pPrev) ;
+                    //printf(" temp diff %d \n", tdiff);
+                        
                     
                     s->operator()(0,0) = Grxi->operator()(dXi,dGamma); 
                     s->operator()(0,1) = Grgamma->operator()(dXi,dGamma);
                     *G = *s * *H;
-                   
+                    
+                    /*
+                    if((posXi - calcHalf + xi + dXi - halfNeigh == 100) &&
+                        (posGamma + gamma - calcHalf + dGamma - halfNeigh == 130)){
+                        //printf("rho %f power : %f  G =\n",rho0,rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh) );
+                        printf("%d-%d= %d \n",*prevRow , *nextRow, *prevRow - *nextRow );
+                        printf("%d-%d= %d \n",*prevPixel, *nextPixel, *prevPixel - *nextPixel );
+                        printf("%f %f \n", Grxi->operator()(dXi,dGamma),Grgamma->operator()(dXi,dGamma) );
+                        printf("%s \n", s->toString().c_str() );
+                        printf("%s \n", G->toString().c_str() );
+                    }
+                    */
+                    
+                    
                     B->operator()(i,0) = (1 / (rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh))) * G->operator()(0,0);
                     B->operator()(i,1) = (1 / (rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh))) * G->operator()(0,1);                    
+                                                      
+                    /*
+                      B->operator()(i,0) = G->operator()(0,0);
+                    B->operator()(i,1) = G->operator()(0,1);
+                    */
+                    
                     i = i + 1;
                 }
             }
-            
-            *A = *wMat * *B;
-            
-            //printf("trying to reshape coefficients after A =\n");
-            //printf("%s \n",A->toString().c_str());
-            *b = reshape(*Grt,neigh * neigh, 1);
-            //printf("reshaped the matrix in to wMat =  \n");
-            //printf(" %s \n", wMat->toString(1,1).c_str());            
-            //*b = -1 * *b;
 
+                       
+            *A = *wMat * *B;
+            /*
+            if((posGamma + gamma - calcHalf == 215)&&(posXi - calcHalf + xi == 112)) {
+                 printf("%s \n", A->toString().c_str() );
+            }
+            */
+            
+            //printf("trying to reshape coefficients ater G =\n");
+            //printf("%s \n",Grt->toString().c_str());
+            *b = reshape(*Grt,neigh * neigh, 1);
+            //printf("reshaped the matrix in to b =  \n");
+            //printf(" %s \n", b->toString(1,1).c_str());            
+            *b = -1 * *b;
             *bwMat = *wMat * *b;                        
+
             SVD(*A,*K,*S,*V);            
             *Kt = K->transposed();
             *c  = *Kt * *bwMat;
 
-            k1 = c->operator()(0,0) / S->operator()(0);
-            k2 = c->operator()(1,0) / S->operator()(1);
+            Km->operator()(0,0) = c->operator()(0,0) / S->operator()(0);
+            Km->operator()(0,1) = c->operator()(1,0) / S->operator()(1);
+            printf("Km = \n");
+            printf("%s \n", Km->toString().c_str());
 
             //u->operator()(xi,gamma)
+
+            /*
             double ofu = V->operator()(0,0) * k1;
-            u->operator()(xi,gamma) = ofu;
+            u->operator()(xi,gamma) = ofu ;
             //v->operator()(xi,gamma) 
             double ofv  = V->operator()(1,0) * k2;     
-            v->operator()(xi,gamma) = ofv;
-            //printf(" optic flow = (%f, %f) \n", u->operator()(xi,gamma),v->operator()(xi,gamma));
+            v->operator()(xi,gamma) = ofv ;
+            */
+
+            *of = *V * *Km;
+
+#ifdef DEBUGDUMP
+            fprintf(fout,"%05f %05f \n", u->operator()(xi,gamma), v->operator()(xi, gamma));
+#endif
+            //printf(" optic flow = (%d, %d) \n", (int) floor(u->operator()(xi,gamma)), (int) floor(v->operator()(xi,gamma)));
         }
     }
+#ifdef DEBUGDUMP
+            fprintf(fout,"-1 -1 \n");
+#endif
+
 }
 
 void opticFlowComputer::representOF(){
@@ -281,65 +353,118 @@ void opticFlowComputer::representOF(){
     if(represPointer!=0) {
         //representing the limits
         //printf("image pointer %x %d %d %d \n", represPointer, posXi, posGamma, width);
+        /*
         tempPointer  = represPointer + (posXi * rowSize + posGamma) * 3;
         *tempPointer = 255; tempPointer++;
-        *tempPointer = 0; tempPointer++;
-        *tempPointer = 0; tempPointer++;
+        *tempPointer = 0;   tempPointer++;
+        *tempPointer = 0;   tempPointer++;
+        */
         
+        /*
         tempPointer  = represPointer + ((posXi - width) * rowSize + (posGamma - height)) * 3;
+        *tempPointer = 0;   tempPointer++;
         *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
+        *tempPointer = 0;   tempPointer++;
         
         tempPointer  = represPointer + ((posXi - width) * rowSize + (posGamma + height)) * 3;
+        *tempPointer = 0;   tempPointer++;
         *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
+        *tempPointer = 0;   tempPointer++;
         
         tempPointer  = represPointer + ((posXi + width ) * rowSize + (posGamma - height)) * 3;
+        *tempPointer = 0;   tempPointer++;
         *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
+        *tempPointer = 0;   tempPointer++;
         
         tempPointer  = represPointer + ((posXi + width ) * rowSize + (posGamma + height)) * 3;
+        *tempPointer = 0;   tempPointer++;
         *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
-        *tempPointer = 255; tempPointer++;
+        *tempPointer = 0;   tempPointer++;
+        */
 
         //representing the vectors        
         //CvScalar colorScalar = CV_RGB(50,0250)
         
-        double sumGamma, sumXi, valueGamma, valueXi;
+        double sumGamma, sumXi;
+        int valueGamma, valueXi;
+        int countGamma = 0, countXi = 0;
         sumGamma = 0; sumXi = 0;
+        double uSingle, vSingle;
+        tempPointer = represPointer;
         for(int i = 0; i < dimComput; i++) {
             for(int j =0; j< dimComput; j++) {
-                if(v->operator()(i,j)== v->operator()(i,j) ) {
-                    sumGamma += u->operator()(i,j);
-                    sumXi    += v->operator()(i,j);
+                uSingle = u->operator()(i,j);
+                vSingle = v->operator()(i,j);
+
+                /*if((uSingle > 10)||(vSingle > 10)) {
+                    *tempPointer = 0;   tempPointer++;
+                    *tempPointer = 255; tempPointer++;
+                    *tempPointer = 0;   tempPointer++;
+                }
+                else {
+                    tempPointer += 3;
+                    }
+                */
+
+
+                //printf("Single: %f %f \n", uSingle, vSingle);
+                
+                if((v== v)&&(v!=0)) {
+                    sumGamma += uSingle;
+                    countGamma++;
                 }   
+                if((u==u)&&(u!=0)){
+                    sumXi    += vSingle;
+                    countXi++;
+                }
+                
+                
+                
+                valueGamma = (int) floor(uSingle / 1.0);
+                valueXi    = (int) floor(vSingle / 1.0);
+                //printf("value: %d %d \n", valueGamma, valueXi);
+                if((i == 0) && (j == 0)) {
+                    cvLine(represenIpl,
+                           cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
+                           cvPoint(posGamma + i - calcHalf + (int) (sumGamma / countGamma), posXi + j - calcHalf + (int) (sumXi / countXi)),
+                           cvScalar(255,0,0,0));
+                }
+                
+
+                if(
+                   (posGamma + valueGamma < 0)       || (posXi + valueXi < 0) ||
+                   (posGamma + valueGamma > rowSize) || (posXi + valueXi > 152)
+                   ){
+                        //printf("line out of image boundaries \n");
+                }
+                else {
+                    if((valueGamma != 0)&&(valueXi != 0)) {
+                        if((abs(valueGamma) > 2) || (abs(valueXi) > 2)) {
+                            //printf("endPoint %f %f %d %d \n",uSingle, vSingle, endPointX, endPointY);
+                            cvLine(represenIpl,
+                                   cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
+                                   cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
+                                   cvScalar(0,0,255,0));   
+                            
+                            //tempPointer  = represPointer + (posXi  * rowSize + posGamma)  * 3;
+                            
+                            //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
+                            //*tempPointer = 255; tempPointer++;
+                            //*tempPointer = 0  ; tempPointer++;
+                            //*tempPointer = 0  ; tempPointer++;
+                        }
+                    }
+                }                
             }
         }
-        valueGamma = sumGamma / (dimComput * dimComput);
-        valueXi    = sumXi    / (dimComput * dimComput);
-        //printf("dimComput %d u %f  v %f \n", dimComput,valueGamma, valueXi);
-        
-        if(
-           (posGamma + valueGamma < 0)       || (posXi + valueXi < 0) ||
-           (posGamma + valueGamma > rowSize) || (posXi + valueXi > 152)
-          )
-            {
-                //printf("line out of image boundaries \n");
-            }
-        else {
-            cvLine(represenIpl,cvPoint(posGamma + 0, posXi + 0), cvPoint(posGamma + valueGamma, posXi + valueXi), cvScalar(0,0,255,0));             
-        }
-        
+
+
+        //printf("sumGamma %f sumXi %f  u %d  v %d \n", sumGamma, sumXi, valueGamma, valueXi);
+   
     }
     else {
         printf("null pointer \n");
     }
-    
-    
 }
 
 void opticFlowComputer::resize(int width_orig,int height_orig) {
@@ -387,7 +512,6 @@ void opticFlowComputer::extender(int maxSize) {
 
 void opticFlowComputer::extractPlanes() {
     /*
-
     //chromeThread->setFlagForDataReady(false);           
     // We extract color planes from the RGB image. Planes are red,blue, green and yellow (AM of red & green)
     uchar* shift[4];
@@ -634,8 +758,7 @@ void opticFlowComputer::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, 
         }
         ptrSrc += padImage;
         ptrToBeAdded += padImage;
-   }
-   
+   }   
 }
 
 void opticFlowComputer::onStop(){
@@ -662,6 +785,8 @@ void opticFlowComputer::onStop(){
     delete K;
     delete s;
     delete V;
+    delete Km;
+    delete of;
         
     delete b;      
     delete bwMat;  
