@@ -195,8 +195,7 @@ void opticFlowComputer::run() {
             semRepresent->wait();
             representOF();
             semRepresent->post();
-            
-            
+                        
             Time::delay(0.05);
         }        
     }
@@ -308,17 +307,21 @@ void opticFlowComputer::estimateOF(){
             //printf(" %s \n", b->toString(1,1).c_str());            
             *b = -1 * *b;
             *bwMat = *wMat * *b;                        
+            //*bwMat = -1 * *b;
 
             SVD(*A,*K,*S,*V);            
             *Kt = K->transposed();
             *c  = *Kt * *bwMat;
+            //printf("c = %s \n", c->toString().c_str());
 
             Km->operator()(0,0) = c->operator()(0,0) / S->operator()(0);
             Km->operator()(0,1) = c->operator()(1,0) / S->operator()(1);
-            printf("Km = \n");
-            printf("%s \n", Km->toString().c_str());
+            
 
-            //u->operator()(xi,gamma)
+            *of = *V * *Km;
+            //printf("of =%s \n", of->toString().c_str());
+            u->operator()(xi,gamma) = of->operator()(0,0);
+            v->operator()(xi,gamma) = of->operator()(0,1);
 
             /*
             double ofu = V->operator()(0,0) * k1;
@@ -328,12 +331,12 @@ void opticFlowComputer::estimateOF(){
             v->operator()(xi,gamma) = ofv ;
             */
 
-            *of = *V * *Km;
+
 
 #ifdef DEBUGDUMP
             fprintf(fout,"%05f %05f \n", u->operator()(xi,gamma), v->operator()(xi, gamma));
 #endif
-            //printf(" optic flow = (%d, %d) \n", (int) floor(u->operator()(xi,gamma)), (int) floor(v->operator()(xi,gamma)));
+            //printf(" optic flow = (%f, %f) \n", u->operator()(xi,gamma), v->operator()(xi,gamma));
         }
     }
 #ifdef DEBUGDUMP
@@ -387,28 +390,45 @@ void opticFlowComputer::representOF(){
         
         double sumGamma, sumXi;
         int valueGamma, valueXi;
+        int meanGamma,  meanXi;
         int countGamma = 0, countXi = 0;
         sumGamma = 0; sumXi = 0;
         double uSingle, vSingle;
-        tempPointer = represPointer;
+        tempPointer = represPointer + ((posXi - calcHalf) * rowSize + (posGamma - calcHalf)) * 3 ;
         for(int i = 0; i < dimComput; i++) {
             for(int j =0; j< dimComput; j++) {
-                uSingle = u->operator()(i,j);
-                vSingle = v->operator()(i,j);
+                uSingle = u->operator()(i,j) * 1.0;
+                vSingle = v->operator()(i,j) * 1.0;
+                valueGamma = (int) floor(uSingle / 1.0);
+                valueXi    = (int) floor(vSingle / 1.0);
+                
+                //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
+                if((abs(uSingle) > 10)||(abs(vSingle) > 10)) {
+                    cvLine(represenIpl,
+                                   cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
+                                   cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
+                                   cvScalar(0,0,255,0));  
 
-                /*if((uSingle > 10)||(vSingle > 10)) {
                     *tempPointer = 0;   tempPointer++;
                     *tempPointer = 255; tempPointer++;
                     *tempPointer = 0;   tempPointer++;
                 }
-                else {
-                    tempPointer += 3;
-                    }
-                */
+                else { 
+                        *tempPointer = 0;   tempPointer++;
+                        if(*tempPointer > 0 ){
+                            *tempPointer = *tempPointer - 1; 
+                        }
+                        else{
+                            *tempPointer = *tempPointer;
+                        }
+                        tempPointer++;
+                        *tempPointer = 0;   tempPointer++;
 
-
-                //printf("Single: %f %f \n", uSingle, vSingle);
+                        //tempPointer += 3;                    
+                }
                 
+                //printf("Single: %f %f \n", uSingle, vSingle);
+                /*
                 if((v== v)&&(v!=0)) {
                     sumGamma += uSingle;
                     countGamma++;
@@ -417,20 +437,13 @@ void opticFlowComputer::representOF(){
                     sumXi    += vSingle;
                     countXi++;
                 }
+                */
                 
                 
-                
-                valueGamma = (int) floor(uSingle / 1.0);
-                valueXi    = (int) floor(vSingle / 1.0);
-                //printf("value: %d %d \n", valueGamma, valueXi);
-                if((i == 0) && (j == 0)) {
-                    cvLine(represenIpl,
-                           cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
-                           cvPoint(posGamma + i - calcHalf + (int) (sumGamma / countGamma), posXi + j - calcHalf + (int) (sumXi / countXi)),
-                           cvScalar(255,0,0,0));
-                }
-                
+                //
+                //
 
+                /*
                 if(
                    (posGamma + valueGamma < 0)       || (posXi + valueXi < 0) ||
                    (posGamma + valueGamma > rowSize) || (posXi + valueXi > 152)
@@ -439,12 +452,12 @@ void opticFlowComputer::representOF(){
                 }
                 else {
                     if((valueGamma != 0)&&(valueXi != 0)) {
-                        if((abs(valueGamma) > 2) || (abs(valueXi) > 2)) {
+                       
                             //printf("endPoint %f %f %d %d \n",uSingle, vSingle, endPointX, endPointY);
-                            cvLine(represenIpl,
-                                   cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
-                                   cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
-                                   cvScalar(0,0,255,0));   
+                            //cvLine(represenIpl,
+                            //       cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
+                            //       cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
+                            //       cvScalar(0,0,255,0));   
                             
                             //tempPointer  = represPointer + (posXi  * rowSize + posGamma)  * 3;
                             
@@ -452,15 +465,28 @@ void opticFlowComputer::representOF(){
                             //*tempPointer = 255; tempPointer++;
                             //*tempPointer = 0  ; tempPointer++;
                             //*tempPointer = 0  ; tempPointer++;
-                        }
+                       
                     }
-                }                
-            }
-        }
+                }
+                */
 
 
-        //printf("sumGamma %f sumXi %f  u %d  v %d \n", sumGamma, sumXi, valueGamma, valueXi);
-   
+            } //end for j
+            tempPointer += (rowSize - dimComput) * 3;
+        } // end for i
+
+
+        //printf("sumGamma %f sumXi %f  countGamma %d  countXi %d \n", sumGamma, sumXi, countGamma, countXi);
+        meanGamma  =  (int) (sumGamma / countGamma);
+        meanXi     =  (int) (sumXi    / countXi   );
+        //printf("value: %d %d \n", valueGamma, valueXi);
+        //printf(" mean ( %d %d) \n", meanGamma, meanXi);
+        //if((meanGamma > 5) || (meanXi > 5)) {
+        //    cvLine(represenIpl,
+        //           cvPoint(posGamma , posXi), 
+        //           cvPoint(posGamma + meanGamma, posXi + meanXi),
+        //           cvScalar(255,0,0,0));
+        //}        
     }
     else {
         printf("null pointer \n");

@@ -128,6 +128,7 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
     outputImage         = new ImageOf<PixelRgb>;
+    flowImage           = new ImageOf<PixelRgb>;
     finalOutputImage    = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;
     extendedInputImage  = new ImageOf<PixelRgb>;    
@@ -198,6 +199,10 @@ bool logOFThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     } 
     if (!imagePortOut.open(getName("/imageRGB:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    } 
+    if (!flowPort.open(getName("/flow:o").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     } 
@@ -389,12 +394,17 @@ void logOFThread::run() {
         copyImage(outputImage, finalOutputImage);
         postSemaphores(reprSem);
         
-        if((inputImage!=0)&&(imagePortOut.getOutputCount())) {               
+        if((finalOutputImage!=0)&&(imagePortOut.getOutputCount())) {               
             imagePortOut.prepare() = *(finalOutputImage);                         
             imagePortOut.write();
         }
         
-        
+        if((flowImage!=0)&&(flowPort.getOutputCount())) {               
+            flowPort.prepare() = *(flowImage);                         
+            flowPort.write();
+        }
+
+
 #ifdef DEBUG_OPENCV
         cvWaitKey(0);
 #endif           
@@ -417,6 +427,7 @@ void logOFThread::resize(int width_orig,int height_orig) {
     filteredInputImage->resize(width_orig,height_orig);
     extendedInputImage->resize(width, height);
     outputImage->resize(width, height);
+    flowImage->resize(width, height);
     finalOutputImage->resize(width, height);
     Rplus->resize(width, height);
     Rminus->resize(width, height);
@@ -472,6 +483,7 @@ void logOFThread::resize(int width_orig,int height_orig) {
     
     /* zeroing the images*/
     outputImage->zero();
+    flowImage->zero();
     
     /* initialising the optic flow computers */
     printf("initialising the opticflow computers \n");
@@ -499,8 +511,8 @@ void logOFThread::initFlowComputer(int index) {
     ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
     ofComputer[index]->setCalculusRowSize(intensImgCopy->getRowSize());
     printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
-    ofComputer[index]->setRepresenPointer(outputImage->getRawImage());
-    ofComputer[index]->setRepresenImage(outputImage);
+    ofComputer[index]->setRepresenPointer(flowImage->getRawImage());
+    ofComputer[index]->setRepresenImage(flowImage);
     printf("setting the image for temporal gradient \n");
     ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
     printf("setting semaphores \n");
@@ -809,12 +821,14 @@ void logOFThread::threadRelease() {
     printf("logOFThread: thread releasing \n");
     imagePortIn.interrupt();
     imagePortOut.interrupt();
+    flowPort.interrupt();
     intenPort.interrupt();
     intensityCSPort.interrupt();
     chromPort.interrupt();
-    
+    flowPort.close();
     imagePortIn.close();
     imagePortOut.close();
+
     intenPort.close();
     intensityCSPort.close();
     chromPort.close();
@@ -830,6 +844,7 @@ void logOFThread::threadRelease() {
     // deallocating resources
     delete inputImage;
     delete outputImage;
+    delete flowImage;
     delete finalOutputImage;
     delete filteredInputImage;
     delete extendedInputImage;
