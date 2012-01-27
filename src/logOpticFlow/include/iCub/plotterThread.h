@@ -25,8 +25,8 @@
  * early vision module via two other threads (see earlyVisionModule.h).
  */
 
-#ifndef _LOG_OF_THREAD_H_
-#define _LOG_OF_THREAD_H_
+#ifndef _PLOT_THREAD_H_
+#define _PLOT_THREAD_H_
 
 #include <iostream>
 
@@ -43,8 +43,7 @@
 
 #include <iCub/convolve.h>
 #include <iCub/config.h>
-#include <iCub/opticFlowComputer.h>
-#include <iCub/plotterThread.h>
+
 
 #define MONO_PIXEL_SIZE 1
 #define COUNTCOMPUTERSX 21  //21 columns
@@ -57,7 +56,7 @@
 
 //#define DEBUG_OPENCV
  
-class logOFThread : public yarp::os::RateThread  {
+class plotterThread : public yarp::os::RateThread  {
 private:
     int count;
     
@@ -66,7 +65,7 @@ private:
     int width_cart, height_cart;        // dimension of the cartesian width and height    
     float lambda;                       // costant for the temporal filter
 
-    opticFlowComputer* ofComputer[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   // array of optic flow computers
+    //opticFlowComputer* ofComputer[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   // array of optic flow computers
     yarp::os::Semaphore** calcXSem;     // array of semaphore for calculus image gradient X
     yarp::os::Semaphore** calcYSem;     // array of semaphore for calculus image gradient X
     yarp::os::Semaphore** calcSem;     // array of semaphore for calculus image gradient X
@@ -161,7 +160,7 @@ private:
     bool isYUV;   
     
     yarp::os::Stamp St;
-    plotterThread* pt;                    // thread in charge of plotting the flow
+
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized   
@@ -170,12 +169,12 @@ public:
     /**
     * constructor
     */
-    logOFThread();
+    plotterThread();
 
     /**
      * destructor
      */
-    ~logOFThread();
+    ~plotterThread();
 
     bool threadInit();     
     void threadRelease();

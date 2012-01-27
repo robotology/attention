@@ -133,6 +133,8 @@ private:
     yarp::os::Semaphore* semRepresent;    // semaphore that controls access to the assigned portion of image
     yarp::os::Semaphore* semTemporal;     // semaphore that controls access to the assigned portion of image
 
+    
+
     //unsigned char* calculusPointerX;    // pointer to the image which the computation takes place from
     //unsigned char* calculusPointerY;    // pointer to the image which the computation takes place from
     unsigned char* calculusPointer;       // pointer to the image which the computation takes place from

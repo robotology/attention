@@ -404,10 +404,10 @@ void opticFlowComputer::representOF(){
                 
                 //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
                 if((abs(uSingle) > 10)||(abs(vSingle) > 10)) {
-                    cvLine(represenIpl,
-                                   cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
-                                   cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
-                                   cvScalar(0,0,255,0));  
+                    //cvLine(represenIpl,
+                    //               cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
+                    //               cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
+                    //               cvScalar(0,0,255,0));  
 
                     *tempPointer = 0;   tempPointer++;
                     *tempPointer = 255; tempPointer++;

@@ -17,12 +17,12 @@
   * Public License for more details
   */
 /**
- * @file logOFThread.cpp
- * @brief Implementation of the early stage of vision thread (see logOFThread.h).
+ * @file plotterThread.cpp
+ * @brief Implementation of the thread for visualization of the flow (see logOFThread.h).
  */
 
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
-#include <iCub/logOFThread.h>
+#include <iCub/plotterThread.h>
 
 #include <cstring>
 
@@ -75,7 +75,7 @@ inline void depthConvert(ImageOf<PixelFloat>* src, ImageOf<PixelMono>* dest) {
     
 }
 
-inline void  copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
+inline void copyImage(ImageOf<PixelRgb>* src,ImageOf<PixelRgb>* dest) {
     unsigned char* srcp  = src->getRawImage();
     unsigned char* destp = dest->getRawImage();
     int height  = src->height();
@@ -106,7 +106,9 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
 
 }
 
-logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
+
+
+plotterThread::plotterThread():RateThread(RATE_OF_PLOTTER_THREAD) {
 
     count = 0;
 
@@ -184,82 +186,36 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     lambda  = 0.3f;
     resized = false;
     isYUV   = true;
-
-    /* starting the threads */
-    pt = new plotterThread();
 }
 
-logOFThread::~logOFThread() {
-    printf("logOFThread::~logOFThread() \n");      
+plotterThread::~plotterThread() {
+    printf("plotterThread::~plotterThread() \n");      
 }
 
-bool logOFThread::threadInit() {
+bool plotterThread::threadInit() {
     printf("opening ports by main thread\n");
 
     /* open ports */        
-    if (!imagePortIn.open(getName("/imageRGB:i").c_str())) {
+    if (!flowPort.open(getName("/flow2:o").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
-    } 
-    if (!imagePortOut.open(getName("/imageRGB:o").c_str())) {
-        cout <<": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    } 
-    if (!flowPort.open(getName("/flow:o").c_str())) {
-        cout <<": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    } 
-   
-    if (!intenPort.open(getName("/intensity:o").c_str())) {
-        cout <<": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }   
-
-    if (!colorOpp1Port.open(getName("/colorOppR+G-:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-
-    if (!colorOpp2Port.open(getName("/colorOppG+R-:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if (!colorOpp3Port.open(getName("/colorOppB+Y-:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
-    if(isYUV){        
-        if (!chromPort.open(getName("/chrominance:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }
-    }
-    else{        
-        if (!chromPort.open(getName("/S:o").c_str())) {
-            cout << ": unable to open port "  << endl;
-            return false;  // unable to open; let RFModule know so that it won't run
-        }    
-    }    
-    if (!intensityCSPort.open(getName("/centSurrIntensity:o").c_str())) {
-        cout << ": unable to open port "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }
+    }  
 
     return true;
 }
 
-void logOFThread::setName(string str) {
+void plotterThread::setName(string str) {
     this->name=str;
     printf("name: %s", name.c_str());
 }
 
-std::string logOFThread::getName(const char* p) {
+std::string plotterThread::getName(const char* p) {
     string str(name);
     str.append(p);
     return str;
 }
 
-void logOFThread::waitSemaphores(Semaphore** pointer) {
+void plotterThread::waitSemaphores(Semaphore** pointer) {
     Semaphore* p;
     for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
         p = pointer[i];
@@ -267,7 +223,7 @@ void logOFThread::waitSemaphores(Semaphore** pointer) {
     }
 }
 
-void logOFThread::postSemaphores(Semaphore** pointer) {
+void plotterThread::postSemaphores(Semaphore** pointer) {
     Semaphore* p;
     for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
         p = pointer[i];
@@ -275,148 +231,12 @@ void logOFThread::postSemaphores(Semaphore** pointer) {
     }
 }
 
-void logOFThread::run() {   
-    
-    inputImage  = imagePortIn.read(false);
-
-    /*
-    count++;
-    //IplImage* img= cvCreateImage( cvSize(262, 157),IPL_DEPTH_8U,1); 
-    if(count % 2 == 0){
-        img = cvLoadImage("vertfinlog.jpg");
-    }
-    else {
-        img = cvLoadImage("vertinlog.jpg");
-    }
-    if(!img) {
-        printf("Could not load image file: \n");
-    }
-    else {
-        printf("image correctly opened \n");
-    }       
-    inputImage->wrapIplImage(img);
-    */
-    
-    waitSemaphores(tempSem);
-    copyImage(intensImg,prevIntensImg);
-    postSemaphores(tempSem);
-    
-    if (inputImage != NULL) {
-        if (!resized) {
-            resize(inputImage->width(), inputImage->height());
-            filteredInputImage->zero(); 
-            resized = true;
-        }            
-        
-        extender(maxKernelSize);
-        //printf("wait before copying \n");
-        // no need for semaphores this thread is the only thread
-        copyImage(extendedInputImage, outputImage); 
-        //printf("after way \n");
-        
-        // extract RGB and Y planes
-        extractPlanes();
-        
-        for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++) {
-            //printf("intensity image rowSize %d \n", intensImg->getRowSize());
-            if(!ofComputer[i]->hasStarted()) {
-                printf("the optic flow computer %d has not started \n", i);
-                if((imagePortOut.getOutputCount()) && (imagePortIn.getInputCount())) {                       
-                    printf("init flow computer %d \n", i);
-                    if( (intensImg!=0) && (outputImage!=0) ) {
-                        //printf("copying the intensImg before has started \n");
-                        
-                        waitSemaphores(calcSem);
-                        copyImage(intensImg,intensImgCopy);
-                        postSemaphores(calcSem);
-                        
-                        initFlowComputer(i);
-                        ofComputer[i]->setHasStarted(true); 
-                    }
-                }
-            }
-        }
-        
-        
-        //printf("red plus dimension in resize4  %d %d \n", cvRedPlus->width, cvRedPlus->height);
-        
-        //centerSurrounding();
-        //edgesExtract();  
-        
-        // gaussian filtering of the of RGB and Y
-        //filtering();           
-        
-        // colourOpponency map construction
-        //colorOpponency();         
-        
-        
-        if(intensImg!=0) {
-            //waitSemaphores(tempSem);
-            //copyImage(intensImg,prevIntensImg);
-            //IplImage* imgbw =  cvCreateImage( cvSize(252, 152),IPL_DEPTH_8U,1);
-            //img = cvLoadImage("vertinlog.jpg");
-            //cvCvtColor(img,imgbw,CV_BGR2GRAY);
-            
-            //if(!imgbw) {
-            //    printf("Could not load image file: \n");
-            //}
-            //prevIntensImg->wrapIplImage(imgbw);
-            //postSemaphores(tempSem);
-            
-            //printf("copying once intensImage not null \n");
-            //gradientHorConvolution->convolve2D(intensImg, intXgrad8u);
-            waitSemaphores(calcSem);
-            copyImage(intensImg,intensImgCopy);
-            postSemaphores(calcSem);
-            
-            //gradientVerConvolution->convolve2D(intensImg, intYgrad8u);
-            //waitSemaphores(calcYSem);
-            //copyImage(intensImg,gradientImgYCopy);
-            //postSemaphores(calcYSem);
-            
-            //CvMat stub, *dst_mat, *grad_mat;
-            //dst_mat = cvGetMat(intYgrad, &stub, 0, 0);
-            
-            
-#ifdef DEBUG_OPENCV
-            cvNamedWindow("ColorOppRG");
-            cvShowImage("ColorOppRG", intYgrad);
-#endif
-            
-            //IplImage stub, *dst_img;
-            //dst_img = cvGetImage(src_mat, &stub);
-                   
-            if(intenPort.getOutputCount()) {
-                intenPort.prepare() = *(intensImg);
-                intenPort.write();
-            }
-        } 
-        
-        //outputImage->zero();
-        waitSemaphores(reprSem);
-        copyImage(outputImage, finalOutputImage);
-        postSemaphores(reprSem);
-        
-        if((finalOutputImage!=0)&&(imagePortOut.getOutputCount())) {               
-            imagePortOut.prepare() = *(finalOutputImage);                         
-            imagePortOut.write();
-        }
-        
-        if((flowImage!=0)&&(flowPort.getOutputCount())) {               
-            flowPort.prepare() = *(flowImage);                         
-            flowPort.write();
-        }
-
-
-#ifdef DEBUG_OPENCV
-        cvWaitKey(0);
-#endif           
-    } // end if input image != NULL    
+void plotterThread::run() {   
 }
 
 
 
-void logOFThread::resize(int width_orig,int height_orig) {
+void plotterThread::resize(int width_orig,int height_orig) {
 
     this->width_orig  = inputImage->width(); //width_orig;
     this->height_orig = inputImage->height();//height_orig;
@@ -492,6 +312,7 @@ void logOFThread::resize(int width_orig,int height_orig) {
     printf("initialising the opticflow computers \n");
     for(int row = 0; row < COUNTCOMPUTERSY; row ++) {
         for(int col = 0; col < COUNTCOMPUTERSX; col ++) {
+            /*
             printf("\n initialising %d computer \n ",row * COUNTCOMPUTERSX + col );
             ofComputer[row * COUNTCOMPUTERSX + col] =
                 new opticFlowComputer(row * COUNTCOMPUTERSX + col,
@@ -503,14 +324,16 @@ void logOFThread::resize(int width_orig,int height_orig) {
             if(row > 2) {
                 ofComputer[row * COUNTCOMPUTERSX + col]->start();
             }
+            */
         }
     }    
 }
 
-void logOFThread::initFlowComputer(int index) {
+void plotterThread::initFlowComputer(int index) {
     printf("setting calculus %x pointer \n", intensImg->getRawImage());
     //ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
     //ofComputer[index]->setCalculusPointerY(gradientImgYCopy->getRawImage());
+    /*
     ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
     ofComputer[index]->setCalculusRowSize(intensImgCopy->getRowSize());
     printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
@@ -519,15 +342,18 @@ void logOFThread::initFlowComputer(int index) {
     printf("setting the image for temporal gradient \n");
     ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
     printf("setting semaphores \n");
+    */
     //ofComputer[index]->setCalculusXSem(calcXSem[index]);
     //ofComputer[index]->setCalculusYSem(calcYSem[index]);
+    /*
     ofComputer[index]->setCalculusSem(calcSem[index]);
     ofComputer[index]->setRepresentSem(reprSem[index]);
     ofComputer[index]->setTemporalSem(tempSem[index]);
+    */
 }
 
 
-void logOFThread::filterInputImage() {    
+void plotterThread::filterInputImage() {    
     int i;
     const int szInImg = inputImage->getRawImageSize();
     unsigned char * pFilteredInpImg = filteredInputImage->getRawImage();
@@ -541,11 +367,11 @@ void logOFThread::filterInputImage() {
 }
 
 
-void logOFThread::extender(int maxSize) {
+void plotterThread::extender(int maxSize) {
     iCub::logpolar::replicateBorderLogpolar(*extendedInputImage, *inputImage, maxSize);    
 }
 
-void logOFThread::extractPlanes() {
+void plotterThread::extractPlanes() {
 
     //chromeThread->setFlagForDataReady(false);           
     // We extract color planes from the RGB image. Planes are red,blue, green and yellow (AM of red & green)
@@ -652,7 +478,7 @@ void logOFThread::extractPlanes() {
 
 }
 
-void logOFThread::filtering() {
+void plotterThread::filtering() {
     // We gaussian blur the image planes extracted before, one with positive Gaussian and then negative
     
     //Positive
@@ -692,7 +518,7 @@ void logOFThread::filtering() {
 
 
 
-void logOFThread::colorOpponency(){
+void plotterThread::colorOpponency(){
 
     // get opponent colors for eg R+G- from R+ and G- channels
     // Finding color opponency now
@@ -769,7 +595,7 @@ void logOFThread::colorOpponency(){
 
 }
 
-void logOFThread::centerSurrounding(){        
+void plotterThread::centerSurrounding(){        
         
         // Allocate temporarily
         ImageOf<PixelMono>& _Y = intensityCSPort.prepare();
@@ -799,7 +625,7 @@ void logOFThread::centerSurrounding(){
                                      
 }
 
-void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double multFactor, double shiftFactor){
+void plotterThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double multFactor, double shiftFactor){
 
     IplImage stub, *toBeAddedImage;
     toBeAddedImage = cvGetImage(cvMatAdded, &stub);
@@ -820,32 +646,12 @@ void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double
 }
 
 
-void logOFThread::threadRelease() { 
+void plotterThread::threadRelease() {    
+    printf("plotterThread: thread releasing \n");
 
-
-    pt->stop();
-   
-    printf("logOFThread: thread releasing \n");
-    imagePortIn.interrupt();
-    imagePortOut.interrupt();
     flowPort.interrupt();
-    intenPort.interrupt();
-    intensityCSPort.interrupt();
-    chromPort.interrupt();
     flowPort.close();
-    imagePortIn.close();
-    imagePortOut.close();
 
-    intenPort.close();
-    intensityCSPort.close();
-    chromPort.close();
-
-    colorOpp1Port.interrupt();
-    colorOpp2Port.interrupt();
-    colorOpp3Port.interrupt();
-    colorOpp1Port.close();
-    colorOpp2Port.close();
-    colorOpp3Port.close();
     resized = false;    
 
     // deallocating resources
@@ -908,7 +714,7 @@ void logOFThread::threadRelease() {
 
     for(int j = 0 ; j < COUNTCOMPUTERSX * COUNTCOMPUTERSY; j++) {
         printf("stopping %d computer \n", j);        
-        ofComputer[j]->stop();
+        //ofComputer[j]->stop();
     }       
  
     printf("Done with releasing earlyVision thread.\n");
