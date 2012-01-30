@@ -49,6 +49,7 @@
 //#include <iCub/logPolar.h>
 #include <iCub/convolve.h>
 #include <iCub/config.h>
+#include <iCub/plotterThread.h>
 
 
 //#define PI 3.1415
@@ -133,7 +134,7 @@ private:
     yarp::os::Semaphore* semRepresent;    // semaphore that controls access to the assigned portion of image
     yarp::os::Semaphore* semTemporal;     // semaphore that controls access to the assigned portion of image
 
-    
+    plotterThread* pt;                    // reference to the plotter 
 
     //unsigned char* calculusPointerX;    // pointer to the image which the computation takes place from
     //unsigned char* calculusPointerY;    // pointer to the image which the computation takes place from
@@ -210,12 +211,14 @@ public:
     void setHasStarted(bool value) { hasStartedFlag =  value; };
 
     /*
-
     void setCalculusPointerX(unsigned char* pImage){ calculusPointerX = pImage; };
-
-
     void setCalculusPointerY(unsigned char* pImage){ calculusPointerY = pImage; };
     */
+
+    /**
+     * @brief function that sets the pointer to the plotter
+     */
+    void setPlotterPointer(plotterThread* p){ pt = p; };
 
     /**
      * @brief function that declares which image the computer is working on

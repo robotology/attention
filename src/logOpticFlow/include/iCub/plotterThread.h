@@ -44,7 +44,7 @@
 #include <iCub/convolve.h>
 #include <iCub/config.h>
 
-
+//#define dimComput 6
 #define MONO_PIXEL_SIZE 1
 #define COUNTCOMPUTERSX 21  //21 columns
 #define COUNTCOMPUTERSY 13  //13 rows
@@ -59,19 +59,27 @@
 class plotterThread : public yarp::os::RateThread  {
 private:
     int count;
+
+    static const int dimComput = 6;
+    static const int calcHalf  = 3;
     
     int width_orig, height_orig;        // dimension of the input image (original)
     int width, height;                  // dimension of the extended input image (extending)
     int width_cart, height_cart;        // dimension of the cartesian width and height    
+    int rowSize;                        // size of the row of the flowImage
     float lambda;                       // costant for the temporal filter
 
     //opticFlowComputer* ofComputer[COUNTCOMPUTERSX * COUNTCOMPUTERSY];   // array of optic flow computers
     yarp::os::Semaphore** calcXSem;     // array of semaphore for calculus image gradient X
     yarp::os::Semaphore** calcYSem;     // array of semaphore for calculus image gradient X
-    yarp::os::Semaphore** calcSem;     // array of semaphore for calculus image gradient X
+    yarp::os::Semaphore** calcSem;      // array of semaphore for calculus image gradient X
     yarp::os::Semaphore** reprSem;      // array of semaphore for representation
     yarp::os::Semaphore** tempSem;      // array of semaphore for temporal representation of images
-    
+
+    unsigned char* computersValue[COUNTCOMPUTERSX * COUNTCOMPUTERSY];     // list of  pointer to a list of value per id
+    int posXi[COUNTCOMPUTERSX * COUNTCOMPUTERSY];                             // lut for the x position of the ith computer
+    int posGamma[COUNTCOMPUTERSX * COUNTCOMPUTERSY];                          // lut for the y position of the ith computer
+
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* flowImage;
@@ -133,6 +141,8 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
+    unsigned char *represPointer; //pointer to the area to be represented TODO : to LUT
+
     IplImage *cs_tot_32f;  // extended
     IplImage *int_gradx_32f;
     IplImage *cs_tot_8u; 
@@ -150,8 +160,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;  
-    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;      
         
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
@@ -160,7 +169,6 @@ private:
     bool isYUV;   
     
     yarp::os::Stamp St;
-
     
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized   
@@ -227,8 +235,15 @@ public:
             (3,3,Sobel2DYgrad_small,value,-50,0);
     };
 
+    /**
+     * @brief function that sets the pointer to the representation image
+     */
+    void setReprPointer(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img) { flowImage = img ; rowSize = flowImage->getRowSize();};
 
-    void setReprPointer(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img) { flowImage = img ;};
+    /**
+     * @brief function that updates the list of values in a portion of the image
+     */
+    void setPortion(int id, unsigned char* value);
 
     /**
     * function that returns the original root name and appends another string iff passed as parameter
@@ -243,6 +258,11 @@ public:
     * @param height height of the input image
     */
     void resize(int width, int height);
+
+    /**
+     * @brief function that represent the flow in the flowImage
+     */
+    void representOF();
     
     /**
     * function that resizes the cartesian image

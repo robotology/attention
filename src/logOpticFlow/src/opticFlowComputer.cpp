@@ -159,6 +159,7 @@ bool opticFlowComputer::threadInit() {
     wMat->diagonal(wVec);
     //wMat->eye();
     
+
     printf("correctly initialised the weight matrix \n");
 
     return true;
@@ -192,9 +193,9 @@ void opticFlowComputer::run() {
             semCalculus->post();
 
             
-            semRepresent->wait();
-            representOF();
-            semRepresent->post();
+            //semRepresent->wait();
+            //representOF();
+            //semRepresent->post();
                         
             Time::delay(0.05);
         }        

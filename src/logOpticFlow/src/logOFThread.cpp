@@ -243,12 +243,12 @@ bool logOFThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
-
     /* starting the threads */
     pt = new plotterThread();
     pt->setName(this->getName("").c_str());
     pt->setReprPointer(flowImage);
     pt->start();
+
 
     return true;
 }
@@ -531,6 +531,7 @@ void logOFThread::initFlowComputer(int index) {
     ofComputer[index]->setCalculusSem(calcSem[index]);
     ofComputer[index]->setRepresentSem(reprSem[index]);
     ofComputer[index]->setTemporalSem(tempSem[index]);
+    ofComputer[index]->setPlotterPointer(pt);
 }
 
 
@@ -828,7 +829,6 @@ void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double
 
 
 void logOFThread::threadRelease() { 
-
 
     pt->stop();
    
