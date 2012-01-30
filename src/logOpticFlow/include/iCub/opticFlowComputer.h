@@ -138,9 +138,11 @@ private:
 
     //unsigned char* calculusPointerX;    // pointer to the image which the computation takes place from
     //unsigned char* calculusPointerY;    // pointer to the image which the computation takes place from
-    unsigned char* calculusPointer;       // pointer to the image which the computation takes place from
-    unsigned char* represPointer;         // pointer to the image which the flow is represented
-    unsigned char* temporalPointer;       // pointer to the previous monocromatic image    
+    unsigned char *calculusPointer;       // pointer to the image which the computation takes place from
+    unsigned char *represPointer;         // pointer to the image which the flow is represented
+    unsigned char *temporalPointer;       // pointer to the previous monocromatic image    
+    short *resultU;               // pointer to the resultU for the computer
+    short *resultV;               // pointer to the resultV for the computer
         
     bool isYUV;   
     FILE *fout;

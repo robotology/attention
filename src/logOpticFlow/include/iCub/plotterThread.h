@@ -76,9 +76,10 @@ private:
     yarp::os::Semaphore** reprSem;      // array of semaphore for representation
     yarp::os::Semaphore** tempSem;      // array of semaphore for temporal representation of images
 
-    unsigned char* computersValue[COUNTCOMPUTERSX * COUNTCOMPUTERSY];     // list of  pointer to a list of value per id
-    int posXi[COUNTCOMPUTERSX * COUNTCOMPUTERSY];                             // lut for the x position of the ith computer
-    int posGamma[COUNTCOMPUTERSX * COUNTCOMPUTERSY];                          // lut for the y position of the ith computer
+    short* computersValueU[COUNTCOMPUTERSX * COUNTCOMPUTERSY];        // list of  pointer to a list of value U per id
+    short* computersValueV[COUNTCOMPUTERSX * COUNTCOMPUTERSY];        // list of  pointer to a list of value V per id
+    int posXi[COUNTCOMPUTERSX * COUNTCOMPUTERSY];                     // lut for the x position of the ith computer
+    int posGamma[COUNTCOMPUTERSX * COUNTCOMPUTERSY];                  // lut for the y position of the ith computer
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
@@ -151,7 +152,7 @@ private:
     IplImage *vcs_out;     // final extended intensity center surround image
     IplImage *colcs_out;   // final extended coulour center surround image
     IplImage *img;
-
+    IplImage *represIpl;   // image that is going to be represented
     //CenterSurround *centerSurr;    
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  imagePortIn;
@@ -238,12 +239,21 @@ public:
     /**
      * @brief function that sets the pointer to the representation image
      */
-    void setReprPointer(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img) { flowImage = img ; rowSize = flowImage->getRowSize();};
+    void setReprPointer(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img) { flowImage = img ; 
+    rowSize = flowImage->getRowSize();
+    represPointer = flowImage->getRawImage();
+    represIpl     = (IplImage*) flowImage->getIplImage();
+    };
 
     /**
-     * @brief function that updates the list of values in a portion of the image
+     * @brief function that updates the list of values OF in v direction in a portion of the image
      */
-    void setPortion(int id, unsigned char* value);
+    void setPortionV(int id, short* value);
+    
+    /**
+     * @brief function that updates the list of values OF u direction in a portion of the image
+     */
+    void setPortionU(int id, short* value);
 
     /**
     * function that returns the original root name and appends another string iff passed as parameter

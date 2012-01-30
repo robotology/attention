@@ -103,13 +103,12 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
         }*/
 
     memcpy(destp,srcp,height * rowSize * sizeof(char));
-
 }
 
 
 
 plotterThread::plotterThread():RateThread(RATE_OF_PLOTTER_THREAD) {
-
+    printf("plotterThread::RateThread() \n");
     count = 0;
 
     //calcXSem = new Semaphore *[COUNTCOMPUTERSX * COUNTCOMPUTERSY]; 
@@ -184,13 +183,13 @@ plotterThread::plotterThread():RateThread(RATE_OF_PLOTTER_THREAD) {
     gradientVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DYgrad_small,0.6,-50,0);
 
     for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++ ) {
-        computersValue[i] = (unsigned char*) malloc(dimComput * dimComput * sizeof(unsigned char));
-        int row = floor(i / COUNTCOMPUTERSX);
+        computersValueU[i] = (short*) malloc(dimComput * dimComput * sizeof(short));
+        computersValueV[i] = (short*) malloc(dimComput * dimComput * sizeof(short));
+        int row = floor(i  / COUNTCOMPUTERSX);
         int col = i  - row * COUNTCOMPUTERSX;
         posXi[i] = 12 * row + (6 + 1) ;
         posGamma[i] = 12 * col + (6 + 5);
-    }
-    
+    }    
     
     lambda  = 0.3f;
     resized = false;
@@ -202,7 +201,7 @@ plotterThread::~plotterThread() {
 }
 
 bool plotterThread::threadInit() {
-    printf("opening ports by main thread\n");
+    printf(" \n opening ports by main thread\n");
     
     /* open ports */        
     if (!flowPort.open(getName("/flow2:o").c_str())) {
@@ -241,7 +240,7 @@ void plotterThread::postSemaphores(Semaphore** pointer) {
 }
 
 void plotterThread::run() {
-
+    //printf("plotterThread::run \n");
     representOF();
    
     if((flowImage!=0)&&(flowPort.getOutputCount())) {               
@@ -259,7 +258,7 @@ void plotterThread::representOF(){
 
     if(represPointer!=0) {
         //representing the limits
-        //printf("image pointer %x %d %d %d \n", represPointer, posXi, posGamma, width);
+        //printf("image pointer %x \n", represPointer);
         /*
         tempPointer  = represPointer + (posXi * rowSize + posGamma) * 3;
         *tempPointer = 255; tempPointer++;
@@ -289,7 +288,7 @@ void plotterThread::representOF(){
         *tempPointer = 0;   tempPointer++;
         */
 
-        double sumGamma, sumXi;
+        int sumGamma, sumXi;
         int valueGamma, valueXi;
         int meanGamma,  meanXi;
         int countGamma = 0, countXi = 0;
@@ -302,15 +301,21 @@ void plotterThread::representOF(){
             tempPointer = represPointer + (posXi[visitComputer] - calcHalf) * rowSize 
                                            + (posGamma[visitComputer] - calcHalf) * 3 ;
 
+            short* valuePointerU = computersValueU[visitComputer];
+            short* valuePointerV = computersValueV[visitComputer];
+
             for(int i = 0; i < dimComput; i++) {
                 for(int j =0; j< dimComput; j++) {
-                    uSingle = 11.0;
-                    vSingle = 11.0;
-                    valueGamma = 11.0;
-                    valueXi    = 11.0;
+                    uSingle = *valuePointerU;
+                    vSingle = *valuePointerV;
+                    valueGamma = *valuePointerU;
+                    valueXi    = *valuePointerV;
+                    
+                    //printf("uSingle vSingle %d %d \n", valueGamma,valueXi);
+
                     
                     //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
-                    if((abs(uSingle) > 10)||(abs(vSingle) > 10)) {
+                    if((abs(valueGamma) > 50)||(abs(valueXi) > 50)) {
                         //cvLine(represenIpl,
                         //               cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
                         //               cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),                        
@@ -334,65 +339,63 @@ void plotterThread::representOF(){
                     }
                     
                     //printf("Single: %f %f \n", uSingle, vSingle);
-                    /*
-                      if((v== v)&&(v!=0)) {
-                      sumGamma += uSingle;
-                      countGamma++;
-                      }   
-                      if((u==u)&&(u!=0)){
-                      sumXi    += vSingle;
-                      countXi++;
-                      }
-                    */
+                    
+                    if(valueGamma!=0) {
+                        sumGamma += valueGamma;
+                        countGamma++;
+                    }   
+                    if(valueXi!=0){
+                        sumXi    += valueXi;
+                        countXi++;
+                    }
                     
                     
-                    //
-                    //
-                    
-                    /*
-                      if(
-                      (posGamma + valueGamma < 0)       || (posXi + valueXi < 0) ||
-                      (posGamma + valueGamma > rowSize) || (posXi + valueXi > 152)
-                      ){
-                      //printf("line out of image boundaries \n");
-                      }
-                      else {
-                      if((valueGamma != 0)&&(valueXi != 0)) {
-                      
-                      //printf("endPoint %f %f %d %d \n",uSingle, vSingle, endPointX, endPointY);
-                      //cvLine(represenIpl,
-                      //       cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
-                      //       cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
-                      //       cvScalar(0,0,255,0));   
-                      
-                      //tempPointer  = represPointer + (posXi  * rowSize + posGamma)  * 3;
-                      
+                    if(
+                       (posGamma[visitComputer] + valueGamma < 0)       || (posXi[visitComputer] + valueXi < 0) ||
+                       (posGamma[visitComputer] + valueGamma > rowSize) || (posXi[visitComputer] + valueXi > 152)
+                       ){
+                        //printf("line out of image boundaries \n");
+                    }
+                    else {
+                        if((valueGamma != 0)&&(valueXi != 0)) {
+                            
+                            //printf("endPoint %f %f %d %d \n",uSingle, vSingle, endPointX, endPointY);
+                            /*
+                              cvLine(represenIpl,
+                              cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
+                              cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
+                              cvScalar(0,0,255,0));   
+                            */
+                            
+                            //tempPointer  = represPointer + (posXi  * rowSize + posGamma)  * 3;
+                            
                             //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
                             //*tempPointer = 255; tempPointer++;
                             //*tempPointer = 0  ; tempPointer++;
                             //*tempPointer = 0  ; tempPointer++;
-                       
-                            }
-                            }
-                    */
+                            
+                        }
+                    }                    
                     
-
                 } //end for j
-                tempPointer += (rowSize - dimComput) * 3;
+                tempPointer += rowSize - dimComput * 3;
             } // end for i
-        } // end visitComputer
 
-        //printf("sumGamma %f sumXi %f  countGamma %d  countXi %d \n", sumGamma, sumXi, countGamma, countXi);
-        meanGamma  =  (int) (sumGamma / countGamma);
-        meanXi     =  (int) (sumXi    / countXi   );
-        //printf("value: %d %d \n", valueGamma, valueXi);
-        //printf(" mean ( %d %d) \n", meanGamma, meanXi);
-        //if((meanGamma > 5) || (meanXi > 5)) {
-        //    cvLine(represenIpl,
-        //           cvPoint(posGamma , posXi), 
-        //           cvPoint(posGamma + meanGamma, posXi + meanXi),
-        //           cvScalar(255,0,0,0));
-        //}        
+
+            //printf("sumGamma %f sumXi %f  countGamma %d  countXi %d \n", sumGamma, sumXi, countGamma, countXi);
+            meanGamma  =  (int) (sumGamma / countGamma);
+            meanXi     =  (int) (sumXi    / countXi   );
+            //printf("value: %d %d \n", valueGamma, valueXi);
+            //printf(" mean ( %d %d) \n", meanGamma, meanXi);
+            if((meanGamma > 5) || (meanXi > 5)) {
+                //cvLine(represIpl,
+                //       cvPoint(posGamma[visitComputer] , posXi[visitComputer]), 
+                //       cvPoint(posGamma[visitComputer] + meanGamma, posXi[visitComputer] + meanXi),
+                //       cvScalar(255,0,0,0));
+            }        
+
+        } // end visitComputer
+        
     }
     else {
         printf("null pointer \n");
@@ -495,7 +498,7 @@ void plotterThread::resize(int width_orig,int height_orig) {
     }    
 }
 
-void plotterThread::setPortion(int id, unsigned char* value) {
+void plotterThread::setPortionU(int id, short* value) {
     /*
       int row = floor(id / COUNTCOMPUTERSX);
     int col = id  - row * COUNTCOMPUTERSX;
@@ -509,9 +512,17 @@ void plotterThread::setPortion(int id, unsigned char* value) {
     represenPointer += rowSize - dimComput * 3;
     */
     
-    unsigned char* iterator = computersValue[id] ;
+    short* iter = computersValueU[id] ;
     for (int i = 0; i < dimComput * dimComput; i++) {
-        *iterator++ = *value++;
+        //printf("copying the portion %d \n", *value);
+        *iter++ = *value++;
+    }
+}
+
+void plotterThread::setPortionV(int id, short* value) {
+    short* iter = computersValueV[id] ;
+    for (int i = 0; i < dimComput * dimComput; i++) {
+        *iter++ = *value++;
     }
 }
 
@@ -893,7 +904,9 @@ void plotterThread::threadRelease() {
     delete[] reprSem;
     delete[] tempSem;
     delete[] calcSem;
-    delete[] computersValue;
+    delete[] computersValueU;
+    delete[] computersValueV;
+
     //delete[] calcXSem;
     //delete[] calcYSem;
 

@@ -244,6 +244,7 @@ bool logOFThread::threadInit() {
     }
 
     /* starting the threads */
+    printf("creating the thread \n");
     pt = new plotterThread();
     pt->setName(this->getName("").c_str());
     pt->setReprPointer(flowImage);
@@ -523,6 +524,7 @@ void logOFThread::initFlowComputer(int index) {
     printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(flowImage->getRawImage());
     ofComputer[index]->setRepresenImage(flowImage);
+    
     printf("setting the image for temporal gradient \n");
     ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
     printf("setting semaphores \n");
@@ -531,7 +533,9 @@ void logOFThread::initFlowComputer(int index) {
     ofComputer[index]->setCalculusSem(calcSem[index]);
     ofComputer[index]->setRepresentSem(reprSem[index]);
     ofComputer[index]->setTemporalSem(tempSem[index]);
+    printf("adding the reference to the plotter"); 
     ofComputer[index]->setPlotterPointer(pt);
+    pt->setReprPointer(flowImage);
 }
 
 

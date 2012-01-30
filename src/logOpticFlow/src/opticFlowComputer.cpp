@@ -84,6 +84,7 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
     posGamma = pGamma;
     neigh = n ;
     width = 6; height = 6;
+    dimComput = 6;
 
     fout = fopen("dump.txt","w+");
 
@@ -99,6 +100,12 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
     }
     gradientHorConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DXgrad_small,0.5,.0,0);
     gradientVerConvolution = new convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono>,uchar>(3,3,Sobel2DYgrad_small,0.1,.0,0);
+
+    //resultU = new short;
+    //resultV = new short;
+    resultU = (short*) malloc(dimComput * dimComput * sizeof(short));
+    resultV = (short*) malloc(dimComput * dimComput * sizeof(short));
+    
 }
 
 opticFlowComputer::~opticFlowComputer() {
@@ -209,6 +216,8 @@ void opticFlowComputer::estimateOF(){
     unsigned char *pTemp = temporalPointer;
     unsigned char *pPrev;
     double k1, k2;
+    short* tempResultU = resultU;
+    short* tempResultV = resultV;
 
     //calculusRowSize = 264;
     //printf("rowSize %d \n", calculusRowSize);
@@ -332,18 +341,27 @@ void opticFlowComputer::estimateOF(){
             v->operator()(xi,gamma) = ofv ;
             */
 
-
-
+            *tempResultU = (short) floor(u->operator()(xi,gamma));
+            tempResultU++;
+            *tempResultV = (short) floor(v->operator()(xi,gamma));
+            tempResultV++;
+            
+            
 #ifdef DEBUGDUMP
             fprintf(fout,"%05f %05f \n", u->operator()(xi,gamma), v->operator()(xi, gamma));
 #endif
-            //printf(" optic flow = (%f, %f) \n", u->operator()(xi,gamma), v->operator()(xi,gamma));
+            //printf(" optic flow = (%d, %d) \n", *tempResultU, *tempResultV);
         }
     }
 #ifdef DEBUGDUMP
-            fprintf(fout,"-1 -1 \n");
+    fprintf(fout,"-1 -1 \n");
 #endif
-
+    
+    //printf("setting the portion for %d computer \n", id);
+    pt->setPortionU(id,resultU);
+    pt->setPortionV(id,resultV);
+    //printf("success in setting the portion \n");
+    
 }
 
 void opticFlowComputer::representOF(){
@@ -404,7 +422,7 @@ void opticFlowComputer::representOF(){
                 valueXi    = (int) floor(vSingle / 1.0);
                 
                 //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
-                if((abs(uSingle) > 10)||(abs(vSingle) > 10)) {
+                if((abs(uSingle) > 40)||(abs(vSingle) > 40)) {
                     //cvLine(represenIpl,
                     //               cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
                     //               cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),
@@ -821,6 +839,10 @@ void opticFlowComputer::onStop(){
     delete v;      
     
     printf("correctly deleting matrices \n");
+
+
+    free(resultU);
+    free(resultV);
 
     /*imagePortIn.interrupt();
     imagePortOut.interrupt();
