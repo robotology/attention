@@ -194,7 +194,7 @@ plotterThread::~plotterThread() {
 
 bool plotterThread::threadInit() {
     printf("opening ports by main thread\n");
-
+    
     /* open ports */        
     if (!flowPort.open(getName("/flow2:o").c_str())) {
         cout <<": unable to open port "  << endl;
@@ -232,6 +232,10 @@ void plotterThread::postSemaphores(Semaphore** pointer) {
 }
 
 void plotterThread::run() {   
+    if((flowImage!=0)&&(flowPort.getOutputCount())) {               
+        flowPort.prepare() = *(flowImage);                         
+        flowPort.write();
+    }
 }
 
 

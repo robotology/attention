@@ -185,8 +185,6 @@ logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
     resized = false;
     isYUV   = true;
 
-    /* starting the threads */
-    pt = new plotterThread();
 }
 
 logOFThread::~logOFThread() {
@@ -244,6 +242,13 @@ bool logOFThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
+
+    /* starting the threads */
+    pt = new plotterThread();
+    pt->setName(this->getName("").c_str());
+    pt->setReprPointer(flowImage);
+    pt->start();
 
     return true;
 }
@@ -424,9 +429,11 @@ void logOFThread::resize(int width_orig,int height_orig) {
     width  = this->width_orig   + maxKernelSize * 2;
     height = this->height_orig  + maxKernelSize;
     printf("expressing width and height %d %d \n", width, height);
+
+
+    pt->resize(width, height);
     
-    //resizing yarp image 
-    
+    //resizing yarp image
     filteredInputImage->resize(width_orig,height_orig);
     extendedInputImage->resize(width, height);
     outputImage->resize(width, height);

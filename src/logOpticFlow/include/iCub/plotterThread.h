@@ -227,6 +227,9 @@ public:
             (3,3,Sobel2DYgrad_small,value,-50,0);
     };
 
+
+    void setReprPointer(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img) { flowImage = img ;};
+
     /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added
