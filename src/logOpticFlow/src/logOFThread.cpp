@@ -106,7 +106,7 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
 
 }
 
-logOFThread::logOFThread():RateThread(RATE_OF_INTEN_THREAD) {
+logOFThread::logOFThread()/*:RateThread(RATE_OF_INTEN_THREAD)*/ {
 
     count = 0;
 
@@ -282,8 +282,8 @@ void logOFThread::postSemaphores(Semaphore** pointer) {
 }
 
 void logOFThread::run() {   
-    
-    inputImage  = imagePortIn.read(false);
+ while(isRunning()) {
+    inputImage  = imagePortIn.read(true);
 
     /*
     count++;
@@ -303,9 +303,7 @@ void logOFThread::run() {
     inputImage->wrapIplImage(img);
     */
     
-    waitSemaphores(tempSem);
-    copyImage(intensImg,prevIntensImg);
-    postSemaphores(tempSem);
+
     
     if (inputImage != NULL) {
         if (!resized) {
@@ -314,12 +312,18 @@ void logOFThread::run() {
             resized = true;
         }            
         
+
+        
         extender(maxKernelSize);
         //printf("wait before copying \n");
         // no need for semaphores this thread is the only thread
-        copyImage(extendedInputImage, outputImage); 
+        //copyImage(extendedInputImage, outputImage); 
         //printf("after way \n");
         
+        waitSemaphores(tempSem);
+        copyImage(intensImg,prevIntensImg);
+        postSemaphores(tempSem);
+
         // extract RGB and Y planes
         extractPlanes();
         
@@ -418,6 +422,7 @@ void logOFThread::run() {
         cvWaitKey(0);
 #endif           
     } // end if input image != NULL    
+  } // end of while isRunning()
 }
 
 
@@ -831,10 +836,101 @@ void logOFThread::addFloatImage(IplImage* sourceImage, CvMat* cvMatAdded, double
    }   
 }
 
+void logOFThread::onStop() {
+    printf("logOFThread: thread releasing \n");
+    imagePortIn.interrupt();
+    imagePortOut.interrupt();
+    flowPort.interrupt();
+    intenPort.interrupt();
+    intensityCSPort.interrupt();
+    chromPort.interrupt();
+    flowPort.close();
+    imagePortIn.close();
+    imagePortOut.close();
 
-void logOFThread::threadRelease() { 
+    intenPort.close();
+    intensityCSPort.close();
+    chromPort.close();
+
+    colorOpp1Port.interrupt();
+    colorOpp2Port.interrupt();
+    colorOpp3Port.interrupt();
+    colorOpp1Port.close();
+    colorOpp2Port.close();
+    colorOpp3Port.close();
+    resized = false;    
+
+    // deallocating resources
+    delete inputImage;
+    delete outputImage;
+    delete flowImage;
+    delete finalOutputImage;
+    delete filteredInputImage;
+    delete extendedInputImage;
+    delete Rplus;
+    delete Rminus;
+    delete Gplus;
+    delete Gminus;
+    delete Bplus;
+    delete Bminus;
+    delete Yminus;
+
+    printf("correctly deleting the images \n");
+
+    delete gaborPosHorConvolution;    
+    delete gaborPosVerConvolution;    
+    delete gaborNegHorConvolution;    
+    delete gaborNegVerConvolution;
+    delete YofYUV;
+    delete intensImg;
+    //delete intensXGrad;
+    //delete intensYGrad;
+    delete intYgrad8u; 
+    delete intYgrad8u;
+    //delete gradientImgXCopy;
+    //delete gradientImgXCopy;
+    delete intensImgCopy;
+    delete prevIntensImg;
+    delete unXtnIntensImg;
+    delete redPlane;
+    delete greenPlane;
+    delete bluePlane;
+    delete yellowPlane;
+    delete Yplane;
+    delete Uplane;
+    delete Vplane;
+    delete unXtnYplane;
+    delete unXtnUplane;
+    delete unXtnVplane;
+    delete YofYUVpy;
+    delete UofYUVpy;
+    delete VofYUVpy;
+    delete RplusUnex;
+    delete GplusUnex;
+    delete BplusUnex;
+    delete tmpMonoLPImage;
+    
+    printf("correctly deleting second set of images \n");
+
+    delete[] reprSem;
+    delete[] tempSem;
+    delete[] calcSem;
+    //delete[] calcXSem;
+    //delete[] calcYSem;
+
+    printf("correctly freed memory of images \n");
 
     pt->stop();
+    for(int j = 0 ; j < COUNTCOMPUTERSX * COUNTCOMPUTERSY; j++) {
+        printf("stopping %d computer \n", j);        
+        ofComputer[j]->stop();
+    }       
+ 
+    printf("Done with releasing earlyVision thread.\n");
+}
+
+
+void logOFThread::threadRelease() { 
    
     printf("logOFThread: thread releasing \n");
     imagePortIn.interrupt();
@@ -917,6 +1013,7 @@ void logOFThread::threadRelease() {
 
     printf("correctly freed memory of images \n");
 
+    pt->stop();
     for(int j = 0 ; j < COUNTCOMPUTERSX * COUNTCOMPUTERSY; j++) {
         printf("stopping %d computer \n", j);        
         ofComputer[j]->stop();

@@ -57,7 +57,7 @@
 
 //#define DEBUG_OPENCV
  
-class logOFThread : public yarp::os::RateThread  {
+class logOFThread : public yarp::os::Thread  {
 private:
     int count;
     
