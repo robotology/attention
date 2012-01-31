@@ -317,6 +317,11 @@ public:
     void cartremap(yarp::sig::ImageOf<yarp::sig::PixelRgb>* cartesianImage,yarp::sig::ImageOf<yarp::sig::PixelRgb>* logpolarImage);
 
     /**
+     * @brief function the count the abs u and v value greater than threshold
+     */
+    int countPositiveValue(short *pointer);
+
+    /**
     * function that filters the input image in time 
     */
     void filterInputImage();

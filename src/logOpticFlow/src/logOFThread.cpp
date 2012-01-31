@@ -312,6 +312,14 @@ void logOFThread::postSemaphores(Semaphore** pointer) {
     }
 }
 
+void logOFThread::convertImages(ImageOf<PixelMono> *srcInt, ImageOf<PixelMono> *srcTmp){
+    calculusIpl     = (IplImage*) srcInt->getIplImage();
+    cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0
+    temporalIpl     = (IplImage*) srcTmp->getIplImage();
+    cvConvertScale(temporalIpl,temporalIpl32f,0.003922,0);  //  0.003922 = 1/255.0
+}
+
+
 void logOFThread::run() {   
  while(isRunning()) {
     inputImage  = imagePortIn.read(true);
@@ -403,13 +411,16 @@ void logOFThread::run() {
             //}
             //prevIntensImg->wrapIplImage(imgbw);
             //postSemaphores(tempSem);
+            waitSemaphores(calcSem);
+            convertImages(intensImg,prevIntensImg);
+            postSemaphores(calcSem);
+
             
             //printf("copying once intensImage not null \n");
             //gradientHorConvolution->convolve2D(intensImg, intXgrad8u);
-            waitSemaphores(calcSem);
-            copyImage(intensImg,intensImgCopy);
-            postSemaphores(calcSem);
             
+            copyImage(intensImg,intensImgCopy);
+                        
             //gradientVerConvolution->convolve2D(intensImg, intYgrad8u);
             //waitSemaphores(calcYSem);
             //copyImage(intensImg,gradientImgYCopy);
@@ -530,6 +541,10 @@ void logOFThread::resize(int width_orig,int height_orig) {
     ycs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     scs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     vcs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
+    calculusIpl    = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1); 
+    calculusIpl32f = cvCreateImage(cvSize(width,height),IPL_DEPTH_32F,1);
+    temporalIpl    = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1); 
+    temporalIpl32f = cvCreateImage(cvSize(width,height),IPL_DEPTH_32F,1); 
     
     /* zeroing the images*/
     outputImage->zero();
@@ -555,29 +570,33 @@ void logOFThread::resize(int width_orig,int height_orig) {
 }
 
 void logOFThread::initFlowComputer(int index) {
-    printf("setting calculus %x pointer \n", intensImg->getRawImage());
+    //printf("setting calculus %x pointer \n", intensImg->getRawImage());
     //ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
     //ofComputer[index]->setCalculusPointerY(gradientImgYCopy->getRawImage());
     //ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
     //ofComputer[index]->setCalculusRowSize(intensImgCopy->getRowSize());
-    ofComputer[index]->setCalculusImage(intensImgCopy);
-    printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
+    //ofComputer[index]->setCalculusImage(intensImgCopy);
+    ofComputer[index]->setCalculusImageIpl(calculusIpl32f);
+    
+    //printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(flowImage->getRawImage());
     ofComputer[index]->setRepresenImage(flowImage);
     
     
-    printf("setting the image for temporal gradient \n");
+    //printf("setting the image for temporal gradient \n");
     //ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
-    ofComputer[index]->setTemporalImage(prevIntensImg);
+    //ofComputer[index]->setTemporalImage(prevIntensImg);
+    ofComputer[index]->setTemporalImageIpl(temporalIpl32f);
+   
     
-    printf("setting semaphores \n");
+    //printf("setting semaphores \n");
     //ofComputer[index]->setCalculusXSem(calcXSem[index]);
     //ofComputer[index]->setCalculusYSem(calcYSem[index]);
     ofComputer[index]->setCalculusSem(calcSem[index]);
     ofComputer[index]->setRepresentSem(reprSem[index]);
     ofComputer[index]->setTemporalSem(tempSem[index]);
     
-    printf("adding the reference to the plotter"); 
+    //printf("adding the reference to the plotter"); 
     ofComputer[index]->setPlotterPointer(pt);
     pt->setReprPointer(flowImage);
 }
@@ -1056,6 +1075,23 @@ void logOFThread::threadRelease() {
     delete[] calcSem;
     //delete[] calcXSem;
     //delete[] calcYSem;
+
+    if(temporalIpl != 0) {
+        cvReleaseImage(&temporalIpl);
+        //delete temporalIpl;
+    }
+    if(calculusIpl!=0) {
+        cvReleaseImage(&calculusIpl);
+        //delete calculusIpl;
+    }
+    if(calculusIpl32f!=0) {
+        cvReleaseImage(&calculusIpl32f);
+        //delete calculusIpl32f;
+    }
+    if(temporalIpl32f!=0) {
+        cvReleaseImage(&temporalIpl32f);
+        //delete represenIpl;
+    } 
 
     printf("correctly freed memory of images \n");
 

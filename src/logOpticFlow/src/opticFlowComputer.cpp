@@ -115,9 +115,13 @@ opticFlowComputer::~opticFlowComputer() {
 bool opticFlowComputer::threadInit() {
 
     q    = 0.5 * qdouble; // in rads
+    printf("q =  %f \n", q);
     a    = (1 + sin ( 1 / qdouble)) / (1 - sin(1 /qdouble));
+    printf("a =  %f \n", a);
     F    = a / (a - 1);
-    rho0 = 1 / (pow (a, F) * (a - 1));
+    printf("F =  %f \n", F);
+    rho0 = 30; //1 / (pow (a, F) * (a - 1));
+    printf("rho0 =  %f \n", rho0);
 
     printf(" \n correctly initialised variables \n");
 
@@ -176,6 +180,11 @@ bool opticFlowComputer::threadInit() {
     return true;
 }
 
+void opticFlowComputer::setCalculusImageIpl(IplImage *img){
+    calculusIpl32f = img;
+}
+
+
 void opticFlowComputer::setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img) {
     intensImg = img;
     calculusPointer = img->getRawImage();
@@ -187,6 +196,10 @@ void opticFlowComputer::setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono
     //convert im precision to 32f and process as normal:
     calculusIpl     = (IplImage*) img->getIplImage();
     cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0 
+}
+
+void opticFlowComputer::setTemporalImageIpl(IplImage *img) {
+    temporalIpl32f = img;
 }
 
 void opticFlowComputer::setTemporalImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img) {
@@ -221,12 +234,6 @@ std::string opticFlowComputer::getName(const char* p) {
     return str;
 }
 
-void opticFlowComputer::convertImages(ImageOf<PixelMono> *srcInt, ImageOf<PixelMono> *srcTmp){
-    calculusIpl     = (IplImage*) srcInt->getIplImage();
-    cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0
-    temporalIpl     = (IplImage*) srcTmp->getIplImage();
-    cvConvertScale(temporalIpl,temporalIpl32f,0.003922,0);  //  0.003922 = 1/255.0
-}
 
 
 void opticFlowComputer::run() {   
@@ -235,7 +242,6 @@ void opticFlowComputer::run() {
              
             semCalculus->wait();
             //semTemporal->wait();
-            convertImages(intensImg,temporImg);
             //cvNamedWindow("calculusIpl32f");
             //cvShowImage("calculusIpl32f", calculusIpl32f );
             //cvWaitKey(2);
@@ -248,7 +254,7 @@ void opticFlowComputer::run() {
             //representOF();
             //semRepresent->post();
                         
-            Time::delay(0.05);
+            Time::delay(0.04);
         }        
     }
 }
@@ -383,8 +389,9 @@ void opticFlowComputer::estimateOF(){
                     
                     s->operator()(0,0) = Grxi->operator()(dXi,dGamma); 
                     s->operator()(0,1) = Grgamma->operator()(dXi,dGamma);
-                    *G = *s * *H;                    
+                    *G = *s * *H;
                     
+                    /*
                     if((posXi - calcHalf + xi + dXi - halfNeigh == 100) &&
                         (posGamma + gamma - calcHalf + dGamma - halfNeigh == 130)){
 
@@ -398,15 +405,15 @@ void opticFlowComputer::estimateOF(){
                         printf("s = %s \n", s->toString().c_str() );
                         printf("G = %s \n", G->toString().c_str() );
                     }
+                    */
                     
                                         
-                    B->operator()(i,0) = (1 / (rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh))) * G->operator()(0,0);
-                    B->operator()(i,1) = (1 / (rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh))) * G->operator()(0,1);                    
+                    //B->operator()(i,0) = (1 / (rho0 * pow(a, 264 - (posXi - calcHalf + xi + dXi - halfNeigh)))) * G->operator()(0,0);
+                    //B->operator()(i,1) = (1 / (rho0 * pow(a, 264 - (posXi - calcHalf + xi + dXi - halfNeigh)))) * G->operator()(0,1);                    
                                                       
-                    /*
-                      B->operator()(i,0) = G->operator()(0,0);
-                    B->operator()(i,1) = G->operator()(0,1);
-                    */
+                    B->operator()(i,0) =(1 / (rho0 * pow(a,(posXi - calcHalf + xi + dXi - halfNeigh)))) * G->operator()(0,0);
+                    B->operator()(i,1) =(1 / (rho0 * pow(a,(posXi - calcHalf + xi + dXi - halfNeigh)))) * G->operator()(0,1);
+                    
                     
                     i = i + 1;
                 }
@@ -990,22 +997,9 @@ void opticFlowComputer::threadRelease() {
     delete extendedInputImage;       
     delete intensImg;
 
-    if(temporalIpl != 0) {
-        //cvRelease(temporalIpl);
-        delete temporalIpl;
-    }
-    if(calculusIpl!=0) {
-        //cvRelease(calculusIpl);
-        delete calculusIpl;
-    }
-    if(calculusIpl32f!=0) {
-        //cvRelease(calculusIpl32f);
-        delete calculusIpl32f;
-    }
-    if(represenIpl!=0) {
-        //cvRelease(represenIpl);
-        delete represenIpl;
-    }    
+    
+    
+    
     
     printf("correctly deleting the images \n");
     imagePortIn.interrupt();

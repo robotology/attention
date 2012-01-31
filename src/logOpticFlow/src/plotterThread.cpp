@@ -250,6 +250,18 @@ void plotterThread::run() {
     }
 }
 
+int plotterThread::countPositiveValue(short* valuePointer){
+    short* tmp = valuePointer;
+    int count = 0;
+    for(int i = 0; i < dimComput * dimComput; i++) {
+        if(abs(*tmp) > 1.0) {
+            count++;
+        }
+        tmp++;
+    }
+    return count;
+}
+
 void plotterThread::representOF(){
     
     unsigned char* tempPointer;    
@@ -302,7 +314,15 @@ void plotterThread::representOF(){
                                            + (posGamma[visitComputer] - calcHalf) * 3 ;
 
             short* valuePointerU = computersValueU[visitComputer];
+            //int countU = countPositiveValue(valuePointerU);
             short* valuePointerV = computersValueV[visitComputer];
+            //int countV = countPositiveValue(valuePointerV);
+            
+            /*
+            if((countU < 5) && (countV < 5)) {
+                continue;
+            }
+            */
 
             int countGamma = 0, countXi = 0;
             sumGamma = 0; sumXi = 0;
@@ -320,16 +340,33 @@ void plotterThread::representOF(){
 
                     
                     //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
-                    if((abs(valueGamma) > 30)||(abs(valueXi) > 30)) {
+                    if((abs(valueGamma) > 0.01)||(abs(valueXi) > 0.01)) {
                         //cvLine(represenIpl,
                         //               cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
                         //               cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),                        
-                        //               cvScalar(0,0,255,0));                          
-                        *tempPointer = abs(valueGamma * 5);   tempPointer++;
+                        //               cvScalar(0,0,255,0)); 
+
+                        *tempPointer = abs(valueXi * 20) + abs(valueGamma * 20) ;   tempPointer++;
                         //*tempPointer++ = 255;
-                        *tempPointer = abs(valueXi * 5); tempPointer++;
+                        if(valueXi > 0)
+                            *tempPointer = 255 ;
+                        else
+                            *tempPointer = 0;
+                        tempPointer++;
                         //*tempPointer++ = 255;
-                        *tempPointer = 0;   tempPointer++;
+                        if(valueGamma > 0)
+                            *tempPointer = 255;
+                        else
+                            *tempPointer = 0;
+                        tempPointer++;
+                        
+                        if(abs(valueXi) + abs(valueGamma) > 10) {
+                        cvLine(represIpl,
+                          cvPoint(posGamma[visitComputer] + i - calcHalf, posXi[visitComputer] + j - calcHalf), 
+                          cvPoint(posGamma[visitComputer] + i - calcHalf + valueGamma, posXi[visitComputer] + j - calcHalf + valueXi),
+                          cvScalar(255,0,0,0));  
+                        }
+                        
                     }                    
                     else {
                         /*

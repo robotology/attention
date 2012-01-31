@@ -137,11 +137,16 @@ private:
     IplImage *cs_tot_32f;  // extended
     IplImage *int_gradx_32f;
     IplImage *cs_tot_8u; 
-    IplImage *ycs_out;     // final extended intensity center surround image
-    IplImage *scs_out;     // final extended intensity center surround image
-    IplImage *vcs_out;     // final extended intensity center surround image
-    IplImage *colcs_out;   // final extended coulour center surround image
+    IplImage *ycs_out;        // final extended intensity center surround image
+    IplImage *scs_out;        // final extended intensity center surround image
+    IplImage *vcs_out;        // final extended intensity center surround image
+    IplImage *colcs_out;      // final extended coulour center surround image
     IplImage *img;
+    IplImage *calculusIpl;    //Ipl image for the calculus
+    IplImage *temporalIpl;    //Ipl image for temporaral gradient
+    IplImage *calculusIpl32f; //Ipl image for the calculus 32float
+    IplImage *temporalIpl32f; //Ipl image for temporaral gradient 32float
+    
 
     //CenterSurround *centerSurr;    
 
@@ -227,7 +232,12 @@ public:
             uchar,yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar>
             (3,3,Sobel2DYgrad_small,value,-50,0);
     };
-
+    
+    /**
+     * @brief function that converts images into ipl32f
+     */
+    void convertImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *srcInt, yarp::sig::ImageOf<yarp::sig::PixelMono> *srcTemp );
+    
     /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added

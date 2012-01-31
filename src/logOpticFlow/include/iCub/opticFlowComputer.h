@@ -236,11 +236,21 @@ public:
      * @brief function that set all the variables related to the calculus image
      */
     void setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img);
+    
+    /**
+     * @brief function that set all the variables related to the calculus image
+     */
+    void setCalculusImageIpl(IplImage *img);
 
     /**
      * @brief function that set all the variables related to the calculus image
      */
     void setTemporalImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img);
+
+    /**
+     * @brief function that set all the variables related to the calculus image
+     */
+    void setTemporalImageIpl(IplImage *img);
     
     /**
      * @brief function that declares which image the computer is working on
@@ -295,7 +305,7 @@ public:
     /**
      * @brief function that converts images into ipl32f
      */
-    void convertImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *srcInt, yarp::sig::ImageOf<yarp::sig::PixelMono> *srcTemp );
+    //void convertImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *srcInt, yarp::sig::ImageOf<yarp::sig::PixelMono> *srcTemp );
 
     /**
      * @brief estimate the optical flow 
