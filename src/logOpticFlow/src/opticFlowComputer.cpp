@@ -177,8 +177,33 @@ bool opticFlowComputer::threadInit() {
     return true;
 }
 
+void opticFlowComputer::setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img) {
+    calculusPointer = img->getRawImage();
+    calculusRowSize = img->getRowSize();
+    int srcsizeWidth    = img->width();
+    int srcsizeHeight   = img->height();
+    calculusIpl     = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_8U,1); 
+    calculusIpl     = (IplImage*) img->getIplImage();
+    calculusIpl32f  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1); 
+    //convert im precision to 32f and process as normal:
+    cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0 
+}
+
+void opticFlowComputer::setTemporalImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img) {
+    temporalPointer = img->getRawImage();
+    //calculusRowSize = img->getRowSize();
+    int srcsizeWidth    = img->width();
+    int srcsizeHeight   = img->height();
+    temporalIpl     = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_8U,1); 
+    temporalIpl     = (IplImage*) img->getIplImage();
+    temporalIpl32f  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1); 
+    //convert im precision to 32f and process as normal:
+    cvConvertScale(temporalIpl,temporalIpl32f,0.003922,0);  //  0.003922 = 1/255.0 
+}
+
 void opticFlowComputer::setRepresenImage(ImageOf<PixelRgb>* img) {
     represenIpl = (IplImage*) img->getIplImage();
+    represPointer = img->getRawImage();
     rowSize = img->getRowSize() / img->getPixelSize();
     represenImage = img;
 }
@@ -275,8 +300,7 @@ void opticFlowComputer::estimateOF(){
                     Grgamma->operator()(dXi,dGamma) = ( (float) *nextPixel  - (float)*prevPixel ) ;
                     //unsigned char tdiff =(*pNeigh - *pPrev);
                     Grt->operator()(dXi,dGamma)     = (*pNeigh - *pPrev) ;
-                    if(*pNeigh - *pPrev < 0)
-                        printf(" temp diff %d \n",(*pNeigh - *pPrev) );
+
                         
                     
                     s->operator()(0,0) = Grxi->operator()(dXi,dGamma); 

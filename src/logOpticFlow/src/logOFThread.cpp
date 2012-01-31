@@ -558,20 +558,25 @@ void logOFThread::initFlowComputer(int index) {
     printf("setting calculus %x pointer \n", intensImg->getRawImage());
     //ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
     //ofComputer[index]->setCalculusPointerY(gradientImgYCopy->getRawImage());
-    ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
-    ofComputer[index]->setCalculusRowSize(intensImgCopy->getRowSize());
+    //ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
+    //ofComputer[index]->setCalculusRowSize(intensImgCopy->getRowSize());
+    ofComputer[index]->setCalculusImage(intensImgCopy);
     printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(flowImage->getRawImage());
     ofComputer[index]->setRepresenImage(flowImage);
     
+    
     printf("setting the image for temporal gradient \n");
-    ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
+    //ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
+    ofComputer[index]->setTemporalImage(prevIntensImg);
+    
     printf("setting semaphores \n");
     //ofComputer[index]->setCalculusXSem(calcXSem[index]);
     //ofComputer[index]->setCalculusYSem(calcYSem[index]);
     ofComputer[index]->setCalculusSem(calcSem[index]);
     ofComputer[index]->setRepresentSem(reprSem[index]);
     ofComputer[index]->setTemporalSem(tempSem[index]);
+    
     printf("adding the reference to the plotter"); 
     ofComputer[index]->setPlotterPointer(pt);
     pt->setReprPointer(flowImage);

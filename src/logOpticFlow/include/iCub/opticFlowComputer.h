@@ -118,6 +118,7 @@ private:
     IplImage *calculusIpl;    // ipl image where the optic flow calculus takes place
     IplImage *calculusIpl32f; // ipl image where the optic flow calculus takes place
     IplImage *temporalIpl;    // ipl image storing the previous step image
+    IplImage *temporalIpl32f;    // ipl image storing the previous step image
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
@@ -233,17 +234,12 @@ public:
     /**
      * @brief function that set all the variables related to the calculus image
      */
-    void setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img) {
-        calculusPointer = img->getRawImage();
-        calculusRowSize = img->getRowSize();
-        int srcsizeWidth    = img->width();
-        int srcsizeHeight   = img->height();
-        calculusIpl     = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_8U,1); 
-        calculusIpl     = (IplImage*) img->getIplImage();
-        calculusIpl32f  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1); 
-        //convert im precision to 32f and process as normal:
-        cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0 
-    }
+    void setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img);
+
+    /**
+     * @brief function that set all the variables related to the calculus image
+     */
+    void setTemporalImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img);
     
     /**
      * @brief function that declares which image the computer is working on
