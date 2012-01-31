@@ -134,18 +134,20 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
-    IplImage *cs_tot_32f;  // extended
+    IplImage *cs_tot_32f;          // extended
     IplImage *int_gradx_32f;
     IplImage *cs_tot_8u; 
-    IplImage *ycs_out;        // final extended intensity center surround image
-    IplImage *scs_out;        // final extended intensity center surround image
-    IplImage *vcs_out;        // final extended intensity center surround image
-    IplImage *colcs_out;      // final extended coulour center surround image
+    IplImage *ycs_out;             // final extended intensity center surround image
+    IplImage *scs_out;             // final extended intensity center surround image
+    IplImage *vcs_out;             // final extended intensity center surround image
+    IplImage *colcs_out;           // final extended coulour center surround image
     IplImage *img;
-    IplImage *calculusIpl;    //Ipl image for the calculus
-    IplImage *temporalIpl;    //Ipl image for temporaral gradient
-    IplImage *calculusIpl32f; //Ipl image for the calculus 32float
-    IplImage *temporalIpl32f; //Ipl image for temporaral gradient 32float
+    IplImage *calculusIpl;         //Ipl image for the calculus
+    IplImage *temporalIpl;         //Ipl image for temporaral gradient
+    IplImage *calculusIpl32f;      //Ipl image for the calculus 32float
+    IplImage *temporalIpl32f;      //Ipl image for temporaral gradient 32float
+    IplImage *calculusIpl32f_copy; //Ipl image for the calculus 32float
+    IplImage *temporalIpl32f_copy; //Ipl image for temporaral gradient 32float
     
 
     //CenterSurround *centerSurr;    

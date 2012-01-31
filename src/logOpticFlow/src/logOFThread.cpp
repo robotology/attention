@@ -313,10 +313,12 @@ void logOFThread::postSemaphores(Semaphore** pointer) {
 }
 
 void logOFThread::convertImages(ImageOf<PixelMono> *srcInt, ImageOf<PixelMono> *srcTmp){
+    printf("converting Images \n");
     calculusIpl     = (IplImage*) srcInt->getIplImage();
     cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0
     temporalIpl     = (IplImage*) srcTmp->getIplImage();
     cvConvertScale(temporalIpl,temporalIpl32f,0.003922,0);  //  0.003922 = 1/255.0
+    printf("success in converting images \n");
 }
 
 
@@ -374,9 +376,11 @@ void logOFThread::run() {
                     printf("init flow computer %d \n", i);
                     if( (intensImg!=0) && (outputImage!=0) ) {
                         //printf("copying the intensImg before has started \n");
-                        
+                        convertImages(intensImg,prevIntensImg);
+            
                         waitSemaphores(calcSem);
-                        copyImage(intensImg,intensImgCopy);
+                        cvCopy(calculusIpl32f,calculusIpl32f_copy); 
+                        cvCopy(temporalIpl32f,temporalIpl32f_copy);
                         postSemaphores(calcSem);
                         
                         initFlowComputer(i);
@@ -411,15 +415,17 @@ void logOFThread::run() {
             //}
             //prevIntensImg->wrapIplImage(imgbw);
             //postSemaphores(tempSem);
-            waitSemaphores(calcSem);
             convertImages(intensImg,prevIntensImg);
+            waitSemaphores(calcSem);
+            cvCopy(calculusIpl32f,calculusIpl32f_copy); 
+            cvCopy(temporalIpl32f,temporalIpl32f_copy);
             postSemaphores(calcSem);
 
             
             //printf("copying once intensImage not null \n");
             //gradientHorConvolution->convolve2D(intensImg, intXgrad8u);
             
-            copyImage(intensImg,intensImgCopy);
+            //copyImage(intensImg,intensImgCopy);
                         
             //gradientVerConvolution->convolve2D(intensImg, intYgrad8u);
             //waitSemaphores(calcYSem);
@@ -542,9 +548,11 @@ void logOFThread::resize(int width_orig,int height_orig) {
     scs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     vcs_out        = cvCreateImage( cvSize(width_orig, height_orig),IPL_DEPTH_8U, 1  );
     calculusIpl    = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1); 
-    calculusIpl32f = cvCreateImage(cvSize(width,height),IPL_DEPTH_32F,1);
     temporalIpl    = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1); 
+    calculusIpl32f = cvCreateImage(cvSize(width,height),IPL_DEPTH_32F,1);
     temporalIpl32f = cvCreateImage(cvSize(width,height),IPL_DEPTH_32F,1); 
+    calculusIpl32f_copy = cvCreateImage(cvSize(width,height),IPL_DEPTH_32F,1);
+    temporalIpl32f_copy = cvCreateImage(cvSize(width,height),IPL_DEPTH_32F,1); 
     
     /* zeroing the images*/
     outputImage->zero();
@@ -570,13 +578,14 @@ void logOFThread::resize(int width_orig,int height_orig) {
 }
 
 void logOFThread::initFlowComputer(int index) {
+    //printf("logOFThread::initFlowComputer \n");
     //printf("setting calculus %x pointer \n", intensImg->getRawImage());
     //ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
     //ofComputer[index]->setCalculusPointerY(gradientImgYCopy->getRawImage());
     //ofComputer[index]->setCalculusPointer(intensImgCopy->getRawImage());
     //ofComputer[index]->setCalculusRowSize(intensImgCopy->getRowSize());
     //ofComputer[index]->setCalculusImage(intensImgCopy);
-    ofComputer[index]->setCalculusImageIpl(calculusIpl32f);
+    ofComputer[index]->setCalculusImageIpl(calculusIpl32f_copy);
     
     //printf("setting representation pointer %x %d \n", outputImage->getRawImage(), intensImg->getRowSize());
     ofComputer[index]->setRepresenPointer(flowImage->getRawImage());
@@ -586,7 +595,7 @@ void logOFThread::initFlowComputer(int index) {
     //printf("setting the image for temporal gradient \n");
     //ofComputer[index]->setTemporalPointer(prevIntensImg->getRawImage());
     //ofComputer[index]->setTemporalImage(prevIntensImg);
-    ofComputer[index]->setTemporalImageIpl(temporalIpl32f);
+    ofComputer[index]->setTemporalImageIpl(temporalIpl32f_copy);
    
     
     //printf("setting semaphores \n");
@@ -1090,6 +1099,14 @@ void logOFThread::threadRelease() {
     }
     if(temporalIpl32f!=0) {
         cvReleaseImage(&temporalIpl32f);
+        //delete represenIpl;
+    }
+    if(calculusIpl32f_copy!=0) {
+        cvReleaseImage(&calculusIpl32f_copy);
+        //delete calculusIpl32f;
+    }
+    if(temporalIpl32f_copy!=0) {
+        cvReleaseImage(&temporalIpl32f_copy);
         //delete represenIpl;
     } 
 

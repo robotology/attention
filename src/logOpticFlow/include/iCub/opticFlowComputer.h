@@ -240,7 +240,7 @@ public:
     /**
      * @brief function that set all the variables related to the calculus image
      */
-    void setCalculusImageIpl(IplImage *img);
+    void setCalculusImageIpl(IplImage *img){calculusIpl32f = img;};
 
     /**
      * @brief function that set all the variables related to the calculus image
@@ -250,7 +250,7 @@ public:
     /**
      * @brief function that set all the variables related to the calculus image
      */
-    void setTemporalImageIpl(IplImage *img);
+    void setTemporalImageIpl(IplImage *img) {temporalIpl32f = img;};
     
     /**
      * @brief function that declares which image the computer is working on
@@ -295,11 +295,6 @@ public:
      * @brief function that associate a semaphore to the previoud monocromatic input image
      */
     void setTemporalSem(yarp::os::Semaphore* sem) { semRepresent = sem; };
-   
-    /**
-     * @brief represent information directly in the image
-     */
-    //void setRepresenImage(IplImage* i) {represenImage = i;};
 
 
     /**

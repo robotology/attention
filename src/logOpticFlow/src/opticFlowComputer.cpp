@@ -180,11 +180,6 @@ bool opticFlowComputer::threadInit() {
     return true;
 }
 
-void opticFlowComputer::setCalculusImageIpl(IplImage *img){
-    calculusIpl32f = img;
-}
-
-
 void opticFlowComputer::setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img) {
     intensImg = img;
     calculusPointer = img->getRawImage();
@@ -196,10 +191,6 @@ void opticFlowComputer::setCalculusImage(yarp::sig::ImageOf<yarp::sig::PixelMono
     //convert im precision to 32f and process as normal:
     calculusIpl     = (IplImage*) img->getIplImage();
     cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0 
-}
-
-void opticFlowComputer::setTemporalImageIpl(IplImage *img) {
-    temporalIpl32f = img;
 }
 
 void opticFlowComputer::setTemporalImage(yarp::sig::ImageOf<yarp::sig::PixelMono> *img) {
@@ -260,12 +251,13 @@ void opticFlowComputer::run() {
 }
 
 void opticFlowComputer::estimateOF(){
+    //printf("opticFlowComputer::estimateOF \n");
     // initialisation
     unsigned char *pNeigh, *nextRow, *nextPixel, *prevRow, *prevPixel;
     float         *pNeighIpl, *nextRowIpl, *nextPixelIpl, *prevRowIpl, *prevPixelIpl;
     float          pNeighIplValue,nextRowIplValue, nextPixelIplValue, prevRowIplValue, prevPixelIplValue;
-    unsigned char *pCalc = calculusPointer;  
-    unsigned char *pTemp = temporalPointer;
+    // unsigned char *pCalc = calculusPointer;  
+    //unsigned char *pTemp = temporalPointer;
     float         *pCalcIpl = (float*) calculusIpl32f->imageData;
     float         *pTempIpl = (float*) temporalIpl32f->imageData;
     int           widthStep = calculusIpl32f->widthStep;
@@ -275,6 +267,7 @@ void opticFlowComputer::estimateOF(){
     double k1, k2;
     short* tempResultU = resultU;
     short* tempResultV = resultV;
+    //printf("initialisation step passed \n");
 
     //calculusRowSize = 264;
     //printf("rowSize %d \n", calculusRowSize);
@@ -284,8 +277,8 @@ void opticFlowComputer::estimateOF(){
         for(int xi = 0; xi < dimComput; xi++) {
             i = 0;
             //printf("posXi %d posGamma %d xi %d  gamma %d \n", posXi, posGamma, xi, gamma);
-            pCalc    = calculusPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
-            pTemp    = temporalPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
+            //#pCalc    = calculusPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
+            //#pTemp    = temporalPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
             //pCalcIpl = (float*)(calculusIpl32f->imageData + widthStep * (posXi + xi - calcHalf)); // + (posGamma + gamma - calcHalf));
             //pTempIpl = (float*)(temporalIpl32f->imageData + widthStep * (posXi + xi - calcHalf)); // + (posGamma + gamma - calcHalf));
             for (int dGamma = 0; dGamma < neigh; dGamma++) {
@@ -293,8 +286,8 @@ void opticFlowComputer::estimateOF(){
                     //printf("pCalcIpl %f \n", pCalcIpl[posGamma + gamma - calcHalf]);
                     //printf("                   inner loop %d %d %d %d \n", dGamma, dXi, dGamma - halfNeigh, dXi - halfNeigh );
                     //printf("                   jump %d  because calculusRowSize %d  \n", (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh, calculusRowSize);
-                    pNeigh    = pCalc    + (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh ;
-                    pPrev     = pTemp    + (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh ;
+                    //#pNeigh    = pCalc    + (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh ;
+                    //#pPrev     = pTemp    + (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh ;
                     //pNeighIpl = pCalcIpl + (dXi - halfNeigh) * widthStep      ;//+ dGamma - halfNeigh ;
                     //pPrevIpl  = pTempIpl + (dXi - halfNeigh) * widthStep      ;//+ dGamma - halfNeigh ;
                     //printf("calculating the temporal difference \n");
@@ -326,21 +319,21 @@ void opticFlowComputer::estimateOF(){
                     */
 
                     //printf("Calculating gradient \n");
-                    nextPixel    = pNeigh    + 1;
-                    prevPixel    = pNeigh    - 1;
+                    //#nextPixel    = pNeigh    + 1;
+                    //#prevPixel    = pNeigh    - 1;
                     //nextPixelIpl = pNeighIpl + 1;
                     //prevPixelIpl = pNeighIpl - 1;
                     nextPixelIplValue = pNeighIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh + 1];
                     prevPixelIplValue = pNeighIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh - 1];
                     
-                    nextRow    = pNeigh    + calculusRowSize;
-                    prevRow    = pNeigh    - calculusRowSize;
+                    //#nextRow    = pNeigh    + calculusRowSize;
+                    //#prevRow    = pNeigh    - calculusRowSize;
                     //nextRowIpl = pNeighIpl + widthStep;
                     //prevRowIpl = pNeighIpl - widthStep;
                     nextRowIpl = pNeighIpl + widthStep;
                     prevRowIpl = pNeighIpl - widthStep;
-                    nextRowIplValue = nextRow[posGamma + gamma - calcHalf + dGamma - halfNeigh];
-                    prevRowIplValue = prevRow[posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    nextRowIplValue = nextRowIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    prevRowIplValue = prevRowIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh];
                     //printf("success in the calculation of gradient \n");
 
                     /*
