@@ -106,6 +106,37 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
 
 }
 
+
+inline void diff(ImageOf<PixelMono>* a,ImageOf<PixelMono>* b,ImageOf<PixelMono> *c) {
+    unsigned char* ap = a->getRawImage();
+    unsigned char* bp = b->getRawImage();
+    //ImageOf<PixelMono> *c = new ImageOf<PixelMono> ;
+    unsigned char* cp = c->getRawImage();
+    int height  = a->height();
+    int rowSize = a->getRowSize();
+    int width   = a->width();
+    int padding = a->getPadding();
+    //c->resize(width, height);
+    for (int row = 0; row < height; row++) {
+        for(int col = 0; col < width; col++) {
+            if(*ap - *bp > 0) 
+                *cp = *ap - *bp;
+            else
+                *cp = 0;
+            ap++;
+            bp++;
+            cp++;
+        }
+        ap += padding;
+        bp += padding;
+        cp += padding;
+    }
+    
+    //return c;
+    //memcpy(destp,srcp,height * rowSize * sizeof(char));
+
+}
+
 logOFThread::logOFThread()/*:RateThread(RATE_OF_INTEN_THREAD)*/ {
 
     count = 0;
@@ -317,7 +348,7 @@ void logOFThread::run() {
         extender(maxKernelSize);
         //printf("wait before copying \n");
         // no need for semaphores this thread is the only thread
-        //copyImage(extendedInputImage, outputImage); 
+        copyImage(extendedInputImage, outputImage); 
         //printf("after way \n");
         
         waitSemaphores(tempSem);
@@ -397,7 +428,10 @@ void logOFThread::run() {
             //dst_img = cvGetImage(src_mat, &stub);
                    
             if(intenPort.getOutputCount()) {
-                intenPort.prepare() = *(intensImg);
+                ImageOf<PixelMono>* diffImage =new ImageOf<PixelMono>;
+                diffImage->resize(width, height);
+                diff(intensImg,prevIntensImg, diffImage);
+                intenPort.prepare() = *diffImage;
                 intenPort.write();
             }
         } 
@@ -885,13 +919,18 @@ void logOFThread::onStop() {
     delete intensImg;
     //delete intensXGrad;
     //delete intensYGrad;
-    delete intYgrad8u; 
-    delete intYgrad8u;
+    printf("correctly deleting second set of images \n");
+    //delete intYgrad8u; 
+    //delete intYgrad8u;
+
+    
     //delete gradientImgXCopy;
     //delete gradientImgXCopy;
     delete intensImgCopy;
     delete prevIntensImg;
     delete unXtnIntensImg;
+    printf("start to delete the third part \n");
+    
     delete redPlane;
     delete greenPlane;
     delete bluePlane;
@@ -899,6 +938,8 @@ void logOFThread::onStop() {
     delete Yplane;
     delete Uplane;
     delete Vplane;
+
+    printf("end of third part \n");
     delete unXtnYplane;
     delete unXtnUplane;
     delete unXtnVplane;
@@ -910,7 +951,7 @@ void logOFThread::onStop() {
     delete BplusUnex;
     delete tmpMonoLPImage;
     
-    printf("correctly deleting second set of images \n");
+    printf("deleting semaphores \n");
 
     delete[] reprSem;
     delete[] tempSem;

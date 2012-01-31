@@ -320,16 +320,19 @@ void plotterThread::representOF(){
 
                     
                     //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
-                    if((abs(valueGamma) > 10)||(abs(valueXi) > 10)) {
+                    if((abs(valueGamma) > 30)||(abs(valueXi) > 30)) {
                         //cvLine(represenIpl,
                         //               cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
                         //               cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),                        
                         //               cvScalar(0,0,255,0));                          
+                        *tempPointer = abs(valueGamma * 5);   tempPointer++;
+                        //*tempPointer++ = 255;
+                        *tempPointer = abs(valueXi * 5); tempPointer++;
+                        //*tempPointer++ = 255;
                         *tempPointer = 0;   tempPointer++;
-                        *tempPointer = 255; tempPointer++;
-                        *tempPointer = 0;   tempPointer++;
-                    }
-                    else { 
+                    }                    
+                    else {
+                        /*
                         *tempPointer = 0;   tempPointer++;
                         if(*tempPointer > 0 ){
                             *tempPointer = *tempPointer - 1; 
@@ -339,9 +342,11 @@ void plotterThread::representOF(){
                         }
                         tempPointer++;
                         *tempPointer = 0;   tempPointer++;
+                        */
                         
-                        //tempPointer += 3;                    
+                        tempPointer += 3;                    
                     }
+                    
                     
                     //printf("Single: %f %f \n", uSingle, vSingle);
                     /*
@@ -878,9 +883,11 @@ void plotterThread::threadRelease() {
     resized = false;    
 
     // deallocating resources
+
+    delete flowImage;
+    /*
     delete inputImage;
     delete outputImage;
-    delete flowImage;
     delete finalOutputImage;
     delete filteredInputImage;
     delete extendedInputImage;
@@ -891,9 +898,10 @@ void plotterThread::threadRelease() {
     delete Bplus;
     delete Bminus;
     delete Yminus;
+    */
 
     printf("correctly deleting the images \n");
-
+    /*
     delete gaborPosHorConvolution;    
     delete gaborPosVerConvolution;    
     delete gaborNegHorConvolution;    
@@ -932,16 +940,18 @@ void plotterThread::threadRelease() {
     delete[] calcSem;
     delete[] computersValueU;
     delete[] computersValueV;
+    */
 
     //delete[] calcXSem;
     //delete[] calcYSem;
 
     printf("correctly freed memory of images \n");
-
+    /*
     for(int j = 0 ; j < COUNTCOMPUTERSX * COUNTCOMPUTERSY; j++) {
         printf("stopping %d computer \n", j);        
         //ofComputer[j]->stop();
-    }       
+    } 
+    */
  
     printf("Done with releasing earlyVision thread.\n");
     

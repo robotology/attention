@@ -167,6 +167,11 @@ bool opticFlowComputer::threadInit() {
     //wMat->eye();
     
 
+    calculusIpl    = 0;
+    calculusIpl32f = 0;
+    represenIpl    = 0;
+    temporalIpl    = 0;
+
     printf("correctly initialised the weight matrix \n");
 
     return true;
@@ -265,12 +270,13 @@ void opticFlowComputer::estimateOF(){
                     prevPixel = pNeigh - 1;
 
                     //Grxi->operator()(dXi,dGamma)    = ((*pNeigh - *nextRow)   + (*prevRow - *pNeigh)) / 2;
-                    Grxi->operator()(dXi,dGamma)    = ( - (float) *nextRow    + (float)*prevRow   ) ;
+                    Grxi->operator()(dXi,dGamma)    = ( (float) *nextRow    - (float)*prevRow   ) ;
                     //Grgamma->operator()(dXi,dGamma) = ((*pNeigh - *nextPixel) + (*prevPixel - *pNeigh)) / 2;
-                    Grgamma->operator()(dXi,dGamma) = ( - (float) *nextPixel  + (float)*prevPixel ) ;
+                    Grgamma->operator()(dXi,dGamma) = ( (float) *nextPixel  - (float)*prevPixel ) ;
                     //unsigned char tdiff =(*pNeigh - *pPrev);
                     Grt->operator()(dXi,dGamma)     = (*pNeigh - *pPrev) ;
-                    //printf(" temp diff %d \n", tdiff);
+                    if(*pNeigh - *pPrev < 0)
+                        printf(" temp diff %d \n",(*pNeigh - *pPrev) );
                         
                     
                     s->operator()(0,0) = Grxi->operator()(dXi,dGamma); 
@@ -306,7 +312,7 @@ void opticFlowComputer::estimateOF(){
             *A = *wMat * *B;
             /*
             if((posGamma + gamma - calcHalf == 215)&&(posXi - calcHalf + xi == 112)) {
-                 printf("%s \n", A->toString().c_str() );
+                 printf("%s \n", b->toString().c_str() );
             }
             */
             
@@ -314,8 +320,13 @@ void opticFlowComputer::estimateOF(){
             //printf("%s \n",Grt->toString().c_str());
             *b = reshape(*Grt,neigh * neigh, 1);
             //printf("reshaped the matrix in to b =  \n");
+            
             //printf(" %s \n", b->toString(1,1).c_str());            
             *b = -1 * *b;
+            //if((posGamma + gamma - calcHalf == 215)&&(posXi - calcHalf + xi == 112)) {
+            //     printf("                %s \n", b->toString().c_str() );
+            //}
+            //printf(" %s \n", b->toString(1,1).c_str());  
             *bwMat = *wMat * *b;                        
             //*bwMat = -1 * *b;
 
@@ -872,10 +883,25 @@ void opticFlowComputer::threadRelease() {
     // deallocating resources
     delete inputImage;
     delete filteredInputImage;
-    delete extendedInputImage;
-       
+    delete extendedInputImage;       
     delete intensImg;
-    
+
+    if(temporalIpl != 0) {
+        //cvRelease(temporalIpl);
+        delete temporalIpl;
+    }
+    if(calculusIpl!=0) {
+        //cvRelease(calculusIpl);
+        delete calculusIpl;
+    }
+    if(calculusIpl32f!=0) {
+        //cvRelease(calculusIpl32f);
+        delete calculusIpl32f;
+    }
+    if(represenIpl!=0) {
+        //cvRelease(represenIpl);
+        delete represenIpl;
+    }    
     
     printf("correctly deleting the images \n");
     imagePortIn.interrupt();
