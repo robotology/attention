@@ -113,6 +113,7 @@ private:
     convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gradientVerConvolution;
         
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* temporImg;              //yarp intensity image at the previous step
 
     IplImage *represenIpl;    // ipl image that is going to be represented
     IplImage *calculusIpl;    // ipl image where the optic flow calculus takes place
@@ -289,6 +290,12 @@ public:
      * @brief represent information directly in the image
      */
     //void setRepresenImage(IplImage* i) {represenImage = i;};
+
+
+    /**
+     * @brief function that converts images into ipl32f
+     */
+    void convertImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *srcInt, yarp::sig::ImageOf<yarp::sig::PixelMono> *srcTemp );
 
     /**
      * @brief estimate the optical flow 

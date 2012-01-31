@@ -122,7 +122,7 @@ inline void diff(ImageOf<PixelMono>* a,ImageOf<PixelMono>* b,ImageOf<PixelMono> 
             if(*ap - *bp > 0) 
                 *cp = *ap - *bp;
             else
-                *cp = 0;
+                *cp = *bp - *ap;
             ap++;
             bp++;
             cp++;
