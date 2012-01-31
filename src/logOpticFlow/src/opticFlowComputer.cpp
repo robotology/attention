@@ -166,7 +166,6 @@ bool opticFlowComputer::threadInit() {
     wMat->diagonal(wVec);
     //wMat->eye();
     
-
     calculusIpl    = 0;
     calculusIpl32f = 0;
     represenIpl    = 0;
@@ -237,6 +236,9 @@ void opticFlowComputer::run() {
             semCalculus->wait();
             //semTemporal->wait();
             convertImages(intensImg,temporImg);
+            //cvNamedWindow("calculusIpl32f");
+            //cvShowImage("calculusIpl32f", calculusIpl32f );
+            //cvWaitKey(2);
             estimateOF();       
             //semTemporal->post();
             semCalculus->post();
@@ -255,6 +257,7 @@ void opticFlowComputer::estimateOF(){
     // initialisation
     unsigned char *pNeigh, *nextRow, *nextPixel, *prevRow, *prevPixel;
     float         *pNeighIpl, *nextRowIpl, *nextPixelIpl, *prevRowIpl, *prevPixelIpl;
+    float          pNeighIplValue,nextRowIplValue, nextPixelIplValue, prevRowIplValue, prevPixelIplValue;
     unsigned char *pCalc = calculusPointer;  
     unsigned char *pTemp = temporalPointer;
     float         *pCalcIpl = (float*) calculusIpl32f->imageData;
@@ -262,6 +265,7 @@ void opticFlowComputer::estimateOF(){
     int           widthStep = calculusIpl32f->widthStep;
     unsigned char *pPrev;
     float         *pPrevIpl;
+    float          pPrevIplValue;
     double k1, k2;
     short* tempResultU = resultU;
     short* tempResultV = resultV;
@@ -276,16 +280,23 @@ void opticFlowComputer::estimateOF(){
             //printf("posXi %d posGamma %d xi %d  gamma %d \n", posXi, posGamma, xi, gamma);
             pCalc    = calculusPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
             pTemp    = temporalPointer + (posXi + xi - calcHalf) * calculusRowSize + (posGamma + gamma - calcHalf);
-            pCalcIpl = (float*)(calculusIpl32f->imageData + widthStep * (posXi + xi - calcHalf) + (posGamma + gamma - calcHalf));
-            pTempIpl = (float*)(temporalIpl32f->imageData + widthStep * (posXi + xi - calcHalf) + (posGamma + gamma - calcHalf));
+            //pCalcIpl = (float*)(calculusIpl32f->imageData + widthStep * (posXi + xi - calcHalf)); // + (posGamma + gamma - calcHalf));
+            //pTempIpl = (float*)(temporalIpl32f->imageData + widthStep * (posXi + xi - calcHalf)); // + (posGamma + gamma - calcHalf));
             for (int dGamma = 0; dGamma < neigh; dGamma++) {
                 for (int dXi = 0; dXi < neigh; dXi++) {
+                    //printf("pCalcIpl %f \n", pCalcIpl[posGamma + gamma - calcHalf]);
                     //printf("                   inner loop %d %d %d %d \n", dGamma, dXi, dGamma - halfNeigh, dXi - halfNeigh );
                     //printf("                   jump %d  because calculusRowSize %d  \n", (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh, calculusRowSize);
                     pNeigh    = pCalc    + (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh ;
                     pPrev     = pTemp    + (dXi - halfNeigh) * calculusRowSize + dGamma - halfNeigh ;
-                    pNeighIpl = pCalcIpl + (dXi - halfNeigh) * widthStep       + dGamma - halfNeigh ;
-                    pPrevIpl  = pTempIpl + (dXi - halfNeigh) * widthStep       + dGamma - halfNeigh ;
+                    //pNeighIpl = pCalcIpl + (dXi - halfNeigh) * widthStep      ;//+ dGamma - halfNeigh ;
+                    //pPrevIpl  = pTempIpl + (dXi - halfNeigh) * widthStep      ;//+ dGamma - halfNeigh ;
+                    //printf("calculating the temporal difference \n");
+                    pNeighIpl = (float*)(calculusIpl32f->imageData + widthStep * (posXi + xi - calcHalf + dXi - halfNeigh));
+                    pPrevIpl  = (float*)(temporalIpl32f->imageData + widthStep * (posXi + xi - calcHalf + dXi - halfNeigh));
+                    pNeighIplValue = pNeighIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    pPrevIplValue  =  pPrevIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    
                     //printf("log(a) = %f \n", log(a));
                     
                     
@@ -307,16 +318,44 @@ void opticFlowComputer::estimateOF(){
                         printf("H = \n %s \n %d ",H->toString().c_str(), calcHalf);
                         }
                     */
+
+                    //printf("Calculating gradient \n");
+                    nextPixel    = pNeigh    + 1;
+                    prevPixel    = pNeigh    - 1;
+                    //nextPixelIpl = pNeighIpl + 1;
+                    //prevPixelIpl = pNeighIpl - 1;
+                    nextPixelIplValue = pNeighIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh + 1];
+                    prevPixelIplValue = pNeighIpl[posGamma + gamma - calcHalf + dGamma - halfNeigh - 1];
                     
                     nextRow    = pNeigh    + calculusRowSize;
                     prevRow    = pNeigh    - calculusRowSize;
+                    //nextRowIpl = pNeighIpl + widthStep;
+                    //prevRowIpl = pNeighIpl - widthStep;
                     nextRowIpl = pNeighIpl + widthStep;
                     prevRowIpl = pNeighIpl - widthStep;
+                    nextRowIplValue = nextRow[posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    prevRowIplValue = prevRow[posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    //printf("success in the calculation of gradient \n");
+
+                    /*
+                    nextRowIpl = ((float*)(calculusIpl32f->imageData + 
+                                          widthStep * (posXi + xi - calcHalf + dXi - halfNeigh + 1)))
+                        [posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    prevRowIpl = ((float*)(calculusIpl32f->imageData + 
+                                          widthStep * (posXi + xi - calcHalf + dXi - halfNeigh - 1)))
+                        [posGamma + gamma - calcHalf + dGamma - halfNeigh];
+                    */
+
                     
-                    nextPixel    = pNeigh    + 1;
-                    prevPixel    = pNeigh    - 1;
-                    nextPixelIpl = pNeighIpl + 1;
-                    prevPixelIpl = pNeighIpl - 1;
+
+                    /*
+                    pNeighIpl = ((float*)(calculusIpl32f->imageData + 
+                                          widthStep * (posXi + xi - calcHalf + dXi - halfNeigh)))
+                        [posGamma + gamma - calcHalf + dGamma - halfNeigh + 1];
+                    pNeighIpl = ((float*)(calculusIpl32f->imageData + 
+                                          widthStep * (posXi + xi - calcHalf + dXi - halfNeigh)))
+                        [posGamma + gamma - calcHalf + dGamma - halfNeigh - 1];
+                    */
 
                     
                     /*
@@ -327,28 +366,40 @@ void opticFlowComputer::estimateOF(){
                     //unsigned char tdiff =(*pNeigh - *pPrev);
                     Grt->operator()(dXi,dGamma)     = (*pNeigh - *pPrev) ;
                     */
+                    /*
+                    if(*nextRowIpl -  *prevRowIpl > 1000 ) {
+                        printf("%d %d \n", *nextRow, *prevRow);
+                        printf("%f *nextRowIpl \n",*nextRowIpl);
+                        printf("%f *prevRowIpl \n",*prevRowIpl);
+                        printf("*nextRowIpl    - *prevRowIpl  %f \n",  *nextRowIpl -  *prevRowIpl    );
+                        printf("*nextPixelIpl  - *prevPixelIpl  %f \n", *nextPixelIpl - *prevPixelIpl  );
+                        printf("*pNeighIpl     - *pPrevIpl  %f \n",    *pNeighIpl -  *pPrevIpl     );
+                    }
+                    */
 
-                    Grxi->operator()(dXi,dGamma)    = ( *nextRowIpl    - *prevRowIpl   ) ;                    
-                    Grgamma->operator()(dXi,dGamma) = ( *nextPixelIpl  - *prevPixelIpl ) ;
-                    Grt->operator()(dXi,dGamma)     = ( *pNeighIpl     - *pPrevIpl) ;    
+                    Grxi->operator()(dXi,dGamma)    = ( nextRowIplValue    - prevRowIplValue   ) ;                    
+                    Grgamma->operator()(dXi,dGamma) = ( nextPixelIplValue  - prevPixelIplValue ) ;
+                    Grt->operator()(dXi,dGamma)     = ( pNeighIplValue     - pPrevIplValue) ;    
                     
                     s->operator()(0,0) = Grxi->operator()(dXi,dGamma); 
                     s->operator()(0,1) = Grgamma->operator()(dXi,dGamma);
-                    *G = *s * *H;
+                    *G = *s * *H;                    
                     
-                    /*
                     if((posXi - calcHalf + xi + dXi - halfNeigh == 100) &&
                         (posGamma + gamma - calcHalf + dGamma - halfNeigh == 130)){
+
+                        printf("*nextRowIpl    - *prevRowIpl    %f \n",   nextRowIplValue -  prevRowIplValue    );
+                        printf("*nextPixelIpl  - *prevPixelIpl  %f \n", nextPixelIplValue -  prevPixelIplValue  );
+                        printf("*pNeighIpl     - *pPrevIpl      %f \n",    pNeighIplValue -  pPrevIplValue     );
                         //printf("rho %f power : %f  G =\n",rho0,rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh) );
-                        printf("%d-%d= %d \n",*prevRow , *nextRow, *prevRow - *nextRow );
-                        printf("%d-%d= %d \n",*prevPixel, *nextPixel, *prevPixel - *nextPixel );
-                        printf("%f %f \n", Grxi->operator()(dXi,dGamma),Grgamma->operator()(dXi,dGamma) );
-                        printf("%s \n", s->toString().c_str() );
-                        printf("%s \n", G->toString().c_str() );
+                        //printf("%d-%d= %d \n",*prevRow , *nextRow, *prevRow - *nextRow );
+                        //printf("%d-%d= %d \n",*prevPixel, *nextPixel, *prevPixel - *nextPixel );
+                        printf("Grxi=%f Grgamma=%f \n", Grxi->operator()(dXi,dGamma),Grgamma->operator()(dXi,dGamma) );
+                        printf("s = %s \n", s->toString().c_str() );
+                        printf("G = %s \n", G->toString().c_str() );
                     }
-                    */
                     
-                    
+                                        
                     B->operator()(i,0) = (1 / (rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh))) * G->operator()(0,0);
                     B->operator()(i,1) = (1 / (rho0 * pow(a, posXi - calcHalf + xi + dXi - halfNeigh))) * G->operator()(0,1);                    
                                                       
