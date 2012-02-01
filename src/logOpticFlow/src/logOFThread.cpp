@@ -313,12 +313,12 @@ void logOFThread::postSemaphores(Semaphore** pointer) {
 }
 
 void logOFThread::convertImages(ImageOf<PixelMono> *srcInt, ImageOf<PixelMono> *srcTmp){
-    printf("converting Images \n");
+    //printf("converting Images \n");
     calculusIpl     = (IplImage*) srcInt->getIplImage();
     cvConvertScale(calculusIpl,calculusIpl32f,0.003922,0);  //  0.003922 = 1/255.0
     temporalIpl     = (IplImage*) srcTmp->getIplImage();
     cvConvertScale(temporalIpl,temporalIpl32f,0.003922,0);  //  0.003922 = 1/255.0
-    printf("success in converting images \n");
+    //printf("success in converting images \n");
 }
 
 

@@ -56,25 +56,6 @@ inline Matrix reshape(Matrix a,int row, int col) {
 }
 
 opticFlowComputer::opticFlowComputer():Thread() { //RateThread(RATE_OF_INTEN_THREAD) {
-    inputImage          = new ImageOf<PixelRgb>;
-    filteredInputImage  = new ImageOf<PixelRgb>;
-    extendedInputImage  = new ImageOf<PixelRgb>;        
-   
-    intensImg           = new ImageOf<PixelMono>;
-    
-    lambda  = 0.3f;
-    resized = false;
-    isYUV   = true;
-    hasStartedFlag = false;
-    
-
-    double q = 0.5 * qdouble;
-    for (int j = 0; j < 252; j ++) {
-        double gammarad = (j / 180) * PI;
-        fcos[j] = cos(gammarad / q);        
-        fsin[j] = sin(gammarad / q);
-    }
-    width = 12; height = 12;
 }
 
 opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() {
@@ -90,11 +71,11 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
 
     fprintf(fout, "\n \n");
 
-    double q = 0.5 * qdouble;
+    double q = qdouble / 2.0; // where qdouble = Na / PI
     for (int j = 0; j < 262; j ++) {
         double gamma = j;
-        fcos[j] = cos(2 * PI - (gamma - 5) / q);
-        fsin[j] = sin(2 * PI - (gamma - 5) / q);        
+        fcos[j] = cos( 2 * PI - (gamma - 5) / q);
+        fsin[j] = sin( 2 * PI - (gamma - 5) / q);        
         //fprintf(fout, "%d %f %f \n",j, fcos[j], fsin[j]);
         
     }
@@ -120,7 +101,7 @@ bool opticFlowComputer::threadInit() {
     printf("a =  %f \n", a);
     F    = a / (a - 1);
     printf("F =  %f \n", F);
-    rho0 = 30; //1 / (pow (a, F) * (a - 1));
+    rho0 = 1 / (pow (a, F) * (a - 1));
     printf("rho0 =  %f \n", rho0);
 
     printf(" \n correctly initialised variables \n");
@@ -299,10 +280,11 @@ void opticFlowComputer::estimateOF(){
                     //printf("log(a) = %f \n", log(a));
                     
                     
-                    H->operator()(0,0) =      fcos[posGamma + gamma - calcHalf + dGamma - halfNeigh ]/log(a);
-                    H->operator()(0,1) =      fsin[posGamma + gamma - calcHalf + dGamma - halfNeigh ]/log(a);
+                    H->operator()(0,0) =      fcos[posGamma + gamma - calcHalf + dGamma - halfNeigh ];
+                    H->operator()(0,1) =      fsin[posGamma + gamma - calcHalf + dGamma - halfNeigh ];
                     H->operator()(1,0) = -q * fsin[posGamma + gamma - calcHalf + dGamma - halfNeigh ];
                     H->operator()(1,1) =  q * fcos[posGamma + gamma - calcHalf + dGamma - halfNeigh ];
+                    
                     
                     /*                    
                     H->operator()(0,0) = 1;
@@ -310,6 +292,7 @@ void opticFlowComputer::estimateOF(){
                     H->operator()(1,0) = 0;
                     H->operator()(1,1) = 1;
                     */
+                    
 
                     /*
                     if(posGamma + gamma - calcHalf + dGamma - halfNeigh == 130) {
@@ -432,7 +415,6 @@ void opticFlowComputer::estimateOF(){
             //}
             //printf(" %s \n", b->toString(1,1).c_str());  
             *bwMat = *wMat * *b;                        
-            //*bwMat = -1 * *b;
 
             SVD(*A,*K,*S,*V);            
             *Kt = K->transposed();
@@ -445,8 +427,8 @@ void opticFlowComputer::estimateOF(){
 
             *of = *V * *Km;
             //printf("of =%s \n", of->toString().c_str());
-            u->operator()(xi,gamma) = of->operator()(0,0);
-            v->operator()(xi,gamma) = of->operator()(0,1);
+            v->operator()(xi,gamma) = of->operator()(0,0);
+            u->operator()(xi,gamma) = of->operator()(0,1);
 
             /*
             double ofu = V->operator()(0,0) * k1;

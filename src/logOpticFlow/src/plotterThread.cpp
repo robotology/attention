@@ -314,15 +314,16 @@ void plotterThread::representOF(){
                                            + (posGamma[visitComputer] - calcHalf) * 3 ;
 
             short* valuePointerU = computersValueU[visitComputer];
-            //int countU = countPositiveValue(valuePointerU);
+            int countU = countPositiveValue(valuePointerU);
             short* valuePointerV = computersValueV[visitComputer];
-            //int countV = countPositiveValue(valuePointerV);
+            int countV = countPositiveValue(valuePointerV);
+            int magnitude;
             
-            /*
+            
             if((countU < 5) && (countV < 5)) {
                 continue;
             }
-            */
+            
 
             int countGamma = 0, countXi = 0;
             sumGamma = 0; sumXi = 0;
@@ -338,34 +339,40 @@ void plotterThread::representOF(){
                     
                     //printf("uSingle vSingle %d %d \n", valueGamma,valueXi);
 
-                    
+                    magnitude = valueXi * valueXi + valueGamma * valueGamma;
                     //tempPointer  = represPointer + (((posXi + j - calcHalf )* rowSize) + posGamma + i - calcHalf) * 3;
-                    if((abs(valueGamma) > 0.01)||(abs(valueXi) > 0.01)) {
+                    if(magnitude > 1000) {
                         //cvLine(represenIpl,
                         //               cvPoint(posGamma + i - calcHalf, posXi + j - calcHalf), 
                         //               cvPoint(posGamma + i - calcHalf + valueGamma, posXi + j - calcHalf + valueXi),                        
                         //               cvScalar(0,0,255,0)); 
-
-                        *tempPointer = abs(valueXi * 20) + abs(valueGamma * 20) ;   tempPointer++;
+                        
+                        
+                        
+                        //red channel
                         //*tempPointer++ = 255;
                         if(valueXi > 0)
-                            *tempPointer = 255 ;
+                            *tempPointer = 255 * magnitude;
                         else
-                            *tempPointer = 0;
+                            *tempPointer = 127 * magnitude;
                         tempPointer++;
                         //*tempPointer++ = 255;
+                        // green channel
                         if(valueGamma > 0)
-                            *tempPointer = 255;
+                            *tempPointer = 255 * magnitude;
                         else
-                            *tempPointer = 0;
+                            *tempPointer = 127 * magnitude;
                         tempPointer++;
-                        
-                        if(abs(valueXi) + abs(valueGamma) > 10) {
-                        cvLine(represIpl,
-                          cvPoint(posGamma[visitComputer] + i - calcHalf, posXi[visitComputer] + j - calcHalf), 
-                          cvPoint(posGamma[visitComputer] + i - calcHalf + valueGamma, posXi[visitComputer] + j - calcHalf + valueXi),
-                          cvScalar(255,0,0,0));  
+                        // blue channel
+                        *tempPointer = 0  ;   tempPointer++;
+                        /*
+                        if(magnitude > 2000) {
+                            cvLine(represIpl,
+                                   cvPoint(posGamma[visitComputer] + i - calcHalf, posXi[visitComputer] + j - calcHalf), 
+                                   cvPoint(posGamma[visitComputer] + i - calcHalf + valueGamma / 10, posXi[visitComputer] + j - calcHalf + valueXi /10),
+                                   cvScalar(0,0,255,0));  
                         }
+                        */
                         
                     }                    
                     else {
@@ -386,7 +393,7 @@ void plotterThread::representOF(){
                     
                     
                     //printf("Single: %f %f \n", uSingle, vSingle);
-                    /*
+                    
                     if(valueGamma!=0) {
                         sumGamma += valueGamma;
                         countGamma++;
@@ -395,7 +402,7 @@ void plotterThread::representOF(){
                         sumXi    += valueXi;
                         countXi++;
                     }
-                    */
+                    
                     
                     /*
                     if(
@@ -430,7 +437,7 @@ void plotterThread::representOF(){
                 tempPointer += rowSize - dimComput * 3;
             } // end for i
 
-            /* 
+             
             //printf("sumGamma %f sumXi %f  countGamma %d  countXi %d \n", sumGamma, sumXi, countGamma, countXi);
             if(sumGamma!=0) {
                 meanGamma  =  (int) (sumGamma / countGamma);
@@ -447,13 +454,13 @@ void plotterThread::representOF(){
             //printf("------------------ value: %d/%d %d/%d \n", sumGamma,countGamma, sumXi, countXi);
             //printf("------------------ mean ( %d %d) \n", meanGamma, meanXi);
             
-            if((abs(meanGamma) > 10) || (abs(meanXi) > 10)) {
+            if((abs(meanGamma) > 100) || (abs(meanXi) > 100)) {
                 cvLine(represIpl,
                        cvPoint(posGamma[visitComputer] , posXi[visitComputer]), 
                        cvPoint(posGamma[visitComputer] + meanGamma, posXi[visitComputer] + meanXi),
                        cvScalar(255,0,0,0));
             }        
-            */
+            
         } // end visitComputer
         
     }
