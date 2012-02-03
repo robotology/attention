@@ -35,7 +35,7 @@ using namespace yarp::dev;
 using namespace std;
 using namespace yarp::math;
 
-#define THRATE 10
+#define THRATE 60
 #define PI  3.14159265
 #define BASELINE 0.068     // distance in meters between eyes
 #define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
@@ -182,20 +182,18 @@ bool ofThread::threadInit() {
     templatePort.open(rootNameTemplate.c_str());
     string rootNameDatabase("");rootNameDatabase.append(getName("/database:o"));
     blobDatabasePort.open(rootNameDatabase.c_str());
-    string rootNameInhibition("");rootNameInhibition.append(getName("/inhibition:o"));
-    inhibitionPort.open(rootNameInhibition.c_str());
+    string rootNameForgetting("");rootNameForgetting.append(getName("/forgetting:o"));
+    forgettingPort.open(rootNameForgetting.c_str());
     inLeftPort.open(getName("/of/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
     firstConsistencyCheck=true;
 
-    inhibitionImage = new ImageOf<PixelMono>;
-    inhibitionImage->resize(INHIB_WIDTH,INHIB_HEIGHT);
-    inhibitionImage->zero();
-    unsigned char* pinhi = inhibitionImage->getRawImage();
-    int padding          = inhibitionImage->getPadding();
-    int rowsizeInhi      = inhibitionImage->getRowSize();
-    int ym = INHIB_HEIGHT >> 1;
-    int xm = INHIB_WIDTH  >> 1;
+
+    //unsigned char* pinhi = inhibitionImage->getRawImage();
+    //int padding          = inhibitionImage->getPadding();
+    //int rowsizeInhi      = inhibitionImage->getRowSize();
+    //int ym = INHIB_HEIGHT >> 1;
+    //int xm = INHIB_WIDTH  >> 1;
 
     return true;
 }
@@ -206,7 +204,7 @@ void ofThread::interrupt() {
     inRightPort.interrupt();
     statusPort.interrupt();
     templatePort.interrupt();
-    inhibitionPort.interrupt();
+    forgettingPort.interrupt();
     blobDatabasePort.interrupt();
     templatePort.interrupt();
     timingPort.interrupt();
@@ -218,7 +216,11 @@ void ofThread::setDimension(int w, int h) {
 
     spatialMemoryU   = (double*) malloc(width * height * sizeof(double));
     spatialMemoryV   = (double*) malloc(width * height * sizeof(double));
-    forgettingFactor = (unsigned char*)    malloc(width * height * sizeof(unsigned char)); 
+    //forgettingFactor = (unsigned char*)    malloc(width * height * sizeof(unsigned char)); 
+
+    forgettingImage = new ImageOf<PixelMono>;
+    forgettingImage->resize(w,h);
+    forgettingImage->zero();
 }
 
 void ofThread::setBlockPitch(double value) {
@@ -258,6 +260,7 @@ void ofThread::getVelocity(int topleftx, int toplefty, int bottomrightx, int bot
     double* tspatialMemoryV = spatialMemoryV + toplefty * width + topleftx;
     for (int r = 0 ; r < sizeY; r++ ) {
         for(int c = 0; c <sizeX; c++ ) {
+            printf(" %d %f %f \n",toplefty * width + topleftx + c,*tspatialMemoryU, *tspatialMemoryV );
             if((*tspatialMemoryU != 0) && (*tspatialMemoryV !=0)) {
                 count++;
                 totu += *tspatialMemoryU;
@@ -269,8 +272,13 @@ void ofThread::getVelocity(int topleftx, int toplefty, int bottomrightx, int bot
         tspatialMemoryU += width - sizeX;
         tspatialMemoryV += width - sizeX;
     }
-    u = totu / count;
-    v = totv / count; 
+    if(count == 0) {
+        u = v = 0.0;
+    }
+    else {
+        u = totu / count;
+        v = totv / count; 
+    }
 }
 
 void ofThread::run() {
@@ -278,9 +286,10 @@ void ofThread::run() {
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
     
-    unsigned char *tempFF  = forgettingFactor;
+    unsigned char *tempFF  = forgettingImage->getRawImage();
     double        *tempSMU = spatialMemoryU;
     double        *tempSMV = spatialMemoryV;
+    /*
     for (int r = 0; r < height ; r++) {
         for(int c = 0; c < width; c++) {
             if(*tempFF >= 1) {
@@ -296,21 +305,23 @@ void ofThread::run() {
             tempSMV++;
         }
     }
+    */
 }
 
 void ofThread::threadRelease() {
     inLeftPort.close();
     inRightPort.close();
     statusPort.close();
-    templatePort.close();
+    forgettingPort.close();
     blobDatabasePort.close();
-    inhibitionPort.close();
+    forgettingPort.close();
     timingPort.close();
 
     printf("freeing memory \n");
     free(spatialMemoryU);
     free(spatialMemoryV);
-    free(forgettingFactor);
+
+    delete forgettingImage;
 }
 
 void ofThread::update(observable* o, Bottle * arg) {
@@ -325,6 +336,8 @@ void ofThread::update(observable* o, Bottle * arg) {
         int numEvents = size >> 2;
         int x, y;
         double u, v;
+        unsigned char *forgettingFactor = forgettingImage->getRawImage();
+        int rowSize = forgettingImage->getRowSize();
         for (int i = 0 ; i < numEvents; i++) {
             x = arg->get(i * 4    ).asInt();
             y = arg->get(i * 4 + 1).asInt();
@@ -332,9 +345,9 @@ void ofThread::update(observable* o, Bottle * arg) {
             v = arg->get(i * 4 + 3).asDouble();
             
             printf("%d %d %f %f \n",x,y,u,v);
-            spatialMemoryU  [y * width + x] = u;
-            spatialMemoryV  [y * width + x] = v;
-            forgettingFactor[y * width + x] = 255;
+            spatialMemoryU  [y * width   + x] = u;
+            spatialMemoryV  [y * width   + x] = v;
+            forgettingFactor[y * rowSize + x] = 255;
         }
     }
 }

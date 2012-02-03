@@ -221,7 +221,8 @@ bool ofModule::respond(const Bottle& command, Bottle& reply) {
         break;
     case COMMAND_VOCAB_GET:
         {            
-            ok = true;
+            ok = true;rec = true;
+            printf("responding to the get command \n");
             int lefttopx = command.get(1).asInt() ;
             int lefttopy = command.get(2).asInt() ;
             int bottomrightx = command.get(3).asInt() ;

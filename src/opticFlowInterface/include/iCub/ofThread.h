@@ -105,25 +105,20 @@ private:
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgLeftIn;                                 // input image 3 channel
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgRightIn;                                // input mono image
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inLeftPort;        // input image port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inRightPort;       // output image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>  > inLeftPort;       // input image port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>  > inRightPort;      // output image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > templatePort;     // port for the segmented object of the zdf
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                            // image for the segmented object of the zdf
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > forgettingPort;   // port for the segm
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *forgettingImage;                          // image associated to the forgetting factor
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                            // image for the inhibition of return
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *inhibitionImage;                          // image for the inhibition of return
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
-    yarp::os::Property optionsHead;
-    yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
-    yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
-    yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
-    yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
     
     double *spatialMemoryU;                         // spatial memory of the u component of the velocity
     double *spatialMemoryV;                         // spatial memory of the v component of the velocity
-    unsigned char *forgettingFactor;                // spatial forgetting factor of the memory                       
+    //unsigned char *forgettingFactor;                // spatial forgetting factor of the memory                       
 
     //trackerThread* tracker;                       //reference to the object in charge of tracking a tamplete surrounding a point
 public:
@@ -264,13 +259,7 @@ public:
     */
     void setZLimits(double max,double min) { zmax = max; zmin = min; };
 
-    /**
-    * function that returns only when the last action is ended
-    */
-    void waitMotionDone() {
-        igaze->waitMotionDone();
-    }
-
+    
 };
 
 #endif  //_OPTIC_FLOW_THREAD_H_
