@@ -21,7 +21,7 @@
 
 
 /**
- * @file Module.cpp
+ * @file ofModule.cpp
  * @brief Implementation of the ofModule (see header file).
  */
 
@@ -43,20 +43,21 @@ bool ofModule::configure(yarp::os::ResourceFinder &rf) {
 
     if (rf.check("help")) {
         printf("Help \n");
-        return false;
+        printf("==== \n");
+        printf("--name   : specifies the name of the module \n");
+        printf("--robot  : specifies the name of the robot\n");
+        printf("--config : specifies the name of the config file of the camera\n");
+        printf("--width  : specifies the dimension of the input space \n");
+        printf("--height : specifies the dimension of the input space\n");
+        printf("\n");
+        printf("waiting for CTRL-C command to close the module \n");
+        return true;
     }
 
-
     /* get the module name which will form the stem of all module port names */
     moduleName             = rf.check("name", 
-                           Value("/of"), 
+                           Value("/ofInterface"), 
                            "module name (string)").asString();
-
-    /* get the module name which will form the stem of all module port names */
-    moduleName             = rf.check("name", 
-                           Value("/of"), 
-                           "module name (string)").asString();
-
     /*
     * before continuing, set the module name before getting any other parameters, 
     * specifically the port names which are dependent on the module name
@@ -99,14 +100,7 @@ bool ofModule::configure(yarp::os::ResourceFinder &rf) {
     arbiter->setName(getName().c_str());
     arbiter->setRobotName(robotName);
     
-    if (rf.check("visualFeedback")) {
-        arbiter->setVisualFeedback(true);
-        printf("visualFeedback required \n");
-    }
-    else {
-        printf("visualFeedback  not required \n");
-        arbiter->setVisualFeedback(false);
-    }
+
 
     /* get the dimension of the image for the thread parametric control */
     width                  = rf.check("width", 
@@ -120,60 +114,7 @@ bool ofModule::configure(yarp::os::ResourceFinder &rf) {
     printf("\n width: %d  height:%d \n", width, height);
     arbiter->setDimension(width,height);
 
-    /* offset for 3d position along x axis */
-    this->xoffset       = rf.check("xoffset", 
-                           Value(0), 
-                           "offset for 3D fixation point x").asDouble();
-    printf("xoffset:%f \n", xoffset);
-    arbiter->setXOffset(xoffset);
-
-    /* offset for 3d position along y axis */
-    this->yoffset       = rf.check("yoffset", 
-                           Value(0), 
-                           "offset for 3D fixation point y").asDouble();
-    printf("yoffset:%f \n", yoffset);
-    arbiter->setYOffset(yoffset);
-
-    /* offset for 3d position along z axis */
-    this->zoffset       = rf.check("zoffset", 
-                           Value(0), 
-                           "offset for 3D fixation point z").asDouble();
-    printf("zoffset:%f \n", zoffset);
-    arbiter->setZOffset(zoffset);
-
     
-    // limits for 3d position along x axis 
-    xmax       = rf.check("xmax", 
-                           Value(-0.2), 
-                          "limit max for 3D fixation point x").asDouble();
-    printf("xmax:%f \n", xmax);
-    xmin       = rf.check("xmin", 
-                           Value(-10.0), 
-                           "limit min for 3D fixation point x").asDouble();;
-    printf("xmin:%f \n", xmin);
-    arbiter->setXLimits(xmax,xmin);
-    
-    // limits for 3d position along y axis 
-    ymax       = rf.check("ymax", 
-                           Value(0.3), 
-                           "limit max for 3D fixation point y").asDouble();
-    printf("ymax:%f \n", ymax);
-    ymin       = rf.check("ymin", 
-                           Value(-0.3), 
-                           "limit max for 3D fixation point y").asDouble();
-    printf("ymin:%f \n", ymin);
-    arbiter->setYLimits(ymax,ymin);
-    
-    // limits for 3d position along z axis 
-    zmax       = rf.check("zmax", 
-                           Value(0.9), 
-                           "limit max for 3D fixation point z").asDouble();
-    printf("zmax:%f \n", zmax);
-    zmin       = rf.check("zmin", 
-                           Value(-0.3), 
-                           "limit min for 3D fixation point z").asDouble();
-    printf("zmin:%f \n", zmin);
-    arbiter->setZLimits(zmax,zmin);
     
     // specifies whether the camera is mounted on the head
     //onWings       = rf.check("onWings", 
@@ -182,29 +123,6 @@ bool ofModule::configure(yarp::os::ResourceFinder &rf) {
     //printf("onWings %d \n", onWings);
     //arbiter->setOnWings(onWings);
     
-    // specifies whether the camera is mounted on the head
-    mode       = rf.check("mode", 
-                           Value("standard"), 
-                           "indicates mapping with which the image plane is moved").asString();
-    printf("mode seleected: %s \n", mode.c_str());
-    if(!strcmp("onWings", mode.c_str())) {
-        printf("onWings %d true \n", onWings);
-        arbiter->setOnWings(true);
-    }
-    else if(!strcmp("onDvs", mode.c_str())) {
-        printf("onDvs true  \n");
-        arbiter->setOnDvs(true);
-    } 
-       
-   
-
-    // fixating pitch
-    pitch       = rf.check("blockPitch", 
-                           Value(-1), 
-                           "fixing the pitch to a desired angle").asDouble();
-    printf("pitch:%f \n", pitch);
-    arbiter->setBlockPitch(pitch);
-
     collector->addObserver(*arbiter);
     arbiter->start();
     collector->start();
@@ -284,8 +202,8 @@ bool ofModule::respond(const Bottle& command, Bottle& reply) {
             reply.addString(" quit  : to quit the module");
             reply.addString(" ");
             reply.addString(" ");
-            reply.addString(" sus   ");
-            reply.addString(" sus   ");
+            reply.addString(" sus   : suspending the thread   ");
+            reply.addString(" res   : resuming the thread     ");
             reply.addString(" ");
             reply.addString(" ");
             reply.addString(" ");

@@ -68,39 +68,6 @@
  * - \c height \c 240 \n
  *   specifies the dimension height of the input image
  *
- * - \c xmax \c -0.2 \n
- *   max allowed position of the fixation point ( x axis )
- *
- * - \c xmin \c -10.0 \n
- *   min allowed position of the fixation point ( x axis )
- *
- * - \c ymax \c 0.3 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c ymin \c -0.3 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c zmax \c 0.9 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c zmin \c -0.3 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c xoffset \c 0.0 \n
- *   max allowed position of the fixation point ( y axis )
- * 
- * - \c yoffset \c 0.0 \n
- *   max allowed position of the fixation point ( y axis )
- * 
- * - \c zoffset \c 0.0 \n
- *   max allowed position of the fixation point ( y axis )
- *
- * - \c onWings \c 0 \n
- *   1\0 when the camera do\don`t mount on the head
- *
- * - \c mode \c standard \n
- *   onWings\onDvs when the camera considered is on the head or on dvs
- *
  * <b>Configuration File Parameters</b>
  *
  * The following key-value pairs can be specified as parameters in the configuration file 
@@ -122,7 +89,9 @@
  * 
  *  -  \c help \n
  *  -  \c quit \n
- *
+ *  -  \c res \n
+ *  -  \c sus \n
+ *  
  *    Note that the name of this port mirrors whatever is provided by the \c --name parameter value
  *    The port is attached to the terminal so that you can type in commands and receive replies.
  *    The port can be used by other modules but also interactively by a user through the yarp rpc directive, viz.: \c yarp \c rpc \c /visualFilter
