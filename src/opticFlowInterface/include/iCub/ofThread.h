@@ -190,8 +190,16 @@ public:
     */
     void update(observable* o, yarp::os::Bottle * arg);
  
-
-    void getPoint(CvPoint& p);
+    /**
+     * @brief function that returns a velocity for a particular portion of space
+     * @param topleftx x coordinate of the top-left vertix of the portion of space
+     * @param toplefty y coordinate of the top-left vertix of the portion of space
+     * @param bottomrightx x coordinate of the bottom-right vertix of the portion of space
+     * @param bottomrighty y coordinate of the bottom-right vertix of the portion of space
+     * @param u velocity component of the optic flow
+     * @param v velocity component of the optic flow
+     */
+    void getVelocity(int topleftx, int toplefty, int bottomrightx, int bottomrighty, double& u, double& v);
 
     /**
      * initialise the process of tracking with the coordinates of the initial point

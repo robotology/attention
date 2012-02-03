@@ -248,8 +248,29 @@ void ofThread::init(const int x, const int y) {
     search_roi.width = search_roi.height = search_size;
 }
 
-void ofThread::getPoint(CvPoint& p) {
-    //tracker->getPoint(p);
+
+void ofThread::getVelocity(int topleftx, int toplefty, int bottomrightx, int bottomrighty, double& u, double& v) {
+    int sizeX = bottomrightx - topleftx;
+    int sizeY = bottomrighty - toplefty;
+    int count = 0;
+    double totu = 0, totv = 0;
+    double* tspatialMemoryU = spatialMemoryU + toplefty * width + topleftx;
+    double* tspatialMemoryV = spatialMemoryV + toplefty * width + topleftx;
+    for (int r = 0 ; r < sizeY; r++ ) {
+        for(int c = 0; c <sizeX; c++ ) {
+            if((*tspatialMemoryU != 0) && (*tspatialMemoryV !=0)) {
+                count++;
+                totu += *tspatialMemoryU;
+                totv += *tspatialMemoryV;
+            }
+            tspatialMemoryU++;
+            tspatialMemoryV++;
+        }
+        tspatialMemoryU += width - sizeX;
+        tspatialMemoryV += width - sizeX;
+    }
+    u = totu / count;
+    v = totv / count; 
 }
 
 void ofThread::run() {

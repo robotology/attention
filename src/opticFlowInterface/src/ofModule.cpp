@@ -219,20 +219,32 @@ bool ofModule::respond(const Bottle& command, Bottle& reply) {
             ok = false;
         }
         break;
-    
+    case COMMAND_VOCAB_GET:
+        {            
+            ok = true;
+            int lefttopx = command.get(1).asInt() ;
+            int lefttopy = command.get(2).asInt() ;
+            int bottomrightx = command.get(3).asInt() ;
+            int bottomrighty = command.get(4).asInt() ;
+            double u, v;
+            arbiter->getVelocity(lefttopx, lefttopy, bottomrightx, bottomrighty, u, v);
+            reply.addDouble(u);
+            reply.addDouble(v);
+        }
+        break;
     
     case COMMAND_VOCAB_SUSPEND:
         {            
             reply.addString("suspending");
             ok = true;
-            //tf->suspend();
+            arbiter->suspend();
         }
         break;
     case COMMAND_VOCAB_RESUME:
         {
             reply.addString("resuming");
             ok = true;
-            //tf->resume();
+            arbiter->resume();
         }
         break;
     default:
