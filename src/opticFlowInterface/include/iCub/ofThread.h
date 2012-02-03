@@ -44,7 +44,7 @@
 #include <highgui.h>
 
 //within project includes
-#include <iCub/trackerThread.h>
+//#include <iCub/trackerThread.h>
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 
@@ -120,8 +120,12 @@ private:
     yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
+    
+    double *spatialMemoryU;                         // spatial memory of the u component of the velocity
+    double *spatialMemoryV;                         // spatial memory of the v component of the velocity
+    unsigned char *forgettingFactor;                // spatial forgetting factor of the memory                       
 
-    trackerThread* tracker;                         //reference to the object in charge of tracking a tamplete surrounding a point
+    //trackerThread* tracker;                       //reference to the object in charge of tracking a tamplete surrounding a point
 public:
     /**
     * default constructor

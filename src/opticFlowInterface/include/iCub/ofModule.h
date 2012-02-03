@@ -177,6 +177,14 @@
  * 03/02/12 : the module is created                                                      author: Rea \n
 */
 
+#define COMMAND_VOCAB_SET           VOCAB3('s','e','t')
+#define COMMAND_VOCAB_GET           VOCAB3('g','e','t')
+#define COMMAND_VOCAB_SUSPEND       VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RESUME        VOCAB3('r','e','s')
+#define COMMAND_VOCAB_QUIT          VOCAB4('q','u','i','t')
+#define COMMAND_VOCAB_OK            VOCAB2('o','k')
+#define COMMAND_VOCAB_HELP          VOCAB4('h','e','l','p')
+#define COMMAND_VOCAB_FAILED        VOCAB4('f','a','i','l')
 
 
 #include <iostream>
@@ -211,16 +219,17 @@ class ofModule:public yarp::os::RFModule {
     int onWings;
     int width, height;                          // parameter set by user dimensioning input image
     yarp::os::Port handlerPort;                 // a port to handle messages 
-
-    ofThread* arbiter;                  //agent that sends commands to the gaze interface
-    ofCollector* collector;             //agent that collects commands from the lower level
+    yarp::os::Semaphore respondLock;            // to lock updating through respond 
+    ofThread* arbiter;                          //agent that sends commands to the gaze interface
+    ofCollector* collector;                     //agent that collects commands from the lower level
 
 public:
-    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-    bool interruptModule();                       // interrupt, e.g., the ports 
-    bool close();                                 // close and shut down the module
-    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
-    bool updateModule();
+    bool   configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+    bool   interruptModule();                       // interrupt, e.g., the ports 
+    bool   close();                                 // close and shut down the module
+    bool   respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+    bool   updateModule();
+    double getPeriod();
 };
 
 

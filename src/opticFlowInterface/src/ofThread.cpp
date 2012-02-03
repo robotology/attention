@@ -196,14 +196,6 @@ bool ofThread::threadInit() {
     int rowsizeInhi      = inhibitionImage->getRowSize();
     int ym = INHIB_HEIGHT >> 1;
     int xm = INHIB_WIDTH  >> 1;
-    
-
-    printf("starting the tracker.... \n");
-    ResourceFinder* rf = new ResourceFinder();
-    tracker = new trackerThread(*rf);
-    tracker->setName(getName("/matchTracker").c_str());
-    tracker->start();
-    printf("tracker successfully started \n");
 
     return true;
 }
@@ -223,6 +215,10 @@ void ofThread::interrupt() {
 void ofThread::setDimension(int w, int h) {
     width = w;
     height = h;
+
+    spatialMemoryU   = (double*) malloc(width * height * sizeof(double));
+    spatialMemoryV   = (double*) malloc(width * height * sizeof(double));
+    forgettingFactor = (unsigned char*)    malloc(width * height * sizeof(unsigned char)); 
 }
 
 void ofThread::setBlockPitch(double value) {
@@ -256,11 +252,29 @@ void ofThread::getPoint(CvPoint& p) {
     //tracker->getPoint(p);
 }
 
-
 void ofThread::run() {
     Bottle& status = statusPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
+    
+    unsigned char *tempFF  = forgettingFactor;
+    double        *tempSMU = spatialMemoryU;
+    double        *tempSMV = spatialMemoryV;
+    for (int r = 0; r < height ; r++) {
+        for(int c = 0; c < width; c++) {
+            if(*tempFF >= 1) {
+                *tempFF =  *tempFF - 1;
+            }
+            if(*tempFF == 0) {
+                *tempSMU = 0;
+                *tempSMV = 0;
+                *tempFF = *tempFF - 1;
+            }
+            tempFF++;
+            tempSMU++;
+            tempSMV++;
+        }
+    }
 }
 
 void ofThread::threadRelease() {
@@ -271,7 +285,11 @@ void ofThread::threadRelease() {
     blobDatabasePort.close();
     inhibitionPort.close();
     timingPort.close();
-    tracker->stop();
+
+    printf("freeing memory \n");
+    free(spatialMemoryU);
+    free(spatialMemoryV);
+    free(forgettingFactor);
 }
 
 void ofThread::update(observable* o, Bottle * arg) {
@@ -279,79 +297,23 @@ void ofThread::update(observable* o, Bottle * arg) {
     if (arg != 0) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
-        ConstString name = arg->get(0).asString();
-        
-        if(!strcmp(name.c_str(),"SAC_MONO")) {
-            // monocular saccades with visualFeedback
-            printf("MONO SACCADE request \n");
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
-            zDistance = arg->get(3).asDouble();
-            mutex.wait();
-            setVisualFeedback(true);
-            stateRequest[3] = 1;
-            mutex.post();
-            timetotStart = Time::now();
-            mono = true;
-            firstVer = true;
+        //ConstString name = arg->get(0).asString();        
+        if(size % 4 == 0) {
+            printf("correct number of bytes in the block \n");
         }
-        if(!strcmp(name.c_str(),"SAC_EXPR")) {
-            // monocular saccades without visualfeedback
-            printf("EXPRESS SACCADE request \n");
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
-            zDistance = arg->get(3).asDouble();
-            mutex.wait();
-            setVisualFeedback(false);
-            stateRequest[3] = 1;
-            //executing = false;
-            mutex.post();
-            timetotStart = Time::now();
-            mono = true;
-            firstVer = true;
-        }
-        
-        else if(!strcmp(name.c_str(),"SAC_ABS")) {
-            xObject = arg->get(1).asDouble();
-            yObject = arg->get(2).asDouble();
-            zObject = arg->get(3).asDouble();
-            printf("received request of abs saccade in position %f %f %f \n", xObject, yObject, zObject);
-            mutex.wait();
-            stateRequest[3] = 1;
-            //executing = false;
-            mutex.post();
-            mono = false;
-        }
-        else if(!strcmp(name.c_str(),"PUR")) {
-            mutex.wait();
-            stateRequest[2] = 1;
-            //executing = false;
-            mutex.post();
-        }
-        else if(!strcmp(name.c_str(),"VER_REL")) {
-            phi = arg->get(1).asDouble();            
-            mutex.wait();
-            mono = true;
-            stateRequest[1] = 1;
-            //executing = false;
-            mutex.post();
-        }
-        else if(!strcmp(name.c_str(),"COR_OFF")) {            
-            printf("visual correction disabled \n");
-            Time::delay(0.01);
-            mutex.wait();
-            setVisualFeedback(false);
-            mutex.post();
-        }
-        else if(!strcmp(name.c_str(),"COR_ON")) {   
-            printf("visual correction enabled \n");
-            Time::delay(0.01);
-            mutex.wait();
-            setVisualFeedback(true);
-            mutex.post();
-        }
-        else {
-            printf("Command has not been recognised \n");
+        int numEvents = size >> 2;
+        int x, y;
+        double u, v;
+        for (int i = 0 ; i < numEvents; i++) {
+            x = arg->get(i * 4    ).asInt();
+            y = arg->get(i * 4 + 1).asInt();
+            u = arg->get(i * 4 + 2).asDouble();
+            v = arg->get(i * 4 + 3).asDouble();
+            
+            printf("%d %d %f %f \n",x,y,u,v);
+            spatialMemoryU  [y * width + x] = u;
+            spatialMemoryV  [y * width + x] = v;
+            forgettingFactor[y * width + x] = 255;
         }
     }
 }

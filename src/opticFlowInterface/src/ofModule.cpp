@@ -41,6 +41,17 @@ using namespace std;
 bool ofModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
 
+    if (rf.check("help")) {
+        printf("Help \n");
+        return false;
+    }
+
+
+    /* get the module name which will form the stem of all module port names */
+    moduleName             = rf.check("name", 
+                           Value("/of"), 
+                           "module name (string)").asString();
+
     /* get the module name which will form the stem of all module port names */
     moduleName             = rf.check("name", 
                            Value("/of"), 
@@ -256,7 +267,75 @@ bool ofModule::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ok");
     }
     
-    return true;
+    reply.clear();
+
+    bool ok = false;
+    bool rec = false; // is the command recognized?
+
+    respondLock.wait();
+    switch (command.get(0).asVocab()) {
+    case COMMAND_VOCAB_HELP:
+        rec = true;
+        {
+            //reply.addString("many");    // what used to work
+            reply.addString("help");
+            reply.addString("commands are:");
+            reply.addString(" help  : to get help");
+            reply.addString(" quit  : to quit the module");
+            reply.addString(" ");
+            reply.addString(" ");
+            reply.addString(" sus   ");
+            reply.addString(" sus   ");
+            reply.addString(" ");
+            reply.addString(" ");
+            reply.addString(" ");
+            reply.addString(" ");
+            //reply.addString(helpMessage.c_str());
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_QUIT:
+        rec = true;
+        {
+            reply.addString("quitting");
+            ok = false;
+        }
+        break;
+    
+    
+    case COMMAND_VOCAB_SUSPEND:
+        {            
+            reply.addString("suspending");
+            ok = true;
+            //tf->suspend();
+        }
+        break;
+    case COMMAND_VOCAB_RESUME:
+        {
+            reply.addString("resuming");
+            ok = true;
+            //tf->resume();
+        }
+        break;
+    default:
+        rec = false;
+        ok  = false;
+    }    
+    
+    respondLock.post();
+    if (!rec){
+        ok = RFModule::respond(command,reply);
+    }
+    
+    if (!ok) {
+        reply.clear();
+        reply.addVocab(COMMAND_VOCAB_FAILED);
+    }
+    else
+        reply.addVocab(COMMAND_VOCAB_OK);
+
+    return ok;
+
 }
 
 /* Called periodically every getPeriod() seconds */
@@ -264,8 +343,8 @@ bool ofModule::updateModule() {
     return true;
 }
 
-//double ofModule::getPeriod() {
-    /* module periodicity (seconds), called implicitly by myModule */
-//    return 1.0;
-//}
+double ofModule::getPeriod() {
+    /* module periodicity (seconds), called implicitly by myModule (never 0 value!!) */
+    return 1.0;
+}
 
