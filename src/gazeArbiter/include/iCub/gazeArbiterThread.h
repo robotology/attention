@@ -51,7 +51,7 @@
 #include <iCub/trackerThread.h>
 #include <iCub/observer.h>
 #include <iCub/observable.h>
-
+#include <iCub/velocityController.h>
 
 /**
 * thread that given a series of collected commands executes the most prioritised command, calling
@@ -130,8 +130,8 @@ private:
     yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
-
-    trackerThread* tracker;                         //reference to the object in charge of tracking a tamplete surrounding a point
+    velocityController* velControl;                 // velocity controller for tracking
+    trackerThread* tracker;                         // reference to the object in charge of tracking a tamplete surrounding a point
 public:
     /**
     * default constructor
