@@ -427,10 +427,30 @@ void attPrioritiserThread::seek(int voc) {
             sent->addVocab(COMMAND_VOCAB_WBU);
             sent->addDouble(0.05);
             feedbackProtoObject.write(*sent, *received);
-            //weight TD
+            //weight TD           
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_WBU);
+            sent->addDouble(0.05);
+            feedbackProtoObject.write(*sent, *received);
             //colour red
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_TRED);
+            sent->addDouble(0.05);
+            feedbackProtoObject.write(*sent, *received);
             //colour green
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_TGRE);
+            sent->addDouble(0.05);
+            feedbackProtoObject.write(*sent, *received);
             //colour blue
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_SET);
+            sent->addVocab(COMMAND_VOCAB_TBLU);
+            sent->addDouble(0.05);
+            feedbackProtoObject.write(*sent, *received);
 
             delete sent;
             delete received;

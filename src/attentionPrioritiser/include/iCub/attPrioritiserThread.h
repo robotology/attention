@@ -41,9 +41,9 @@
 #define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
 #define COMMAND_VOCAB_NULL               VOCAB4('n','u','l','l')
 #define COMMAND_VOCAB_TIME               VOCAB4('t','i','m','e')
-#define COMMAND_VOCAB_TRED               VOCAB$('t','r','e','d')
-#define COMMAND_VOCAB_TRED               VOCAB$('t','b','l','u')
-#define COMMAND_VOCAB_TRED               VOCAB$('t','g','r','e')
+#define COMMAND_VOCAB_TRED               VOCAB4('t','r','e','d')
+#define COMMAND_VOCAB_TBLU               VOCAB4('t','b','l','u')
+#define COMMAND_VOCAB_TGRE               VOCAB4('t','g','r','e')
 
 #define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
 #define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
