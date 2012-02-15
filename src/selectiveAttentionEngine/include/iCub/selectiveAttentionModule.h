@@ -79,6 +79,8 @@
 #define COMMAND_VOCAB_K4    VOCAB2('k','4')
 #define COMMAND_VOCAB_K5    VOCAB2('k','5')
 #define COMMAND_VOCAB_K6    VOCAB2('k','6')
+#define COMMAND_VOCAB_BU    VOCAB2('b','u')
+#define COMMAND_VOCAB_TD    VOCAB2('t','d')
 #define COMMAND_VOCAB_KC1   VOCAB3('k','c','1')
 #define COMMAND_VOCAB_KMOT  VOCAB4('k','m','o','t')
 #define COMMAND_VOCAB_DEF   VOCAB3('d','e','f')
@@ -171,6 +173,8 @@
  * - set <double> k4 : coefficient for the linear combination of map4
  * - set <double> k5 : coefficient for the linear combination of map5
  * - set <double> k6 : coefficient for the linear combination of map6
+ * - set bu <double> : weight of the bottom-up contribution
+ * - set td <double> : weight of the top-down contribution
  * - set kmot : coefficient for the linear combination of motion detection
  * - set kc1 : coefficient for linear combination of cartesian images
  * - set lhan : forces to redirect saccades only where the hand is located

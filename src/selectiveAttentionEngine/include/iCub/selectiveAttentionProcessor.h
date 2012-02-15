@@ -146,6 +146,8 @@ private:
     double k4;          // coefficient for the linear combination of log-polar maps
     double k5;          // coefficient for the linear combination of log-polar maps
     double k6;          // coefficient for the linear combination of log-polar maps
+    double bu;          // weigth of the bottom-up contribution
+    double td;          // weight of the top-down contribution
     double kmotion;     // coefficient of the linear combination of the motion
     double kc1;         // coeffiencient for the linear combination of the cartesian maps
 
@@ -414,6 +416,18 @@ public:
      * @param p value that is going to be set
      */
     void setK6(double p) { k6=p; };
+
+    /**
+     * @brief function that sets the weight of the bottom-up
+     * @param p value that is going to be set
+     */
+    void setBU(double p) { bu = p;};
+
+    /**
+     * @brief function that sets the weight of the top-down 
+     * @param p value that is going to be set
+     */
+    void setTD(double p) { td = p;};
     
     /**
      * function that sets the reference of the hue Map
