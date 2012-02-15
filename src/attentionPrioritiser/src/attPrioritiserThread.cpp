@@ -424,9 +424,9 @@ void attPrioritiserThread::seek(int voc) {
             //weight BU
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K6);
-            sent->addDouble(0.75);
-            feedbackSelective.write(*sent, *received);
+            sent->addVocab(COMMAND_VOCAB_WBU);
+            sent->addDouble(0.05);
+            feedbackProtoObject.write(*sent, *received);
             //weight TD
             //colour red
             //colour green

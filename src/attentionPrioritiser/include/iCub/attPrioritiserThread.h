@@ -26,22 +26,30 @@
 #ifndef _ATT_PRIORITISER_THREAD_H_
 #define _ATT_PRIORITISER_THREAD_H_
 
-#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
-#define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
-#define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
-#define COMMAND_VOCAB_NULL               VOCAB4('n','u','l','l')
-
-#define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
-#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
-#define COMMAND_VOCAB_K1                 VOCAB2('k','1')
-#define COMMAND_VOCAB_TIME               VOCAB4('t','i','m','e')
 #define COMMAND_VOCAB_K1                 VOCAB2('k','1')
 #define COMMAND_VOCAB_K2                 VOCAB2('k','2')
 #define COMMAND_VOCAB_K3                 VOCAB2('k','3')
 #define COMMAND_VOCAB_K4                 VOCAB2('k','4')
 #define COMMAND_VOCAB_K5                 VOCAB2('k','5')
 #define COMMAND_VOCAB_K6                 VOCAB2('k','6')
+#define COMMAND_VOCAB_BU                 VOCAB2('b','u')
+
+
+#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
+#define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
+#define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
+#define COMMAND_VOCAB_NULL               VOCAB4('n','u','l','l')
+#define COMMAND_VOCAB_TIME               VOCAB4('t','i','m','e')
+#define COMMAND_VOCAB_TRED               VOCAB$('t','r','e','d')
+#define COMMAND_VOCAB_TRED               VOCAB$('t','b','l','u')
+#define COMMAND_VOCAB_TRED               VOCAB$('t','g','r','e')
+
+#define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
+#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
+#define COMMAND_VOCAB_WTD                VOCAB3('w','t','d')
+#define COMMAND_VOCAB_WBU                VOCAB3('w','b','u')
+
 
 
 #include <yarp/os/BufferedPort.h>
