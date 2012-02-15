@@ -30,6 +30,7 @@
 #define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
 #define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
 #define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
+#define COMMAND_VOCAB_NULL               VOCAB4('n','u','l','l')
 
 #define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
 #define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
@@ -124,6 +125,9 @@ private:
 
     int template_size;                      // size of the template
     int search_size;                        // area over the search is performed
+    bool topDownState[4];                   // vector of topDown states
+    double kNull[7];
+    double kColor[7];                        // kValue for selection in color state
 
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
@@ -148,6 +152,8 @@ private:
     
     yarp::os::Port feedbackEarlyVision;             // port for feedback to the early vision component of attention
     yarp::os::Port feedbackSelective;               // port for feedback to the selective component of visual attention                              
+    yarp::os::Port feedbackProtoObject;             // port for feedback to proto-object feature extractor                              
+
     yarp::os::Port feedbackPort;                    // port necessary to communicate the status of the system
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;
