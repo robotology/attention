@@ -145,7 +145,7 @@
 
 
 /** 
- * CHANGE LOG:
+ * /section  change_log CHANGE LOG:
  * 06/07/11 : created the module                                                                            author:Rea  \n
  * 07/07/11 : added the function that calculates the correlation between two log-polar images               author:Rea  \n
  * 11/07/11 : changed the cycle for exploring the image in the correlation function                         author:Rea  \n                                      

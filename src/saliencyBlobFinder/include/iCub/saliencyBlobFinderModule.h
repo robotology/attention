@@ -120,9 +120,9 @@
  * - get rin: red intensity value\n
  * - get gin: green intensity value\n
  * - get bin: blue intensity value\n
- * - get Mdb: Maximum dimension of the blob analysed\n
- * - get mdb: minimum dimension of the blob analysed\n
- * 
+ * - get Mdb: Maximum dimension of the blob analysed \n
+ * - get mdb: minimum dimension of the blob analysed \n
+ * - get rgb: returns the color of the blob in fovea \n
  *
  * \section in_files_sec Input Data Files
  *
@@ -151,16 +151,17 @@
  * 
  */
 
-/**
-* 21/12/10 : added the formulas and kinematic constraints necessary to work out the 3D point where the protoobject is seen  author:Rea /n
-* 05/01/11 : kinamatic calculus for 3d position of the blob in the virtual word                                             author:Rea /n
-* 12/01/11 : added lifeTimer property for correct forgetness of the object                                                  author:Rea /n
-* 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 author:Rea /n
-* 05/02/11 : filtered blob with a nbivariate normal                                                                         author:Rea /n
-* 21/03/11 : added list of the attended locations in the 3D space                                                           author:Rea /n
-* 22/03/11 : added the correct procedure to represent the blob in the GUI                                                   author:Rea /n
-* 23/03/11 : procedure to correctly populate the list of attended locations                                                 author:Rea /n     
-* 03/01/12 : adding top-down parameter search                                                                               
+/** /section change_log CHANGE_LOG
+ * 21/12/10 : added the formulas and kinematic constraints necessary to work out the 3D point where the protoobject is seen  author:Rea \n
+ * 05/01/11 : kinamatic calculus for 3d position of the blob in the virtual word                                             author:Rea \n
+ * 12/01/11 : added lifeTimer property for correct forgetness of the object                                                  author:Rea \n
+ * 02/02/11 : introduced configFile for camera setting in the thread for object localization                                 author:Rea \n
+ * 05/02/11 : filtered blob with a nbivariate normal                                                                         author:Rea \n
+ * 21/03/11 : added list of the attended locations in the 3D space                                                           author:Rea \n
+ * 22/03/11 : added the correct procedure to represent the blob in the GUI                                                   author:Rea \n
+ * 23/03/11 : procedure to correctly populate the list of attended locations                                                 author:Rea \n     
+ * 03/01/12 : adding top-down parameter search                                                                               author:Rea \n  
+ * 15/02/12 : added respond function for command fovea RGB                                                                 
 */
 
 #include <iostream>

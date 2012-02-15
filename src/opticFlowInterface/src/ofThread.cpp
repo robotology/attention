@@ -260,7 +260,7 @@ void ofThread::getVelocity(int topleftx, int toplefty, int bottomrightx, int bot
     double* tspatialMemoryV = spatialMemoryV + toplefty * width + topleftx;
     for (int r = 0 ; r < sizeY; r++ ) {
         for(int c = 0; c <sizeX; c++ ) {
-            printf(" %d %f %f \n",toplefty * width + topleftx + c,*tspatialMemoryU, *tspatialMemoryV );
+            //printf(" %d %f %f \n",toplefty * width + topleftx + c,*tspatialMemoryU, *tspatialMemoryV );
             if((*tspatialMemoryU != 0) && (*tspatialMemoryV !=0)) {
                 count++;
                 totu += *tspatialMemoryU;
@@ -289,7 +289,7 @@ void ofThread::run() {
     unsigned char *tempFF  = forgettingImage->getRawImage();
     double        *tempSMU = spatialMemoryU;
     double        *tempSMV = spatialMemoryV;
-    /*
+    int            padding = forgettingImage->getPadding();
     for (int r = 0; r < height ; r++) {
         for(int c = 0; c < width; c++) {
             if(*tempFF >= 1) {
@@ -298,14 +298,18 @@ void ofThread::run() {
             if(*tempFF == 0) {
                 *tempSMU = 0;
                 *tempSMV = 0;
-                *tempFF = *tempFF - 1;
+                //*tempFF = *tempFF - 1;
             }
-            tempFF++;
+            tempFF+= padding;
             tempSMU++;
             tempSMV++;
         }
     }
-    */
+    
+    if(forgettingPort.getOutputCount()) {
+        forgettingPort.prepare() = *forgettingImage;
+        forgettingPort.write();
+    }
 }
 
 void ofThread::threadRelease() {
@@ -330,9 +334,9 @@ void ofThread::update(observable* o, Bottle * arg) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
         //ConstString name = arg->get(0).asString();        
-        if(size % 4 == 0) {
-            printf("correct number of bytes in the block \n");
-        }
+        //if(size % 4 == 0) {
+        //    printf("correct number of bytes in the block \n");
+        //}
         int numEvents = size >> 2;
         int x, y;
         double u, v;
@@ -344,7 +348,7 @@ void ofThread::update(observable* o, Bottle * arg) {
             u = arg->get(i * 4 + 2).asDouble();
             v = arg->get(i * 4 + 3).asDouble();
             
-            printf("%d %d %f %f \n",x,y,u,v);
+            //printf("%d %d %f %f \n",x,y,u,v);
             spatialMemoryU  [y * width   + x] = u;
             spatialMemoryV  [y * width   + x] = v;
             forgettingFactor[y * rowSize + x] = 255;

@@ -370,6 +370,12 @@ bool gazeArbiterThread::threadInit() {
     tracker->start();
     printf("tracker successfully started \n");
 
+    printf("starting the velocity controller \n");
+    velControl = new velocityController();
+    velControl->setName(getName("/velControl").c_str());
+    velControl->start();
+    printf("velocity controller successfully started \n");
+
     return true;
 }
 
@@ -741,6 +747,8 @@ void gazeArbiterThread::run() {
     else if(allowedTransitions(2)>0) {
         // ----------------  SMOOTH PURSUIT -----------------------  
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
+        printf(" in RUN of gazeArbiter thread Smooth Pursuit \n");
+        
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
@@ -1194,7 +1202,6 @@ void gazeArbiterThread::run() {
     else {
         //printf("No transition \n");
     }
-
     
     //printf("--------------------------------------------------------->%d \n",done);
             
@@ -1207,8 +1214,7 @@ void gazeArbiterThread::run() {
         printf ("\n\n\n\n\n\n\n\n\n");
         mutex.post();
         // printf("saccadic event : done \n");
-        //}
-        
+        //}        
     }
     if(allowedTransitions(2)>0) {
         mutex.wait();
@@ -1234,7 +1240,13 @@ void gazeArbiterThread::threadRelease() {
     blobDatabasePort.close();
     inhibitionPort.close();
     timingPort.close();
-    tracker->stop();
+    if(tracker!=0) {
+        tracker->stop();
+    }
+    printf("trying to release the velControl \n");
+    if(velControl!=0) {
+        velControl->stop();
+    }
     delete eyeL;
     delete eyeR;
     igaze->restoreContext(originalContext);
@@ -1289,9 +1301,13 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             mutex.post();
             mono = false;
         }
-        else if(!strcmp(name.c_str(),"PUR")) {
+        else if(!strcmp(name.c_str(),"SM_PUR")) {
+            printf("received a command of smooth pursuit \n");
+            uVel = arg->get(1).asDouble();
+            vVel = arg->get(2).asDouble();
             mutex.wait();
             stateRequest[2] = 1;
+            velControl->setVelocityComponents(uVel, vVel);
             //executing = false;
             mutex.post();
         }

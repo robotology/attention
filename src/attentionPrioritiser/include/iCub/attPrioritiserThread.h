@@ -33,7 +33,7 @@
 #define COMMAND_VOCAB_K5                 VOCAB2('k','5')
 #define COMMAND_VOCAB_K6                 VOCAB2('k','6')
 #define COMMAND_VOCAB_BU                 VOCAB2('b','u')
-
+#define COMMAND_VOCAB_P0                 VOCAB2('p','0')
 
 #define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
 #define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
@@ -49,7 +49,9 @@
 #define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
 #define COMMAND_VOCAB_WTD                VOCAB3('w','t','d')
 #define COMMAND_VOCAB_WBU                VOCAB3('w','b','u')
-
+#define COMMAND_VOCAB_RGB                VOCAB3('r','g','b')
+#define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
+#define COMMAND_VOCAB_ORI                VOCAB3('o','r','i')
 
 
 #include <yarp/os/BufferedPort.h>
@@ -294,8 +296,9 @@ public:
 
     /**
      * @brief function that activates a seeking action
+     * @param bot bottle that contains the seek tag, the typology of the search and some params
      */
-    void seek(int voc);
+    void seek(yarp::os::Bottle bot);
     
     /**
      * @brief function that force the gaze to be deployed in the center

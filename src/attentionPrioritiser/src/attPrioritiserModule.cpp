@@ -301,7 +301,7 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
         rec = true;
         {
             prioritiser->suspend();
-            prioritiser->seek(command.get(1).asVocab());
+            prioritiser->seek(command);
             prioritiser->resume();
             ok = true;
         }

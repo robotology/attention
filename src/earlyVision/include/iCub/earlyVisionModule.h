@@ -153,7 +153,7 @@
 
 
 /**
- * \section changel_log CHANGE LOG
+ * \section change_log CHANGE LOG
  * 12/09/11 : added factor 2 for the combination of orientation and introduced parameters for weights configuration \author Rea \n
  * 15/02/12 : added few function to extract value of orientatio feature maps valuated in fovea
  */

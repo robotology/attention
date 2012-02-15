@@ -88,6 +88,7 @@ private:
     double xmax, xmin;                      // limits in fixation point
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
+    double uVel, vVel;                      // components of the velocities for smooth pursuit
     int width, height;                      // dimension of the image
     int countVerNull;                       // counter of the null vergence angles
     double phi;                             // value passed for vergence
