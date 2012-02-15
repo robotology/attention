@@ -16,6 +16,7 @@
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
 */
+
 /**
  * @file earlyVisionThread.cpp
  * @brief Implementation of the early stage of vision thread (see earlyVisionThread.h).
@@ -25,8 +26,6 @@
 #include <iCub/earlyVisionThread.h>
 
 #include <cstring>
-
-
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -39,8 +38,6 @@ inline T max(T a, T b, T c) {
     if(c > a) a = c;
     return a;
 }
-
-
 
 earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
     

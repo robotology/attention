@@ -37,8 +37,17 @@ using namespace std;
  */
 
 bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
+    /* Look for request of Help */
+
+    if(rf.check("Help")) {
+        printf("Help \n");
+        printf("===== \n");
+        printf("Press CTRL-C to continue \n");
+        return true;
+    }
+
+
     /* Process all parameters from both command-line and .ini file */
-    
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
                            Value("/earlyVision"), 
@@ -171,10 +180,16 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
             reply.addString(" set w   o45 <float> : to change the weightage of 45 deg orientation");
             reply.addString(" set w   ver <float> : to change the weightage of vertical orientation");
             reply.addString(" set w   oM45 <float> : to change the weightage of -45 deg orientation");
+            reply.addString("    ");
             reply.addString(" get w   hor  : to get the weightage of horizontal orientation");
             reply.addString(" get w   o45  : to get the weightage of 45 deg orientation");
             reply.addString(" get w   ver  : to get the weightage of vertical orientation");
             reply.addString(" get w   oM45 : to get the weightage of -45 deg orientation");
+            reply.addString(" get int      : to get the intensity value in fovea");
+            reply.addString(" get ori 0    : to get the orientation the saliency of feature in fovea ");
+            reply.addString(" get ori 45   : to get the orientation the saliency of feature in fovea ");
+            reply.addString(" get ori 90   : to get the orientation the saliency of feature in fovea ");
+            reply.addString(" get ori M45  : to get the orientation the saliency of feature in fovea ");
             reply.addString(" ");
             reply.addString(" ");
             //reply.addString(helpMessage.c_str());
@@ -286,6 +301,44 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
                         rec = false;
                         ok  = false;
                     
+                    }
+
+                }
+            break;
+            case COMMAND_VOCAB_ORI:
+                {
+                    switch(command.get(2).asVocab()){
+                    case COMMAND_VOCAB_P45:
+                        wt = evThread->chromeThread->getFoveaOri(0);
+                        reply.clear();
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_N45:
+                        wt = evThread->chromeThread->getFoveaOri(-45);
+                        reply.clear();
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_P0:
+                        wt = evThread->chromeThread->getFoveaOri(0);
+                        reply.clear();
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;
+                    case COMMAND_VOCAB_P90:
+                        wt = evThread->chromeThread->getFoveaOri(90);
+                        reply.clear();
+                        reply.addDouble(wt);
+                        rec = true;
+                        ok = true;
+                        break;                                 
+                    default:
+                        rec = false;
+                        ok  = false;                    
                     }
 
                 }

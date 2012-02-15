@@ -31,15 +31,17 @@
 #include <yarp/os/Stamp.h>
 /* Log-Polar includes */
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
+
+/* openCV includes */
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
+
+/*  iCub includes */
 #include <iCub/logPolar.h>
 #include <iCub/convolve.h>
 #include <iCub/config.h>
 #include <iCub/centerSurround.h>
-
-
 
 #ifndef PI
 #define PI 3.1415926535897932384626433832795
@@ -47,19 +49,15 @@
 
 #define MONO_PIXEL_SIZE 1
 
-
 #define ROW_SIZE 252
 #define COL_SIZE 152
 #define CART_ROW_SIZE 320
 #define CART_COL_SIZE 240
 
-
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8
 #endif
-
-
 
 class chrominanceThread : public yarp::os::RateThread{ 
 
@@ -141,7 +139,6 @@ public:
     * @param str rootname as a string
     */
     void setName(std::string str);
-
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter
@@ -168,7 +165,11 @@ public:
     * @param I intensity image
     */
     void copyRelevantPlanes(yarp::sig::ImageOf<yarp::sig::PixelMono> *I);   
-    
+
+    /**
+    * function that copies the images from the main thread
+    * @param I intensity image
+    */
     void copyScalesOfImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *I, CvMat **toBeCopiedGauss);
 
     /**
@@ -198,9 +199,7 @@ public:
     /**
     * Orientation using Gabor kernel on Gaussian smoothened intensity. (Refer config.h)
     */
-    void orientation();
-    
-    
+    void orientation();    
 
     /* to suspend and resume the thread processing
     */
@@ -216,53 +215,83 @@ public:
    
     
     /**
-     *   Some handy get-set methods
+     *   A handy get-set method
      */
     inline yarp::sig::ImageOf<yarp::sig::PixelMono>* getCartesianImage(){
         return this->cartIntensImg;
     }
 
-    
+    /**
+     *   A handy get-set method
+     */
     inline bool getFlagForDataReady(){
         
          return this->dataReadyForChromeThread;
          
     }
 
+    /**
+     *   A handy get-set method
+     */
     inline void setFlagForDataReady(bool v){
          //atomic operation
          dataReadyForChromeThread = v;         
     }
     
+    /**
+     *   A handy get-set method
+     */
     inline bool getFlagForThreadProcessing(){
         
          return this->chromeThreadProcessing;
          
     }
 
+    /**
+     *   A handy get-set method
+     */
     inline void setFlagForThreadProcessing(bool v){
          //atomic operation
          chromeThreadProcessing = v;         
     } 
 
+    /**
+     *   A handy get-set method
+     */
     inline void setWeightForOrientation(int orientNbr, float val){
         assert(orientNbr>=0 && orientNbr< GABOR_ORIS);
         wtForEachOrientation[orientNbr] = val;
     }
     
+    /**
+     *   A handy get-set method
+     */
     inline float getWeightForOrientation(int orientNbr){
         assert(orientNbr>=0 && orientNbr< GABOR_ORIS);
         return wtForEachOrientation[orientNbr];
     }
 
+    /**
+     *   A handy get-set method
+     */
     inline void setBrightness(float val){
         this->brightness = val;
         printf("received brightness val%lf and set to%f\n",val,this->brightness);        
     }
 
+    /**
+     *   A handy get-set method
+     */
     inline float getBrightness(){
         return this->brightness;
     }
+
+    /**
+     * @brief function that returns the value in fovea of a particular orientation map
+     * @param angle angle that indicates with feature map is going to be exploited
+     */
+    double getFoveaOri(int angle);
+    
     
 };
 

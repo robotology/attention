@@ -51,7 +51,6 @@ int pow(int base, int power){
         return powTailRecurse(base,power,base);
 }
 
-
 chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {    
     
     chromeThreadProcessing      = false;
@@ -181,6 +180,9 @@ std::string chrominanceThread::getName(const char* p) {
     string str(name);
     str.append(p);
     return str;
+}
+
+double chrominanceThread::getFoveaOri(int angle) {
 }
 
 void chrominanceThread::run() {
