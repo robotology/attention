@@ -62,10 +62,10 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grOut;           // port where the difference of gaussian G+R- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byOut;           // port where the difference of gaussian B+Y- of the image is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > yellowPort;       // port where the yellow plane of the image is streamed
-    yarp::os::Port blobDatabasePort;                              // port where all the blobs as bottles are sent to the objectPropertiesCollector
+    yarp::os::Port blobDatabasePort;                               // port where all the blobs as bottles are sent to the objectPropertiesCollector
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *outContrastLP;                  // image result of the function outContrastLP
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpImage;                       // buffer image for received image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *outContrastLP;       // image result of the function outContrastLP
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpImage;            // buffer image for received image
     yarp::sig::ImageOf<PixelBgr> *outMeanColourLP;                 // image result of the function meanColourLP;
     
     IppiSize srcsize;                                   // ipp reference to the size of the input image
@@ -95,7 +95,7 @@ private:
 
     yarp::dev::IGazeControl *igaze;                         // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;                  // polydriver for the gaze controller
-    yarp::dev::PolyDriver *polyTorso, *drvHead;              // polydriver for the control of the torso and head
+    yarp::dev::PolyDriver *polyTorso, *drvHead;             // polydriver for the control of the torso and head
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
     yarp::dev::IEncoders   *encTorso,*encHead;              // encoders of the torso and head
@@ -109,22 +109,22 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *image_out;                          // image which is plotted in the drawing area
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *image_out2;                          // image which is plotted in the drawing area
 
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *ptr_inputImg;                        // pointer to the input image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *ptr_inputImg;                       // pointer to the input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRed;                    // pointer to the red plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGreen;                  // pointer to the green plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBlue;                   // pointer to the input blue plane image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgYellow;                   // pointer to the input blue plane image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRplus, *ptr_tmpRpluss;        // temp image to hold convolution result
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRminus, *ptr_tmpRminuss;        // temp image to hold convolution result
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpGplus, *ptr_tmpGpluss;        // temp image to hold convolution result
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpGminus, *ptr_tmpGminuss;        // temp image to hold convolution result
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpBplus, *ptr_tmpBpluss;        // temp image to hold convolution result
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpYminus, *ptr_tmpYminuss;        // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgYellow                  // pointer to the input blue plane image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRplus, *ptr_tmpRpluss;       // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRminus, *ptr_tmpRminuss;     // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpGplus, *ptr_tmpGpluss;       // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpGminus, *ptr_tmpGminuss;     // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpBplus, *ptr_tmpBpluss;       // temp image to hold convolution result
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpYminus, *ptr_tmpYminuss;     // temp image to hold convolution result
     
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRG;                     // pointer to the input image R+G-
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGR;                     // pointer to the input image G+R-
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBY;                     // pointer to the input image B+Y-
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *_procImage;                          // pointer to the output image of the watershed algorithm
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *_procImage;                         // pointer to the output image of the watershed algorithm
 
     int maxBLOB;                                            // maxBLOB dimension
     int minBLOB;                                            // minBLOB dimension
@@ -349,7 +349,13 @@ public:
      */
     inline int getTargetBlue()   { return targetBlue; }
  
-
+    /**
+     * @brief get rgb colour of the fovea blob 
+     * @param redValue value extract from the red channel
+     * @param greenValue value extracted from the green channel
+     * @param blueValue value extracted from the blue channel
+     */
+    void getFoveaRgb(int& redValue, int& greenValue, int& blueValue){redValue = greenValue = blueValue = 0.0; };
 };
 
 #endif //__BLOBFINDERTHREAD_H_
