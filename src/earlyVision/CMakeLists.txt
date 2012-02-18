@@ -34,7 +34,7 @@ IF (folder_source)
         ${folder_header}
     )
 
-	
+    MESSAGE("OpenCV_LIBS ${OpenCV_LIBS}" )
     TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${OpenCV_LIBS} ${YARP_LIBRARIES} )	
     INSTALL_TARGETS(/bin ${KEYWORD})
 	

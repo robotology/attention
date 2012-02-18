@@ -183,6 +183,7 @@ std::string chrominanceThread::getName(const char* p) {
 }
 
 double chrominanceThread::getFoveaOri(int angle) {
+    return (double)angle;
 }
 
 void chrominanceThread::run() {
