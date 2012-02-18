@@ -113,7 +113,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRed;                    // pointer to the red plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGreen;                  // pointer to the green plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBlue;                   // pointer to the input blue plane image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgYellow                  // pointer to the input blue plane image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgYellow;                  // pointer to the input blue plane image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRplus, *ptr_tmpRpluss;       // temp image to hold convolution result
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpRminus, *ptr_tmpRminuss;     // temp image to hold convolution result
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_tmpGplus, *ptr_tmpGpluss;       // temp image to hold convolution result
