@@ -44,6 +44,7 @@
 #define COMMAND_VOCAB_TRED               VOCAB4('t','r','e','d')
 #define COMMAND_VOCAB_TBLU               VOCAB4('t','b','l','u')
 #define COMMAND_VOCAB_TGRE               VOCAB4('t','g','r','e')
+#define COMMAND_VOCAB_FRGB               VOCAB4('f','r','g','b')
 
 #define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
 #define COMMAND_VOCAB_GRE                VOCAB3('g','r','e')

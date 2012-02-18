@@ -115,14 +115,14 @@
  * 
  * - rset flt : reset the filter\n
  *
- * - get kbu: weight of the bottom-up algorithm\n
- * - get ktd: weight of top-down algorithm\n
- * - get rin: red intensity value\n
- * - get gin: green intensity value\n
- * - get bin: blue intensity value\n
- * - get Mdb: Maximum dimension of the blob analysed \n
- * - get mdb: minimum dimension of the blob analysed \n
- * - get rgb: returns the color of the blob in fovea \n
+ * - get kbu : weight of the bottom-up algorithm\n
+ * - get ktd : weight of top-down algorithm\n
+ * - get rin : red intensity value\n
+ * - get gin : green intensity value\n
+ * - get bin : blue intensity value\n
+ * - get Mdb : Maximum dimension of the blob analysed \n
+ * - get mdb : minimum dimension of the blob analysed \n
+ * - get frgb: returns the color of the blob in fovea \n
  *
  * \section in_files_sec Input Data Files
  *
@@ -161,8 +161,9 @@
  * 22/03/11 : added the correct procedure to represent the blob in the GUI                                                   author:Rea \n
  * 23/03/11 : procedure to correctly populate the list of attended locations                                                 author:Rea \n     
  * 03/01/12 : adding top-down parameter search                                                                               author:Rea \n  
- * 15/02/12 : added respond function for command fovea RGB                                                                 
-*/
+ * 15/02/12 : added respond function for command fovea RGB                                                                   author:Rea \n
+ * 18/02/12 : added commands to get fovea blob color (red, blue, green)                                                      author:Rea \n         
+ */
 
 #include <iostream>
 #include <ippi.h>
@@ -175,11 +176,18 @@
 // general command vocab's
 #define COMMAND_VOCAB_IS     VOCAB2('i','s')
 #define COMMAND_VOCAB_OK     VOCAB2('o','k')
+
 #define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
 #define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
 #define COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
 #define COMMAND_VOCAB_TGRE   VOCAB4('t','g','r','e')
 #define COMMAND_VOCAB_TBLU   VOCAB4('t','b','l','u')
+#define COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
+#define COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
+#define COMMAND_VOCAB_FGRE   VOCAB4('f','g','r','e')       // request of fovea blob color (red)
+#define COMMAND_VOCAB_FRGB   VOCAB4('f','r','g','b')       // request of fovea blob color (rgb)
+
+
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
 #define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
 #define COMMAND_VOCAB_MBA    VOCAB3('m','B','A')           // minimum dimension of the bounding area

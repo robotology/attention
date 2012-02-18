@@ -240,8 +240,8 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
     case COMMAND_VOCAB_GET:
         rec = true;
         {
-            reply.addVocab(COMMAND_VOCAB_IS);
-            reply.add(command.get(1));
+            //reply.addVocab(COMMAND_VOCAB_IS);
+            //reply.add(command.get(1));
             switch(command.get(1).asVocab()) {
 
             case COMMAND_VOCAB_MAXDB:
@@ -257,7 +257,18 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                     reply.addInt(nb);
                     ok = true;
                 }
-            break;
+                break;
+            case COMMAND_VOCAB_FRGB:
+                {
+                    //int nb = blobFinder->getMinBlobSize();
+                    reply.addInt(255);
+                    reply.addInt(254);
+                    reply.addInt(255);
+                    ok = true;
+                }
+                break;
+            
+            
             /* LATER: implement case COMMAND_VOCAB_MBA */
 
             default:

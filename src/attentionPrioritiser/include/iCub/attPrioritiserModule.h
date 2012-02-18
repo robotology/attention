@@ -153,7 +153,8 @@
  * 07/10/11 : added the enable and disable commands for express saccades.                                   author:Rea  \n       
  * 26/10/11 : reduced all the temporal constants to 50ms                                                    author:Rea  \n  
  * 04/01/12 : added feedback commands to the low level visual attention                                     author:Rea  \n         
- * 15/02/12 : introduced top-down state for stable visual attenion                                          author:Rea  \n
+ * 15/02/12 : introduced top-down state for stable visual attention                                         author:Rea  \n
+ * 18/02/12 : tested the top-down connection between earlyVision and saliencyBlobFinder                     author:Rea  \n
 */
 
 

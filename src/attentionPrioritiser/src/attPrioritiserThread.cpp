@@ -1036,7 +1036,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //gathering information about the feature from the preattentive stage (earlyVision)
             if(feedbackEarlyVision.getOutputCount()) {
-                cout<<"trying to communicate with the earlyVision: ";
+                cout<<"communication activated with the earlyVision: ";
                 Bottle rep;
                 Bottle req;
                 req.clear();
@@ -1052,14 +1052,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //gathering information about the feature from the preattentive stage (protoObject component)
             if(feedbackProtoObject.getOutputCount()) {
-                cout<<"trying to communicate with the protoObject: ";
+                cout<<"communicatio activated with the protoObject: \n";
                 Bottle rep;
                 Bottle req;
                 req.clear();
                 req.addVocab(COMMAND_VOCAB_GET);
                 req.addVocab(COMMAND_VOCAB_MAXDB);
                 feedbackProtoObject.write(req, rep);
-                cout<<rep.toString().c_str()<<endl;
+                cout<<" maxdb:     "<<rep.toString().c_str()<<endl;
+
+                req.clear();
+                req.addVocab(COMMAND_VOCAB_GET);
+                req.addVocab(COMMAND_VOCAB_FRGB);
+                feedbackProtoObject.write(req, rep);
+                cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
+
             }
             else {
                 cout<<"no active feedback to protoObject"<<endl;
