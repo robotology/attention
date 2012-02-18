@@ -130,7 +130,8 @@ blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string 
     _procImage    = new ImageOf<PixelRgb>;
     _outputImage3 = new ImageOf<PixelRgb>;
 
-    ptr_inputImg       = new ImageOf<yarp::sig::PixelRgb>; 
+    ptr_inputImg       = new ImageOf<yarp::sig::PixelRgb>;
+    ptr_foveaRgbImg    = new ImageOf<yarp::sig::PixelRgb>;
     ptr_foveaImg       = new ImageOf<yarp::sig::PixelMono>; 
     ptr_inputImgRed    = new ImageOf<yarp::sig::PixelMono>; 
     ptr_inputImgGreen  = new ImageOf<yarp::sig::PixelMono>; 
@@ -181,6 +182,7 @@ blobFinderThread::~blobFinderThread() {
     delete edges;               // pointer to the edges image
 
     delete ptr_foveaImg;        
+    delete ptr_foveaRgbImg;
     delete ptr_inputImgRed;     // pointer to the input image of the red plane
     delete ptr_inputImgGreen;   // pointer to the input image of the green plane
     delete ptr_inputImgBlue;    // pointer to the input image of the blue plane
@@ -267,15 +269,16 @@ void blobFinderThread::resizeImages(int width, int height) {
 
     blobList = new char [width*height+1];
     
-    ptr_inputImg->resize(width, height);
-    ptr_foveaImg->resize(width, height);
-    ptr_inputImgRed->resize(width, height);
-    ptr_inputImgGreen->resize(width, height);
-    ptr_inputImgBlue->resize(width, height);
+    ptr_inputImg      ->resize(width, height);
+    ptr_foveaRgbImg   ->resize(width, height);
+    ptr_foveaImg      ->resize(width, height);
+    ptr_inputImgRed   ->resize(width, height);
+    ptr_inputImgGreen ->resize(width, height);
+    ptr_inputImgBlue  ->resize(width, height);
     ptr_inputImgYellow->resize(width, height);
-    ptr_inputImgRG->resize(width, height);
-    ptr_inputImgGR->resize(width, height);
-    ptr_inputImgBY->resize(width, height);
+    ptr_inputImgRG    ->resize(width, height);
+    ptr_inputImgGR    ->resize(width, height);
+    ptr_inputImgBY    ->resize(width, height);
 
     ptr_tmpRplus->resize(width,height);
     ptr_tmpRminus->resize(width,height);
@@ -343,6 +346,10 @@ bool blobFinderThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
     if (!foveaPort.open(getName("/foveaBlob:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+    if (!foveaRgbPort.open(getName("/foveaRgbBlob:o").c_str())) {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -439,13 +446,14 @@ void blobFinderThread::interrupt() {
     saliencePort.interrupt();
     outputPort3.interrupt();
     
-    rgPort   .interrupt();
-    grPort   .interrupt();
-    byPort   .interrupt();
-    rgOut    .interrupt();
-    grOut    .interrupt();
-    byOut    .interrupt();
-    foveaPort.interrupt();
+    rgPort      .interrupt();
+    grPort      .interrupt();
+    byPort      .interrupt();
+    rgOut       .interrupt();
+    grOut       .interrupt();
+    byOut       .interrupt();
+    foveaPort   .interrupt();
+    foveaRgbPort.interrupt();
 }
 
 /**
@@ -457,13 +465,14 @@ void blobFinderThread::threadRelease() {
     saliencePort.close();
     inputPort.close();
     
-    rgPort   .close();
-    grPort   .close();
-    byPort   .close();
-    rgOut    .close();
-    grOut    .close();
-    byOut    .close();
-    foveaPort.close();
+    rgPort       .close();
+    grPort       .close();
+    byPort       .close();
+    rgOut        .close();
+    grOut        .close();
+    byOut        .close();
+    foveaPort    .close();
+    foveaRgbPort .close();
 }
 
 
@@ -521,6 +530,11 @@ void blobFinderThread::run() {
         if((0 != ptr_foveaImg) ||  (foveaPort.getOutputCount())) { 
             foveaPort.prepare() = *((ImageOf<PixelMono>*)ptr_foveaImg);
             foveaPort.write();
+        }
+        
+        if((0 != ptr_foveaRgbImg) ||  (foveaRgbPort.getOutputCount())) { 
+            foveaRgbPort.prepare() = *((ImageOf<PixelRgb>*)ptr_foveaRgbImg);
+            foveaRgbPort.write();
         }
 
         if((0 != _outputImage3) ||  (outputPort3.getOutputCount())) { 
@@ -931,7 +945,12 @@ void blobFinderThread::drawAllBlobs(bool stable)
     //PixelBgr varFoveaBlob = salience->varBlob(*ptr_tagged, *ptr_inputImgRG, *ptr_inputImgGR, *ptr_inputImgBY, 1 /* (*ptr_tagged)(0,0) */);
 
     // draw the fovea blob into the blobFov image? Also assuming the tag=1.
-    salience->drawFoveaBlob(*ptr_foveaImg, *ptr_tagged);
+    if(foveaPort.getOutputCount()) {
+        salience->drawFoveaBlob(*ptr_foveaImg, *ptr_tagged);
+    }
+    if(foveaRgbPort.getOutputCount()) {
+        salience->drawColorFoveaBlob(*ptr_foveaRgbImg, *ptr_tagged);
+    }
     
     //memset(blobList, 0, sizeof(char)*(max_tag+1));
 

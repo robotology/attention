@@ -318,10 +318,17 @@ public:
      
     /**
     * draw the blobs present in the fovea area
-    * @param id image of the ids
+    * @param output greyscale image representing the fovea
     * @param tagged the image of the tags
     */
     void drawFoveaBlob(ImageOf<PixelMono>& id, ImageOf<PixelInt>& tagged); //
+
+    /**
+    * draw the blobs present in the fovea area using extracted colors
+    * @param output image in color representing the fovea
+    * @param tagged the image of the tags
+    */
+    void drawColorFoveaBlob(ImageOf<PixelRgb>& id, ImageOf<PixelInt>& tagged); 
 
     /**
     * fuses all blobs in fovea proximity

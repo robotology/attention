@@ -396,6 +396,22 @@ void SalienceOperator::drawFoveaBlob(ImageOf<PixelMono>& id,ImageOf<PixelInt>& t
                 id(c ,r)=pixelColour;
 }
 
+void SalienceOperator::drawColorFoveaBlob(ImageOf<PixelRgb>& id,ImageOf<PixelInt>& tagged){
+    //id.Zero();
+    id.zero();
+    PixelBgr meanColors =  m_boxes[1].meanColors;
+    PixelRgb pixelColour;
+    pixelColour.r = meanColors.r;
+    pixelColour.g = meanColors.g;
+    pixelColour.b = meanColors.b;
+
+    //__OLD//for (int r=m_boxes[1].rmin; r<=m_boxes[1].rmax; r++)
+    for (int r = 0; r < height; r++)
+        for (int c = 0; c < width; c++)
+            if (tagged(c, r) == 1)
+                id(c ,r) = pixelColour;
+}
+
 int SalienceOperator::DrawContrastLP(ImageOf<PixelMono>& rg, ImageOf<PixelMono>& gr,
                                      ImageOf<PixelMono>& by, ImageOf<PixelMono>& dst, ImageOf<PixelInt>& tagged,
                                      int numBlob, float pBU, float pTD,

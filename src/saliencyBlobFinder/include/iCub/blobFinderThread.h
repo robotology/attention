@@ -62,7 +62,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grOut;            // port where the difference of gaussian G+R- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byOut;            // port where the difference of gaussian B+Y- of the image is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > yellowPort;       // port where the yellow plane of the image is streamed
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > foveaPort;        // port where the yellow plane of the image is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > foveaPort;        // port where the grayscale image of the fovea is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>  > foveaRgbPort;     // port where the colour image of the fovea  is streamed
 
     yarp::os::Port blobDatabasePort;                               // port where all the blobs as bottles are sent to the objectPropertiesCollector
 
@@ -82,8 +83,8 @@ private:
     bool reinit_flag;                                   // flag that indicates when the reinitiazation has already be done
     bool resized_flag;                                  // flag that indicates if the images have been resized
     
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> *img;                             // input image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;                          // edges image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>  *img;      // input image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *edges;    // edges image
    
     WatershedOperator *wOperator;                       // pointer to the watershed operator
     char* blobList;                                     // vector of boolean which tells whether there is a blob or not
@@ -112,7 +113,8 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *image_out2;                          // image which is plotted in the drawing area
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *ptr_inputImg;                       // pointer to the input image
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_foveaImg;                       // pointer to the fovea image
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *ptr_foveaRgbImg;                    // pointer to the fovea color image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_foveaImg;                       // pointer to the fovea grayscale image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRed;                    // pointer to the red plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGreen;                  // pointer to the green plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBlue;                   // pointer to the input blue plane image
