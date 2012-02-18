@@ -380,9 +380,10 @@ void SalienceOperator::countSpikes(ImageOf<PixelInt>& tagged, int max_tag, YARPB
 
 void SalienceOperator::getFoveaBlobColor(int &redValue, int &greenValue, int &blueValue) {
     PixelBgr pixelValue = m_boxes[1].meanColors;
-    blueValue  = pixelValue.b;
+    
+    blueValue  = pixelValue.r;
     greenValue = pixelValue.g;
-    redValue   = pixelValue.r;
+    redValue   = pixelValue.b;
 }
 
 void SalienceOperator::drawFoveaBlob(ImageOf<PixelMono>& id,ImageOf<PixelInt>& tagged){
@@ -401,9 +402,9 @@ void SalienceOperator::drawColorFoveaBlob(ImageOf<PixelRgb>& id,ImageOf<PixelInt
     id.zero();
     PixelBgr meanColors =  m_boxes[1].meanColors;
     PixelRgb pixelColour;
-    pixelColour.r = meanColors.r;
+    pixelColour.r = meanColors.b;
     pixelColour.g = meanColors.g;
-    pixelColour.b = meanColors.b;
+    pixelColour.b = meanColors.r;
 
     //__OLD//for (int r=m_boxes[1].rmin; r<=m_boxes[1].rmax; r++)
     for (int r = 0; r < height; r++)
