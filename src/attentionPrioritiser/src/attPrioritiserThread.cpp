@@ -459,186 +459,17 @@ void attPrioritiserThread::seek(Bottle command) {
     switch (voc) {
     case COMMAND_VOCAB_RED:
         {
-         // setting TopDown state
-            topDownState[0] = 0;
-            topDownState[1] = 1;
-            topDownState[2] = 0;
-            topDownState[3] = 0;
-
-            Bottle* sent     = new Bottle();
-            Bottle* received = new Bottle();
-            printf("Seeking red coloured objects \n");
-            //setting selective attention
-            //map1
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K1);
-            sent->addDouble(kColor[1]);
-            feedbackSelective.write(*sent, *received);
-            //map2
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K2);
-            sent->addDouble(kColor[2]);
-            feedbackSelective.write(*sent, *received);
-            //map3
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K3);
-            sent->addDouble(kColor[3]);
-            feedbackSelective.write(*sent, *received);
-            //map4
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K4);
-            sent->addDouble(kColor[4]);
-            feedbackSelective.write(*sent, *received);
-            //map5
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K5);
-            sent->addDouble(kColor[5]);
-            feedbackSelective.write(*sent, *received);
-            //map6
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K6);
-            sent->addDouble(kColor[6]);
-            feedbackSelective.write(*sent, *received);
-            
-            //timing of the saccades
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TIME);
-            sent->addDouble(5000);
-            feedbackSelective.write(*sent, *received);
-            
-            //setting saliencyBlobFinder
-            //weight BU
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_WBU);
-            sent->addDouble(0.05);
-            feedbackProtoObject.write(*sent, *received);
-            //weight TD           
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_WTD);
-            sent->addDouble(0.95);
-            feedbackProtoObject.write(*sent, *received);
-            //colour red
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TRED);
-            sent->addInt(255);
-            feedbackProtoObject.write(*sent, *received);
-            //colour green
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TGRE);
-            sent->addInt(0);
-            feedbackProtoObject.write(*sent, *received);
-            //colour blue
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TBLU);
-            sent->addInt(0);
-            feedbackProtoObject.write(*sent, *received);
-
-            delete sent;
-            delete received;   
+            sendColorCommand(255,0,0);
         }
         break;
     case COMMAND_VOCAB_GRE:
         {
-            // setting TopDown state
-            topDownState[0] = 0;
-            topDownState[1] = 1;
-            topDownState[2] = 0;
-            topDownState[3] = 0;
-
-            Bottle* sent     = new Bottle();
-            Bottle* received = new Bottle();
-            printf("Seeking green coloured objects \n");
-            //setting selective attention
-            //map1
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K1);
-            sent->addDouble(kColor[2]);
-            feedbackSelective.write(*sent, *received);
-            //map2
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K2);
-            sent->addDouble(kColor[2]);
-            feedbackSelective.write(*sent, *received);
-            //map3
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K3);
-            sent->addDouble(kColor[3]);
-            feedbackSelective.write(*sent, *received);
-            //map4
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K4);
-            sent->addDouble(kColor[4]);
-            feedbackSelective.write(*sent, *received);
-            //map5
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K5);
-            sent->addDouble(kColor[5]);
-            feedbackSelective.write(*sent, *received);
-            //map6
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K6);
-            sent->addDouble(kColor[6]);
-            feedbackSelective.write(*sent, *received);
-            
-            //timing of the saccades
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TIME);
-            sent->addDouble(5000);
-            feedbackSelective.write(*sent, *received);
-            
-            //setting saliencyBlobFinder
-            //weight BU
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_WBU);
-            sent->addDouble(0.05);
-            feedbackProtoObject.write(*sent, *received);
-            //weight TD           
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_WTD);
-            sent->addDouble(0.95);
-            feedbackProtoObject.write(*sent, *received);
-            //colour red
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TRED);
-            sent->addInt(0);
-            feedbackProtoObject.write(*sent, *received);
-            //colour green
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TGRE);
-            sent->addInt(255);
-            feedbackProtoObject.write(*sent, *received);
-            //colour blue
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TBLU);
-            sent->addInt(0);
-            feedbackProtoObject.write(*sent, *received);
-
-            delete sent;
-            delete received;
+            sendColorCommand(0,255,0);
+        }
+        break;
+    case COMMAND_VOCAB_BLU:
+        {
+            sendColorCommand(0,0,255);
         }
         break;
     case COMMAND_VOCAB_RGB:
@@ -1205,7 +1036,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //gathering information about the feature from the preattentive stage (earlyVision)
             if(feedbackEarlyVision.getOutputCount()) {
-                cout<<"trying to communicate with the earlyVision \n"<<endl;
+                cout<<"trying to communicate with the earlyVision: ";
                 Bottle rep;
                 Bottle req;
                 req.clear();
@@ -1219,21 +1050,22 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 cout<<"no active feedback to earlyVision"<<endl;
             }
 
-            //gathering information about the feature from the preattentive stage (protoObject)
+            //gathering information about the feature from the preattentive stage (protoObject component)
             if(feedbackProtoObject.getOutputCount()) {
-                cout<<"trying to communicate with the earlyVision \n"<<endl;
+                cout<<"trying to communicate with the protoObject: ";
                 Bottle rep;
                 Bottle req;
                 req.clear();
                 req.addVocab(COMMAND_VOCAB_GET);
-                req.addVocab(COMMAND_VOCAB_ORI);
-                req.addVocab(COMMAND_VOCAB_P0);
+                req.addVocab(COMMAND_VOCAB_MAXDB);
                 feedbackProtoObject.write(req, rep);
                 cout<<rep.toString().c_str()<<endl;
             }
             else {
-                cout<<"no active feedback to earlyVision"<<endl;
+                cout<<"no active feedback to protoObject"<<endl;
             }
+
+
         }
         else if(!strcmp(name.c_str(),"VER_ACC")) {
             // vergence accomplished           

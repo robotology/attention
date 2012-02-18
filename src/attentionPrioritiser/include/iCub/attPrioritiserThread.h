@@ -54,6 +54,8 @@
 #define COMMAND_VOCAB_RGB                VOCAB3('r','g','b')
 #define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
 #define COMMAND_VOCAB_ORI                VOCAB3('o','r','i')
+#define COMMAND_VOCAB_MAXDB              VOCAB3('M','d','b')           // maximum dimension of the blob drawn
+#define COMMAND_VOCAB_MINDB              VOCAB3('m','d','b')           // minimum dimension of the blob drawn
 
 
 #include <yarp/os/BufferedPort.h>
