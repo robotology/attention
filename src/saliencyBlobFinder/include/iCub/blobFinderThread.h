@@ -50,18 +50,20 @@
  */
 class blobFinderThread : public yarp::os::RateThread {
 private:
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputPort;         // port where the input image is read from
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>  > inputPort;        // port where the input image is read from
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;        // port where the edges image is read
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > saliencePort;     // port that returns the salience map
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort3;       // port that returns the image output 3channels
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>  > outputPort3;      // port that returns the image output 3channels
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgbPort;          // port where RGB image is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgPort;           // port where the difference of gaussian R+G- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grPort;           // port where the difference of gaussian G+R- is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byPort;           // port where the difference of gaussian B+Y- of the image is streamed
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgOut;           // port where the difference of gaussian R+G- is streamed
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grOut;           // port where the difference of gaussian G+R- is streamed
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byOut;           // port where the difference of gaussian B+Y- of the image is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > rgOut;            // port where the difference of gaussian R+G- is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > grOut;            // port where the difference of gaussian G+R- is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > byOut;            // port where the difference of gaussian B+Y- of the image is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > yellowPort;       // port where the yellow plane of the image is streamed
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > foveaPort;        // port where the yellow plane of the image is streamed
+
     yarp::os::Port blobDatabasePort;                               // port where all the blobs as bottles are sent to the objectPropertiesCollector
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *outContrastLP;       // image result of the function outContrastLP
@@ -110,6 +112,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *image_out2;                          // image which is plotted in the drawing area
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *ptr_inputImg;                       // pointer to the input image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_foveaImg;                       // pointer to the fovea image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgRed;                    // pointer to the red plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgGreen;                  // pointer to the green plane input image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *ptr_inputImgBlue;                   // pointer to the input blue plane image
