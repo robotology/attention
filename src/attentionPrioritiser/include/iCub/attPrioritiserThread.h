@@ -46,6 +46,8 @@
 #define COMMAND_VOCAB_TGRE               VOCAB4('t','g','r','e')
 
 #define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
+#define COMMAND_VOCAB_GRE                VOCAB3('g','r','e')
+#define COMMAND_VOCAB_BLU                VOCAB3('b','l','u')
 #define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
 #define COMMAND_VOCAB_WTD                VOCAB3('w','t','d')
 #define COMMAND_VOCAB_WBU                VOCAB3('w','b','u')
@@ -293,6 +295,13 @@ public:
     */
     void setZLimits(double max,double min) { zmax = max; zmin = min; };
 
+    /**
+     * @brief function that send a color command to the preattentive stage
+     * @redValue red component of the color
+     * @greenValue green component of the color
+     * @blueValue blue component of the color
+     */
+    void sendColorCommand(int redValue, int greenValue, int blueValue);
 
     /**
      * @brief function that activates a seeking action

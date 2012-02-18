@@ -37,6 +37,14 @@ using namespace std;
  */
 
 bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
+
+    if(rf.check("help")) {
+        printf("HELP \n");
+        printf("====== \n");
+        printf("press CTRL-C to continue.. \n");
+        return true;
+    }
+
     /* Process all parameters from both command-line and .ini file */
 
     /* get the module name which will form the stem of all module port names */
@@ -270,14 +278,16 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
             reply.addString("many");
             reply.addString("help");
 
-            reply.addString("");
+            //reply.addString();
             reply.addString("set fn \t: general set command ");
-            reply.addString("");
-            reply.addString("");
+            reply.addString("get fn \t: general get command ");
+            //reply.addString();
 
             
-            reply.addString(" ");
-            reply.addString(" ");
+            //reply.addString();
+            reply.addString("seek red \t : looking for a red color object");
+            reply.addString("seek rgb \t : looking for a general color object");
+            //reply.addString();
 
 
             ok = true;

@@ -362,12 +362,104 @@ void attPrioritiserThread::getPoint(CvPoint& p) {
     //tracker->getPoint(p);
 }
 
+void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int blueValue){
+    // setting TopDown state
+    topDownState[0] = 0;
+    topDownState[1] = 1;
+    topDownState[2] = 0;
+    topDownState[3] = 0;
+    
+    Bottle* sent     = new Bottle();
+    Bottle* received = new Bottle();
+    printf("Seeking rgb coloured objects \n");
+    //setting selective attention
+    //map1
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_K1);
+    sent->addDouble(kColor[1]);
+    feedbackSelective.write(*sent, *received);
+    //map2
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_K2);
+    sent->addDouble(kColor[2]);
+    feedbackSelective.write(*sent, *received);
+    //map3
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_K3);
+    sent->addDouble(kColor[3]);
+    feedbackSelective.write(*sent, *received);
+    //map4
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_K4);
+    sent->addDouble(kColor[4]);
+    feedbackSelective.write(*sent, *received);
+    //map5
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_K5);
+    sent->addDouble(kColor[5]);
+    feedbackSelective.write(*sent, *received);
+    //map6
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_K6);
+    sent->addDouble(kColor[6]);
+    feedbackSelective.write(*sent, *received);
+    
+    //timing of the saccades
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_TIME);
+    sent->addDouble(150);
+    feedbackSelective.write(*sent, *received);
+    
+    //setting saliencyBlobFinder
+    //weight BU
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_WBU);
+    sent->addDouble(0.05);
+    feedbackProtoObject.write(*sent, *received);
+    //weight TD           
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_WBU);
+    sent->addDouble(0.05);
+    feedbackProtoObject.write(*sent, *received);
+    //colour red
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_TRED);
+    sent->addInt(redValue);
+    feedbackProtoObject.write(*sent, *received);
+    //colour green
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_TGRE);
+    sent->addInt(greenValue);
+    feedbackProtoObject.write(*sent, *received);
+    //colour blue
+    sent->clear();
+    sent->addVocab(COMMAND_VOCAB_SET);
+    sent->addVocab(COMMAND_VOCAB_TBLU);
+    sent->addInt(blueValue);
+    feedbackProtoObject.write(*sent, *received);
+    
+    delete sent;
+    delete received;
+}
+
 void attPrioritiserThread::seek(Bottle command) {
     int voc = command.get(1).asVocab();
+    printf("seeking subject to %s \n", command.get(1).asString().c_str());
     switch (voc) {
     case COMMAND_VOCAB_RED:
         {
-            // setting TopDown state
+         // setting TopDown state
             topDownState[0] = 0;
             topDownState[1] = 1;
             topDownState[2] = 0;
@@ -418,7 +510,7 @@ void attPrioritiserThread::seek(Bottle command) {
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_TIME);
-            sent->addDouble(150);
+            sent->addDouble(5000);
             feedbackSelective.write(*sent, *received);
             
             //setting saliencyBlobFinder
@@ -431,8 +523,8 @@ void attPrioritiserThread::seek(Bottle command) {
             //weight TD           
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_WBU);
-            sent->addDouble(0.05);
+            sent->addVocab(COMMAND_VOCAB_WTD);
+            sent->addDouble(0.95);
             feedbackProtoObject.write(*sent, *received);
             //colour red
             sent->clear();
@@ -454,15 +546,11 @@ void attPrioritiserThread::seek(Bottle command) {
             feedbackProtoObject.write(*sent, *received);
 
             delete sent;
-            delete received;
+            delete received;   
         }
         break;
-        case COMMAND_VOCAB_RGB:
+    case COMMAND_VOCAB_GRE:
         {
-            int redValue   = command.get(2).asInt();
-            int greenValue = command.get(3).asInt();
-            int blueValue  = command.get(4).asInt();
-            
             // setting TopDown state
             topDownState[0] = 0;
             topDownState[1] = 1;
@@ -471,13 +559,13 @@ void attPrioritiserThread::seek(Bottle command) {
 
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();
-            printf("Seeking red coloured objects \n");
+            printf("Seeking green coloured objects \n");
             //setting selective attention
             //map1
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K1);
-            sent->addDouble(kColor[1]);
+            sent->addDouble(kColor[2]);
             feedbackSelective.write(*sent, *received);
             //map2
             sent->clear();
@@ -514,7 +602,7 @@ void attPrioritiserThread::seek(Bottle command) {
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_TIME);
-            sent->addDouble(150);
+            sent->addDouble(5000);
             feedbackSelective.write(*sent, *received);
             
             //setting saliencyBlobFinder
@@ -527,30 +615,40 @@ void attPrioritiserThread::seek(Bottle command) {
             //weight TD           
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_WBU);
-            sent->addDouble(0.05);
+            sent->addVocab(COMMAND_VOCAB_WTD);
+            sent->addDouble(0.95);
             feedbackProtoObject.write(*sent, *received);
             //colour red
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_TRED);
-            sent->addInt(redValue);
+            sent->addInt(0);
             feedbackProtoObject.write(*sent, *received);
             //colour green
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_TGRE);
-            sent->addInt(greenValue);
+            sent->addInt(255);
             feedbackProtoObject.write(*sent, *received);
             //colour blue
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_TBLU);
-            sent->addInt(blueValue);
+            sent->addInt(0);
             feedbackProtoObject.write(*sent, *received);
 
             delete sent;
             delete received;
+        }
+        break;
+    case COMMAND_VOCAB_RGB:
+        {
+            int redValue   = command.get(2).asInt();
+            int greenValue = command.get(3).asInt();
+            int blueValue  = command.get(4).asInt();
+            printf("looking for color %d, %d, %d \n", redValue, greenValue, blueValue);
+            
+            sendColorCommand(redValue, greenValue, blueValue);
         }
         break;
     case COMMAND_VOCAB_NULL:
@@ -606,7 +704,7 @@ void attPrioritiserThread::seek(Bottle command) {
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_TIME);
-            sent->addDouble(150);
+            sent->addDouble(8000);
             feedbackSelective.write(*sent, *received);
             
             //setting saliencyBlobFinder
@@ -614,12 +712,8 @@ void attPrioritiserThread::seek(Bottle command) {
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K6);
-            sent->addDouble(0.75);
+            sent->addDouble(0.95);
             feedbackProtoObject.write(*sent, *received);
-            //weight TD
-            //colour red
-            //colour green
-            //colour blue
 
             delete sent;
             delete received;
