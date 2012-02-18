@@ -253,7 +253,6 @@ public:
     */
     void convolve1D(int vecSize, float* vec, yarp::sig::ImageOf<yarp::sig::PixelMono>* img, yarp::sig::ImageOf<yarp::sig::PixelMono>* resImg, float factor=1.0,int shift =0,int direction=0,int maxVal=255);
 
-
     /**
      * set the minimum bounding area of the blob
      */
@@ -355,7 +354,7 @@ public:
      * @param greenValue value extracted from the green channel
      * @param blueValue value extracted from the blue channel
      */
-    void getFoveaRgb(int& redValue, int& greenValue, int& blueValue){redValue = greenValue = blueValue = 0.0; };
+    void getFoveaRgb(int& redValue, int& greenValue, int& blueValue);
 };
 
 #endif //__BLOBFINDERTHREAD_H_

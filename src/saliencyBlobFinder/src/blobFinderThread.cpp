@@ -458,6 +458,11 @@ void blobFinderThread::threadRelease() {
     byOut.close();
 }
 
+
+void blobFinderThread::getFoveaRgb(int& redValue, int& greenValue, int& blueValue) {
+    salience->getFoveaBlobColor(redValue, greenValue, blueValue);
+}
+
 /**
  * active loop of the thread
  */

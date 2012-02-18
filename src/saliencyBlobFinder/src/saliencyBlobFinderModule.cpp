@@ -260,10 +260,11 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                 break;
             case COMMAND_VOCAB_FRGB:
                 {
-                    //int nb = blobFinder->getMinBlobSize();
-                    reply.addInt(255);
-                    reply.addInt(254);
-                    reply.addInt(255);
+                    int redValue,greenValue, blueValue;
+                    blobFinder->getFoveaRgb(redValue, greenValue, blueValue);
+                    reply.addInt(redValue);
+                    reply.addInt(greenValue);
+                    reply.addInt(blueValue);
                     ok = true;
                 }
                 break;

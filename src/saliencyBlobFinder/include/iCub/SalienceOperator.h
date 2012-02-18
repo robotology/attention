@@ -96,7 +96,7 @@ struct Image_Data {
     int Resolution;
     double dres;
 
-//	int Fovea_Display_Mode; //0 Sawtooth (Raw); 1 Triangular; 2 Complete
+    //	int Fovea_Display_Mode; //0 Sawtooth (Raw); 1 Triangular; 2 Complete
 
     // Log Polar Metrics
     int Size_Rho;
@@ -289,6 +289,14 @@ public:
     * @param tagged image composed by tags
     */
     void DrawVQColor(ImageOf<PixelBgr>& id, ImageOf<PixelInt>& tagged);
+
+    /**
+     * @brief function that returns the color of the fovea
+     * @param redValue color of the blob (red channel)
+     * @param greenValue color of the blob (green channel)
+     * @param blueValue color of the blob (blue channel)
+     */
+    void getFoveaBlobColor(int &redValue, int &greenValue, int &blueValue);
 
     /**
     * gets x and y center
