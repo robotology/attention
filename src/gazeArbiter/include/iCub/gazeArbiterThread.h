@@ -77,6 +77,7 @@ private:
     bool isOnWings;                         // flag that gives information on where the cameras are mounted
     bool onDvs;                             // flag for remapping dvs location into standard dimension
     int u,v;                                // values passed for saccades
+    int cxl,cyl;                            // center of the eye in the configfile
     int originalContext;                    // original context for the gaze Controller
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye

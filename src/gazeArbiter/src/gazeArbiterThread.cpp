@@ -43,6 +43,8 @@ using namespace iCub::iKin;
 #define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
+
+#define CONFIGFOVEA
  
 static Vector orVector (Vector &a, Vector &b) {
     int dim = a.length();
@@ -78,8 +80,12 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 parType.check("fx") && parType.check("fy"))
             {
                 // we suppose that the center distorsion is already compensated
-                double cx = parType.find("w").asDouble() / 2.0;
-                double cy = parType.find("h").asDouble() / 2.0;
+                //double cx = parType.find("w").asDouble() / 2.0;
+                //double cy = parType.find("h").asDouble() / 2.0;
+                // we suppose that the centerof ditortion is NOT    compensated
+                double cx = parType.find("cx").asDouble();
+                double cy = parType.find("cy").asDouble();
+
                 double fx = parType.find("fx").asDouble();
                 double fy = parType.find("fy").asDouble();
 
@@ -119,7 +125,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     //boolean flag initialisation
     firstVer            = false;
     availableVisualCorr = false;
-    visualCorrection    = false;
+    visualCorrection    = true;
     isOnWings           = false;
     onDvs               = false;
     
@@ -217,8 +223,9 @@ bool gazeArbiterThread::threadInit() {
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
         Matrix &Prj = *PrjL;
-        //cxl=Prj(0,2);
-        //cyl=Prj(1,2);
+        cxl=Prj(0,2);
+        cyl=Prj(1,2);
+        printf("pixel fovea in the config file %d %d \n", cxl,cyl);
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
     }
     
@@ -226,7 +233,7 @@ bool gazeArbiterThread::threadInit() {
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
-    string localCon("/client/gaze/");
+    string localCon("/client/gaze");
     localCon.append(getName(""));
     option.put("local",localCon.c_str());
 
@@ -429,7 +436,7 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 
 
 void gazeArbiterThread::run() {
-
+    visualCorrection = true;
     Bottle& status = statusPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
@@ -580,6 +587,7 @@ void gazeArbiterThread::run() {
                 if (!isOnWings) {
                     printf("starting mono saccade with NO offset \n");
                     if(tracker->getInputCount()) {
+                        printf("tracker input image ready \n");
                         double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
                         if (onDvs) {
@@ -587,9 +595,9 @@ void gazeArbiterThread::run() {
                             v = (((((v - 64)/ 128.0) / 7.4) * 4) * 240) + 120;
                             printf("onDvs active %d %d \n", u,v);
                         }
-                        while (dist > 10) {
+                        while (dist > 8) {
                             if(visualCorrection){
-                                printf("starting visual correction \n");
+                                printf("starting visual correction with\n");
                                 tracker->init(u,v);
                                 tracker->waitInitTracker();
                                 Time::delay(0.01);
@@ -602,8 +610,8 @@ void gazeArbiterThread::run() {
                             Time::delay(0.01);
                             igaze->checkMotionDone(&done);
                             dist = 10;
-                            /*
-                              if(visualCorrection){
+                            
+                            if(visualCorrection){
                                 tracker->getPoint(point);
                                 dx = (double) (point.x - px(0));
                                 dy = (double) (point.y - px(1));
@@ -611,7 +619,7 @@ void gazeArbiterThread::run() {
                                 u = width  / 2;
                                 v = height / 2;
                             }
-                            */
+                            
                             printf("correcting distance %f \n", dist);
                         }
                         printf("saccadic event : started %d %d %f \n",u,v,zDistance);
@@ -689,23 +697,41 @@ void gazeArbiterThread::run() {
             if (visualCorrection) {
                 printf("Using visual correction \n");
                 double error = 1000.0;
-                while(( error > 4)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
+                int countReach = 0;
+                while(( countReach < 3)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                     
                     //corrected the error
-                    double errorx = (width  >> 1) - point.x;
-                    double errory = (height >> 1) - point.y;
-                    //printf("timeout in correcting  %f (%3f, %3f) \n", timeout, errorx, errory);
+                    double errorx; // = (width  >> 1) - point.x;
+                    double errory; // = (height >> 1) - point.y;                    
                     Vector px(2);
+
+                   
+#ifndef CONFIGFOVEA
+                    errorx = (width  >> 1) - point.x;
+                    errory = (height >> 1) - point.y;
                     px(0) = (width  >> 1) - 1 - errorx;    // subtracting 1 for the center of image
                     px(1) = (height >> 1) - 1 - errory;    // subtracting 1 for the center of image
+#else
+                    errorx = 160 - point.x;
+                    errory = 120 - point.y;
+                    px(0) = 182 - errorx;
+                    px(1) = 113 - errory;
+#endif
+
                     error = sqrt(errorx * errorx + errory * errory);
+                    printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, error);
+                    if(error <= 1) {
+                        countReach++;
+                    }
                     //printf("norm error %f \n", error);
                     int camSel = 0;
                     igaze->lookAtMonoPixel(camSel,px,zDistance);
-                    tracker->getPoint(point);
-                    //printf("the point ended up in %d  %d \n",point.x, point.y);
+                    
+                    //igaze->waitMotionDone();
+                    tracker->getPoint(point); // have the get point as far as possible from look@mono
+                    printf("the point ended up in %d  %d \n",point.x, point.y);
                 }
                 Time::delay(0.01);
                 if(timeout >= TIMEOUT_CONST) {
@@ -721,15 +747,15 @@ void gazeArbiterThread::run() {
 
                     px[0] = -0.5 + xOffset;
                     px[1] = 0.0 + yOffset;
-                    px[2] = 0.3 + zOffset;
+                    px[2] = 0.0 + zOffset;
                     igaze->lookAtFixationPoint(px);
-                    igaze->checkMotionDone(&done);
+                    /*igaze->checkMotionDone(&done);
                     while((!done)&&(timeout < TIMEOUT_CONST)) {                        
                         timeoutStop = Time::now();
                         timeout =timeoutStop - timeoutStart;
                         Time::delay(0.001);
                         igaze->checkMotionDone(&done);                        
-                    }
+                        }*/
                 }
             }
             printf("saccade accomplished \n");
@@ -1211,7 +1237,7 @@ void gazeArbiterThread::run() {
         mutex.wait();
         allowedTransitions(3) = 0;
         executing = false;  //executing=false allows new action commands
-        printf ("\n\n\n\n\n\n\n\n\n");
+        printf ("\n\n\n\n\n");
         mutex.post();
         // printf("saccadic event : done \n");
         //}        
