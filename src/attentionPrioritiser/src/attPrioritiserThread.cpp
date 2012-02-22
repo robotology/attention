@@ -1066,7 +1066,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 req.addVocab(COMMAND_VOCAB_FRGB);
                 feedbackProtoObject.write(req, rep);
                 cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
-
+                int redColour   = rep.get(0).asInt();
+                int greenColour = rep.get(1).asInt();
+                int blueColour  = rep.get(2).asInt();
+                printf("rgb colour value %d %d %d \n",redColour, greenColour, blueColour);
+                
             }
             else {
                 cout<<"no active feedback to protoObject"<<endl;

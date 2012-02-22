@@ -271,6 +271,17 @@ public:
         igaze->waitMotionDone();
     }
 
+    /**
+     * @brief function of vergence that is regulated by depth
+     */
+    void vergenceInDepth();
+
+    /**
+     * @brief function of vergence that is regulated by angle
+     */
+    void vergenceInAngle();
+    
+    
 };
 
 #endif  //_GAZE_ARBITER_THREAD_H_

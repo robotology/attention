@@ -166,6 +166,7 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>
+#include <yarp/os/RpcServer.h>
 
 //within project includes
 #include <iCub/attPrioritiserThread.h>
@@ -208,6 +209,7 @@ class attPrioritiserModule:public yarp::os::RFModule {
     int onWings;
     int width, height;                          // parameter set by user dimensioning input image
     yarp::os::Port handlerPort;                 // a port to handle messages 
+    yarp::os::RpcServer remoteProgPort;         // port associated with the remote programming
     
     yarp::os::Semaphore mutex;                  // semaphore for the respond function
 
