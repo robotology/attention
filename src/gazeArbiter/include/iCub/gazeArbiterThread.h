@@ -93,6 +93,8 @@ private:
     int width, height;                      // dimension of the image
     int countVerNull;                       // counter of the null vergence angles
     double phi;                             // value passed for vergence
+    double phi2;                            // value passed for relative vergence from the second maximum shift
+    double phi3;                            // value passed for relative vergence from the third maximum shift
     double phiTOT;                          // accumulator of increments of vergence angles
     bool mono;                              // flag that indicates whether the saccade is mono or not
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
@@ -284,6 +286,10 @@ public:
      */
     void vergenceInAngle();
     
+    /**
+     * @brief interface for inhibition of return
+     */
+    void interfaceIOR();
     
 };
 

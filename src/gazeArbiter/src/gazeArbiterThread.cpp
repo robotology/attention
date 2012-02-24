@@ -779,7 +779,7 @@ void gazeArbiterThread::run() {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         // ----------------  VERGENCE -----------------------     
         //printf("vergence_accomplished : %d \n",accomplished_flag);
-        printf("Entering in VERGENCE \n");
+        printf("----------  VERGENCE ----------------------- \n");
         if(!executing) {
             Vector gazeVect(3);
             Vector objectVect(3);
@@ -846,7 +846,7 @@ void gazeArbiterThread::run() {
             if((mono)) { 
                 printf("phi: %f \n", phi);
                 if((phi < 0.4)&&(phi>-0.4) && (!accomplished_flag)) {
-                    countVerNull += 1;
+                    countVerNull += 3;
                     printf("CountVerNull %d \n", countVerNull);
                 }
                 if((countVerNull >= 3) && (!accomplished_flag)) {
@@ -1102,7 +1102,7 @@ void gazeArbiterThread::run() {
                     }
                 }
                 */
-                printf("-------------countRegVerg = % d -------------- \n", countRegVerg);
+                
                 //vergenceInDepth();                
                 vergenceInAngle();
             
@@ -1213,7 +1213,7 @@ void gazeArbiterThread::vergenceInAngle() {
     //calculating the magnitude of the 3d vector
     igaze->getAngles(anglesVect);
     //phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
-    phiTOT = anglesVect[2] + phi - 1.2; //phiTOT must be in grads
+    phiTOT = anglesVect[2] + phi  ; //phiTOT must be in grads
     printf("phiTOT %f \n", phiTOT);    
     tracker->getPoint(point);
     double errorx; // = (width  >> 1) - point.x;
@@ -1221,11 +1221,9 @@ void gazeArbiterThread::vergenceInAngle() {
     Vector px(2);
     
     if (visualCorrection) {
-        if (countRegVerg == 10){
+        if (countRegVerg == 1){
             
-            meanRegVerg = sumRegVerg / 10.0;
-            printf("======== reached 10 number of valid angles ========== \n" );
-            printf("================ mean %f ============================ \n", meanRegVerg);
+            meanRegVerg = sumRegVerg / 1.0;
             
             errorx = 160 - point.x;
             errory = 120 - point.y;
@@ -1236,6 +1234,7 @@ void gazeArbiterThread::vergenceInAngle() {
             int camSel = 0;
             igaze->lookAtMonoPixelWithVergence(camSel,px,meanRegVerg);
             //tracker->getPoint(point);
+            Time::delay(1.5);
 
             countRegVerg = 0;
             sumRegVerg = 0;
@@ -1393,7 +1392,9 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             mutex.post();
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
-            phi = arg->get(1).asDouble();            
+            phi  = arg->get(1).asDouble();            
+            phi2 = arg->get(2).asDouble();
+            phi3 = arg->get(3).asDouble();
             mutex.wait();
             mono = true;
             stateRequest[1] = 1;
