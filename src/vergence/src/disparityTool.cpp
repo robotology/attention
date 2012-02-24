@@ -165,7 +165,6 @@ void DisparityTool::makeHistogram(ImageOf<PixelMono>& hImg) {
     }
     //design the maxes
     for (i = 0; i < 3; i++) {
-
         if ((_maxShifts[i].index+offset >=_shiftMin)&&(_maxShifts[i].index+offset<_shiftMax)) {
             for (j = height-(int)(height*_corrFunct[_maxShifts[i].index]); j < height; j++)
                 hist[(j*width+_maxShifts[i].index+offset)] = lineColor;
@@ -188,7 +187,7 @@ void DisparityTool::makeHistogram(ImageOf<PixelMono>& hImg) {
     }
 
 	//Drawing Limits (inverted colors sides)
-/*	for (int y = 0; y < height; y++)
+    /*	for (int y = 0; y < height; y++)
 	{
 		for (int x1 = 0; x1 < _shiftMin; x1++)
 			hist[(y*width+x1+offset)] = -hist[(y*width+x1+offset)]+255;
@@ -305,7 +304,7 @@ void DisparityTool::findSecondMaxes(const double *corr, int posMax)
 shift_Struct DisparityTool::filterMaxes() {
     int maxIndex;
     int closest;
-
+    
     float threshold = 0.005f;
     float threshold2 = 0.05f;
     float vals[__nMaxes];
@@ -315,23 +314,24 @@ shift_Struct DisparityTool::filterMaxes() {
             vals[i] = -1;
     }
     vals[__nMaxes - 1] = 0;
-
+    
     // find closest
     closest = 0;
     int zs = zeroShift();
     for (int ii = 0; ii < (__nMaxes - 1); ii++) {
         if (abs(_maxShifts[ii].index-zs) < (_maxShifts[closest].index-zs))
-        closest = ii;
+            closest = ii;
     }
-
-    // find higher, starting from closest, so that if no best matches are found we go 
+    
+    // find higher, starting from closest,
+    // so that if no best matches are found we go 
     // to the closest peak
     maxIndex = closest;
     for (int iii = 0; iii < __nMaxes; iii++) {
         if (vals[iii] > (vals[maxIndex] + threshold2) )
-        maxIndex = iii;
+            maxIndex = iii;
     }
-
+    
     return _maxShifts[maxIndex];
 }
 
@@ -339,17 +339,17 @@ shift_Struct DisparityTool::filterMaxes() {
 int DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step) {
      
     img2unpaddedVectMultiple( lPtr, inLImg, rPtr, inRImg );
-
-  //  cout << "ShiftLevels: " << _shiftLevels << endl;
-  //  cout << "ActRings: " << _actRings << endl;
- //   cout << "Theta: " << _img.Size_Theta << endl;
-   // cout << "Step: " << step << endl;
-
-   // TimeStart = Time::now();
+    
+    //  cout << "ShiftLevels: " << _shiftLevels << endl;
+    //  cout << "ActRings: " << _actRings << endl;
+    //   cout << "Theta: " << _img.Size_Theta << endl;
+    // cout << "Step: " << step << endl;
+    
+    // TimeStart = Time::now();
     
     //Correlation Function Computation
     for (k = 0; k < _shiftLevels; k++) {
-
+        
         average_Lr = 0;
         average_Lg = 0;
         average_Lb = 0;
@@ -383,7 +383,7 @@ int DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageO
                 }
             }
         }*/
-
+        
         if (_count[k] != 0) {
             average_Lr /= _count[k];
             average_Rr /= _count[k];
@@ -392,7 +392,7 @@ int DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageO
             average_Lb /= _count[k];
             average_Rb /= _count[k];
         }
-     //   cout << "Loop1 time: " << (Time::now() - TimeStart) << endl;
+        //   cout << "Loop1 time: " << (Time::now() - TimeStart) << endl;
 
         numr   = 0;
         den_Lr = 0;
@@ -403,16 +403,16 @@ int DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageO
         numb   = 0;
         den_Lb = 0;
         den_Rb = 0;
-
+        
         for (j = _actRings - 1; j >= 0; j-=step) {
-
+            
             for (i = _img.Size_Theta - 1; i >= 0; i-=step) {
-
+                
                 iR = _shiftMap[k1 + j*_img.Size_Theta + i];
                 iL = 3 * (j*_img.Size_Theta + i);
-
+                
                 if (iR > 0) {
-                   //Red
+                    //Red
                     pixelL = lPtr[iL] - average_Lr;
                     pixelR = rPtr[iR] - average_Rr;
                     numr   += (pixelL * pixelR);
@@ -430,19 +430,19 @@ int DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageO
                     numb   += (pixelL * pixelR);
                     den_Lb += (pixelL * pixelL);
                     den_Rb += (pixelR * pixelR);
-
+                    
                 }
             }
         }
-
+        
         R_corr = numr / sqrt(den_Lr * den_Rr + 0.00001);
         G_corr = numg / sqrt(den_Lg * den_Rg + 0.00001);
         B_corr = numb / sqrt(den_Lb * den_Rb + 0.00001);
         _corrFunct[k] = (R_corr + G_corr + B_corr) / 3.0;
         _corrFunct[k] *= _count[k];
         _corrFunct[k] /= _maxCount;
-       // cout << "Loop2 time: " << (Time::now() - TimeStart) << endl;
-
+        // cout << "Loop2 time: " << (Time::now() - TimeStart) << endl;
+        
     }
     //cout << "Loops time: " << (Time::now() - TimeStart) << endl;
 
@@ -453,6 +453,129 @@ int DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageO
     //cout << "Final time: " << (Time::now() - TimeStart) << endl;
     //cout << "index " << ret.index << " corr " << ret.corr << " disp " << ret.disp << endl; 
     return (int)ret.disp;
+
+}
+
+void DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step, int& max1, int& max2, int& max3) {
+     
+    img2unpaddedVectMultiple( lPtr, inLImg, rPtr, inRImg );
+    
+    //  cout << "ShiftLevels: " << _shiftLevels << endl;
+    //  cout << "ActRings: " << _actRings << endl;
+    //   cout << "Theta: " << _img.Size_Theta << endl;
+    // cout << "Step: " << step << endl;
+    
+    // TimeStart = Time::now();
+    
+    //Correlation Function Computation
+    for (k = 0; k < _shiftLevels; k++) {
+        
+        average_Lr = 0;
+        average_Lg = 0;
+        average_Lb = 0;
+        average_Rr = 0;
+        average_Rg = 0;
+        average_Rb = 0;
+
+        R_corr = 0;
+        G_corr = 0;
+        B_corr = 0;
+
+        pixelL = 0;
+        pixelR = 0;
+
+        k1 = k *_img.Size_LP;
+
+       /* for (j = 0; j < _actRings; j++) {
+
+            for (i = 0; i < _img.Size_Theta; i++) {
+
+                iR = _shiftMap[k1 + j *_img.Size_Theta + i];
+                iL = 3 * (j*_img.Size_Theta + i);
+
+                if (iR > 0) {
+                    average_Lr += lPtr[iL];
+                    average_Rr += rPtr[iR];
+                    //average_Lg += lPtr[iL+1];
+                    //average_Rg += rPtr[iR+1];
+                    //average_Lb += lPtr[iL+2];
+                    //average_Rb += rPtr[iR+2];
+                }
+            }
+        }*/
+        
+        if (_count[k] != 0) {
+            average_Lr /= _count[k];
+            average_Rr /= _count[k];
+            average_Lg /= _count[k];
+            average_Rg /= _count[k];
+            average_Lb /= _count[k];
+            average_Rb /= _count[k];
+        }
+        //   cout << "Loop1 time: " << (Time::now() - TimeStart) << endl;
+
+        numr   = 0;
+        den_Lr = 0;
+        den_Rr = 0;
+        numg   = 0;
+        den_Lg = 0;
+        den_Rg = 0;
+        numb   = 0;
+        den_Lb = 0;
+        den_Rb = 0;
+        
+        for (j = _actRings - 1; j >= 0; j-=step) {
+            
+            for (i = _img.Size_Theta - 1; i >= 0; i-=step) {
+                
+                iR = _shiftMap[k1 + j*_img.Size_Theta + i];
+                iL = 3 * (j*_img.Size_Theta + i);
+                
+                if (iR > 0) {
+                    //Red
+                    pixelL = lPtr[iL] - average_Lr;
+                    pixelR = rPtr[iR] - average_Rr;
+                    numr   += (pixelL * pixelR);
+                    den_Lr += (pixelL * pixelL);
+                    den_Rr += (pixelR * pixelR);
+                    //Green
+                    pixelL = lPtr[iL+1] - average_Lg;
+                    pixelR = rPtr[iR+1] - average_Rg;
+                    numg   += (pixelL * pixelR);
+                    den_Lg += (pixelL * pixelL);
+                    den_Rg += (pixelR * pixelR);
+                    //Blue
+                    pixelL = lPtr[iL+2] - average_Lb;
+                    pixelR = rPtr[iR+2] - average_Rb;
+                    numb   += (pixelL * pixelR);
+                    den_Lb += (pixelL * pixelL);
+                    den_Rb += (pixelR * pixelR);
+                    
+                }
+            }
+        }
+        
+        R_corr = numr / sqrt(den_Lr * den_Rr + 0.00001);
+        G_corr = numg / sqrt(den_Lg * den_Rg + 0.00001);
+        B_corr = numb / sqrt(den_Lb * den_Rb + 0.00001);
+        _corrFunct[k] = (R_corr + G_corr + B_corr) / 3.0;
+        _corrFunct[k] *= _count[k];
+        _corrFunct[k] /= _maxCount;
+        // cout << "Loop2 time: " << (Time::now() - TimeStart) << endl;
+        
+    }
+    //cout << "Loops time: " << (Time::now() - TimeStart) << endl;
+
+    findShiftMax(_corrFunct);
+    findSecondMaxes(_corrFunct, _maxShifts[0].index);
+    max2  = (int)_maxShifts[2].disp;
+    max3  = (int)_maxShifts[3].disp;
+    ret   = filterMaxes();
+    max1  = (int) ret.disp; 
+    
+    //cout << "Final time: " << (Time::now() - TimeStart) << endl;
+    //cout << "index " << ret.index << " corr " << ret.corr << " disp " << ret.disp << endl; 
+    //return (int)ret.disp;
 
 }
 

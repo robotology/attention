@@ -138,6 +138,9 @@ bool disparityProcessor::threadInit(){
     string shiftCommand = moduleName+"/shift:o";
     shiftOutput.open(shiftCommand.c_str());
 
+    string absoluteCommand = moduleName+"/cmdAbs:o";
+    cmdAbsOutput.open(absoluteCommand.c_str());
+
     rightEye = new iCubEye("right");
     leftEye = new iCubEye("left");
 	
@@ -190,29 +193,38 @@ bool disparityProcessor::threadInit(){
 }
 
 void disparityProcessor::threadRelease(){
-    if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze")
+    if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze") {
         igaze->stopControl();
+    }
 	histoOutPort.close();
 	imageInLeft.close();
 	imageInRight.close();
     cmdOutput.close();
+    shiftOutput.close();
+    cmdAbsOutput.close();
+    
     delete leftEye;
     delete rightEye;   
 	delete robotHead;
 	delete robotTorso;
-    if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze")
+    if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze") {
         delete clientGaze;
+    }
    
 }
 
-void disparityProcessor::onStop() 
+void disparityProcessor::onStop() // TODO : should be removed in RateThread
 {
-    if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze")
+    if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze") {
         igaze->stopControl();
+    }
     histoOutPort.close();
 	imageInLeft.close();
 	imageInRight.close();
     cmdOutput.close();
+    shiftOutput.close();
+    cmdAbsOutput.close();
+    
     delete leftEye;
     delete rightEye;   
 	delete robotHead;
@@ -277,12 +289,12 @@ void disparityProcessor::run(){
     needRight = ( imageInRight.getInputCount() > 0 );
 
     if( needLeft + needRight > 1 ) {
-
+        
         imgInL = imageInLeft.read(true);
 		imgInR = imageInRight.read(true);
-                
+        
         if( ( imgInL != NULL ) && ( imgInR != NULL ) ) {
-
+            
             if( !dispInit ) {
                 Disp.setSize( imgInR );
                 dispInit = true;            
@@ -294,31 +306,39 @@ void disparityProcessor::run(){
             startTime = clock() ;
             printf("\rFPS: %lf ", fps);
 		    
-            disparityVal = Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25);
+            //calculating the disparity value
+            int max1 = 0 , max2 = 0, max3 = 0;
+            Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25, max1, max2, max3);
+            //disparityVal = Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25);
             //disparityVal = Disp.computeMono(*imgInR, *imgInL, 4.0);
             //disparityVal = 1;
-
+            
             hWidth = Disp.getShiftLevels();
             hHeight = hWidth/2;
             histo.resize(hWidth,hHeight);
-
-           // cout << "disparity Val " << disparityVal  << endl;
-
+            
+            // cout << "disparity Val " << disparityVal  << endl;
+            
             if ( histoOutPort.getOutputCount() > 0 ) { 
                 Disp.makeHistogram(histo);
                 histoOutPort.prepare() = histo;	
                 histoOutPort.write();
             }
-
-           angle = fb[8]-(180/M_PI)*atan(disparityVal/(2*206.026));
+            
+            //angle = fb[8]-(180/M_PI)*atan(disparityVal/(2*206.026)); // TODO: remove hard coded value
+            angle = fb[8]-(180/M_PI)*atan(max1/(2*206.026)); // TODO: remove hard coded value
             if(angle<0)
                 angle=0;		
-
-           encHead->getEncoders( _head.data() );
-           double relangle = 0;
-           relangle = angle - _head[5];
-
-          // cout << "2 atan " <<(180/M_PI)*atan(disparityVal/(2*206.026))<< " angle " << angle <<" current " << fb[8] << " " << relangle << endl;
+            
+            encHead->getEncoders( _head.data() );
+            double relangle = 0, relangle2 = 0, relangle3 = 0;
+            relangle  = angle - _head[5];
+            angle = fb[8]-(180/M_PI)*atan(max2/(2*206.026)); // TODO: remove hard coded value
+            relangle2 = angle - _head[5];
+            angle = fb[8]-(180/M_PI)*atan(max3/(2*206.026)); // TODO: remove hard coded value
+            relangle3 = angle - _head[5];
+            
+            // cout << "2 atan " <<(180/M_PI)*atan(disparityVal/(2*206.026))<< " angle " << angle <<" current " << fb[8] << " " << relangle << endl;
             
             if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze"){
                 gazeVect[0] = 0.0;
@@ -332,7 +352,19 @@ void disparityProcessor::run(){
                     bot.clear();
                     bot.addString("VER_REL");
                     bot.addDouble(relangle);
+                    bot.addDouble(relangle2);
+                    bot.addDouble(relangle3);
                     cmdOutput.write(bot);
+                    bot.clear();
+                }
+                
+                if ( cmdAbsOutput.getOutputCount()>0){
+                    Bottle bot;
+                    bot.clear();
+                    bot.addString("VER_ABS");
+                    bot.addDouble(max1);
+                    bot.addDouble(max2);
+                    cmdAbsOutput.write(bot);
                     bot.clear();
                 }
             }
@@ -343,7 +375,7 @@ void disparityProcessor::run(){
             test = Disp.getMax();
             int pixels = 0;
             pixels = (180 - test.index) * (252/180);
-
+            
             if (shiftOutput.getOutputCount()>0){
                 Bottle bot;
                 bot.clear();
@@ -351,6 +383,7 @@ void disparityProcessor::run(){
                 shiftOutput.write(bot);
                 bot.clear();
             }
+            
             
         }
     }

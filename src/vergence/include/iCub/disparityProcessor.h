@@ -49,11 +49,12 @@ const double _minVerg = 0 * M_PI/180;
 class disparityProcessor : public yarp::os::RateThread {
 private:
 
-    yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb > > imageInLeft;  //left camera port
-    yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb > >  imageInRight; //right camera port
-    yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelMono > >  histoOutPort; //output histogram
-    yarp::os::Port cmdOutput;
-    yarp::os::Port shiftOutput;
+    yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb > >   imageInLeft;  // left camera port
+    yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb > >   imageInRight; // right camera port
+    yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelMono > >  histoOutPort; // output histogram
+    yarp::os::Port cmdOutput;                                                           
+    yarp::os::Port shiftOutput;                                                         // port outputing the relative vergence angle
+    yarp::os::Port cmdAbsOutput;                                                       // port outputing the absolute vergence angle
 	std::string outputPortName; 
     yarp::os::Property optionsHead, optionsTorso;
     yarp::dev::IEncoders *encHead, *encTorso;

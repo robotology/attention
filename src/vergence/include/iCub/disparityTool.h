@@ -84,6 +84,7 @@ public:
         return _shiftFunctionInv[index]; 
     }
 
+    void computeDisparityCorrRGBsum (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step, int& max1, int& max2, int& max3);
     int computeDisparityCorrRGBsum (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step);
     int computeMono (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, double value);
     /*int computeDisparityCorrRGBsum2 (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step);
