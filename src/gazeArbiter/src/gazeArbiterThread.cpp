@@ -129,6 +129,8 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     isOnWings           = false;
     onDvs               = false;
     
+    countRegVerg = 0;
+    sumRegVerg = 0;
     phiTOT = 0;
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
@@ -843,11 +845,11 @@ void gazeArbiterThread::run() {
 
             if((mono)) { 
                 printf("phi: %f \n", phi);
-                if((phi < 0.05)&&(phi>-0.05) && (!accomplished_flag)) {
-                    countVerNull++;
+                if((phi < 0.4)&&(phi>-0.4) && (!accomplished_flag)) {
+                    countVerNull += 1;
                     printf("CountVerNull %d \n", countVerNull);
                 }
-                if((countVerNull >= 2) && (!accomplished_flag)) {
+                if((countVerNull >= 3) && (!accomplished_flag)) {
 
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
@@ -859,6 +861,7 @@ void gazeArbiterThread::run() {
                     statusPort.write();
                     //delete &status2;
                     
+                    Time::delay(3.0);
                                         
                     //code for accomplished vergence
                     timetotStop = Time::now();
@@ -1099,10 +1102,9 @@ void gazeArbiterThread::run() {
                     }
                 }
                 */
-                
-                vergenceInDepth();
-                
-                
+                printf("-------------countRegVerg = % d -------------- \n", countRegVerg);
+                //vergenceInDepth();                
+                vergenceInAngle();
             
                
                 /*
@@ -1204,12 +1206,14 @@ void gazeArbiterThread::run() {
 
 
 void gazeArbiterThread::vergenceInAngle() {
+    printf("Vergence in Angle");
     timeoutStart = Time::now();
     timeout = 0;
     Vector anglesVect(3);
     //calculating the magnitude of the 3d vector
     igaze->getAngles(anglesVect);
-    phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
+    //phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
+    phiTOT = anglesVect[2] + phi - 1.2; //phiTOT must be in grads
     printf("phiTOT %f \n", phiTOT);    
     tracker->getPoint(point);
     double errorx; // = (width  >> 1) - point.x;
@@ -1217,33 +1221,34 @@ void gazeArbiterThread::vergenceInAngle() {
     Vector px(2);
     
     if (visualCorrection) {
-        printf("Using visual correction \n");
-        double error = 1000.0;
-        int countReach = 0;
-        while(( countReach < 3)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
-            timeoutStop = Time::now();
-            timeout = timeoutStop - timeoutStart;
-#ifndef CONFIGFOVEA
-                    errorx = (width  >> 1) - point.x;
-                    errory = (height >> 1) - point.y;
-                    px(0) = (width  >> 1) - 1 - errorx;    // subtracting 1 for the center of image
-                    px(1) = (height >> 1) - 1 - errory;    // subtracting 1 for the center of image
-#else
-                    errorx = 160 - point.x;
-                    errory = 120 - point.y;
-                    px(0) = 182 - errorx;
-                    px(1) = 113 - errory;
-#endif           
-            error = sqrt(errorx * errorx + errory * errory);
-            printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, error);
-            if(error <= 1) {
-                countReach++;
-            }
+        if (countRegVerg == 10){
+            
+            meanRegVerg = sumRegVerg / 10.0;
+            printf("======== reached 10 number of valid angles ========== \n" );
+            printf("================ mean %f ============================ \n", meanRegVerg);
+            
+            errorx = 160 - point.x;
+            errory = 120 - point.y;
+            px(0) = 182 - errorx ;
+            px(1) = 113 - errory ;
+            
             //printf("norm error %f \n", error);
             int camSel = 0;
-            //igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
-            tracker->getPoint(point);
+            igaze->lookAtMonoPixelWithVergence(camSel,px,meanRegVerg);
+            //tracker->getPoint(point);
+
+            countRegVerg = 0;
+            sumRegVerg = 0;
         }
+        else {
+            sumRegVerg += phiTOT;
+            countRegVerg++;
+        }
+        //printf("Using visual correction \n");
+        //double error = 1000.0;
+        //int countReach = 0;
+   
+    
     }
 }
 
@@ -1278,9 +1283,9 @@ void gazeArbiterThread::vergenceInDepth(){
     Vector px(2);
     int camSel = 0;
     
-    if(true){
-        px(0) = (width>>1)  - 1;
-        px(1) = (height>>1) - 1; 
+    if(!visualCorrection){
+        px(0) = 183;
+        px(1) = 113; 
         printf("no visual correction initialised %f %f \n", px(0), px(1));
         igaze->lookAtMonoPixel(camSel,px,varDistance);                       
     }
@@ -1294,12 +1299,15 @@ void gazeArbiterThread::vergenceInDepth(){
         error = sqrt(errorx * errorx + errory * errory);
         //printf("norm error %f \n", error);
         
-        px(0) = (width>>1)  - 1 - errorx;   //159 - errorx
-        px(1) = (height>>1) - 1 - errory;   //119 - errory
+        //px(0) = (width>>1)  - 1 - errorx;   //159 - errorx
+        //px(1) = (height>>1) - 1 - errory;   //119 - errory
+        px(0) = 182 - errorx;   //159 - errorx
+        px(1) = 113 - errory;   //119 - errory
+        
         igaze->lookAtMonoPixel(camSel,px,varDistance);
     }
     
-    printf("----------------------------------varDistance %f,%f->%f->%f \n",phi, anglesVect[2], phiTOT,varDistance);
+    printf("-------------- %d ------------------varDistance %f,%f->%f->%f \n",countVerNull, phi, anglesVect[2], phiTOT,varDistance);
     
     Time::delay(0.05);                                        
     

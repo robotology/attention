@@ -101,7 +101,10 @@ private:
     double timetotStart,timetotStop;        // start and stop timing for the complete fixation task
     double timeout;                         // actual timer of the saccadic action
     double timetot;                         // actual timer of the complete fixation task
-
+    double meanRegVerg;
+    double sumRegVerg;
+    
+    int countRegVerg;
     int template_size;                      // size of the template
     int search_size;                        // area over the search is performed
 
