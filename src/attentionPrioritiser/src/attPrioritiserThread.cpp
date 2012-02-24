@@ -848,7 +848,7 @@ void attPrioritiserThread::run() {
         // ----------------  Vergence  -----------------------
         state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1; state(0) = 0;
         printf("------------------ Vergence --------------- \n");
-            
+        /*    
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
             printf("vergence: sending suspend command \n");
             Bottle* sent     = new Bottle();
@@ -862,7 +862,7 @@ void attPrioritiserThread::run() {
             firstVergence =  false;
             timeoutStart = Time::now();
         }
-        
+        */
 
         if(!executing) {                       
             //correcting =  false;
@@ -881,7 +881,7 @@ void attPrioritiserThread::run() {
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
 
-            if((ver_accomplished)||(timeout>5.0)) {
+            if((ver_accomplished)/*||(timeout>5.0)*/) {
                 //resume early processes
                 printf("vergence: accomplished sending resume command \n");
                 if(feedbackPort.getOutputCount()) {
@@ -905,7 +905,10 @@ void attPrioritiserThread::run() {
                 commandBottle.addDouble(phi);
                 outputPort.write();
             }                        
-        }   
+        }
+
+
+        
     }
     else {
         //printf("No transition \n");
@@ -913,7 +916,7 @@ void attPrioritiserThread::run() {
     
     //printf("--------------------------------------------------------->%d \n",done);
             
-    if(allowedTransitions(4)>0) {
+    if(allowedTransitions(4)>0) { //express saccade
         mutex.wait();
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(4) = 0;
@@ -922,7 +925,7 @@ void attPrioritiserThread::run() {
         printf ("Transition request 4 reset \n");
         mutex.post();
     }
-    if(allowedTransitions(3)>0) {
+    if(allowedTransitions(3)>0) { //planned saccade
         mutex.wait();
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(3) = 0;
@@ -930,7 +933,7 @@ void attPrioritiserThread::run() {
         printf ("Transition request 3 reset \n");
         mutex.post();
     }
-    if(allowedTransitions(2)>0) {
+    if(allowedTransitions(2)>0) { //smooth pursuit
         mutex.wait();
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(2) = 0;
@@ -938,7 +941,7 @@ void attPrioritiserThread::run() {
         printf ("Transition request 2 reset \n");
         mutex.post();
     }
-    if(allowedTransitions(1)>0) {
+    if(allowedTransitions(1)>0) { //vergence
         mutex.wait();
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
@@ -962,7 +965,7 @@ void attPrioritiserThread::fixCenter(int elapseTime) {
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     cUpdate++;
-    printf("ACK. Aware of observable asking for attention \n");
+    //printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
@@ -1010,8 +1013,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
             phi = arg->get(1).asDouble();
+            //printf("vergence command received %d \n", firstVergence);
             if(firstVergence){
-                if((phi!=0)&&(cUpdate %10 == 0)){
+                if((phi!=0)){
+                    
+                    printf("inside the vergence command \n");
                     mutex.wait();
                     ver_accomplished = false;
                     stateRequest[1]  = 1;
@@ -1036,7 +1042,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //gathering information about the feature from the preattentive stage (earlyVision)
             if(feedbackEarlyVision.getOutputCount()) {
-                cout<<"communication activated with the earlyVision: ";
+                //cout<<"communication activated with the earlyVision: ";
                 Bottle rep;
                 Bottle req;
                 req.clear();
