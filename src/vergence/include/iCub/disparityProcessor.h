@@ -31,12 +31,13 @@
 #include <iCub/iKin/iKinFwd.h>
 #include <yarp/math/Math.h>
 
-const double F = 4;						/// camera F length.
-const double PixScaleX = 120;			/// camera mm to pixel conversion factor.
-const double PixScaleY = 98;			/// same along the y coord.
+const double F               = 4;			// camera F length.
+const double PixScaleX       = 120;			// camera mm to pixel conversion factor.
+const double PixScaleY       = 98;			// same along the y coord.
 const double Periphery2Fovea = 2.0;	
-const int _centerX = 128/2;
-const int _centerY = 128/2;
+const double fpixel          = 206.026;
+const int _centerX           = 128/2;
+const int _centerY           = 128/2;
 
 const int CenterPeripheryX = 256/2;
 const int CenterPeripheryY = 256/2;

@@ -1,4 +1,5 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
 /* 
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Francesco Rea, Vadim Tikhanoff
@@ -16,6 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
+
 #include <iCub/disparityProcessor.h>
 
 using namespace std;
@@ -280,8 +282,8 @@ void disparityProcessor::run(){
     double _minDisp = Disp.shiftToDisparity(Disp.getLimitsMin());
     double _maxDisp = Disp.shiftToDisparity(Disp.getLimitsMax());
 
-    _minDisp = 2.0 * 206.026 * tan( fb[8] * M_PI/180.0 - _maxVerg ) + 0.5; 
-    _maxDisp = 2.0 * 206.026 * tan( fb[8] * M_PI/180.0 - _minVerg ) - 0.5;
+    _minDisp = 2.0 * fpixel * tan( fb[8] * M_PI/180.0 - _maxVerg ) + 0.5; 
+    _maxDisp = 2.0 * fpixel * tan( fb[8] * M_PI/180.0 - _minVerg ) - 0.5;
 
     Disp.setInhibition((int)_maxDisp, (int)_minDisp);
 
@@ -325,20 +327,20 @@ void disparityProcessor::run(){
                 histoOutPort.write();
             }
             
-            //angle = fb[8]-(180/M_PI)*atan(disparityVal/(2*206.026)); // TODO: remove hard coded value
-            angle = fb[8]-(180/M_PI)*atan(max1/(2*206.026)); // TODO: remove hard coded value
+            //angle = fb[8]-(180/M_PI)*atan(disparityVal/(2*fpixel)); // TODO: remove hard coded value
+            angle = fb[8]-(180/M_PI)*atan(max1/(2*fpixel)); // TODO: remove hard coded value
             if(angle<0)
                 angle=0;		
             
             encHead->getEncoders( _head.data() );
             double relangle = 0, relangle2 = 0, relangle3 = 0;
             relangle  = angle - _head[5];
-            angle = fb[8]-(180/M_PI)*atan(max2/(2*206.026)); // TODO: remove hard coded value
+            angle = fb[8]-(180/M_PI)*atan(max2/(2*fpixel)); // TODO: remove hard coded value
             relangle2 = angle - _head[5];
-            angle = fb[8]-(180/M_PI)*atan(max3/(2*206.026)); // TODO: remove hard coded value
+            angle = fb[8]-(180/M_PI)*atan(max3/(2*fpixel)); // TODO: remove hard coded value
             relangle3 = angle - _head[5];
             
-            // cout << "2 atan " <<(180/M_PI)*atan(disparityVal/(2*206.026))<< " angle " << angle <<" current " << fb[8] << " " << relangle << endl;
+            // cout << "2 atan " <<(180/M_PI)*atan(disparityVal/(2*fpixel))<< " angle " << angle <<" current " << fb[8] << " " << relangle << endl;
             
             if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze"){
                 gazeVect[0] = 0.0;

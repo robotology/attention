@@ -25,6 +25,12 @@
 #include <yarp/math/Math.h>
 #include <yarp/sig/Image.h>
 
+
+/** \section change_log CHANGE LOG
+ * 24/02/2012 : changed the output of the command port                            author : Rea \n
+ * 24/02/2012 : added a new port for absolute vergence angle                      author : Rea
+ */
+
 class disparityModule : public RFModule {
 
 private:
