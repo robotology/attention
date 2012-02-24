@@ -128,6 +128,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     visualCorrection    = true;
     isOnWings           = false;
     onDvs               = false;
+    firstVergence       = true;
     
     countRegVerg = 0;
     sumRegVerg = 0;
@@ -1090,6 +1091,8 @@ void gazeArbiterThread::run() {
                     
                     interfaceIOR(timing);
 
+                    firstVergence = true;
+
                     return;
                 }
                 
@@ -1221,6 +1224,8 @@ void gazeArbiterThread::vergenceInAngle() {
     igaze->getAngles(anglesVect);
 
     if (firstVergence) {
+        printf("firstVergence \n");
+        Time::delay(5.0);
         // first vergence command after the vergence accomplished
         // the first train of vergence command is critical.
         // it has to move the system from an eventual local minima
@@ -1244,6 +1249,7 @@ void gazeArbiterThread::vergenceInAngle() {
     Vector px(2);
     
     if (visualCorrection) {
+#ifdef MEANVERGENCE        
         if (countRegVerg == 1){
             
             meanRegVerg = sumRegVerg / 1.0;
@@ -1266,11 +1272,17 @@ void gazeArbiterThread::vergenceInAngle() {
             sumRegVerg += phiTOT;
             countRegVerg++;
         }
-        //printf("Using visual correction \n");
-        //double error = 1000.0;
-        //int countReach = 0;
-   
-    
+#else  
+        errorx = 160 - point.x;
+        errory = 120 - point.y;
+        px(0) = 182 - errorx ;
+        px(1) = 113 - errory ;
+        
+            //printf("norm error %f \n", error);
+        int camSel = 0;
+        igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
+#endif
+        
     }
 }
 
@@ -1376,6 +1388,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             timetotStart = Time::now();
             mono = true;
             firstVer = true;
+            firstVergence = true;
         }
         if(!strcmp(name.c_str(),"SAC_EXPR")) {
             // monocular saccades without visualfeedback
@@ -1391,6 +1404,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             timetotStart = Time::now();
             mono = true;
             firstVer = true;
+            firstVergence = true;
         }
         
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
@@ -1403,6 +1417,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
             mono = false;
+            firstVergence = true;
         }
         else if(!strcmp(name.c_str(),"SM_PUR")) {
             printf("received a command of smooth pursuit \n");
@@ -1413,6 +1428,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             velControl->setVelocityComponents(uVel, vVel);
             //executing = false;
             mutex.post();
+            firstVergence = true;
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
             phi  = arg->get(1).asDouble();            

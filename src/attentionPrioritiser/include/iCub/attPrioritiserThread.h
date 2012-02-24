@@ -125,7 +125,9 @@ private:
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
     int width, height;                      // dimension of the image
-    double phi;                             // value passed for vergence
+    double phi;                             // value passed for relative vergence from the maximum shift
+    double phi2;                            // value passed for relative vergence from the second maximum shift
+    double phi3;                            // value passed for relative vergence from the third maximum shift
     double phiTOT;                          // accumulator of increments of vergence angles
      
     bool postSaccCorrection;                // flag that allows post saccadic corrections

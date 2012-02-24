@@ -146,15 +146,16 @@
 
 /** 
  * /section  change_log CHANGE LOG:
- * 06/07/11 : created the module                                                                            author:Rea  \n
- * 07/07/11 : added the function that calculates the correlation between two log-polar images               author:Rea  \n
- * 11/07/11 : changed the cycle for exploring the image in the correlation function                         author:Rea  \n                                      
- * 19/08/11 : added a new feedback port to control earlier processes                                        author:Rea  \n
- * 07/10/11 : added the enable and disable commands for express saccades.                                   author:Rea  \n       
- * 26/10/11 : reduced all the temporal constants to 50ms                                                    author:Rea  \n  
- * 04/01/12 : added feedback commands to the low level visual attention                                     author:Rea  \n         
- * 15/02/12 : introduced top-down state for stable visual attention                                         author:Rea  \n
- * 18/02/12 : tested the top-down connection between earlyVision and saliencyBlobFinder                     author:Rea  \n
+ * 06/07/11 : created the module                                                                            author: Rea  \n
+ * 07/07/11 : added the function that calculates the correlation between two log-polar images               author: Rea  \n
+ * 11/07/11 : changed the cycle for exploring the image in the correlation function                         author: Rea  \n                                      
+ * 19/08/11 : added a new feedback port to control earlier processes                                        author: Rea  \n
+ * 07/10/11 : added the enable and disable commands for express saccades.                                   author: Rea  \n       
+ * 26/10/11 : reduced all the temporal constants to 50ms                                                    author: Rea  \n  
+ * 04/01/12 : added feedback commands to the low level visual attention                                     author: Rea  \n         
+ * 15/02/12 : introduced top-down state for stable visual attention                                         author: Rea  \n
+ * 18/02/12 : tested the top-down connection between earlyVision and saliencyBlobFinder                     author: Rea  \n
+ * 24/02/12 : introduced extra values for command of relative vergence                                      author: Rea  \n
 */
 
 

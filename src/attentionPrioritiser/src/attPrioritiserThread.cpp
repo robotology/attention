@@ -903,6 +903,8 @@ void attPrioritiserThread::run() {
                 commandBottle.clear();
                 commandBottle.addString("VER_REL");
                 commandBottle.addDouble(phi);
+                commandBottle.addDouble(phi2);
+                commandBottle.addDouble(phi3);
                 outputPort.write();
             }                        
         }
@@ -1012,10 +1014,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();            
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
-            phi = arg->get(1).asDouble();
+            phi  = arg->get(1).asDouble();
+            phi2 = arg->get(2).asDouble();
+            phi3 = arg->get(3).asDouble();
             //printf("vergence command received %d \n", firstVergence);
             if(firstVergence){
-                if((phi!=0)){
+                //if((phi!=0)){
                     
                     printf("inside the vergence command \n");
                     mutex.wait();
@@ -1023,7 +1027,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     stateRequest[1]  = 1;
                     //executing = false;
                     mutex.post();
-                }
+                    //}
             }
             else {
                 mutex.wait();
