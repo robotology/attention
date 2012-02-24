@@ -76,6 +76,7 @@ private:
     bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
     bool isOnWings;                         // flag that gives information on where the cameras are mounted
     bool onDvs;                             // flag for remapping dvs location into standard dimension
+    bool firstVergence;                     // flag that indicates when the vergence command is the first of a train of commands
     int u,v;                                // values passed for saccades
     int cxl,cyl;                            // center of the eye in the configfile
     int originalContext;                    // original context for the gaze Controller
@@ -289,7 +290,7 @@ public:
     /**
      * @brief interface for inhibition of return
      */
-    void interfaceIOR();
+    void interfaceIOR(Bottle& timing);
     
 };
 

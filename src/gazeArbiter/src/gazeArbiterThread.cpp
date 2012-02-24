@@ -437,6 +437,233 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 }
 
 
+void gazeArbiterThread::interfaceIOR(Bottle& timing) {
+    Time::delay(3.0);
+    
+    //code for accomplished vergence
+    timetotStop = Time::now();
+    timetot = timetotStop - timetotStart;
+    timing = timingPort.prepare();
+    timing.clear();
+    timing.addDouble(timetot);
+    timingPort.write();
+    
+    accomplished_flag = true;
+    countVerNull = 0;
+        
+    //sending an image for inhibition of return                     
+    if(imgLeftIn!=NULL){
+        unsigned char* pinhi = inhibitionImage->getRawImage();
+        inhibitionImage->resize(320,240);
+        //inhibitionImage->zero();
+        /*
+          int padding = inhibitionImage->getPadding();
+          int rowsizeInhi = inhibitionImage->getRowSize();
+          int ym = 240>>1;
+          int xm = 320>>1;
+          //calculating the peek value
+          int dx = 50.0;
+          int dy = 50.0;
+          double sx = (dx / 2) / 3 ; //0.99 percentile
+          double sy = (dy / 2) / 3 ;
+          double vx = 10; //sx * sx; // variance          
+          double vy = 10; //sy * sy;
+          
+          double rho = 0;
+          
+          double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+          double b = -0.5 /(1 - rho * rho);
+          double k = 1 / (a * exp (b));      
+          
+          double f, e, d, z = 1;                                    
+          double zmax = 0;
+          
+          pinhi +=   ((int)(ym-(dy>>1))) * rowsizeInhi + ((int)(xm-(dx>>1)));
+          //for the whole blob in this loop
+          for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
+          for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
+          
+          if((c == xm)&&(r == ym)) { 
+          //z = a * exp (b);
+          //z = z * k;
+          z = 1;
+          }
+          else {    
+          f = ((c - xm) * (c - xm)) /(vx * vx);
+          d = ((r - ym)  * (r - ym)) /(vy * vy);
+          //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
+          e = 0;
+          z = a * exp ( b * (f + d - e) );
+          z = z * k;
+          z = (1 / 1.62) * z;
+          //z = 0.5;
+          }
+          
+          // restrincting the z gain between two thresholds
+          if (z > 1) {
+          z = 1;
+          }
+          //if (z < 0.3) {
+          //    z = 0.3;
+          //}
+          
+          
+          //set the image 
+          *pinhi++ = 255 * z;                    
+          }
+          pinhi += rowsizeInhi - (dx + 1) ;
+          }
+        */
+        
+        
+        pinhi = inhibitionImage->getRawImage();
+        
+        //printf("copying the image \n");
+        //unsigned char* pinLeft = imgLeftIn->getRawImage();
+        //int padding  = inhibitionImage->getPadding();
+        //int padding3 = imgLeftIn->getPadding(); 
+        //for ( int row = 0 ; row < 240; row++) { 
+        //    for (int cols = 0; cols< 320; cols++) {
+        //        *pinhi = (unsigned char) floor(0.85 * *pinLeft + 0.15 * *pinhi);  //red
+        //        //*portion++ = *mosaic++;  //green
+        //*portion++ = *mosaic++;  //blue
+        //        pinhi++; pinLeft+=3;
+        //    }
+        //    pinhi += padding;
+        //    pinLeft += padding3;
+        //}
+    }
+    inhibitionPort.prepare() = *inhibitionImage;
+    inhibitionPort.write();                    
+    
+    //calculating the 3d position and sending it to database
+    u = 160; 
+    v = 120;
+    Vector fp(3);
+    
+    
+    Vector torso(3);
+    encTorso->getEncoder(0,&torso[0]);
+    encTorso->getEncoder(1,&torso[1]);
+    encTorso->getEncoder(2,&torso[2]);
+    Vector head(5);
+    encHead->getEncoder(0,&head[0]);
+    encHead->getEncoder(1,&head[1]);
+    encHead->getEncoder(2,&head[2]);
+    encHead->getEncoder(3,&head[3]);
+    encHead->getEncoder(4,&head[4]);
+    
+    
+    Vector q(8);
+    double ratio = M_PI /180;
+    q[0]=torso[0] * ratio;
+    q[1]=torso[1]* ratio;
+    q[2]=torso[2]* ratio;
+    q[3]=head[0]* ratio;
+    q[4]=head[1]* ratio;
+    q[5]=head[2]* ratio;
+    q[6]=head[3]* ratio;
+    q[7]=head[4]* ratio;
+    double ver = head[5];
+    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);                        
+                            
+    Vector x(3);
+    printf("varDistance %f \n", varDistance);
+    x[0]=varDistance * u;   //epipolar correction excluded the focal lenght
+    x[1]=varDistance * v;
+    x[2]=varDistance;
+    
+    // find the 3D position from the 2D projection,
+    // knowing the distance z from the camera
+    Vector xe = yarp::math::operator *(*invPrjL, x);
+    xe[3]=1.0;  // impose homogeneous coordinates                
+    
+    // update position wrt the root frame
+    Matrix eyeH = eyeL->getH(q);
+    //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
+    Vector xo = yarp::math::operator *(eyeH,xe);
+    
+    //fp.resize(3,0.0);
+    //fp[0]=xo[0];
+    //fp[1]=xo[1];
+    //fp[2]=xo[2];
+    printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);    
+    
+    //adding novel position to the 
+    Bottle request, reply;
+    request.clear(); reply.clear();
+    request.addVocab(VOCAB3('a','d','d'));
+    Bottle& listAttr=request.addList();
+    
+    Bottle& sublistX = listAttr.addList();
+    
+    sublistX.addString("x");
+    sublistX.addDouble(xo[0] * 1000);    
+    listAttr.append(sublistX);
+    
+    Bottle& sublistY = listAttr.addList();
+    sublistY.addString("y");
+    sublistY.addDouble(xo[1] * 1000);      
+    listAttr.append(sublistY);
+    
+    Bottle& sublistZ = listAttr.addList();            
+    sublistZ.addString("z");
+    sublistZ.addDouble(xo[2] * 1000);   
+    listAttr.append(sublistZ);
+    
+    Bottle& sublistR = listAttr.addList();
+    sublistR.addString("r");
+    sublistR.addDouble(255.0);
+    listAttr.append(sublistR);
+                    
+    Bottle& sublistG = listAttr.addList();
+    sublistG.addString("g");
+    sublistG.addDouble(255.0);
+    listAttr.append(sublistG);
+                        
+    Bottle& sublistB = listAttr.addList();
+    sublistB.addString("b");
+    sublistB.addDouble(255.0);
+    listAttr.append(sublistB);
+    
+    Bottle& sublistLife = listAttr.addList();
+    sublistLife.addString("lifeTimer");
+    sublistLife.addDouble(1.0);
+    listAttr.append(sublistLife);          
+    
+    if (templatePort.getInputCount()) {
+        Bottle& templateList = listAttr.addList();
+        printf("attaching the blob to the item in the list");
+        templateImage = templatePort.read(false);
+        if(templateImage!=0) {
+            int width = templateImage->width();
+            int height = templateImage->height();
+            printf("template dim %d %d \n", width, height);
+            unsigned char* pointerTemplate = templateImage->getRawImage();
+            int padding = templateImage->getPadding();
+            templateList.addString("texture");
+            Bottle& pixelList = templateList.addList();
+            pixelList.addInt(width);
+            pixelList.addInt(height);
+            
+            for (int r = 0; r < height ; r++) {
+                for (int c = 0; c < width; c++) {
+                    pixelList.addInt((unsigned char)*pointerTemplate++);
+                    //pixelList.addInt(r + c);
+                }
+                pointerTemplate += padding;
+            }
+        }
+    }
+    
+    blobDatabasePort.write(request, reply);                     
+    
+    //delay after vergence accomplished ... needed to allow other module to call the control
+    Time::delay(0.01);
+    return;
+}
+
+
 void gazeArbiterThread::run() {
     visualCorrection = true;
     Bottle& status = statusPort.prepare();
@@ -844,7 +1071,7 @@ void gazeArbiterThread::run() {
             
 
             if((mono)) { 
-                printf("phi: %f \n", phi);
+                printf("phi: %f phi2: %f phi3 : %f  \n", phi, phi2, phi3);
                 if((phi < 0.4)&&(phi>-0.4) && (!accomplished_flag)) {
                     countVerNull += 3;
                     printf("CountVerNull %d \n", countVerNull);
@@ -861,229 +1088,8 @@ void gazeArbiterThread::run() {
                     statusPort.write();
                     //delete &status2;
                     
-                    Time::delay(3.0);
-                                        
-                    //code for accomplished vergence
-                    timetotStop = Time::now();
-                    timetot = timetotStop - timetotStart;
-                    timing = timingPort.prepare();
-                    timing.clear();
-                    timing.addDouble(timetot);
-                    timingPort.write();
+                    interfaceIOR(timing);
 
-                    accomplished_flag = true;
-                    countVerNull = 0;
-                    
-
-                    //sending an image for inhibition of return                     
-                    if(imgLeftIn!=NULL){
-                        unsigned char* pinhi = inhibitionImage->getRawImage();
-                        inhibitionImage->resize(320,240);
-                        //inhibitionImage->zero();
-                        /*
-                        int padding = inhibitionImage->getPadding();
-                        int rowsizeInhi = inhibitionImage->getRowSize();
-                        int ym = 240>>1;
-                        int xm = 320>>1;
-                        //calculating the peek value
-                        int dx = 50.0;
-                        int dy = 50.0;
-                        double sx = (dx / 2) / 3 ; //0.99 percentile
-                        double sy = (dy / 2) / 3 ;
-                        double vx = 10; //sx * sx; // variance          
-                        double vy = 10; //sy * sy;
-                        
-                        double rho = 0;
-                        
-                        double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
-                        double b = -0.5 /(1 - rho * rho);
-                        double k = 1 / (a * exp (b));      
-                        
-                        double f, e, d, z = 1;                                    
-                        double zmax = 0;
-
-                        pinhi +=   ((int)(ym-(dy>>1))) * rowsizeInhi + ((int)(xm-(dx>>1)));
-                        //for the whole blob in this loop
-                        for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
-                            for (int c = xm - (dx>>1); c <= xm + (dx>>1); c++){
-                                
-                                if((c == xm)&&(r == ym)) { 
-                                    //z = a * exp (b);
-                                    //z = z * k;
-                                    z = 1;
-                                }
-                                else {    
-                                    f = ((c - xm) * (c - xm)) /(vx * vx);
-                                    d = ((r - ym)  * (r - ym)) /(vy * vy);
-                                    //e = (2 * rho* (c - ux) * (r - uy)) / (vx * vy);
-                                    e = 0;
-                                    z = a * exp ( b * (f + d - e) );
-                                    z = z * k;
-                                    z = (1 / 1.62) * z;
-                                    //z = 0.5;
-                                }
-                                
-                                // restrincting the z gain between two thresholds
-                                if (z > 1) {
-                                    z = 1;
-                                }
-                                //if (z < 0.3) {
-                                //    z = 0.3;
-                                //}
-                                
-                                
-                                //set the image 
-                                *pinhi++ = 255 * z;                    
-                            }
-                            pinhi += rowsizeInhi - (dx + 1) ;
-                        }
-                        */
-                        
-                    
-                        pinhi = inhibitionImage->getRawImage();
-
-                        //printf("copying the image \n");
-                        //unsigned char* pinLeft = imgLeftIn->getRawImage();
-                        //int padding  = inhibitionImage->getPadding();
-                        //int padding3 = imgLeftIn->getPadding(); 
-                        //for ( int row = 0 ; row < 240; row++) { 
-                        //    for (int cols = 0; cols< 320; cols++) {
-                        //        *pinhi = (unsigned char) floor(0.85 * *pinLeft + 0.15 * *pinhi);  //red
-                        //        //*portion++ = *mosaic++;  //green
-                                //*portion++ = *mosaic++;  //blue
-                        //        pinhi++; pinLeft+=3;
-                        //    }
-                        //    pinhi += padding;
-                        //    pinLeft += padding3;
-                        //}
-                    }
-                    inhibitionPort.prepare() = *inhibitionImage;
-                    inhibitionPort.write();                    
-
-                    //calculating the 3d position and sending it to database
-                    u = 160; 
-                    v = 120;
-                    Vector fp(3);
-                     
-                        
-                    Vector torso(3);
-                    encTorso->getEncoder(0,&torso[0]);
-                    encTorso->getEncoder(1,&torso[1]);
-                    encTorso->getEncoder(2,&torso[2]);
-                    Vector head(5);
-                    encHead->getEncoder(0,&head[0]);
-                    encHead->getEncoder(1,&head[1]);
-                    encHead->getEncoder(2,&head[2]);
-                    encHead->getEncoder(3,&head[3]);
-                    encHead->getEncoder(4,&head[4]);
-                
-                
-                    Vector q(8);
-                    double ratio = M_PI /180;
-                    q[0]=torso[0] * ratio;
-                    q[1]=torso[1]* ratio;
-                    q[2]=torso[2]* ratio;
-                    q[3]=head[0]* ratio;
-                    q[4]=head[1]* ratio;
-                    q[5]=head[2]* ratio;
-                    q[6]=head[3]* ratio;
-                    q[7]=head[4]* ratio;
-                    double ver = head[5];
-                    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);                        
-                            
-                    Vector x(3);
-                    printf("varDistance %f \n", varDistance);
-                    x[0]=varDistance * u;   //epipolar correction excluded the focal lenght
-                    x[1]=varDistance * v;
-                    x[2]=varDistance;
-                    
-                    // find the 3D position from the 2D projection,
-                    // knowing the distance z from the camera
-                    Vector xe = yarp::math::operator *(*invPrjL, x);
-                    xe[3]=1.0;  // impose homogeneous coordinates                
-                    
-                    // update position wrt the root frame
-                    Matrix eyeH = eyeL->getH(q);
-                    //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
-                    Vector xo = yarp::math::operator *(eyeH,xe);
-                        
-                    //fp.resize(3,0.0);
-                    //fp[0]=xo[0];
-                    //fp[1]=xo[1];
-                    //fp[2]=xo[2];
-                    printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);    
-                    
-                    //adding novel position to the 
-                    Bottle request, reply;
-                    request.clear(); reply.clear();
-                    request.addVocab(VOCAB3('a','d','d'));
-                    Bottle& listAttr=request.addList();
-                    
-                    Bottle& sublistX = listAttr.addList();
-                        
-                    sublistX.addString("x");
-                    sublistX.addDouble(xo[0] * 1000);    
-                    listAttr.append(sublistX);
-                        
-                    Bottle& sublistY = listAttr.addList();
-                    sublistY.addString("y");
-                    sublistY.addDouble(xo[1] * 1000);      
-                    listAttr.append(sublistY);
-                    
-                    Bottle& sublistZ = listAttr.addList();            
-                    sublistZ.addString("z");
-                    sublistZ.addDouble(xo[2] * 1000);   
-                    listAttr.append(sublistZ);
-                    
-                    Bottle& sublistR = listAttr.addList();
-                    sublistR.addString("r");
-                    sublistR.addDouble(255.0);
-                    listAttr.append(sublistR);
-                    
-                    Bottle& sublistG = listAttr.addList();
-                    sublistG.addString("g");
-                    sublistG.addDouble(255.0);
-                    listAttr.append(sublistG);
-                        
-                    Bottle& sublistB = listAttr.addList();
-                    sublistB.addString("b");
-                    sublistB.addDouble(255.0);
-                    listAttr.append(sublistB);
-                    
-                    Bottle& sublistLife = listAttr.addList();
-                    sublistLife.addString("lifeTimer");
-                    sublistLife.addDouble(1.0);
-                    listAttr.append(sublistLife);          
-                        
-                    if (templatePort.getInputCount()) {
-                        Bottle& templateList = listAttr.addList();
-                        printf("attaching the blob to the item in the list");
-                        templateImage = templatePort.read(false);
-                        if(templateImage!=0) {
-                            int width = templateImage->width();
-                            int height = templateImage->height();
-                            printf("template dim %d %d \n", width, height);
-                            unsigned char* pointerTemplate = templateImage->getRawImage();
-                            int padding = templateImage->getPadding();
-                            templateList.addString("texture");
-                            Bottle& pixelList = templateList.addList();
-                            pixelList.addInt(width);
-                            pixelList.addInt(height);
-                            
-                            for (int r = 0; r < height ; r++) {
-                                for (int c = 0; c < width; c++) {
-                                    pixelList.addInt((unsigned char)*pointerTemplate++);
-                                    //pixelList.addInt(r + c);
-                                }
-                                pointerTemplate += padding;
-                            }
-                        }
-                    }
-                    
-                    blobDatabasePort.write(request, reply);                     
-                    
-                    //delay after vergence accomplished ... needed to allow other module to call the control
-                    Time::delay(0.01);
                     return;
                 }
                 
@@ -1105,7 +1111,7 @@ void gazeArbiterThread::run() {
                 
                 //vergenceInDepth();                
                 vergenceInAngle();
-            
+ 
                
                 /*
                   printf("x1 %f y1 %f z1 %f", x1, y1, z1);
@@ -1206,14 +1212,31 @@ void gazeArbiterThread::run() {
 
 
 void gazeArbiterThread::vergenceInAngle() {
+    double phiRel; // vergence relative angle to be commanded to the controller
     printf("Vergence in Angle");
     timeoutStart = Time::now();
     timeout = 0;
     Vector anglesVect(3);
     //calculating the magnitude of the 3d vector
     igaze->getAngles(anglesVect);
+
+    if (firstVergence) {
+        // first vergence command after the vergence accomplished
+        // the first train of vergence command is critical.
+        // it has to move the system from an eventual local minima
+        // the choosen relative angle is derived from the maximum of the collection shifts
+        phiRel = max(phi, max(phi2, phi3));
+        firstVergence =  false;
+    }
+    else {
+        // the standard descent the angle is the best choice of vergence model.
+        // this means that always phi is selected
+        phiRel = phi;
+    }
+
+
     //phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
-    phiTOT = anglesVect[2] + phi  ; //phiTOT must be in grads
+    phiTOT = anglesVect[2] + phiRel  ; //phiTOT must be in grads
     printf("phiTOT %f \n", phiTOT);    
     tracker->getPoint(point);
     double errorx; // = (width  >> 1) - point.x;
