@@ -790,7 +790,13 @@ void gazeArbiterThread::run() {
                     px[0] = -0.5 + xOffset;
                     px[1] =  0.0 + yOffset;
                     px[2] =  0.3 + zOffset;
-                    igaze->lookAtFixationPoint(px);
+                    //igaze->lookAtFixationPoint(px);
+                    px[0] = 0; 
+                    px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
+                    px[2] = 0;    
+                    igaze->lookAtAbsAngles(px);
+                    
+                    Time::delay(5.0);
                     printf("waiting for motion done \n");
                     u = width  / 2;
                     v = height / 2;
@@ -975,7 +981,13 @@ void gazeArbiterThread::run() {
                     px[0] = -0.5 + xOffset;
                     px[1] = 0.0 + yOffset;
                     px[2] = 0.0 + zOffset;
-                    igaze->lookAtFixationPoint(px);
+                    //igaze->lookAtFixationPoint(px);
+
+                    px[0] = 0; 
+                    px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
+                    px[2] = 0;    
+                    igaze->lookAtAbsAngles(px);
+                        
                     /*igaze->checkMotionDone(&done);
                     while((!done)&&(timeout < TIMEOUT_CONST)) {                        
                         timeoutStop = Time::now();
@@ -1073,12 +1085,12 @@ void gazeArbiterThread::run() {
 
             if((mono)) { 
                 printf("phi: %f phi2: %f phi3 : %f  \n", phi, phi2, phi3);
-                if((phi < 0.4)&&(phi>-0.4) && (!accomplished_flag)) {
+                if((abs(phi) < 1.0)&&(abs(phi2) < 1.0) && (!accomplished_flag) && (!firstVergence))  {
                     countVerNull += 3;
                     printf("CountVerNull %d \n", countVerNull);
                 }
                 if((countVerNull >= 3) && (!accomplished_flag)) {
-
+                    printf("\n");
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
@@ -1087,11 +1099,10 @@ void gazeArbiterThread::run() {
                     status2.clear();
                     status2.addString("VER_ACC");
                     statusPort.write();
-                    //delete &status2;
-                    
+                    //delete &status2;                    
                     interfaceIOR(timing);
-
                     firstVergence = true;
+                    Time::delay(5.0);
 
                     return;
                 }
@@ -1216,7 +1227,7 @@ void gazeArbiterThread::run() {
 
 void gazeArbiterThread::vergenceInAngle() {
     double phiRel; // vergence relative angle to be commanded to the controller
-    printf("Vergence in Angle");
+    printf("Vergence in Angle    ");
     timeoutStart = Time::now();
     timeout = 0;
     Vector anglesVect(3);
@@ -1225,12 +1236,16 @@ void gazeArbiterThread::vergenceInAngle() {
 
     if (firstVergence) {
         printf("firstVergence \n");
-        Time::delay(5.0);
         // first vergence command after the vergence accomplished
         // the first train of vergence command is critical.
         // it has to move the system from an eventual local minima
         // the choosen relative angle is derived from the maximum of the collection shifts
-        phiRel = max(phi, max(phi2, phi3));
+        if((abs(phi) > abs(phi2)) && (abs(phi)>abs(phi3)))
+            phiRel = phi;
+        else if((abs(phi2) > abs(phi)) && (abs(phi2)>abs(phi3)))
+            phiRel = phi2;
+        else if((abs(phi3) > abs(phi)) && (abs(phi3)>abs(phi2)))
+            phiRel = phi3;
         firstVergence =  false;
     }
     else {
@@ -1246,8 +1261,10 @@ void gazeArbiterThread::vergenceInAngle() {
     tracker->getPoint(point);
     double errorx; // = (width  >> 1) - point.x;
     double errory; // = (height >> 1) - point.y;                    
+    double error;
     Vector px(2);
     
+    printf("visual correction %d \n", visualCorrection);
     if (visualCorrection) {
 #ifdef MEANVERGENCE        
         if (countRegVerg == 1){
@@ -1256,10 +1273,10 @@ void gazeArbiterThread::vergenceInAngle() {
             
             errorx = 160 - point.x;
             errory = 120 - point.y;
-            px(0) = 182 - errorx ;
-            px(1) = 113 - errory ;
+            px(0) = 182;
+            px(1) = 113;
             
-            //printf("norm error %f \n", error);
+            printf("norm error in mean %f \n", error);
             int camSel = 0;
             igaze->lookAtMonoPixelWithVergence(camSel,px,meanRegVerg);
             //tracker->getPoint(point);
@@ -1273,14 +1290,34 @@ void gazeArbiterThread::vergenceInAngle() {
             countRegVerg++;
         }
 #else  
-        errorx = 160 - point.x;
-        errory = 120 - point.y;
-        px(0) = 182 - errorx ;
-        px(1) = 113 - errory ;
-        
-            //printf("norm error %f \n", error);
-        int camSel = 0;
-        igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
+        timeoutStart = Time::now();
+        error = 2000;
+        timeout = 0;
+        // the vergence cannot be initialised if the feedback point hasn`t been defined
+        if((0 == point.x) && (0 == point.y)) {
+            timeout = TIMEOUT_CONST;
+        }
+        while((error > 5.0)&&(timeout < TIMEOUT_CONST)) {
+            timeoutStop = Time::now();
+            timeout = timeoutStop - timeoutStart;
+
+            errorx = 160 - point.x;
+            errory = 120 - point.y;
+            px(0) = 182 - errorx;
+            px(1) = 113 - errory;; 
+            
+            error = sqrt(errorx * errorx + errory * errory);
+            printf("norm error %f vergence %f \n", error, phiRel);
+            if(error >30.0) {
+                timeout = TIMEOUT_CONST;
+            }
+            else{
+                int camSel = 0;
+                igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
+                tracker->getPoint(point);
+                Time::delay(0.3);
+            }
+        }
 #endif
         
     }
