@@ -328,17 +328,15 @@ void disparityProcessor::run(){
             }
             
             //angle = fb[8]-(180/M_PI)*atan(disparityVal/(2*fpixel)); // TODO: remove hard coded value
-            angle = fb[8]-(180/M_PI)*atan(max1/(2*fpixel)); // TODO: remove hard coded value
-            if(angle<0)
-                angle=0;		
-            
+ 
             encHead->getEncoders( _head.data() );
             double relangle = 0, relangle2 = 0, relangle3 = 0;
-            relangle  = angle - _head[5];
-            angle = fb[8]-(180/M_PI)*atan(max2/(2*fpixel)); // TODO: remove hard coded value
-            relangle2 = angle - _head[5];
-            angle = fb[8]-(180/M_PI)*atan(max3/(2*fpixel)); // TODO: remove hard coded value
-            relangle3 = angle - _head[5];
+            angle = /*fb[8]-*/(180/M_PI)*atan(max1/(2*fpixel));
+            relangle  = _head[5] - angle;
+            angle = /*fb[8]-*/(180/M_PI)*atan(max2/(2*fpixel)); 
+            relangle2  = _head[5] - angle;
+            angle = /*fb[8]-*/(180/M_PI)*atan(max3/(2*fpixel)); 
+            relangle3  = _head[5] - angle;
             
             // cout << "2 atan " <<(180/M_PI)*atan(disparityVal/(2*fpixel))<< " angle " << angle <<" current " << fb[8] << " " << relangle << endl;
             
@@ -353,9 +351,9 @@ void disparityProcessor::run(){
                     Bottle bot;
                     bot.clear();
                     bot.addString("VER_REL");
-                    bot.addDouble(relangle);
-                    bot.addDouble(relangle2);
-                    bot.addDouble(relangle3);
+                    bot.addDouble(-(180/M_PI)*atan(max1/(2*fpixel)));
+                    bot.addDouble(-(180/M_PI)*atan(max2/(2*fpixel)));
+                    bot.addDouble(-(180/M_PI)*atan(max3/(2*fpixel)));
                     cmdOutput.write(bot);
                     bot.clear();
                 }
@@ -364,8 +362,10 @@ void disparityProcessor::run(){
                     Bottle bot;
                     bot.clear();
                     bot.addString("VER_ABS");
-                    bot.addDouble(max1);
-                    bot.addDouble(max2);
+                    bot.addDouble(_head[5]);                 
+                    bot.addDouble(relangle);
+                    bot.addDouble(relangle2);
+                    bot.addDouble(relangle3);
                     cmdAbsOutput.write(bot);
                     bot.clear();
                 }
