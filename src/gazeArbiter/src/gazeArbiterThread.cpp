@@ -796,7 +796,7 @@ void gazeArbiterThread::run() {
                     px[2] = 0;    
                     igaze->lookAtAbsAngles(px);
                     
-                    Time::delay(5.0);
+                    Time::delay(2.0);
                     printf("waiting for motion done \n");
                     u = width  / 2;
                     v = height / 2;
@@ -956,7 +956,7 @@ void gazeArbiterThread::run() {
                     error = sqrt(errorx * errorx + errory * errory);
                     printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, error);
                     if(error <= 1) {
-                        countReach++;
+                        countReach ++;
                     }
                     //printf("norm error %f \n", error);
                     int camSel = 0;
@@ -1007,6 +1007,7 @@ void gazeArbiterThread::run() {
             statusPort.write();
             //-----------------
             //accomplished_flag = true;
+            Time::delay(2.00);
         }
     }
     else if(allowedTransitions(2)>0) {
@@ -1028,66 +1029,17 @@ void gazeArbiterThread::run() {
             Vector x(3);
             Vector l(3);
             double theta = 0;
-            
-            //printf("leftAngle:%f  ,  rightAngle:%f \n", (leftAngle*180)/PI, (rightAngle*180)/PI);
-            /*
-            if(leftAngle >= 0) {
-                if(rightAngle >= 0) {
-                    rightHat = PI / 2 - rightAngle;
-                    leftHat = PI / 2 - leftAngle;
-                    alfa = PI / 2 - rightHat;
-                    
-                    h = BASELINE * (
-                        (sin(leftHat) * sin(rightHat)) / 
-                        (sin(rightHat) * sin(vergence + alfa) - sin(alfa) * sin(leftHat))
-                        );
-                    b = h * (sin(alfa) / sin(rightHat));
-                    ipLeft = sqrt ( h * h + (BASELINE + b) * (BASELINE + b));
-                }
-                else {
-                    if(rightAngle >= leftAngle) {
-                        rightHat = PI / 2 + rightAngle;
-                        leftHat = PI / 2 - leftAngle;
-                        alfa = PI / 2 - leftHat;
-                        h = BASELINE * (
-                        (sin(leftHat) * sin(rightHat)) / 
-                        (sin(leftHat) * sin(vergence + alfa) + sin(alfa) * sin(rightHat))
-                        );
-                        b = h * (sin(alfa) / sin(leftHat));
-                        ipLeft = sqrt ( h * h + b * b);
-                    }
-                    else {
-                        rightHat = PI / 2 + rightAngle;
-                        leftHat = PI / 2 - leftAngle;
-                        alfa = PI / 2 - rightHat;
-                        h = BASELINE * (
-                        (sin(leftHat) * sin(rightHat)) / 
-                        (sin(rightHat) * sin(vergence + alfa) + sin(alfa) * sin(leftHat))
-                        );
-                        b = h * (sin(alfa) / sin(rightHat));
-                        ipLeft = sqrt ( h * h + (BASELINE + b) * (BASELINE + b));
-                    }
-                }
-            }
-            else {
-                rightHat = PI /2  + rightAngle;
-                leftHat = PI / 2 + leftAngle;
-                alfa = PI / 2 - leftHat;
-                h = BASELINE * (
-                        (sin(leftHat) * sin(rightHat)) / 
-                        (sin(leftHat) * sin(vergence + alfa) - sin(alfa) * sin(rightHat))
-                        );
-                b = h * (sin(alfa) / sin(leftHat));
-                ipLeft = sqrt ( h * h + b * b);
-            }
-            */
-            
-
+                                   
             if((mono)) { 
                 printf("phi: %f phi2: %f phi3 : %f  \n", phi, phi2, phi3);
-                if((abs(phi) < 1.0)&&(abs(phi2) < 1.0) && (!accomplished_flag) && (!firstVergence))  {
-                    countVerNull += 3;
-                    printf("CountVerNull %d \n", countVerNull);
+                if((abs(phi) < 0.15) &&(!accomplished_flag) && (!firstVergence))  {                    
+                    if(abs(phi2) < 0.15) {
+                        countVerNull += 3;
+                        printf("CountVerNull %d \n", countVerNull);
+                    }
+                    else {
+                        phi = phi2;
+                    }
                 }
                 if((countVerNull >= 3) && (!accomplished_flag)) {
                     printf("\n");
@@ -1104,7 +1056,7 @@ void gazeArbiterThread::run() {
                     firstVergence = true;
                     Time::delay(5.0);
 
-                    return;
+                    goto exiting;
                 }
                 
 
@@ -1125,7 +1077,6 @@ void gazeArbiterThread::run() {
                 
                 //vergenceInDepth();                
                 vergenceInAngle();
- 
                
                 /*
                   printf("x1 %f y1 %f z1 %f", x1, y1, z1);
@@ -1196,7 +1147,7 @@ void gazeArbiterThread::run() {
     }
     
     //printf("--------------------------------------------------------->%d \n",done);
-            
+ exiting:            
     if(allowedTransitions(3)>0) {
         //igaze->checkMotionDone(&done);  // the only action that should not be tracking therefore it make wait till the end
         //if (done) {
@@ -1235,7 +1186,7 @@ void gazeArbiterThread::vergenceInAngle() {
     igaze->getAngles(anglesVect);
 
     if (firstVergence) {
-        printf("firstVergence \n");
+        printf("firstVergence \n             ");
         // first vergence command after the vergence accomplished
         // the first train of vergence command is critical.
         // it has to move the system from an eventual local minima
@@ -1263,8 +1214,7 @@ void gazeArbiterThread::vergenceInAngle() {
     double errory; // = (height >> 1) - point.y;                    
     double error;
     Vector px(2);
-    
-    printf("visual correction %d \n", visualCorrection);
+
     if (visualCorrection) {
 #ifdef MEANVERGENCE        
         if (countRegVerg == 1){
@@ -1300,23 +1250,39 @@ void gazeArbiterThread::vergenceInAngle() {
         while((error > 5.0)&&(timeout < TIMEOUT_CONST)) {
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
-
+            
+            Vector pa(3);
+            pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
+            igaze->lookAtRelAngles(pa);
+            
+            igaze->getAngles(anglesVect);
+            printf("                     phiReached %f \n", anglesVect[2]);
+            
+            double Ke = 2.0;
             errorx = 160 - point.x;
             errory = 120 - point.y;
-            px(0) = 182 - errorx;
-            px(1) = 113 - errory;; 
+            px(0)  = 182 - Ke * errorx;
+            px(1)  = 113 - Ke * errory;
             
             error = sqrt(errorx * errorx + errory * errory);
             printf("norm error %f vergence %f \n", error, phiRel);
             if(error >30.0) {
                 timeout = TIMEOUT_CONST;
             }
-            else{
-                int camSel = 0;
-                igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
-                tracker->getPoint(point);
-                Time::delay(0.3);
-            }
+
+            //Time::delay(0.1);
+            int camSel = 0;
+            //igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
+            //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
+            //printf("varDistance %f \n", varDistance);
+            //igaze->getAngles(anglesVect);
+            igaze->lookAtMonoPixelWithVergence(camSel, px, phiTOT);
+            //igaze->waitMotionDone();
+            //Time::delay(0.1);
+            tracker->getPoint(point);            
+
+            error = 5.0;
+            
         }
 #endif
         
@@ -1477,6 +1443,18 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
         }
+        else if(!strcmp(name.c_str(),"VER_ABS")) {
+            phi = -1;
+            phiTOT1 = arg->get(1).asDouble();            
+            phiTOT2 = arg->get(2).asDouble();
+            phiTOT3 = arg->get(3).asDouble();
+            
+            mutex.wait();
+            mono = true;
+            stateRequest[1] = 1;
+            //executing = false;
+            mutex.post();
+        }
         else if(!strcmp(name.c_str(),"COR_OFF")) {            
             printf("visual correction disabled \n");
             Time::delay(0.01);
@@ -1497,6 +1475,59 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
     }
 }
 
- 
+void gazeArbiterThread::calculateDistance() {
+    //printf("leftAngle:%f  ,  rightAngle:%f \n", (leftAngle*180)/PI, (rightAngle*180)/PI);
+    double h,vergence,v,ipLeft, rightHat, rightAngle, leftHat, alfa,b, leftAngle;
+    if(leftAngle >= 0) {
+        if(rightAngle >= 0) {
+            rightHat = PI / 2 - rightAngle;
+            leftHat = PI / 2 - leftAngle;
+            alfa = PI / 2 - rightHat;
+            
+            h = BASELINE * (
+                            (sin(leftHat) * sin(rightHat)) / 
+                            (sin(rightHat) * sin(vergence + alfa) - sin(alfa) * sin(leftHat))
+                            );
+            b = h * (sin(alfa) / sin(rightHat));
+            ipLeft = sqrt ( h * h + (BASELINE + b) * (BASELINE + b));
+        }
+        else {
+            if(rightAngle >= leftAngle) {
+                rightHat = PI / 2 + rightAngle;
+                leftHat = PI / 2 - leftAngle;
+                alfa = PI / 2 - leftHat;
+                h = BASELINE * (
+                                (sin(leftHat) * sin(rightHat)) / 
+                                (sin(leftHat) * sin(vergence + alfa) + sin(alfa) * sin(rightHat))
+                                );
+                b = h * (sin(alfa) / sin(leftHat));
+                ipLeft = sqrt ( h * h + b * b);
+            }
+            else {
+                rightHat = PI / 2 + rightAngle;
+                leftHat = PI / 2 - leftAngle;
+                alfa = PI / 2 - rightHat;
+                h = BASELINE * (
+                                (sin(leftHat) * sin(rightHat)) / 
+                                (sin(rightHat) * sin(vergence + alfa) + sin(alfa) * sin(leftHat))
+                                );
+                b = h * (sin(alfa) / sin(rightHat));
+                ipLeft = sqrt ( h * h + (BASELINE + b) * (BASELINE + b));
+            }
+        }
+    }
+    else {
+        rightHat = PI /2  + rightAngle;
+        leftHat = PI / 2 + leftAngle;
+        alfa = PI / 2 - leftHat;
+        h = BASELINE * (
+                        (sin(leftHat) * sin(rightHat)) / 
+                        (sin(leftHat) * sin(vergence + alfa) - sin(alfa) * sin(rightHat))
+                        );
+        b = h * (sin(alfa) / sin(leftHat));
+                ipLeft = sqrt ( h * h + b * b);
+    }
+}
+        
 
 
