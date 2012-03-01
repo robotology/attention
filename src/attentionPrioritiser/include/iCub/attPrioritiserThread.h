@@ -145,6 +145,14 @@ private:
     double timeout;                         // actual timer of the saccadic action
     double timetot;                         // actual timer of the complete fixation task
 
+    unsigned char feedbackBlobRed;          // value returned from the feedback coming from blobFinder
+    unsigned char feedbackBlobGreen;        // value returned from the feedback coming from blobFinder
+    unsigned char feedbackBlobBlue;         // value returned from the feedback coming from blobFinder
+    unsigned char feedbackOri0;             // value returned from the feedback coming from orientation/earlyVision
+    unsigned char feedbackOri45;            // value returned from the feedback coming from orientation/earlyVision
+    unsigned char feedbackOri90;            // value returned from the feedback coming from orientation/earlyVision
+    unsigned char feedbackOriM45;           // value returned from the feedback coming from orientation/earlyVision 
+    
     int template_size;                      // size of the template
     int search_size;                        // area over the search is performed
     bool topDownState[4];                   // vector of topDown states

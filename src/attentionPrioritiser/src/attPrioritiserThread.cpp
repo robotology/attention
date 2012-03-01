@@ -1056,6 +1056,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 req.addVocab(COMMAND_VOCAB_P0);
                 feedbackEarlyVision.write(req, rep);
                 cout<<rep.toString().c_str()<<endl;
+                feedbackOri0 = rep.get(0).asInt(); 
 
                 req.clear();
                 req.addVocab(COMMAND_VOCAB_GET);
@@ -1063,6 +1064,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 req.addVocab(COMMAND_VOCAB_P90);
                 feedbackEarlyVision.write(req, rep);
                 cout<<rep.toString().c_str()<<endl;
+                feedbackOri90 = rep.get(0).asInt();
                 
                 req.clear();
                 req.addVocab(COMMAND_VOCAB_GET);
@@ -1070,6 +1072,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 req.addVocab(COMMAND_VOCAB_P45);
                 feedbackEarlyVision.write(req, rep);
                 cout<<rep.toString().c_str()<<endl;
+                feedbackOri45 = rep.get(0).asInt();
                 
                 req.clear();
                 req.addVocab(COMMAND_VOCAB_GET);
@@ -1077,6 +1080,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 req.addVocab(COMMAND_VOCAB_N45);
                 feedbackEarlyVision.write(req, rep);
                 cout<<rep.toString().c_str()<<endl;
+                feedbackOriM45 = rep.get(0).asInt();
             }
             else {
                 cout<<"no active feedback to earlyVision"<<endl;
@@ -1087,22 +1091,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 cout<<"communicatio activated with the protoObject: \n";
                 Bottle rep;
                 Bottle req;
-                req.clear();
-                req.addVocab(COMMAND_VOCAB_GET);
-                req.addVocab(COMMAND_VOCAB_MAXDB);
-                feedbackProtoObject.write(req, rep);
-                cout<<" maxdb:     "<<rep.toString().c_str()<<endl;
 
                 req.clear();
                 req.addVocab(COMMAND_VOCAB_GET);
                 req.addVocab(COMMAND_VOCAB_FRGB);
                 feedbackProtoObject.write(req, rep);
                 cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
-                int redColour   = rep.get(0).asInt();
-                int greenColour = rep.get(1).asInt();
-                int blueColour  = rep.get(2).asInt();
-                printf("rgb colour value %d %d %d \n",redColour, greenColour, blueColour);
-                
+                feedbackBlobRed   = rep.get(0).asInt();
+                feedbackBlobGreen = rep.get(1).asInt();
+                feedbackBlobBlue  = rep.get(2).asInt();
+                printf("rgb colour value %d %d %d \n",feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
             }
             else {
                 cout<<"no active feedback to protoObject"<<endl;

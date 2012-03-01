@@ -316,28 +316,28 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
                     case COMMAND_VOCAB_P45:
                         wt = evThread->chromeThread->getFoveaOri(0);
                         reply.clear();
-                        reply.addDouble(wt);
+                        reply.addInt(wt);
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_N45:
                         wt = evThread->chromeThread->getFoveaOri(-45);
                         reply.clear();
-                        reply.addDouble(wt);
+                        reply.addInt(wt);
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_P0:
                         wt = evThread->chromeThread->getFoveaOri(0);
                         reply.clear();
-                        reply.addDouble(wt);
+                        reply.addInt(wt);
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_P90:
                         wt = evThread->chromeThread->getFoveaOri(90);
                         reply.clear();
-                        reply.addDouble(wt);
+                        reply.addInt(wt);
                         rec = true;
                         ok = true;
                         break;                                 
