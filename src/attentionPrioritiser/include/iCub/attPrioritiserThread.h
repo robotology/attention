@@ -140,6 +140,7 @@ private:
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
     bool accomplished_flag;                 // flag for the accomplished vergence
     bool correcting;                        // flag that allows the test for correction to take place
+    bool reinfFootprint;                    // flag that allows the reinforcement of the features of the desired object
     double timeoutStart,timeoutStop;        // start and stop timing to avoid that saccadic event can stuck
     double timetotStart,timetotStop;        // start and stop timing for the complete fixation task
     double timeout;                         // actual timer of the saccadic action
@@ -339,6 +340,8 @@ public:
     void waitMotionDone() {
         igaze->waitMotionDone();
     }
+
+    void reinforcementFootprint() {};
 
 };
 
