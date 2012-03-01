@@ -42,6 +42,12 @@ bool earlyVisionModule::configure(yarp::os::ResourceFinder &rf) {
     if(rf.check("Help")) {
         printf("Help \n");
         printf("===== \n");
+        printf("--name  : changes the name of the module \n");
+        printf("--robot : changes the robot reference \n ");
+        printf("--whorizontal : change the weight of the horizonatal orientation \n");
+        printf("--wvorizontal : change the weight of the horizonatal orientation \n");
+        printf("--w45degrees : change the weight of the horizonatal orientation \n");
+        printf("--wM45degrees : change the weight of the horizonatal orientation \n");
         printf("Press CTRL-C to continue \n");
         return true;
     }
@@ -147,8 +153,6 @@ bool earlyVisionModule::close()
     return true;
 }
 
-
-
 bool earlyVisionModule::respond(const Bottle& command, Bottle& reply) 
 {
     reply.clear();
@@ -190,6 +194,7 @@ bool earlyVisionModule::respond(const Bottle& command, Bottle& reply)
             reply.addString(" get ori 45   : to get the orientation the saliency of feature in fovea ");
             reply.addString(" get ori 90   : to get the orientation the saliency of feature in fovea ");
             reply.addString(" get ori M45  : to get the orientation the saliency of feature in fovea ");
+            reply.addString(" get chr      : get the value in thechrominance feature map in fovea ");
             reply.addString(" ");
             reply.addString(" ");
             //reply.addString(helpMessage.c_str());

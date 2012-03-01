@@ -710,7 +710,7 @@ void earlyVisionThread::centerSurrounding(){
                     iCub::logpolar::replicateBorderLogpolar(*Gplus, *GplusUnex, maxKernelSize);
                     iCub::logpolar::replicateBorderLogpolar(*Bplus, *BplusUnex, maxKernelSize);
                     
-                    #ifdef DEBUG_OPENCV
+#ifdef DEBUG_OPENCV
                     cvNamedWindow("YofYUVpy");
                     cvShowImage("YofYUVpy",(IplImage*)YofYUVpy->getIplImage());
                     cvNamedWindow("UofYUVpy");
@@ -724,7 +724,7 @@ void earlyVisionThread::centerSurrounding(){
                     cvNamedWindow("bluePlane");
                     cvShowImage("bluePlane", (IplImage*)bluePlane->getIplImage());
                     cvWaitKey(2);
-                    #endif
+#endif
                     
                     //cvConvertScale(cs_tot_32f,(IplImage*)img_UV->getIplImage(),255,0);                   
                     

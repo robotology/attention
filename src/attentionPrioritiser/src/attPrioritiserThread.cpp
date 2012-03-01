@@ -1049,10 +1049,32 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 //cout<<"communication activated with the earlyVision: ";
                 Bottle rep;
                 Bottle req;
+
                 req.clear();
                 req.addVocab(COMMAND_VOCAB_GET);
                 req.addVocab(COMMAND_VOCAB_ORI);
                 req.addVocab(COMMAND_VOCAB_P0);
+                feedbackEarlyVision.write(req, rep);
+                cout<<rep.toString().c_str()<<endl;
+
+                req.clear();
+                req.addVocab(COMMAND_VOCAB_GET);
+                req.addVocab(COMMAND_VOCAB_ORI);
+                req.addVocab(COMMAND_VOCAB_P90);
+                feedbackEarlyVision.write(req, rep);
+                cout<<rep.toString().c_str()<<endl;
+                
+                req.clear();
+                req.addVocab(COMMAND_VOCAB_GET);
+                req.addVocab(COMMAND_VOCAB_ORI);
+                req.addVocab(COMMAND_VOCAB_P45);
+                feedbackEarlyVision.write(req, rep);
+                cout<<rep.toString().c_str()<<endl;
+                
+                req.clear();
+                req.addVocab(COMMAND_VOCAB_GET);
+                req.addVocab(COMMAND_VOCAB_ORI);
+                req.addVocab(COMMAND_VOCAB_N45);
                 feedbackEarlyVision.write(req, rep);
                 cout<<rep.toString().c_str()<<endl;
             }

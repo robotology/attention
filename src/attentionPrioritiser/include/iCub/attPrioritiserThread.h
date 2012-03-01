@@ -35,6 +35,11 @@
 #define COMMAND_VOCAB_BU                 VOCAB2('b','u')
 #define COMMAND_VOCAB_P0                 VOCAB2('p','0')
 
+#define COMMAND_VOCAB_45                 VOCAB3('o','4','5')
+#define COMMAND_VOCAB_P45                VOCAB3('p','4','5')
+#define COMMAND_VOCAB_N45                VOCAB3('n','4','5')
+#define COMMAND_VOCAB_M45                VOCAB3('M','4','5')
+#define COMMAND_VOCAB_P90                VOCAB3('p','9','0')
 #define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
 #define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
 #define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
