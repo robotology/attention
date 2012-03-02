@@ -880,7 +880,16 @@ void gazeArbiterThread::run() {
                 px[1] = yObject;
                 px[2] = zObject;
                 igaze->lookAtFixationPoint(px);
+                igaze->waitMotionDone();
+                goto exiting;
+                /*if(visualCorrection){
+                    printf("starting visual correction with\n");
+                    tracker->init(160,120);
+                    tracker->waitInitTracker();
+                    Time::delay(0.01);
+                }
                 printf("saccadic event : started %f %f %f \n",xObject,yObject,zObject);
+                */
             }
 
             //Time::delay(0.05);
