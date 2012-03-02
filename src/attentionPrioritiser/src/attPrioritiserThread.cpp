@@ -964,6 +964,8 @@ void attPrioritiserThread::fixCenter(int elapseTime) {
     commandBottle.clear();
     commandBottle.addString("STOP");
     outputPort.write();
+    
+    Time::delay(0.5);
 
     mutex.wait();
     xObject = -0.9;

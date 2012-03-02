@@ -231,9 +231,9 @@ bool gazeArbiterModule::close() {
 
 bool gazeArbiterModule::respond(const Bottle& command, Bottle& reply) {
     string helpMessage =  string(getName().c_str()) + 
-                        " commands are: \n" +  
-                        "help \n" + 
-                        "quit \n";
+        " commands are: \n" +  
+        "help \n" + 
+        "quit \n";
 
     reply.clear(); 
 

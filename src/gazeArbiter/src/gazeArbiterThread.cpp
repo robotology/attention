@@ -1391,6 +1391,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         int size = arg->size();
         ConstString name = arg->get(0).asString();
         if(!strcmp(name.c_str(),"STOP")) {
+            printf("STOP request!!!!!! \n");
             timeout = 100;
         }
         else if(!strcmp(name.c_str(),"SAC_MONO")) {
