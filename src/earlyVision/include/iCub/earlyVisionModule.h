@@ -154,9 +154,10 @@
 
 /**
  * \section change_log CHANGE LOG
- * 12/09/11 : added factor 2 for the combination of orientation and introduced parameters for weights configuration \author Rea \n
- * 15/02/12 : added few function to extract value of orientatio feature maps valuated in fovea
- * 01/03/12 : added response function for chrominace feature map in fovea
+ * 12/09/11 : added factor 2 for the combination of orientation and introduced parameters for weights configuration        author : Rea \n
+ * 15/02/12 : added few function to extract value of orientatio feature maps valuated in fovea                             author : Rea \n
+ * 01/03/12 : added response function for chrominace feature map in fovea                                                  author : Rea \n           
+ * 01/03/12 : introduced the reinforcement object footprint (as collection of features)
  */
 
 #include <iostream>

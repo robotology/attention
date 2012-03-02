@@ -60,7 +60,11 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
     chromUnXtnIntensImg = new ImageOf<PixelMono>;
 
     
-    cartIntensImg       = new ImageOf<PixelMono>; 
+    cartIntensImg   = new ImageOf<PixelMono>; 
+    cartOri0        = new ImageOf<PixelMono>; 
+    cartOri45       = new ImageOf<PixelMono>; 
+    cartOri90       = new ImageOf<PixelMono>; 
+    cartOriM45      = new ImageOf<PixelMono>; 
     
     
     
@@ -183,7 +187,74 @@ std::string chrominanceThread::getName(const char* p) {
 }
 
 double chrominanceThread::getFoveaOri(int angle) {
-    return (double)angle;
+    double sumTot = 0;
+    int dimX = 20;
+    int dimY = 20;
+    if(angle == 0) {
+        // looking at the orientPort0 fovea (20 pixel along any axes)
+        unsigned char* imagePointer = cartOri0->getRawImage();
+        int rowSize = cartOri0->getRowSize();
+        int centerX = CART_COL_SIZE >> 1;
+        int centerY = CART_ROW_SIZE >> 1;
+        imagePointer += (centerY - dimY) * rowSize + (centerX - dimX);
+        
+        for (int y = 0; y < dimY; y++) {
+            for (int x = 0; x < dimX; x++) {
+                sumTot += *imagePointer;
+                imagePointer++;
+            }
+            imagePointer += rowSize - dimX;
+        }       
+    }
+    else if(angle == 45) {
+        // looking at the orientPort45 fovea (20 pixel along any axes)
+        unsigned char* imagePointer = cartOri45->getRawImage();
+        int rowSize = cartOri45->getRowSize();
+        int centerX = CART_COL_SIZE >> 1;
+        int centerY = CART_ROW_SIZE >> 1;
+        imagePointer += (centerY - dimY) * rowSize + (centerX - dimX);
+        
+        for (int y = 0; y < dimY; y++) {
+            for (int x = 0; x < dimX; x++) {
+                sumTot += *imagePointer;
+                imagePointer++;
+            }
+            imagePointer += rowSize - dimX;
+        }       
+    }
+    else if(angle == 90) {
+        // looking at the orientPort90 fovea (20 pixel along any axes)
+        unsigned char* imagePointer = cartOri90->getRawImage();
+        int rowSize = cartOri90->getRowSize();
+        int centerX = CART_COL_SIZE >> 1;
+        int centerY = CART_ROW_SIZE >> 1;
+        imagePointer += (centerY - dimY) * rowSize + (centerX - dimX);
+        
+        for (int y = 0; y < dimY; y++) {
+            for (int x = 0; x < dimX; x++) {
+                sumTot += *imagePointer;
+                imagePointer++;
+            }
+            imagePointer += rowSize - dimX;
+        }       
+    }
+    else if(angle == 315) {
+        // looking at the orientPort0 fovea (20 pixel along any axes)
+        unsigned char* imagePointer = cartOriM45->getRawImage();
+        int rowSize = cartOriM45->getRowSize();
+        int centerX = CART_COL_SIZE >> 1;
+        int centerY = CART_ROW_SIZE >> 1;
+        imagePointer += (centerY - dimY) * rowSize + (centerX - dimX);
+        
+        for (int y = 0; y < dimY; y++) {
+            for (int x = 0; x < dimX; x++) {
+                sumTot += *imagePointer;
+                imagePointer++;
+            }
+            imagePointer += rowSize - dimX;
+        }       
+    }
+    return (unsigned char) (sumTot / (dimX + dimY));
 }
 
 void chrominanceThread::run() {
@@ -215,6 +286,10 @@ void chrominanceThread::resize(int width_orig,int height_orig) {
 
     chromUnXtnIntensImg->resize(width_orig,height_orig);
     cartIntensImg->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    cartOri0     ->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    cartOri45    ->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    cartOri90    ->resize(CART_ROW_SIZE, CART_COL_SIZE);
+    cartOriM45   ->resize(CART_ROW_SIZE, CART_COL_SIZE);
    
     
     for(int j=0; j<GABOR_SCALES; ++j){
@@ -290,174 +365,179 @@ void chrominanceThread::orientation() {
         
     //----------------------------------------------------------------------------------------------------------//
     if(getFlagForDataReady()){
-     //Checking!
-                ImageOf<PixelFloat>  *temp2 = new ImageOf<PixelFloat>;                
-                ImageOf<PixelFloat>* imageInCart = new ImageOf<PixelFloat>;
-                                
-                ImageOf<PixelMono>* imageInCartMonoLogP = new ImageOf<PixelMono>;
+        //Checking!
+        ImageOf<PixelFloat>  *temp2 = new ImageOf<PixelFloat>;                
+        ImageOf<PixelFloat>* imageInCart = new ImageOf<PixelFloat>;
+        
+        ImageOf<PixelMono>* imageInCartMonoLogP = new ImageOf<PixelMono>;
+        
+        imageInCart->resize(CART_ROW_SIZE,CART_COL_SIZE);
+        imageInCartMono->resize(CART_ROW_SIZE,CART_COL_SIZE);
+        imageInCartMonoLogP->resize(ROW_SIZE,COL_SIZE);
+        imageInCart->zero();
+        
+        ImageOf<PixelMono>& totalImage = totalOrientCartImgPort.prepare();
+        totalImage.resize(CART_ROW_SIZE,CART_COL_SIZE);
+        totalImage.zero();
+        
+        ImageOf<PixelMono>& totalImageLP = totalOrientImagePort.prepare();
+        totalImageLP.resize(ROW_SIZE,COL_SIZE);
+        totalImageLP.zero();
+        
+        //By now we have all scales of Y-image in pyramid for  0,45,90 and -45, scales are 4
+        for(int eachOrient=0; eachOrient<GABOR_ORIS; ++eachOrient){                    
+            
+            tempCSScaleOne->resize(ROW_SIZE,COL_SIZE);
+            for(int eachScale=0; eachScale<GABOR_SCALES; ++eachScale){
+                int factor = pow(2,eachScale);
+                int widthTemp = CART_ROW_SIZE/factor;
+                int heightTemp = CART_COL_SIZE/factor;
+                /*
+                //patch
+                if(eachScale==3){
+                widthTemp += 1;
+                heightTemp += 1;
+                }*/
+                temp2->resize(widthTemp,heightTemp);
+                temp2->zero();
                 
-                imageInCart->resize(CART_ROW_SIZE,CART_COL_SIZE);
-                imageInCartMono->resize(CART_ROW_SIZE,CART_COL_SIZE);
-                imageInCartMonoLogP->resize(ROW_SIZE,COL_SIZE);
+                cvFilter2D((IplImage*)imageAtScale[eachScale]->getIplImage(),(IplImage*)temp2->getIplImage(),gaborKernels[eachOrient],anchor);
                 imageInCart->zero();
+                imageInCartMono->zero();
+                cvResize((IplImage*)temp2->getIplImage(),(IplImage*)imageInCart->getIplImage(),CV_INTER_CUBIC);
+                cvConvertScale((IplImage*)imageInCart->getIplImage(),(IplImage*)imageInCartMono->getIplImage(),255*255,0);
+                lpMono.cartToLogpolar(*imageInCartMonoLogP,*imageInCartMono);
+                cvConvertScale((IplImage*)imageInCartMonoLogP->getIplImage(),(IplImage*)imageForAScale[eachScale]->getIplImage(),1.0/255.0,0.0);                            
                 
-                ImageOf<PixelMono>& totalImage = totalOrientCartImgPort.prepare();
-                totalImage.resize(CART_ROW_SIZE,CART_COL_SIZE);
-                totalImage.zero();
+            }
+            
+            // Combine the images for each orient
+            float* imgHdrTot = (float*)tempCSScaleOne->getRawImage();
+            float* imgPtrTot = (float*)tempCSScaleOne->getRawImage();
+            int rowSize = tempCSScaleOne->getRowSize()/sizeof(float);
+            tempCSScaleOne->zero();                      
+            
+            float *scaleImgPtr, *scaleImgHdr, *intensityImgPtr, *intensityImgHdr, *intensityImgPtrSec, *intensityImgHdrSec;
+            int scaleImgRowSize, intensityImgRowSize;
+            
+            for(int scaleNow = 0; scaleNow <GABOR_SCALES-1; ++scaleNow){
+                scaleImgPtr = (float*)imageForAScale[scaleNow]->getRawImage();
+                scaleImgHdr = (float*)imageForAScale[scaleNow]->getRawImage();
+                scaleImgRowSize = imageForAScale[scaleNow]->getRowSize()/sizeof(float);
+                intensityImgPtr = (float*)gaussUpScaled[scaleNow+1]->getRawImage();
+                intensityImgHdr = (float*)gaussUpScaled[scaleNow+1]->getRawImage();
+                intensityImgPtrSec = (float*)gaussUpScaled[scaleNow+2]->getRawImage();
+                intensityImgHdrSec = (float*)gaussUpScaled[scaleNow+2]->getRawImage();
+                intensityImgRowSize = gaussUpScaled[scaleNow+1]->getRowSize()/sizeof(float);
                 
-                ImageOf<PixelMono>& totalImageLP = totalOrientImagePort.prepare();
-                totalImageLP.resize(ROW_SIZE,COL_SIZE);
-                totalImageLP.zero();
-                        
-                //By now we have all scales of Y-image in pyramid for  0,45,90 and -45, scales are 4
-                for(int eachOrient=0; eachOrient<GABOR_ORIS; ++eachOrient){                    
-                               
-                    tempCSScaleOne->resize(ROW_SIZE,COL_SIZE);
-                    for(int eachScale=0; eachScale<GABOR_SCALES; ++eachScale){
-                        int factor = pow(2,eachScale);
-                        int widthTemp = CART_ROW_SIZE/factor;
-                        int heightTemp = CART_COL_SIZE/factor;
-                        /*
-                        //patch
-                        if(eachScale==3){
-                            widthTemp += 1;
-                            heightTemp += 1;
-                        }*/
-                        temp2->resize(widthTemp,heightTemp);
-                        temp2->zero();
-                            
-                        cvFilter2D((IplImage*)imageAtScale[eachScale]->getIplImage(),(IplImage*)temp2->getIplImage(),gaborKernels[eachOrient],anchor);
-                        imageInCart->zero();
-                        imageInCartMono->zero();
-                        cvResize((IplImage*)temp2->getIplImage(),(IplImage*)imageInCart->getIplImage(),CV_INTER_CUBIC);
-                        cvConvertScale((IplImage*)imageInCart->getIplImage(),(IplImage*)imageInCartMono->getIplImage(),255*255,0);
-                        lpMono.cartToLogpolar(*imageInCartMonoLogP,*imageInCartMono);
-                        cvConvertScale((IplImage*)imageInCartMonoLogP->getIplImage(),(IplImage*)imageForAScale[eachScale]->getIplImage(),1.0/255.0,0.0);                            
-                        
+                for(int i=0; i<tempCSScaleOne->height(); ++i){
+                    imgPtrTot = imgHdrTot+rowSize*i;
+                    scaleImgPtr = scaleImgHdr + scaleImgRowSize*i;
+                    intensityImgPtr = intensityImgHdr + intensityImgRowSize*i;                                
+                    intensityImgPtrSec = intensityImgHdrSec + intensityImgRowSize*i;                                
+                    for(int j=0; j<tempCSScaleOne->width(); ++j){
+                        //weightGaborAtScale[scaleNow] = 1000.0;
+                        //weightIntensityAtScale[scaleNow+1] = weightIntensityAtScale[scaleNow+2] =500.0;
+                        *imgPtrTot += max(0.0,*scaleImgPtr*((float)weightGaborAtScale[scaleNow]-500.0)/1000.0 
+                                          - (*intensityImgPtr*((float)weightIntensityAtScale[scaleNow+1]-500.0)/1000.0 
+                                             + *intensityImgPtrSec*((float)weightIntensityAtScale[scaleNow+2]-500.0)/500.0 )/2.0);
+                        imgPtrTot++;
+                        scaleImgPtr++;
+                        intensityImgPtr++;
+                        intensityImgPtrSec++;
                     }
-                        
-                    // Combine the images for each orient
-                    float* imgHdrTot = (float*)tempCSScaleOne->getRawImage();
-                    float* imgPtrTot = (float*)tempCSScaleOne->getRawImage();
-                    int rowSize = tempCSScaleOne->getRowSize()/sizeof(float);
-                    tempCSScaleOne->zero();                      
-                       
-                    float *scaleImgPtr, *scaleImgHdr, *intensityImgPtr, *intensityImgHdr, *intensityImgPtrSec, *intensityImgHdrSec;
-                    int scaleImgRowSize, intensityImgRowSize;
-                     
-                   for(int scaleNow = 0; scaleNow <GABOR_SCALES-1; ++scaleNow){
-                        scaleImgPtr = (float*)imageForAScale[scaleNow]->getRawImage();
-                        scaleImgHdr = (float*)imageForAScale[scaleNow]->getRawImage();
-                        scaleImgRowSize = imageForAScale[scaleNow]->getRowSize()/sizeof(float);
-                        intensityImgPtr = (float*)gaussUpScaled[scaleNow+1]->getRawImage();
-                        intensityImgHdr = (float*)gaussUpScaled[scaleNow+1]->getRawImage();
-                        intensityImgPtrSec = (float*)gaussUpScaled[scaleNow+2]->getRawImage();
-                        intensityImgHdrSec = (float*)gaussUpScaled[scaleNow+2]->getRawImage();
-                        intensityImgRowSize = gaussUpScaled[scaleNow+1]->getRowSize()/sizeof(float);
-                        
-                        for(int i=0; i<tempCSScaleOne->height(); ++i){
-                            imgPtrTot = imgHdrTot+rowSize*i;
-                            scaleImgPtr = scaleImgHdr + scaleImgRowSize*i;
-                            intensityImgPtr = intensityImgHdr + intensityImgRowSize*i;                                
-                            intensityImgPtrSec = intensityImgHdrSec + intensityImgRowSize*i;                                
-                            for(int j=0; j<tempCSScaleOne->width(); ++j){
-                                //weightGaborAtScale[scaleNow] = 1000.0;
-                                //weightIntensityAtScale[scaleNow+1] = weightIntensityAtScale[scaleNow+2] =500.0;
-                                *imgPtrTot += max(0.0,*scaleImgPtr*((float)weightGaborAtScale[scaleNow]-500.0)/1000.0 
-                                             - (*intensityImgPtr*((float)weightIntensityAtScale[scaleNow+1]-500.0)/1000.0 
-                                              + *intensityImgPtrSec*((float)weightIntensityAtScale[scaleNow+2]-500.0)/500.0 )/2.0);
-                                imgPtrTot++;
-                                scaleImgPtr++;
-                                intensityImgPtr++;
-                                intensityImgPtrSec++;
-                            }
-                        }
-                   }
-                   
-                    scaleImgPtr = (float*)imageForAScale[GABOR_SCALES-2]->getRawImage();
-                    scaleImgHdr = (float*)imageForAScale[GABOR_SCALES-2]->getRawImage();
-                    scaleImgRowSize = imageForAScale[GABOR_SCALES-2]->getRowSize()/sizeof(float);
-                    intensityImgPtr = (float*)gaussUpScaled[GABOR_SCALES-1]->getRawImage();
-                    intensityImgHdr = (float*)gaussUpScaled[GABOR_SCALES-1]->getRawImage();                        
-                    intensityImgRowSize = gaussUpScaled[GABOR_SCALES-1]->getRowSize()/sizeof(float);
-                    
-                    for(int i=0; i<tempCSScaleOne->height(); ++i){
-                        imgPtrTot = imgHdrTot+rowSize*i;
-                        scaleImgPtr = scaleImgHdr + scaleImgRowSize*i;
-                        intensityImgPtr = intensityImgHdr + intensityImgRowSize*i;                                
-                        for(int j=0; j<tempCSScaleOne->width(); ++j){
-                            //weightGaborAtScale[GABOR_SCALES-2] = 1000.0;
-                            //weightIntensityAtScale[GABOR_SCALES-1]  =500.0;
-                            *imgPtrTot += max(0.0,*scaleImgPtr *((float)weightGaborAtScale[GABOR_SCALES-2]-500.0)/500.0 - *intensityImgPtr *((float)weightIntensityAtScale[GABOR_SCALES-1]-500.0)/500.0);
-                            imgPtrTot++;
-                            scaleImgPtr++;
-                            intensityImgPtr++;                                
-                        }
-                    }
-                       
-                       
-                   // we have now result for this orientation
-                   imageInCartMono->zero();
-                   imageInCartMonoLogP->zero();
-                                      
-                   cvConvertScale((IplImage*)tempCSScaleOne->getIplImage(),(IplImage*)imageInCartMonoLogP->getIplImage(),255,0);
-                   lpMono.logpolarToCart(*imageInCartMono,*imageInCartMonoLogP);
-                   cvWaitKey(2);
-                   
-                   if(eachOrient == 0){
-                        orientPort0.prepare() = *imageInCartMono;
-                        orientPort0.write();
-                        }
-                    if(eachOrient == 1){
-                        orientPort45.prepare() = *imageInCartMono;
-                        orientPort45.write();
-                        }
-                    if(eachOrient == 2){
-                        orientPort90.prepare() = *imageInCartMono;
-                        orientPort90.write();
-                        }
-                    if(eachOrient == 3){
-                        orientPortM45.prepare() = *imageInCartMono;
-                        orientPortM45.write();
-                        }
-                    
-                    uchar* oriImgPtr = (uchar*)imageInCartMono->getRawImage();
-                    uchar* oriImgHdr = (uchar*)imageInCartMono->getRawImage();
-                    int oriImgRowSize = imageInCartMono->getRowSize()/sizeof(uchar);
-                    uchar* totImgPtr = (uchar*)totalImage.getRawImage();
-                    uchar* totImgHdr = (uchar*)totalImage.getRawImage();
-                    int totImgRowSize = totalImage.getRowSize()/sizeof(uchar);
-                    
-                    
-                    for(int i=0; i<imageInCartMono->height(); ++i){
-                        totImgPtr = totImgHdr+totImgRowSize*i;
-                        oriImgPtr = oriImgHdr + oriImgRowSize*i;
-                        for(int j=0; j<imageInCartMono->width(); ++j){
-                            //weightGaborAtScale[GABOR_SCALES-2] = 1000.0;
-                            //weightIntensityAtScale[GABOR_SCALES-1]  =500.0;
-                            *totImgPtr += (*oriImgPtr)*wtForEachOrientation[eachOrient];
-                            totImgPtr++;
-                            oriImgPtr++;                                                  
-                        }
-                    } 
-                         
-                       
-                                
-                }// end of orientations
-                lpMono.cartToLogpolar(totalImageLP,totalImage);
+                }
+            }
+            
+            scaleImgPtr = (float*)imageForAScale[GABOR_SCALES-2]->getRawImage();
+            scaleImgHdr = (float*)imageForAScale[GABOR_SCALES-2]->getRawImage();
+            scaleImgRowSize = imageForAScale[GABOR_SCALES-2]->getRowSize()/sizeof(float);
+            intensityImgPtr = (float*)gaussUpScaled[GABOR_SCALES-1]->getRawImage();
+            intensityImgHdr = (float*)gaussUpScaled[GABOR_SCALES-1]->getRawImage();                        
+            intensityImgRowSize = gaussUpScaled[GABOR_SCALES-1]->getRowSize()/sizeof(float);
+            
+            for(int i=0; i<tempCSScaleOne->height(); ++i){
+                imgPtrTot = imgHdrTot+rowSize*i;
+                scaleImgPtr = scaleImgHdr + scaleImgRowSize*i;
+                intensityImgPtr = intensityImgHdr + intensityImgRowSize*i;                                
+                for(int j=0; j<tempCSScaleOne->width(); ++j){
+                    //weightGaborAtScale[GABOR_SCALES-2] = 1000.0;
+                    //weightIntensityAtScale[GABOR_SCALES-1]  =500.0;
+                    *imgPtrTot += max(0.0,*scaleImgPtr *((float)weightGaborAtScale[GABOR_SCALES-2]-500.0)/500.0 - *intensityImgPtr *((float)weightIntensityAtScale[GABOR_SCALES-1]-500.0)/500.0);
+                    imgPtrTot++;
+                    scaleImgPtr++;
+                    intensityImgPtr++;                                
+                }
+            }
+       
+            
+            // we have now result for this orientation
+            imageInCartMono->zero();
+            imageInCartMonoLogP->zero();
+            
+            cvConvertScale((IplImage*)tempCSScaleOne->getIplImage(),(IplImage*)imageInCartMonoLogP->getIplImage(),255,0);
+            //lpMono.logpolarToCart(*imageInCartMono,*imageInCartMonoLogP);
+            cvWaitKey(2);
+            
+            if(eachOrient == 0){
+                lpMono.logpolarToCart(*cartOri0,*imageInCartMonoLogP);
+                //orientPort0.prepare() = *imageInCartMono;
+                orientPort0.prepare() = *cartOri0;
+                orientPort0.write();
+            }
+            if(eachOrient == 1){
+                lpMono.logpolarToCart(*cartOri45,*imageInCartMonoLogP);
+                //orientPort45.prepare() = *imageInCartMono;
+                orientPort45.prepare() = *cartOri45;
+                orientPort45.write();
+            }
+            if(eachOrient == 2){
+                lpMono.logpolarToCart(*cartOri90,*imageInCartMonoLogP);
+                //orientPort90.prepare() = *imageInCartMono;
+                orientPort90.prepare() = *cartOri90;
+                orientPort90.write();
+            }
+            if(eachOrient == 3){
+                lpMono.logpolarToCart(*cartOriM45,*imageInCartMonoLogP);
+                //orientPortM45.prepare() = *imageInCartMono;
+                orientPortM45.prepare() = *cartOriM45;
+                orientPortM45.write();
+            }
+            
+            uchar* oriImgPtr = (uchar*)imageInCartMono->getRawImage();
+            uchar* oriImgHdr = (uchar*)imageInCartMono->getRawImage();
+            int oriImgRowSize = imageInCartMono->getRowSize()/sizeof(uchar);
+            uchar* totImgPtr = (uchar*)totalImage.getRawImage();
+            uchar* totImgHdr = (uchar*)totalImage.getRawImage();
+            int totImgRowSize = totalImage.getRowSize()/sizeof(uchar);
+            
+            
+            for(int i=0; i<imageInCartMono->height(); ++i){
+                totImgPtr = totImgHdr+totImgRowSize*i;
+                oriImgPtr = oriImgHdr + oriImgRowSize*i;
+                for(int j=0; j<imageInCartMono->width(); ++j){
+                    //weightGaborAtScale[GABOR_SCALES-2] = 1000.0;
+                    //weightIntensityAtScale[GABOR_SCALES-1]  =500.0;
+                    *totImgPtr += (*oriImgPtr)*wtForEachOrientation[eachOrient];
+                    totImgPtr++;
+                    oriImgPtr++;                                                  
+                }
+            } 
+            
+            
+            
+        }// end of orientations
+        lpMono.cartToLogpolar(totalImageLP,totalImage);
+        
+        delete temp2;
+        delete imageInCart;
+        delete imageInCartMonoLogP;
                 
-                delete temp2;
-                delete imageInCart;
-                delete imageInCartMonoLogP;
-                
-    
-    
-    totalOrientCartImgPort.write();
-    totalOrientImagePort.write();
-     
-    
+       
+        totalOrientCartImgPort.write();
+        totalOrientImagePort.write();
+               
     }   
-  
 }
 
 
@@ -484,7 +564,12 @@ void chrominanceThread::threadRelease() {
 
     //deallocating resources
     delete chromUnXtnIntensImg;
+    delete cartOri0;
+    delete cartOri45; 
+    delete cartOri90; 
+    delete cartOriM45; 
     delete cartIntensImg;   
+
     for(int i=0; i<GABOR_SCALES; ++i){
         delete imageForAScale[i];
         delete imageAtScale[i];

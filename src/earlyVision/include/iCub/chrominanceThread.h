@@ -88,8 +88,11 @@ private:
     
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* cartIntensImg;          //yarp cartesian intensity image for orientation
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cartOri0;               //yarp cartesian for orientation 0
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cartOri45;              //yarp cartesian for orientation 45
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cartOri90;              //yarp cartesian for orientation 90
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cartOriM45;             //yarp cartesian for orientation M45
         
-
     //iCub::logpolar::logpolarTransform trsf; //reference to the converter for logpolar transform
     
     logpolarTransformVisual lpMono;
