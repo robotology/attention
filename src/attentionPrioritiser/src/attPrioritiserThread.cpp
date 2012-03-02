@@ -414,7 +414,7 @@ void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int bl
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_TIME);
-    sent->addDouble(150);
+    sent->addDouble(1500);
     feedbackSelective.write(*sent, *received);
     
     //setting saliencyBlobFinder
@@ -477,8 +477,7 @@ void attPrioritiserThread::seek(Bottle command) {
             int redValue   = command.get(2).asInt();
             int greenValue = command.get(3).asInt();
             int blueValue  = command.get(4).asInt();
-            printf("looking for color %d, %d, %d \n", redValue, greenValue, blueValue);
-            
+            printf("looking for color %d, %d, %d \n", redValue, greenValue, blueValue);            
             sendColorCommand(redValue, greenValue, blueValue);
         }
         break;
@@ -954,6 +953,18 @@ void attPrioritiserThread::run() {
 }
 
 void attPrioritiserThread::fixCenter(int elapseTime) {
+    
+    printf("FIX CENTER \n");
+    printf("FIX CENTER \n");
+    printf("FIX CENTER \n");
+    printf("FIX CENTER \n");
+    printf("FIX CENTER \n");
+
+    Bottle& commandBottle=outputPort.prepare();
+    commandBottle.clear();
+    commandBottle.addString("STOP");
+    outputPort.write();
+
     mutex.wait();
     xObject = -0.9;
     yObject = 0.0;

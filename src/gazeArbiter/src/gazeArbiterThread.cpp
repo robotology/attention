@@ -831,7 +831,11 @@ void gazeArbiterThread::run() {
                             v = (((((v - 64)/ 128.0) / 7.4) * 4) * 240) + 120;
                             printf("onDvs active %d %d \n", u,v);
                         }
-                        while (dist > 8) {
+                        timeout = 0;
+                        timeoutStart = Time::now();
+                        while ((dist > 8) && (timeout < TIMEOUT_CONST)) {
+                            timeoutStop = Time::now();
+                            timeout = timeoutStop - timeoutStart;
                             if(visualCorrection){
                                 printf("starting visual correction with\n");
                                 tracker->init(u,v);
@@ -1386,8 +1390,10 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
         ConstString name = arg->get(0).asString();
-        
-        if(!strcmp(name.c_str(),"SAC_MONO")) {
+        if(!strcmp(name.c_str(),"STOP")) {
+            timeout = 100;
+        }
+        else if(!strcmp(name.c_str(),"SAC_MONO")) {
             // monocular saccades with visualFeedback
             printf("MONO SACCADE request \n");
             u = arg->get(1).asInt();
@@ -1402,7 +1408,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             firstVer = true;
             firstVergence = true;
         }
-        if(!strcmp(name.c_str(),"SAC_EXPR")) {
+        else if(!strcmp(name.c_str(),"SAC_EXPR")) {
             // monocular saccades without visualfeedback
             printf("EXPRESS SACCADE request \n");
             u = arg->get(1).asInt();
@@ -1418,7 +1424,6 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             firstVer = true;
             firstVergence = true;
         }
-        
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
             xObject = arg->get(1).asDouble();
             yObject = arg->get(2).asDouble();
