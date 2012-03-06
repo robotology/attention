@@ -118,7 +118,8 @@ private:
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
     int* collectionLocation;                // collection of location for the center of gravity saccade
-    int originalContext;                    // original context for the gaze Controller
+    int  originalContext;                   // original context for the gaze Controller
+    int  width, height;                     // dimension of the image
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
     double varDistance;                     // calculated distance of the object from the eye 
@@ -129,7 +130,7 @@ private:
     double xmax, xmin;                      // limits in fixation point
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
-    int width, height;                      // dimension of the image
+    
     double phi;                             // value passed for relative vergence from the maximum shift
     double phi2;                            // value passed for relative vergence from the second maximum shift
     double phi3;                            // value passed for relative vergence from the third maximum shift

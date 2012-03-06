@@ -138,6 +138,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     firstVer           = false;
     firstVergence      = true;
     done               = true;
+    reinfFootprint     = true;
     postSaccCorrection = false;
     executing          = false;
     correcting         = false;
@@ -992,7 +993,8 @@ void attPrioritiserThread::seek(Bottle command) {
 }
 
 void attPrioritiserThread::reinforceFootprint() {
-    
+    reinfFootprint = false;
+
     printf("SELF REINFORCEMENT \n");
     printf("SELF REINFORCEMENT \n");
     printf("SELF REINFORCEMENT \n");
@@ -1112,13 +1114,60 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("saccade mono time: %f \n", time);
             mutex.wait();
             if(time <= 0.5) {
+                // express saccade
                 printf("setting stateRequest[4] \n");
                 stateRequest[4] = 1;
                 timeoutStart = Time::now();
             } 
             else {
-                printf("setting stateRequest[3] \n");
-                stateRequest[3] = 1;
+                // feedback saccade
+                // checking first for reinfFootPrint
+                if(!reinfFootprint) {
+                    // reinforceFootprint already happened
+                    // feedback value must still be taken into account 
+                    printf("Footprint still active \n");
+                    printf("Footprint color  : %d-%d-%d \n", feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
+                    printf("Footprint orient : %d-%d-%d-%d \n", feedbackOri0, feedbackOri45, feedbackOri90, feedbackOriM45);
+                    printf("Footprint chrominance: %d \n");
+
+                    //comparing with fovea current information
+                    Bottle rep;
+                    Bottle req;
+                    
+                    req.clear();
+                    req.addVocab(COMMAND_VOCAB_GET);
+                    req.addVocab(COMMAND_VOCAB_FRGB);
+                    feedbackProtoObject.write(req, rep);
+                    cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
+                    unsigned char currentBlobRed    = rep.get(0).asInt();
+                    unsigned char currentBlobGreen  = rep.get(1).asInt();
+                    unsigned char currentBlobBlue   = rep.get(2).asInt();
+                    printf("feedback colour value %d %d %d \n",feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
+                    printf("current  fovea colour %d %d %d \n",currentBlobRed , currentBlobGreen ,  currentBlobBlue);
+                    
+                    //calculating the distance between feedback color and current fovea color
+                    double colourDistance = sqrt (
+                                                  (feedbackBlobRed - currentBlobRed)   * (feedbackBlobRed - currentBlobRed)   + 
+                                                  (feedbackBlobRed - currentBlobGreen) * (feedbackBlobRed - currentBlobGreen) + 
+                                                  (feedbackBlobRed - currentBlobBlue)  * (feedbackBlobRed - currentBlobBlue)   
+                                                  );
+                    
+                    if(colourDistance < 10.0) {
+                        printf("setting stateRequest[3] \n");
+                        stateRequest[3] = 1;   
+                    }
+                    else {
+                        printf("saccade discard for top-down call \n");
+                    }
+
+                    Time::delay(5000);
+
+                }
+                else {
+                    //reinforceFootprint has happened yet
+                    printf("setting stateRequest[3] \n");
+                    stateRequest[3] = 1;
+                }
             }
             //executing = false;
             mutex.post();
@@ -1219,7 +1268,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //gathering information about the feature from the preattentive stage (protoObject component)
             if(feedbackProtoObject.getOutputCount()) {
-                cout<<"communicatio activated with the protoObject: \n";
+                cout<<"communication activated with the protoObject: \n";
                 Bottle rep;
                 Bottle req;
 
@@ -1237,7 +1286,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 cout<<"no active feedback to protoObject"<<endl;
             }
 
-
+            if(reinfFootprint) {
+                reinforceFootprint();
+            }
         }
         else if(!strcmp(name.c_str(),"VER_ACC")) {
             // vergence accomplished           
