@@ -158,7 +158,8 @@ private:
     int search_size;                        // area over the search is performed
     bool topDownState[4];                   // vector of topDown states
     double kNull[7];
-    double kColor[7];                        // kValue for selection in color state
+    double kColor[7];                       // kValue for selection in color state
+    double kColOri[7];                      // kValue for selection in color 'n' orientation state 
 
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
@@ -341,7 +342,7 @@ public:
         igaze->waitMotionDone();
     }
 
-    void reinforcementFootprint() {};
+    void reinforceFootprint();
 
 };
 
