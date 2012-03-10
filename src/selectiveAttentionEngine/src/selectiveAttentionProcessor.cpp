@@ -483,8 +483,8 @@ void selectiveAttentionProcessor::run(){
             }
         }
 
-        //reading motion map
-        if((map2Port.getInputCount())&&(k2!=0)) {
+        //reading motion map       
+        if((map2Port.getInputCount())&&(k2!=0)) { 
             tmp = map2Port.read(false);
             if(tmp != 0) {
                 copy_8u_C1R(tmp,map2_yarp);
@@ -554,16 +554,21 @@ void selectiveAttentionProcessor::run(){
             for(int y = 0 ; y < height ; y++){
                 for(int x = 0 ; x < halfwidth ; x++){
                    
-                    //------------- motion ---------------------- 
+                    //------------- motion ----------------------
+                    
                     if(counterMotion >= MAXCOUNTERMOTION) {
+
                         //value = (k2/sumK) *  (double) *pmap2Right ;                   
                         value = *pmap2Right;
-                        //if(*pmap2Right >= 255){
-                        //    printf("max in motion Left %d \n", value); 
-                        //}
+                        if(*pmap2Right >= threshold){
+                            printf("max in motion Right %d %f \n",*pmap2Right, value); 
+                        }
                         *plinearRight = value;
                         if (value >= threshold) {
                             printf("max in motion Right \n");                    
+                            printf("max in motion Right \n");
+                            printf("max in motion Right \n");
+                            printf("max in motion Right \n");
                             *plinearRight = 255;
                             crossAssign(plinearRight, 255, rowSize);
                             xm = halfwidth + x;
@@ -580,10 +585,16 @@ void selectiveAttentionProcessor::run(){
                         
                         //value = (k2/sumK) * (double) *pmap2Left;
                         value = *pmap2Left;
+                        if(*pmap2Left >= threshold){
+                            printf("max in motion Left %d %f \n",*pmap2Left, value); 
+                        }
                         *ptmp = *pmap2Left;
                         *plinearLeft = value;
                         if (value >= threshold) {
-                            printf("max in motion Left %d \n", (unsigned char) *pmap2Left);                    
+                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
                             *plinearLeft = 255;
                             crossAssign(plinearLeft, 255, rowSize);
                             xm = halfwidth - x;
