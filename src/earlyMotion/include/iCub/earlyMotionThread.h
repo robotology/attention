@@ -112,8 +112,9 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortIn;    // input port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;     // output port   
 
+    const static unsigned char threshold = 200;
+
     //convolve conv;
-    
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
 
