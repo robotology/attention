@@ -851,7 +851,7 @@ void gazeArbiterThread::run() {
                             igaze->checkMotionDone(&done);
                             dist = 10;
                             
-                            if(visualCorrection){
+                            /*if(visualCorrection){
                                 tracker->getPoint(point);
                                 dx = (double) (point.x - px(0));
                                 dy = (double) (point.y - px(1));
@@ -859,6 +859,8 @@ void gazeArbiterThread::run() {
                                 u = width  / 2;
                                 v = height / 2;
                             }
+                            */
+                            dist = 0;
                             
                             printf("correcting distance %f \n", dist);
                         }
@@ -945,12 +947,14 @@ void gazeArbiterThread::run() {
             timeout = 0;
             if (visualCorrection) {
                 printf("Using visual correction \n");
-                double error = 1000.0;
+                double errorVC = 100.0;
+                double errorVC_pre = 100.0;
                 int countReach = 0;
+                int countDecrement = 0;
                 double errorx; // = (width  >> 1) - point.x;
                 double errory; // = (height >> 1) - point.y;                    
                 Vector px(2);
-                while(( countReach < 3)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
+                while((countDecrement < 1000) && ( countReach < 3)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                    
@@ -966,12 +970,19 @@ void gazeArbiterThread::run() {
                     px(1) = 113 - errory;
 #endif
 
-                    error = sqrt(errorx * errorx + errory * errory);
-                    printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, error);
-                    if(error <= 1) {
-                        countReach ++;
+                    errorVC_pre = errorVC;
+                    errorVC = sqrt(errorx * errorx + errory * errory);
+                    printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, errorVC);
+                    if(errorVC <= 1) {
+                        countReach++;
                     }
-                    //printf("norm error %f \n", error);
+                    if ((errorVC > 50 )&&(errorVC_pre <= errorVC )) {
+                        countDecrement++;
+                    }
+                    else {
+                        countDecrement = 0;
+                    }
+                    //printf("norm error %f \n", errorVC);
                     int camSel = 0;
                     igaze->lookAtMonoPixel(camSel,px,zDistance);
                     
@@ -980,9 +991,11 @@ void gazeArbiterThread::run() {
                     printf("the point ended up in %d  %d \n",point.x, point.y);
                 }
                 Time::delay(0.01);
-                if(timeout >= TIMEOUT_CONST) {
+                if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {
                     Vector px(3);
-                    printf("TIMEOUT in reaching with visualFeedback \n");
+                    printf("Error in reaching with visualFeedback \n");
+                    printf("Error in reaching with visualFeedback \n");
+                    printf("Error in reaching with visualFeedback \n");
                     
                     timetotStop = Time::now();
                     timetot = timetotStop - timetotStart;
@@ -1009,15 +1022,18 @@ void gazeArbiterThread::run() {
                         igaze->checkMotionDone(&done);                        
                         }*/
                 }
+                else {
+                    printf("saccade accomplished \n");
+                    // saccade accomplished
+                    //----------------------------------
+                    //sending the acknowledgement vergence_accomplished
+                    status = statusPort.prepare();
+                    status.clear();
+                    status.addString("SAC_ACC");
+                    statusPort.write();
+                }
             }
-            printf("saccade accomplished \n");
-            // saccade accomplished
-            //----------------------------------
-            //sending the acknowledgement vergence_accomplished
-            status = statusPort.prepare();
-            status.clear();
-            status.addString("SAC_ACC");
-            statusPort.write();
+            
             //-----------------
             //accomplished_flag = true;
             Time::delay(2.00);

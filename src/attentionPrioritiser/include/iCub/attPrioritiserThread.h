@@ -107,14 +107,22 @@ private:
     yarp::sig::Vector allowedTransitions;   // vector of allowed transitions
     yarp::sig::Vector xFix;                 // fixation coordinates
     short numberState;                      // stores the number of the state in which the control can be
+    
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
-    //bool firstConsistencyCheck;             // boolean flag that check whether consistency happened
-    //bool visualCorrection;                  // boolean flag for allowing visual correction of the fine position
-    //bool isOnWings;                         // flag that gives information on where the cameras are mounted
-    //bool onDvs;                             // flag for remapping dvs location into standard dimension
+    //bool firstConsistencyCheck;           // boolean flag that check whether consistency happened
+    //bool visualCorrection;                // boolean flag for allowing visual correction of the fine position
+    //bool isOnWings;                       // flag that gives information on where the cameras are mounted
+    //bool onDvs;                           // flag for remapping dvs location into standard dimension
     bool firstVergence;                     // flag that allows the inhibition for train of vergence commands 
     bool ver_accomplished;                  // flag that enables again visual feature extraction inhibition off
+    bool postSaccCorrection;                // flag that allows post saccadic corrections
+    bool mono;                              // flag that indicates whether the saccade is mono or not
+    bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
+    bool accomplished_flag;                 // flag for the accomplished vergence
+    bool correcting;                        // flag that allows the test for correction to take place
+    bool reinfFootprint;                    // flag that allows the reinforcement of the features of the desired object
+
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
     int* collectionLocation;                // collection of location for the center of gravity saccade
@@ -136,12 +144,6 @@ private:
     double phi3;                            // value passed for relative vergence from the third maximum shift
     double phiTOT;                          // accumulator of increments of vergence angles
      
-    bool postSaccCorrection;                // flag that allows post saccadic corrections
-    bool mono;                              // flag that indicates whether the saccade is mono or not
-    bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
-    bool accomplished_flag;                 // flag for the accomplished vergence
-    bool correcting;                        // flag that allows the test for correction to take place
-    bool reinfFootprint;                    // flag that allows the reinforcement of the features of the desired object
     double timeoutStart,timeoutStop;        // start and stop timing to avoid that saccadic event can stuck
     double timetotStart,timetotStop;        // start and stop timing for the complete fixation task
     double timeout;                         // actual timer of the saccadic action
@@ -156,11 +158,15 @@ private:
     unsigned char feedbackOriM45;           // value returned from the feedback coming from orientation/earlyVision 
     
     int template_size;                      // size of the template
-    int search_size;                        // area over the search is performed
+    int search_size;                        // area over the search is performed\
+    const static int tColor  = 5000;
+    const static int tColOri = 5000;
+    const static int tNull   = 5000;             // infrasaccadic time for topdown options
     bool topDownState[4];                   // vector of topDown states
     double kNull[7];
     double kColor[7];                       // kValue for selection in color state
     double kColOri[7];                      // kValue for selection in color 'n' orientation state 
+    
 
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
@@ -226,7 +232,7 @@ public:
     * function called every time constant defined by rateThread
     */
     void run(); 
-
+ 
     /**
     * function called when the module is poked with an interrupt command
     */

@@ -157,29 +157,29 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     //selection kValue for null top-down
     kNull[0] = 0.03;
     kNull[1] = 0.03;
-    kNull[2] = 0.01;
+    kNull[2] = 0.50;
     kNull[3] = 0.01;
     kNull[4] = 0.01;
     kNull[5] = 0.00;
-    kNull[6] = 0.01;
+    //tNull    = 5000;
 
     // selection kValue for color top-down
     kColor[0] = 0.00;
     kColor[1] = 0.05;
-    kColor[2] = 0.05;
+    kColor[2] = 0.25;
     kColor[3] = 0.05;
     kColor[4] = 0.05;
-    kColor[5] = 0.05;
-    kColor[6] = 0.75;
+    kColor[5] = 0.75;
+    //tColor    = 5000;
     
     // selection kValue for color and orientation top-down
-    kColOri[0] = 0.01;
-    kColOri[1] = 0.01;
-    kColOri[2] = 0.01;
-    kColOri[3] = 0.01;
-    kColOri[4] = 0.25;
-    kColOri[5] = 0.01;
-    kColOri[6] = 0.70;
+    kColOri[0] = 0.15;  // intensity
+    kColOri[1] = 0.05;  // motion
+    kColOri[2] = 0.40;  // chrominance
+    kColOri[3] = 0.00;  // orientation
+    kColOri[4] = 0.00;  // edges
+    kColOri[5] = 0.40;  // proto-objects
+    //tColOri    = 5000;
 
     Matrix trans(5,5);
     trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0;
@@ -381,14 +381,14 @@ void attPrioritiserThread::run() {
     //mutex.wait();
     //Vector-vector element-wise product operator between stateRequest possible transitions
     if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)) {
-        printf("stateRequest: %s \n", stateRequest.toString().c_str());
-        printf("state: %s \n", state.toString().c_str());
+        //printf("stateRequest: %s \n", stateRequest.toString().c_str());
+        //printf("state: %s \n", state.toString().c_str());
         Vector c(5);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c );
         // resetting the requests
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
-        printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
+        //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     }
     
     /*
@@ -661,7 +661,7 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(1)>0) {
         // ----------------  Vergence  -----------------------
         state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1; state(0) = 0;
-        printf("------------------ Vergence --------------- \n");
+        //printf("------------------ Vergence --------------- \n");
         /*    
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
             printf("vergence: sending suspend command \n");
@@ -682,7 +682,7 @@ void attPrioritiserThread::run() {
             //correcting =  false;
             //collectionLocation[0 + 0] = u;
             //collectionLocation[0 * 2 + 1] = v;
-            printf("vergence in relative angle %f \n", phi);
+            //printf("vergence in relative angle %f \n", phi);
             
             int centroid_x = u;
             int centroid_y = v;
@@ -697,7 +697,7 @@ void attPrioritiserThread::run() {
 
             if((ver_accomplished)/*||(timeout>5.0)*/) {
                 //resume early processes
-                printf("vergence: accomplished sending resume command \n");
+                //printf("vergence: accomplished sending resume command \n");
                 if(feedbackPort.getOutputCount()) {
                     //printf("feedback resetting \n");
                     Bottle* sent     = new Bottle();
@@ -711,7 +711,7 @@ void attPrioritiserThread::run() {
                 firstVergence = true;
             }
             else {
-                printf("vergence: sending relative angle to the gazeArbiter \n");
+                //printf("vergence: sending relative angle to the gazeArbiter \n");
                 bool port_is_writing;
                 Bottle& commandBottle = outputPort.prepare();
                 commandBottle.clear();
@@ -722,9 +722,7 @@ void attPrioritiserThread::run() {
                 outputPort.write();
             }                        
         }
-
-
-        
+    
     }
     else {
         //printf("No transition \n");
@@ -738,7 +736,7 @@ void attPrioritiserThread::run() {
         allowedTransitions(4) = 0;
         executing = false;  //executing=false allows new action commands
         // execution = false moved to after the SAC_ACC is received
-        printf ("Transition request 4 reset \n");
+        //printf ("Transition request 4 reset \n");
         mutex.post();
     }
     if(allowedTransitions(3)>0) { //planned saccade
@@ -746,7 +744,7 @@ void attPrioritiserThread::run() {
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(3) = 0;
         executing = false;
-        printf ("Transition request 3 reset \n");
+        //printf ("Transition request 3 reset \n");
         mutex.post();
     }
     if(allowedTransitions(2)>0) { //smooth pursuit
@@ -754,7 +752,7 @@ void attPrioritiserThread::run() {
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(2) = 0;
         executing = false;
-        printf ("Transition request 2 reset \n");
+        //printf ("Transition request 2 reset \n");
         mutex.post();
     }
     if(allowedTransitions(1)>0) { //vergence
@@ -762,7 +760,7 @@ void attPrioritiserThread::run() {
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
         executing = false;
-        printf ("Transition request 1 reset \n");
+        //printf ("Transition request 1 reset \n");
         mutex.post();
     }
 }
@@ -811,44 +809,44 @@ void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int bl
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K1);
-    sent->addDouble(kColor[1]);
+    sent->addDouble(kColor[0]);
     feedbackSelective.write(*sent, *received);
     //map2
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K2);
-    sent->addDouble(kColor[2]);
+    sent->addDouble(kColor[1]);
     feedbackSelective.write(*sent, *received);
     //map3
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K3);
-    sent->addDouble(kColor[3]);
+    sent->addDouble(kColor[2]);
     feedbackSelective.write(*sent, *received);
     //map4
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K4);
-    sent->addDouble(kColor[4]);
+    sent->addDouble(kColor[3]);
     feedbackSelective.write(*sent, *received);
     //map5
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K5);
-    sent->addDouble(kColor[5]);
+    sent->addDouble(kColor[4]);
     feedbackSelective.write(*sent, *received);
     //map6
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K6);
-    sent->addDouble(kColor[6]);
+    sent->addDouble(kColor[5]);
     feedbackSelective.write(*sent, *received);
     
     //timing of the saccades
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_TIME);
-    sent->addDouble(1500);
+    sent->addDouble(tNull);
     feedbackSelective.write(*sent, *received);
     
     //setting saliencyBlobFinder
@@ -932,44 +930,44 @@ void attPrioritiserThread::seek(Bottle command) {
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K1);
-            sent->addDouble(kNull[1]);
+            sent->addDouble(kNull[0]);
             feedbackSelective.write(*sent, *received);
             //map2
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K2);
-            sent->addDouble(kNull[2]);
+            sent->addDouble(kNull[1]);
             feedbackSelective.write(*sent, *received);
             //map3
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K3);
-            sent->addDouble(kNull[3]);
+            sent->addDouble(kNull[2]);
             feedbackSelective.write(*sent, *received);
             //map4
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K4);
-            sent->addDouble(kNull[4]);
+            sent->addDouble(kNull[3]);
             feedbackSelective.write(*sent, *received);
             //map5
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K5);
-            sent->addDouble(kNull[5]);
+            sent->addDouble(kNull[4]);
             feedbackSelective.write(*sent, *received);
             //map6
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_K6);
-            sent->addDouble(kNull[6]);
+            sent->addDouble(kNull[5]);
             feedbackSelective.write(*sent, *received);
             
             //timing of the saccades
             sent->clear();
             sent->addVocab(COMMAND_VOCAB_SET);
             sent->addVocab(COMMAND_VOCAB_TIME);
-            sent->addDouble(8000);
+            sent->addDouble(tNull);
             feedbackSelective.write(*sent, *received);
             
             //setting saliencyBlobFinder
@@ -1015,44 +1013,44 @@ void attPrioritiserThread::reinforceFootprint() {
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K1);
-    sent->addDouble(kColOri[1]);
+    sent->addDouble(kColOri[0]);
     feedbackSelective.write(*sent, *received);
     //map2
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K2);
-    sent->addDouble(kColOri[2]);
+    sent->addDouble(kColOri[1]);
     feedbackSelective.write(*sent, *received);
     //map3
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K3);
-    sent->addDouble(kColOri[3]);
+    sent->addDouble(kColOri[2]);
     feedbackSelective.write(*sent, *received);
     //map4
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K4);
-    sent->addDouble(kColOri[4]);
+    sent->addDouble(kColOri[3]);
     feedbackSelective.write(*sent, *received);
     //map5
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K5);
-    sent->addDouble(kColOri[5]);
+    sent->addDouble(kColOri[4]);
     feedbackSelective.write(*sent, *received);
     //map6
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_K6);
-    sent->addDouble(kColOri[6]);
+    sent->addDouble(kColOri[5]);
     feedbackSelective.write(*sent, *received);
     
     //timing of the saccades
     sent->clear();
     sent->addVocab(COMMAND_VOCAB_SET);
     sent->addVocab(COMMAND_VOCAB_TIME);
-    sent->addDouble(3500);
+    sent->addDouble(tColOri);
     feedbackSelective.write(*sent, *received);
     
     //setting saliencyBlobFinder
@@ -1116,6 +1114,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(time <= 0.5) {
                 // express saccade
                 printf("setting stateRequest[4] \n");
+                reinfFootprint = true;
                 stateRequest[4] = 1;
                 timeoutStart = Time::now();
             } 
@@ -1147,24 +1146,24 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     
                     //calculating the distance between feedback color and current fovea color
                     double colourDistance = sqrt (
-                                                  (feedbackBlobRed - currentBlobRed)   * (feedbackBlobRed - currentBlobRed)   + 
-                                                  (feedbackBlobRed - currentBlobGreen) * (feedbackBlobRed - currentBlobGreen) + 
-                                                  (feedbackBlobRed - currentBlobBlue)  * (feedbackBlobRed - currentBlobBlue)   
+                                                  (feedbackBlobRed   - currentBlobRed)   * (feedbackBlobRed   - currentBlobRed)   + 
+                                                  (feedbackBlobGreen - currentBlobGreen) * (feedbackBlobGreen - currentBlobGreen) + 
+                                                  (feedbackBlobBlue  - currentBlobBlue)  * (feedbackBlobBlue  - currentBlobBlue)   
                                                   );
-                    
+                    printf("colour distance in reinforcement %f \n", colourDistance);
                     if(colourDistance < 10.0) {
+                        printf("saccade discard for top-down call; footprint desired is similar to fovea footprint \n");
+                    }
+                    else {                        
+                        printf("footprint desired is not the footprint in fovea \n");
                         printf("setting stateRequest[3] \n");
-                        stateRequest[3] = 1;   
+                        Time::delay(1);
+                        stateRequest[3] = 1;
+                        reinfFootprint  = true;   // enabling back the control top-down footprint extraction
                     }
-                    else {
-                        printf("saccade discard for top-down call \n");
-                    }
-
-                    Time::delay(5000);
-
                 }
                 else {
-                    //reinforceFootprint has happened yet
+                    //reinforceFootprint has not happened yet
                     printf("setting stateRequest[3] \n");
                     stateRequest[3] = 1;
                 }
@@ -1199,15 +1198,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             phi3 = arg->get(3).asDouble();
             //printf("vergence command received %d \n", firstVergence);
             if(firstVergence){
-                //if((phi!=0)){
-                    
-                    printf("inside the vergence command \n");
-                    mutex.wait();
-                    ver_accomplished = false;
-                    stateRequest[1]  = 1;
-                    //executing = false;
-                    mutex.post();
-                    //}
+                //if((phi!=0)){                    
+                //printf("inside the vergence command \n");
+                mutex.wait();
+                ver_accomplished = false;
+                stateRequest[1]  = 1;
+                //executing = false;
+                mutex.post();
+                //}
             }
             else {
                 mutex.wait();
@@ -1287,12 +1285,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
 
             if(reinfFootprint) {
+                
                 reinforceFootprint();
+                Time::delay(5);
             }
         }
         else if(!strcmp(name.c_str(),"VER_ACC")) {
             // vergence accomplished           
-            printf("Vergence accomplished \n");
+            //printf("Vergence accomplished \n");
             mutex.wait();
             ver_accomplished = true;
             stateRequest[1]  = 1;
