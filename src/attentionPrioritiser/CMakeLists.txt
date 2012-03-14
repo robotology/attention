@@ -14,8 +14,22 @@ INCLUDE_DIRECTORIES(
 )
 
 # Search for source code.
-FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
-FILE(GLOB folder_header include/iCub/*.h)
+FILE(GLOB folder_source 
+	src/attPrioritiserModule.cpp
+	src/attPrioritiserThread.cpp
+	src/main.cpp
+	src/prioCollectorThread.cpp
+	src/sacPlannerThread.cpp
+)
+FILE(GLOB folder_header 
+	include/iCub/attPrioritiserModule.h
+	include/iCub/attPrioritiserThread.h
+	include/iCub/observable.h
+	include/iCub/observer.h
+	include/iCub/prioCollectorThread.h
+	include/iCub/sacPlannerThread.h
+	include/iCub/trackerThread.h
+)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
