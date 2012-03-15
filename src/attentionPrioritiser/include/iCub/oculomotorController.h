@@ -32,6 +32,7 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/sig/all.h>
+#include <yarp/math/Rand.h>
 
 #include <iostream>
 #include <string>
@@ -94,12 +95,12 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
     attPrioritiserThread* ap;
     
-    yarp::sig::Matrix rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
-    yarp::sig::Matrix Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
-    yarp::sig::Matrix Q;                  // quality measure of a particular state across different actions dim: 11 x 6
+    yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
+    yarp::sig::Matrix* Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
+    yarp::sig::Matrix* Q;                  // quality measure of a particular state across different actions dim: 11 x 6
     yarp::sig::Matrix M;                  // intermediate computation matrix
-    yarp::sig::Matrix V;                  // value matrix max value of quality measure with reference to one state dim 11 x 1
-    yarp::sig::Matrix A;                  // action that generates max value of quality measure with reference to one state dim 11 x 1
+    yarp::sig::Matrix* V;                  // value matrix max value of quality measure with reference to one state dim 11 x 1
+    yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim 11 x 1
 
     const static double j    = 0.1;       // discont factor
     const static double alfa = 0.1;       // learning rate  

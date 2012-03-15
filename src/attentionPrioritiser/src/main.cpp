@@ -25,6 +25,7 @@
 
 #include "iCub/attPrioritiserModule.h" 
 #include <yarp/os/all.h>
+#include <yarp/math/Rand.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -36,6 +37,7 @@ int main(int argc, char * argv[])
     Network yarp;
     //YARP_REGISTER_DEVICES(icubmod)
     Time::turboBoost();
+    srand(time(NULL));
     attPrioritiserModule module; 
 
     ResourceFinder rf;

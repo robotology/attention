@@ -32,11 +32,12 @@ using namespace yarp::math;
 using namespace std;
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
-    
+    count = 0;
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
     ap =  apt;
+    count = 0;
 };
 
 oculomotorController::~oculomotorController() {
@@ -44,7 +45,7 @@ oculomotorController::~oculomotorController() {
 }
 
 bool oculomotorController::threadInit() {
-    printf("starting the thread.... \n");
+    printf(" oculomotorController::threadInit:starting the thread.... \n");
     
     // open ports 
     string rootName("");
@@ -60,24 +61,30 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(4,false);
 
     // initialisation of the matrices necessary for computation
-    double val;
+    printf("resetting rewardStateAction \n");
+    rewardStateAction = new Matrix(11,6);
+    double* val = rewardStateAction->data();
     for(int row = 0; row < 11; row++ ) {
         for(int col = 0; col < 6; col++) {
-            *rewardStateAction[row,col] = 0.1;
+            *val = 0.1; val++;
         }
     }
+    printf("initialisation of probability transition \n");
+    Psa = new Matrix(66,11);
+    val = Psa->data();
     for(int row = 0; row < 66; row++ ) {
         for(int col = 0; col < 11; col++) {
-            *Psa[row,col] = 0.01;
+            *val = 0.01; val++;
         }
     }
     
-    Q(11,6);
-    Q.zero();
-    V(1,11);
-    V.zero();
-    A(1,11);
-    A.zero();
+    printf("initialisation of the learning machines \n");
+    Q = new Matrix(11,6);
+    Q->zero();
+    V = new Matrix(1,11);
+    V->zero();
+    A = new Matrix(1,11);
+    A->zero();
     
     return true;
 }
@@ -103,28 +110,40 @@ void oculomotorController::policyWalk(){
 
 
 void oculomotorController::randomWalk() {
-    
+    int i = rand() % 100;
     
 }
 
 void oculomotorController::learningStep() {
-    //updating the quality, value and policy
-    M =  Psa * V.transposed();
+    //updating the quality, value and policy    
+    M = (*Psa) * V->transposed();
+    //printf("V = \n");
+    //printf("%s \n", V->toString().c_str());
+    
+    //printf("M = \n");
+    //printf("%s \n", M.toString().c_str());
+    
     for (int state = 0; state < 11; state++ ) {
         double maxQ  = 0;
         int actionMax = 0;
+        
         for(int action = 0; action < 6; action++) {
-            Q(state, action) = rewardStateAction(state, action) + j * M(state, action);
-            if(Q(state, action) > maxQ) {
-                maxQ = Q(state, action);
+            Q->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
+            if(Q->operator()(state, action) > maxQ) {
+                maxQ = Q->operator()(state, action);
                 actionMax = action;
             }
         }
-        V(1,state) = maxQ;
-        A(1,state) = actionMax;
+        
+        V->operator()(0,state) = maxQ;
+        A->operator()(0,state) = actionMax;
+        //printf("V = \n");
+        //printf("%s \n", V->toString().c_str());
+        //printf("state %d maxQ %f actionMax %d \n",state, maxQ, actionMax);
     }
     
     
+    //printf("action selection section \n");
     // action selection
     if(count < 10) {
         printf("randomWalk \n");
@@ -134,11 +153,13 @@ void oculomotorController::learningStep() {
         printf("policyWalk \n");
         policyWalk();
     }
+    printf("end of the learning step \n");
 }
 
 void oculomotorController::run() {
     count++;
     learningStep();
+    
 }
 
 void oculomotorController::threadRelease() {

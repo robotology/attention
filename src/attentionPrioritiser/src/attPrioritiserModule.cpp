@@ -42,6 +42,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         printf("HELP \n");
         printf("--name : changes the rootname of the module ports \n");
         printf("--robot : changes the name of the robot where the module interfaces to  \n");
+        printf("--learningController : learning process for the controller activated \n");
         printf("--name :  \n");
         printf("====== \n");
         printf("press CTRL-C to continue.. \n");
@@ -213,7 +214,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
      * defining if the action selection is Q-learning controller`s call
      */
     if(rf.check("learningController")) {
-        printf("The Q-learning controller takes responsabilities for any action selection \n");
+        printf("The Q-learning controller takes responsabilities for any selected action \n");
         prioritiser->setLearning(true);
         controller = new oculomotorController(prioritiser);
         string str = (string) getName();
