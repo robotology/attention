@@ -229,11 +229,6 @@ void oculomotorController::learningStep() {
     totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
     jiter  = jiter * j;
 
-    Bottle& scopeBottle = scopePort.prepare();
-    scopeBottle.clear();
-    scopeBottle.addDouble(5.0);
-    scopePort.write();
-
     // 5. moving to next state
     if(sinkState) {
         state_now = 0;
@@ -248,9 +243,14 @@ void oculomotorController::learningStep() {
 }
 
 void oculomotorController::run() {
-    if(count < 50) {
+    if((count < 50)&&(iter % 20 == 0)) {
         learningStep();    
     }
+
+    Bottle& scopeBottle = scopePort.prepare();
+    scopeBottle.clear();
+    scopeBottle.addDouble(5.0);
+    scopePort.write();
 }
 
 void oculomotorController::threadRelease() {
