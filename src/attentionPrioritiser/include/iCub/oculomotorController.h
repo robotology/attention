@@ -29,7 +29,7 @@
 #define _OCULOMOTOR_CONTROLLER_H_
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/Thread.h>
+#include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/sig/all.h>
 #include <iostream>
@@ -39,51 +39,51 @@
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 
-static const string[11] stateList{
-    "predict";
-    "fixStableOK";
-    "fixStableKO";
-    "trackOK";
-    "trackKO";
-    "anticipWait";
-    "anticipOK";
-    "vergenOK";
-    "vergenceKO";
-    "fixating";
-    "null"
-}
+ static const std::string stateList[11] =  {
+    "predict",
+        "fixStableOK",
+        "fixStableKO",
+        "trackOK",
+        "trackKO",
+        "anticipWait",
+        "anticipOK",
+        "vergenOK",
+        "vergenceKO",
+        "fixating",
+        "null"
+        };
 
-static const string[6] actionList{
-    "null";
-    "VOR";
-    "smoothPursuit";
-    "microSaccade";
-    "mediumSaccade";
-    "wideSaccade";
-}
+static const std::string actionList[6]  = {
+    "null",
+        "VOR",
+        "smoothPursuit",
+        "microSaccade",
+        "mediumSaccade",
+        "wideSaccade"
+        };
 
 // reward for the particular state-action condition
 // dimensionality state(11) x action (6)
-static const double[66] rewardStateAction{
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 0
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 1
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 2
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 3
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 4
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 5
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 6
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 7
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 8
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 9
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 10
-    0.1;0.1;0.1;0.1;0.1;0.1;  // 11
-}
+double rewardStateAction[66] = {
+    0.1,0.1,0.1,0.1,0.1,0.1,  // 0
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 1
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 2
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 3
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 4
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 5
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 6
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 7
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 8
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 9
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 10
+        };
 
-class oculomotorController : public rateThread, public observable{
+class oculomotorController : public yarp::os::RateThread, public observable {
 private:
-    
+    int count;              // step counter in the oculomotorController::run
     std::string name;       // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
+
 
 public:
     /**

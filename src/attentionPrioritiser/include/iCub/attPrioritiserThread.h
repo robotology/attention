@@ -122,6 +122,7 @@ private:
     bool accomplished_flag;                 // flag for the accomplished vergence
     bool correcting;                        // flag that allows the test for correction to take place
     bool reinfFootprint;                    // flag that allows the reinforcement of the features of the desired object
+    bool learning;                          // flag that allows the Q-learning controller to take decisions
 
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
@@ -251,11 +252,18 @@ public:
     void setRobotName(std::string str);
 
     /**
-    * function that set the variable needed for image dimension
+    * function that sets the variable needed for image dimension
     * @param width set the dimension width of the input image
     * @param height set the dimension height of the input image
     */
     void setDimension(int width, int height);
+
+    /**
+    * function that allows the Q-learning controller to take decisions
+    * @param value bool value true: Q-learning decides false: action selection regulated by priorities
+    */
+    void setLearning(bool value) { learning = value; };
+    
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter

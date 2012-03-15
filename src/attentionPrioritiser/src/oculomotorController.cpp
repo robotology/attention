@@ -31,7 +31,7 @@ using namespace std;
 
 #define THRATE 10
 
-oculomotorController::oculomotorController() {
+oculomotorController::oculomotorController() : RateThread(THRATE) {
     
 }
 
@@ -62,6 +62,10 @@ std::string oculomotorController::getName(const char* p) {
     string str(name);
     str.append(p);
     return str;
+}
+
+void oculomotorController::learningStep() {
+    
 }
 
 void oculomotorController::run() {

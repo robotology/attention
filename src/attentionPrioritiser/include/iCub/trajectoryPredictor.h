@@ -37,7 +37,7 @@
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 
-class trajectoryPredictor : public observable{
+class trajectoryPredictor : public yarp::os::Thread, public observable{
 private:
     
     std::string name;       // rootname of all the ports opened by this thread

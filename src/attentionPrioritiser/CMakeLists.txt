@@ -1,4 +1,4 @@
-# Copyright: (C) 2010 RobotCub Consortium
+# Copyright: (C) 2012 RobotCub Consortium
 # Authors: Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
@@ -20,6 +20,8 @@ FILE(GLOB folder_source
 	src/main.cpp
 	src/prioCollectorThread.cpp
 	src/sacPlannerThread.cpp
+    src/oculomotorController.cpp
+    src/trajectoryPredictor.cpp
 )
 FILE(GLOB folder_header 
 	include/iCub/attPrioritiserModule.h
@@ -29,6 +31,8 @@ FILE(GLOB folder_header
 	include/iCub/prioCollectorThread.h
 	include/iCub/sacPlannerThread.h
 	include/iCub/trackerThread.h
+    include/iCub/oculomotorController.h
+    include/iCub/trajectoryPredictor.h
 )
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})

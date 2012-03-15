@@ -40,6 +40,9 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
 
     if(rf.check("help")) {
         printf("HELP \n");
+        printf("--name : changes the rootname of the module ports \n");
+        printf("--robot : changes the name of the robot where the module interfaces to  \n");
+        printf("--name :  \n");
         printf("====== \n");
         printf("press CTRL-C to continue.. \n");
         return true;
@@ -195,8 +198,6 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     //    prioritiser->setOnDvs(true);
     //} 
        
-   
-
     // fixating pitch
     pitch       = rf.check("blockPitch", 
                            Value(-1), 
@@ -207,6 +208,19 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     collector->addObserver(*prioritiser);
     prioritiser->start();
     collector->start();
+
+    /**
+     * defining if the action selection is Q-learning controller`s call
+     */
+    if(rf.check("learningController")) {
+        printf("The Q-learning controller takes responsabilities for any action selection \n");
+        prioritiser->setLearning(true);
+    }
+    else {
+        printf("Q learning controller is not involved in the action selection decisions \n");
+        prioritiser->setLearning(false);
+    }
+    
 
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
