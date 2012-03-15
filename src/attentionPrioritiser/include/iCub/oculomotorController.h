@@ -42,27 +42,28 @@
 #include <iCub/observable.h>
 #include <iCub/attPrioritiserThread.h>
 
-#define THRATE 10
+#define THRATE 1000
 #define NUMSTATE 11
 #define NUMACTION 6
 
 static const std::string stateList[11] =  {
-    "predict",
-        "fixStableOK",
-        "fixStableKO",
-        "trackOK",
-        "trackKO",
-        "anticipWait",
-        "anticipOK",
-        "vergenOK",
-        "vergenceKO",
-        "fixating",
-        "null"
+    "null"            //0
+    "predict",        //1        
+    "fixStableOK",    //2
+    "fixStableKO",    //3
+    "trackOK",        //4
+    "trackKO",        //5
+    "anticipWait",    //6
+    "anticipOK",      //7
+    "vergenOK",       //8
+    "vergenceKO",     //9
+    "fixating",       //10
+    
 };
 
 static const std::string actionList[6]  = {
     "null",
-        "VOR",
+        "vergence",
         "smoothPursuit",
         "microSaccade",
         "mediumSaccade",
@@ -90,7 +91,8 @@ static const double rewardStateAction[66] = {
 
 class oculomotorController : public yarp::os::RateThread, public observable {
 private:
-    int count;                 // step counter in the oculomotorController::run
+    int count;                 // step counter of successful learning step
+    int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
     attPrioritiserThread* ap;
@@ -98,16 +100,19 @@ private:
     yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
     yarp::sig::Matrix* Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
     yarp::sig::Matrix* Q;                  // quality measure of a particular state across different actions dim: 11 x 6
-    yarp::sig::Matrix M;                  // intermediate computation matrix
+    yarp::sig::Matrix M;                   // intermediate computation matrix
     yarp::sig::Matrix* V;                  // value matrix max value of quality measure with reference to one state dim 11 x 1
     yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim 11 x 1
 
     const static double j    = 0.1;       // discont factor
     const static double alfa = 0.1;       // learning rate  
     
-    int state_now;         // state of the controller now
-    int action_now;        // action performed in this step
-    int state_next;        // state in which the controller will end
+    double totalPayoff;                   // total payoff of the learning process
+    double jiter;                         // cumulative j ^ iter
+
+    int state_now;                        // state of the controller now
+    int action_now;                       // action performed in this step
+    int state_next;                       // state in which the controller will end
 public:
     /**
     * default constructor
@@ -164,13 +169,15 @@ public:
 
     /**
     * @brief function that performs Q-learning using a perfect random decision of the action to take
+    * @return true if and only if the next state (selected) is the sink state
     */
-    void randomWalk();
+    bool randomWalk();
 
     /**
     * @brief function that performs Q-learning using the built policy.
+    * @return true if and only if the next state (selected) is the sink state
     */
-    void policyWalk();
+    bool policyWalk();
 
     /**
     * @brief one single step of the learning which consists in selecting a path from the initial state to the final state.

@@ -33,11 +33,15 @@ using namespace std;
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     count = 0;
+    iter  = 0;
+    jiter = 1;
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
     ap =  apt;
     count = 0;
+    iter  = 0;
+    jiter = 1;
     state_now = 0;
 };
 
@@ -73,12 +77,15 @@ bool oculomotorController::threadInit() {
     printf("initialisation of probability transition \n");
     Psa = new Matrix(66,11);
     val = Psa->data();
+    double t;
     for(int row = 0; row < 66; row++ ) {
         for(int col = 0; col < 11; col++) {
-            *val = 0.01; val++;
+            t = rand() / 10000000000.0 ;
+            *val = t; val++;
         }
     }
     printf("%s \n", Psa->toString().c_str());
+    Time::delay(5.00);
     
     printf("initialisation of the learning machines \n");
     Q = new Matrix(11,6);
@@ -106,20 +113,15 @@ std::string oculomotorController::getName(const char* p) {
     return str;
 }
 
-void oculomotorController::policyWalk(){
-
-}
-
-
-void oculomotorController::randomWalk() {
-    double a = (rand() / 100000000) % NUMACTION ;
-    action_now = (int) a;
-    printf(" %f \n", a);
+bool oculomotorController::policyWalk(){
+    bool ret = false;
+    printf("%d \n", A->operator()(0,state_now));
+    action_now = A->operator()(0,state_now);
     printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
-
+    
     //looking at the Psa for this state and the selected action
-    int pos = state_now * NUMSTATE + action_now;
-    printf("looking for position %d \n", pos);
+    int pos = state_now * NUMACTION + action_now;
+    printf("looking for position %d  : %d %d\n", pos, state_now, action_now);
     Vector v = Psa->getRow(pos);
     printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
@@ -128,15 +130,55 @@ void oculomotorController::randomWalk() {
         if(v[j] > maxInVector) {
             maxInVector = v[j];
             posInVector = j;
+            //Psa->operator()(pos,j) -= 0.01;
         }
+        
     }
     printf("max value found in vector %f \n", maxInVector);
     state_next = posInVector;
+    if(state_next == 10) {
+        count++;
+        ret = true;
+    }
     printf("new state %d \n", state_next);
+    return ret;
+}
+
+
+bool oculomotorController::randomWalk() {
+    bool ret = false;
+    double a = (rand() / 100000000) % NUMACTION ;
+    action_now = (int) a;
+    printf(" %f \n", a);
+    printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
+
+    //looking at the Psa for this state and the selected action
+    int pos = state_now * NUMACTION + action_now;
+    printf("looking for position %d  : %d %d\n", pos, state_now, action_now);
+    Vector v = Psa->getRow(pos);
+    printf("v = %s \n", v.toString().c_str());
+    double maxInVector = 0.0;
+    int posInVector = 0;
+    for(int j = 0; j < v.size(); j++) {
+        if(v[j] > maxInVector) {
+            maxInVector = v[j];
+            posInVector = j;
+            //Psa->operator()(pos,j) -= 0.01;
+        }
+        
+    }
+    printf("max value found in vector %f \n", maxInVector);
+    if(state_next == 10) {
+        count++;
+    }
+    state_next = posInVector;
+    printf("new state %d \n", state_next);
+    return ret;
 }
 
 void oculomotorController::learningStep() {
-    //updating the quality, value and policy    
+    iter++;
+    //1 . updating the quality of the current state
     M = (*Psa) * V->transposed();
     //printf("V = \n");
     //printf("%s \n", V->toString().c_str());
@@ -165,22 +207,44 @@ void oculomotorController::learningStep() {
     
     
     //printf("action selection section \n");
-    // action selection
-    if(count > 0) {
+    // 2 .action selection and observation of the next state
+    bool sinkState;
+    printf("-------------count % d------------------------------ \n", count);
+    if(count < 30) {
         printf("randomWalk \n");
-        randomWalk();
+        sinkState = randomWalk();
     }
     else {
         printf("policyWalk \n");
-        policyWalk();
+        sinkState = policyWalk();
     }
+
+    // 3 .updating the quality function of the next state: TD step
+    Q->operator()(state_next,action_now) = 
+        (1 - alfa) * Q->operator()(state_now,action_now) + 
+        alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
+
+    // 4. calculating the total Payoff
+    totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
+    jiter  = jiter * j;
+
+    // 5. moving to next state
+    if(sinkState) {
+        state_now = 0;
+    }
+    else {
+        state_now = state_next;
+    }
+
     printf("end of the learning step \n");
+    printf("\n");
+    printf("\n");
 }
 
 void oculomotorController::run() {
-    count++;
-    learningStep();
-    
+    if(count < 50) {
+        learningStep();    
+    }
 }
 
 void oculomotorController::threadRelease() {
