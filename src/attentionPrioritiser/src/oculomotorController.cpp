@@ -23,10 +23,12 @@
  */
 
 #include <iCub/oculomotorController.h>
+#include <yarp/math/Math.h>
 #include <cstring>
 
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace std;
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
@@ -70,6 +72,12 @@ bool oculomotorController::threadInit() {
         }
     }
     
+    Q(11,6);
+    Q.zero();
+    V(1,11);
+    V.zero();
+    A(1,11);
+    A.zero();
     
     return true;
 }
@@ -100,6 +108,24 @@ void oculomotorController::randomWalk() {
 }
 
 void oculomotorController::learningStep() {
+    //updating the quality, value and policy
+    M =  Psa * V.transposed();
+    for (int state = 0; state < 11; state++ ) {
+        double maxQ  = 0;
+        int actionMax = 0;
+        for(int action = 0; action < 6; action++) {
+            Q(state, action) = rewardStateAction(state, action) + j * M(state, action);
+            if(Q(state, action) > maxQ) {
+                maxQ = Q(state, action);
+                actionMax = action;
+            }
+        }
+        V(1,state) = maxQ;
+        A(1,state) = actionMax;
+    }
+    
+    
+    // action selection
     if(count < 10) {
         printf("randomWalk \n");
         randomWalk();

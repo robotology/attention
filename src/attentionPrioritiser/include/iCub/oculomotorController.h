@@ -42,6 +42,8 @@
 #include <iCub/attPrioritiserThread.h>
 
 #define THRATE 10
+#define NUMSTATE 11
+#define NUMACTION 6
 
 static const std::string stateList[11] =  {
     "predict",
@@ -94,9 +96,13 @@ private:
     
     yarp::sig::Matrix rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
     yarp::sig::Matrix Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
-    yarp::sig::Matrix Q;                  // quality measure of a particular state across different actions
+    yarp::sig::Matrix Q;                  // quality measure of a particular state across different actions dim: 11 x 6
+    yarp::sig::Matrix M;                  // intermediate computation matrix
+    yarp::sig::Matrix V;                  // value matrix max value of quality measure with reference to one state dim 11 x 1
+    yarp::sig::Matrix A;                  // action that generates max value of quality measure with reference to one state dim 11 x 1
 
-    yarp::sig::Vector V;                  // value matrix max value of quality measure with reference to one state
+    const static double j    = 0.1;       // discont factor
+    const static double alfa = 0.1;       // learning rate  
     
     int state_now;         // state of the controller now
     int action_now;        // action performed in this step
