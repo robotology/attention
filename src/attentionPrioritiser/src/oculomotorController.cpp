@@ -54,9 +54,10 @@ bool oculomotorController::threadInit() {
     
     // open ports 
     string rootName("");
-    rootName.append(getName("/cmd:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
+    rootName.append(getName("/cmd:i"));
     inCommandPort.open(rootName.c_str());
+    scopePort.open(getName("/scope:o").c_str());
 
     // interacting with the attPrioritiserThread 
     ap->setAllowStateRequest(0,false);
@@ -228,6 +229,11 @@ void oculomotorController::learningStep() {
     totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
     jiter  = jiter * j;
 
+    Bottle& scopeBottle = scopePort.prepare();
+    scopeBottle.clear();
+    scopeBottle.addDouble(5.0);
+    scopePort.write();
+
     // 5. moving to next state
     if(sinkState) {
         state_now = 0;
@@ -249,4 +255,5 @@ void oculomotorController::run() {
 
 void oculomotorController::threadRelease() {
     inCommandPort.close();
+    scopePort.close();
 }
