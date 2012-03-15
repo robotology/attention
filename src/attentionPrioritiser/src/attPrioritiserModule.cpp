@@ -215,6 +215,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     if(rf.check("learningController")) {
         printf("The Q-learning controller takes responsabilities for any action selection \n");
         prioritiser->setLearning(true);
+        //oculomotorController* oc = new oculomotorController(prioritiser);
     }
     else {
         printf("Q learning controller is not involved in the action selection decisions \n");

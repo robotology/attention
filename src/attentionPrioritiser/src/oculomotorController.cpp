@@ -1,7 +1,7 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
-  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Copyright (C)2012  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author:Francesco Rea
   * email: francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
@@ -28,8 +28,6 @@
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
-
-#define THRATE 10
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     

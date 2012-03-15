@@ -1,7 +1,7 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /* 
- * Copyright (C) 2011 RobotCub Consortium, European Commission FP6 Project IST-004370
+ * Copyright (C) 2012 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Rea Francesco
  * email:   francesco.rea@iit.it
  * website: www.robotcub.org 
@@ -38,8 +38,11 @@
 //within project includes
 #include <iCub/observer.h>
 #include <iCub/observable.h>
+#include <iCub/attPrioritiserThread.h>
 
- static const std::string stateList[11] =  {
+#define THRATE 10
+
+static const std::string stateList[11] =  {
     "predict",
         "fixStableOK",
         "fixStableKO",
@@ -51,7 +54,7 @@
         "vergenceKO",
         "fixating",
         "null"
-        };
+};
 
 static const std::string actionList[6]  = {
     "null",
@@ -60,11 +63,11 @@ static const std::string actionList[6]  = {
         "microSaccade",
         "mediumSaccade",
         "wideSaccade"
-        };
+};
 
 // reward for the particular state-action condition
 // dimensionality state(11) x action (6)
-double rewardStateAction[66] = {
+static const double rewardStateAction[66] = {
     0.1,0.1,0.1,0.1,0.1,0.1,  // 0
         0.1,0.1,0.1,0.1,0.1,0.1,  // 1
         0.1,0.1,0.1,0.1,0.1,0.1,  // 2
@@ -76,20 +79,27 @@ double rewardStateAction[66] = {
         0.1,0.1,0.1,0.1,0.1,0.1,  // 8
         0.1,0.1,0.1,0.1,0.1,0.1,  // 9
         0.1,0.1,0.1,0.1,0.1,0.1,  // 10
-        };
+};
 
 class oculomotorController : public yarp::os::RateThread, public observable {
 private:
     int count;              // step counter in the oculomotorController::run
     std::string name;       // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
-
+    attPrioritiserThread* ap;
 
 public:
     /**
     * default constructor
     */
     oculomotorController();
+
+    /**
+    * default constructor
+    */
+    oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
+        ap =  apt;
+    };
 
     /**
      * destructor

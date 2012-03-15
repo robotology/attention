@@ -156,6 +156,7 @@
  * 15/02/12 : introduced top-down state for stable visual attention                                         author: Rea  \n
  * 18/02/12 : tested the top-down connection between earlyVision and saliencyBlobFinder                     author: Rea  \n
  * 24/02/12 : introduced extra values for command of relative vergence                                      author: Rea  \n
+ * 15/03/12 : added two new classes : oculomotorController and trajectoryPredictor                          author: Rea  \n
 */
 
 
@@ -170,8 +171,10 @@
 #include <yarp/os/RpcServer.h>
 
 //within project includes
+#include <iCub/oculomotorController.h>
 #include <iCub/attPrioritiserThread.h>
 #include <iCub/prioCollectorThread.h>
+
 
 // general command vocab's
 #define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
