@@ -33,17 +33,44 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
     
 }
 
+oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
+    ap =  apt;
+};
+
 oculomotorController::~oculomotorController() {
     
 }
 
 bool oculomotorController::threadInit() {
     printf("starting the thread.... \n");
-    /* open ports */
+    
+    // open ports 
     string rootName("");
     rootName.append(getName("/cmd:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inCommandPort.open(rootName.c_str());
+
+    // interacting with the attPrioritiserThread 
+    ap->setAllowStateRequest(0,false);
+    ap->setAllowStateRequest(1,false);
+    ap->setAllowStateRequest(2,false);
+    ap->setAllowStateRequest(3,false);    
+    ap->setAllowStateRequest(4,false);
+
+    // initialisation of the matrices necessary for computation
+    double val;
+    for(int row = 0; row < 11; row++ ) {
+        for(int col = 0; col < 6; col++) {
+            *rewardStateAction[row,col] = 0.1;
+        }
+    }
+    for(int row = 0; row < 66; row++ ) {
+        for(int col = 0; col < 11; col++) {
+            *Psa[row,col] = 0.01;
+        }
+    }
+    
+    
     return true;
 }
 
@@ -62,8 +89,25 @@ std::string oculomotorController::getName(const char* p) {
     return str;
 }
 
-void oculomotorController::learningStep() {
+void oculomotorController::policyWalk(){
+
+}
+
+
+void oculomotorController::randomWalk() {
     
+    
+}
+
+void oculomotorController::learningStep() {
+    if(count < 10) {
+        printf("randomWalk \n");
+        randomWalk();
+    }
+    else {
+        printf("policyWalk \n");
+        policyWalk();
+    }
 }
 
 void oculomotorController::run() {
@@ -72,5 +116,5 @@ void oculomotorController::run() {
 }
 
 void oculomotorController::threadRelease() {
-
+    inCommandPort.close();
 }

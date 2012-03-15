@@ -218,7 +218,8 @@ class attPrioritiserModule:public yarp::os::RFModule {
     yarp::os::Semaphore mutex;                  // semaphore for the respond function
 
     attPrioritiserThread* prioritiser;          //agent that sends commands to the gaze interface
-    prioCollectorThread* collector;             //agent that collects commands from the lower level
+    prioCollectorThread*  collector;            //agent that collects commands from the lower level
+    oculomotorController* controller;           //agent that implements Q-learning process
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful

@@ -32,6 +32,7 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/sig/all.h>
+
 #include <iostream>
 #include <string>
 
@@ -65,6 +66,7 @@ static const std::string actionList[6]  = {
         "wideSaccade"
 };
 
+/*
 // reward for the particular state-action condition
 // dimensionality state(11) x action (6)
 static const double rewardStateAction[66] = {
@@ -80,14 +82,25 @@ static const double rewardStateAction[66] = {
         0.1,0.1,0.1,0.1,0.1,0.1,  // 9
         0.1,0.1,0.1,0.1,0.1,0.1,  // 10
 };
+*/
+
 
 class oculomotorController : public yarp::os::RateThread, public observable {
 private:
-    int count;              // step counter in the oculomotorController::run
-    std::string name;       // rootname of all the ports opened by this thread
+    int count;                 // step counter in the oculomotorController::run
+    std::string name;          // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
     attPrioritiserThread* ap;
+    
+    yarp::sig::Matrix rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
+    yarp::sig::Matrix Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
+    yarp::sig::Matrix Q;                  // quality measure of a particular state across different actions
 
+    yarp::sig::Vector V;                  // value matrix max value of quality measure with reference to one state
+    
+    int state_now;         // state of the controller now
+    int action_now;        // action performed in this step
+    int state_next;        // state in which the controller will end
 public:
     /**
     * default constructor
@@ -97,9 +110,7 @@ public:
     /**
     * default constructor
     */
-    oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
-        ap =  apt;
-    };
+    oculomotorController(attPrioritiserThread *apt);
 
     /**
      * destructor

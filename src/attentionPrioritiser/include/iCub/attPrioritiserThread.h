@@ -84,11 +84,10 @@
 #include <highgui.h>
 
 //within project includes
-#include <iCub/trackerThread.h>
+//#include <iCub/trackerThread.h>
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 #include <iCub/sacPlannerThread.h>
-
 
 /**
 * thread that given a series of collected commands executes the most prioritised command, calling
@@ -110,6 +109,7 @@ private:
     
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
+    bool allowStateRequest[5];               // vector of flags for allowing state request
     //bool firstConsistencyCheck;           // boolean flag that check whether consistency happened
     //bool visualCorrection;                // boolean flag for allowing visual correction of the fine position
     //bool isOnWings;                       // flag that gives information on where the cameras are mounted
@@ -205,7 +205,7 @@ private:
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     
 
-    trackerThread*    tracker;                      //reference to the object in charge of tracking a tamplete surrounding a point
+    //trackerThread*    tracker;                      //reference to the object in charge of tracking a tamplete surrounding a point
     sacPlannerThread* sacPlanner;                   //planner of saccadic movements (todo: make it a list of planners
     
 public:
@@ -264,7 +264,13 @@ public:
     */
     void setLearning(bool value) { learning = value; };
     
-    
+    /**
+     * function set allowStateRequest flag enabling a particular subset of oculomotorActions
+     * @param pos id reference to the oculomotor action to enable/disable
+     * @param value true/false to enable/disable a particular oculomotor action
+     */
+    void setAllowStateRequest(int pos, int value) {allowStateRequest[pos] = value; }; 
+
     /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added

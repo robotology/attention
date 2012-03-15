@@ -212,18 +212,24 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     t(2) = 0.6;
     xFix = t;
 
+    allowStateRequest[0] = true;
+    allowStateRequest[1] = true;
+    allowStateRequest[2] = true;
+    allowStateRequest[3] = true; 
+    allowStateRequest[4] = true;
+
     printf("extracting kinematic informations \n");
 
-    printf("starting the tracker.... \n");
-    ResourceFinder* rf = new ResourceFinder();
-    tracker = new trackerThread(*rf);
-    tracker->start();
-    printf("tracker successfully started \n");
+    //printf("starting the tracker.... \n");
+    //ResourceFinder* rf = new ResourceFinder();
+    //tracker = new trackerThread(*rf);
+    //tracker->start();
+    printf("attPrioritiserThread initialization ended correctly \n");
 }
 
 attPrioritiserThread::~attPrioritiserThread() {
     // MUST BE REMOVED THE RF AND TRACKER ALLOCATED IN THE CONSTRUCTOR
-    tracker->stop();
+    //tracker->stop();
 }
 
 bool attPrioritiserThread::threadInit() {
@@ -1110,13 +1116,18 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             zDistance = arg->get(3).asDouble();
             time =  arg->get(4).asDouble();
             printf("saccade mono time: %f \n", time);
-            mutex.wait();
+            //mutex.wait();
             if(time <= 0.5) {
                 // express saccade
-                printf("setting stateRequest[4] \n");
-                reinfFootprint = true;
-                stateRequest[4] = 1;
-                timeoutStart = Time::now();
+                
+                mutex.wait();
+                if(allowStateRequest[4]) {
+                    printf("setting stateRequest[4] \n");
+                    reinfFootprint = true;
+                    stateRequest[4] = 1;
+                    timeoutStart = Time::now();
+                }
+                mutex.post();
             } 
             else {
                 // feedback saccade
@@ -1156,20 +1167,28 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     }
                     else {                        
                         printf("footprint desired is not the footprint in fovea \n");
-                        printf("setting stateRequest[3] \n");
-                        Time::delay(1);
-                        stateRequest[3] = 1;
-                        reinfFootprint  = true;   // enabling back the control top-down footprint extraction
+                        
+                        mutex.wait();
+                        if(allowStateRequest[3]) {
+                            printf("setting stateRequest[3] \n");
+                            stateRequest[3] = 1;
+                            reinfFootprint  = true;   // enabling back the control top-down footprint extraction
+                        }
+                        mutex.post();
                     }
                 }
                 else {
                     //reinforceFootprint has not happened yet
+                    mutex.wait();
                     printf("setting stateRequest[3] \n");
-                    stateRequest[3] = 1;
+                    if(allowStateRequest[3]) {
+                        stateRequest[3] = 1;
+                    }
+                    mutex.post();
                 }
             }
             //executing = false;
-            mutex.post();
+            //mutex.post();
             timetotStart = Time::now();
             mono = true;
             firstVer = true;
@@ -1181,15 +1200,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             u = -1;
             v = -1;
             mutex.wait();
-            stateRequest[3] = 1;
-            //executing = false;
+            printf("setting stateRequest[3] \n");
+            if(allowStateRequest[3]) {
+                stateRequest[3] = 1;
+                //executing = false;
+            }
             mutex.post();
             mono = false;
         }
         else if(!strcmp(name.c_str(),"PUR")) {
             mutex.wait();
-            stateRequest[2] = 1;
-            //executing = false;
+            if(allowStateRequest[2]) {
+                printf("setting stateRequest[2] \n");
+                stateRequest[2] = 1;
+                //executing = false;
+            }
             mutex.post();            
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
@@ -1201,17 +1226,23 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 //if((phi!=0)){                    
                 //printf("inside the vergence command \n");
                 mutex.wait();
-                ver_accomplished = false;
-                stateRequest[1]  = 1;
-                //executing = false;
+                if(allowStateRequest[1]) {
+                    printf("setting stateRequest[1] \n");
+                    ver_accomplished = false;
+                    stateRequest[1]  = 1;
+                    //executing = false;
+                }
                 mutex.post();
                 //}
             }
             else {
                 mutex.wait();
-                ver_accomplished = false;
-                stateRequest[1]  = 1;
-                //executing = false;
+                if(allowStateRequest[1]) {
+                    printf("setting stateRequest[1] \n");
+                    ver_accomplished = false;
+                    stateRequest[1]  = 1;
+                    //executing = false;
+                }
                 mutex.post();
             }            
         }
@@ -1284,8 +1315,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 cout<<"no active feedback to protoObject"<<endl;
             }
 
-            if(reinfFootprint) {
-                
+            if(reinfFootprint) {                
                 reinforceFootprint();
                 Time::delay(5);
             }
@@ -1294,9 +1324,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // vergence accomplished           
             //printf("Vergence accomplished \n");
             mutex.wait();
-            ver_accomplished = true;
-            stateRequest[1]  = 1;
-            //executing = false;
+            if(allowStateRequest[1]) {
+                printf("setting stateRequest[1] \n");
+                ver_accomplished = true;
+                stateRequest[1]  = 1;
+                //executing = false;
+            }
             mutex.post();
         }
         else {
