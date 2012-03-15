@@ -38,6 +38,7 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
     ap =  apt;
     count = 0;
+    state_now = 0;
 };
 
 oculomotorController::~oculomotorController() {
@@ -77,6 +78,7 @@ bool oculomotorController::threadInit() {
             *val = 0.01; val++;
         }
     }
+    printf("%s \n", Psa->toString().c_str());
     
     printf("initialisation of the learning machines \n");
     Q = new Matrix(11,6);
@@ -110,8 +112,27 @@ void oculomotorController::policyWalk(){
 
 
 void oculomotorController::randomWalk() {
-    int i = rand() % 100;
-    
+    double a = (rand() / 100000000) % NUMACTION ;
+    action_now = (int) a;
+    printf(" %f \n", a);
+    printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
+
+    //looking at the Psa for this state and the selected action
+    int pos = state_now * NUMSTATE + action_now;
+    printf("looking for position %d \n", pos);
+    Vector v = Psa->getRow(pos);
+    printf("v = %s \n", v.toString().c_str());
+    double maxInVector = 0.0;
+    int posInVector = 0;
+    for(int j = 0; j < v.size(); j++) {
+        if(v[j] > maxInVector) {
+            maxInVector = v[j];
+            posInVector = j;
+        }
+    }
+    printf("max value found in vector %f \n", maxInVector);
+    state_next = posInVector;
+    printf("new state %d \n", state_next);
 }
 
 void oculomotorController::learningStep() {
@@ -145,7 +166,7 @@ void oculomotorController::learningStep() {
     
     //printf("action selection section \n");
     // action selection
-    if(count < 10) {
+    if(count > 0) {
         printf("randomWalk \n");
         randomWalk();
     }
