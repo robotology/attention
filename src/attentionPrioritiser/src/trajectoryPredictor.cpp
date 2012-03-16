@@ -66,7 +66,7 @@ std::string trajectoryPredictor::getName(const char* p) {
 
 void trajectoryPredictor::isPredict(bool& value) {
     mutex.wait();
-    value = true;
+    value = predictionAccompl;
     mutex.post();
 }
 
@@ -76,13 +76,17 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
     y = 10.0;
 }
 
+void trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy) {
+    predictionAccompl = true;
+}
+
 void trajectoryPredictor::run() {
     while(isStopping() != true){
         ImageOf<PixelMono>* b=inImagePort.read(true);
         int x,y;
         extractCentroid(b, x, y);
-        Vx = 10.0;
-        Vy = 10.0;
+        estimateVelocity(x,y, Vx, Vy);
+        printf("estimateVelocity %f %f \n",Vx,Vy );
     }
 }
 

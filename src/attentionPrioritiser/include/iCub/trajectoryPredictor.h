@@ -46,6 +46,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inImagePort;     //port where all the low level commands are sent
     yarp::os::Semaphore mutex; // semaphore for the variable of the prediction accomplished
     double Vx, Vy;             // components of velocity
+    bool predictionAccompl;    // flag that indicates when the prediction was carried on correctly
 public:
     /**
     * default constructor
@@ -105,6 +106,11 @@ public:
      * function that extract the centroid coordinates of the blob in the image
      */
     void extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMono>* image, int& x, int& y);
+
+    /**
+     * function that estimate the velocity of the centroid in time
+     */
+    void estimateVelocity(int x, int y, double& Vx, double& Vy);
 };
 
 #endif  //_TRAJECTORY_PREDICTOR_H_
