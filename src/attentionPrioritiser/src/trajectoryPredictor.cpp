@@ -45,12 +45,12 @@ bool trajectoryPredictor::threadInit() {
     string rootName("");
     rootName.append(getName("/cmd:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
-    inCommandPort.open(rootName.c_str());
+    inImagePort.open(rootName.c_str());
     return true;
 }
 
 void trajectoryPredictor::interrupt() {
-    inCommandPort.interrupt();
+    inImagePort.interrupt();
 }
 
 void trajectoryPredictor::setName(string str) {
@@ -64,20 +64,31 @@ std::string trajectoryPredictor::getName(const char* p) {
     return str;
 }
 
+void trajectoryPredictor::isPredict(bool& value) {
+    mutex.wait();
+    value = true;
+    mutex.post();
+}
+
+
+void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMono>* image, int& x, int& y) {
+    x = 10.0;
+    y = 10.0;
+}
+
 void trajectoryPredictor::run() {
     while(isStopping() != true){
-        Bottle* b=inCommandPort.read(true);
-        if(b!=0) {
-            printf(" bottle received : %s \n",b->toString().c_str());
-            setChanged();
-            notifyObservers(b);
-        }
+        ImageOf<PixelMono>* b=inImagePort.read(true);
+        int x,y;
+        extractCentroid(b, x, y);
+        Vx = 10.0;
+        Vy = 10.0;
     }
 }
 
 void trajectoryPredictor::onStop() {
-    inCommandPort.interrupt();
-    inCommandPort.close();
+    inImagePort.interrupt();
+    inImagePort.close();
 }
 
 void trajectoryPredictor::threadRelease() {

@@ -1123,6 +1123,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     reinfFootprint = true;
                     stateRequest[4] = 1;
                     timeoutStart = Time::now();
+                    //  changing the accomplished flag
+                    mutexAcc.wait();
+                    accomplFlag[4];
+                    mutexAcc.post();
                 }
                 mutex.post();
             } 
@@ -1312,6 +1316,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 cout<<"no active feedback to protoObject"<<endl;
             }
 
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[3];
+            mutexAcc.post();
+
             if(reinfFootprint) {                
                 reinforceFootprint();
                 Time::delay(5);
@@ -1327,8 +1336,31 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 stateRequest[1]  = 1;
                 //executing = false;
             }
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[1];
+            mutexAcc.post();
+            
             mutex.post();
         }
+        else if(!strcmp(name.c_str(),"SP_ACC")) {
+            // vergence accomplished           
+            //printf("Vergence accomplished \n");
+            mutex.wait();
+            if(allowStateRequest[2]) {
+                printf("setting stateRequest[2] \n");
+                sp_accomplished = true;
+                stateRequest[2]  = 1;
+                //executing = false;
+            }
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[2];
+            mutexAcc.post();
+            
+            mutex.post();
+        }
+        
         else {
             printf("Command %s has not been recognised \n",name.c_str());
         }

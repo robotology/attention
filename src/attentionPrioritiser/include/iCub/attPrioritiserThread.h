@@ -353,17 +353,17 @@ public:
     /**
      * function that returns the status of this oculomotor actuator
      */
-    void isSaccade(bool& returned_flag)       { mutexAcc.wait(); returned_flag = accompFlag[3]; mutexAcc.post(); };
+    void isSaccade(bool& returned_flag)       { mutexAcc.wait(); returned_flag = accomplFlag[3]; mutexAcc.post(); };
 
     /**
      * function that returns the status of this oculomotor actuator
      */
-    void isVergence(bool& returned_flag)      { mutexAcc.wait(); returned_flag = accompFlag[1]; mutexAcc.post(); };
+    void isVergence(bool& returned_flag)      { mutexAcc.wait(); returned_flag = accomplFlag[1]; mutexAcc.post(); };
 
     /**
      * function that returns the status of this oculomotor actuator
      */
-    void isSmoothPursuit(bool& returned_flag) { mutexAcc.wait(); returned_flag = accompFlag[2]; mutexAcc.post(); };
+    void isSmoothPursuit(bool& returned_flag) { mutexAcc.wait(); returned_flag = accomplFlag[2]; mutexAcc.post(); };
 
     /**
      * function that returns the status of this oculomotor actuator

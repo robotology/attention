@@ -53,8 +53,8 @@ static const std::string stateList[11] =  {
     "fixStableKO",    //3
     "trackOK",        //4
     "trackKO",        //5
-    "anticipWait",    //6
-    "anticipOK",      //7
+    "anticipOK",      //6
+    "anticipWait",    //7
     "vergenOK",       //8
     "vergenceKO",     //9
     "fixating",       //10

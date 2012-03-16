@@ -23,12 +23,14 @@
  * @brief thread that given as input the image of the region to be track, extract the centroid and determines velocity components and stopping position
  */
 
-#ifndef _OCULOMOTOR_CONTROLLER_H_
-#define _OCULOMOTOR_CONTROLLER_H_
+#ifndef _TRAJECTORY_PREDICTOR_H_
+#define _TRAJECTORY_PREDICTOR_H_
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/Semaphore.h>
+
 #include <yarp/sig/all.h>
 #include <iostream>
 #include <string>
@@ -40,9 +42,10 @@
 class trajectoryPredictor : public yarp::os::Thread, public observable{
 private:
     
-    std::string name;       // rootname of all the ports opened by this thread
-    yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
-
+    std::string name;          // rootname of all the ports opened by this thread
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inImagePort;     //port where all the low level commands are sent
+    yarp::os::Semaphore mutex; // semaphore for the variable of the prediction accomplished
+    double Vx, Vy;             // components of velocity
 public:
     /**
     * default constructor
@@ -86,15 +89,25 @@ public:
     void setName(std::string str);
     
     /**
+     * @brief function that returns if the prediction has been performed
+     * @param b boolean flag updated by the function
+     */
+    void isPredict(bool& b);
+    
+    /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added
     * @return rootname 
     */
     std::string getName(const char* p);
 
+    /**
+     * function that extract the centroid coordinates of the blob in the image
+     */
+    void extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMono>* image, int& x, int& y);
 };
 
-#endif  //_OCULOMOTOR_CONTROLLER_H_
+#endif  //_TRAJECTORY_PREDICTOR_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 

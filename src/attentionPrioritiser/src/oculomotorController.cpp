@@ -178,7 +178,7 @@ bool oculomotorController::randomWalk() {
 }
 
 void oculomotorController::waitForActuator() {
-    
+    printf("----------------wait for actuator in stete %d----------------- \n", state_now);
     bool   outOfWait = false;
     double timestart = Time::now();
     double timediff  = 0;
@@ -186,7 +186,7 @@ void oculomotorController::waitForActuator() {
     
     switch (state_now) {
     case 0: { //null
-
+        state_now = 0;
     }break;
     case 1: { //predict
         while ((!outOfWait) || (timediff < timeout)) {
@@ -202,44 +202,128 @@ void oculomotorController::waitForActuator() {
         }        
     }break;
     case 2: { //fixStableOK
-        ap->isSaccade(outOfWait);
-        
+        //ap->isSaccade(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSaccade(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 2;
+        } 
+        else {
+            state_now = 3;
+        }
     }break;
     case 3: { //fixStableK0
-        ap->isSaccade(outOfWait);
-        
+        //ap->isSaccade(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSaccade(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+        }
+        */
+        state_now = 3;
     }break;
     case 4: { //trackOK
-        ap->isSmoothPursuit(outOfWait);
-        
+        //ap->isSmoothPursuit(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSmoothPursuit(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 4;
+        } 
+        else {
+            state_now = 5;
+        }
     }break;
     case 5: { //trackKO
-        ap->isSmoothPursuit(outOfWait);
-        
+        //ap->isSmoothPursuit(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSmoothPursuit(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+            }*/
+        state_now =  5;
     }break;
-    case 6: { //anticipWait
-        ap->isAnticip(outOfWait);
-        
+    case 6: { //anticipOk
+        //ap->isAnticip(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isAnticip(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 6;
+        } 
+        else {
+            state_now = 7;
+        } 
     }break;
-    case 7: { //anticipOK
-        ap->isAnticip(outOfWait);
-        
+    case 7: { //anticipWait
+        //ap->isAnticip(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isAnticip(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+            }*/
+        state_now = 7;
     }break;
     case 8: { //vergenceOK
-        ap->isVergence(outOfWait);
-        
+        //ap->isVergence(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isVergence(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 8;
+        } 
+        else {
+            state_now = 9;
+        }
     }break;
     case 9: { //vergenceKO
-        ap->isVergence(outOfWait);
-        
+        //ap->isVergence(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isVergence(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+            }*/
+        state_now = 9;
     }break;    
     case 10: { //fixating
-                
-        
+        state_now = 10;
     }break;        
             
     }
-
+    printf(" ------------------- state_now %d ----------- \n", state_now);
 }
 
 void oculomotorController::learningStep() {
