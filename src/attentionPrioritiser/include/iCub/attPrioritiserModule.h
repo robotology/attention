@@ -157,6 +157,7 @@
  * 18/02/12 : tested the top-down connection between earlyVision and saliencyBlobFinder                     author: Rea  \n
  * 24/02/12 : introduced extra values for command of relative vergence                                      author: Rea  \n
  * 15/03/12 : added two new classes : oculomotorController and trajectoryPredictor                          author: Rea  \n
+ * 16/03/12 : implemented learning step and interaction with the attPrioritiserThread                       author:Rea   \n
 */
 
 

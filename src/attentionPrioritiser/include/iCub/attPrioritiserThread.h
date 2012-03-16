@@ -92,6 +92,12 @@
 /**
 * thread that given a series of collected commands executes the most prioritised command, calling
 * the correct interface function of the iKinGazeCtrl.
+* // state 5 = anticipatory saccade 
+* // state 4 = express saccade
+* // state 3 = saccade
+* // state 2 = smooth pursuit
+* // state 1 = vergence
+* // state 0 = null
 */
 
 class attPrioritiserThread : public yarp::os::RateThread, public observer {
@@ -107,15 +113,17 @@ private:
     yarp::sig::Vector xFix;                 // fixation coordinates
     short numberState;                      // stores the number of the state in which the control can be
     
+    int accomplFlag[5];                     // series of flags representing any action accomplished
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
-    bool allowStateRequest[5];               // vector of flags for allowing state request
+    bool allowStateRequest[5];              // vector of flags for allowing state request
     //bool firstConsistencyCheck;           // boolean flag that check whether consistency happened
     //bool visualCorrection;                // boolean flag for allowing visual correction of the fine position
     //bool isOnWings;                       // flag that gives information on where the cameras are mounted
     //bool onDvs;                           // flag for remapping dvs location into standard dimension
     bool firstVergence;                     // flag that allows the inhibition for train of vergence commands 
     bool ver_accomplished;                  // flag that enables again visual feature extraction inhibition off
+    bool sp_accomplished;                   // flag that indicates that the smooth pursuit is successfully working
     bool postSaccCorrection;                // flag that allows post saccadic corrections
     bool mono;                              // flag that indicates whether the saccade is mono or not
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
@@ -159,10 +167,10 @@ private:
     unsigned char feedbackOriM45;           // value returned from the feedback coming from orientation/earlyVision 
     
     int template_size;                      // size of the template
-    int search_size;                        // area over the search is performed\
+    int search_size;                        // area over the search is performed
     const static int tColor  = 5000;
     const static int tColOri = 5000;
-    const static int tNull   = 5000;             // infrasaccadic time for topdown options
+    const static int tNull   = 5000;        // infrasaccadic time for topdown options
     bool topDownState[4];                   // vector of topDown states
     double kNull[7];
     double kColor[7];                       // kValue for selection in color state
@@ -198,7 +206,8 @@ private:
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
-    
+    yarp::os::Semaphore mutexAcc;                   // semaphore on the accomplished flags
+   
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
     yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
@@ -334,7 +343,33 @@ public:
     /**
     * function that sets the value of the parameter z limits
     */
-    void setZLimits(double max,double min) { zmax = max; zmin = min; };
+    void setZLimits(double max,double min)    { zmax = max; zmin = min; };
+
+    /**
+     * function that returns the status of this oculomotor actuator
+     */
+    void isPredict(bool& returned_flag)       { mutexAcc.wait(); returned_flag = true; mutexAcc.post(); };
+
+    /**
+     * function that returns the status of this oculomotor actuator
+     */
+    void isSaccade(bool& returned_flag)       { mutexAcc.wait(); returned_flag = accompFlag[3]; mutexAcc.post(); };
+
+    /**
+     * function that returns the status of this oculomotor actuator
+     */
+    void isVergence(bool& returned_flag)      { mutexAcc.wait(); returned_flag = accompFlag[1]; mutexAcc.post(); };
+
+    /**
+     * function that returns the status of this oculomotor actuator
+     */
+    void isSmoothPursuit(bool& returned_flag) { mutexAcc.wait(); returned_flag = accompFlag[2]; mutexAcc.post(); };
+
+    /**
+     * function that returns the status of this oculomotor actuator
+     */
+    void isAnticip(bool& returned_flag)       { mutexAcc.wait(); returned_flag = accomplFlag[5]; mutexAcc.post(); };
+    
 
     /**
      * @brief function that send a color command to the preattentive stage
@@ -362,7 +397,10 @@ public:
     void waitMotionDone() {
         igaze->waitMotionDone();
     }
-
+    
+    /**
+     * function that extracts the feature of the object in fovea to command feedback
+     */
     void reinforceFootprint();
 
 };

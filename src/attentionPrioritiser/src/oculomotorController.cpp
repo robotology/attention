@@ -177,6 +177,71 @@ bool oculomotorController::randomWalk() {
     return ret;
 }
 
+void oculomotorController::waitForActuator() {
+    
+    bool   outOfWait = false;
+    double timestart = Time::now();
+    double timediff  = 0;
+    double timeout   = 3.0; // time necessary to perform transition even if action is not completed.
+    
+    switch (state_now) {
+    case 0: { //null
+
+    }break;
+    case 1: { //predict
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isPredict(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+        }        
+    }break;
+    case 2: { //fixStableOK
+        ap->isSaccade(outOfWait);
+        
+    }break;
+    case 3: { //fixStableK0
+        ap->isSaccade(outOfWait);
+        
+    }break;
+    case 4: { //trackOK
+        ap->isSmoothPursuit(outOfWait);
+        
+    }break;
+    case 5: { //trackKO
+        ap->isSmoothPursuit(outOfWait);
+        
+    }break;
+    case 6: { //anticipWait
+        ap->isAnticip(outOfWait);
+        
+    }break;
+    case 7: { //anticipOK
+        ap->isAnticip(outOfWait);
+        
+    }break;
+    case 8: { //vergenceOK
+        ap->isVergence(outOfWait);
+        
+    }break;
+    case 9: { //vergenceKO
+        ap->isVergence(outOfWait);
+        
+    }break;    
+    case 10: { //fixating
+                
+        
+    }break;        
+            
+    }
+
+}
+
 void oculomotorController::learningStep() {
     iter++;
     //1 . updating the quality of the current state
@@ -235,15 +300,17 @@ void oculomotorController::learningStep() {
     }
     else {
         state_now = state_next;
-    }
+    } 
+    waitForActuator();
 
-    printf("end of the learning step \n");
+
+    printf("actuator in the decided step \n");
     printf("\n");
     printf("\n");
 }
 
 void oculomotorController::run() {
-    if((count < 50)&&(iter % 20 == 0)) {
+    if((count < 50) && (iter % 20 == 0)) {
         learningStep();    
     }
 

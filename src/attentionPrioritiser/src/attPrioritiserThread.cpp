@@ -1099,9 +1099,6 @@ void attPrioritiserThread::reinforceFootprint() {
 
 }
 
-
-
-
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     cUpdate++;
     //printf("ACK. Aware of observable asking for attention \n");

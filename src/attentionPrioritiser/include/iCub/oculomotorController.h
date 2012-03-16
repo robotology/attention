@@ -42,7 +42,7 @@
 #include <iCub/observable.h>
 #include <iCub/attPrioritiserThread.h>
 
-#define THRATE 1000
+#define THRATE 10
 #define NUMSTATE 11
 #define NUMACTION 6
 
@@ -95,6 +95,7 @@ private:
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
+    yarp::os::BufferedPort<yarp::os::Bottle> scopePort;     //port where all the totalPayoff is going to be sent
     attPrioritiserThread* ap;
     
     yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
@@ -184,6 +185,11 @@ public:
     */
     void learningStep();
 
+    /**
+     * given the state where tha actuator is supposed to go 
+     * wait for the response command of the attPrioritiserThread;
+     */
+    void waitForActuator();
 };
 
 #endif  //_OCULOMOTOR_CONTROLLER_H_
