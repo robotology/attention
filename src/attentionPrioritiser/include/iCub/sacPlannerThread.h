@@ -47,6 +47,7 @@ private:
     
     std::string name;       // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inImagePort;
     iCub::logpolar::logpolarTransform trsfC2L;                  // reference to the converter for logpolar transform frmo cartesian to logpolar
     iCub::logpolar::logpolarTransform trsfL2C;                  // reference to the converter for logpolar transform frmo cartesian to logpolar
     bool sleep;                                                 // flag set after the prediction is memorised
@@ -126,7 +127,7 @@ public:
     /** 
      * function that wakes the planner up changing the sleep flage from true to false
      */
-    void wakeup(){sleep = false; printf("waking up \n"); };
+    void wakeup(){mutex.wait();sleep = false;mutex.post();printf("waking up \n"); };
 
     /**
     * function that allocate the reference to the input magic 

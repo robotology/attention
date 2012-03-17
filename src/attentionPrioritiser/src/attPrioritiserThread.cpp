@@ -139,7 +139,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     firstVergence      = true;
     done               = true;
     reinfFootprint     = true;
-    postSaccCorrection = false;
+    postSaccCorrection = true;
     executing          = false;
     correcting         = false;
 
@@ -175,7 +175,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     // selection kValue for color and orientation top-down
     kColOri[0] = 0.15;  // intensity
     kColOri[1] = 0.05;  // motion
-    kColOri[2] = 0.40;  // chrominance
+    kColOri[2] = 0.95;  // chrominance
     kColOri[3] = 0.00;  // orientation
     kColOri[4] = 0.00;  // edges
     kColOri[5] = 0.40;  // proto-objects
@@ -287,6 +287,7 @@ bool attPrioritiserThread::threadInit() {
     int rowsizeInhi = inhibitionImage->getRowSize();
     
     string name = getName("");
+    
     sacPlanner = new sacPlannerThread(name);       
     //referencing the image to all the planners
     sacPlanner->referenceRetina(imgLeftIn);
@@ -595,6 +596,7 @@ void attPrioritiserThread::run() {
                 
                 // post-saccadic connection
                 if(postSaccCorrection) {
+                    printf("waiting for saccade accomplished in postSaccadic correction \n");
                     // wait for accomplished saccadic event
                     timeout = 0;
                     timeoutStart = Time::now();

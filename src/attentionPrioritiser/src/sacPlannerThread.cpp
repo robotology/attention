@@ -71,7 +71,6 @@ inline void copy_8u_C3R(ImageOf<PixelRgb>* src, ImageOf<PixelRgb>* dest) {
     }
 }
 
-
 sacPlannerThread::sacPlannerThread() {
     
 }
@@ -95,13 +94,15 @@ bool sacPlannerThread::threadInit() {
     printf("starting the thread.... \n");
     /* open ports */
     string rootName("");
-    //rootName.append(getName("/cmd:i"));
-    //printf("opening ports with rootname %s .... \n", rootName.c_str());
-    //inCommandPort.open(rootName.c_str());
-    
-    rootName.append(getName("/corr:o"));
+    rootName.append(getName("/sacPlanner/img:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
-    corrPort.open(rootName.c_str());
+    inImagePort.open(rootName.c_str());
+    //inCommandPort.open(rootName.c_str());
+
+    string rootNameCorr("");
+    rootNameCorr.append(getName("/sacPlanner/corr:o"));
+    printf("opening ports with rootname %s .... \n", rootNameCorr.c_str());
+    corrPort.open(rootNameCorr.c_str());
 
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
@@ -147,7 +148,7 @@ std::string sacPlannerThread::getName(const char* p) {
 }
 
 void sacPlannerThread::setSaccadicTarget(int r, int t) {
-    printf("setting Saccadic Planner \n");
+    printf("setting Saccadic Planner ----- ");
     rho   = r;
     theta = t;
     printf("rho %d theta %d \n", rho, theta);
@@ -159,28 +160,31 @@ void sacPlannerThread::resizeImages(int logwidth, int logheight) {
 }
 
 void sacPlannerThread::run() {
+    ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
+    ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);       
- 
+        //printf("sacPlanner::run");
         if(!idle) {
+            inputImage = inImagePort.read(false);           
             // check whether it must be sleeping
-
             if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
-
+                printf("performing correlation measures \n");
                 //here it comes if only if it is not sleeping
                 ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
                 int width  = inputImage->width();
                 int height = inputImage->height();
                 resizeImages(width, height);
-                outputImage.resize(width,height);
+                outputImage.resize(320,240);
                 outputImage.zero();
+                printf("prepared the output port \n");
                 
                 mutex.wait();
                 if((!sleep)&&(!compare)) {                    
                     mutex.post();
+                    printf("in the sleep and compare branch \n");
                                         
-                    ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
-                    ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
+                    
                     
                     intermImage->resize(320,240);
                     intermImage2->resize(320,240);                                        
@@ -189,18 +193,22 @@ void sacPlannerThread::run() {
                     outputImageDown->resize(width,height);
                     outputImageLeft->resize(width,height);
                     outputImageRight->resize(width,height);
+                    
                     int xPos = theta;
                     int yPos = rho;
                     
                     trsfL2C.logpolarToCart(*intermImage,*inputImage);
                     shiftROI(intermImage,intermImage2, xPos, yPos);
-                    trsfL2C.cartToLogpolar(outputImage, *intermImage2);
+                    trsfL2C.cartToLogpolar(*predictedImage, *intermImage2);
 
+                    copy_8u_C3R(intermImage, &outputImage);
+                    
+                    
                     //outputImage.copy(*predictedImage); 
-                    //predictedImage->copy(outputImage);                    
-                    corrPort.write();
-                    copy_8u_C3R(&outputImage, predictedImage);
-
+                    //predictedImage->copy(outputImage); 
+                    //printf("outputing the image \n");
+                    //copy_8u_C3R(&outputImage, predictedImage);
+                    //corrPort.write();
 
                     //created alternative shifts
                     shiftROI(intermImage,intermImage2, xPos, yPos + corrStep);
@@ -216,8 +224,7 @@ void sacPlannerThread::run() {
                     trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);                    
                     
 
-                    delete intermImage;
-                    delete intermImage2;
+                   
                     mutex.wait();
                     sleep   = true;
                     compare = false;
@@ -245,8 +252,7 @@ void sacPlannerThread::run() {
                     logCorrRgbSum(inputImage, predictedImage, pCorr,1);                    
                     corrValue = *pCorr;
                     printf("correlation between the predicted saccadic image with the actual %f \n", corrValue);
-                    copy_8u_C3R(predictedImage, &outputImage);
-                    corrPort.write();
+                    
                     
                     if(*pCorr < THCORR) {
                         // the saccadic planner triggers the error
@@ -296,17 +302,26 @@ void sacPlannerThread::run() {
                     else {
                         // the saccadic event has been successfully  performed
                         printf("saccadic event has been successfully performed \n");
+                        direction = -1;                   
                     }
                     
                     mutex.wait();
                     compare = false;
                     sleep = true;
                     mutex.post();
-                }            
+                }
+                corrPort.write();
             }
-        }
+        } // end if idle
+        //sending the image out
+        //corrPort.prepare() = *inputImage;
+        //corrPort.write();
+        
+
         Time::delay(0.05);
-    }
+    } //end of while
+     delete intermImage;
+     delete intermImage2;
 }
 
 void sacPlannerThread::referenceRetina(ImageOf<PixelRgb>* ref) {
@@ -503,7 +518,9 @@ void sacPlannerThread::onStop() {
     //inCommandPort.interrupt();
     //inCommandPort.close();
     corrPort.interrupt();
+    inImagePort.interrupt();
     corrPort.close();
+    inImagePort.close();
 }
 
 void sacPlannerThread::threadRelease() {

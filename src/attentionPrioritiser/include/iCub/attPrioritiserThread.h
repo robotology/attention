@@ -168,9 +168,9 @@ private:
     
     int template_size;                      // size of the template
     int search_size;                        // area over the search is performed
-    const static int tColor  = 5000;
-    const static int tColOri = 5000;
-    const static int tNull   = 5000;        // infrasaccadic time for topdown options
+    const static int tColor  = 10000;
+    const static int tColOri = 10000;
+    const static int tNull   = 10000;        // infrasaccadic time for topdown options
     bool topDownState[4];                   // vector of topDown states
     double kNull[7];
     double kColor[7];                       // kValue for selection in color state
