@@ -76,17 +76,57 @@ bool oculomotorController::threadInit() {
         }
     }
     printf("initialisation of probability transition \n");
+    printf("reading values from the file.... \n");
+    PsaFile = fopen("psaFile.txt","a+");
+    int n = 0; // number of bytes in the file
+    if (NULL == PsaFile) { 
+        perror ("Error opening file");
+    }
+    else {
+        while (!feof(PsaFile)) {
+            fgetc (PsaFile);
+            n++;
+        }
+        //fclose (pFile);
+        printf ("Total number of bytes: %d \n", n-1);
+    }
+    n = n -1;
+    rewind(PsaFile);
     Psa = new Matrix(66,11);
     val = Psa->data();
-    double t;
-    for(int row = 0; row < 66; row++ ) {
-        for(int col = 0; col < 11; col++) {
-            t = rand() / 10000000000.0 ;
-            *val = t; val++;
+    if(n == 0) {
+        // creating new Psa values                
+        printf("creating new Psa values \n");
+        double t;
+        for(int row = 0; row < 66; row++ ) {
+            for(int col = 0; col < 11; col++) {
+                t = rand() / 10000000000.0 ;
+                fprintf(PsaFile,"%f ",t);
+                *val = t; val++;
+            }
+            fprintf(PsaFile,"\n");
         }
     }
-    printf("%s \n", Psa->toString().c_str());
-    Time::delay(5.00);
+    else {
+        //reading values
+        printf("reading values from file \n");
+        // Reads from input file first segment of nsize samples into y:	
+		unsigned int i;			
+		int numRead = 0, countVal = 0;
+        int nsize = 10;
+        double y[10];
+        float x;
+        double* py = &y[0];
+		while(numRead != -1){
+			numRead = fscanf(PsaFile, "%f", &x);
+			printf("numRead %d > %f \n",numRead,(double)x);
+            *val = (double) x;
+            val++; countVal++;
+        }
+         printf("saved %d \n", countVal);
+    }
+
+    Time::delay(1.00);
     
     printf("initialisation of the learning machines \n");
     Q = new Matrix(11,6);
@@ -95,6 +135,10 @@ bool oculomotorController::threadInit() {
     V->zero();
     A = new Matrix(1,11);
     A->zero();
+
+    tp = new trajectoryPredictor();
+    tp->setName(getName("").c_str()); 
+    tp->start();
     
     return true;
 }
@@ -191,7 +235,7 @@ void oculomotorController::waitForActuator() {
     case 1: { //predict
         while ((!outOfWait) || (timediff < timeout)) {
             timediff =  Time::now() - timestart;
-            ap->isPredict(outOfWait);
+            tp->isPredict(outOfWait);
         }
 
         if(outOfWait) {
@@ -407,4 +451,6 @@ void oculomotorController::run() {
 void oculomotorController::threadRelease() {
     inCommandPort.close();
     scopePort.close();
+    tp->stop();
+    fclose(PsaFile);
 }

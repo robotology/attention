@@ -34,13 +34,16 @@
 #include <yarp/sig/all.h>
 #include <yarp/math/Rand.h>
 
+#include <cstdio>
 #include <iostream>
 #include <string>
+
 
 //within project includes
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 #include <iCub/attPrioritiserThread.h>
+#include <iCub/trajectoryPredictor.h>
 
 #define THRATE 10
 #define NUMSTATE 11
@@ -88,15 +91,15 @@ static const double rewardStateAction[66] = {
 };
 */
 
-
 class oculomotorController : public yarp::os::RateThread, public observable {
 private:
     int count;                 // step counter of successful learning step
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
-    yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
-    yarp::os::BufferedPort<yarp::os::Bottle> scopePort;     //port where all the totalPayoff is going to be sent
-    attPrioritiserThread* ap;
+    yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
+    yarp::os::BufferedPort<yarp::os::Bottle> scopePort;         // port where all the totalPayoff is going to be sent
+    attPrioritiserThread* ap;                                   // reference to the attention prioritiser
+    trajectoryPredictor* tp;                                    // reference to the trajectory predictor
     
     yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
     yarp::sig::Matrix* Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
@@ -114,6 +117,8 @@ private:
     int state_now;                        // state of the controller now
     int action_now;                       // action performed in this step
     int state_next;                       // state in which the controller will end
+    
+    FILE* PsaFile;                        // file that contains the Probability of Transitions
 public:
     /**
     * default constructor
