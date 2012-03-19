@@ -1118,7 +1118,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //mutex.wait();
             if(time <= 0.5) {
                 // express saccade
-                
                 mutex.wait();
                 if(allowStateRequest[4]) {
                     printf("setting stateRequest[4] \n");
@@ -1325,7 +1324,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             if(reinfFootprint) {                
                 reinforceFootprint();
-                Time::delay(5);
+                Time::delay(0.5);
             }
         }
         else if(!strcmp(name.c_str(),"VER_ACC")) {

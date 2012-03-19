@@ -43,7 +43,7 @@ bool trajectoryPredictor::threadInit() {
     printf("starting the thread.... \n");
     /* open ports */
     string rootName("");
-    rootName.append(getName("/cmd:i"));
+    rootName.append(getName("/blobImage:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str());
     return true;

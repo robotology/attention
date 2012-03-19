@@ -26,16 +26,24 @@
 #ifndef _SAC_PLANNER_THREAD_H_
 #define _SAC_PLANNER_THREAD_H_
 
+// standard includes
+#include <iostream>
+#include <string>
+
+// opencv includes
+#include <cv.h>
+#include <cvaux.h>
+#include <highgui.h>  
+
+// yarp includes
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/sig/all.h>
-#include <iostream>
-#include <string>
 
-/* Log-Polar includes */
+// Log-Polar includes 
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
 
 //within project includes

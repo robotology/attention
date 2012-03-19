@@ -162,6 +162,15 @@ void sacPlannerThread::resizeImages(int logwidth, int logheight) {
 void sacPlannerThread::run() {
     ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
     ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
+    ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
+    int width  = inputImage->width();
+    int height = inputImage->height();
+    resizeImages(width, height);
+    outputImage.resize(320,240);
+    outputImage.zero();
+    printf("prepared the output port \n");  
+
+
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);       
         //printf("sacPlanner::run");
@@ -171,20 +180,13 @@ void sacPlannerThread::run() {
             if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
                 printf("performing correlation measures \n");
                 //here it comes if only if it is not sleeping
-                ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
-                int width  = inputImage->width();
-                int height = inputImage->height();
-                resizeImages(width, height);
-                outputImage.resize(320,240);
-                outputImage.zero();
-                printf("prepared the output port \n");
-                
+                        
+
+                //!sleep and compare section
                 mutex.wait();
                 if((!sleep)&&(!compare)) {                    
                     mutex.post();
                     printf("in the sleep and compare branch \n");
-                                        
-                    
                     
                     intermImage->resize(320,240);
                     intermImage2->resize(320,240);                                        
@@ -196,19 +198,27 @@ void sacPlannerThread::run() {
                     
                     int xPos = theta;
                     int yPos = rho;
-                    
-                    trsfL2C.logpolarToCart(*intermImage,*inputImage);
-                    shiftROI(intermImage,intermImage2, xPos, yPos);
-                    trsfL2C.cartToLogpolar(*predictedImage, *intermImage2);
 
-                    copy_8u_C3R(intermImage, &outputImage);
-                    
-                    
                     //outputImage.copy(*predictedImage); 
                     //predictedImage->copy(outputImage); 
                     //printf("outputing the image \n");
                     //copy_8u_C3R(&outputImage, predictedImage);
                     //corrPort.write();
+                    
+                    
+                    // preparing the set of predicted images
+                    bool fromLogpolar = true;
+                    if(fromLogpolar) {
+                        trsfL2C.logpolarToCart(*intermImage,*inputImage);
+                    }
+                    else {
+                        // we gain few pixel more but we don`t have the pure input logpolar image
+                        copy_8u_C3R(inputImage, intermImage);
+                    }
+
+
+                    shiftROI(intermImage,intermImage2, xPos, yPos);
+                    trsfL2C.cartToLogpolar(*predictedImage, *intermImage2);
 
                     //created alternative shifts
                     shiftROI(intermImage,intermImage2, xPos, yPos + corrStep);
@@ -221,8 +231,13 @@ void sacPlannerThread::run() {
                     trsfL2C.cartToLogpolar(*outputImageLeft, *intermImage2);
                     
                     shiftROI(intermImage,intermImage2, xPos + corrStep, yPos);
-                    trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);                    
-                    
+                    trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);    
+
+                    //preparing the image output
+                    copy_8u_C3R(intermImage, &outputImage);
+                    //(img, center, radius, color, thickness=1, lineType=8, shift=0) → None
+                    CvPoint p = cvPoint(10,10);
+                    cvCircle(outputImage.getIplImage(),cvPoint(10,10),10,cvScalar(255,0,0));
 
                    
                     mutex.wait();
@@ -234,9 +249,10 @@ void sacPlannerThread::run() {
                     mutex.post();
                 }
             
+                //sleep and compare section
                 //goes into the sleep mode waiting for the flag to be set by observable            
                 printf("sleep %d compare %d \n" ,sleep, compare);
-                if((!sleep)&&(compare)&&(corrPort.getOutputCount())) {
+                if((!sleep)&&(compare)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
                     //ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
                     printf("Entering checkSleep with compare \n");
                     // it has been waken up by observable
@@ -298,6 +314,11 @@ void sacPlannerThread::run() {
                             //countDirection++;
                             //direction /= countDirection;
                         }
+
+                        delete leftCorr;
+                        delete rightCorr;
+                        delete upCorr;
+                        delete downCorr;
                     }
                     else {
                         // the saccadic event has been successfully  performed
