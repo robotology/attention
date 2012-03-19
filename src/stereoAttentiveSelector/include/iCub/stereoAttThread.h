@@ -33,12 +33,12 @@
 #include <iostream>
 
 // outside project includes
-#include <ipp.h>
+//#include <ipp.h>
 
 
 class stereoAttThread : public yarp::os::RateThread {
 private:
-    IppiSize srcsize;                   // ROI for the images in the processing
+    //IppiSize srcsize;                   // ROI for the images in the processing
 
     int psb;
     int width, height;                  // dimension of the extended input image (extending)

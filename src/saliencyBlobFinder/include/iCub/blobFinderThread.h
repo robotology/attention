@@ -71,7 +71,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpImage;            // buffer image for received image
     yarp::sig::ImageOf<PixelBgr> *outMeanColourLP;                 // image result of the function meanColourLP;
     
-    IppiSize srcsize;                                   // ipp reference to the size of the input image
+    //IppiSize srcsize;                                   // ipp reference to the size of the input image
     int width;                                          // width of the input image
     int height;                                         // height of the input image
     int nBlobs;                                         // number of blobs extracted

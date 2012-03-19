@@ -93,8 +93,8 @@ std::string stereoAttThread::getName(const char* p) {
 void stereoAttThread::resize(int widthp, int heightp) {
     height=heightp;
     width=widthp;
-    srcsize.width=widthp;
-    srcsize.height=heightp;
+    //srcsize.width=widthp;
+    //srcsize.height=heightp;
 
     inputLeft=new ImageOf<PixelRgb>;
     inputLeft->resize(width,height);
@@ -114,12 +114,18 @@ void stereoAttThread::run() {
             return;
         }
     }
+
+
+    /*
     if(tmp!=0)
         ippiCopy_8u_C3R(tmp->getRawImage(),tmp->getRowSize(),inputLeft->getRawImage(), inputLeft->getRowSize(),srcsize);
     tmp=inRightPort.read(false);
     if(tmp!=0) {
         ippiCopy_8u_C3R(tmp->getRawImage(),tmp->getRowSize(),inputRight->getRawImage(), inputRight->getRowSize(),srcsize);
     }
+    */
+
+
     Bottle* b=shiftPort.read(false);
     ImageOf<PixelRgb>& outImage=outPort.prepare();
     outImage.resize(width,height);

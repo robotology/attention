@@ -31,7 +31,7 @@
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
-#include <ipp.h>
+
 #include <iCub/ColorVQ.h>
 #include <iCub/YARPBox.h>
 #include <iCub/YARPIntegralImage.h>

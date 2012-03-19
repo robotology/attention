@@ -852,6 +852,8 @@ ImageOf<PixelMono>* WatershedOperator::getPlane(ImageOf<PixelRgb>* inputImage){
     unsigned char c = 0;
     //int x, y, z;
     //int Offset;
+
+    /*
     int psb;
     int width=inputImage->width();
     int height=inputImage->height();
@@ -870,6 +872,7 @@ ImageOf<PixelMono>* WatershedOperator::getPlane(ImageOf<PixelRgb>* inputImage){
     ippiFree(shift[0]);
     ippiFree(shift[1]);
     ippiFree(shift[2]);
+    */
     
     return outputImage;
 }

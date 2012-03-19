@@ -242,8 +242,8 @@ void blobFinderThread::reinitialise(int width, int height) {
 }
 
 void blobFinderThread::resizeImages(int width, int height) {
-    srcsize.height = height;
-    srcsize.width = width;
+    //srcsize.height = height;
+    //srcsize.width = width;
 
     const int widthstep = int(ceil(width/32.0)*32);
 
@@ -487,8 +487,8 @@ void blobFinderThread::run() {
     img = inputPort.read(false);
     if (0 != img) {
         if (!reinit_flag) {
-            srcsize.height = img->height();
-            srcsize.width  = img->width();
+            //srcsize.height = img->height();
+            //srcsize.width  = img->width();
             height = img->height();
             width  = img->width();
             reinitialise(img->width(), img->height());

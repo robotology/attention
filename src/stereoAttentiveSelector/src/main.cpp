@@ -24,8 +24,8 @@
  */
 
 #include "iCub/stereoAttModule.h" 
-#include <ippi.h>
-#include <ippcore.h>
+//#include <ippi.h>
+//#include <ippcore.h>
 #include <yarp/dev/Drivers.h>
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -36,7 +36,7 @@ using namespace yarp::sig;
 int main(int argc, char * argv[])
 {
     /* important, this effectively disables the OMP library parallelization in the IPP */
-    ippSetNumThreads(1);
+    //ippSetNumThreads(1);
     Network yarp;
     Time::turboBoost();
     stereoAttModule module; 

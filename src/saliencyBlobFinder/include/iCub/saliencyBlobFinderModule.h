@@ -166,7 +166,6 @@
  */
 
 #include <iostream>
-#include <ippi.h>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
@@ -205,7 +204,7 @@ private:
     
     int threadRate;             // rate of the processor Thread
     int minBoundingArea;        // minimum bounding area around the blob for neighbourhood definition
-    IppiSize srcsize;           // ipp reference to the size of the input image
+    //IppiSize srcsize;           // ipp reference to the size of the input image
     
     int width;                  // width of the input image
     int height;                 // height of the input image

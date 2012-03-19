@@ -26,7 +26,6 @@
 #ifndef _WATERSHEDOPERATOR_H_
 #define _WATERSHEDOPERATOR_H_
 
-#include <ipp.h>
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/sig/Image.h>
