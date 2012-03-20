@@ -20,12 +20,17 @@ add_subdirectory( salBlobFinderInterface    )
 add_subdirectory( vergence                  )
 add_subdirectory( visualFeatureExtractor    )
 add_subdirectory( zdfControl                )
-
 add_subdirectory(saliencyBlobFinder)
 add_subdirectory(stereoAttentiveSelector)
 #add_subdirectory(visualFilter)    
-add_subdirectory(yuvProcessor)
 #add_subdirectory(zdfModule)
+
+
+if(IPP_FOUND)
+  add_subdirectory(yuvProcessor)
+else(IPP_FOUND)
+    message(STATUS "IPP not found/selected, skipping modules")
+endif(IPP_FOUND)
 
 if(IPOPT_FOUND)
     add_subdirectory(gazeArbiter)
