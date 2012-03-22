@@ -69,6 +69,8 @@ private:
     yarp::sig::ImageOf <yarp::sig::PixelRgb>* outputImageDown;                         // image of the alternative saccadic event (down) 
     yarp::sig::ImageOf <yarp::sig::PixelRgb>* outputImageLeft;                         // image of the alternative saccadic event (left) 
     yarp::sig::ImageOf <yarp::sig::PixelRgb>* outputImageRight;                        // image of the alternative saccadic event (right) 
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* intermImage;
+    yarp::sig::ImageOf <yarp::sig::PixelRgb>* intermImage2;
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                //output port for representing the correlation measure in the adaptation
     yarp::os::Semaphore mutex;

@@ -128,6 +128,8 @@ bool sacPlannerThread::threadInit() {
     outputImageLeft    = new ImageOf<PixelRgb>;
     outputImageRight   = new ImageOf<PixelRgb>;
     predictedImage     = new ImageOf<PixelRgb>;
+    intermImage        = new ImageOf<PixelRgb>;
+    intermImage2       = new ImageOf<PixelRgb>;
 
     return true;
 }
@@ -160,27 +162,29 @@ void sacPlannerThread::resizeImages(int logwidth, int logheight) {
 }
 
 void sacPlannerThread::run() {
-    ImageOf<PixelRgb>* intermImage  = new ImageOf<PixelRgb>;
-    ImageOf<PixelRgb>* intermImage2 = new ImageOf<PixelRgb>;
-    ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
-    int width  = inputImage->width();
-    int height = inputImage->height();
-    resizeImages(width, height);
-    outputImage.resize(320,240);
-    outputImage.zero();
-    printf("prepared the output port \n");  
-
+    
+    //ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
+    //int width  = inputImage->width();
+    //int height = inputImage->height();
 
     while(isStopping() != true){        
         //Bottle* b=inCommandPort.read(true);       
         //printf("sacPlanner::run");
         if(!idle) {
-            inputImage = inImagePort.read(false);           
+            
+            inputImage = inImagePort.read(false); 
+              
+            
             // check whether it must be sleeping
             if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
                 printf("performing correlation measures \n");
                 //here it comes if only if it is not sleeping
-                        
+                ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
+                int width  = inputImage->width();
+                int height = inputImage->height();
+                resizeImages(width, height);
+                outputImage.resize(320,240);
+                outputImage.zero();        
 
                 //!sleep and compare section
                 mutex.wait();
@@ -207,6 +211,7 @@ void sacPlannerThread::run() {
                     
                     
                     // preparing the set of predicted images
+                    printf("preparing intermediate image from logpolar \n");
                     bool fromLogpolar = true;
                     if(fromLogpolar) {
                         trsfL2C.logpolarToCart(*intermImage,*inputImage);
@@ -215,11 +220,11 @@ void sacPlannerThread::run() {
                         // we gain few pixel more but we don`t have the pure input logpolar image
                         copy_8u_C3R(inputImage, intermImage);
                     }
-
-
+                    
                     shiftROI(intermImage,intermImage2, xPos, yPos);
                     trsfL2C.cartToLogpolar(*predictedImage, *intermImage2);
-
+                   
+                    printf("shifting alternative ROIs \n");
                     //created alternative shifts
                     shiftROI(intermImage,intermImage2, xPos, yPos + corrStep);
                     trsfL2C.cartToLogpolar(*outputImageUp, *intermImage2);
@@ -231,14 +236,14 @@ void sacPlannerThread::run() {
                     trsfL2C.cartToLogpolar(*outputImageLeft, *intermImage2);
                     
                     shiftROI(intermImage,intermImage2, xPos + corrStep, yPos);
-                    trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);    
+                    trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);                       
 
                     //preparing the image output
+                    printf("copying the intermediate image \n");
                     copy_8u_C3R(intermImage, &outputImage);
-                    //(img, center, radius, color, thickness=1, lineType=8, shift=0) → None
-                    CvPoint p = cvPoint(10,10);
-                    cvCircle(outputImage.getIplImage(),cvPoint(10,10),10,cvScalar(255,0,0));
+                    corrPort.write();
 
+                    printf("after copying the input image in the outputImage \n");
                    
                     mutex.wait();
                     sleep   = true;
@@ -248,7 +253,7 @@ void sacPlannerThread::run() {
                 else {
                     mutex.post();
                 }
-            
+
                 //sleep and compare section
                 //goes into the sleep mode waiting for the flag to be set by observable            
                 printf("sleep %d compare %d \n" ,sleep, compare);
@@ -315,10 +320,44 @@ void sacPlannerThread::run() {
                             //direction /= countDirection;
                         }
 
+                        copy_8u_C3R(intermImage, &outputImage);
+                        //(img, center, radius, color, thickness=1, lineType=8, shift=0) → None
+                        //cvPutText(CvArr* img, const char* text, CvPoint org, const CvFont* font, CvScalar color)
+                        CvFont font;
+                        cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 0.3, 0.3, 0, 1, CV_AA);
+                        
+                        cvCircle(outputImage.getIplImage(),cvPoint(rho ,theta),2,cvScalar(0,0,255),-1);
+                        string* c = new string("");
+                        sprintf((char*)c->c_str(),"%2f",*pCorr);
+                        cvPutText(outputImage.getIplImage(),c->c_str(),cvPoint(rho ,theta + corrStep),&font,cvScalar(0,0,255));
+                        
+                        cvCircle(outputImage.getIplImage(),cvPoint(rho + corrStep ,theta),2,cvScalar(255,0,0),-1);
+                        c = new string("");
+                        sprintf((char*)c->c_str(),"%2f",*rightCorr);
+                        cvPutText(outputImage.getIplImage(),c->c_str(),cvPoint(rho + 4 * corrStep ,theta),&font,cvScalar(255,0,0));
+                        
+                        cvCircle(outputImage.getIplImage(),cvPoint(rho - corrStep ,theta),2,cvScalar(255,0,0),-1);
+                        c = new string("");
+                        sprintf((char*)c->c_str(),"%2f",*leftCorr);
+                        cvPutText(outputImage.getIplImage(),c->c_str(),cvPoint(rho - 6 * corrStep  ,theta),&font,cvScalar(255,0,0));
+                        
+                        cvCircle(outputImage.getIplImage(),cvPoint(rho ,theta + corrStep),2,cvScalar(255,0,0),-1);
+                        c= new string("");
+                        sprintf((char*)c->c_str(),"%2f",*upCorr);
+                        cvPutText(outputImage.getIplImage(),c->c_str(),cvPoint(rho ,theta + 2 * corrStep),&font,cvScalar(255,0,0));
+                        
+                        cvCircle(outputImage.getIplImage(),cvPoint(rho ,theta - corrStep),2,cvScalar(255,0,0),-1);
+                        c =  new string("");
+                        sprintf((char*)c->c_str(),"%2f",*downCorr);
+                        cvPutText(outputImage.getIplImage(),c->c_str(),cvPoint(rho ,theta - 2 * corrStep),&font,cvScalar(255,0,0));
+                        
+                        corrPort.write();
+
                         delete leftCorr;
                         delete rightCorr;
                         delete upCorr;
                         delete downCorr;
+                        delete c;
                     }
                     else {
                         // the saccadic event has been successfully  performed
@@ -331,7 +370,7 @@ void sacPlannerThread::run() {
                     sleep = true;
                     mutex.post();
                 }
-                corrPort.write();
+                
             }
         } // end if idle
         //sending the image out
@@ -341,8 +380,8 @@ void sacPlannerThread::run() {
 
         Time::delay(0.05);
     } //end of while
-     delete intermImage;
-     delete intermImage2;
+    delete intermImage;
+    delete intermImage2;
 }
 
 void sacPlannerThread::referenceRetina(ImageOf<PixelRgb>* ref) {
@@ -550,6 +589,8 @@ void sacPlannerThread::threadRelease() {
     delete outputImageLeft;                    
     delete outputImageRight;
     delete predictedImage;
+    delete intermImage;
+    delete intermImage2;
 }
 
 

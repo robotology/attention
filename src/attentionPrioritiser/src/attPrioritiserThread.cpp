@@ -542,6 +542,7 @@ void attPrioritiserThread::run() {
         state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         //forcing in idle early processes during oculomotor actions
         if(feedbackPort.getOutputCount()) {
+            printf("feedback suppression \n");
             Bottle* sent = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
@@ -567,11 +568,12 @@ void attPrioritiserThread::run() {
             }
             else {
                 printf("------- Monocular Planned Saccade -------------  \n");
+                
                 printf("initialising the planner thread %f \n", time);
+                /*
                 sacPlanner->setSaccadicTarget(u,v);
                 timeoutStart = Time::now();
-                executing = true;
-       
+                executing = true;       
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
                 printf("waiting for planned saccade \n");
@@ -580,10 +582,13 @@ void attPrioritiserThread::run() {
                     timeout = timeoutStop - timeoutStart;
                     //printf("ps \n");
                 }
+                */
+
                 // activating the sacPlanner
                 sacPlanner->setSaccadicTarget(u,v);
                 sacPlanner->wakeup();
                 Time::delay(0.01);
+                
             
                 // executing the saccade
                 Bottle& commandBottle=outputPort.prepare();
@@ -644,9 +649,9 @@ void attPrioritiserThread::run() {
         }
         
         //resume early processes
-        //printf("          SENDING COMMAND OF RESUME      \n");
+        printf("SENDING COMMAND OF RESUME      \n");
         if(feedbackPort.getOutputCount()) {
-            //printf("feedback resetting \n");
+            printf("feedback resetting \n");
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
@@ -655,7 +660,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
-
+        printf("AFTER COMMAND OF RESUME \n");
         Time::delay(0.005);
     }
     else if(allowedTransitions(2)>0) {
@@ -1315,6 +1320,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             else {
                 cout<<"no active feedback to protoObject"<<endl;
+                reinfFootprint = false;
             }
 
             //  changing the accomplished flag
