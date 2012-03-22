@@ -972,12 +972,12 @@ void gazeArbiterThread::run() {
 
                     errorVC_pre = errorVC;
                     errorVC = sqrt(errorx * errorx + errory * errory);
-                    printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, errorVC);
+                    //printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, errorVC);
                     if(errorVC <= 1) {
                         countReach++;
                     }
                     if ((errorVC > 50 )&&(errorVC_pre <= errorVC )) {
-                        countDecrement++;
+                        //countDecrement++;
                     }
                     else {
                         countDecrement = 0;
@@ -988,7 +988,7 @@ void gazeArbiterThread::run() {
                     
                     //igaze->waitMotionDone();
                     tracker->getPoint(point); // have the get point as far as possible from look@mono
-                    printf("the point ended up in %d  %d \n",point.x, point.y);
+                    //printf("the point ended up in %d  %d \n",point.x, point.y);
                 }
                 Time::delay(0.01);
                 if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {
@@ -1062,13 +1062,13 @@ void gazeArbiterThread::run() {
             if((mono)) { 
                 printf("phi: %f phi2: %f phi3 : %f  \n", phi, phi2, phi3);
                 if((abs(phi) < 0.15) &&(!accomplished_flag) && (!firstVergence))  {                    
-                    if(abs(phi2) < 0.15) {
+                    //if(abs(phi2) < 0.15) {
                         countVerNull += 3;
                         printf("CountVerNull %d \n", countVerNull);
-                    }
-                    else {
+                        //}
+                        //else {
                         phi = phi2;
-                    }
+                        //}
                 }
                 if((countVerNull >= 3) && (!accomplished_flag)) {
                     printf("\n");

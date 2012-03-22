@@ -505,6 +505,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
         {
             printf("Inhibition of feature extraction activated \n");
             //currentProcessor->suspend();
+            currentProcessor->magnoCellularSuppression(true);
             ok = true;
         }
         break;
@@ -513,7 +514,8 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
         {
             printf("Inhibition of feature extraction deactivated \n");
             //currentProcessor->resume();
-            currentProcessor->setCounterMotion(0);
+            currentProcessor->magnoCellularSuppression(false);
+            //currentProcessor->setCounterMotion(0);
             ok = true;
         }
         break;

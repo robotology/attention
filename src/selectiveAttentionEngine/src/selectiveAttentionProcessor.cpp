@@ -43,7 +43,7 @@ using namespace iCub::logpolar;
 #define YSIZE_DIM        240   // original mapping
 #define TIME_CONST       50    // number of times period rateThread to send motion command
 #define BASELINE         0.068 // distance in millimeters between eyes
-#define MAXCOUNTERMOTION 40   
+#define MAXCOUNTERMOTION 30    // counter for resetting of magnocellular response suppression
 
 template<class T>
 
@@ -301,6 +301,7 @@ bool selectiveAttentionProcessor::threadInit(){
     thImagePort.open(getName("/wta:o").c_str());
     portionRequestPort.open(getName("/portionRequest:o").c_str());
     testPort.open(getName("/test:o").c_str());
+    magnoCellFeedback.open(getName("/magnoCells:o").c_str());
 
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
@@ -555,9 +556,9 @@ void selectiveAttentionProcessor::run(){
                 for(int x = 0 ; x < halfwidth ; x++){
                    
                     //------------- motion ----------------------
-                    
-                    if(counterMotion >= MAXCOUNTERMOTION) {
 
+                    if(counterMotion >= MAXCOUNTERMOTION) {
+                        
                         //value = (k2/sumK) *  (double) *pmap2Right ;                   
                         value = *pmap2Right;
                         if(*pmap2Right >= threshold){
@@ -1518,6 +1519,29 @@ void selectiveAttentionProcessor::getPixelColour(ImageOf<PixelRgb>* inputColourI
     //printf("colour found: %d %d %d \n",(int) targetBlue,(int)targetGreen,(int)targetRed);
 }
 
+void selectiveAttentionProcessor::setIdle(bool value){
+    mutex.wait();
+    idle=value;
+    mutex.post();
+}
+
+void selectiveAttentionProcessor::magnoCellularSuppression(bool on) {
+    if(on) {
+        Bottle& commandBottle = magnoCellFeedback.prepare();
+        commandBottle.clear();
+        commandBottle.addVocab(VOCAB3('s','u','s'));
+        magnoCellFeedback.write();
+    }
+    else {
+        setCounterMotion(0);
+        Bottle& commandBottle = magnoCellFeedback.prepare();
+        commandBottle.clear();
+        commandBottle.addVocab(VOCAB3('r','e','s'));
+        magnoCellFeedback.write();
+
+    }
+}
+
 /**
 * function called when the module is poked with an interrupt command
 */
@@ -1576,6 +1600,7 @@ void selectiveAttentionProcessor::threadRelease(){
     imageCartOut.close();
     vergenceCmdPort.close();
     portionRequestPort.close();
+    magnoCellFeedback.close();
 
     delete clientGazeCtrl;
     //delete cartCtrlDevice;
@@ -1593,11 +1618,7 @@ void selectiveAttentionProcessor::resume() {
     RateThread::resume();
 }
 
-void selectiveAttentionProcessor::setIdle(bool value){
-    mutex.wait();
-    idle=value;
-    mutex.post();
-}
+
 
 
 

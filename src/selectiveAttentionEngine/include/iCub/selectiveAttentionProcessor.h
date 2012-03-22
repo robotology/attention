@@ -80,6 +80,7 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle > gazeCoordPort;                                    // port that is dedicated to the streaming out gaze coordinates
     yarp::os::BufferedPort<yarp::os::Bottle > outputCmdPort;                                    // port that is dedicated to sending the typology of the gaze behaviour and some params
     yarp::os::BufferedPort<yarp::os::Bottle > vergenceCmdPort;                                  // port that is dedicated to command of vergence, this helps to calculated the relative depth of the object
+    yarp::os::BufferedPort<yarp::os::Bottle > magnoCellFeedback;
     yarp::os::Port portionRequestPort;                                                          // port dedicated to the process of requestion the correct portion in the mosaic
     yarp::os::Port feedbackPort;                                                                // port necessary to send back command to the preattentive processors
     
@@ -450,6 +451,12 @@ public:
      * function that sets the value of the parameter kMotion
      */
     void setKMotion(double p) { kmotion=p; };
+
+    /**
+     * function that suppress magno cells contribution
+     */
+    void magnoCellularSuppression(bool value);
+       
 
     /**
      * function that extract the contour and the center of gravity
