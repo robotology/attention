@@ -796,7 +796,7 @@ void gazeArbiterThread::run() {
                     px[2] = 0;    
                     igaze->lookAtAbsAngles(px);
                     
-                    Time::delay(2.0);
+                    Time::delay(0.5);
                     printf("waiting for motion done \n");
                     u = width  / 2;
                     v = height / 2;

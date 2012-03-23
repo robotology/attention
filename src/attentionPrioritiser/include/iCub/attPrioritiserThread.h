@@ -43,6 +43,7 @@
 #define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
 #define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
 #define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
+#define COMMAND_VOCAB_ACT                VOCAB3('a','c','t')
 
 #define COMMAND_VOCAB_STAT               VOCAB4('s','t','a','t')
 #define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
@@ -90,6 +91,7 @@
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 #include <iCub/sacPlannerThread.h>
+#include <iCub/trajectoryPredictor.h>
 
 /**
 * thread that given a series of collected commands executes the most prioritised command, calling
@@ -115,10 +117,10 @@ private:
     yarp::sig::Vector xFix;                 // fixation coordinates
     short numberState;                      // stores the number of the state in which the control can be
     
-    int accomplFlag[5];                     // series of flags representing any action accomplished
+    int accomplFlag[6];                     // series of flags representing any action accomplished
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
-    bool allowStateRequest[5];              // vector of flags for allowing state request
+    bool allowStateRequest[6];              // vector of flags for allowing state request
     //bool firstConsistencyCheck;           // boolean flag that check whether consistency happened
     //bool visualCorrection;                // boolean flag for allowing visual correction of the fine position
     //bool isOnWings;                       // flag that gives information on where the cameras are mounted
@@ -216,10 +218,11 @@ private:
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     
 
-    //trackerThread*    tracker;                    //reference to the object in charge of tracking a tamplete surrounding a point
-    sacPlannerThread* sacPlanner;                   //planner of saccadic movements (todo: make it a list of planners
+    //trackerThread*    tracker;                    // reference to the object in charge of tracking a tamplete surrounding a point
+    sacPlannerThread    *sacPlanner;                // planner of saccadic movements (todo: make it a list of planners
+    trajectoryPredictor *trajPredictor;             // predictor of the trajectory of a given stimulus
 
-    FILE* PsaFile;                                 // file that contains the Probability of Transitions
+    FILE* PsaFile;                                  // file that contains the Probability of Transitions
     
 public:
     /**

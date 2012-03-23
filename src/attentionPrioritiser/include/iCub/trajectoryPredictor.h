@@ -110,7 +110,7 @@ public:
     /**
      * function that estimate the velocity of the centroid in time
      */
-    void estimateVelocity(int x, int y, double& Vx, double& Vy);
+    bool estimateVelocity(int x, int y, double& Vx, double& Vy);
 };
 
 #endif  //_TRAJECTORY_PREDICTOR_H_

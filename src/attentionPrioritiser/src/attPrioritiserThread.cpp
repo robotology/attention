@@ -181,24 +181,26 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     kColOri[5] = 0.40;  // proto-objects
     //tColOri    = 5000;
 
-    Matrix trans(5,5);
+    Matrix trans(6,6);
     trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0;
     trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0; trans(0,4) = 1.0;
     trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0; trans(0,4) = 1.0;
     trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 0.0 ; trans(3,3) = 1.0; trans(0,4) = 1.0;
     trans(4,0) = 1.0 ; trans(4,1) = 1.0 ; trans(4,2) = 0.0 ; trans(4,3) = 1.0; trans(0,4) = 1.0;
+    trans(5,0) = 1.0 ; trans(5,1) = 1.0 ; trans(5,2) = 0.0 ; trans(5,3) = 1.0; trans(5,4) = 1.0;
     stateTransition=trans;
 
-    Vector req(5);
+    Vector req(6);
     req(0) = 0;
     req(1) = 0;
     req(2) = 0;
     req(3) = 0;
     req(4) = 0;
+    req(5) = 0;
     stateRequest = req;
     allowedTransitions = req;
 
-    Vector s(5);
+    Vector s(6);
     s(0) = 1;
     s(1) = 0;
     s(2) = 0;
@@ -212,15 +214,12 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     t(2) = 0.6;
     xFix = t;
 
-    allowStateRequest[0] = true;
-    allowStateRequest[1] = true;
-    allowStateRequest[2] = true;
-    allowStateRequest[3] = true; 
-    allowStateRequest[4] = true;
-
-    printf("extracting kinematic informations \n");
-
-   
+    allowStateRequest[0] = true;  // null action 
+    allowStateRequest[1] = true;  // vergence
+    allowStateRequest[2] = true;  // smooth pursuit
+    allowStateRequest[3] = true;  // planned saccade
+    allowStateRequest[4] = true;  // express saccade
+    allowStateRequest[5] = true;  // predict
 
     //printf("starting the tracker.... \n");
     //ResourceFinder* rf = new ResourceFinder();
@@ -291,10 +290,12 @@ bool attPrioritiserThread::threadInit() {
     string name = getName("");
     
     sacPlanner = new sacPlannerThread(name);       
-    //referencing the image to all the planners
     sacPlanner->referenceRetina(imgLeftIn);
     sacPlanner->start();
-     
+
+    trajPredictor = new trajectoryPredictor();
+    trajPredictor->start();
+    
     return true;
 }
 
@@ -399,16 +400,20 @@ void attPrioritiserThread::run() {
         // resetting the requests
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
         //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
+        
+        // notify observer concerning the state in which the prioritiser sets in
+        printf("NOTIFICATION NOTIFICATION of %d \n", countObservers());
+        Bottle notif;
+        notif.addVocab(COMMAND_VOCAB_ACT);
+        notif.addDouble(allowedTransitions(0));
+        notif.addDouble(allowedTransitions(1)); 
+        notif.addDouble(allowedTransitions(2));
+        notif.addDouble(allowedTransitions(3));
+        notif.addDouble(allowedTransitions(4));
+        setChanged();
+        notifyObservers(&notif);
     }
-    // notify observer concerning the state in which the prioritiser sets in
-    Bottle notif;
-    notif.addVocab(COMMAND_VOCAB_STAT);
-    notif.addDouble(allowedTransitions(0));
-    notif.addDouble(allowedTransitions(1)); 
-    notif.addDouble(allowedTransitions(2));
-    notif.addDouble(allowedTransitions(3));
-    notif.addDouble(allowedTransitions(4));
-    notifyObservers(&notif);
+    
     
     
     /*
@@ -427,9 +432,7 @@ void attPrioritiserThread::run() {
        }       
     }
     */
-    
-    
-    
+
     //mutex.post();
     //double end = Time::now();
     //double interval = end - start;
@@ -437,9 +440,23 @@ void attPrioritiserThread::run() {
 
     //printf("state: %s \n", state.toString().c_str());
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
-    
+
     if(allowedTransitions(4)>0) {
-        state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        state(5) = 1; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        // ----------------  Trajectory Prediction  -----------------------
+        printf("----------------- Trajectory prediction ---------------- \n");
+        double Vx,Vy;
+        bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
+        if(predictionSuccess) {
+            printf("prediction success: velocity(%f, %f) time(0.5)", Vx, Vy);
+        }
+        else {
+            printf("prediction failed \n");
+        }
+        printf("_________________ Trajectory prediction  _____________________\n");
+    }
+    else if(allowedTransitions(4)>0) {
+        state(5) = 0; state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Express Saccade  -----------------------
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
@@ -552,7 +569,7 @@ void attPrioritiserThread::run() {
         Time::delay(0.01);
     }    
     else if(allowedTransitions(3)>0) {
-        state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        state(5) = 0; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         //forcing in idle early processes during oculomotor actions
         if(feedbackPort.getOutputCount()) {
             printf("feedback suppression \n");
@@ -662,9 +679,9 @@ void attPrioritiserThread::run() {
         }
         
         //resume early processes
-        printf("SENDING COMMAND OF RESUME      \n");
+        //printf("SENDING COMMAND OF RESUME      \n");
         if(feedbackPort.getOutputCount()) {
-            printf("feedback resetting \n");
+            //printf("feedback resetting \n");
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
@@ -673,7 +690,7 @@ void attPrioritiserThread::run() {
             delete sent;
             delete received;
         }
-        printf("AFTER COMMAND OF RESUME \n");
+        //printf("AFTER COMMAND OF RESUME \n");
         Time::delay(0.005);
     }
     else if(allowedTransitions(2)>0) {
@@ -686,7 +703,7 @@ void attPrioritiserThread::run() {
     }
     else if(allowedTransitions(1)>0) {
         // ----------------  Vergence  -----------------------
-        state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1; state(0) = 0;
+        state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1; state(0) = 0;
         //printf("------------------ Vergence --------------- \n");
         /*    
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
@@ -755,35 +772,44 @@ void attPrioritiserThread::run() {
     }
     
     //printf("--------------------------------------------------------->%d \n",done);
-            
-    if(allowedTransitions(4)>0) { //express saccade
+    
+    if(allowedTransitions(5)>0) { //prediction
         mutex.wait();
-        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        allowedTransitions(5) = 0;
+        executing = false;  //executing=false allows new action commands
+        // execution = false moved to after the SAC_ACC is received
+        //printf ("Transition request 4 reset \n");
+        mutex.post();
+    }
+    else if(allowedTransitions(4)>0) { //express saccade
+        mutex.wait();
+        state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(4) = 0;
         executing = false;  //executing=false allows new action commands
         // execution = false moved to after the SAC_ACC is received
         //printf ("Transition request 4 reset \n");
         mutex.post();
     }
-    if(allowedTransitions(3)>0) { //planned saccade
+    else if(allowedTransitions(3)>0) { //planned saccade
         mutex.wait();
-        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(3) = 0;
         executing = false;
         //printf ("Transition request 3 reset \n");
         mutex.post();
     }
-    if(allowedTransitions(2)>0) { //smooth pursuit
+    else if(allowedTransitions(2)>0) { //smooth pursuit
         mutex.wait();
-        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(2) = 0;
         executing = false;
         //printf ("Transition request 2 reset \n");
         mutex.post();
     }
-    if(allowedTransitions(1)>0) { //vergence
+    else if(allowedTransitions(1)>0) { //vergence
         mutex.wait();
-        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
         executing = false;
         //printf ("Transition request 1 reset \n");
@@ -1138,7 +1164,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // express saccade
                 mutex.wait();
                 if(allowStateRequest[4]) {
-                    printf("setting stateRequest[4] \n");
+                    //printf("setting stateRequest[4] \n");
                     reinfFootprint = true;
                     stateRequest[4] = 1;
                     timeoutStart = Time::now();
@@ -1190,7 +1216,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         
                         mutex.wait();
                         if(allowStateRequest[3]) {
-                            printf("setting stateRequest[3] \n");
+                            //printf("setting stateRequest[3] \n");
                             stateRequest[3] = 1;
                             reinfFootprint  = true;   // enabling back the control top-down footprint extraction
                         }
@@ -1200,7 +1226,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 else {
                     //reinforceFootprint has not happened yet
                     mutex.wait();
-                    printf("setting stateRequest[3] \n");
+                    //printf("setting stateRequest[3] \n");
                     if(allowStateRequest[3]) {
                         stateRequest[3] = 1;
                     }
@@ -1220,7 +1246,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             u = -1;
             v = -1;
             mutex.wait();
-            printf("setting stateRequest[3] \n");
+            //printf("setting stateRequest[3] \n");
             if(allowStateRequest[3]) {
                 stateRequest[3] = 1;
                 //executing = false;
@@ -1231,7 +1257,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"PUR")) {
             mutex.wait();
             if(allowStateRequest[2]) {
-                printf("setting stateRequest[2] \n");
+                //printf("setting stateRequest[2] \n");
                 stateRequest[2] = 1;
                 //executing = false;
             }
@@ -1243,22 +1269,22 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             phi3 = arg->get(3).asDouble();
             //printf("vergence command received %d \n", firstVergence);
             if(firstVergence){
-                //if((phi!=0)){                    
+                                    
                 //printf("inside the vergence command \n");
                 mutex.wait();
                 if(allowStateRequest[1]) {
-                    printf("setting stateRequest[1] \n");
+                    //printf("setting stateRequest[1] \n");
                     ver_accomplished = false;
                     stateRequest[1]  = 1;
                     //executing = false;
                 }
                 mutex.post();
-                //}
+                
             }
             else {
                 mutex.wait();
                 if(allowStateRequest[1]) {
-                    printf("setting stateRequest[1] \n");
+                    //printf("setting stateRequest[1] \n");
                     ver_accomplished = false;
                     stateRequest[1]  = 1;
                     //executing = false;

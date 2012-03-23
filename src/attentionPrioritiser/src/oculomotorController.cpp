@@ -441,21 +441,65 @@ void oculomotorController::learningStep() {
 
 void oculomotorController::update(observable* o, Bottle * arg) {
     cUpdate++;
-    printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
-        ConstString name = arg->get(0).asString();
-        
-        if(!strcmp(name.c_str(),"SAC_MONO")) {
-        
+        if (0 == size) {
+            return;
         }
 
         switch(arg->get(0).asVocab()) {
         case COMMAND_VOCAB_STAT :{
             printf("new state update arrived \n");
-        } break;
+            Vector state(5);
+            state(0) = arg->get(1).asDouble();
+            state(1) = arg->get(2).asDouble();
+            state(2) = arg->get(3).asDouble();
+            state(3) = arg->get(4).asDouble();
+            state(4) = arg->get(5).asDouble();
+
+            if(state(0)) {
+                //
+            }
+            else if(state(1)){
+                
+            }
+            else if(state(2)){
+                
+            }
+            else if(state(3)){
+                
+            }
+            else if(state(4)){
+                
+            }
             
+        } break;
+        case COMMAND_VOCAB_ACT :{
+            printf("new action update arrived \n");
+            Vector action(5);
+            action(0) = arg->get(1).asDouble();
+            action(1) = arg->get(2).asDouble();
+            action(2) = arg->get(3).asDouble();
+            action(3) = arg->get(4).asDouble();
+            action(4) = arg->get(5).asDouble();
+
+            if(action(0)) {
+                //
+            }
+            else if(action(1)){
+                
+            }
+            else if(action(2)){
+                
+            }
+            else if(action(3)){
+                
+            }
+            else if(action(4)){
+                
+            }
+        } break;    
         }
     }
 }
