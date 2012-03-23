@@ -35,6 +35,7 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
     count = 0;
     iter  = 0;
     jiter = 1;
+    cUpdate = 0;
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
@@ -43,6 +44,7 @@ oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThre
     iter  = 0;
     jiter = 1;
     state_now = 0;
+    cUpdate = 0;
 };
 
 oculomotorController::~oculomotorController() {
@@ -435,6 +437,27 @@ void oculomotorController::learningStep() {
     printf("actuator in the decided step \n");
     printf("\n");
     printf("\n");
+}
+
+void oculomotorController::update(observable* o, Bottle * arg) {
+    cUpdate++;
+    printf("ACK. Aware of observable asking for attention \n");
+    if (arg != 0) {
+        //printf("bottle: %s ", arg->toString().c_str());
+        int size = arg->size();
+        ConstString name = arg->get(0).asString();
+        
+        if(!strcmp(name.c_str(),"SAC_MONO")) {
+        
+        }
+
+        switch(arg->get(0).asVocab()) {
+        case COMMAND_VOCAB_STAT :{
+            printf("new state update arrived \n");
+        } break;
+            
+        }
+    }
 }
 
 void oculomotorController::run() {

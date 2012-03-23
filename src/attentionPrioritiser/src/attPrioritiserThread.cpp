@@ -220,6 +220,8 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
 
     printf("extracting kinematic informations \n");
 
+   
+
     //printf("starting the tracker.... \n");
     //ResourceFinder* rf = new ResourceFinder();
     //tracker = new trackerThread(*rf);
@@ -386,6 +388,7 @@ void attPrioritiserThread::run() {
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
+    
     //Vector-vector element-wise product operator between stateRequest possible transitions
     if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)) {
         //printf("stateRequest: %s \n", stateRequest.toString().c_str());
@@ -397,6 +400,16 @@ void attPrioritiserThread::run() {
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
         //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     }
+    // notify observer concerning the state in which the prioritiser sets in
+    Bottle notif;
+    notif.addVocab(COMMAND_VOCAB_STAT);
+    notif.addDouble(allowedTransitions(0));
+    notif.addDouble(allowedTransitions(1)); 
+    notif.addDouble(allowedTransitions(2));
+    notif.addDouble(allowedTransitions(3));
+    notif.addDouble(allowedTransitions(4));
+    notifyObservers(&notif);
+    
     
     /*
     if(inLeftPort.getInputCount()){

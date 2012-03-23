@@ -43,6 +43,8 @@
 #define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
 #define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
 #define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
+
+#define COMMAND_VOCAB_STAT               VOCAB4('s','t','a','t')
 #define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
 #define COMMAND_VOCAB_NULL               VOCAB4('n','u','l','l')
 #define COMMAND_VOCAB_TIME               VOCAB4('t','i','m','e')
@@ -100,7 +102,7 @@
 * // state 0 = null
 */
 
-class attPrioritiserThread : public yarp::os::RateThread, public observer {
+class attPrioritiserThread : public yarp::os::RateThread, public observer, public observable {
 private:
     int cUpdate;                            // counter of updates
     std::string name;                       // rootname of all the ports opened by this thread
@@ -214,8 +216,10 @@ private:
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     
 
-    //trackerThread*    tracker;                      //reference to the object in charge of tracking a tamplete surrounding a point
+    //trackerThread*    tracker;                    //reference to the object in charge of tracking a tamplete surrounding a point
     sacPlannerThread* sacPlanner;                   //planner of saccadic movements (todo: make it a list of planners
+
+    FILE* PsaFile;                                 // file that contains the Probability of Transitions
     
 public:
     /**

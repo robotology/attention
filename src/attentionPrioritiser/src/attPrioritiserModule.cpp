@@ -92,6 +92,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     }
 
 
+    //launching components
     printf("running the prioCollectorThread \n");
     collector=new prioCollectorThread();
     collector->setName(getName().c_str());
@@ -100,6 +101,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     prioritiser=new attPrioritiserThread(configFile);
     prioritiser->setName(getName().c_str());
     prioritiser->setRobotName(robotName);
+
+    printf("running the controller \n");
+    controller = new oculomotorController(prioritiser);
+    string str = (string) getName();
+    str.append("/controller");
+    controller->setName(str.c_str());
     
     //if (rf.check("visualFeedback")) {
     //    prioritiser->setVisualFeedback(true);
@@ -206,7 +213,10 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     printf("pitch:%f \n", pitch);
     prioritiser->setBlockPitch(pitch);
 
+    // setting observer and observable interactions    
     collector->addObserver(*prioritiser);
+    prioritiser->addObserver(*controller);
+    
     prioritiser->start();
     collector->start();
 
@@ -216,10 +226,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     if(rf.check("learningController")) {
         printf("The Q-learning controller takes responsabilities for any selected action \n");
         prioritiser->setLearning(true);
-        controller = new oculomotorController(prioritiser);
-        string str = (string) getName();
-        str.append("/controller");
-        controller->setName(str.c_str()); 
+         
         controller->start();
     }
     else {

@@ -91,9 +91,10 @@ static const double rewardStateAction[66] = {
 };
 */
 
-class oculomotorController : public yarp::os::RateThread, public observable {
+class oculomotorController : public yarp::os::RateThread, public observer {
 private:
     int count;                 // step counter of successful learning step
+    int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
@@ -172,6 +173,13 @@ public:
     * @return rootname 
     */
     std::string getName(const char* p);
+
+    /**
+    * function that defines what has to be done once any observeble interrupts
+    * @param o observable that has just interrupted the observer
+    * @param arg Bottle that has passed from the observable to the observer
+    */
+    void update(observable* o, yarp::os::Bottle * arg);
 
     /**
     * @brief function that performs Q-learning using a perfect random decision of the action to take
