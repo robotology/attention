@@ -93,6 +93,8 @@ static const double rewardStateAction[66] = {
 
 class oculomotorController : public yarp::os::RateThread, public observer {
 private:
+    bool idle;                 // flag that regulates when the active part is executed
+    
     int count;                 // step counter of successful learning step
     int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning
@@ -173,6 +175,12 @@ public:
     * @return rootname 
     */
     std::string getName(const char* p);
+
+    /**
+    * function that change the idle flage
+    * @param value true/false idle/!idle the active method of the class
+    */
+    void setIdle(bool value) {idle = value;};
 
     /**
     * function that defines what has to be done once any observeble interrupts

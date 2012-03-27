@@ -219,19 +219,20 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     
     prioritiser->start();
     collector->start();
-
+    controller->start();
+    
     /**
      * defining if the action selection is Q-learning controller`s call
      */
     if(rf.check("learningController")) {
         printf("The Q-learning controller takes responsabilities for any selected action \n");
         prioritiser->setLearning(true);
-         
-        controller->start();
+        controller->setIdle(false);
     }
     else {
         printf("Q learning controller is not involved in the action selection decisions \n");
         prioritiser->setLearning(false);
+        controller->setIdle(true);
     }
     
 

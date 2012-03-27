@@ -439,6 +439,19 @@ void oculomotorController::learningStep() {
     printf("\n");
 }
 
+void oculomotorController::run() {
+    if(!idle) {
+        if((count < 50) && (iter % 20 == 0)) {
+            learningStep();    
+        }
+        
+        Bottle& scopeBottle = scopePort.prepare();
+        scopeBottle.clear();
+        scopeBottle.addDouble(5.0);
+        scopePort.write();
+    }
+}
+
 void oculomotorController::update(observable* o, Bottle * arg) {
     cUpdate++;
     if (arg != 0) {
@@ -459,20 +472,33 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             state(4) = arg->get(5).asDouble();
 
             if(state(0)) {
-                //
+                printf("----------------------------------------------State 0 \n");                
+                state_now = state_next;
+                state_next = 0;
             }
             else if(state(1)){
-                
+                printf("----------------------------------------------State 1 \n");
+                state_now = state_next;
+                state_next = 0;
             }
             else if(state(2)){
-                
+                printf("----------------------------------------------State 2 \n");
+                state_now = state_next;
+                state_next = 0;
             }
             else if(state(3)){
-                
+                printf("----------------------------------------------State 3 \n");
+                state_now = state_next;
+                state_next = 0;
             }
             else if(state(4)){
-                
+                printf("----------------------------------------------State 4 \n");
+                state_now = state_next;
+                state_next = 0;
             }
+            
+            // updating the transition matrix once we switch state
+            Psa->operator()(state_now * NUMACTION + action_now, state_next) = Psa->operator()(state_now * NUMACTION + action_now, state_next) + 0.01;
             
         } break;
         case COMMAND_VOCAB_ACT :{
@@ -485,35 +511,38 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             action(4) = arg->get(5).asDouble();
 
             if(action(0)) {
-                //
+                printf("----------------------------------------------Action 0 \n");
+                action_now = 0;
             }
             else if(action(1)){
-                
+                printf("----------------------------------------------Action 1 \n");
+                action_now = 0;
             }
             else if(action(2)){
-                
+                printf("----------------------------------------------Action 2 \n");
+                action_now = 0;
             }
             else if(action(3)){
-                
+                printf("----------------------------------------------Action 3 \n");
+                action_now = 0;
             }
             else if(action(4)){
-                
+                printf("----------------------------------------------Action 4 \n");
+                action_now = 0;
             }
-        } break;    
+        } break;
+        default: {
+            printf("Command not recognized \n");
+        }break;
+            
         }
+        
+
+        
     }
 }
 
-void oculomotorController::run() {
-    if((count < 50) && (iter % 20 == 0)) {
-        learningStep();    
-    }
 
-    Bottle& scopeBottle = scopePort.prepare();
-    scopeBottle.clear();
-    scopeBottle.addDouble(5.0);
-    scopePort.write();
-}
 
 void oculomotorController::threadRelease() {
     inCommandPort.close();

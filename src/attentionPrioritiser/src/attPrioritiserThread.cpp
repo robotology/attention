@@ -1406,7 +1406,67 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             mutex.post();
         }
-        
+        else if(!strcmp(name.c_str(),"SIM")) {
+            // vergence accomplished           
+            printf("Simulate \n");
+            if(!strcmp(arg->get(1).asString(),"ACT") ){
+                // notify observer concerning the state in which the prioritiser sets in
+                printf("action request \n");
+                Bottle notif;
+                Vector actionId(5);
+                actionId(0) = 0;
+                actionId(1) = 0;
+                actionId(2) = 0;
+                actionId(3) = 0;
+                actionId(4) = 0;
+                
+                notif.addVocab(COMMAND_VOCAB_ACT);
+                switch (arg->get(2).asInt()){
+                case 0 : actionId(0) = 1; break;
+                case 1 : actionId(1) = 1; break;
+                case 2 : actionId(2) = 1; break;    
+                case 3 : actionId(3) = 1; break;
+                case 4 : actionId(4) = 1; break;
+                }
+                
+                notif.addDouble(actionId(0));
+                notif.addDouble(actionId(1)); 
+                notif.addDouble(actionId(2));
+                notif.addDouble(actionId(3));
+                notif.addDouble(actionId(4));
+                setChanged();
+                notifyObservers(&notif);
+            }
+            else if(!strcmp(arg->get(1).asString(),"STAT") ) {
+                printf("state request \n");
+                Bottle notif;
+                Vector stateId(5);
+                stateId(0) = 0;
+                stateId(1) = 0;
+                stateId(2) = 0;
+                stateId(3) = 0;
+                stateId(4) = 0;
+                
+                notif.addVocab(COMMAND_VOCAB_ACT);
+                switch (arg->get(2).asInt()){
+                case 0 : stateId(0) = 1; break;
+                case 1 : stateId(1) = 1; break;
+                case 2 : stateId(2) = 1; break;    
+                case 3 : stateId(3) = 1; break;
+                case 4 : stateId(4) = 1; break;
+                }
+                
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(stateId(0));
+                notif.addDouble(stateId(1)); 
+                notif.addDouble(stateId(2));
+                notif.addDouble(stateId(3));
+                notif.addDouble(stateId(4));
+                setChanged();
+                notifyObservers(&notif); 
+            }
+            
+        }
         else {
             printf("Command %s has not been recognised \n",name.c_str());
         }
