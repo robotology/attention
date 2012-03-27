@@ -102,7 +102,8 @@ bool oculomotorController::threadInit() {
         double t;
         for(int row = 0; row < 66; row++ ) {
             for(int col = 0; col < 11; col++) {
-                t = rand() / 10000000000.0 ;
+                //t = rand() / 10000000000.0 ;
+                t = 1.0 / NUMSTATE;
                 fprintf(PsaFile,"%f ",t);
                 *val = t; val++;
             }
@@ -463,46 +464,46 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
         switch(arg->get(0).asVocab()) {
         case COMMAND_VOCAB_STAT :{
-            printf("new state update arrived \n");
-            Vector state(5);
-            state(0) = arg->get(1).asDouble();
-            state(1) = arg->get(2).asDouble();
-            state(2) = arg->get(3).asDouble();
-            state(3) = arg->get(4).asDouble();
-            state(4) = arg->get(5).asDouble();
+            printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
+            Vector statetmp(5);
+            statetmp(0) = arg->get(1).asDouble();
+            statetmp(1) = arg->get(2).asDouble();
+            statetmp(2) = arg->get(3).asDouble();
+            statetmp(3) = arg->get(4).asDouble();
+            statetmp(4) = arg->get(5).asDouble();
 
-            if(state(0)) {
+            if(statetmp(0)) {
                 printf("----------------------------------------------State 0 \n");                
                 state_now = state_next;
                 state_next = 0;
             }
-            else if(state(1)){
+            else if(statetmp(1)){
                 printf("----------------------------------------------State 1 \n");
                 state_now = state_next;
-                state_next = 0;
+                state_next = 1;
             }
-            else if(state(2)){
+            else if(statetmp(2)){
                 printf("----------------------------------------------State 2 \n");
                 state_now = state_next;
-                state_next = 0;
+                state_next = 2;
             }
-            else if(state(3)){
+            else if(statetmp(3)){
                 printf("----------------------------------------------State 3 \n");
                 state_now = state_next;
-                state_next = 0;
+                state_next = 3;
             }
-            else if(state(4)){
+            else if(statetmp(4)){
                 printf("----------------------------------------------State 4 \n");
                 state_now = state_next;
-                state_next = 0;
+                state_next = 4;
             }
             
             // updating the transition matrix once we switch state
-            Psa->operator()(state_now * NUMACTION + action_now, state_next) = Psa->operator()(state_now * NUMACTION + action_now, state_next) + 0.01;
+            Psa->operator()(state_now * NUMACTION + action_now, state_next) += 0.1;
             
         } break;
         case COMMAND_VOCAB_ACT :{
-            printf("new action update arrived \n");
+            printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
             Vector action(5);
             action(0) = arg->get(1).asDouble();
             action(1) = arg->get(2).asDouble();
@@ -516,19 +517,19 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             }
             else if(action(1)){
                 printf("----------------------------------------------Action 1 \n");
-                action_now = 0;
+                action_now = 1;
             }
             else if(action(2)){
                 printf("----------------------------------------------Action 2 \n");
-                action_now = 0;
+                action_now = 2;
             }
             else if(action(3)){
                 printf("----------------------------------------------Action 3 \n");
-                action_now = 0;
+                action_now = 3;
             }
             else if(action(4)){
                 printf("----------------------------------------------Action 4 \n");
-                action_now = 0;
+                action_now = 4;
             }
         } break;
         default: {
@@ -545,8 +546,22 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
 
 void oculomotorController::threadRelease() {
+    fclose(PsaFile);
+    PsaFile = fopen("psaFile.txt","w+");
+    printf("saving updates in Psa \n");
+    double t;
+    double* val = Psa->data();
+    for(int row = 0; row < 66; row++ ) {
+        for(int col = 0; col < 11; col++) {
+            t = *val;
+            if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            fprintf(PsaFile,"%f ",t);
+            val++;
+        }
+        fprintf(PsaFile,"\n");
+    }
     inCommandPort.close();
     scopePort.close();
     tp->stop();
-    fclose(PsaFile);
+    
 }

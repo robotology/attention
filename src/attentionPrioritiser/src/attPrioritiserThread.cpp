@@ -341,9 +341,11 @@ void attPrioritiserThread::threadRelease() {
     
     //delete clientGazeCtrl;
     printf("deleting the clientPlanner \n");
-    sacPlanner->stop();
-    delete sacPlanner;
-    printf("deleting the sacPlanner \n");
+    if(0!=sacPlanner) {
+        sacPlanner->stop();
+    }
+    //delete sacPlanner;
+    printf("deleted the sacPlanner \n");
 }
 
 void attPrioritiserThread::setDimension(int w, int h) {
@@ -1413,6 +1415,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // notify observer concerning the state in which the prioritiser sets in
                 printf("action request \n");
                 Bottle notif;
+                notif.clear();
                 Vector actionId(5);
                 actionId(0) = 0;
                 actionId(1) = 0;
@@ -1440,6 +1443,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             else if(!strcmp(arg->get(1).asString(),"STAT") ) {
                 printf("state request \n");
                 Bottle notif;
+                notif.clear();
                 Vector stateId(5);
                 stateId(0) = 0;
                 stateId(1) = 0;
@@ -1447,16 +1451,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 stateId(3) = 0;
                 stateId(4) = 0;
                 
-                notif.addVocab(COMMAND_VOCAB_ACT);
+                notif.addVocab(COMMAND_VOCAB_STAT);
                 switch (arg->get(2).asInt()){
                 case 0 : stateId(0) = 1; break;
                 case 1 : stateId(1) = 1; break;
                 case 2 : stateId(2) = 1; break;    
                 case 3 : stateId(3) = 1; break;
                 case 4 : stateId(4) = 1; break;
+                default: printf("in Default"); break;
                 }
                 
-                notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(stateId(0));
                 notif.addDouble(stateId(1)); 
                 notif.addDouble(stateId(2));

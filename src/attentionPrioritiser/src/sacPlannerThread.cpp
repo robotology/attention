@@ -380,8 +380,8 @@ void sacPlannerThread::run() {
 
         Time::delay(0.05);
     } //end of while
-    delete intermImage;
-    delete intermImage2;
+    //delete intermImage;
+    //delete intermImage2;
 }
 
 void sacPlannerThread::referenceRetina(ImageOf<PixelRgb>* ref) {
@@ -577,6 +577,7 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
 void sacPlannerThread::onStop() {
     //inCommandPort.interrupt();
     //inCommandPort.close();
+    printf(" sacPlannerThread::onStop() \n");
     corrPort.interrupt();
     inImagePort.interrupt();
     corrPort.close();
@@ -584,6 +585,7 @@ void sacPlannerThread::onStop() {
 }
 
 void sacPlannerThread::threadRelease() {
+    printf("sacPlannerThread::threadRelease()");
     delete outputImageUp;                                 
     delete outputImageDown;                          
     delete outputImageLeft;                    
