@@ -499,7 +499,20 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             }
             
             // updating the transition matrix once we switch state
-            Psa->operator()(state_now * NUMACTION + action_now, state_next) += 0.1;
+            double sum = 0;
+            for(int i = 0; i < NUMSTATE; i ++) {
+                if(i != state_next) {
+                    Psa->operator()(state_now * NUMACTION + action_now, i) -= 0.01;
+                    sum += Psa->operator()(state_now * NUMACTION + action_now, i);
+                }
+                else {
+                    Psa->operator()(state_now * NUMACTION + action_now, i) += 0.1;
+                    sum += Psa->operator()(state_now * NUMACTION + action_now, i);
+                }
+            }
+            if(sum > 1.0) {
+                printf("the probability does not sum to 1!!!! \n");
+            }
             
         } break;
         case COMMAND_VOCAB_ACT :{
