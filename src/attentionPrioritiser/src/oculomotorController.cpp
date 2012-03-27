@@ -465,6 +465,81 @@ void oculomotorController::update(observable* o, Bottle * arg) {
         switch(arg->get(0).asVocab()) {
         case COMMAND_VOCAB_STAT :{
             printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
+            
+            int statevalue = arg->get(1).asInt();
+            
+            switch (statevalue) {
+            //---------------------------------
+            case 0:{
+                printf("state 0 \n");
+                state_now = state_next;
+                state_next = 0;
+            }break;
+            //---------------------------------
+            case 1:{
+                printf("state 1 \n");
+                state_now = state_next;
+                state_next = 1;
+            }break;
+            //---------------------------------
+            case 2:{
+                printf("state 2 \n");
+                state_now = state_next;
+                state_next = 2;
+            }break;
+            //---------------------------------
+            case 3:{
+                printf("state 3 \n");
+                state_now = state_next;
+                state_next = 3;
+            }break;
+            //---------------------------------
+            case 4:{
+                printf("state 4 \n");
+                state_now = state_next;
+                state_next = 4;
+            }break;
+            //---------------------------------    
+            case 5:{
+                printf("state 5 \n");
+                state_now = state_next;
+                state_next = 1;
+            }break;
+            //---------------------------------
+            case 6:{
+                printf("state 6 \n");
+                state_now = state_next;
+                state_next = 2;
+            }break;
+            //---------------------------------
+            case 7:{
+                printf("state 7 \n");
+                state_now = state_next;
+                state_next = 3;
+            }break;
+            //---------------------------------
+            case 8:{
+                printf("state 8 \n");
+                state_now = state_next;
+                state_next = 4;
+            }break;
+            //---------------------------------
+            case 9:{
+                printf("state 9 \n");
+                state_now = state_next;
+                state_next = 1;
+            }break;
+            //---------------------------------
+            case 10:{
+                printf("state 10 \n");
+                state_now = state_next;
+                state_next = 2;
+            }break;
+            //---------------------------------
+            
+            }
+            
+            /*
             Vector statetmp(5);
             statetmp(0) = arg->get(1).asDouble();
             statetmp(1) = arg->get(2).asDouble();
@@ -497,21 +572,23 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 state_now = state_next;
                 state_next = 4;
             }
+            */
+            
             
             // updating the transition matrix once we switch state
             double sum = 0;
             for(int i = 0; i < NUMSTATE; i ++) {
                 if(i != state_next) {
-                    Psa->operator()(state_now * NUMACTION + action_now, i) -= 0.01;
+                    Psa->operator()(state_now * NUMACTION + action_now, i) -= 0.001;
                     sum += Psa->operator()(state_now * NUMACTION + action_now, i);
                 }
                 else {
-                    Psa->operator()(state_now * NUMACTION + action_now, i) += 0.1;
+                    Psa->operator()(state_now * NUMACTION + action_now, i) += 0.01;
                     sum += Psa->operator()(state_now * NUMACTION + action_now, i);
                 }
             }
             if(sum > 1.0) {
-                printf("the probability does not sum to 1!!!! \n");
+                printf("!!!!the probability does not sum to 1!!!! \n");
             }
             
         } break;

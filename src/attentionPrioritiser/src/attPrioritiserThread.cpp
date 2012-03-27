@@ -1388,8 +1388,20 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.wait();
             accomplFlag[1];
             mutexAcc.post();
-            
             mutex.post();
+
+            // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(8);                  // code for vergence accomplished in vergence ok state
+            //notif.addDouble(stateId(1)); 
+            //notif.addDouble(stateId(2));
+            //notif.addDouble(stateId(3));
+            //notif.addDouble(stateId(4));
+            setChanged();
+            notifyObservers(&notif); 
+            
         }
         else if(!strcmp(name.c_str(),"SP_ACC")) {
             // vergence accomplished           
@@ -1414,8 +1426,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(!strcmp(arg->get(1).asString(),"ACT") ){
                 // notify observer concerning the state in which the prioritiser sets in
                 printf("action request \n");
-                Bottle notif;
-                notif.clear();
+                
                 Vector actionId(5);
                 actionId(0) = 0;
                 actionId(1) = 0;
@@ -1423,7 +1434,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 actionId(3) = 0;
                 actionId(4) = 0;
                 
-                notif.addVocab(COMMAND_VOCAB_ACT);
+                
                 switch (arg->get(2).asInt()){
                 case 0 : actionId(0) = 1; break;
                 case 1 : actionId(1) = 1; break;
@@ -1432,6 +1443,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 case 4 : actionId(4) = 1; break;
                 }
                 
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_ACT);
                 notif.addDouble(actionId(0));
                 notif.addDouble(actionId(1)); 
                 notif.addDouble(actionId(2));
@@ -1442,8 +1456,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             else if(!strcmp(arg->get(1).asString(),"STAT") ) {
                 printf("state request \n");
-                Bottle notif;
-                notif.clear();
+                
                 Vector stateId(5);
                 stateId(0) = 0;
                 stateId(1) = 0;
@@ -1451,7 +1464,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 stateId(3) = 0;
                 stateId(4) = 0;
                 
-                notif.addVocab(COMMAND_VOCAB_STAT);
                 switch (arg->get(2).asInt()){
                 case 0 : stateId(0) = 1; break;
                 case 1 : stateId(1) = 1; break;
@@ -1461,11 +1473,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 default: printf("in Default"); break;
                 }
                 
-                notif.addDouble(stateId(0));
-                notif.addDouble(stateId(1)); 
-                notif.addDouble(stateId(2));
-                notif.addDouble(stateId(3));
-                notif.addDouble(stateId(4));
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(arg->get(2).asInt());
+                //notif.addDouble(stateId(1)); 
+                //notif.addDouble(stateId(2));
+                //notif.addDouble(stateId(3));
+                //notif.addDouble(stateId(4));
                 setChanged();
                 notifyObservers(&notif); 
             }
