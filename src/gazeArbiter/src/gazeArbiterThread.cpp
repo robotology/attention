@@ -1043,7 +1043,22 @@ void gazeArbiterThread::run() {
         // ----------------  SMOOTH PURSUIT -----------------------  
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         printf(" in RUN of gazeArbiter thread Smooth Pursuit \n");
-        
+
+         int c = 0;
+         int u = 160, v = 120;
+         Vector target(2);
+         
+         while(c < 10){
+             
+             u = u + 1;
+             v = v + 1;
+             target(0) = (double) u;
+             target(1) = (double) v;
+             igaze->lookAtMonoPixel(0,target,0.5);
+             Time::delay(0.01);
+             c++;
+         }
+         
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;

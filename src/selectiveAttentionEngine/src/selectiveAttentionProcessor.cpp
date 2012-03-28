@@ -43,7 +43,7 @@ using namespace iCub::logpolar;
 #define YSIZE_DIM        240   // original mapping
 #define TIME_CONST       50    // number of times period rateThread to send motion command
 #define BASELINE         0.068 // distance in millimeters between eyes
-#define MAXCOUNTERMOTION 30    // counter for resetting of magnocellular response suppression
+#define MAXCOUNTERMOTION 20    // counter for resetting of magnocellular response suppression
 
 template<class T>
 
@@ -1527,18 +1527,21 @@ void selectiveAttentionProcessor::setIdle(bool value){
 
 void selectiveAttentionProcessor::magnoCellularSuppression(bool on) {
     if(on) {
-        Bottle& commandBottle = magnoCellFeedback.prepare();
-        commandBottle.clear();
-        commandBottle.addVocab(VOCAB3('s','u','s'));
-        magnoCellFeedback.write();
+        // avoid inhibition of the earlyMotion module. 
+        // express saccade can be inhibit as well
+        //Bottle& commandBottle = magnoCellFeedback.prepare();
+        //commandBottle.clear();
+        //commandBottle.addVocab(VOCAB3('s','u','s'));
+        //magnoCellFeedback.write();
     }
     else {
+        //setting counter motion to 0 allows time before the earlyMotion activates again
         setCounterMotion(0);
-        Bottle& commandBottle = magnoCellFeedback.prepare();
-        commandBottle.clear();
-        commandBottle.addVocab(VOCAB3('r','e','s'));
-        magnoCellFeedback.write();
-
+        
+        //Bottle& commandBottle = magnoCellFeedback.prepare();
+        //commandBottle.clear();
+        //commandBottle.addVocab(VOCAB3('r','e','s'));
+        //magnoCellFeedback.write();
     }
 }
 

@@ -151,6 +151,7 @@ private:
     double xmax, xmin;                      // limits in fixation point
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
+    double Vx, Vy;                          // last predicted velocity profile
     
     double phi;                             // value passed for relative vergence from the maximum shift
     double phi2;                            // value passed for relative vergence from the second maximum shift

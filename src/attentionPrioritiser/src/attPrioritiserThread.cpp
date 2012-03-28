@@ -404,7 +404,6 @@ void attPrioritiserThread::run() {
         //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
         
         // notify observer concerning the state in which the prioritiser sets in
-        printf("NOTIFICATION NOTIFICATION of %d \n", countObservers());
         Bottle notif;
         notif.addVocab(COMMAND_VOCAB_ACT);
         notif.addDouble(allowedTransitions(0));
@@ -443,14 +442,23 @@ void attPrioritiserThread::run() {
     //printf("state: %s \n", state.toString().c_str());
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
 
-    if(allowedTransitions(4)>0) {
+    if(allowedTransitions(5)>0) {
         state(5) = 1; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Trajectory Prediction  -----------------------
-        printf("----------------- Trajectory prediction ---------------- \n");
-        double Vx,Vy;
+        printf("\n \n _________________ Trajectory prediction ____________________________________ \n \n");
+        
         bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
         if(predictionSuccess) {
             printf("prediction success: velocity(%f, %f) time(0.5) \n", Vx, Vy);
+
+            // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(1);                  // code for prediction accomplished
+            setChanged();
+            notifyObservers(&notif); 
+           
         }
         else {
             printf("prediction failed \n");
@@ -544,7 +552,7 @@ void attPrioritiserThread::run() {
 
                 Bottle& commandBottle=outputPort.prepare();
                 commandBottle.clear();
-                commandBottle.addString("SAC_MONO");
+                commandBottle.addString("SAC_MON");
                 commandBottle.addInt(centroid_x);
                 commandBottle.addInt(centroid_y);
                 commandBottle.addDouble(zDistance);
@@ -699,7 +707,16 @@ void attPrioritiserThread::run() {
         state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Smooth Pursuit  -----------------------
         if(!executing) {                       
-            printf("------------- Smooth Pursuit ---------------------\n");
+            printf("____________________ Smooth Pursuit _________________\n");
+           
+            // executing the saccade
+            Bottle& commandBottle=outputPort.prepare();
+            commandBottle.clear();
+            commandBottle.addString("SAC_MONO");
+            commandBottle.addInt(Vx);
+            commandBottle.addInt(Vy);
+            outputPort.write();
+            
             printf("_____________ Smooth Pursuit _____________________\n");
         }
     }
@@ -1259,8 +1276,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"PUR")) {
             mutex.wait();
+            printf("recognised PUR command \n");
             if(allowStateRequest[2]) {
-                //printf("setting stateRequest[2] \n");
+                printf("setting stateRequest[2] \n");
                 stateRequest[2] = 1;
                 //executing = false;
             }

@@ -475,7 +475,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
             for (int j = 0; j < NUMSTATE; j++)  {
                 if(statevalue == j) {
-                    printf("state %d \n", j);
+                    printf("                                                                    State %d \n", j);
                     state_now = state_next;
                     state_next = j; 
                 }
@@ -591,11 +591,13 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
             
             // updating the transition matrix once we switch state
+            printf("updating the transition matrix \n");
             double sum = 0;
             double* point;
             
             for(int i = 0; i < NUMSTATE; i ++) {
-                *point = Psa->operator()(state_now * NUMACTION + action_now, i);
+                point = &Psa->operator()(state_now * NUMACTION + action_now, i);
+                                
                 if(i != state_next) {
                     if (*point >= 0.001) {
                         *point -= 0.001;
@@ -608,11 +610,14 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                     }
                     sum += *point;
                 }
+                
             }
+            
+            printf("checking if the row sums one \n");
             if(sum > 1.0) {
                 printf("!!!!the probability does not sum to 1!!!! \n");
             }
-            
+                        
         } break;
         case COMMAND_VOCAB_ACT :{
             printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
@@ -624,23 +629,23 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             action(4) = arg->get(5).asDouble();
 
             if(action(0)) {
-                printf("----------------------------------------------Action 0 \n");
+                printf("                                                      Action 0 \n");
                 action_now = 0;
             }
             else if(action(1)){
-                printf("----------------------------------------------Action 1 \n");
+                printf("                                                      Action 1 \n");
                 action_now = 1;
             }
             else if(action(2)){
-                printf("----------------------------------------------Action 2 \n");
+                printf("                                                      Action 2 \n");
                 action_now = 2;
             }
             else if(action(3)){
-                printf("----------------------------------------------Action 3 \n");
+                printf("                                                      Action 3 \n");
                 action_now = 3;
             }
             else if(action(4)){
-                printf("----------------------------------------------Action 4 \n");
+                printf("                                                      Action 4 \n");
                 action_now = 4;
             }
         } break;
