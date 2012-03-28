@@ -47,7 +47,7 @@
 
 #define THRATE 10
 #define NUMSTATE 11
-#define NUMACTION 6
+#define NUMACTION 8
 
 static const std::string stateList[11] =  {
     "null"            //0
@@ -64,13 +64,15 @@ static const std::string stateList[11] =  {
     
 };
 
-static const std::string actionList[6]  = {
-    "null",
-        "vergence",
-        "smoothPursuit",
-        "microSaccade",
-        "mediumSaccade",
-        "wideSaccade"
+static const std::string actionList[8]  = {
+    "null",            //0
+    "vergence",        //1
+    "smoothPursuit",   //2
+    "expressSaccade",  //3
+    "microSaccade",    //4
+    "mediumSaccade",   //5
+    "wideSaccade",     //6
+    "predict"          //7
 };
 
 /*

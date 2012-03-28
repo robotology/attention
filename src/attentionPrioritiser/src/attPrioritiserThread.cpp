@@ -450,7 +450,7 @@ void attPrioritiserThread::run() {
         double Vx,Vy;
         bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
         if(predictionSuccess) {
-            printf("prediction success: velocity(%f, %f) time(0.5)", Vx, Vy);
+            printf("prediction success: velocity(%f, %f) time(0.5) \n", Vx, Vy);
         }
         else {
             printf("prediction failed \n");
@@ -1228,8 +1228,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 else {
                     //reinforceFootprint has not happened yet
                     mutex.wait();
-                    //printf("setting stateRequest[3] \n");
+                    printf("setting stateRequest[3] after checking for flag \n");
                     if(allowStateRequest[3]) {
+                        printf("inside the request \n");
                         stateRequest[3] = 1;
                     }
                     mutex.post();
@@ -1292,7 +1293,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     //executing = false;
                 }
                 mutex.post();
-            }            
+            }
+            
         }
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
             // saccade accomplished           
@@ -1300,6 +1302,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             correcting = true;
             //executing = false;
             mutex.post();
+
+            // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(2);                  // code for vergence accomplished in vergence ok state
+            setChanged();
+            notifyObservers(&notif);
 
             //gathering information about the feature from the preattentive stage (earlyVision)
             if(feedbackEarlyVision.getOutputCount()) {
@@ -1395,10 +1405,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
             notif.addDouble(8);                  // code for vergence accomplished in vergence ok state
-            //notif.addDouble(stateId(1)); 
-            //notif.addDouble(stateId(2));
-            //notif.addDouble(stateId(3));
-            //notif.addDouble(stateId(4));
             setChanged();
             notifyObservers(&notif); 
             
@@ -1416,9 +1422,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //  changing the accomplished flag
             mutexAcc.wait();
             accomplFlag[2];
-            mutexAcc.post();
-            
+            mutexAcc.post();            
             mutex.post();
+
+             // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(4);                  // code for vergence accomplished in vergence ok state
+            setChanged();
+            notifyObservers(&notif);
         }
         else if(!strcmp(name.c_str(),"SIM")) {
             // vergence accomplished           

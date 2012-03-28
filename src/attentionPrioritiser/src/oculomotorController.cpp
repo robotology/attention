@@ -62,18 +62,18 @@ bool oculomotorController::threadInit() {
     scopePort.open(getName("/scope:o").c_str());
 
     // interacting with the attPrioritiserThread 
-    ap->setAllowStateRequest(0,false);
-    ap->setAllowStateRequest(1,false);
-    ap->setAllowStateRequest(2,false);
-    ap->setAllowStateRequest(3,false);    
-    ap->setAllowStateRequest(4,false);
+    ap->setAllowStateRequest(0,true);
+    ap->setAllowStateRequest(1,true);
+    ap->setAllowStateRequest(2,true);
+    ap->setAllowStateRequest(3,true);    
+    ap->setAllowStateRequest(4,true);
 
     // initialisation of the matrices necessary for computation
     printf("resetting rewardStateAction \n");
-    rewardStateAction = new Matrix(11,6);
+    rewardStateAction = new Matrix(NUMSTATE,NUMACTION);
     double* val = rewardStateAction->data();
-    for(int row = 0; row < 11; row++ ) {
-        for(int col = 0; col < 6; col++) {
+    for(int row = 0; row < NUMSTATE; row++ ) {
+        for(int col = 0; col < NUMACTION; col++) {
             *val = 0.1; val++;
         }
     }
@@ -94,14 +94,14 @@ bool oculomotorController::threadInit() {
     }
     n = n -1;
     rewind(PsaFile);
-    Psa = new Matrix(66,11);
+    Psa = new Matrix(NUMSTATE * NUMACTION,NUMSTATE);
     val = Psa->data();
     if(n == 0) {
         // creating new Psa values                
         printf("creating new Psa values \n");
         double t;
-        for(int row = 0; row < 66; row++ ) {
-            for(int col = 0; col < 11; col++) {
+        for(int row = 0; row < NUMSTATE * NUMACTION; row++ ) {
+            for(int col = 0; col < NUMSTATE; col++) {
                 //t = rand() / 10000000000.0 ;
                 t = 1.0 / NUMSTATE;
                 fprintf(PsaFile,"%f ",t);
@@ -122,21 +122,19 @@ bool oculomotorController::threadInit() {
         double* py = &y[0];
 		while(numRead != -1){
 			numRead = fscanf(PsaFile, "%f", &x);
-			printf("numRead %d > %f \n",numRead,(double)x);
+			//printf("numRead %d > %f \n",numRead,(double)x);
             *val = (double) x;
             val++; countVal++;
         }
          printf("saved %d \n", countVal);
     }
-
-    Time::delay(1.00);
     
     printf("initialisation of the learning machines \n");
-    Q = new Matrix(11,6);
+    Q = new Matrix(NUMSTATE,NUMACTION);
     Q->zero();
-    V = new Matrix(1,11);
+    V = new Matrix(1,NUMSTATE);
     V->zero();
-    A = new Matrix(1,11);
+    A = new Matrix(1,NUMSTATE);
     A->zero();
 
     tp = new trajectoryPredictor();
@@ -383,11 +381,11 @@ void oculomotorController::learningStep() {
     //printf("M = \n");
     //printf("%s \n", M.toString().c_str());
     
-    for (int state = 0; state < 11; state++ ) {
+    for (int state = 0; state < NUMSTATE; state++ ) {
         double maxQ  = 0;
         int actionMax = 0;
         
-        for(int action = 0; action < 6; action++) {
+        for(int action = 0; action < NUMACTION; action++) {
             Q->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
             if(Q->operator()(state, action) > maxQ) {
                 maxQ = Q->operator()(state, action);
@@ -442,6 +440,13 @@ void oculomotorController::learningStep() {
 
 void oculomotorController::run() {
     if(!idle) {
+        // interacting with the attPrioritiserThread 
+        ap->setAllowStateRequest(0,false);
+        ap->setAllowStateRequest(1,false);
+        ap->setAllowStateRequest(2,false);
+        ap->setAllowStateRequest(3,false);    
+        ap->setAllowStateRequest(4,false);        
+
         if((count < 50) && (iter % 20 == 0)) {
             learningStep();    
         }
@@ -467,7 +472,16 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
             
             int statevalue = arg->get(1).asInt();
+
+            for (int j = 0; j < NUMSTATE; j++)  {
+                if(statevalue == j) {
+                    printf("state %d \n", j);
+                    state_now = state_next;
+                    state_next = j; 
+                }
+            }
             
+            /*
             switch (statevalue) {
             //---------------------------------
             case 0:{
@@ -538,6 +552,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             //---------------------------------
             
             }
+            */
             
             /*
             Vector statetmp(5);
@@ -577,14 +592,21 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
             // updating the transition matrix once we switch state
             double sum = 0;
+            double* point;
+            
             for(int i = 0; i < NUMSTATE; i ++) {
+                *point = Psa->operator()(state_now * NUMACTION + action_now, i);
                 if(i != state_next) {
-                    Psa->operator()(state_now * NUMACTION + action_now, i) -= 0.001;
-                    sum += Psa->operator()(state_now * NUMACTION + action_now, i);
+                    if (*point >= 0.001) {
+                        *point -= 0.001;
+                    }
+                    sum += *point;
                 }
                 else {
-                    Psa->operator()(state_now * NUMACTION + action_now, i) += 0.01;
-                    sum += Psa->operator()(state_now * NUMACTION + action_now, i);
+                    if(*point <= 1.0 - 0.01) {
+                        *point += 0.01;
+                    }
+                    sum += *point;
                 }
             }
             if(sum > 1.0) {
@@ -626,10 +648,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf("Command not recognized \n");
         }break;
             
-        }
-        
-
-        
+        }                
     }
 }
 
