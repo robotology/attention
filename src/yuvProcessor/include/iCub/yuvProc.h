@@ -19,7 +19,7 @@
 /**
 *
 * @ingroup icub_logpolarAttention
-\defgroup yuvProcessor yuvProcessor
+* \defgroup icub_yuvProcessor yuvProcessor
 */
 
 #ifndef __ICUB_YUV_PROC_H__
