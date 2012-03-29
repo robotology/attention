@@ -529,12 +529,13 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
             // mapping from action in prioritiser to action in controller
             // mapping from dimension 6 to dimension 8
+            int amplitudeId = 2;
             action(0) = a(0);
             action(1) = a(1);
             action(2) = a(2);
-            action(3) = a(3);
-            action(4) = a(3);
-            action(5) = a(3);
+            action(3) = a(3) + amplitudeId;
+            action(4) = a(3) + amplitudeId;
+            action(5) = a(3) + amplitudeId;
             action(6) = a(4);
             action(7) = a(5);
             

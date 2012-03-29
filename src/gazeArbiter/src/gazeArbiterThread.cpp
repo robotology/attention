@@ -263,11 +263,11 @@ bool gazeArbiterThread::threadInit() {
 
     
     string headPort = "/" + robot + "/head";
-    string nameLocal("local");
+    string nameLocal("gazeArbiter");
 
     //initialising the head polydriver
     optionsHead.put("device", "remote_controlboard");
-    optionsHead.put("local", "/localhead");
+    optionsHead.put("local", ("/"+nameLocal+"/localhead").c_str());
     optionsHead.put("remote", headPort.c_str());
     robotHead = new PolyDriver (optionsHead);
 
@@ -966,8 +966,8 @@ void gazeArbiterThread::run() {
 #else
                     errorx = 160 - point.x;
                     errory = 120 - point.y;
-                    px(0) = 182 - errorx;
-                    px(1) = 113 - errory;
+                    px(0) = cxl - errorx;
+                    px(1) = cyl - errory;
 #endif
 
                     errorVC_pre = errorVC;
@@ -1043,22 +1043,32 @@ void gazeArbiterThread::run() {
         // ----------------  SMOOTH PURSUIT -----------------------  
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         printf(" in RUN of gazeArbiter thread Smooth Pursuit \n");
+        printf("velocity profile %f %f \n", uVel, vVel);
+        //initilisation
+        int c = 0;
+        int u = 160, v = 120;
+        Vector target(2);
+        int camSel=0;   // select the image plane: 0 (left), 1 (right)
+        Vector px(2);   // specify the pixel where to look
+        px[0] = cxl + uVel;
+        px[1] = cyl + vVel;        
+        double z=1.0;   // distance [m] of the object from the image plane (extended to infinity): yes, you probably need to guess, but it works pretty robustly
+        //cycle
+        double timeend, timeout = 0;
+        double timestart = Time::now();
+        
+        while(timeout < 2.0) {
+            //px[0] = 1.0;
+            //px[1] = 1.0;
+            igaze->lookAtMonoPixelWithVergence(camSel,px,5);    // look!
+            Time::delay(0.01);
+            timeend = Time::now();
+            timeout = timeend - timestart;
+            c++;
+        }
+        
+        printf("position reached \n");
 
-         int c = 0;
-         int u = 160, v = 120;
-         Vector target(2);
-         
-         while(c < 10){
-             
-             u = u + 1;
-             v = v + 1;
-             target(0) = (double) u;
-             target(1) = (double) v;
-             igaze->lookAtMonoPixel(0,target,0.5);
-             Time::delay(0.01);
-             c++;
-         }
-         
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
@@ -1469,12 +1479,13 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             firstVergence = true;
         }
         else if(!strcmp(name.c_str(),"SM_PUR")) {
-            printf("received a command of smooth pursuit \n");
+            printf("received a command of smooth pursuit ");
             uVel = arg->get(1).asDouble();
             vVel = arg->get(2).asDouble();
+            printf("velocity %f %f \n", uVel, vVel);
             mutex.wait();
             stateRequest[2] = 1;
-            velControl->setVelocityComponents(uVel, vVel);
+            //velControl->setVelocityComponents(uVel, vVel);
             //executing = false;
             mutex.post();
             firstVergence = true;

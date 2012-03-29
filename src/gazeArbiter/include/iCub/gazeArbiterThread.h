@@ -144,6 +144,7 @@ private:
     yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
+    
     velocityController* velControl;                 // velocity controller for tracking
     trackerThread* tracker;                         // reference to the object in charge of tracking a tamplete surrounding a point
 public:
