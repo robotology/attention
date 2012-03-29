@@ -19,7 +19,9 @@
 /**
 *
 * @ingroup icub_logpolarAttention
-\defgroup zdfMod zdfMod
+* \defgroup icub_zdfMod zdfMod
+*
+* This module performs zero disparity filtering. Given the object at zero disparity segments the silhouette of the object
 */
 
 #ifndef __ICUB_ZDFMODULE_H__
