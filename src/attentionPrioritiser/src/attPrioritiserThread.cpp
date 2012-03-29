@@ -406,11 +406,12 @@ void attPrioritiserThread::run() {
         // notify observer concerning the state in which the prioritiser sets in
         Bottle notif;
         notif.addVocab(COMMAND_VOCAB_ACT);
-        notif.addDouble(allowedTransitions(0));
-        notif.addDouble(allowedTransitions(1)); 
-        notif.addDouble(allowedTransitions(2));
-        notif.addDouble(allowedTransitions(3));
-        notif.addDouble(allowedTransitions(4));
+        notif.addDouble(allowedTransitions(0));  // null
+        notif.addDouble(allowedTransitions(1));  // vergence 
+        notif.addDouble(allowedTransitions(2));  // smooth pursuit
+        notif.addDouble(allowedTransitions(3));  // planned saccade
+        notif.addDouble(allowedTransitions(4));  // express saccade
+        notif.addDouble(allowedTransitions(5));  // trajectory prediction
         setChanged();
         notifyObservers(&notif);
     }

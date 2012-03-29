@@ -68,10 +68,10 @@ static const std::string actionList[8]  = {
     "null",            //0
     "vergence",        //1
     "smoothPursuit",   //2
-    "expressSaccade",  //3
-    "microSaccade",    //4
-    "mediumSaccade",   //5
-    "wideSaccade",     //6
+    "microSaccade",    //3
+    "mediumSaccade",   //4
+    "largeSaccade",    //5
+    "expressSaccade",  //6
     "predict"          //7
 };
 

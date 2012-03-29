@@ -481,118 +481,10 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                     state_now = state_next;
                     state_next = j; 
                     
-                    fprintf(logFile, "state_now %d state_next %d \n", state_now, state_next );
+                    fprintf(logFile, "state_now  %s -> state_next  %s \n", stateList[state_now].c_str(), stateList[state_next].c_str());
                     
                 }
             }
-            
-            /*
-            switch (statevalue) {
-            //---------------------------------
-            case 0:{
-                printf("state 0 \n");
-                state_now = state_next;
-                state_next = 0;
-            }break;
-            //---------------------------------
-            case 1:{
-                printf("state 1 \n");
-                state_now = state_next;
-                state_next = 1;
-            }break;
-            //---------------------------------
-            case 2:{
-                printf("state 2 \n");
-                state_now = state_next;
-                state_next = 2;
-            }break;
-            //---------------------------------
-            case 3:{
-                printf("state 3 \n");
-                state_now = state_next;
-                state_next = 3;
-            }break;
-            //---------------------------------
-            case 4:{
-                printf("state 4 \n");
-                state_now = state_next;
-                state_next = 4;
-            }break;
-            //---------------------------------    
-            case 5:{
-                printf("state 5 \n");
-                state_now = state_next;
-                state_next = 1;
-            }break;
-            //---------------------------------
-            case 6:{
-                printf("state 6 \n");
-                state_now = state_next;
-                state_next = 2;
-            }break;
-            //---------------------------------
-            case 7:{
-                printf("state 7 \n");
-                state_now = state_next;
-                state_next = 3;
-            }break;
-            //---------------------------------
-            case 8:{
-                printf("state 8 \n");
-                state_now = state_next;
-                state_next = 4;
-            }break;
-            //---------------------------------
-            case 9:{
-                printf("state 9 \n");
-                state_now = state_next;
-                state_next = 1;
-            }break;
-            //---------------------------------
-            case 10:{
-                printf("state 10 \n");
-                state_now = state_next;
-                state_next = 2;
-            }break;
-            //---------------------------------
-            
-            }
-            */
-            
-            /*
-            Vector statetmp(5);
-            statetmp(0) = arg->get(1).asDouble();
-            statetmp(1) = arg->get(2).asDouble();
-            statetmp(2) = arg->get(3).asDouble();
-            statetmp(3) = arg->get(4).asDouble();
-            statetmp(4) = arg->get(5).asDouble();
-
-            if(statetmp(0)) {
-                printf("----------------------------------------------State 0 \n");                
-                state_now = state_next;
-                state_next = 0;
-            }
-            else if(statetmp(1)){
-                printf("----------------------------------------------State 1 \n");
-                state_now = state_next;
-                state_next = 1;
-            }
-            else if(statetmp(2)){
-                printf("----------------------------------------------State 2 \n");
-                state_now = state_next;
-                state_next = 2;
-            }
-            else if(statetmp(3)){
-                printf("----------------------------------------------State 3 \n");
-                state_now = state_next;
-                state_next = 3;
-            }
-            else if(statetmp(4)){
-                printf("----------------------------------------------State 4 \n");
-                state_now = state_next;
-                state_next = 4;
-            }
-            */
             
             
             // updating the transition matrix once we switch state
@@ -626,37 +518,51 @@ void oculomotorController::update(observable* o, Bottle * arg) {
         } break;
         case COMMAND_VOCAB_ACT :{
             printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
-            Vector action(5);
-            action(0) = arg->get(1).asDouble();
-            action(1) = arg->get(2).asDouble();
-            action(2) = arg->get(3).asDouble();
-            action(3) = arg->get(4).asDouble();
-            action(4) = arg->get(5).asDouble();
+            Vector action(8);
+            Vector a(6);
+            a(0) = arg->get(1).asDouble();
+            a(1) = arg->get(2).asDouble();
+            a(2) = arg->get(3).asDouble();
+            a(3) = arg->get(4).asDouble();
+            a(4) = arg->get(5).asDouble();
+            a(5) = arg->get(6).asDouble();
+
+            // mapping from action in prioritiser to action in controller
+            // mapping from dimension 6 to dimension 8
+            action(0) = a(0);
+            action(1) = a(1);
+            action(2) = a(2);
+            action(3) = a(3);
+            action(4) = a(3);
+            action(5) = a(3);
+            action(6) = a(4);
+            action(7) = a(5);
+            
 
             if(action(0)) {
                 printf("                                                      Action 0 \n");
                 action_now = 0;
-                fprintf(logFile, "action_now %d ", action_now);
+                fprintf(logFile, "action_now %s ",actionList[action_now].c_str());
             }
             else if(action(1)){
                 printf("                                                      Action 1 \n");
                 action_now = 1;
-                fprintf(logFile, "action_now %d ", action_now);
+                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
             }
             else if(action(2)){
                 printf("                                                      Action 2 \n");
                 action_now = 2;
-                fprintf(logFile, "action_now %d ", action_now);
+                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
             }
             else if(action(3)){
                 printf("                                                      Action 3 \n");
                 action_now = 3;
-                fprintf(logFile, "action_now %d ", action_now);
+                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
             }
             else if(action(4)){
                 printf("                                                      Action 4 \n");
                 action_now = 4;
-                fprintf(logFile, "action_now %d ", action_now);
+                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
             }
         } break;
         default: {
