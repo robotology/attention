@@ -310,7 +310,7 @@ void disparityProcessor::run(){
 		    
             //calculating the disparity value
             int max1 = 0 , max2 = 0, max3 = 0;
-            double value1 =0;
+            double value1 = 0;
             Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25, max1, max2, value1);
             //disparityVal = Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25);
             //disparityVal = Disp.computeMono(*imgInR, *imgInL, 4.0);
@@ -354,7 +354,8 @@ void disparityProcessor::run(){
                     bot.addString("VER_REL");
                     bot.addDouble(-(180/M_PI)*atan(max1/(2*fpixel)));
                     bot.addDouble(-(180/M_PI)*atan(max2/(2*fpixel)));
-                    bot.addDouble(-(180/M_PI)*atan(max3/(2*fpixel)));
+                    //bot.addDouble(-(180/M_PI)*atan(max3/(2*fpixel)));
+                    bot.addDouble(value1);
                     cmdOutput.write(bot);
                     bot.clear();
                 }

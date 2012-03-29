@@ -573,6 +573,7 @@ void DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, Image
     ret    = filterMaxes();
     max1   = (int) ret.disp; 
     value1 = ret.corr;
+    //printf("found the next correlation value %f \n", value1);
     
     //cout << "Final time: " << (Time::now() - TimeStart) << endl;
     //cout << "index " << ret.index << " corr " << ret.corr << " disp " << ret.disp << endl; 
