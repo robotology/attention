@@ -78,6 +78,8 @@ bool oculomotorController::threadInit() {
         }
     }
     printf("initialisation of probability transition \n");
+    logFile = fopen("logFile.txt","w+");
+     
     printf("reading values from the file.... \n");
     PsaFile = fopen("psaFile.txt","a+");
     int n = 0; // number of bytes in the file
@@ -478,6 +480,9 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                     printf("                                                                    State %d \n", j);
                     state_now = state_next;
                     state_next = j; 
+                    
+                    fprintf(logFile, "state_now %d state_next %d \n", state_now, state_next );
+                    
                 }
             }
             
@@ -631,22 +636,27 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             if(action(0)) {
                 printf("                                                      Action 0 \n");
                 action_now = 0;
+                fprintf(logFile, "action_now %d ", action_now);
             }
             else if(action(1)){
                 printf("                                                      Action 1 \n");
                 action_now = 1;
+                fprintf(logFile, "action_now %d ", action_now);
             }
             else if(action(2)){
                 printf("                                                      Action 2 \n");
                 action_now = 2;
+                fprintf(logFile, "action_now %d ", action_now);
             }
             else if(action(3)){
                 printf("                                                      Action 3 \n");
                 action_now = 3;
+                fprintf(logFile, "action_now %d ", action_now);
             }
             else if(action(4)){
                 printf("                                                      Action 4 \n");
                 action_now = 4;
+                fprintf(logFile, "action_now %d ", action_now);
             }
         } break;
         default: {
@@ -660,6 +670,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
 
 void oculomotorController::threadRelease() {
+    fclose(logFile);
     fclose(PsaFile);
     PsaFile = fopen("psaFile.txt","w+");
     printf("saving updates in Psa \n");

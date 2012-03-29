@@ -124,6 +124,7 @@ private:
     int state_next;                       // state in which the controller will end
     
     FILE* PsaFile;                        // file that contains the Probability of Transitions
+    FILE* logFile;                        // log file for actions and states
 public:
     /**
     * default constructor
