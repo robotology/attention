@@ -310,7 +310,8 @@ void disparityProcessor::run(){
 		    
             //calculating the disparity value
             int max1 = 0 , max2 = 0, max3 = 0;
-            Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25, max1, max2, max3);
+            double value1 =0;
+            Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25, max1, max2, value1);
             //disparityVal = Disp.computeDisparityCorrRGBsum(*imgInR, *imgInL, 25);
             //disparityVal = Disp.computeMono(*imgInR, *imgInL, 4.0);
             //disparityVal = 1;

@@ -84,9 +84,18 @@ public:
         return _shiftFunctionInv[index]; 
     }
 
-    void computeDisparityCorrRGBsum (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step, int& max1, int& max2, int& max3);
-    int computeDisparityCorrRGBsum (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step);
-    int computeMono (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, double value);
+    /**
+     * @brief function that return the first and second max shift and the correlation value of the first max
+     * @param inRImg right eye image
+     * @param inLImg left eye image
+     * @param step step in the computation
+     * @param max1 first max shift
+     * @param max2 second max shift
+     * @param value1 correlation value for the first shift
+     */
+    void computeDisparityCorrRGBsum (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step, int& max1, int& max2, double& value);
+    int  computeDisparityCorrRGBsum (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step);
+    int  computeMono (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, double value);
     /*int computeDisparityCorrRGBsum2 (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step);
     int computeDisparityCorrRGBsum3 (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step);
     int computeDisparityCorrRGBprod (ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step);

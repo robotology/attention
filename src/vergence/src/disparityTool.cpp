@@ -456,7 +456,7 @@ int DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageO
 
 }
 
-void DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step, int& max1, int& max2, int& max3) {
+void DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, ImageOf<PixelRgb> & inLImg, int step, int& max1, int& max2, double& value1) {
      
     img2unpaddedVectMultiple( lPtr, inLImg, rPtr, inRImg );
     
@@ -568,10 +568,11 @@ void DisparityTool::computeDisparityCorrRGBsum(ImageOf<PixelRgb> & inRImg, Image
 
     findShiftMax(_corrFunct);
     findSecondMaxes(_corrFunct, _maxShifts[0].index);
-    max2  = (int)_maxShifts[2].disp;
-    max3  = (int)_maxShifts[3].disp;
-    ret   = filterMaxes();
-    max1  = (int) ret.disp; 
+    max2   = (int)_maxShifts[2].disp;
+    //max3 = (int)_maxShifts[3].disp;
+    ret    = filterMaxes();
+    max1   = (int) ret.disp; 
+    value1 = ret.corr;
     
     //cout << "Final time: " << (Time::now() - TimeStart) << endl;
     //cout << "index " << ret.index << " corr " << ret.corr << " disp " << ret.disp << endl; 
