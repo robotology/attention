@@ -28,7 +28,7 @@
 
 /** 
  *
- * \defgroup icub_gazeArbiter gazeArbiter
+ * \defgroup icub_opticFlowInterface opticFlowInterface
  * @ingroup icub_logpolarAttention
  *
  * This is a module that operates as interface between any module that extract optic flow and the attention prioriteser
@@ -138,7 +138,7 @@
  *
  * Copyright (C) 2010 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/colourSaliency/include/iCub/colourSaliencyModule.h
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logpolarAttention/src/opticFlowInterface/include/iCub/ofModule.h
  * 
  */
 
