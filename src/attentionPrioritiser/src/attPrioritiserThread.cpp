@@ -393,7 +393,7 @@ void attPrioritiserThread::run() {
     //mutex.wait();
     
     //Vector-vector element-wise product operator between stateRequest possible transitions
-    if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)) {
+    if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)||(stateRequest(5) != 0)) {
         //printf("stateRequest: %s \n", stateRequest.toString().c_str());
         //printf("state: %s \n", state.toString().c_str());
         Vector c(5);
@@ -649,6 +649,9 @@ void attPrioritiserThread::run() {
                 
             }
             else {
+
+                
+
                 printf("------- Monocular Planned Saccade -------------  \n");
                 
                 printf("initialising the planner thread %f \n", time);
@@ -1217,8 +1220,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
 
             u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
-            
+            v = arg->get(2).asInt();                      
+
+            /*
             // prediction attemp after triggering stimulus
             mutex.wait();
             if(allowStateRequest[5]) {
@@ -1228,15 +1232,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 timeoutStart = Time::now();
                 //  changing the accomplished flag
                 mutexAcc.wait();
-                accomplFlag[5] = 0;
+                accomplFlag[5];
                 mutexAcc.post();
                 
             }
-            mutex.post();
+            mutex.post();     
+            */
             
-            Time::delay(5.0);
-            
-
             zDistance = arg->get(3).asDouble();
             time =  arg->get(4).asDouble();
             printf("saccade mono time: %f \n", time);
@@ -1319,6 +1321,33 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             timetotStart = Time::now();
             mono = true;
             firstVer = true;
+
+            // null state
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(3);                  // code for null state
+            setChanged();
+            notifyObservers(&notif);
+        }
+        else if(!strcmp(name.c_str(),"PRED")) {
+            u = arg->get(1).asInt();
+            v = arg->get(2).asInt();
+            
+            // prediction attemp after triggering stimulus
+            mutex.wait();
+            if(allowStateRequest[5]) {
+                printf("setting stateRequest[5] \n");
+                reinfFootprint = true;
+                stateRequest[5] = 1;
+                timeoutStart = Time::now();
+                //  changing the accomplished flag
+                mutexAcc.wait();
+                accomplFlag[5];
+                mutexAcc.post();
+                
+            }
+            mutex.post();           
         }
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
             xObject = arg->get(1).asDouble();
@@ -1374,6 +1403,42 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 mutex.post();
             }
             
+        }
+        else if(!strcmp(name.c_str(),"SAC_FAIL")) {
+            // saccade accomplished           
+            mutex.wait();
+            correcting = true;
+            //executing = false;
+            mutex.post();
+
+            // nofiying state transition to fixStable ok           
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(3);                  // code for fixStableOK accomplished in vergence ok state
+            setChanged();
+            notifyObservers(&notif);
+
+            // reset action
+            notif.clear();
+            printf("notify action reset \n");
+            notif.addVocab(COMMAND_VOCAB_ACT);
+            // code for reset action
+            notif.addDouble(1.0);  // reset
+            notif.addDouble(0.0);  // vergence 
+            notif.addDouble(0.0);  // smooth pursuit
+            notif.addDouble(0.0);  // planned saccade
+            notif.addDouble(0.0);  // express saccade
+            notif.addDouble(0.0);  // trajectory prediction
+            setChanged();
+            notifyObservers(&notif);
+            
+            // null state
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(0);                  // code for null state
+            setChanged();
+            notifyObservers(&notif);
         }
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
             // saccade accomplished           

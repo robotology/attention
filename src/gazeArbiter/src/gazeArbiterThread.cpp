@@ -930,6 +930,12 @@ void gazeArbiterThread::run() {
                     timing.addDouble(-1);
                     timingPort.write();
 
+                    // sending error message for saccade SAC_FAIL
+                    Bottle& status = statusPort.prepare();
+                    status.clear();
+                    status.addString("SAC_FAIL");
+                    statusPort.write();
+                    
                     v(0)= -0.5; v(1) = 0; v(2) = 0.5;
                     //igaze->stopControl();
                     igaze->lookAtFixationPoint(v);
@@ -996,6 +1002,12 @@ void gazeArbiterThread::run() {
                     printf("Error in reaching with visualFeedback \n");
                     printf("Error in reaching with visualFeedback \n");
                     printf("Error in reaching with visualFeedback \n");
+
+                    // sending error message for saccade SAC_FAIL
+                    Bottle& status = statusPort.prepare();
+                    status.clear();
+                    status.addString("SAC_FAIL");
+                    statusPort.write();
                     
                     timetotStop = Time::now();
                     timetot = timetotStop - timetotStart;
@@ -1036,7 +1048,7 @@ void gazeArbiterThread::run() {
             
             //-----------------
             //accomplished_flag = true;
-            Time::delay(0.5);
+            Time::delay(0.1);
         }
     }
     else if(allowedTransitions(2)>0) {
