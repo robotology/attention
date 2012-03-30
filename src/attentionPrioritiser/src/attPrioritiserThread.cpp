@@ -398,15 +398,15 @@ void attPrioritiserThread::run() {
         //printf("state: %s \n", state.toString().c_str());
         Vector c(5);
         c = stateRequest * (state * stateTransition);
-        allowedTransitions = orVector(allowedTransitions ,c );
+        allowedTransitions = orVector(allowedTransitions ,c);
         // resetting the requests
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
-        //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
+        printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
         
         // notify observer concerning the state in which the prioritiser sets in
         Bottle notif;
         notif.addVocab(COMMAND_VOCAB_ACT);
-        notif.addDouble(allowedTransitions(0));  // null
+        notif.addDouble(allowedTransitions(0));  // reset
         notif.addDouble(allowedTransitions(1));  // vergence 
         notif.addDouble(allowedTransitions(2));  // smooth pursuit
         notif.addDouble(allowedTransitions(3));  // planned saccade
@@ -447,19 +447,28 @@ void attPrioritiserThread::run() {
         state(5) = 1; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Trajectory Prediction  -----------------------
         printf("\n \n _________________ Trajectory prediction ____________________________________ \n \n");
-
+        
+        /*
         // nofiying action            
         Bottle notif;
         notif.clear();
         notif.addVocab(COMMAND_VOCAB_ACT);
-        notif.addDouble(1);                  // code for prediction accomplished
+        // code for prediction accomplished
+        notif.addDouble(states(0));  // null
+        notif.addDouble(states(1));  // vergence 
+        notif.addDouble(states(2));  // smooth pursuit
+        notif.addDouble(states(3));  // planned saccade
+        notif.addDouble(states(4));  // express saccade
+        notif.addDouble(states(5));  // trajectory prediction
         setChanged();
         notifyObservers(&notif);
+        */
 
         bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
         
 
         // nofiying state transition            
+        Bottle notif;
         notif.clear();
         notif.addVocab(COMMAND_VOCAB_STAT);
         notif.addDouble(1);                  // code for prediction accomplished
@@ -625,6 +634,7 @@ void attPrioritiserThread::run() {
         // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
             printf("\n \n ____________________ Planned Saccade ___________________ \n");
+            
             if((u==-1)||(v==-1)) {
                 printf("----------- Stereo Planned Saccade ------------  \n");
                 executing = true;
@@ -1205,11 +1215,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         ConstString name = arg->get(0).asString();
         
         if(!strcmp(name.c_str(),"SAC_MONO")) {
+
+            u = arg->get(1).asInt();
+            v = arg->get(2).asInt();
             
             // prediction attemp after triggering stimulus
             mutex.wait();
             if(allowStateRequest[5]) {
-                //printf("setting stateRequest[5] \n");
+                printf("setting stateRequest[5] \n");
                 reinfFootprint = true;
                 stateRequest[5] = 1;
                 timeoutStart = Time::now();
@@ -1217,11 +1230,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 mutexAcc.wait();
                 accomplFlag[5] = 0;
                 mutexAcc.post();
+                
             }
             mutex.post();
             
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
+            Time::delay(5.0);
+            
+
             zDistance = arg->get(3).asDouble();
             time =  arg->get(4).asDouble();
             printf("saccade mono time: %f \n", time);
@@ -1230,7 +1245,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // express saccade
                 mutex.wait();
                 if(allowStateRequest[4]) {
-                    //printf("setting stateRequest[4] \n");
+                    printf("setting stateRequest[4] \n");
                     reinfFootprint = true;
                     stateRequest[4] = 1;
                     timeoutStart = Time::now();
@@ -1294,7 +1309,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     mutex.wait();
                     printf("setting stateRequest[3] after checking for flag \n");
                     if(allowStateRequest[3]) {
-                        printf("inside the request \n");
                         stateRequest[3] = 1;
                     }
                     mutex.post();
@@ -1368,14 +1382,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
 
-            // nofiying state transition            
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(2);                  // code for vergence accomplished in vergence ok state
-            setChanged();
-            notifyObservers(&notif);
-
             //gathering information about the feature from the preattentive stage (earlyVision)
             if(feedbackEarlyVision.getOutputCount()) {
                 //cout<<"communication activated with the earlyVision: ";
@@ -1443,6 +1449,35 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.wait();
             accomplFlag[3];
             mutexAcc.post();
+
+            // nofiying state transition to fixStable ok           
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(2);                  // code for fixStableOK accomplished in vergence ok state
+            setChanged();
+            notifyObservers(&notif);
+
+            // reset action
+            notif.clear();
+            printf("notify action reset \n");
+            notif.addVocab(COMMAND_VOCAB_ACT);
+            // code for reset action
+            notif.addDouble(1.0);  // reset
+            notif.addDouble(0.0);  // vergence 
+            notif.addDouble(0.0);  // smooth pursuit
+            notif.addDouble(0.0);  // planned saccade
+            notif.addDouble(0.0);  // express saccade
+            notif.addDouble(0.0);  // trajectory prediction
+            setChanged();
+            notifyObservers(&notif);
+            
+            // null state
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(0);                  // code for null state
+            setChanged();
+            notifyObservers(&notif);
 
             if(reinfFootprint) {                
                 reinforceFootprint();

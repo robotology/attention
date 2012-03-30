@@ -50,7 +50,7 @@
 #define NUMACTION 8
 
 static const std::string stateList[11] =  {
-    "null"            //0
+    "null",           //0
     "predict",        //1        
     "fixStableOK",    //2
     "fixStableKO",    //3
@@ -60,12 +60,11 @@ static const std::string stateList[11] =  {
     "anticipWait",    //7
     "vergenOK",       //8
     "vergenceKO",     //9
-    "fixating",       //10
-    
+    "fixating"       //10    
 };
 
 static const std::string actionList[8]  = {
-    "null",            //0
+    "reset",           //0
     "vergence",        //1
     "smoothPursuit",   //2
     "microSaccade",    //3

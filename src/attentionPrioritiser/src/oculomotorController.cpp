@@ -519,6 +519,9 @@ void oculomotorController::update(observable* o, Bottle * arg) {
         case COMMAND_VOCAB_ACT :{
             printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
             Vector action(8);
+            action.zero();
+            //int a = (int) arg->get(1).asDouble();
+            
             Vector a(6);
             a(0) = arg->get(1).asDouble();
             a(1) = arg->get(2).asDouble();
@@ -526,10 +529,24 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             a(3) = arg->get(4).asDouble();
             a(4) = arg->get(5).asDouble();
             a(5) = arg->get(6).asDouble();
+            
+            /*         
+            switch(a) {
+            case 0: {action(0) = 1;} break;
+            case 1: {action(1) = 1;} break;
+            case 2: {action(2) = 1;} break;
+            case 3: {action(5) = 1;} break;    
+            case 4: {action(5) = 1;} break;
+            case 5: {action(5) = 1;} break;
+            case 6: {action(6) = 1;} break;
+            case 7: {action(7) = 1;} break;
+            }
+            */
 
             // mapping from action in prioritiser to action in controller
             // mapping from dimension 6 to dimension 8
             int amplitudeId = 2;
+            printf("action %f %f \n", action(0), action(1));
             action(0) = a(0);
             action(1) = a(1);
             action(2) = a(2);
@@ -541,44 +558,45 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             action(6) = a(4);
             action(7) = a(5);
             
+            
 
             if(action(0)) {
-                printf("                                                      Action 0 \n");
+                printf("                                                              Action 0 \n");
                 action_now = 0;
-                fprintf(logFile, "action_now:s ",actionList[action_now].c_str());
+                fprintf(logFile, "action_now:%s ",actionList[action_now].c_str());
             }
             else if(action(1)){
-                printf("                                                      Action 1 \n");
+                printf("                                                              Action 1 \n");
                 action_now = 1;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(2)){
-                printf("                                                      Action 2 \n");
+                printf("                                                              Action 2 \n");
                 action_now = 2;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(3)){
-                printf("                                                      Action 3 \n");
+                printf("                                                              Action 3 \n");
                 action_now = 3;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(4)){
-                printf("                                                      Action 4 \n");
+                printf("                                                              Action 4 \n");
                 action_now = 4;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(5)){
-                printf("                                                      Action 4 \n");
+                printf("                                                               Action 5 \n");
                 action_now = 5;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(6)){
-                printf("                                                      Action 4 \n");
+                printf("                                                              Action 6 \n");
                 action_now = 6;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(7)){
-                printf("                                                      Action 4 \n");
+                printf("                                                              Action 7 \n");
                 action_now = 7;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
