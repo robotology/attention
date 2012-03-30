@@ -586,7 +586,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(5)){
-                printf("                                                               Action 5 \n");
+                printf("                                                              Action 5 \n");
                 action_now = 5;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
