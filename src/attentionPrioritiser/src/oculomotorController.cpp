@@ -477,11 +477,11 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
             for (int j = 0; j < NUMSTATE; j++)  {
                 if(statevalue == j) {
-                    printf("                                                                    State %d \n", j);
+                    printf("                                                                   State %d \n", j);
                     state_now = state_next;
                     state_next = j; 
                     
-                    fprintf(logFile, "state_now  %s -> state_next  %s \n", stateList[state_now].c_str(), stateList[state_next].c_str());
+                    fprintf(logFile, "state_now:%s -> state_next:%s \n", stateList[state_now].c_str(), stateList[state_next].c_str());
                     
                 }
             }
@@ -533,9 +533,11 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             action(0) = a(0);
             action(1) = a(1);
             action(2) = a(2);
-            action(3) = a(3) + amplitudeId;
-            action(4) = a(3) + amplitudeId;
-            action(5) = a(3) + amplitudeId;
+            if(amplitudeId == 2) {
+                action(3) = 0;
+                action(4) = 0;
+                action(5) = 1;
+            }
             action(6) = a(4);
             action(7) = a(5);
             
@@ -543,27 +545,42 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             if(action(0)) {
                 printf("                                                      Action 0 \n");
                 action_now = 0;
-                fprintf(logFile, "action_now %s ",actionList[action_now].c_str());
+                fprintf(logFile, "action_now:s ",actionList[action_now].c_str());
             }
             else if(action(1)){
                 printf("                                                      Action 1 \n");
                 action_now = 1;
-                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
+                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(2)){
                 printf("                                                      Action 2 \n");
                 action_now = 2;
-                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
+                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(3)){
                 printf("                                                      Action 3 \n");
                 action_now = 3;
-                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
+                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(4)){
                 printf("                                                      Action 4 \n");
                 action_now = 4;
-                fprintf(logFile, "action_now %s ", actionList[action_now].c_str());
+                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+            }
+            else if(action(5)){
+                printf("                                                      Action 4 \n");
+                action_now = 5;
+                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+            }
+            else if(action(6)){
+                printf("                                                      Action 4 \n");
+                action_now = 6;
+                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+            }
+            else if(action(7)){
+                printf("                                                      Action 4 \n");
+                action_now = 7;
+                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
         } break;
         default: {

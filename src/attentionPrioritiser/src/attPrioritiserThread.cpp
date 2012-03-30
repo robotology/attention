@@ -447,8 +447,17 @@ void attPrioritiserThread::run() {
         state(5) = 1; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Trajectory Prediction  -----------------------
         printf("\n \n _________________ Trajectory prediction ____________________________________ \n \n");
-        
+
+        // nofiying action            
+        Bottle notif;
+        notif.clear();
+        notif.addVocab(COMMAND_VOCAB_STAT);
+        notif.addDouble(1);                  // code for prediction accomplished
+        setChanged();
+        notifyObservers(&notif);
+
         bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
+
         if(predictionSuccess) {
             printf("prediction success: velocity(%f, %f) time(0.5) \n", Vx, Vy);
 
@@ -463,6 +472,7 @@ void attPrioritiserThread::run() {
         }
         else {
             printf("prediction failed \n");
+            
         }
         printf("_________________ Trajectory prediction  _____________________\n");
     }
@@ -1174,6 +1184,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         ConstString name = arg->get(0).asString();
         
         if(!strcmp(name.c_str(),"SAC_MONO")) {
+            
+            // prediction attemp after triggering stimulus
+            mutex.wait();
+            if(allowStateRequest[5]) {
+                //printf("setting stateRequest[5] \n");
+                reinfFootprint = true;
+                stateRequest[5] = 1;
+                timeoutStart = Time::now();
+                //  changing the accomplished flag
+                mutexAcc.wait();
+                accomplFlag[5] = 0;
+                mutexAcc.post();
+            }
+            mutex.post();
+            
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
