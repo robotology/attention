@@ -451,27 +451,36 @@ void attPrioritiserThread::run() {
         // nofiying action            
         Bottle notif;
         notif.clear();
-        notif.addVocab(COMMAND_VOCAB_STAT);
+        notif.addVocab(COMMAND_VOCAB_ACT);
         notif.addDouble(1);                  // code for prediction accomplished
         setChanged();
         notifyObservers(&notif);
 
         bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
+        
 
+        // nofiying state transition            
+        notif.clear();
+        notif.addVocab(COMMAND_VOCAB_STAT);
+        notif.addDouble(1);                  // code for prediction accomplished
+        setChanged();
+        notifyObservers(&notif); 
+
+        predictionSuccess = false; // forcing the prediction failed
         if(predictionSuccess) {
             printf("prediction success: velocity(%f, %f) time(0.5) \n", Vx, Vy);
-
-            // nofiying state transition            
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(1);                  // code for prediction accomplished
-            setChanged();
-            notifyObservers(&notif); 
-           
+            
+            // action after prediction 
+          
         }
         else {
             printf("prediction failed \n");
+            // nofiying state transition            
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(3);                  // code for prediction accomplished
+            setChanged();
+            notifyObservers(&notif);
             
         }
         printf("_________________ Trajectory prediction  _____________________\n");
