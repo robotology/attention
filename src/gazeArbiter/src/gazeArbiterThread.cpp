@@ -1036,7 +1036,7 @@ void gazeArbiterThread::run() {
             
             //-----------------
             //accomplished_flag = true;
-            Time::delay(2.00);
+            Time::delay(0.5);
         }
     }
     else if(allowedTransitions(2)>0) {

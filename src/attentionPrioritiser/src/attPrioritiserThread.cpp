@@ -610,6 +610,18 @@ void attPrioritiserThread::run() {
             feedbackPort.write(*sent, *received);
         }
 
+        if(feedbackPort.getOutputCount()) {
+            //printf("feedback resetting \n");
+            Bottle* sent     = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_NINH);
+            feedbackPort.write(*sent, *received);
+            delete sent;
+            delete received;
+        }
+
+
         // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
             printf("\n \n ____________________ Planned Saccade ___________________ \n");
