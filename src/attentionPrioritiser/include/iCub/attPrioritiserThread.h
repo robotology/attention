@@ -137,6 +137,7 @@ private:
     bool correcting;                        // flag that allows the test for correction to take place
     bool reinfFootprint;                    // flag that allows the reinforcement of the features of the desired object
     bool learning;                          // flag that allows the Q-learning controller to take decisions
+    bool validAction;                     // flag that indicates when the action is valid
 
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
@@ -380,6 +381,15 @@ public:
      */
     void isAnticip(bool& returned_flag)       { mutexAcc.wait(); returned_flag = accomplFlag[5]; mutexAcc.post(); };
     
+    /**
+     * function that returns the status of the oculomotor actuator
+     */
+    void isValidAction(bool& returned_flag)       { mutexAcc.wait(); returned_flag = validAction; mutexAcc.post(); };
+ 
+    /**
+     * sets the value of the validAction flag
+     */
+    void setValidAction(bool value) {mutexAcc.wait(); validAction = value; mutexAcc.post();};
 
     /**
      * @brief function that send a color command to the preattentive stage

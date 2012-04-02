@@ -199,12 +199,12 @@ bool oculomotorController::randomWalk() {
     double a = (rand() / 100000000) % NUMACTION ;
     action_now = (int) a;
     printf(" %f \n", a);
-    printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
+    printf("selected action number %d: %s \n",action_now,actionList[action_now].c_str());
 
     //looking at the Psa for this state and the selected action
     int pos = state_now * NUMACTION + action_now;
-    printf("looking for position %d  : %d %d\n", pos, state_now, action_now);
-    Vector v = Psa->getRow(pos);
+    printf("looking for position %d; State:%d,Action:%d\n", pos, state_now, action_now);
+    Vector  v = Psa->getRow(pos);
     printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
     int posInVector = 0;
@@ -222,11 +222,30 @@ bool oculomotorController::randomWalk() {
     }
     state_next = posInVector;
     printf("new state %d \n", state_next);
+    allowStateRequest(state_next);
     return ret;
 }
 
+void oculomotorController::allowStateRequest(int state) {
+    ap->setAllowStateRequest(state, true);
+    double timenow  = Time::now();
+    double timediff = 0;
+    double timeend;
+    bool   validAction;
+    ap->isValidAction(validAction);
+    //waits for a valid action to occur;
+    while ((timediff < 5.0)&&(!validAction)) {
+        timeend = Time::now();
+        timediff = timeend - timenow;
+    }
+    if(timeend >= 5.0) {
+        printf("the action has not been performed; Timeout occurred \n" );
+    }
+    ap->setValidAction(false);
+}
+
 void oculomotorController::waitForActuator() {
-    printf("----------------wait for actuator in stete %d----------------- \n", state_now);
+    printf("----------------wait for actuator in state %d----------------- \n", state_now);
     bool   outOfWait = false;
     double timestart = Time::now();
     double timediff  = 0;
@@ -408,7 +427,8 @@ void oculomotorController::learningStep() {
     // 2 .action selection and observation of the next state
     bool sinkState;
     printf("-------------count % d------------------------------ \n", count);
-    if(count < 30) {
+    //if(count < 30) {
+    if(true) {
         printf("randomWalk \n");
         sinkState = randomWalk();
     }
@@ -433,10 +453,10 @@ void oculomotorController::learningStep() {
     else {
         state_now = state_next;
     } 
-    waitForActuator();
+    //waitForActuator(); <-- do not wait for actutor here; it is performed previously
 
 
-    printf("actuator in the decided step \n");
+    printf("oculomotorController::learningStep : step performed \n");
     printf("\n");
     printf("\n");
 }

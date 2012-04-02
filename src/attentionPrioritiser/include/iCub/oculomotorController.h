@@ -214,6 +214,14 @@ public:
      * wait for the response command of the attPrioritiserThread;
      */
     void waitForActuator();
+
+    /**
+     * @brief function that enables a particular action in the actuator
+     * The function runs a loop to check whether the action is performed within a timeout
+     * @param state state that is going to be enabled
+     */
+    void allowStateRequest(int state);
+    
 };
 
 #endif  //_OCULOMOTOR_CONTROLLER_H_

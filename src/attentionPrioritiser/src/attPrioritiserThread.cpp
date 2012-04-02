@@ -1336,7 +1336,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     timeoutStart = Time::now();
                     //  changing the accomplished flag
                     mutexAcc.wait();
-                    accomplFlag[4];
+                    accomplFlag[4] = false;
+                    validAction = true;
                     mutexAcc.post();
                 }
                 mutex.post();
@@ -1378,12 +1379,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         printf("saccade discard for top-down call; footprint desired is similar to fovea footprint \n");
                     }
                     else {                        
-                        printf("footprint desired is not the footprint in fovea \n");
-                        
+                        printf("footprint desired is not the footprint in fovea \n");                        
                         mutex.wait();
                         if(allowStateRequest[3]) {
                             //printf("setting stateRequest[3] \n");
                             stateRequest[3] = 1;
+                            mutexAcc.wait();
+                            accomplFlag[3] = false;
+                            validAction = true;
+                            mutexAcc.post();
                             reinfFootprint  = true;   // enabling back the control top-down footprint extraction
                         }
                         mutex.post();
@@ -1392,9 +1396,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 else {
                     //reinforceFootprint has not happened yet
                     mutex.wait();
-                    printf("setting stateRequest[3] after checking for flag \n");
                     if(allowStateRequest[3]) {
+                        printf("setting stateRequest[3] after checking for flag \n");
                         stateRequest[3] = 1;
+                        mutexAcc.wait();
+                        accomplFlag[3] = false;
+                        validAction = true;
+                        mutexAcc.post();
                     }
                     mutex.post();
                 }
@@ -1426,7 +1434,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 timeoutStart = Time::now();
                 //  changing the accomplished flag
                 mutexAcc.wait();
-                accomplFlag[0];
+                accomplFlag[0] = false;
+                validAction = true;
                 mutexAcc.post();
                 
             }
@@ -1446,6 +1455,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 //  changing the accomplished flag
                 mutexAcc.wait();
                 accomplFlag[5];
+                validAction = true;
                 mutexAcc.post();
                 
             }
@@ -1461,6 +1471,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //printf("setting stateRequest[3] \n");
             if(allowStateRequest[3]) {
                 stateRequest[3] = 1;
+                mutexAcc.wait();
+                accomplFlag[3] = false;
+                validAction = true;
+                mutexAcc.post();
                 //executing = false;
             }
             mutex.post();
@@ -1472,11 +1486,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(allowStateRequest[2]) {
                 printf("setting stateRequest[2] \n");
                 stateRequest[2] = 1;
+                mutexAcc.wait();
+                accomplFlag[2] = false;
+                validAction = true;
+                mutexAcc.post();
                 //executing = false;
             }
             mutex.post();            
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
+            printf("\r                                                      \r");
             if(!stopVergence) {
                 phi  = arg->get(1).asDouble();
                 phi2 = arg->get(2).asDouble();
@@ -1490,6 +1509,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         //printf("setting stateRequest[1] \n");
                         ver_accomplished = false;
                         stateRequest[1]  = 1;
+                        mutexAcc.wait();
+                        accomplFlag[1] = false;
+                        validAction = true;
+                        mutexAcc.post();
                         //executing = false;
                     }
                     mutex.post();
@@ -1501,6 +1524,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         //printf("setting stateRequest[1] \n");
                         ver_accomplished = false;
                         stateRequest[1]  = 1;
+                        mutexAcc.wait();
+                        accomplFlag[1] = false;
+                        validAction = true;
+                        mutexAcc.post();
                         //executing = false;
                     }
                     mutex.post();
@@ -1664,11 +1691,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 printf("setting stateRequest[1] \n");
                 ver_accomplished = true;
                 stateRequest[1]  = 1;
+                
                 //executing = false;
             }
             //  changing the accomplished flag
             mutexAcc.wait();
             accomplFlag[1];
+            validAction = true;
             mutexAcc.post();
             mutex.post();
 
@@ -1693,7 +1722,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[2];
+            accomplFlag[2] = false;
+            validAction  = true;
             mutexAcc.post();            
             mutex.post();
 
