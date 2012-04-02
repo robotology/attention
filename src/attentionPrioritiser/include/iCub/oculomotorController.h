@@ -95,6 +95,7 @@ static const double rewardStateAction[66] = {
 class oculomotorController : public yarp::os::RateThread, public observer {
 private:
     bool idle;                 // flag that regulates when the active part is executed
+    bool firstCycle;           // flga that triggers the initialisation of active part
     
     int count;                 // step counter of successful learning step
     int cUpdate;               // counter of observable updates

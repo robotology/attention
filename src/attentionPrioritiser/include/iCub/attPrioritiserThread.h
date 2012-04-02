@@ -121,6 +121,7 @@ private:
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
     bool allowStateRequest[6];              // vector of flags for allowing state request
+    bool firstNull;                         // flags that limits the number of null state messages
     //bool firstConsistencyCheck;           // boolean flag that check whether consistency happened
     //bool visualCorrection;                // boolean flag for allowing visual correction of the fine position
     //bool isOnWings;                       // flag that gives information on where the cameras are mounted

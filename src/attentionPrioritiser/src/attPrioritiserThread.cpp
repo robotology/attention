@@ -140,6 +140,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     done               = true;
     reinfFootprint     = true;
     postSaccCorrection = true;
+    firstNull          = true;
     executing          = false;
     correcting         = false;
 
@@ -414,6 +415,11 @@ void attPrioritiserThread::run() {
         notif.addDouble(allowedTransitions(5));  // trajectory prediction
         setChanged();
         notifyObservers(&notif);
+
+
+        if(!allowedTransitions(0)) {
+            firstNull = true;
+        }
     }
     
     
@@ -500,6 +506,7 @@ void attPrioritiserThread::run() {
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
         printf("------------------ Express Saccade --------------- \n");
+      
             
         if(feedbackPort.getOutputCount()) {
             Bottle* sent     = new Bottle();
@@ -513,7 +520,9 @@ void attPrioritiserThread::run() {
         }
 
         if(!executing) {                       
-            correcting =  false;
+            
+            correcting = false;
+            executing  = true;
             collectionLocation[0 + 0] = u;
             collectionLocation[0 * 2 + 1] = v;
             printf("express saccade in position %d %d \n", u,v);
@@ -550,9 +559,23 @@ void attPrioritiserThread::run() {
             }
             if(timeout >= 2.0) {
                 printf("Express Saccade timed out \n");
+                // nofiying state transition            
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(3);                  // code for fixStableKO
+                setChanged();
+                notifyObservers(&notif);
             }
             else {
                 printf("Express Saccade  accomplished \n");
+                // nofiying state transition            
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(2);                  // code for fixStableKO
+                setChanged();
+                notifyObservers(&notif);
             }        
 
             Time::delay(0.01);
@@ -609,8 +632,9 @@ void attPrioritiserThread::run() {
     }    
     else if(allowedTransitions(3)>0) {
         state(5) = 0; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        
         //forcing in idle early processes during oculomotor actions
-        if(feedbackPort.getOutputCount()) {
+        /*if(feedbackPort.getOutputCount()) {
             printf("feedback suppression \n");
             Bottle* sent = new Bottle();
             Bottle* received = new Bottle();    
@@ -618,6 +642,7 @@ void attPrioritiserThread::run() {
             sent->addVocab(COMMAND_VOCAB_INH);
             feedbackPort.write(*sent, *received);
         }
+        */
 
         if(feedbackPort.getOutputCount()) {
             //printf("feedback resetting \n");
@@ -636,7 +661,7 @@ void attPrioritiserThread::run() {
             printf("\n \n ____________________ Planned Saccade ___________________ \n");
             
             if((u==-1)||(v==-1)) {
-                printf("----------- Stereo Planned Saccade ------------  \n");
+                printf(" \n ----------- Stereo Planned Saccade ------------  \n");
                 executing = true;
                 // executing the stereo saccade without postsaccadic correction
                 Bottle& commandBottle=outputPort.prepare();
@@ -650,9 +675,16 @@ void attPrioritiserThread::run() {
             }
             else {
 
-                
-
-                printf("------- Monocular Planned Saccade -------------  \n");
+                printf(" \n ------- Monocular Planned Saccade -------------  \n");
+                /*
+                // nofiying state transition            
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(3);                  // code for fixStableKO
+                setChanged();
+                notifyObservers(&notif);
+                */
                 
                 printf("initialising the planner thread %f \n", time);
                 /*
@@ -697,9 +729,23 @@ void attPrioritiserThread::run() {
                     }
                     if(timeout > 5.0) {
                         printf("Saccade accomplished timeout \n");
+                        // nofiying state transition            
+                        Bottle notif;
+                        notif.clear();
+                        notif.addVocab(COMMAND_VOCAB_STAT);
+                        notif.addDouble(3);                  // code for fixStableKO
+                        setChanged();
+                        notifyObservers(&notif);
                     }
                     else {
                         printf("Saccade accomplished command received \n");
+                        // nofiying state transition            
+                        Bottle notif;
+                        notif.clear();
+                        notif.addVocab(COMMAND_VOCAB_STAT);
+                        notif.addDouble(2);                  // code for fixStableKO
+                        setChanged();
+                        notifyObservers(&notif);
                     }
                     correcting = false;   // resetting the correction flag
                     sacPlanner->setCompare(true);
@@ -830,6 +876,20 @@ void attPrioritiserThread::run() {
             }                        
         }
     
+    }
+    else if(allowedTransitions(0)>0) {
+        state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
+        // ----------------  null state  -----------------------
+        if(firstNull) {
+            // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(0);                  // code for prediction accomplished
+            setChanged();
+            notifyObservers(&notif);
+            firstNull = false;
+        }
     }
     else {
         //printf("No transition \n");
@@ -1322,13 +1382,32 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mono = true;
             firstVer = true;
 
+            /*
             // null state
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(3);                  // code for null state
+            notif.addDouble(3);                  // code for fixStateKO 
             setChanged();
             notifyObservers(&notif);
+            */
+        }
+        else if(!strcmp(name.c_str(),"RESET")) {
+            
+            // reseting the state action history
+            mutex.wait();
+            if(allowStateRequest[0]) {
+                printf("setting stateRequest[0] \n");
+                reinfFootprint = true;
+                stateRequest[0] = 1;
+                timeoutStart = Time::now();
+                //  changing the accomplished flag
+                mutexAcc.wait();
+                accomplFlag[0];
+                mutexAcc.post();
+                
+            }
+            mutex.post();           
         }
         else if(!strcmp(name.c_str(),"PRED")) {
             u = arg->get(1).asInt();
@@ -1411,11 +1490,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
 
+            /*
             // nofiying state transition to fixStable ok           
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(3);                  // code for fixStableOK accomplished in vergence ok state
+            notif.addDouble(3);                  // code for fixStableKO saccade not accomplished
             setChanged();
             notifyObservers(&notif);
 
@@ -1439,6 +1519,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(0);                  // code for null state
             setChanged();
             notifyObservers(&notif);
+            */
         }
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
             // saccade accomplished           
@@ -1515,6 +1596,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             accomplFlag[3];
             mutexAcc.post();
 
+            /*
             // nofiying state transition to fixStable ok           
             Bottle notif;
             notif.clear();
@@ -1543,6 +1625,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(0);                  // code for null state
             setChanged();
             notifyObservers(&notif);
+            */
 
             if(reinfFootprint) {                
                 reinforceFootprint();

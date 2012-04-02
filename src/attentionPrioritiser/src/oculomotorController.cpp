@@ -62,6 +62,7 @@ bool oculomotorController::threadInit() {
     scopePort.open(getName("/scope:o").c_str());
 
     // interacting with the attPrioritiserThread 
+    firstCycle = true;
     ap->setAllowStateRequest(0,true);
     ap->setAllowStateRequest(1,true);
     ap->setAllowStateRequest(2,true);
@@ -442,12 +443,15 @@ void oculomotorController::learningStep() {
 
 void oculomotorController::run() {
     if(!idle) {
-        // interacting with the attPrioritiserThread 
-        ap->setAllowStateRequest(0,false);
-        ap->setAllowStateRequest(1,false);
-        ap->setAllowStateRequest(2,false);
-        ap->setAllowStateRequest(3,false);    
-        ap->setAllowStateRequest(4,false);        
+        if(firstCycle) {
+            // interacting with the attPrioritiserThread 
+            ap->setAllowStateRequest(0,false);
+            ap->setAllowStateRequest(1,false);
+            ap->setAllowStateRequest(2,false);
+            ap->setAllowStateRequest(3,false);    
+            ap->setAllowStateRequest(4,false);  
+            firstCycle = false;
+        }      
 
         if((count < 50) && (iter % 20 == 0)) {
             learningStep();    
@@ -474,10 +478,15 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
             
             int statevalue = arg->get(1).asInt();
-
+            printf("                                                                   State %s \n", stateList[statevalue].c_str());
+            state_now = state_next;
+            state_next = statevalue;             
+            fprintf(logFile, "state_now:%s -> state_next:%s \n", stateList[state_now].c_str(), stateList[state_next].c_str());
+            
+            /*
             for (int j = 0; j < NUMSTATE; j++)  {
                 if(statevalue == j) {
-                    printf("                                                                   State %d \n", j);
+                    printf("                                                                   State %s \n", stateList[j].c_str());
                     state_now = state_next;
                     state_next = j; 
                     
@@ -485,7 +494,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                     
                 }
             }
-            
+            */            
             
             // updating the transition matrix once we switch state
             printf("updating the transition matrix \n");
@@ -561,42 +570,42 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
 
             if(action(0)) {
-                printf("                                                              Action 0 \n");
+                printf("                                                                  Action reset          \n");
                 action_now = 0;
                 fprintf(logFile, "action_now:%s ",actionList[action_now].c_str());
             }
             else if(action(1)){
-                printf("                                                              Action 1 \n");
+                printf("                                                                  Action vergence       \n");
                 action_now = 1;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(2)){
-                printf("                                                              Action 2 \n");
+                printf("                                                                  Action smoothPursuit  \n");
                 action_now = 2;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(3)){
-                printf("                                                              Action 3 \n");
+                printf("                                                                  Action microSaccade   \n");
                 action_now = 3;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(4)){
-                printf("                                                              Action 4 \n");
+                printf("                                                                  Action mediumSaccade  \n");
                 action_now = 4;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(5)){
-                printf("                                                              Action 5 \n");
+                printf("                                                                  Action largeSaccade   \n");
                 action_now = 5;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(6)){
-                printf("                                                              Action 6 \n");
+                printf("                                                                  Action expressSaccade \n");
                 action_now = 6;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(7)){
-                printf("                                                              Action 7 \n");
+                printf("                                                                  Action predict        \n");
                 action_now = 7;
                 fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
             }
