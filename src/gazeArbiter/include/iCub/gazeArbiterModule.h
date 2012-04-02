@@ -33,7 +33,9 @@
  *
  * This is a module that creates the infrastructure Observer-Observables in order to handle a state machine for gaze control.
  * 
- *
+ * 
+ * \image html visualAttentionBUTD.jpg
+ * 
  * \section Description
  * This machine swaps between state and every state represent a different vision behaviour (saccade, vergence, tracking, ect)
  * Every behaviour has a particular priority and the controller of this machine has to take the priority into account and send the correct output to the
@@ -169,7 +171,7 @@
  *
  * Copyright (C) 2010 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/colourSaliency/include/iCub/colourSaliencyModule.h
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logpolarAttention/src/gazeArbiter/include/iCub/gazeArbiterModule.h
  * 
  */
 

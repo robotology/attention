@@ -139,7 +139,7 @@
  *
  * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/colourSaliency/include/iCub/colourSaliencyModule.h
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logpolarAttention/src/attentionPrioritiser/include/iCub/attPrioritiserModule.h
  * 
  */
 
