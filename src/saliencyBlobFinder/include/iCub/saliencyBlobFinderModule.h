@@ -34,6 +34,9 @@
  * This is a a blob finder module that works on logpolar images. It takes an edge image as input (e.g. as produced by the
  * visualFilter module), runs the watershed operator (to find blobs), quantizes the colors and then computes a measure
  * of saliency for each blob. The output can be used and combined with other image based measures of saliency.
+ *
+ *  
+ * \image html visualAttentionBUTD.jpg 
  * 
  * More in details, this module extracts visual blobs in the scene and gives a saliency value to any of them.
  * The process of assigning a saliency value is based on a top-down algorithm and bottom-up algorithm.(see <a href="http://">here</a>).
@@ -147,7 +150,7 @@
  * 
  * Copyright (C) 2009 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/saliencyBlobFinder/include/iCub/saliencyBlobFinderModule.h
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logpolarAttention/src/saliencyBlobFinder/include/iCub/saliencyBlobFinderModule.h
  * 
  */
 

@@ -33,13 +33,16 @@
  *
  * This is a module that applies various bio-inspired (early visual feature cues) transformations on the input image:
  *
- * 1. extract color planes R,G,B,Y 
- * 2. extract color opponency maps   
- * 3. computes YUV (chrominance) maps based on RGB colours
- * 4. extract orientation applying Kirsch operator over intensity
- * 5. extract edges based on sobel operator applied over intensity
- * where (1,2),(3,4) and 5 are done by earlyVision thread, chrominance thread and edges thread respectively. These thread
- * have different frequencies (motivated from biological observation in primate vision).
+ * 1. extract color planes R,G,B,Y \n
+ * 2. extract color opponency maps \n  
+ * 3. computes YUV (chrominance) maps based on RGB colours \n
+ * 4. extract orientation applying Kirsch operator over intensity \n
+ * 5. extract edges based on sobel operator applied over intensity \n
+ * where (1,2),(3,4) and 5 are done by earlyVision thread, chrominance thread and edges thread respectively. These thread \n
+ * have different frequencies (motivated from biological observation in primate vision). \n
+ *
+ *
+ * \image html visualAttentionBUTD.jpg 
  * 
  * \section lib_sec Libraries
  *
@@ -147,7 +150,7 @@
  *
  * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/earlyVision/include/iCub/earlyVision.h
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logPolarAttention/src/earlyVision/include/iCub/earlyVisionModule.h
  * 
  */
 

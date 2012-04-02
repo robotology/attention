@@ -208,8 +208,9 @@
  * Copyright (C) 2008 RobotCub Consortium
  * 
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.
- * 
- * 
+ *
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logPolarAttention/src/selectingAttention/include/iCub/selectiveModule.h
+ *  
  **/
 
 
