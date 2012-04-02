@@ -21,7 +21,7 @@
 /**
 *
 * @ingroup icub_logpolarAttention
-\defgroup selAttentionInterface selAttentionInterface
+\defgroup icub_selAttentionInterface selAttentionInterface
 */
 
 /**
