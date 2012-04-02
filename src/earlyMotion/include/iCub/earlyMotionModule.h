@@ -20,7 +20,7 @@
 /**
  * @file earlyMotionModule.h
  * @brief Simple module that implements logPolar detection of motion
- * It is light and naive implementation.
+ * It is a light and naive implementation.
  */
 
 #ifndef _EARLY_MOTION_MODULE_H_
@@ -33,7 +33,11 @@
  *
  * This module extract motion from the logpolar input image in the most trivial way
  *
+ * The module uses difference of images acquired in different instants. The motion is space variant in the way that motion in periphery has got greater weight.
+ *
  * 
+ * \image html visualAttentionBUTD.jpg
+ *
  * \section lib_sec Libraries
  *
  * YARP.
@@ -128,7 +132,7 @@
  *
  * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/earlyMotion/include/iCub/earlyMotion.h
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logpolarAttention/src/earlyMotion/include/iCub/earlyMotionModule.h
  * 
  */
 
