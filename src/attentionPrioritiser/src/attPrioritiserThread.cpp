@@ -143,6 +143,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     firstNull          = true;
     executing          = false;
     correcting         = false;
+    stopVergence       = true;
 
     // initialisation of integer values
     phiTOT = 0;
@@ -746,6 +747,8 @@ void attPrioritiserThread::run() {
                         notif.addDouble(2);                  // code for fixStableKO
                         setChanged();
                         notifyObservers(&notif);
+
+                        stopVergence = false;
                     }
                     correcting = false;   // resetting the correction flag
                     sacPlanner->setCompare(true);
@@ -814,7 +817,7 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(1)>0) {
         // ----------------  Vergence  -----------------------
         state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1; state(0) = 0;
-        //printf("------------------ Vergence --------------- \n");
+        printf(" __________________ Vergence __________________ \n");
         /*    
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
             printf("vergence: sending suspend command \n");
@@ -831,7 +834,8 @@ void attPrioritiserThread::run() {
         }
         */
 
-        if(!executing) {                       
+        if(!executing) {
+ 
             //correcting =  false;
             //collectionLocation[0 + 0] = u;
             //collectionLocation[0 * 2 + 1] = v;
@@ -851,6 +855,17 @@ void attPrioritiserThread::run() {
             if((ver_accomplished)/*||(timeout>5.0)*/) {
                 //resume early processes
                 //printf("vergence: accomplished sending resume command \n");
+
+                // nofiying state transition            
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(10);                  // code for vergence accomplished
+                setChanged();
+                notifyObservers(&notif);
+
+                stopVergence = true;
+
                 if(feedbackPort.getOutputCount()) {
                     //printf("feedback resetting \n");
                     Bottle* sent     = new Bottle();
@@ -864,6 +879,14 @@ void attPrioritiserThread::run() {
                 firstVergence = true;
             }
             else {
+                // nofiying state transition            
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(8);                  // code for vergence angle under correction
+                setChanged();
+                notifyObservers(&notif);
+                
                 //printf("vergence: sending relative angle to the gazeArbiter \n");
                 bool port_is_writing;
                 Bottle& commandBottle = outputPort.prepare();
@@ -1454,34 +1477,35 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();            
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
-            phi  = arg->get(1).asDouble();
-            phi2 = arg->get(2).asDouble();
-            phi3 = arg->get(3).asDouble();
-            //printf("vergence command received %d \n", firstVergence);
-            if(firstVergence){
-                                    
-                //printf("inside the vergence command \n");
-                mutex.wait();
-                if(allowStateRequest[1]) {
-                    //printf("setting stateRequest[1] \n");
-                    ver_accomplished = false;
-                    stateRequest[1]  = 1;
-                    //executing = false;
+            if(!stopVergence) {
+                phi  = arg->get(1).asDouble();
+                phi2 = arg->get(2).asDouble();
+                phi3 = arg->get(3).asDouble();
+                //printf("vergence command received %d \n", firstVergence);
+                if(firstVergence){
+                    
+                    //printf("inside the vergence command \n");
+                    mutex.wait();
+                    if(allowStateRequest[1]) {
+                        //printf("setting stateRequest[1] \n");
+                        ver_accomplished = false;
+                        stateRequest[1]  = 1;
+                        //executing = false;
+                    }
+                    mutex.post();
+                    
                 }
-                mutex.post();
-                
-            }
-            else {
-                mutex.wait();
-                if(allowStateRequest[1]) {
-                    //printf("setting stateRequest[1] \n");
-                    ver_accomplished = false;
-                    stateRequest[1]  = 1;
-                    //executing = false;
+                else {
+                    mutex.wait();
+                    if(allowStateRequest[1]) {
+                        //printf("setting stateRequest[1] \n");
+                        ver_accomplished = false;
+                        stateRequest[1]  = 1;
+                        //executing = false;
+                    }
+                    mutex.post();
                 }
-                mutex.post();
-            }
-            
+            } //end if(!vergencestop)
         }
         else if(!strcmp(name.c_str(),"SAC_FAIL")) {
             // saccade accomplished           

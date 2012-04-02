@@ -118,6 +118,7 @@ private:
     short numberState;                      // stores the number of the state in which the control can be
     
     int accomplFlag[6];                     // series of flags representing any action accomplished
+    bool stopVergence;                      // flag that inhibits the vergence command
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
     bool allowStateRequest[6];              // vector of flags for allowing state request
