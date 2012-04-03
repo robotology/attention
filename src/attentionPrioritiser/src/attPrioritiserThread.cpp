@@ -132,7 +132,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
     cUpdate = 0;
     collectionLocation = new int[4*2];
-    numberState = 5; //null, vergence, smooth pursuit, saccade
+    numberState = 6; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
     // boolean values
     firstVer           = false;
@@ -183,7 +183,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     kColOri[5] = 0.40;  // proto-objects
     //tColOri    = 5000;
 
-    Matrix trans(6,6);
+    Matrix trans(NUMSTATES,NUMSTATES);
     trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0;
     trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0; trans(0,4) = 1.0;
     trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0; trans(0,4) = 1.0;
@@ -192,7 +192,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     trans(5,0) = 1.0 ; trans(5,1) = 1.0 ; trans(5,2) = 0.0 ; trans(5,3) = 1.0; trans(5,4) = 1.0;
     stateTransition=trans;
 
-    Vector req(6);
+    Vector req(NUMSTATES);
     req(0) = 0;
     req(1) = 0;
     req(2) = 0;
@@ -202,7 +202,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     stateRequest = req;
     allowedTransitions = req;
 
-    Vector s(6);
+    Vector s(NUMSTATES);
     s(0) = 1;
     s(1) = 0;
     s(2) = 0;
@@ -216,12 +216,17 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     t(2) = 0.6;
     xFix = t;
 
-    allowStateRequest[0] = true;  // null action 
-    allowStateRequest[1] = true;  // vergence
-    allowStateRequest[2] = true;  // smooth pursuit
-    allowStateRequest[3] = true;  // planned saccade
-    allowStateRequest[4] = true;  // express saccade
-    allowStateRequest[5] = true;  // predict
+    // initialisation of state relative flags
+    // 0 - null action
+    // 1 - vergence
+    // 2 - smooth pursuit
+    // 3 - planned saccade
+    // 4 - express saccade
+    // 5 - predict
+    for (int k = 0; k < NUMSTATES; k++) {
+        allowStateRequest[k] = true;
+        bufCommand[k]        = NULL;
+    }
 
     //printf("starting the tracker.... \n");
     //ResourceFinder* rf = new ResourceFinder();
@@ -747,9 +752,11 @@ void attPrioritiserThread::run() {
                         notif.addDouble(2);                  // code for fixStableKO
                         setChanged();
                         notifyObservers(&notif);
-
+                        printf("stopping vergence \n");
                         stopVergence = false;
                     }
+
+
                     correcting = false;   // resetting the correction flag
                     sacPlanner->setCompare(true);
                     sacPlanner->wakeup();
@@ -965,12 +972,24 @@ void attPrioritiserThread::run() {
 }
 
 
-bool attPrioritiserThread::executeCommandBuffer(int pos) {
+bool attPrioritiserThread::executeCommandBuffer(int _pos) {
+    int pos;
+    //mapping of the state
+    if((_pos > 3) && (_pos <= 5)) pos = 3;    
+    else if (_pos > 5)            pos = _pos - 2;
+    else                          pos = _pos;
+    
+    printf("executing a command saved in the buffer pos %d->%d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
+        printf("no action in the buffer \n");
+        
         return false;
     }
     else {
+        printf("found action \n");
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
+        stateRequest[pos] = 1;
+        bufCommand[pos] = NULL;
     }
 }
 
@@ -1314,6 +1333,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             // saving bottle in the buffer
             bufCommand[4] = *arg;
+            printf("after saving %s \n", bufCommand[4].toString().c_str());
+            
             
 
             u = arg->get(1).asInt();

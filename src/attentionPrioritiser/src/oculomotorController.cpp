@@ -223,7 +223,7 @@ bool oculomotorController::randomWalk() {
     }
     state_next = posInVector;
     printf("new state %d \n", state_next);
-    if(allowStateRequest(state_next)) {
+    if(allowStateRequest(action_now)) {
         count++;
     }
     
@@ -232,32 +232,38 @@ bool oculomotorController::randomWalk() {
 
 bool oculomotorController::allowStateRequest(int state) {
     ap->setAllowStateRequest(state, true);
+    bool ret;
+    bool executed = ap->executeCommandBuffer(state);
 
-    ap->executeCommandBuffer(state);
-
-
-    double timenow  = Time::now();
-    double timediff = 0;
-    double timeend;
-    bool   validAction;
-    bool   ret;
-    ap->isValidAction(validAction);
-    //waits for a valid action to occur;
-    while ((timediff < 5.0)&&(!validAction)) {
-        printf("\r%f \r", timediff);
-        fflush(stdout); // Will now print everything in the stdout buffer
-        timeend = Time::now();
-        timediff = timeend - timenow;
-        Time::delay(0.1);
-    }
-    printf("\n");
-    if(timeend >= 5.0) {
-        printf("the action has not been performed; Timeout occurred \n" );
-    }
-    else {
-        printf("action performed!");
+    /*
+    // if not executed because absent in the buffer, waits for few seconds
+    if(!executed) {
+        double timenow  = Time::now();
+        double timediff = 0;
+        double timeend;
+        bool   validAction;
+        
+        ap->isValidAction(validAction);
+        //waits for a valid action to occur;
+        while ((timediff < 5.0)&&(!validAction)) {
+            printf("\r%f \r", timediff);
+            fflush(stdout); // Will now print everything in the stdout buffer
+            timeend = Time::now();
+            timediff = timeend - timenow;
+            Time::delay(0.1);
+        }
+        printf("\n");
+        if(timeend >= 5.0) {
+            printf("the action has not been performed; Timeout occurred \n" );
+        }
+        else {
+            printf("action performed!");
+        }
     }
     ap->setValidAction(false);
+    */
+
+
     return ret;
 }
 
@@ -480,6 +486,7 @@ void oculomotorController::learningStep() {
 
 void oculomotorController::run() {
     if(!idle) {
+        printf("oculomotorController::inRunning");
         iter++;   // main temporal counter for visualisation and active learning
          
         if(firstCycle) {
@@ -521,6 +528,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf("                                                                   State %s \n", stateList[statevalue].c_str());
             state_now = state_next;
             state_next = statevalue;             
+            printf( "state_now:%d -> state_next:%d \n", state_now, state_next);
             fprintf(logFile, "state_now:%s -> state_next:%s \n", stateList[state_now].c_str(), stateList[state_next].c_str());
             
             /*
