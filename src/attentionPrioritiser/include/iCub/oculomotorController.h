@@ -109,7 +109,7 @@ private:
     yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
     yarp::sig::Matrix* Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
     yarp::sig::Matrix* Q;                  // quality measure of a particular state across different actions dim: 11 x 6
-    yarp::sig::Matrix M;                   // intermediate computation matrix
+    yarp::sig::Matrix  M;                  // intermediate computation matrix
     yarp::sig::Matrix* V;                  // value matrix max value of quality measure with reference to one state dim 11 x 1
     yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim 11 x 1
 
@@ -219,8 +219,9 @@ public:
      * @brief function that enables a particular action in the actuator
      * The function runs a loop to check whether the action is performed within a timeout
      * @param state state that is going to be enabled
+     * @retur returns whether the request has been successful
      */
-    void allowStateRequest(int state);
+    bool allowStateRequest(int state);
     
 };
 

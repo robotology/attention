@@ -110,11 +110,10 @@
  * -   send feedback to the preattentive section of the application in order to reinforce the stimulus coming from selected area
  * 
  * 
- * \image html selectiveAttentionProcessor.png
+ * \image html visualAttentionTDBU.jpg
  * 
  * \section lib_sec Libraries
  * YARP
- * IPP
  * 
  * 
  * \section parameters_sec Parameters
@@ -211,10 +210,7 @@
  *
  * This file can be edited at \c $ICUB_ROOT/contrib/src/logPolarAttention/src/selectingAttention/include/iCub/selectiveModule.h
  *  
- **/
-
-
-/**
+ *
  * \section change_log CHANGE LOG
  * 
  * 20/12/10 : changed the name from kMotion to kMot in parsing process of the config file       <b>author:Rea</b>\n

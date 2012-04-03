@@ -32,6 +32,7 @@
  *
  * This is a module that computes disparity correlation function
  * 
+ * \image html visualAttentionBUTD.jpg 
  * 
  * \section lib_sec Libraries
  *
@@ -127,15 +128,17 @@
  *
  * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/main/src/modules/disparityModule/include/iCub/disparityModule.h
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logpolarAttention/vergence/include/iCub/disparityModule.h
  * 
- */
-
-
-/** \section change_log CHANGE LOG
+ *
+ *  \section change_log CHANGE LOG
  * 24/02/2012 : changed the output of the command port                            author : Rea \n
  * 24/02/2012 : added a new port for absolute vergence angle                      author : Rea
  */
+ 
+
+
+
 
 class disparityModule : public RFModule {
 

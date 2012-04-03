@@ -26,7 +26,7 @@
 /**
 *
 * @ingroup icub_logpolarAttention
-\defgroup earlyVisionInterface earlyVisionInterface
+* \defgroup earlyVisionInterface earlyVisionInterface
 */
 
 #include <iCub/earlyVisionInterface.h>

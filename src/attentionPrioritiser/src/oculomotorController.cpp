@@ -185,7 +185,8 @@ bool oculomotorController::policyWalk(){
     }
     printf("max value found in vector %f \n", maxInVector);
     state_next = posInVector;
-    if(state_next == 10) {
+    //if(state_next == 10) {
+    if(true) {
         count++;
         ret = true;
     }
@@ -222,26 +223,38 @@ bool oculomotorController::randomWalk() {
     }
     state_next = posInVector;
     printf("new state %d \n", state_next);
-    allowStateRequest(state_next);
+    if(allowStateRequest(state_next)) {
+        count++;
+    }
+    
     return ret;
 }
 
-void oculomotorController::allowStateRequest(int state) {
+bool oculomotorController::allowStateRequest(int state) {
     ap->setAllowStateRequest(state, true);
     double timenow  = Time::now();
     double timediff = 0;
     double timeend;
     bool   validAction;
+    bool   ret;
     ap->isValidAction(validAction);
     //waits for a valid action to occur;
     while ((timediff < 5.0)&&(!validAction)) {
+        printf("\r%f \r", timediff);
+        fflush(stdout); // Will now print everything in the stdout buffer
         timeend = Time::now();
         timediff = timeend - timenow;
+        Time::delay(0.1);
     }
+    printf("\n");
     if(timeend >= 5.0) {
         printf("the action has not been performed; Timeout occurred \n" );
     }
+    else {
+        printf("action performed!");
+    }
     ap->setValidAction(false);
+    return ret;
 }
 
 void oculomotorController::waitForActuator() {
@@ -394,7 +407,7 @@ void oculomotorController::waitForActuator() {
 }
 
 void oculomotorController::learningStep() {
-    iter++;
+    
     //1 . updating the quality of the current state
     M = (*Psa) * V->transposed();
     //printf("V = \n");
@@ -463,6 +476,8 @@ void oculomotorController::learningStep() {
 
 void oculomotorController::run() {
     if(!idle) {
+        iter++;   // main temporal counter for visualisation and active learning
+         
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
             ap->setAllowStateRequest(0,false);
@@ -472,7 +487,8 @@ void oculomotorController::run() {
             ap->setAllowStateRequest(4,false);  
             firstCycle = false;
         }      
-
+        
+        //printf("count %d iter %d \n", count, iter);
         if((count < 50) && (iter % 20 == 0)) {
             learningStep();    
         }
