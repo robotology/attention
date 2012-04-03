@@ -36,6 +36,7 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
     iter  = 0;
     jiter = 1;
     cUpdate = 0;
+    state_next = 0;
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
@@ -45,6 +46,7 @@ oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThre
     jiter = 1;
     state_now = 0;
     cUpdate = 0;
+    state_next = 0;
 };
 
 oculomotorController::~oculomotorController() {
@@ -235,7 +237,7 @@ bool oculomotorController::allowStateRequest(int state) {
     bool ret;
     bool executed = ap->executeCommandBuffer(state);
 
-    /*
+    
     // if not executed because absent in the buffer, waits for few seconds
     if(!executed) {
         double timenow  = Time::now();
@@ -261,7 +263,7 @@ bool oculomotorController::allowStateRequest(int state) {
         }
     }
     ap->setValidAction(false);
-    */
+    
 
 
     return ret;
@@ -485,8 +487,7 @@ void oculomotorController::learningStep() {
 }
 
 void oculomotorController::run() {
-    if(!idle) {
-        printf("oculomotorController::inRunning");
+    if(!idle) {        
         iter++;   // main temporal counter for visualisation and active learning
          
         if(firstCycle) {

@@ -208,6 +208,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     s(2) = 0;
     s(3) = 0;
     s(4) = 0;
+    s(5) = 0;
     state = s;
     
     Vector t(3);
@@ -401,8 +402,8 @@ void attPrioritiserThread::run() {
     
     //Vector-vector element-wise product operator between stateRequest possible transitions
     if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)||(stateRequest(5) != 0)) {
-        //printf("stateRequest: %s \n", stateRequest.toString().c_str());
-        //printf("state: %s \n", state.toString().c_str());
+        printf("stateRequest: %s \n", stateRequest.toString().c_str());
+        printf("state: %s \n", state.toString().c_str());
         Vector c(5);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c);
@@ -986,9 +987,10 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         return false;
     }
     else {
+        
         printf("found action \n");
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
-        stateRequest[pos] = 1;
+        stateRequest[pos] = 1.0;
         bufCommand[pos] = NULL;
     }
 }
