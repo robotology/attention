@@ -67,6 +67,9 @@
 #define COMMAND_VOCAB_MINDB              VOCAB3('m','d','b')           // minimum dimension of the blob drawn
 
 
+#define NUMSTATES 6 // number of states in the attPrioritiser
+                    // any state corresponds to an action for the oculomotorController
+
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
@@ -117,11 +120,11 @@ private:
     yarp::sig::Vector xFix;                 // fixation coordinates
     short numberState;                      // stores the number of the state in which the control can be
     
-    int accomplFlag[6];                     // series of flags representing any action accomplished
+    int accomplFlag[NUMSTATES];                     // series of flags representing any action accomplished
     bool stopVergence;                      // flag that inhibits the vergence command
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
-    bool allowStateRequest[6];              // vector of flags for allowing state request
+    bool allowStateRequest[NUMSTATES];              // vector of flags for allowing state request
     bool firstNull;                         // flags that limits the number of null state messages
     //bool firstConsistencyCheck;           // boolean flag that check whether consistency happened
     //bool visualCorrection;                // boolean flag for allowing visual correction of the fine position
@@ -178,12 +181,12 @@ private:
     int search_size;                        // area over the search is performed
     const static int tColor  = 10000;
     const static int tColOri = 10000;
-    const static int tNull   = 10000;        // infrasaccadic time for topdown options
+    const static int tNull   = 10000;       // infrasaccadic time for topdown options
     bool topDownState[4];                   // vector of topDown states
     double kNull[7];
     double kColor[7];                       // kValue for selection in color state
     double kColOri[7];                      // kValue for selection in color 'n' orientation state 
-    
+    yarp::os::Bottle bufCommand[NUMSTATES]; // buffer for the last actions arranged divided by type
 
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
@@ -423,6 +426,16 @@ public:
      */
     void reinforceFootprint();
 
+    /**
+     * function that returns command saved in the buffer
+     */
+    yarp::os::Bottle getCommandBuffer(int pos) {return bufCommand[pos]; };
+
+
+    /**
+     * @brief function that executes one particular action in the buffer of commands
+     */
+    bool executeCommandBuffer(int pos);
 };
 
 #endif  //_ATT_PRIORITISER_THREAD_H_

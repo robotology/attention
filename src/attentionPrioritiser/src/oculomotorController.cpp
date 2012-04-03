@@ -232,6 +232,10 @@ bool oculomotorController::randomWalk() {
 
 bool oculomotorController::allowStateRequest(int state) {
     ap->setAllowStateRequest(state, true);
+
+    ap->executeCommandBuffer(state);
+
+
     double timenow  = Time::now();
     double timediff = 0;
     double timeend;

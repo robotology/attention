@@ -965,6 +965,16 @@ void attPrioritiserThread::run() {
 }
 
 
+bool attPrioritiserThread::executeCommandBuffer(int pos) {
+    if (bufCommand[pos] == NULL) {
+        return false;
+    }
+    else {
+        printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
+    }
+}
+
+
 //*********************** LIST OF BEHAVIOURS ****************************
 
 void attPrioritiserThread::fixCenter(int elapseTime) {
@@ -1301,6 +1311,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         ConstString name = arg->get(0).asString();
         
         if(!strcmp(name.c_str(),"SAC_MONO")) {
+            
+            // saving bottle in the buffer
+            bufCommand[4] = *arg;
+            
 
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
@@ -1424,6 +1438,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             */
         }
         else if(!strcmp(name.c_str(),"RESET")) {
+
+            // saving bottle in the buffer
+            bufCommand[0] = *arg;
+            
             
             // reseting the state action history
             mutex.wait();
@@ -1442,6 +1460,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();           
         }
         else if(!strcmp(name.c_str(),"PRED")) {
+            
+            // saving bottle in the buffer
+            bufCommand[5] = *arg;
+
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             
@@ -1481,6 +1503,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mono = false;
         }
         else if(!strcmp(name.c_str(),"PUR")) {
+
+            // saving bottle in the buffer
+            bufCommand[2] = *arg;
+
             mutex.wait();
             printf("recognised PUR command \n");
             if(allowStateRequest[2]) {
@@ -1495,6 +1521,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();            
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
+
+            // saving bottle in the buffer
+            bufCommand[1] = *arg;
+
             printf("\r                                                      \r");
             if(!stopVergence) {
                 phi  = arg->get(1).asDouble();
