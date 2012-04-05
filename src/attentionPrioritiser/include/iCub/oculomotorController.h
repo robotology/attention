@@ -50,6 +50,52 @@
 #define NUMACTION 8
 
 
+
+
+static const std::string stateList[11] =  {
+    "null",           //0
+    "predict",        //1        
+    "fixStableOK",    //2
+    "fixStableKO",    //3
+    "trackOK",        //4
+    "trackKO",        //5
+    "anticipOK",      //6
+    "anticipWait",    //7
+    "vergenceK0",     //8
+    "vergenceOK",     //9
+    "fixating"        //10    
+};
+
+static const std::string actionList[8]  = {
+    "reset",           //0
+    "vergence",        //1
+    "smoothPursuit",   //2
+    "microSaccade",    //3
+    "mediumSaccade",   //4
+    "largeSaccade",    //5
+    "expressSaccade",  //6
+    "predict"          //7
+};
+
+/*
+// reward for the particular state-action condition
+// dimensionality state(11) x action (6)
+static const double rewardStateAction[66] = {
+    0.1,0.1,0.1,0.1,0.1,0.1,  // 0
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 1
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 2
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 3
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 4
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 5
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 6
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 7
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 8
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 9
+        0.1,0.1,0.1,0.1,0.1,0.1,  // 10
+};
+*/
+
+
 class outingThread : public yarp::os::RateThread {
     
 private:
@@ -112,57 +158,14 @@ public:
         scopePort.interrupt();
     };
     
-    void setValue(double v){mutex.wait(); printf("valueChangin"); value = v; mutex.post();};
+    void setValue(double v){mutex.wait(); value = v; mutex.post();};
 };
-
-static const std::string stateList[11] =  {
-    "null",           //0
-    "predict",        //1        
-    "fixStableOK",    //2
-    "fixStableKO",    //3
-    "trackOK",        //4
-    "trackKO",        //5
-    "anticipOK",      //6
-    "anticipWait",    //7
-    "vergenceK0",     //8
-    "vergenceOK",     //9
-    "fixating"        //10    
-};
-
-static const std::string actionList[8]  = {
-    "reset",           //0
-    "vergence",        //1
-    "smoothPursuit",   //2
-    "microSaccade",    //3
-    "mediumSaccade",   //4
-    "largeSaccade",    //5
-    "expressSaccade",  //6
-    "predict"          //7
-};
-
-/*
-// reward for the particular state-action condition
-// dimensionality state(11) x action (6)
-static const double rewardStateAction[66] = {
-    0.1,0.1,0.1,0.1,0.1,0.1,  // 0
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 1
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 2
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 3
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 4
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 5
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 6
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 7
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 8
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 9
-        0.1,0.1,0.1,0.1,0.1,0.1,  // 10
-};
-*/
 
 class oculomotorController : public yarp::os::RateThread, public observer {
 private:
     bool idle;                 // flag that regulates when the active part is executed
     bool firstCycle;           // flga that triggers the initialisation of active part
-    
+    bool firstCount;           // first 
     int count;                 // step counter of successful learning step
     int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning

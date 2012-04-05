@@ -47,6 +47,8 @@ oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThre
     state_now = 0;
     cUpdate = 0;
     state_next = 0;
+
+    firstCount = false;
 };
 
 oculomotorController::~oculomotorController() {
@@ -191,8 +193,7 @@ bool oculomotorController::policyWalk(){
     }
     printf("max value found in vector %f \n", maxInVector);
     state_next = posInVector;
-    //if(state_next == 10) {
-    if(true) {
+    if(state_next == 10) {
         count++;
         ret = true;
     }
@@ -223,14 +224,22 @@ bool oculomotorController::randomWalk() {
         }
         
     }
-    printf("max value found in vector %f \n", maxInVector);
-    if(state_next == 10) {
-        count++;
+    //printf("max value found in vector %f \n", maxInVector);
+    if(state_next == 0) {
+        if(firstCount) {
+            count++;
+            firstCount  = false;
+            totalPayoff = 0;
+        }
+    }
+    else {
+        firstCount = true;
     }
     state_next = posInVector;
     printf("new state %d \n", state_next);
     if(allowStateRequest(action_now)) {
-        count++;
+        //count++;
+        ret = true;
     }
     
     return ret;
@@ -241,7 +250,7 @@ bool oculomotorController::allowStateRequest(int state) {
     ap->setAllowStateRequest(state, true);
 
     // executing command in buffer
-    bool ret;
+    bool ret = false;
     bool executed = ap->executeCommandBuffer(state);
 
     
@@ -264,16 +273,20 @@ bool oculomotorController::allowStateRequest(int state) {
         printf("\n");
         if(timeend >= 5.0) {
             printf("the action has not been performed; Timeout occurred \n" );
+            ret = false;
         }
         else {
             printf("action performed!");
+            ret = true;
         }
+    }
+    else {
+        ret = true;
     }
 
     //setting flags at the end of the function
     ap->setValidAction(false);
     ap->setAllowStateRequest(state, false);
-
 
     return ret;
 }
@@ -459,35 +472,37 @@ void oculomotorController::learningStep() {
     
     //printf("action selection section \n");
     // 2 .action selection and observation of the next state
-    bool sinkState;
+    bool actionPerformed;
     printf("_______________ count % d _______________________ \n \n", count);
     //if(count < 30) {
     if(true) {
         printf("randomWalk action selection \n");
-        sinkState = randomWalk();
+        actionPerformed = randomWalk();
     }
     else {
         printf("policyWalk action selection \n");
-        sinkState = policyWalk();
+        actionPerformed = policyWalk();
     }
 
-    // 3 .updating the quality function of the next state: TD step
-    Q->operator()(state_next,action_now) = 
-        (1 - alfa) * Q->operator()(state_now,action_now) + 
-        alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
-
-    // 4. calculating the total Payoff
-    printf("adding the reward %f \n", rewardStateAction->operator()(state_now, action_now) * jiter );
-    totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
     
-    jiter  = jiter * j;
+    if(actionPerformed) {
+        //state_now = 0;
+        // 3 .updating the quality function of the next state: TD step
+        Q->operator()(state_next,action_now) = 
+            (1 - alfa) * Q->operator()(state_now,action_now) + 
+            alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
+        
+        // 4. calculating the total Payoff
+        printf("adding the reward %f \n", rewardStateAction->operator()(state_now, action_now) * jiter );
+        totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
+        
+        jiter  = jiter * j;        
 
-    // 5. moving to next state
-    if(sinkState) {
-        state_now = 0;
+        // 5. moving to next state
     }
     else {
-        state_now = state_next;
+        //state_now = state_next;
+        printf("action not performed in the learning. \n");
     } 
     //waitForActuator(); <-- do not wait for actutor here; it is performed previously
 
@@ -515,7 +530,7 @@ void oculomotorController::run() {
         if((count < 50) && (iter % 20 == 0)) {
             learningStep();    
         }
-        printf("trying to change totalpayoff %f \n", totalPayoff);
+        
         ot->setValue(totalPayoff);
         
         //Bottle& scopeBottle = scopePort.prepare();
