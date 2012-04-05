@@ -49,6 +49,72 @@
 #define NUMSTATE 11
 #define NUMACTION 8
 
+
+class outingThread : public yarp::os::RateThread {
+    
+private:
+    double value;
+    yarp::os::Semaphore mutex;                                  // semaphore for concurrent programming
+    yarp::os::BufferedPort<yarp::os::Bottle> scopePort;         // port where all the totalPayoff is going to be sent
+    std::string name;                                           // rootname of all the ports opened by this thread
+    
+public:
+    outingThread():yarp::os::RateThread(THRATE){
+        value = 0;
+    };
+
+    ~outingThread() {};
+    
+    
+    /**
+    * function that initialise the thread
+    */
+    bool threadInit() {
+        scopePort.open(getName("/scope:o").c_str());
+    };
+
+    /**
+    * function called when the thread is stopped
+    */
+    void threadRelease() {
+        scopePort.close();
+    };
+
+    void setName(string str) {
+        this->name=str;
+        printf("name: %s", name.c_str());
+    }
+    
+    std::string getName(const char* p) {
+        string str(name);
+        str.append(p);
+        return str;
+    }
+    
+    /**
+    * function called every time constant defined by rateThread
+    */
+    void run() {
+        
+        //if(scopePort.getOutputCount()) {
+        
+        yarp::os::Bottle& scopeBottle = scopePort.prepare();
+        scopeBottle.clear();
+        scopeBottle.addDouble(value);
+        scopePort.write();
+        //}
+    }; 
+
+    /**
+    * function called when the module is poked with an interrupt command
+    */
+    void interrupt() {
+        scopePort.interrupt();
+    };
+    
+    void setValue(double v){mutex.wait(); printf("valueChangin"); value = v; mutex.post();};
+};
+
 static const std::string stateList[11] =  {
     "null",           //0
     "predict",        //1        
@@ -104,7 +170,8 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
    
     attPrioritiserThread* ap;                                   // reference to the attention prioritiser
-    trajectoryPredictor* tp;                                    // reference to the trajectory predictor
+    trajectoryPredictor*  tp;                                   // reference to the trajectory predictor
+    outingThread*         ot;                                   // reference to the thread for plotting 
     
     yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
     yarp::sig::Matrix* Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
@@ -225,64 +292,7 @@ public:
     
 };
 
-class portScopeThread : public yarp::os::RateThread {
-    
-private:
-    double value;
-    yarp::os::Semaphore mutex;                                  // semaphore for concurrent programming
-    yarp::os::BufferedPort<yarp::os::Bottle> scopePort;         // port where all the totalPayoff is going to be sent
-   std::string name;          // rootname of all the ports opened by this thread
-    
-public:
-    portScopeThread():RateThread(THRATE),value(0){};
 
-    ~portScopeThread();
-    
-    void setValue(double v){mutex.wait(); value = v; mutex.post();};
-    /**
-    * function that initialise the thread
-    */
-    bool threadInit() {
-        scopePort.open(getName("/scope:o").c_str());
-    };
-
-    /**
-    * function called when the thread is stopped
-    */
-    void threadRelease() {
-        scopePort.close();
-    };
-
-    void setName(string str) {
-        this->name=str;
-        printf("name: %s", name.c_str());
-    }
-    
-    std::string getName(const char* p) {
-        string str(name);
-        str.append(p);
-        return str;
-    }
-    
-    /**
-    * function called every time constant defined by rateThread
-    */
-    void run() {
-        if(scopePort.getOutputCount()) {
-            yarp::os::Bottle& scopeBottle = scopePort.prepare();
-            scopeBottle.clear();
-            scopeBottle.addDouble(value);
-            scopePort.write();
-        }
-    }; 
-
-    /**
-    * function called when the module is poked with an interrupt command
-    */
-    void interrupt() {
-        scopePort.interrupt();
-    };
-};
 
 
 #endif  //_OCULOMOTOR_CONTROLLER_H_

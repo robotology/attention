@@ -145,13 +145,17 @@ bool oculomotorController::threadInit() {
     tp = new trajectoryPredictor();
     tp->setName(getName("").c_str()); 
     tp->start();
+
+    ot = new outingThread();
+    ot->setName(getName("").c_str()); 
+    ot->start();
     
     return true;
 }
 
-void oculomotorController::interrupt() {
-    inCommandPort.interrupt();
-}
+// void oculomotorController::interrupt() {
+//     inCommandPort.interrupt();
+// }
 
 void oculomotorController::setName(string str) {
     this->name=str;
@@ -475,6 +479,7 @@ void oculomotorController::learningStep() {
     // 4. calculating the total Payoff
     printf("adding the reward %f \n", rewardStateAction->operator()(state_now, action_now) * jiter );
     totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
+    
     jiter  = jiter * j;
 
     // 5. moving to next state
@@ -510,6 +515,8 @@ void oculomotorController::run() {
         if((count < 50) && (iter % 20 == 0)) {
             learningStep();    
         }
+        printf("trying to change totalpayoff %f \n", totalPayoff);
+        ot->setValue(totalPayoff);
         
         //Bottle& scopeBottle = scopePort.prepare();
         //scopeBottle.clear();
@@ -694,5 +701,6 @@ void oculomotorController::threadRelease() {
     inCommandPort.close();
     //scopePort.close();
     tp->stop();
+    ot->stop();
     
 }
