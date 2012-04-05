@@ -184,12 +184,12 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     //tColOri    = 5000;
 
     Matrix trans(NUMSTATES,NUMSTATES);
-    trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0;
-    trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0; trans(0,4) = 1.0;
-    trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0; trans(0,4) = 1.0;
-    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 0.0 ; trans(3,3) = 1.0; trans(0,4) = 1.0;
-    trans(4,0) = 1.0 ; trans(4,1) = 1.0 ; trans(4,2) = 0.0 ; trans(4,3) = 1.0; trans(0,4) = 1.0;
-    trans(5,0) = 1.0 ; trans(5,1) = 1.0 ; trans(5,2) = 0.0 ; trans(5,3) = 1.0; trans(5,4) = 1.0;
+    trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0; trans(0,5) = 1.0;
+    trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0; trans(1,4) = 1.0; trans(1,5) = 1.0;
+    trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0; trans(2,4) = 1.0; trans(2,5) = 1.0;
+    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 0.0 ; trans(3,3) = 1.0; trans(3,4) = 1.0; trans(3,5) = 1.0;
+    trans(4,0) = 1.0 ; trans(4,1) = 1.0 ; trans(4,2) = 0.0 ; trans(4,3) = 1.0; trans(4,4) = 1.0; trans(4,5) = 1.0;
+    trans(5,0) = 1.0 ; trans(5,1) = 1.0 ; trans(5,2) = 1.0 ; trans(5,3) = 1.0; trans(5,4) = 1.0; trans(5,5) = 1.0;
     stateTransition=trans;
 
     Vector req(NUMSTATES);
@@ -402,14 +402,14 @@ void attPrioritiserThread::run() {
     
     //Vector-vector element-wise product operator between stateRequest possible transitions
     if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)||(stateRequest(5) != 0)) {
-        printf("stateRequest: %s \n", stateRequest.toString().c_str());
-        printf("state: %s \n", state.toString().c_str());
+        printf("#### stateRequest: %s \n", stateRequest.toString().c_str());
+        printf("#### state: %s \n", state.toString().c_str());
         Vector c(5);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c);
         // resetting the requests
-        stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
-        printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
+        stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0; stateRequest(5) = 0;
+        printf("#### allowedTransitions: %s \n", allowedTransitions.toString().c_str());
         
         // notify observer concerning the state in which the prioritiser sets in
         Bottle notif;
@@ -459,7 +459,7 @@ void attPrioritiserThread::run() {
     if(allowedTransitions(5)>0) {
         state(5) = 1; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Trajectory Prediction  -----------------------
-        printf("\n \n _________________ Trajectory prediction ____________________________________ \n \n");
+        printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
         
         /*
         // nofiying action            
@@ -665,7 +665,7 @@ void attPrioritiserThread::run() {
 
         // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
-            printf("\n \n ____________________ Planned Saccade ___________________ \n");
+            //printf("\n \n ____________________ Planned Saccade ___________________ \n");
             
             if((u==-1)||(v==-1)) {
                 printf(" \n ----------- Stereo Planned Saccade ------------  \n");
@@ -725,7 +725,7 @@ void attPrioritiserThread::run() {
                 
                 // post-saccadic connection
                 if(postSaccCorrection) {
-                    printf("waiting for saccade accomplished in postSaccadic correction \n");
+                    //printf("waiting for saccade accomplished in postSaccadic correction \n");
                     // wait for accomplished saccadic event
                     timeout = 0;
                     timeoutStart = Time::now();
@@ -809,7 +809,7 @@ void attPrioritiserThread::run() {
         state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Smooth Pursuit  -----------------------
         if(!executing) {                       
-            printf("____________________ Smooth Pursuit _________________\n");
+            printf("---------------- Smooth Pursuit --------------_\n");
            
             // executing the saccade
             Bottle& commandBottle=outputPort.prepare();
@@ -819,7 +819,7 @@ void attPrioritiserThread::run() {
             commandBottle.addInt(Vy);
             outputPort.write();
             
-            printf("_____________ Smooth Pursuit _____________________\n");
+            printf("--------------------------------------------------\n");
         }
     }
     else if(allowedTransitions(1)>0) {
@@ -970,8 +970,25 @@ void attPrioritiserThread::run() {
         //printf ("Transition request 1 reset \n");
         mutex.post();
     }
+    else if(allowedTransitions(0)>0) { //reset action
+        mutex.wait();
+        state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
+        allowedTransitions(0) = 0;
+        executing = false;
+        //printf ("Transition request 1 reset \n");
+        mutex.post();
+    }
+    
 }
 
+void attPrioritiserThread::printCommandBuffer() {
+    for (int i = 0; i < NUMSTATES; i++) {
+        if(bufCommand[i]!=NULL)
+            printf(">>>>> %s \n",bufCommand[i].toString().c_str());
+        else
+            printf(">>>>> NULL \n");
+    }
+}
 
 bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     int pos;
@@ -982,8 +999,8 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     
     printf("executing a command saved in the buffer pos %d->%d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
-        printf("no action in the buffer \n");
-        
+        printf("no action in the buffer for pos:%d \n", pos);        
+        printCommandBuffer();
         return false;
     }
     else {
@@ -1224,10 +1241,6 @@ void attPrioritiserThread::reinforceFootprint() {
     reinfFootprint = false;
 
     printf("SELF REINFORCEMENT \n");
-    printf("SELF REINFORCEMENT \n");
-    printf("SELF REINFORCEMENT \n");
-    printf("SELF REINFORCEMENT \n");
-    printf("SELF REINFORCEMENT \n");
 
     // setting TopDown state
     topDownState[0] = 0;
@@ -1334,8 +1347,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
             
             // saving bottle in the buffer
-            bufCommand[4] = *arg;
-            printf("after saving %s \n", bufCommand[4].toString().c_str());
+            bufCommand[3] = *arg;
+            printf("after saving %s \n", bufCommand[3].toString().c_str());
             
             
 

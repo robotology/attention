@@ -177,7 +177,7 @@ void sacPlannerThread::run() {
             
             // check whether it must be sleeping
             if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
-                printf("performing correlation measures \n");
+                //printf("performing correlation measures \n");
                 //here it comes if only if it is not sleeping
                 ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
                 int width  = inputImage->width();
@@ -190,7 +190,7 @@ void sacPlannerThread::run() {
                 mutex.wait();
                 if((!sleep)&&(!compare)) {                    
                     mutex.post();
-                    printf("in the sleep and compare branch \n");
+                    //printf("in the sleep and compare branch \n");
                     
                     intermImage->resize(320,240);
                     intermImage2->resize(320,240);                                        
@@ -211,7 +211,7 @@ void sacPlannerThread::run() {
                     
                     
                     // preparing the set of predicted images
-                    printf("preparing intermediate image from logpolar \n");
+                    //printf("preparing intermediate image from logpolar \n");
                     bool fromLogpolar = true;
                     if(fromLogpolar) {
                         trsfL2C.logpolarToCart(*intermImage,*inputImage);
@@ -224,7 +224,7 @@ void sacPlannerThread::run() {
                     shiftROI(intermImage,intermImage2, xPos, yPos);
                     trsfL2C.cartToLogpolar(*predictedImage, *intermImage2);
                    
-                    printf("shifting alternative ROIs \n");
+                    //printf("shifting alternative ROIs \n");
                     //created alternative shifts
                     shiftROI(intermImage,intermImage2, xPos, yPos + corrStep);
                     trsfL2C.cartToLogpolar(*outputImageUp, *intermImage2);
@@ -239,11 +239,11 @@ void sacPlannerThread::run() {
                     trsfL2C.cartToLogpolar(*outputImageRight, *intermImage2);                       
 
                     //preparing the image output
-                    printf("copying the intermediate image \n");
+                    //printf("copying the intermediate image \n");
                     copy_8u_C3R(intermImage, &outputImage);
                     corrPort.write();
 
-                    printf("after copying the input image in the outputImage \n");
+                    //printf("after copying the input image in the outputImage \n");
                    
                     mutex.wait();
                     sleep   = true;
@@ -256,10 +256,10 @@ void sacPlannerThread::run() {
 
                 //sleep and compare section
                 //goes into the sleep mode waiting for the flag to be set by observable            
-                printf("sleep %d compare %d \n" ,sleep, compare);
+                //printf("sleep %d compare %d \n" ,sleep, compare);
                 if((!sleep)&&(compare)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
                     //ImageOf<PixelRgb>& outputImage =  corrPort.prepare();
-                    printf("Entering checkSleep with compare \n");
+                    //printf("Entering checkSleep with compare \n");
                     // it has been waken up by observable
                     // it compares the predictic pre-saccadic image with the post-saccadic image  
                     double* pCorr = new double;
@@ -272,7 +272,7 @@ void sacPlannerThread::run() {
                     
                     logCorrRgbSum(inputImage, predictedImage, pCorr,1);                    
                     corrValue = *pCorr;
-                    printf("correlation between the predicted saccadic image with the actual %f \n", corrValue);
+                    //printf("correlation between the predicted saccadic image with the actual %f \n", corrValue);
                     
                     
                     if(*pCorr < THCORR) {
@@ -285,7 +285,7 @@ void sacPlannerThread::run() {
                         double max = 0.0;
                         
                         logCorrRgbSum(inputImage, outputImageLeft, leftCorr ,1);
-                        printf("saccadic correlation left %f \n", *leftCorr);
+                        //printf("saccadic correlation left %f \n", *leftCorr);
                         if(*leftCorr > max) {
                             max = *leftCorr;
                             direction = 180.0;
@@ -293,7 +293,7 @@ void sacPlannerThread::run() {
                             //direction /= countDirection;
                         }
                         logCorrRgbSum(inputImage, outputImageRight, rightCorr,1);
-                        printf("saccadic correlation right %f \n", *rightCorr);
+                        //printf("saccadic correlation right %f \n", *rightCorr);
                         if(*rightCorr > max) {
                             max = *rightCorr;
                             direction = 0.0;
@@ -302,7 +302,7 @@ void sacPlannerThread::run() {
                             //direction /= countDirection;
                         }
                         logCorrRgbSum(inputImage, outputImageUp, upCorr,1);
-                        printf("saccadic correlation up %f \n", *upCorr);
+                        //printf("saccadic correlation up %f \n", *upCorr);
                         if(*upCorr > max) {
                             max = *upCorr;
                             direction = 90.0;
@@ -311,7 +311,7 @@ void sacPlannerThread::run() {
                             //direction /= countDirection;
                         }
                         logCorrRgbSum(inputImage, outputImageDown, downCorr,1);
-                        printf("saccadic correlation down %f \n", *downCorr);
+                        //printf("saccadic correlation down %f \n", *downCorr);
                         if(*downCorr > max) {
                             max = *downCorr;
                             direction = 270.0;
@@ -405,7 +405,7 @@ void sacPlannerThread::shiftROI(ImageOf<PixelRgb>* inImg,ImageOf<PixelRgb>* outI
     int direction;
     if(dx > 0) {
         direction = -1;
-        printf("jumping in x \n");
+        //printf("jumping in x \n");
         pinput += channel * dx;
     }
     else {

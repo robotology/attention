@@ -431,6 +431,10 @@ public:
      */
     yarp::os::Bottle getCommandBuffer(int pos) {return bufCommand[pos]; };
 
+    /**
+     * function printCommandBuffer prints all the commands
+     */
+    void printCommandBuffer();
 
     /**
      * @brief function that executes one particular action in the buffer of commands

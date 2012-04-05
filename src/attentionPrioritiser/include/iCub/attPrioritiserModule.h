@@ -159,6 +159,7 @@
  * 15/03/12 : added two new classes : oculomotorController and trajectoryPredictor                          author: Rea  \n
  * 16/03/12 : implemented learning step and interaction with the attPrioritiserThread                       author: Rea  \n
  * 23/03/12 : added nofity process between prioritiser and controller                                       author: Rea  \n
+ * 05/04/12 : corrected and completed the transition matrix                                                 author: Rea  \n
 */
 
 

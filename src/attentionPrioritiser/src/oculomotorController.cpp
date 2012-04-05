@@ -208,7 +208,7 @@ bool oculomotorController::randomWalk() {
     int pos = state_now * NUMACTION + action_now;
     printf("looking for position %d; State:%d,Action:%d\n", pos, state_now, action_now);
     Vector  v = Psa->getRow(pos);
-    printf("v = %s \n", v.toString().c_str());
+    //printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
     int posInVector = 0;
     for(int j = 0; j < v.size(); j++) {
@@ -233,7 +233,10 @@ bool oculomotorController::randomWalk() {
 }
 
 bool oculomotorController::allowStateRequest(int state) {
+    //setting flags in initialisation
     ap->setAllowStateRequest(state, true);
+
+    // executing command in buffer
     bool ret;
     bool executed = ap->executeCommandBuffer(state);
 
@@ -262,8 +265,10 @@ bool oculomotorController::allowStateRequest(int state) {
             printf("action performed!");
         }
     }
+
+    //setting flags at the end of the function
     ap->setValidAction(false);
-    
+    ap->setAllowStateRequest(state, false);
 
 
     return ret;
@@ -451,14 +456,14 @@ void oculomotorController::learningStep() {
     //printf("action selection section \n");
     // 2 .action selection and observation of the next state
     bool sinkState;
-    printf("-------------count % d------------------------------ \n", count);
+    printf("_______________ count % d _______________________ \n \n", count);
     //if(count < 30) {
     if(true) {
-        printf("randomWalk \n");
+        printf("randomWalk action selection \n");
         sinkState = randomWalk();
     }
     else {
-        printf("policyWalk \n");
+        printf("policyWalk action selection \n");
         sinkState = policyWalk();
     }
 
@@ -481,7 +486,7 @@ void oculomotorController::learningStep() {
     //waitForActuator(); <-- do not wait for actutor here; it is performed previously
 
 
-    printf("oculomotorController::learningStep : step performed \n");
+    //printf("oculomotorController::learningStep : step performed \n");
     printf("\n");
     printf("\n");
 }
@@ -575,7 +580,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                         
         } break;
         case COMMAND_VOCAB_ACT :{
-            printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
+            //printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
             Vector action(8);
             action.zero();
             //int a = (int) arg->get(1).asDouble();
@@ -604,7 +609,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             // mapping from action in prioritiser to action in controller
             // mapping from dimension 6 to dimension 8
             int amplitudeId = 2;
-            printf("action %f %f \n", action(0), action(1));
+            //printf("action %f %f \n", action(0), action(1));
             action(0) = a(0);
             action(1) = a(1);
             action(2) = a(2);
