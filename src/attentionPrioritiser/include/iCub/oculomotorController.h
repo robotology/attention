@@ -102,7 +102,7 @@ private:
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
-    yarp::os::BufferedPort<yarp::os::Bottle> scopePort;         // port where all the totalPayoff is going to be sent
+   
     attPrioritiserThread* ap;                                   // reference to the attention prioritiser
     trajectoryPredictor* tp;                                    // reference to the trajectory predictor
     
@@ -113,18 +113,18 @@ private:
     yarp::sig::Matrix* V;                  // value matrix max value of quality measure with reference to one state dim 11 x 1
     yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim 11 x 1
 
-    const static double j    = 0.1;       // discont factor
-    const static double alfa = 0.1;       // learning rate  
+    const static double j    = 0.99;       // discount factor
+    const static double alfa = 0.1;        // learning rate  
     
-    double totalPayoff;                   // total payoff of the learning process
-    double jiter;                         // cumulative j ^ iter
+    double totalPayoff;                    // total payoff of the learning process
+    double jiter;                          // cumulative j ^ iter 
 
-    int state_now;                        // state of the controller now
-    int action_now;                       // action performed in this step
-    int state_next;                       // state in which the controller will end
+    int state_now;                         // state of the controller now
+    int action_now;                        // action performed in this step
+    int state_next;                        // state in which the controller will end
     
-    FILE* PsaFile;                        // file that contains the Probability of Transitions
-    FILE* logFile;                        // log file for actions and states
+    FILE* PsaFile;                         // file that contains the Probability of Transitions
+    FILE* logFile;                         // log file for actions and states
 public:
     /**
     * default constructor
@@ -224,6 +224,66 @@ public:
     bool allowStateRequest(int state);
     
 };
+
+class portScopeThread : public yarp::os::RateThread {
+    
+private:
+    double value;
+    yarp::os::Semaphore mutex;                                  // semaphore for concurrent programming
+    yarp::os::BufferedPort<yarp::os::Bottle> scopePort;         // port where all the totalPayoff is going to be sent
+   std::string name;          // rootname of all the ports opened by this thread
+    
+public:
+    portScopeThread():RateThread(THRATE),value(0){};
+
+    ~portScopeThread();
+    
+    void setValue(double v){mutex.wait(); value = v; mutex.post();};
+    /**
+    * function that initialise the thread
+    */
+    bool threadInit() {
+        scopePort.open(getName("/scope:o").c_str());
+    };
+
+    /**
+    * function called when the thread is stopped
+    */
+    void threadRelease() {
+        scopePort.close();
+    };
+
+    void setName(string str) {
+        this->name=str;
+        printf("name: %s", name.c_str());
+    }
+    
+    std::string getName(const char* p) {
+        string str(name);
+        str.append(p);
+        return str;
+    }
+    
+    /**
+    * function called every time constant defined by rateThread
+    */
+    void run() {
+        if(scopePort.getOutputCount()) {
+            yarp::os::Bottle& scopeBottle = scopePort.prepare();
+            scopeBottle.clear();
+            scopeBottle.addDouble(value);
+            scopePort.write();
+        }
+    }; 
+
+    /**
+    * function called when the module is poked with an interrupt command
+    */
+    void interrupt() {
+        scopePort.interrupt();
+    };
+};
+
 
 #endif  //_OCULOMOTOR_CONTROLLER_H_
 

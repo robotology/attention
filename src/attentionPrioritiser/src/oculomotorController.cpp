@@ -61,7 +61,7 @@ bool oculomotorController::threadInit() {
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     rootName.append(getName("/cmd:i"));
     inCommandPort.open(rootName.c_str());
-    scopePort.open(getName("/scope:o").c_str());
+    
 
     // interacting with the attPrioritiserThread 
     firstCycle = true;
@@ -473,6 +473,7 @@ void oculomotorController::learningStep() {
         alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
 
     // 4. calculating the total Payoff
+    printf("adding the reward %f \n", rewardStateAction->operator()(state_now, action_now) * jiter );
     totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
     jiter  = jiter * j;
 
@@ -510,10 +511,10 @@ void oculomotorController::run() {
             learningStep();    
         }
         
-        Bottle& scopeBottle = scopePort.prepare();
-        scopeBottle.clear();
-        scopeBottle.addDouble(5.0);
-        scopePort.write();
+        //Bottle& scopeBottle = scopePort.prepare();
+        //scopeBottle.clear();
+        //scopeBottle.addDouble(totalPayoff);
+        //scopePort.write();
     }
 }
 
@@ -691,7 +692,7 @@ void oculomotorController::threadRelease() {
         fprintf(PsaFile,"\n");
     }
     inCommandPort.close();
-    scopePort.close();
+    //scopePort.close();
     tp->stop();
     
 }
