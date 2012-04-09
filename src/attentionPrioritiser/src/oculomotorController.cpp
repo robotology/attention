@@ -839,7 +839,7 @@ void oculomotorController::threadRelease() {
     //closing ports
     inCommandPort.close();
 
-    /*
+    
     //closing files
     fclose(logFile);
     // --- saving transition matrix ----------
@@ -897,5 +897,5 @@ void oculomotorController::threadRelease() {
         }
         fprintf(rewardFile,"\n");
     }
-    */
+ 
 }
