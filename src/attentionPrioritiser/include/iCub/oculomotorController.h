@@ -195,6 +195,8 @@ private:
     
     FILE* PsaFile;                         // file that contains the Probability of Transitions
     FILE* logFile;                         // log file for actions and states
+    FILE* valueFile;                       // memory of value function through runs
+    FILE* rewardFile;                      // file that stores the reward function for state action
 public:
     /**
     * default constructor

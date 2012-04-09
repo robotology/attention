@@ -73,21 +73,78 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(3,true);    
     ap->setAllowStateRequest(4,true);
 
-    // initialisation of the matrices necessary for computation
+
+    logFile = fopen("logFile.txt","w+");
+
+    // ------ Reading Reward State Action ------------------
     printf("resetting rewardStateAction \n");
     rewardStateAction = new Matrix(NUMSTATE,NUMACTION);
     double* val = rewardStateAction->data();
-    for(int row = 0; row < NUMSTATE; row++ ) {
-        for(int col = 0; col < NUMACTION; col++) {
-            *val = 0.1; val++;
+
+    rewardFile = fopen("rewardFile.txt","a+");
+    int n = 0; // number of bytes in the file
+    if (NULL == rewardFile) { 
+        perror ("Error opening file");
+    }
+    else {
+        while (!feof(rewardFile)) {
+            fgetc (rewardFile);
+            n++;
+        }
+        //fclose (pFile);
+        printf ("Total number of bytes: %d \n", n-1);
+    }
+    n = n - 1;
+    rewind(rewardFile);
+
+    if(n == 0) {
+        // creating new Psa values                
+        printf("creating new reward values \n");
+        double t;
+        for(int row = 0; row < NUMSTATE ; row++ ) {
+            for(int col = 0; col < NUMACTION; col++) {
+                //t = rand() / 10000000000.0 ;
+                t = 0.1;
+                fprintf(rewardFile,"%f ",t);
+                *val = t; val++;
+            }
+            fprintf(rewardFile,"\n");
         }
     }
+    else {
+        
+        //reading values
+        printf("reading values from file \n");
+        // Reads from input file first segment of nsize samples into y:	
+		unsigned int i;			
+		int numRead = 0, countVal = 0;
+        //int nsize = 10;
+        //double y[10];
+        float x;
+        //double* py = &y[0];
+		while(numRead != -1){
+			numRead = fscanf(rewardFile, "%f", &x);
+			//printf("numRead %d > %f \n",numRead,(double)x);
+            *val = (double) x;
+            val++; countVal++;
+        }
+        printf("saved %d \n", countVal);
+        
+    }
+
+    
+    //for(int row = 0; row < NUMSTATE; row++ ) {
+    //    for(int col = 0; col < NUMACTION; col++) {
+    //        *val = 0.1; val++;
+    //    }
+    //}
+    
+    
+    // --------- Reading Transition Matrix -------------------
     printf("initialisation of probability transition \n");
-    logFile = fopen("logFile.txt","w+");
-     
     printf("reading values from the file.... \n");
     PsaFile = fopen("psaFile.txt","a+");
-    int n = 0; // number of bytes in the file
+    n = 0; // number of bytes in the file
     if (NULL == PsaFile) { 
         perror ("Error opening file");
     }
@@ -99,10 +156,11 @@ bool oculomotorController::threadInit() {
         //fclose (pFile);
         printf ("Total number of bytes: %d \n", n-1);
     }
-    n = n -1;
+    n = n - 1;
     rewind(PsaFile);
     Psa = new Matrix(NUMSTATE * NUMACTION,NUMSTATE);
     val = Psa->data();
+    
     if(n == 0) {
         // creating new Psa values                
         printf("creating new Psa values \n");
@@ -118,6 +176,7 @@ bool oculomotorController::threadInit() {
         }
     }
     else {
+        
         //reading values
         printf("reading values from file \n");
         // Reads from input file first segment of nsize samples into y:	
@@ -133,24 +192,94 @@ bool oculomotorController::threadInit() {
             *val = (double) x;
             val++; countVal++;
         }
-         printf("saved %d \n", countVal);
+        printf("saved %d \n", countVal);
+        
     }
     
     printf("initialisation of the learning machines \n");
-    Q = new Matrix(NUMSTATE,NUMACTION);
-    Q->zero();
+    
+
+    // --------- Reading Value Function -------------------
     V = new Matrix(1,NUMSTATE);
     V->zero();
+    
+    
+    printf("Value Function : reading values from the file.... \n");
+    valueFile = fopen("valueFile.txt","a+");
+    n = 0; // number of bytes in the file
+    if (NULL == valueFile) { 
+        perror ("Error opening file");
+    }
+    else {
+        while (!feof(valueFile)) {
+            fgetc (valueFile);
+            n++;
+        }
+        //fclose (pFile);
+        printf ("Total number of bytes: %d \n", n-1);
+    }
+    n = n - 1;
+    rewind(valueFile);
+    //V = new Matrix(NUMSTATE,NUMSTATE);
+
+    
+    val = V->data();
+    if(n == 0) {
+        // creating new Psa values                
+        printf("Value Function : creating new Values Function \n");
+        double t; 
+        for(int row = 0; row < NUMSTATE; row++ ) {
+            
+            //t = rand() / 10000000000.0 ;
+            t = 0.0;
+            fprintf(valueFile,"%f ",t);
+            *val = t; val++;
+            
+            fprintf(valueFile,"\n");
+        }
+    }
+    else {
+        //reading values
+        printf("Value Function : reading values from file \n");
+        // Reads from input file first segment of nsize samples into y:	
+		unsigned int i;			
+		int numRead = 0, countVal = 0;
+        //int nsize = 10;
+        //double y[10];
+        float x;
+        //double* py = &y[0];
+		while(numRead != -1){
+			numRead = fscanf(valueFile, "%f", &x);
+			printf("numRead %d > %f \n",numRead,(double)x);
+            *val = (double) x;
+            val++; countVal++;
+        }
+         printf("saved %d \n", countVal);
+    }
+    
+
+    printf("init quality measure and action state \n");
+    // quality of the state-action
+    
+    Q = new Matrix(NUMSTATE,NUMACTION);
+    Q->zero();
+
+    //action
     A = new Matrix(1,NUMSTATE);
     A->zero();
-
+    
+    
+    
+    printf(" init of the trajectoryPredictor \n");
     tp = new trajectoryPredictor();
     tp->setName(getName("").c_str()); 
     tp->start();
 
+    printf(" init of the outing thread \n");
     ot = new outingThread();
     ot->setName(getName("").c_str()); 
     ot->start();
+    
     
     return true;
 }
@@ -698,14 +827,33 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
 
 void oculomotorController::threadRelease() {
+    printf("oculomotorController::threadRelease() : stopping threads \n");
+    
+    //stopping thread
+    if(0 != tp) {
+        tp->stop();
+    }
+    printf("oculomotorController::threadRelease() : about to stop outingThread \n");
+    ot->stop();
+
+    //closing ports
+    inCommandPort.close();
+
+    /*
+    //closing files
     fclose(logFile);
+    // --- saving transition matrix ----------
     fclose(PsaFile);
     PsaFile = fopen("psaFile.txt","w+");
     printf("saving updates in Psa \n");
     double t;
+    if(0 == Psa) {
+        printf("pointer to Psa null \n");
+    }
     double* val = Psa->data();
-    for(int row = 0; row < 66; row++ ) {
-        for(int col = 0; col < 11; col++) {
+
+    for(int row = 0; row < NUMSTATE * NUMACTION; row++ ) {
+        for(int col = 0; col < NUMSTATE; col++) {
             t = *val;
             if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
             fprintf(PsaFile,"%f ",t);
@@ -713,9 +861,41 @@ void oculomotorController::threadRelease() {
         }
         fprintf(PsaFile,"\n");
     }
-    inCommandPort.close();
-    //scopePort.close();
-    tp->stop();
-    ot->stop();
+    // --- saving value function ----------
+    fclose(valueFile);
+    valueFile = fopen("valueFile.txt","w+");
+    printf("saving updates in value \n");
+    if(0 == V) {
+        printf("pointer to value null \n");
+    }
+    val = V->data();
     
+    for(int row = 0; row < NUMSTATE; row++ ) {
+        //for(int col = 0; col < 11; col++) {
+            t = *val;
+            if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            fprintf(valueFile,"%f ",t);
+            val++;
+            //}
+        fprintf(valueFile,"\n");
+    }
+    // --- saving reward function ----------
+    fclose(rewardFile);
+    valueFile = fopen("rewardFile.txt","w+");
+    printf("saving updates in value \n");
+    if(0 == V) {
+        printf("pointer to value null \n");
+    }
+    val = rewardStateAction->data();
+    
+    for(int row = 0; row < NUMSTATE; row++ ) {
+        for(int col = 0; col < NUMACTION; col++) {
+            t = *val;
+            if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            fprintf(rewardFile,"%f ",t);
+            val++;
+        }
+        fprintf(rewardFile,"\n");
+    }
+    */
 }

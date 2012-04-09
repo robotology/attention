@@ -84,20 +84,24 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy)
 }
 
 void trajectoryPredictor::run() {
-    while(isStopping() != true){
+    /*
+      while(isRunning()){
         ImageOf<PixelMono>* b=inImagePort.read(true);
         int x,y;
         extractCentroid(b, x, y);
         estimateVelocity(x,y, Vx, Vy);
         printf("estimateVelocity %f %f \n",Vx,Vy );
     }
+    */
 }
 
 void trajectoryPredictor::onStop() {
+    printf("trajectoryPredictor::onStop() : closing ports \n");
     inImagePort.interrupt();
     inImagePort.close();
 }
 
 void trajectoryPredictor::threadRelease() {
-
+    //printf("trajectoryPredictor::threadRelease() : \n");
+    //inImagePort.close();
 }

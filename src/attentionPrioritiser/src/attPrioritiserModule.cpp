@@ -265,12 +265,12 @@ bool attPrioritiserModule::close() {
     collector->stop();
     prioritiser->stop();
 
-    delete collector;
-    delete prioritiser;
+    //delete collector;
+    //delete prioritiser;
 
     if (controller != 0) {
         controller->stop();
-        delete controller;
+        //delete controller;
     }
     return true;
 }

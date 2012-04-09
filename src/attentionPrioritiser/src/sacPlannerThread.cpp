@@ -575,9 +575,10 @@ void sacPlannerThread::logCorrRgbSum(ImageOf<PixelRgb>* imgA, ImageOf<PixelRgb>*
 }
 
 void sacPlannerThread::onStop() {
+    //sacPlanner is thread. Therefore it executes this at the end
     //inCommandPort.interrupt();
     //inCommandPort.close();
-    printf(" sacPlannerThread::onStop() \n");
+    printf("sacPlannerThread::onStop() \n");
     corrPort.interrupt();
     inImagePort.interrupt();
     corrPort.close();
@@ -586,13 +587,13 @@ void sacPlannerThread::onStop() {
 
 void sacPlannerThread::threadRelease() {
     printf("sacPlannerThread::threadRelease()");
-    delete outputImageUp;                                 
-    delete outputImageDown;                          
-    delete outputImageLeft;                    
-    delete outputImageRight;
-    delete predictedImage;
-    delete intermImage;
-    delete intermImage2;
+    //delete outputImageUp;                                 
+    //delete outputImageDown;                          
+    //delete outputImageLeft;                    
+    //delete outputImageRight;
+    //delete predictedImage;
+    //delete intermImage;
+    //delete intermImage2;
 }
 
 

@@ -243,7 +243,7 @@ attPrioritiserThread::~attPrioritiserThread() {
 
 bool attPrioritiserThread::threadInit() {
 
-    printf("starting the thread.... \n");
+    printf(" \nstarting the thread.... \n");
     
     eyeL = new iCubEye("left");
     eyeR = new iCubEye("right");    
@@ -301,8 +301,8 @@ bool attPrioritiserThread::threadInit() {
     sacPlanner->referenceRetina(imgLeftIn);
     sacPlanner->start();
 
-    trajPredictor = new trajectoryPredictor();
-    trajPredictor->start();
+    //trajPredictor = new trajectoryPredictor();
+    //trajPredictor->start();
     
     return true;
 }
@@ -324,7 +324,6 @@ void attPrioritiserThread::interrupt() {
 
 void attPrioritiserThread::threadRelease() {
     inLeftPort.close();
-    printf("closing right port \n");
     inRightPort.close();
     printf("closing feedback port \n");
     feedbackPort.close();
@@ -334,24 +333,32 @@ void attPrioritiserThread::threadRelease() {
     blobDatabasePort.close();
     printf("closing inhibition port \n");
     inhibitionPort.close();
-    printf("closing feedback ports \n");
+    printf("closing feedback ports 1 \n");
     feedbackEarlyVision.close();
+    printf("closing feedback ports 2 \n");
     feedbackSelective.close();
+    printf("closing feedback ports 3 \n");
     feedbackProtoObject.close();
     
+    printf("closing timing port \n");
     timingPort.close();
     printf("successfully closed all the ports \n");
     delete eyeL;
     delete eyeR;
     printf("successfully deleted eyes references \n");
     //igaze->restoreContext(originalContext);
-    printf("successfully restored previous gaze context \n");
+    //printf("successfully restored previous gaze context \n");
     
     //delete clientGazeCtrl;
-    printf("deleting the clientPlanner \n");
+    
     if(0!=sacPlanner) {
+        printf("deleting the clientPlanner \n");
         sacPlanner->stop();
     }
+
+    //if(0!=trajPredictor) {
+    //    trajPredictor->stop();
+    //}
     //delete sacPlanner;
     printf("deleted the sacPlanner \n");
 }
