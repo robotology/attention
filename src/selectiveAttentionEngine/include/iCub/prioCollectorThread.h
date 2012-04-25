@@ -38,6 +38,9 @@
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 
+#define MAXCOUNTERMOTION 20    // counter for resetting of magnocellular response suppression
+#define counterMotion    21    // counterMotion
+
 class prioCollectorThread : public yarp::os::Thread, public observable{
 private:
     bool reinit_flag;
@@ -46,6 +49,8 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;                              // port where all the low level commands are sent
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* map1Port;         // port for the image of contrast  
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* map2Port;         // port for the image of motion 
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  testPort;         // port for testing  
+    int timing;
     int k1,k2;                                                                           // weights   
     int width, height;                                                                   // image dimension 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *map1_yarp, *map2_yarp;
@@ -114,6 +119,13 @@ public:
      */       
     void setMotionMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref);
 
+    /**
+     * function that navigates in the logpolar image looking for maxima
+     * @param map1 map coming from contrast feature map
+     * @param map2 map coming from motion feature map
+     * @param linearCombination combinationof the linear maps
+     */
+    bool earlyFilter(yarp::sig::ImageOf<yarp::sig::PixelMono>* map1,yarp::sig::ImageOf<yarp::sig::PixelMono>* map2, yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombination, double& xm, double& ym );
 
 };
 
