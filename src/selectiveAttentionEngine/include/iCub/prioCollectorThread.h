@@ -38,8 +38,8 @@
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 
-#define MAXCOUNTERMOTION 20    // counter for resetting of magnocellular response suppression
-#define counterMotion    21    // counterMotion
+#define MAXCOUNTERMOTION  20    // counter for resetting of magnocellular response suppression
+#define MAXCOUNTERMOTIONP  21    // counterMotion
 
 class prioCollectorThread : public yarp::os::Thread, public observable{
 private:

@@ -372,6 +372,12 @@ bool selectiveAttentionProcessor::threadInit(){
 
     habituationStart = Time::now();
 
+
+    earlyTrigger = new prioCollectorThread();
+    earlyTrigger->addObserver(*this);
+    earlyTrigger->start();
+    
+
     return true;
 }
 
@@ -1642,7 +1648,9 @@ void selectiveAttentionProcessor::resume() {
     RateThread::resume();
 }
 
-
+void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
+    
+}
 
 
 

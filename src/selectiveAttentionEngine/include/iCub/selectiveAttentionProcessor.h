@@ -43,13 +43,17 @@
 #include <string>
 #include <time.h>
 
+#include <iCub/observer.h>
+#include <iCub/observable.h>
+#include <iCub/prioCollectorThread.h>
+
 const int THREAD_RATE=30;
 
 /**
  *This code groups together a series of useful functions that can be used for ImageProcessing
  */
 
-class selectiveAttentionProcessor:public yarp::os::RateThread {
+class selectiveAttentionProcessor:public yarp::os::RateThread,public observer {
 private:
     int psb;                          //width step of 8u images
     int psb32;                        //width step of 32f images
@@ -60,7 +64,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *intermCartOut;     // temporary rgb image
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > thImagePort;              // port for the output the WTA
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  imageCartOut;             // port for sending cartesian image result
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb > > imageCartOut;             // port for sending cartesian image result
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map1Port;                 // input port for the 1st saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map2Port;                 // input port for the 2nd saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map3Port;                 // input port for the 3rd saliency map
@@ -156,6 +160,8 @@ private:
     float* habituation; // mono image for habituation process
 
     static const int thresholdHabituation = 240;
+
+    prioCollectorThread* earlyTrigger;
     
 public:
     /**
@@ -198,6 +204,13 @@ public:
      * resumes the processing thread previously suspended
      */
     void resume();
+
+    /**
+    * function that defines what has to be done once any observeble interrupts
+    * @param o observable that has just interrupted the observer
+    * @param arg Bottle that has passed from the observable to the observer
+    */
+    void update(observable* o, yarp::os::Bottle * arg);
     
     /**
      * method that resize images once the processor knows the dimesions of the input
