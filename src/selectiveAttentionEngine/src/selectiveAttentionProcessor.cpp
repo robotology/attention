@@ -392,6 +392,165 @@ void selectiveAttentionProcessor::setRobotName(std::string str) {
     printf("name: %s", name.c_str());
 }
 
+void selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp) {
+    unsigned char* pmap1Left   = map1_yarp->getRawImage();
+    unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
+    unsigned char* pmap2Left   = map2_yarp->getRawImage();  
+    unsigned char* pmap2Right  = map2_yarp->getRawImage();
+    unsigned char* plinearLeft = linearCombinationImage.getRawImage();
+    unsigned char* plinearRight= linearCombinationImage.getRawImage();
+    int rowSize    = map1_yarp->getRowSize();
+    int halfwidth  = width  >> 1;
+    
+    ImageOf<PixelMono>& tmpImage = testPort.prepare();
+    tmpImage.resize(height,width);
+    tmpImage.zero();
+    
+    unsigned char* ptmp        = tmpImage.getRawImage();
+    ptmp         += halfwidth - 1;            
+    pmap1Left    += halfwidth - 1;                   
+    pmap1Right   += halfwidth;                  
+    pmap2Left    += halfwidth - 1;                  
+    pmap2Right   += halfwidth;
+    plinearLeft  += halfwidth - 1;
+    plinearRight += halfwidth;
+            
+    // exploring the image from rho=0 and from theta = 0
+    double value;
+    double threshold = 255;
+    double thresholdInt = 225;
+    
+    for(int y = 0 ; y < height ; y++){
+        for(int x = 0 ; x < halfwidth ; x++){
+            
+            //------------- motion ----------------------
+            
+            if(counterMotion >= MAXCOUNTERMOTION) {
+                
+                //value = (k2/sumK) *  (double) *pmap2Right ;                   
+                value = *pmap2Right;
+                if(*pmap2Right >= threshold){
+                    printf("max in motion Right %d %f \n",*pmap2Right, value); 
+                }
+                *plinearRight = value;
+                if (value >= threshold) {
+                    printf("max in motion Right \n");                    
+                    printf("max in motion Right \n");
+                    printf("max in motion Right \n");
+                    printf("max in motion Right \n");
+                    *plinearRight = 255;
+                    crossAssign(plinearRight, 255, rowSize);
+                    xm = halfwidth + x;
+                    ym = y;
+                    timing = 0.1;
+                    //printf("Jumping to cartSpace \n");
+                    //goto cartSpace;
+                    //y = height;// for jumping out of the outer loop
+                    //idle = true;                        
+                    //break;
+                }                
+                pmap2Right++;
+                
+                
+                //value = (k2/sumK) * (double) *pmap2Left;
+                value = *pmap2Left;
+                if(*pmap2Left >= threshold){
+                    printf("max in motion Left %d %f \n",*pmap2Left, value); 
+                }
+                *ptmp = *pmap2Left;
+                *plinearLeft = value;
+                if (value >= threshold) {
+                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                    *plinearLeft = 255;
+                    crossAssign(plinearLeft, 255, rowSize);
+                    xm = halfwidth - x;
+                    ym = y;
+                    timing = 0.1;
+                    //printf("Jumping to cartSpace \n");
+                    //goto cartSpace;
+                    //y = height;// for jumping out of the outer loop
+                    //idle = true;                        
+                    //break;
+                }
+                
+                pmap2Left--;
+                ptmp--;
+                
+            }
+            
+            
+            // ----------- intensity ---------------------
+            //value = (k1/sumK) * (double) *pmap1Right;
+            value = 0.80 * (double) *pmap1Right;
+            //*plinearRight = value;
+            if (value >= thresholdInt){
+                printf("max in intesity Right %f \n",value);                    
+                //*plinearRight = 255;
+                //crossAssign(plinearRight, 255, rowSize);
+                xm = halfwidth + x;
+                ym = y;
+                timing = 0.1;
+                //printf("Jumping to cartSpace \n");
+                //goto cartSpace;
+                //y = height;// for jumping out of the outer loop
+                //idle =  true;                        
+                //break;
+            }
+            pmap1Right++;
+            
+            
+            //value = (k1/sumK) * (double) *pmap1Left;
+            value = 0.85 * (double)*pmap1Left;
+            //*plinearLeft = value;
+            if (value >= thresholdInt){
+                printf("max in intensity Left %f \n",value);
+                //*plinearRight = 255;
+                //crossAssign(plinearLeft, 255, rowSize);                   
+                xm = halfwidth - x;
+                ym = y;
+                timing = 0.1;
+                //printf("Jumping to cartSpace \n");
+                //goto cartSpace;
+                //y = height;// for jumping out of the outer loop
+                //idle =  true;                        
+                //break;
+            }
+            pmap1Left--;
+            
+            
+            
+            
+            // moving pointer of the plinear
+            // in this version only the motion map is saved in the plinear
+            plinearRight++;
+            plinearLeft--;
+            
+        }
+        pmap1Right   += rowSize - halfwidth;
+        pmap1Left    += rowSize + halfwidth;
+        pmap2Right   += rowSize - halfwidth;
+        pmap2Left    += rowSize + halfwidth;
+        
+        ptmp         += rowSize + halfwidth;
+        plinearRight += rowSize - halfwidth;
+        plinearLeft  += rowSize + halfwidth;
+    }
+    //handling the counterMotion
+    counterMotion++;
+    if(counterMotion >= MAXCOUNTERMOTION){ 
+        counterMotion = MAXCOUNTERMOTION;
+    }
+    if(counterMotion == MAXCOUNTERMOTION - 1 ){
+        printf("counterMotion %d going to remove magnocellular suppression\n", counterMotion);
+    }
+    //tmpImage = *(map2_yarp);
+    testPort.write();
+}
+
+
 /**
 * active loop of the thread
 */
@@ -534,153 +693,7 @@ void selectiveAttentionProcessor::run(){
         //printf("entering the first stage of vision....\n");
         if(earlystage) {
 
-            ImageOf<PixelMono>& tmpImage = testPort.prepare();
-            tmpImage.resize(height,width);
-            tmpImage.zero();
-
-            unsigned char* ptmp        = tmpImage.getRawImage();
-            ptmp         += halfwidth - 1;            
-            pmap1Left    += halfwidth - 1;                   
-            pmap1Right   += halfwidth;                  
-            pmap2Left    += halfwidth - 1;                  
-            pmap2Right   += halfwidth;
-            plinearLeft  += halfwidth - 1;
-            plinearRight += halfwidth;
             
-            // exploring the image from rho=0 and from theta = 0
-            double value;
-            double threshold = 255;
-            double thresholdInt = 225;
-            
-            for(int y = 0 ; y < height ; y++){
-                for(int x = 0 ; x < halfwidth ; x++){
-                   
-                    //------------- motion ----------------------
-
-                    if(counterMotion >= MAXCOUNTERMOTION) {
-                        
-                        //value = (k2/sumK) *  (double) *pmap2Right ;                   
-                        value = *pmap2Right;
-                        if(*pmap2Right >= threshold){
-                            printf("max in motion Right %d %f \n",*pmap2Right, value); 
-                        }
-                        *plinearRight = value;
-                        if (value >= threshold) {
-                            printf("max in motion Right \n");                    
-                            printf("max in motion Right \n");
-                            printf("max in motion Right \n");
-                            printf("max in motion Right \n");
-                            *plinearRight = 255;
-                            crossAssign(plinearRight, 255, rowSize);
-                            xm = halfwidth + x;
-                            ym = y;
-                            timing = 0.1;
-                            //printf("Jumping to cartSpace \n");
-                            goto cartSpace;
-                            //y = height;// for jumping out of the outer loop
-                            //idle = true;                        
-                            //break;
-                        }                
-                        pmap2Right++;
-                        
-                        
-                        //value = (k2/sumK) * (double) *pmap2Left;
-                        value = *pmap2Left;
-                        if(*pmap2Left >= threshold){
-                            printf("max in motion Left %d %f \n",*pmap2Left, value); 
-                        }
-                        *ptmp = *pmap2Left;
-                        *plinearLeft = value;
-                        if (value >= threshold) {
-                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
-                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
-                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
-                            printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
-                            *plinearLeft = 255;
-                            crossAssign(plinearLeft, 255, rowSize);
-                            xm = halfwidth - x;
-                            ym = y;
-                            timing = 0.1;
-                            //printf("Jumping to cartSpace \n");
-                            goto cartSpace;
-                            //y = height;// for jumping out of the outer loop
-                            //idle = true;                        
-                            //break;
-                        }
-                        
-                        pmap2Left--;
-                        ptmp--;
-                        
-                    }
-                    
-                    
-                    // ----------- intensity ---------------------
-                    //value = (k1/sumK) * (double) *pmap1Right;
-                    value = 0.80 * (double) *pmap1Right;
-                    //*plinearRight = value;
-                    if (value >= thresholdInt){
-                        printf("max in intesity Right %f \n",value);                    
-                        //*plinearRight = 255;
-                        //crossAssign(plinearRight, 255, rowSize);
-                        xm = halfwidth + x;
-                        ym = y;
-                        timing = 0.1;
-                        //printf("Jumping to cartSpace \n");
-                        goto cartSpace;
-                        //y = height;// for jumping out of the outer loop
-                        //idle =  true;                        
-                        //break;
-                    }
-                    pmap1Right++;
-                    
-                    
-                    //value = (k1/sumK) * (double) *pmap1Left;
-                    value = 0.85 * (double)*pmap1Left;
-                    //*plinearLeft = value;
-                    if (value >= thresholdInt){
-                        printf("max in intensity Left %f \n",value);
-                        //*plinearRight = 255;
-                        //crossAssign(plinearLeft, 255, rowSize);                   
-                        xm = halfwidth - x;
-                        ym = y;
-                        timing = 0.1;
-                        //printf("Jumping to cartSpace \n");
-                        goto cartSpace;
-                        //y = height;// for jumping out of the outer loop
-                        //idle =  true;                        
-                        //break;
-                    }
-                    pmap1Left--;
-                    
-                    
-                    
-                    
-                    // moving pointer of the plinear
-                    // in this version only the motion map is saved in the plinear
-                    plinearRight++;
-                    plinearLeft--;
-                    
-                }
-                pmap1Right   += rowSize - halfwidth;
-                pmap1Left    += rowSize + halfwidth;
-                pmap2Right   += rowSize - halfwidth;
-                pmap2Left    += rowSize + halfwidth;
-                
-                ptmp         += rowSize + halfwidth;
-                plinearRight += rowSize - halfwidth;
-                plinearLeft  += rowSize + halfwidth;
-            }
-            //handling the counterMotion
-            counterMotion++;
-            if(counterMotion >= MAXCOUNTERMOTION){ 
-                counterMotion = MAXCOUNTERMOTION;
-            }
-            if(counterMotion == MAXCOUNTERMOTION - 1 ){
-                printf("counterMotion %d going to remove magnocellular suppression\n", counterMotion);
-            }
-            //tmpImage = *(map2_yarp);
-            testPort.write();
-
         } //end of the early stage
 
 

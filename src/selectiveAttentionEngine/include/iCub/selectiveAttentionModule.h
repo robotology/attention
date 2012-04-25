@@ -213,30 +213,31 @@
  *
  * \section change_log CHANGE LOG
  * 
- * 20/12/10 : changed the name from kMotion to kMot in parsing process of the config file       <b>author:Rea</b>\n
- * 21/12/10 : set to zero every map in the initialization code of the thread                    <b>author:Rea</b>\n
- * 21/12/10 : immediate response to the stimulus when it is very strong                         <b>authot:Rea</b>\n
- * 28/12/10 : added polydrivers for the cartesian control (prioceptive information)             <b>author:Rea</b>\n
- * 28/12/10 : added robotname parameter configurable from config file                           <b>author:Rea</b>\n
- * 04/01/11 : added initialisation to zero values of motion and cartesian images                <b>author:Rea</b>\n
- * 04/01/11 : added saccadic event in direction of the left arm (when requested)                <b>author:Rea</b>\n
- * 04/01/11 : added an in-class function for coping images and extract relevant information     <b>author:Rea</b>\n
- * 05/01/11 : introduced the mechanism that configure which are the satMap and hueMap           <b>author:Rea</b>\n
- * 05/01/11 : changed the copy function of logpolar images from copy_8u_C1R to copy_C1R         <b>author:Rea</b>\n
- * 06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       <b>author:Rea</b>\n
- * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        <b>author:Rea</b>\n
- * 08/03/11 : added the new bottle(template) to the communication to the objectProp             <b>author:Rea</b>\n
- * 06/06/11 : created a new ouput image composed of a gaussian around the WTA                   <b>author:Rea</b>\n
- * 07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              <b>author:Rea</b>\n
- * 09/08/11 : changed the algorithm to provide different timing in the saccade selection        <b>author:Rea</b>\n
- * 09/08/11 : changed the names of the ports to better align it to the biology                  <b>author:Rea</b>\n
- * 11/08/11 : changed the visiting algorithm for the image                                      <b>author:Rea</b>\n
- * 25/08/11 : added flags to be compatible with the previous versions of the visual att.        <b>author:Rea</b>\n
- * 30/08/11 : setting the flag of the earlyStage using resource finder                          <b>author:Rea</b>\n
- * 05/09/11 : adding the habituation image for storing space-dependent behaviour to suppress    <b>author:Rea</b>\n
- * 05/10/11 : adding the fast reaction in saccade from early stage and enabled second stage     <b>author:Rea</b>\n
- * 10/10/11 : enhanced the response in logpolar to allow the presence of the response in cart.  <b>author:Rea</b>\n
- */
+ * 20/12/10 : changed the name from kMotion to kMot in parsing process of the config file       author:Rea\n
+ * 21/12/10 : set to zero every map in the initialization code of the thread                    author:Rea\n
+ * 21/12/10 : immediate response to the stimulus when it is very strong                         authot:Rea\n
+ * 28/12/10 : added polydrivers for the cartesian control (prioceptive information)             author:Rea\n
+ * 28/12/10 : added robotname parameter configurable from config file                           author:Rea\n
+ * 04/01/11 : added initialisation to zero values of motion and cartesian images                author:Rea\n
+ * 04/01/11 : added saccadic event in direction of the left arm (when requested)                author:Rea\n
+ * 04/01/11 : added an in-class function for coping images and extract relevant information     author:Rea\n
+ * 05/01/11 : introduced the mechanism that configure which are the satMap and hueMap           author:Rea\n
+ * 05/01/11 : changed the copy function of logpolar images from copy_8u_C1R to copy_C1R         author:Rea\n
+ * 06/01/11 : moved the hand tracking conditional statement at the beginning of the cycle       author:Rea\n
+ * 06/01/11 : removed the map 5 which was duplicated as value map and introduced skinmap        author:Rea\n
+ * 08/03/11 : added the new bottle(template) to the communication to the objectProp             author:Rea\n
+ * 06/06/11 : created a new ouput image composed of a gaussian around the WTA                   author:Rea\n
+ * 07/06/11 : added the portion of the mosaic in order to depress the saliency mpa              author:Rea\n
+ * 09/08/11 : changed the algorithm to provide different timing in the saccade selection        author:Rea\n
+ * 09/08/11 : changed the names of the ports to better align it to the biology                  author:Rea\n
+ * 11/08/11 : changed the visiting algorithm for the image                                      author:Rea\n
+ * 25/08/11 : added flags to be compatible with the previous versions of the visual att.        author:Rea\n
+ * 30/08/11 : setting the flag of the earlyStage using resource finder                          author:Rea\n
+ * 05/09/11 : adding the habituation image for storing space-dependent behaviour to suppress    author:Rea\n
+ * 05/10/11 : adding the fast reaction in saccade from early stage and enabled second stage     author:Rea\n
+ * 10/10/11 : enhanced the response in logpolar to allow the presence of the response in cart.  author:Rea\n
+ * 25/04/12 : introduced the asynchronous stimulus for motion                                   author: Rea \n
+*/
 
 
 class selectiveAttentionModule : public yarp::os::RFModule {

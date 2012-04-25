@@ -456,7 +456,11 @@ public:
      * function that suppress magno cells contribution
      */
     void magnoCellularSuppression(bool value);
-       
+
+    /**
+     * function that navigates in the logpolar image looking for maxima
+     */
+    void earlyFilter(yarp::sig::ImageOf<yarp::sig::PixelMono>* map1,yarp::sig::ImageOf<yarp::sig::PixelMono>* map2);
 
     /**
      * function that extract the contour and the center of gravity
