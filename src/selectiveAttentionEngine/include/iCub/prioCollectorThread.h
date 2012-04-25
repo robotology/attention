@@ -40,10 +40,16 @@
 
 class prioCollectorThread : public yarp::os::Thread, public observable{
 private:
-    
+    bool reinit_flag;
+    bool idle;
     std::string name;       // rootname of all the ports opened by this thread
-    yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     //port where all the low level commands are sent
-
+    yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;                              // port where all the low level commands are sent
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* map1Port;         // port for the image of contrast  
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* map2Port;         // port for the image of motion 
+    int k1,k2;                                                                           // weights   
+    int width, height;                                                                   // image dimension 
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *map1_yarp, *map2_yarp;
+    
 public:
     /**
     * default constructor
@@ -54,6 +60,11 @@ public:
      * destructor
      */
     ~prioCollectorThread();
+
+    /**
+     * function that reinitiases some attributes of the class
+     */
+    void reinitialise(int width, int height);
 
     /**
     * function that initialise the thread
@@ -81,17 +92,28 @@ public:
     void onStop();
 
     /**
+    * function that returns the original root name and appends another string iff passed as parameter
+    * @param p pointer to the string that has to be added
+    * @return rootname 
+    */
+    std::string getName(const char* p);
+
+    /**
     * function that set the rootname for the ports that will be opened
     * @param str rootname as a string
     */
     void setName(std::string str);
     
     /**
-    * function that returns the original root name and appends another string iff passed as parameter
-    * @param p pointer to the string that has to be added
-    * @return rootname 
-    */
-    std::string getName(const char* p);
+     * set the reference to the contrast map port
+     */
+    void setContrastMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref);
+    
+    /**
+     * function that sets reference to the motion map port
+     */       
+    void setMotionMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref);
+
 
 };
 

@@ -459,8 +459,11 @@ public:
 
     /**
      * function that navigates in the logpolar image looking for maxima
+     * @param map1 map coming from contrast feature map
+     * @param map2 map coming from motion feature map
+     * @param linearCombination combinationof the linear maps
      */
-    void earlyFilter(yarp::sig::ImageOf<yarp::sig::PixelMono>* map1,yarp::sig::ImageOf<yarp::sig::PixelMono>* map2);
+    bool earlyFilter(yarp::sig::ImageOf<yarp::sig::PixelMono>* map1,yarp::sig::ImageOf<yarp::sig::PixelMono>* map2, yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombination );
 
     /**
      * function that extract the contour and the center of gravity

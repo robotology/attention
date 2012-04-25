@@ -392,7 +392,7 @@ void selectiveAttentionProcessor::setRobotName(std::string str) {
     printf("name: %s", name.c_str());
 }
 
-void selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp) {
+bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp, ImageOf<PixelMono>* linearCombinationMap) {
     unsigned char* pmap1Left   = map1_yarp->getRawImage();
     unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
     unsigned char* pmap2Left   = map2_yarp->getRawImage();  
@@ -445,13 +445,13 @@ void selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                     timing = 0.1;
                     //printf("Jumping to cartSpace \n");
                     //goto cartSpace;
+                    return true;
                     //y = height;// for jumping out of the outer loop
                     //idle = true;                        
                     //break;
                 }                
                 pmap2Right++;
-                
-                
+                     
                 //value = (k2/sumK) * (double) *pmap2Left;
                 value = *pmap2Left;
                 if(*pmap2Left >= threshold){
@@ -471,6 +471,7 @@ void selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                     timing = 0.1;
                     //printf("Jumping to cartSpace \n");
                     //goto cartSpace;
+                    return true;
                     //y = height;// for jumping out of the outer loop
                     //idle = true;                        
                     //break;
@@ -495,6 +496,7 @@ void selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                 timing = 0.1;
                 //printf("Jumping to cartSpace \n");
                 //goto cartSpace;
+                return true;
                 //y = height;// for jumping out of the outer loop
                 //idle =  true;                        
                 //break;
@@ -514,15 +516,13 @@ void selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                 timing = 0.1;
                 //printf("Jumping to cartSpace \n");
                 //goto cartSpace;
+                return true;
                 //y = height;// for jumping out of the outer loop
                 //idle =  true;                        
                 //break;
             }
             pmap1Left--;
-            
-            
-            
-            
+       
             // moving pointer of the plinear
             // in this version only the motion map is saved in the plinear
             plinearRight++;
@@ -692,6 +692,14 @@ void selectiveAttentionProcessor::run(){
         // ------------ early stage of response ---------------
         //printf("entering the first stage of vision....\n");
         if(earlystage) {
+            bool ret = earlyFilter(map1_yarp, map2_yarp, &linearCombinationImage);
+            if (ret) {
+                goto cartSpace;
+            }
+            else {
+                goto cartSpace;
+            }
+            
 
             
         } //end of the early stage
