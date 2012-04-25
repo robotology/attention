@@ -176,12 +176,13 @@ private:
     trajectoryPredictor*  tp;                                   // reference to the trajectory predictor
     outingThread*         ot;                                   // reference to the thread for plotting 
     
-    yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:11 x 6
-    yarp::sig::Matrix* Psa;                // probability of transition from a couple <state,action> to a state dim:66 x 11
-    yarp::sig::Matrix* Q;                  // quality measure of a particular state across different actions dim: 11 x 6
+    yarp::sig::Matrix* rewardStateAction;  // reward coming from a particular combination of state and action dim:NUMSTATE x ACTION
+    yarp::sig::Matrix* Psa;                // probability of transition from a couple <state,action> to a state dim:NUMSTATE * NUMACTION x NUMSTATE
+    yarp::sig::Matrix* Q;                  // quality measure of a particular state across different actions dim: NUMSTATE x NUMACTION
     yarp::sig::Matrix  M;                  // intermediate computation matrix
-    yarp::sig::Matrix* V;                  // value matrix max value of quality measure with reference to one state dim 11 x 1
-    yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim 11 x 1
+    yarp::sig::Matrix* V;                  // value matrix max value of quality measure with reference to one state dim NUMACTION x 1
+    yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim NUMACTION x 1
+    yarp::sig::Matrix* P;                  // copy quality measure of a particular state across different actions dim: NUMSTATE x NUMACTION
 
     const static double j    = 0.99;       // discount factor
     const static double alfa = 0.1;        // learning rate  
@@ -195,7 +196,7 @@ private:
     
     FILE* PsaFile;                         // file that contains the Probability of Transitions
     FILE* logFile;                         // log file for actions and states
-    FILE* valueFile;                       // memory of value function through runs
+    FILE* qualityFile;                       // memory of value function through runs
     FILE* rewardFile;                      // file that stores the reward function for state action
 public:
     /**
@@ -267,8 +268,9 @@ public:
     /**
     * @brief function that performs Q-learning using a perfect random decision of the action to take
     * @return true if and only if the next state (selected) is the sink state
+    * @param state_next next state where the controller ends up
     */
-    bool randomWalk();
+    bool randomWalk(int& state_next);
 
     /**
     * @brief function that performs Q-learning using the built policy.

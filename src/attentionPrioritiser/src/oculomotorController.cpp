@@ -192,50 +192,49 @@ bool oculomotorController::threadInit() {
             *val = (double) x;
             val++; countVal++;
         }
-        printf("saved %d \n", countVal);
+        //printf("saved %d \n", countVal);
         
     }
     
     printf("initialisation of the learning machines \n");
     
 
-    // --------- Reading Value Function -------------------
-    V = new Matrix(1,NUMSTATE);
-    V->zero();
+    // --------- Reading Quality Function -------------------    
+    Q = new Matrix(NUMSTATE,NUMACTION);
+    Q->zero();
     
-    
-    printf("Value Function : reading values from the file.... \n");
-    valueFile = fopen("valueFile.txt","a+");
+    printf("Quality Function : reading values from the file.... \n");
+    qualityFile = fopen("qualityFile.txt","a+");
     n = 0; // number of bytes in the file
-    if (NULL == valueFile) { 
+    if (NULL == qualityFile) { 
         perror ("Error opening file");
     }
     else {
-        while (!feof(valueFile)) {
-            fgetc (valueFile);
+        while (!feof(qualityFile)) {
+            fgetc (qualityFile);
             n++;
         }
         //fclose (pFile);
         printf ("Total number of bytes: %d \n", n-1);
     }
     n = n - 1;
-    rewind(valueFile);
+    rewind(qualityFile);
     //V = new Matrix(NUMSTATE,NUMSTATE);
 
     
-    val = V->data();
+    val = Q->data();
     if(n == 0) {
         // creating new Psa values                
         printf("Value Function : creating new Values Function \n");
         double t; 
         for(int row = 0; row < NUMSTATE; row++ ) {
-            
-            //t = rand() / 10000000000.0 ;
-            t = 0.0;
-            fprintf(valueFile,"%f ",t);
-            *val = t; val++;
-            
-            fprintf(valueFile,"\n");
+            for(int col = 0; col < NUMACTION; col++) {
+                //t = rand() / 10000000000.0 ;
+                t = 0.0;
+                fprintf(qualityFile,"%f ",t);
+                *val = t; val++;
+            }
+            fprintf(qualityFile,"\n");
         }
     }
     else {
@@ -249,8 +248,8 @@ bool oculomotorController::threadInit() {
         float x;
         //double* py = &y[0];
 		while(numRead != -1){
-			numRead = fscanf(valueFile, "%f", &x);
-			printf("numRead %d > %f \n",numRead,(double)x);
+			numRead = fscanf(qualityFile, "%f", &x);
+			//printf("numRead %d > %f \n",numRead,(double)x);
             *val = (double) x;
             val++; countVal++;
         }
@@ -259,10 +258,12 @@ bool oculomotorController::threadInit() {
     
 
     printf("init quality measure and action state \n");
-    // quality of the state-action
-    
-    Q = new Matrix(NUMSTATE,NUMACTION);
-    Q->zero();
+    // other needed matrices
+    V = new Matrix(1,NUMSTATE);
+    V->zero();
+
+    P = new Matrix(NUMSTATE,NUMACTION);
+    P->zero();
 
     //action
     A = new Matrix(1,NUMSTATE);
@@ -331,7 +332,7 @@ bool oculomotorController::policyWalk(){
 }
 
 
-bool oculomotorController::randomWalk() {
+bool oculomotorController::randomWalk(int& statenext) {
     bool ret = false;
     double a = (rand() / 100000000) % NUMACTION ;
     action_now = (int) a;
@@ -370,6 +371,8 @@ bool oculomotorController::randomWalk() {
         //count++;
         ret = true;
     }
+
+    statenext = state_next;
     
     return ret;
 }
@@ -420,154 +423,7 @@ bool oculomotorController::allowStateRequest(int state) {
     return ret;
 }
 
-void oculomotorController::waitForActuator() {
-    printf("----------------wait for actuator in state %d----------------- \n", state_now);
-    bool   outOfWait = false;
-    double timestart = Time::now();
-    double timediff  = 0;
-    double timeout   = 3.0; // time necessary to perform transition even if action is not completed.
-    
-    switch (state_now) {
-    case 0: { //null
-        state_now = 0;
-    }break;
-    case 1: { //predict
-        while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            tp->isPredict(outOfWait);
-        }
 
-        if(outOfWait) {
-            state_now = 1;
-        } 
-        else {
-            state_now = 0;
-        }        
-    }break;
-    case 2: { //fixStableOK
-        //ap->isSaccade(outOfWait);
-        while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isSaccade(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 2;
-        } 
-        else {
-            state_now = 3;
-        }
-    }break;
-    case 3: { //fixStableK0
-        //ap->isSaccade(outOfWait);
-        /*while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isSaccade(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 1;
-        } 
-        else {
-            state_now = 0;
-        }
-        */
-        state_now = 3;
-    }break;
-    case 4: { //trackOK
-        //ap->isSmoothPursuit(outOfWait);
-        while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isSmoothPursuit(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 4;
-        } 
-        else {
-            state_now = 5;
-        }
-    }break;
-    case 5: { //trackKO
-        //ap->isSmoothPursuit(outOfWait);
-        /*while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isSmoothPursuit(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 1;
-        } 
-        else {
-            state_now = 0;
-            }*/
-        state_now =  5;
-    }break;
-    case 6: { //anticipOk
-        //ap->isAnticip(outOfWait);
-        while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isAnticip(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 6;
-        } 
-        else {
-            state_now = 7;
-        } 
-    }break;
-    case 7: { //anticipWait
-        //ap->isAnticip(outOfWait);
-        /*while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isAnticip(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 1;
-        } 
-        else {
-            state_now = 0;
-            }*/
-        state_now = 7;
-    }break;
-    case 8: { //vergenceOK
-        //ap->isVergence(outOfWait);
-        while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isVergence(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 8;
-        } 
-        else {
-            state_now = 9;
-        }
-    }break;
-    case 9: { //vergenceKO
-        //ap->isVergence(outOfWait);
-        /*while ((!outOfWait) || (timediff < timeout)) {
-            timediff =  Time::now() - timestart;
-            ap->isVergence(outOfWait);
-        }
-
-        if(outOfWait) {
-            state_now = 1;
-        } 
-        else {
-            state_now = 0;
-            }*/
-        state_now = 9;
-    }break;    
-    case 10: { //fixating
-        state_now = 10;
-    }break;        
-            
-    }
-    printf(" ------------------- state_now %d ----------- \n", state_now);
-}
 
 void oculomotorController::learningStep() {
     
@@ -579,14 +435,15 @@ void oculomotorController::learningStep() {
     //printf("M = \n");
     //printf("%s \n", M.toString().c_str());
     
+    //calculating the V
     for (int state = 0; state < NUMSTATE; state++ ) {
         double maxQ  = 0;
         int actionMax = 0;
         
         for(int action = 0; action < NUMACTION; action++) {
-            Q->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
-            if(Q->operator()(state, action) > maxQ) {
-                maxQ = Q->operator()(state, action);
+            P->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
+            if(P->operator()(state, action) > maxQ) {
+                maxQ = P->operator()(state, action);
                 actionMax = action;
             }
         }
@@ -604,9 +461,10 @@ void oculomotorController::learningStep() {
     bool actionPerformed;
     printf("_______________ count % d _______________________ \n \n", count);
     //if(count < 30) {
+    int state_next;
     if(true) {
         printf("randomWalk action selection \n");
-        actionPerformed = randomWalk();
+        actionPerformed = randomWalk(state_next);
     }
     else {
         printf("policyWalk action selection \n");
@@ -614,13 +472,21 @@ void oculomotorController::learningStep() {
     }
 
     
-    if(actionPerformed) {
+    if(true) {
         //state_now = 0;
         // 3 .updating the quality function of the next state: TD step
-        Q->operator()(state_next,action_now) = 
-            (1 - alfa) * Q->operator()(state_now,action_now) + 
-            alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
         
+        // calculating the value
+      
+        //Q->operator()(state_next,action_now) = 
+        //    (1 - alfa) * Q->operator()(state_now,action_now) + 
+        //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
+        
+        Q->operator()(state_now,action_now) = 
+             Q->operator()(state_now,action_now) + 
+             alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
+                      - Q->operator()(state_now,action_now)) ;
+
         // 4. calculating the total Payoff
         printf("adding the reward %f \n", rewardStateAction->operator()(state_now, action_now) * jiter );
         totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
@@ -855,33 +721,33 @@ void oculomotorController::threadRelease() {
     for(int row = 0; row < NUMSTATE * NUMACTION; row++ ) {
         for(int col = 0; col < NUMSTATE; col++) {
             t = *val;
-            if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
             fprintf(PsaFile,"%f ",t);
             val++;
         }
         fprintf(PsaFile,"\n");
     }
     // --- saving value function ----------
-    fclose(valueFile);
-    valueFile = fopen("valueFile.txt","w+");
+    fclose(qualityFile);
+    qualityFile = fopen("qualityFile.txt","w+");
     printf("saving updates in value \n");
-    if(0 == V) {
+    if(0 == Q) {
         printf("pointer to value null \n");
     }
-    val = V->data();
+    val = Q->data();
     
     for(int row = 0; row < NUMSTATE; row++ ) {
-        //for(int col = 0; col < 11; col++) {
+        for(int col = 0; col < NUMACTION; col++) {
             t = *val;
-            if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
-            fprintf(valueFile,"%f ",t);
+            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            fprintf(qualityFile,"%f ",t);
             val++;
-            //}
-        fprintf(valueFile,"\n");
+        }
+        fprintf(qualityFile,"\n");
     }
     // --- saving reward function ----------
     fclose(rewardFile);
-    valueFile = fopen("rewardFile.txt","w+");
+    rewardFile = fopen("rewardFile.txt","w+");
     printf("saving updates in value \n");
     if(0 == V) {
         printf("pointer to value null \n");
@@ -891,11 +757,166 @@ void oculomotorController::threadRelease() {
     for(int row = 0; row < NUMSTATE; row++ ) {
         for(int col = 0; col < NUMACTION; col++) {
             t = *val;
-            if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
             fprintf(rewardFile,"%f ",t);
             val++;
         }
         fprintf(rewardFile,"\n");
     }
- 
+
+    delete Q;
+    //delete M;
+    delete V;
+    delete A;
+    delete P;
+}
+
+
+void oculomotorController::waitForActuator() {
+    printf("----------------wait for actuator in state %d----------------- \n", state_now);
+    bool   outOfWait = false;
+    double timestart = Time::now();
+    double timediff  = 0;
+    double timeout   = 3.0; // time necessary to perform transition even if action is not completed.
+    
+    switch (state_now) {
+    case 0: { //null
+        state_now = 0;
+    }break;
+    case 1: { //predict
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            tp->isPredict(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+        }        
+    }break;
+    case 2: { //fixStableOK
+        //ap->isSaccade(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSaccade(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 2;
+        } 
+        else {
+            state_now = 3;
+        }
+    }break;
+    case 3: { //fixStableK0
+        //ap->isSaccade(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSaccade(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+        }
+        */
+        state_now = 3;
+    }break;
+    case 4: { //trackOK
+        //ap->isSmoothPursuit(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSmoothPursuit(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 4;
+        } 
+        else {
+            state_now = 5;
+        }
+    }break;
+    case 5: { //trackKO
+        //ap->isSmoothPursuit(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isSmoothPursuit(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+            }*/
+        state_now =  5;
+    }break;
+    case 6: { //anticipOk
+        //ap->isAnticip(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isAnticip(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 6;
+        } 
+        else {
+            state_now = 7;
+        } 
+    }break;
+    case 7: { //anticipWait
+        //ap->isAnticip(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isAnticip(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+            }*/
+        state_now = 7;
+    }break;
+    case 8: { //vergenceOK
+        //ap->isVergence(outOfWait);
+        while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isVergence(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 8;
+        } 
+        else {
+            state_now = 9;
+        }
+    }break;
+    case 9: { //vergenceKO
+        //ap->isVergence(outOfWait);
+        /*while ((!outOfWait) || (timediff < timeout)) {
+            timediff =  Time::now() - timestart;
+            ap->isVergence(outOfWait);
+        }
+
+        if(outOfWait) {
+            state_now = 1;
+        } 
+        else {
+            state_now = 0;
+            }*/
+        state_now = 9;
+    }break;    
+    case 10: { //fixating
+        state_now = 10;
+    }break;        
+            
+    }
+    printf(" ------------------- state_now %d ----------- \n", state_now);
 }
