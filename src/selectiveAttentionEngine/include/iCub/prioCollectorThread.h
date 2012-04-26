@@ -113,16 +113,16 @@ public:
     /**
      * set the reference to the contrast map port
      */
-    void setContrastMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref){
-        map1Port = ref;
+    void setContrastMap(yarp::sig::ImageOf<yarp::sig::PixelMono> * ref){
+        map1_yarp = ref;
     };
 
     
     /**
      * function that sets reference to the motion map port
      */       
-    void setMotionMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref) {
-        map2Port = ref;
+    void setMotionMap(yarp::sig::ImageOf<yarp::sig::PixelMono> * ref) {
+        map2_yarp = ref;
     };
 
     void setLinearMap(yarp::sig::ImageOf<yarp::sig::PixelMono>* ref ) {

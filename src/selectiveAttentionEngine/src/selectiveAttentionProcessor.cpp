@@ -155,8 +155,10 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     tmp              = new ImageOf <PixelMono>;
     
     
-    map1_yarp        = new ImageOf <PixelMono>; // intensity
-    map2_yarp        = new ImageOf <PixelMono>; // motion
+    //map1_yarp        = new ImageOf <PixelMono>; // intensity
+    //map2_yarp        = new ImageOf <PixelMono>; // motion
+    map1_yarp        = 0;
+    map2_yarp        = 0;
     map3_yarp        = new ImageOf <PixelMono>; // chrominance
     map4_yarp        = new ImageOf <PixelMono>; // orientation
     map5_yarp        = new ImageOf <PixelMono>; // edges 
@@ -212,8 +214,12 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     inImage = new ImageOf<PixelRgb>;
     inImage->resize(width,height);
    
+    map1_yarp        = new ImageOf <PixelMono>;
+    map2_yarp        = new ImageOf <PixelMono>;
+    
     map1_yarp->resize(width,height);
     map1_yarp->zero();
+    
     
     map2_yarp->resize(width,height);
     map2_yarp->zero();
@@ -372,10 +378,10 @@ bool selectiveAttentionProcessor::threadInit(){
 
     habituationStart = Time::now();
 
-    //printf("starting the earlyTrigger \n");
+    printf("starting the earlyTrigger \n");
     earlyTrigger = new prioCollectorThread();
-    earlyTrigger->setContrastMap(&map1Port);
-    earlyTrigger->setMotionMap(&map2Port);
+    earlyTrigger->setContrastMap(map1_yarp);
+    earlyTrigger->setMotionMap(  map2_yarp);
     earlyTrigger->addObserver(*this);
     earlyTrigger->start();
 
@@ -431,8 +437,7 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
     for(int y = 0 ; y < height ; y++){
         for(int x = 0 ; x < halfwidth ; x++){
             
-            //------------- motion ----------------------
-            
+            //------------- motion ----------------------            
             if(counterMotion >= MAXCOUNTERMOTION) {
                 
                 //value = (k2/sumK) *  (double) *pmap2Right ;                   
@@ -639,6 +644,7 @@ void selectiveAttentionProcessor::run(){
             return;
         }
         if(!reinit_flag){
+            printf("initialising in the main thread \n");
             reinitialise(tmp->width(), tmp->height());
             reinit_flag = true;
         }
@@ -699,6 +705,7 @@ void selectiveAttentionProcessor::run(){
 
         // ------------ early stage of response ---------------
         //printf("entering the first stage of vision....\n");
+        earlystage = false;
         if(earlystage) {
             bool ret;
             //ret = earlyFilter(map1_yarp, map2_yarp, &linearCombinationImage);
@@ -1652,16 +1659,18 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
     //cUpdate++;
     //printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
-        //printf("bottle: %s ", arg->toString().c_str());
+        printf("selectiveAttentionProcessor::update:bottle: %s \n", arg->toString().c_str());
         int size = arg->size();
         ConstString name = arg->get(0).asString();
         
         if(!strcmp(name.c_str(),"MOT")) {
             // interrupt coming from motion
+            printf("interrupt received by motion map \n");
         }
 
         if(!strcmp(name.c_str(),"CON")) {
             // interrupt coming from contrast
+            printf("interrupt from connection \n");
         }
 
     }
