@@ -30,6 +30,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/Time.h>
 #include <yarp/sig/all.h>
 #include <iostream>
 #include <string>
@@ -115,6 +116,8 @@ public:
      */
     void setContrastMap(yarp::sig::ImageOf<yarp::sig::PixelMono> * ref){
         map1_yarp = ref;
+        width = ref->width(); 
+        height = ref->height();
     };
 
     

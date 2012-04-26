@@ -75,6 +75,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;                // input port for the 1st cartesian saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
     
+    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiCartPort;             // where the image of cuncurrent inhibition of return can be sent (cartesian)
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiPort;                 // where the image of cuncurrent inhibition of return can be sent 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > testPort;                 // debug mode port for testing the appearance of a particular image in the process
@@ -123,7 +124,9 @@ private:
     bool handFixation;              // flag that indicates whether the robot fixates its hand
     bool earlystage;                // flag that allows the early stage and eventually the reduction in response
     bool secondstage;               // flag that allows the second stage and eventually the reduction in response
+    bool interruptJump;
     yarp::os::Semaphore mutex;      // semaphore for the respond function
+    yarp::os::Semaphore mutexInter; // semaphore for the interruptJump
     
     double z;                                   // distance [m]
     double xm, ym;                              // position of the most salient object in the combination
@@ -524,6 +527,7 @@ public:
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        // logpolar input of the inhibition of return
     yarp::sig::ImageOf<yarp::sig::PixelMono>* edges_yarp;       // yarp image of the composition of all the edges
     yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         // yarp image of regions of skin colour
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationImage;   //
     yarp::sig::ImageOf<yarp::sig::PixelRgb>*  inputLogImage;    // 3channel image representing the saliencymap in logpolar
     
     
@@ -536,7 +540,7 @@ public:
     static const int CONVMAX_TH = 100; //parameter of the findEdges function
     static const int CONVSEQ_TH = 500; //parameter of the findEdges function
     
-    yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombinationImage;     //result of the combination
+    
     yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationPrev;      //result of the combination (previous time sample)
     int centroid_x; //center of gravity of the selective attention (x position)
     int centroid_y; //center of gravity of the selective attention (y position)

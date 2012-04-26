@@ -72,8 +72,7 @@ inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     }
 }
 
-inline void crossAssign(unsigned char* p,int value, int rowsize) {
-    
+inline void crossAssign(unsigned char* p,int value, int rowsize) {    
     // in the conversion between cartesian and logpolar the single maxresponse pixel can go lost
     // enhancing the response of the neightbourhood 
     *p = value;
@@ -134,21 +133,24 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
 
 selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThread(rateThread) {
     this->inImage = new ImageOf<PixelRgb>;
-    earlystage = false;
-    secondstage = false;
-    reinit_flag = false;
-    inputImage_flag = 0;
-    idle = true;
-    interrupted = false;
-    gazePerform = true;
-    handFixation = false;
+    earlystage    = false;
+    secondstage   = false;
+    reinit_flag   = false;
+    
+    idle          = true;
+    interruptJump = false;
+    interrupted   = false;
+    gazePerform   = true;
+    handFixation  = false;
     directSaccade = false;
 
-    cLoop=0;
-    endInt=0;
+    inputImage_flag = 0;
+    cLoop           = 0;
+    endInt          = 0;
+    counterMotion   = 0;
     startInt=Time::now();
     saccadeInterv = 3000; //milliseconds    
-    counterMotion = 0;
+    
 
     // images initialisation
     edges_yarp       = new ImageOf <PixelMono>;
@@ -157,8 +159,11 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     
     //map1_yarp        = new ImageOf <PixelMono>; // intensity
     //map2_yarp        = new ImageOf <PixelMono>; // motion
-    map1_yarp        = 0;
-    map2_yarp        = 0;
+    linearCombinationPrev  = 0;
+    linearCombinationImage = 0;
+    map1_yarp              = 0; //intensity 
+    map2_yarp              = 0; //motion
+    
     map3_yarp        = new ImageOf <PixelMono>; // chrominance
     map4_yarp        = new ImageOf <PixelMono>; // orientation
     map5_yarp        = new ImageOf <PixelMono>; // edges 
@@ -167,7 +172,7 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     cart1_yarp       = new ImageOf <PixelMono>;
     faceMask         = new ImageOf <PixelMono>;
     habituationImage = new ImageOf <PixelMono>;
-    linearCombinationPrev = new ImageOf <PixelMono>;
+    
     
     tmp=new ImageOf<PixelMono>;
     hueMap = 0;
@@ -218,8 +223,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     map2_yarp        = new ImageOf <PixelMono>;
     
     map1_yarp->resize(width,height);
-    map1_yarp->zero();
-    
+    map1_yarp->zero();    
     
     map2_yarp->resize(width,height);
     map2_yarp->zero();
@@ -239,13 +243,14 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     faceMask->resize(width,height);
     faceMask->zero();
 
-    inputLogImage         = new ImageOf<PixelRgb>;   
-    intermCartOut         = new ImageOf<PixelRgb>;
-    motion_yarp           = new ImageOf<PixelMono>;
-    cart1_yarp            = new ImageOf<PixelMono>;
-    inhicart_yarp         = new ImageOf<PixelMono>;
-    habituationImage      = new ImageOf<PixelMono>;
-    linearCombinationPrev = new ImageOf<PixelMono>;
+    inputLogImage          = new ImageOf<PixelRgb>;   
+    intermCartOut          = new ImageOf<PixelRgb>;
+    motion_yarp            = new ImageOf<PixelMono>;
+    cart1_yarp             = new ImageOf<PixelMono>;
+    inhicart_yarp          = new ImageOf<PixelMono>;
+    habituationImage       = new ImageOf<PixelMono>;
+    linearCombinationPrev  = new ImageOf<PixelMono>;
+    linearCombinationImage = new ImageOf<PixelMono>; 
         
     inputLogImage->resize(width,height);
     intermCartOut->resize(xSizeValue,ySizeValue);
@@ -254,14 +259,24 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     inhicart_yarp->resize(xSizeValue,ySizeValue);
     habituationImage->resize(xSizeValue,ySizeValue);
     linearCombinationPrev->resize(xSizeValue,ySizeValue);
+    linearCombinationImage->resize(width,height);
 
     motion_yarp->zero();     
     cart1_yarp->zero();      
     inhicart_yarp->zero();
-    habituationImage->zero();     
+    habituationImage->zero();  
+    linearCombinationImage->zero();
+    //linearCombinationPrev = new ImageOf <PixelMono>;
     linearCombinationPrev->zero();
 
     habituation      = new float[width * height];
+
+    printf("initialisation of the early trigger %d %d \n", width, height);
+    earlyTrigger->setContrastMap(map1_yarp);
+    earlyTrigger->setMotionMap  (map2_yarp);
+    earlyTrigger->setLinearMap  (linearCombinationImage);
+    earlyTrigger->addObserver(*this);
+    earlyTrigger->start();
 }
 
 void selectiveAttentionProcessor::resizeImages(int width,int height) {
@@ -380,10 +395,7 @@ bool selectiveAttentionProcessor::threadInit(){
 
     printf("starting the earlyTrigger \n");
     earlyTrigger = new prioCollectorThread();
-    earlyTrigger->setContrastMap(map1_yarp);
-    earlyTrigger->setMotionMap(  map2_yarp);
-    earlyTrigger->addObserver(*this);
-    earlyTrigger->start();
+    earlyTrigger->setName(getName("").c_str());
 
     return true;
 }
@@ -406,13 +418,13 @@ void selectiveAttentionProcessor::setRobotName(std::string str) {
 }
 
 bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp, ImageOf<PixelMono>* linearCombinationMap) {
-    printf("selectiveAttentionProcessor::earlyFilter \n");
+    
     unsigned char* pmap1Left   = map1_yarp->getRawImage();
     unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
     unsigned char* pmap2Left   = map2_yarp->getRawImage();  
     unsigned char* pmap2Right  = map2_yarp->getRawImage();
-    unsigned char* plinearLeft = linearCombinationImage.getRawImage();
-    unsigned char* plinearRight= linearCombinationImage.getRawImage();
+    unsigned char* plinearLeft = linearCombinationImage->getRawImage();
+    unsigned char* plinearRight= linearCombinationImage->getRawImage();
     int rowSize    = map1_yarp->getRowSize();
     int halfwidth  = width  >> 1;
     
@@ -568,6 +580,7 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
 * active loop of the thread
 */
 void selectiveAttentionProcessor::run(){
+    
     cLoop++;
     //synchronisation with the input image occuring
     if(!interrupted){
@@ -666,8 +679,9 @@ void selectiveAttentionProcessor::run(){
             }
         }
         
-        ImageOf<PixelMono>& linearCombinationImage = linearCombinationPort.prepare();
-        linearCombinationImage.resize(width,height);
+        //ImageOf<PixelMono>& linearCombinationImage = linearCombinationPort.prepare();
+        //linearCombinationImage.resize(width,height);
+        linearCombinationPort.prepare() = *linearCombinationImage;
 
         double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
         unsigned char  maxValue    = 0;
@@ -679,8 +693,8 @@ void selectiveAttentionProcessor::run(){
         unsigned char* pmap3Right  = map3_yarp->getRawImage();
         unsigned char* pmap4Left   = map4_yarp->getRawImage();
         unsigned char* pmap4Right  = map4_yarp->getRawImage();
-        unsigned char* plinearLeft = linearCombinationImage.getRawImage();
-        unsigned char* plinearRight= linearCombinationImage.getRawImage();    
+        unsigned char* plinearLeft = linearCombinationImage->getRawImage();
+        unsigned char* plinearRight= linearCombinationImage->getRawImage();    
         unsigned char* pmap1       = map1_yarp->getRawImage();
         unsigned char* pmap2       = map2_yarp->getRawImage();  
         unsigned char* pmap3       = map3_yarp->getRawImage();
@@ -691,7 +705,7 @@ void selectiveAttentionProcessor::run(){
         unsigned char* pHabituationImage  = habituationImage->getRawImage();
         float * pHabituation              = habituation;
         
-        unsigned char* plinear     = linearCombinationImage.getRawImage();
+        unsigned char* plinear     = linearCombinationImage->getRawImage();
         unsigned char* plinearprev = linearCombinationPrev->getRawImage();
 
         int ratioX     = xSizeValue / XSIZE_DIM;    //introduced the ratio between the dimension of the remapping and 320
@@ -755,10 +769,24 @@ void selectiveAttentionProcessor::run(){
         pmap3Left  += halfwidth - 1;
         pmap4Left  += halfwidth - 1;
 
-        plinearLeft  = linearCombinationImage.getRawImage();
-        plinearRight = linearCombinationImage.getRawImage();
+        plinearLeft  = linearCombinationImage->getRawImage();
+        plinearRight = linearCombinationImage->getRawImage();
         plinearLeft += halfwidth - 1;
         plinearRight+= halfwidth;
+
+        // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        mutexInter.wait();
+        if(interruptJump) {
+            printf("fell into the interruptJump \n");
+            interruptJump = false;
+            mutexInter.post();
+            goto cartSpace;
+        }
+        else{
+            mutexInter.post();
+        }
+        //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
        
         if(secondstage) {
             //printf("activating the second stage of early vision... \n");             
@@ -807,354 +835,380 @@ void selectiveAttentionProcessor::run(){
         }//end of the idle after first two stages of response
         
 
+        // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        mutexInter.wait();
+        if(interruptJump) {
+            printf("fell into the interruptJump \n");
+            interruptJump = false;
+            mutexInter.post();
+            goto cartSpace;
+        }
+        else{
+            mutexInter.post();
+        }
+        //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
         //2. processing of the input images
         //if(!idle) {
         //printf("processing the whole compilation of feature maps \n ");
-            timing = 1.0;
-            if((map5Port.getInputCount())&&(k5!=0)) {
-                tmp = map5Port.read(false);
-                if(tmp!= 0) {
-                    copy_C1R(tmp,map5_yarp);
-                    //idle=false;
-                }
+        timing = 1.0;
+        if((map5Port.getInputCount())&&(k5!=0)) {
+            tmp = map5Port.read(false);
+            if(tmp!= 0) {
+                copy_C1R(tmp,map5_yarp);
+                //idle=false;
             }
-            if((map6Port.getInputCount())&&(k6!=0)) {
-                tmp = map6Port.read(false);
-                if(tmp!= 0) {
-                    copy_C1R(tmp,map6_yarp);
-                    //idle=false;
-                }
+        }
+        if((map6Port.getInputCount())&&(k6!=0)) {
+            tmp = map6Port.read(false);
+            if(tmp!= 0) {
+                copy_C1R(tmp,map6_yarp);
+                //idle=false;
             }
-            
-            if((motionPort.getInputCount())&&(kmotion!=0)) {
-                tmp = motionPort.read(false);
-                if(tmp!= 0) {
-                    copy_8u_C1R(tmp,motion_yarp);
-                    //idle=false;
-                }
+        }
+        
+        if((motionPort.getInputCount())&&(kmotion!=0)) {
+            tmp = motionPort.read(false);
+            if(tmp!= 0) {
+                copy_8u_C1R(tmp,motion_yarp);
+                //idle=false;
             }
-            if((cart1Port.getInputCount())&&(kc1!=0)) {
-                tmp = cart1Port.read(false);
-                if(tmp!= 0) {             
-                    copy_8u_C1R(tmp,cart1_yarp);
-                    //idle=false;
-                }
+        }
+        if((cart1Port.getInputCount())&&(kc1!=0)) {
+            tmp = cart1Port.read(false);
+            if(tmp!= 0) {             
+                copy_8u_C1R(tmp,cart1_yarp);
+                //idle=false;
             }
-            if(inhiPort.getInputCount()) {
-                tmp = inhiPort.read(false);
-                if(tmp!= 0) {
-                    copy_8u_C1R(tmp,inhi_yarp);
-                    //idle=false;
+        }
+        if(inhiPort.getInputCount()) {
+            tmp = inhiPort.read(false);
+            if(tmp!= 0) {
+                copy_8u_C1R(tmp,inhi_yarp);
+                //idle=false;
+            }
+        } 
+
+        //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        mutexInter.wait();
+        if(interruptJump) {
+            printf("fell into the interruptJump \n");
+            interruptJump = false;
+            mutexInter.post();
+            goto cartSpace;
+        }
+        else{
+            mutexInter.post();
+        }
+        //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        
+        // combination of all the feature maps
+        // thresholding for habituation comes at this stage because express response resets habituation
+        //printf("combining the feature maps \n");
+        habituationStop = Time::now();
+        timeVariable    = habituationStop - habituationStart;
+        for(int y = 0 ; y < height ; y++){
+            for(int x = 0 ; x < width ; x++){
+                unsigned char value;
+                if(sumK==0) {
+                    value=0;
                 }
-            }            
-            
-            // combination of all the feature maps
-            // thresholding for habituation comes at this stage because express response resets habituation
-            //printf("combining the feature maps \n");
-            habituationStop = Time::now();
-            timeVariable    = habituationStop - habituationStart;
-            for(int y = 0 ; y < height ; y++){
-                for(int x = 0 ; x < width ; x++){
-                    unsigned char value;
-                    if(sumK==0) {
-                        value=0;
-                    }
-                    else {
-                        double combinValue = (double) ((*pmap1 * (k1/sumK) + *pmap2 * (k2/sumK) + *pmap3 * (k3/sumK) + *pmap4 * (k4/sumK) + *pface * (k5/sumK) + *pmap6 * (k6/sumK)));
-                        value=(unsigned char)ceil(combinValue);
-                    }
-                    
-                    if((value < thresholdHabituation)&&(value > 0)&&(abs((double)*plinearprev - value) <= 20.0)) {                          //&&(abs((double)*plinearprev - value) <= 10.0)
+                else {
+                    double combinValue = (double) ((*pmap1 * (k1/sumK) + *pmap2 * (k2/sumK) + *pmap3 * (k3/sumK) + *pmap4 * (k4/sumK) + *pface * (k5/sumK) + *pmap6 * (k6/sumK)));
+                    value=(unsigned char)ceil(combinValue);
+                }
+                
+                if((value < thresholdHabituation)&&(value > 0)&&(abs((double)*plinearprev - value) <= 20.0)) {                          //&&(abs((double)*plinearprev - value) <= 10.0)
                     //*pHabituationImage = round((double)*pHabituationImage * 2 + 1);                        
-                        if(*pHabituation <= 254.0) {
-                            *pHabituation += exp(timeVariable / 50);
-                        }
-                        *pHabituationImage = round(*pHabituation);
+                    if(*pHabituation <= 254.0) {
+                        *pHabituation += exp(timeVariable / 50);
                     }
-                    else {
-                        //*pHabituationImage = round((double)*pHabituationImage / 2 - 1);  
-                        if(*pHabituation >= 1.0) {
-                            *pHabituation -= exp(timeVariable / 50);
-                        }
-                        *pHabituationImage = round(*pHabituation);
-                        
-                    }                    
-                                        
-                    if(*pHabituation >= 255) {
-                        *pHabituation = 255;
-                    }
-                    else if(*pHabituation <= 0) {
-                        *pHabituation = 0;
-                    }
-                    
-                    // printf("pHabituation %f \n", *pHabituation);
-                    //*pHabituation = 0;                    
-
-                    pmap1++;
-                    pmap2++;
-                    pmap3++;
-                    pmap4++;
-                    pmap5++;
-                    pmap6++;
-                    pface++;
-                    
-                    if(value >= *pHabituationImage) {
-                        *plinear = value - *pHabituationImage;
-                    }
-                    else {
-                        *plinear = 0;
-                    }
-                    double alfa  = 0.6;
-                    *plinearprev =round( 0.6 * (double)*plinearprev + (1 - 0.6) * (double)*plinear);  //saving the actual value in the prevstep image
-                    
-                    //*plinear = max (0, min (255, (int) *plinear));
-                    pHabituationImage++;
-                    pHabituation++;
-                    plinear++;
-                    plinearprev++;
+                    *pHabituationImage = round(*pHabituation);
                 }
-                pmap1       += padding;
-                pmap2       += padding;
-                pmap3       += padding;
-                pmap4       += padding;
-                pmap5       += padding;
-                pmap6       += padding;
-                plinear     += padding;
-                plinearprev += padding;
-                pface       += padding;
-
-                pHabituationImage += padding;
+                else {
+                    //*pHabituationImage = round((double)*pHabituationImage / 2 - 1);  
+                    if(*pHabituation >= 1.0) {
+                        *pHabituation -= exp(timeVariable / 50);
+                    }
+                    *pHabituationImage = round(*pHabituation);
+                    
+                }                    
+                
+                if(*pHabituation >= 255) {
+                    *pHabituation = 255;
+                }
+                else if(*pHabituation <= 0) {
+                    *pHabituation = 0;
+                }
+                
+                // printf("pHabituation %f \n", *pHabituation);
+                //*pHabituation = 0;                    
+                
+                pmap1++;
+                pmap2++;
+                pmap3++;
+                pmap4++;
+                pmap5++;
+                pmap6++;
+                pface++;
+                
+                if(value >= *pHabituationImage) {
+                    *plinear = value - *pHabituationImage;
+                }
+                else {
+                    *plinear = 0;
+                }
+                double alfa  = 0.6;
+                *plinearprev =round( 0.6 * (double)*plinearprev + (1 - 0.6) * (double)*plinear);  //saving the actual value in the prevstep image
+                
+                //*plinear = max (0, min (255, (int) *plinear));
+                pHabituationImage++;
+                pHabituation++;
+                plinear++;
+                plinearprev++;
             }
+            pmap1       += padding;
+            pmap2       += padding;
+            pmap3       += padding;
+            pmap4       += padding;
+            pmap5       += padding;
+            pmap6       += padding;
+            plinear     += padding;
+            plinearprev += padding;
+            pface       += padding;
             
-            
+            pHabituationImage += padding;
+        }
+        
+        
             
             
 //********************************************************************************************
 cartSpace:
-            //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
-            //printf("trasforming the logpolar image into cartesian \n");
-            plinear = linearCombinationImage.getRawImage();
-            int rowsize = linearCombinationImage.getRowSize();
-            unsigned char* pImage = inputLogImage->getRawImage();
-            int padding3C = inputLogImage->getPadding();
-            maxValue = 0;
-            
-            //TODO: reduce the cycle steps if the maximum has been already found            
-            for(int y = 0 ; y < height ; y++) {
-                for(int x = 0 ; x < width ; x++) {                    
-                    *pImage++ = (unsigned char) *plinear;
-                    *pImage++ = (unsigned char) *plinear;
-                    *pImage++ = (unsigned char) *plinear;
-                    plinear++;
+        //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
+        //printf("trasforming the logpolar image into cartesian \n");
+        plinear = linearCombinationImage->getRawImage();
+        int rowsize = linearCombinationImage->getRowSize();
+        unsigned char* pImage = inputLogImage->getRawImage();
+        int padding3C = inputLogImage->getPadding();
+        maxValue = 0;
+        
+        //TODO: reduce the cycle steps if the maximum has been already found            
+        for(int y = 0 ; y < height ; y++) {
+            for(int x = 0 ; x < width ; x++) {                    
+                *pImage++ = (unsigned char) *plinear;
+                *pImage++ = (unsigned char) *plinear;
+                *pImage++ = (unsigned char) *plinear;
+                plinear++;
+            }
+            pImage  += padding3C;
+            plinear += padding;
+        }
+        ImageOf<PixelRgb>  &outputCartImage = imageCartOut.prepare();  // preparing the cartesian output for combination
+        ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
+        ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();  // preparing the cartesian image for inhibith a portion of the saliency map            
+        
+        // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
+        int outputXSize = xSizeValue;
+        int outputYSize = ySizeValue;
+        outputCartImage.resize(outputXSize,outputYSize);
+        threshCartImage.resize(outputXSize,outputYSize);
+        threshCartImage.zero();
+        //printf("outputing cartesian image dimension %d,%d-> %d,%d \n", width,height , intermCartOut->width() , intermCartOut->height());
+        trsf.logpolarToCart(*intermCartOut,*inputLogImage);
+        
+        //code for preparing the inhibition of return 
+        if((inhiCartPort.getInputCount())&&(portionRequestPort.getOutputCount())) {
+            //send information about the portion
+            //double azimuth   =  10.0;
+            //double elevation = -10.0;
+            Vector angles(3);
+            bool b = igaze->getAngles(angles);
+            //printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
+            Bottle* sent     = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addString("fetch");
+            sent->addDouble(angles[0]);
+            sent->addDouble(angles[1]);
+            portionRequestPort.write(*sent, *received);
+            delete sent;
+            delete received;
+        }
+        Time::delay(0.05);
+        if(inhiCartPort.getInputCount()) {            
+            tmp = inhiCartPort.read(false);
+            if(tmp!= 0) {
+                copy_8u_C1R(tmp,inhicart_yarp);
+                //idle=false;
+            }
+        }
+        
+        //find the max in the cartesian image and downsample
+        maxValue=0;            
+        int countMaxes=0;
+        pImage = outputCartImage.getRawImage();
+        unsigned char* pInter    = intermCartOut->getRawImage();
+        unsigned char* pcart1    = cart1_yarp->getRawImage();
+        unsigned char* pinhicart = inhicart_yarp->getRawImage();
+        unsigned char* pmotion   = motion_yarp->getRawImage();
+        int paddingInterm        = intermCartOut->getPadding(); //padding of the colour image
+        int rowSizeInterm        = intermCartOut->getRowSize();
+        //double sumCart=2 - kc1 - kmotion + kmotion + kc1;
+        int paddingCartesian = cart1_yarp->getPadding();
+        int paddingOutput    = outputCartImage.getPadding();
+        //adding cartesian and finding the max value
+        //removed downsampling of the image.
+        
+        
+        maxResponse = false;
+        for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
+            for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
+                //double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
+                double combinValue   = (double)  *pInter;
+                //if(combinValue >= 255.0) {
+                //    printf("maxResponse for combinValue \n");
+                //}
+                if(*pinhicart > 10) {
+                    combinValue = 0;
                 }
-                pImage  += padding3C;
-                plinear += padding;
-            }
-            ImageOf<PixelRgb>  &outputCartImage = imageCartOut.prepare();  // preparing the cartesian output for combination
-            ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
-            ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();  // preparing the cartesian image for inhibith a portion of the saliency map            
-            
-            // the ratio can be used to assure that the saccade command is located in the plane image (320,240)
-            int outputXSize = xSizeValue;
-            int outputYSize = ySizeValue;
-            outputCartImage.resize(outputXSize,outputYSize);
-            threshCartImage.resize(outputXSize,outputYSize);
-            threshCartImage.zero();
-            //printf("outputing cartesian image dimension %d,%d-> %d,%d \n", width,height , intermCartOut->width() , intermCartOut->height());
-            trsf.logpolarToCart(*intermCartOut,*inputLogImage);
-
-            //code for preparing the inhibition of return 
-            if((inhiCartPort.getInputCount())&&(portionRequestPort.getOutputCount())) {
-                //send information about the portion
-                //double azimuth   =  10.0;
-                //double elevation = -10.0;
-                Vector angles(3);
-                bool b = igaze->getAngles(angles);
-                //printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
-                Bottle* sent     = new Bottle();
-                Bottle* received = new Bottle();    
-                sent->clear();
-                sent->addString("fetch");
-                sent->addDouble(angles[0]);
-                sent->addDouble(angles[1]);
-                portionRequestPort.write(*sent, *received);
-                delete sent;
-                delete received;
-            }
-            Time::delay(0.05);
-            if(inhiCartPort.getInputCount()) {            
-                tmp = inhiCartPort.read(false);
-                if(tmp!= 0) {
-                    copy_8u_C1R(tmp,inhicart_yarp);
-                    //idle=false;
+                
+                if(combinValue < 0) {
+                    combinValue = 0;
                 }
-            }
-
-            //find the max in the cartesian image and downsample
-            maxValue=0;            
-            int countMaxes=0;
-            pImage = outputCartImage.getRawImage();
-            unsigned char* pInter    = intermCartOut->getRawImage();
-            unsigned char* pcart1    = cart1_yarp->getRawImage();
-            unsigned char* pinhicart = inhicart_yarp->getRawImage();
-            unsigned char* pmotion   = motion_yarp->getRawImage();
-            int paddingInterm        = intermCartOut->getPadding(); //padding of the colour image
-            int rowSizeInterm        = intermCartOut->getRowSize();
-            //double sumCart=2 - kc1 - kmotion + kmotion + kc1;
-            int paddingCartesian = cart1_yarp->getPadding();
-            int paddingOutput    = outputCartImage.getPadding();
-            //adding cartesian and finding the max value
-            //removed downsampling of the image.
-            
-            
-            maxResponse = false;
-            for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
-                for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
-                    //double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
-                    double combinValue   = (double)  *pInter;
-                    //if(combinValue >= 255.0) {
-                    //    printf("maxResponse for combinValue \n");
-                    //}
-                    if(*pinhicart > 10) {
-                        combinValue = 0;
-                    }
-                    
-                    if(combinValue < 0) {
-                        combinValue = 0;
-                    }
-                    unsigned char value = (unsigned char) ceil(combinValue);
-                    //unsigned char value=*pInter;
-                    if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
-                        *pImage = 0;
-                    }
-                    else {
-                        *pImage = value;
-                    }
-                    if(value == 255) {
-                        maxResponse = true;
-                        printf("maxResponse!!!!!! ");
-                        xm = (float) x;
-                        ym = (float) y;
-                        startInt = 0;      // forces the immediate saccade to the very salient object
-                        break;
-                    }
-                    if(maxValue < value) {
-                        maxValue = value;                 
-                    }
-                    if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
-                       pImage++; pInter++;
-                        *pImage = 255;
-                        pImage++; pInter++;
-                        *pImage = 0;
-                        pImage++; pInter++; 
-                    }
-                    else {
-                        pImage++; pInter++;
-                        *pImage = value;
-                        pImage++; pInter++;
-                        *pImage = value;
-                        pImage++; pInter++;
-                    }
-                    pcart1++;
-                    pmotion++;
-                    pinhicart++;
+                unsigned char value = (unsigned char) ceil(combinValue);
+                //unsigned char value=*pInter;
+                if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
+                    *pImage = 0;
                 }
-                pImage    += paddingOutput;
-                pInter    += paddingInterm;
-                pcart1    += paddingCartesian;
-                pmotion   += paddingCartesian;
-                pinhicart += paddingCartesian;
+                else {
+                    *pImage = value;
+                }
+                if(value == 255) {
+                    maxResponse = true;
+                    printf("maxResponse!!!!!! ");
+                    xm = (float) x;
+                    ym = (float) y;
+                    startInt = 0;      // forces the immediate saccade to the very salient object
+                    break;
+                }
+                if(maxValue < value) {
+                    maxValue = value;                 
+                }
+                if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
+                    pImage++; pInter++;
+                    *pImage = 255;
+                    pImage++; pInter++;
+                    *pImage = 0;
+                    pImage++; pInter++; 
+                }
+                else {
+                    pImage++; pInter++;
+                    *pImage = value;
+                    pImage++; pInter++;
+                    *pImage = value;
+                    pImage++; pInter++;
+                }
+                pcart1++;
+                pmotion++;
+                pinhicart++;
             }
+            pImage    += paddingOutput;
+            pInter    += paddingInterm;
+            pcart1    += paddingCartesian;
+            pmotion   += paddingCartesian;
+            pinhicart += paddingCartesian;
+        }
            
-            if(!maxResponse) {                
-                pImage = outputCartImage.getRawImage();                
-                float distance = 0;
-                bool foundmax=false;
-                //looking for the max value 
-                for(int y = 0 ; y < ySizeValue ; y++) {
-                    for(int x = 0 ; x < xSizeValue ; x++) {
-                        //*pImage=value;
-                        if(*pImage==maxValue) {
-                            if(!foundmax) {
-                                *pImage=255;pImage++;
-                                *pImage=0;pImage++;
-                                *pImage=0;pImage-=2;
+        if(!maxResponse) {                
+            pImage = outputCartImage.getRawImage();                
+            float distance = 0;
+            bool foundmax=false;
+            //looking for the max value 
+            for(int y = 0 ; y < ySizeValue ; y++) {
+                for(int x = 0 ; x < xSizeValue ; x++) {
+                    //*pImage=value;
+                    if(*pImage==maxValue) {
+                        if(!foundmax) {
+                            *pImage=255;pImage++;
+                            *pImage=0;pImage++;
+                            *pImage=0;pImage-=2;
+                            countMaxes++;
+                            xm = (float)x;
+                            ym = (float)y;
+                            foundmax = true;
+                        }
+                        else {
+                            distance = sqrt((x-xm)*(x-xm)+(y-ym)*(y-ym));
+                            // beware:the distance is useful to decrease computation demand but the WTA is selected in the top left hand corner!
+                            if(distance < 10) {
+                                *pImage = 255;
+                                pImage++;
+                                *pImage=0;
+                                pImage++;
+                                *pImage=0;
+                                pImage-=2;
+                                //*pThres = 255; pThres++;
                                 countMaxes++;
-                                xm = (float)x;
-                                ym = (float)y;
-                                foundmax = true;
+                                xm += x;
+                                ym += y;
                             }
                             else {
-                                distance = sqrt((x-xm)*(x-xm)+(y-ym)*(y-ym));
-                                // beware:the distance is useful to decrease computation demand but the WTA is selected in the top left hand corner!
-                                if(distance < 10) {
-                                    *pImage = 255;
-                                    pImage++;
-                                    *pImage=0;
-                                    pImage++;
-                                    *pImage=0;
-                                    pImage-=2;
-                                    //*pThres = 255; pThres++;
-                                    countMaxes++;
-                                    xm += x;
-                                    ym += y;
-                                }
-                                else {
-                                    break;
-                                }
+                                break;
                             }
                         }
-                        pImage+=3;
                     }
-                    pImage += paddingOutput;
+                    pImage+=3;
                 }
-                xm = xm / countMaxes;
-                ym = ym / countMaxes;
+                pImage += paddingOutput;
             }
-
-            //representation of red lines where the WTA point is
-            //representation of the vertical line
-            pImage = outputCartImage.getRawImage();
-            pImage += (int)round(xm) * 3;
-            for(int i = 0 ; i < ySizeValue ; i++) {
-                *pImage = 255; pImage++;
-                *pImage = 0;   pImage++;
-                *pImage = 0;   pImage++;
-                pImage += (xSizeValue - 1) * 3 + paddingOutput;
-            }
-            //representation of the horizontal line
-            pImage = outputCartImage.getRawImage();
-            pImage += (int) round(ym) * (3 * (xSizeValue) + paddingOutput);
-            for(int i = 0 ; i < xSizeValue; i++) {
-                *pImage++ = 255;
-                *pImage++ = 0;
-                *pImage++ = 0;
-            }
-            
-            
-            
-            //representing the depressing gaussian
-            //unsigned char* pThres = threshCartImage.getRawImage();
-            //int paddingThresh = threshCartImage.getPadding();
-            //int rowsizeThresh = threshCartImage.getRowSize();
-            //pThres +=   ((int)ym - 5) * rowsizeThresh + ((int)xm - 5);
-            //calculating the peek value
-            //int dx = 30.0;
-            //int dy = 30.0;
-            //double sx = (dx / 2) / 3 ; //0.99 percentile
-            //double sy = (dy / 2) / 3 ;
-            //double vx = 8; //sx * sx; // variance          
-            //double vy = 8; //sy * sy;
-           
-            //double rho = 0;
-            
-            //double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
-            //double b = -0.5 /(1 - rho * rho);
-            //double k = 1 / (a * exp (b));
-                                     
- 
-            //double f, e, d;            
-
+            xm = xm / countMaxes;
+            ym = ym / countMaxes;
+        }
+        
+        //representation of red lines where the WTA point is
+        //representation of the vertical line
+        pImage = outputCartImage.getRawImage();
+        pImage += (int)round(xm) * 3;
+        for(int i = 0 ; i < ySizeValue ; i++) {
+            *pImage = 255; pImage++;
+            *pImage = 0;   pImage++;
+            *pImage = 0;   pImage++;
+            pImage += (xSizeValue - 1) * 3 + paddingOutput;
+        }
+        //representation of the horizontal line
+        pImage = outputCartImage.getRawImage();
+        pImage += (int) round(ym) * (3 * (xSizeValue) + paddingOutput);
+        for(int i = 0 ; i < xSizeValue; i++) {
+            *pImage++ = 255;
+            *pImage++ = 0;
+            *pImage++ = 0;
+        }
+        
+        
+        
+        //representing the depressing gaussian
+        //unsigned char* pThres = threshCartImage.getRawImage();
+        //int paddingThresh = threshCartImage.getPadding();
+        //int rowsizeThresh = threshCartImage.getRowSize();
+        //pThres +=   ((int)ym - 5) * rowsizeThresh + ((int)xm - 5);
+        //calculating the peek value
+        //int dx = 30.0;
+        //int dy = 30.0;
+        //double sx = (dx / 2) / 3 ; //0.99 percentile
+        //double sy = (dy / 2) / 3 ;
+        //double vx = 8; //sx * sx; // variance          
+        //double vy = 8; //sy * sy;
+        
+        //double rho = 0;
+        
+        //double a = 0.5 / (3.14159 * vx * vy * sqrt(1-rho * rho));
+        //double b = -0.5 /(1 - rho * rho);
+        //double k = 1 / (a * exp (b));
+        
+        
+        //double f, e, d;            
+        
             //double zmax = 0;
             //for the whole blob in this loop
             //for (int r = ym - (dy>>1); r <= ym + (dy>>1); r++) {
@@ -1335,8 +1389,7 @@ cartSpace:
             } //ifgaze Arbiter
             startInt=Time::now();
         } //if diff
-        outPorts();
-        //}// end idle
+        outPorts();        
     }
 }
 
@@ -1652,6 +1705,7 @@ void selectiveAttentionProcessor::suspend() {
 }
 
 void selectiveAttentionProcessor::resume() {
+    printf("resuming processor.... \n");
     RateThread::resume();
 }
 
@@ -1666,6 +1720,12 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"MOT")) {
             // interrupt coming from motion
             printf("interrupt received by motion map \n");
+            xm = (double) arg->get(1).asInt();
+            ym = (double) arg->get(2).asInt();
+            printf("xm %f ym %f \n", xm, ym);
+            mutexInter.wait();
+            interruptJump = true;
+            mutexInter.post();
         }
 
         if(!strcmp(name.c_str(),"CON")) {
