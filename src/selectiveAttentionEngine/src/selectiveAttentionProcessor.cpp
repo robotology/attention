@@ -372,11 +372,12 @@ bool selectiveAttentionProcessor::threadInit(){
 
     habituationStart = Time::now();
 
-
+    //printf("starting the earlyTrigger \n");
     earlyTrigger = new prioCollectorThread();
+    earlyTrigger->setContrastMap(&map1Port);
+    earlyTrigger->setMotionMap(&map2Port);
     earlyTrigger->addObserver(*this);
     earlyTrigger->start();
-    
 
     return true;
 }
@@ -399,6 +400,7 @@ void selectiveAttentionProcessor::setRobotName(std::string str) {
 }
 
 bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp, ImageOf<PixelMono>* linearCombinationMap) {
+    printf("selectiveAttentionProcessor::earlyFilter \n");
     unsigned char* pmap1Left   = map1_yarp->getRawImage();
     unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
     unsigned char* pmap2Left   = map2_yarp->getRawImage();  
@@ -449,7 +451,7 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                     xm = halfwidth + x;
                     ym = y;
                     timing = 0.1;
-                    //printf("Jumping to cartSpace \n");
+                    printf("Jumping to cartSpace via motion \n");
                     //goto cartSpace;
                     return true;
                     //y = height;// for jumping out of the outer loop
@@ -475,7 +477,7 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                     xm = halfwidth - x;
                     ym = y;
                     timing = 0.1;
-                    //printf("Jumping to cartSpace \n");
+                    printf("Jumping to cartSpace via motion \n");
                     //goto cartSpace;
                     return true;
                     //y = height;// for jumping out of the outer loop
@@ -500,7 +502,7 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                 xm = halfwidth + x;
                 ym = y;
                 timing = 0.1;
-                //printf("Jumping to cartSpace \n");
+                printf("Jumping to cartSpace via contrast \n");
                 //goto cartSpace;
                 return true;
                 //y = height;// for jumping out of the outer loop
@@ -520,7 +522,7 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                 xm = halfwidth - x;
                 ym = y;
                 timing = 0.1;
-                //printf("Jumping to cartSpace \n");
+                printf("Jumping to cartSpace via contrast \n");
                 //goto cartSpace;
                 return true;
                 //y = height;// for jumping out of the outer loop
@@ -698,16 +700,14 @@ void selectiveAttentionProcessor::run(){
         // ------------ early stage of response ---------------
         //printf("entering the first stage of vision....\n");
         if(earlystage) {
-            bool ret = earlyFilter(map1_yarp, map2_yarp, &linearCombinationImage);
+            bool ret;
+            //ret = earlyFilter(map1_yarp, map2_yarp, &linearCombinationImage);
             if (ret) {
                 goto cartSpace;
             }
             else {
                 goto cartSpace;
-            }
-            
-
-            
+            }                       
         } //end of the early stage
 
 
@@ -1649,6 +1649,22 @@ void selectiveAttentionProcessor::resume() {
 }
 
 void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
+    //cUpdate++;
+    //printf("ACK. Aware of observable asking for attention \n");
+    if (arg != 0) {
+        //printf("bottle: %s ", arg->toString().c_str());
+        int size = arg->size();
+        ConstString name = arg->get(0).asString();
+        
+        if(!strcmp(name.c_str(),"MOT")) {
+            // interrupt coming from motion
+        }
+
+        if(!strcmp(name.c_str(),"CON")) {
+            // interrupt coming from contrast
+        }
+
+    }
     
 }
 

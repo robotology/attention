@@ -53,8 +53,9 @@ private:
     int timing;
     int k1,k2;                                                                           // weights   
     int width, height;                                                                   // image dimension 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *map1_yarp, *map2_yarp;
-    
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *map1_yarp, *map2_yarp;                     // contrast and motion map
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *linearCombinationImage;
+
 public:
     /**
     * default constructor
@@ -112,12 +113,22 @@ public:
     /**
      * set the reference to the contrast map port
      */
-    void setContrastMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref);
+    void setContrastMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref){
+        map1Port = ref;
+    };
+
     
     /**
      * function that sets reference to the motion map port
      */       
-    void setMotionMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref);
+    void setMotionMap(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >* ref) {
+        map2Port = ref;
+    };
+
+    void setLinearMap(yarp::sig::ImageOf<yarp::sig::PixelMono>* ref ) {
+        linearCombinationImage = ref;
+    };
+    
 
     /**
      * function that navigates in the logpolar image looking for maxima
@@ -126,6 +137,7 @@ public:
      * @param linearCombination combinationof the linear maps
      */
     bool earlyFilter(yarp::sig::ImageOf<yarp::sig::PixelMono>* map1,yarp::sig::ImageOf<yarp::sig::PixelMono>* map2, yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombination, double& xm, double& ym );
+
 
 };
 
