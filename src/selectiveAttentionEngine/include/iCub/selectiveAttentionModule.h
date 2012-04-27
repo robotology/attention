@@ -236,7 +236,8 @@
  * 05/09/11 : adding the habituation image for storing space-dependent behaviour to suppress    author:Rea\n
  * 05/10/11 : adding the fast reaction in saccade from early stage and enabled second stage     author:Rea\n
  * 10/10/11 : enhanced the response in logpolar to allow the presence of the response in cart.  author:Rea\n
- * 25/04/12 : introduced the asynchronous stimulus for motion                                   author: Rea \n
+ * 25/04/12 : introduced the asynchronous stimulus for motion                                   author:Rea\n
+ * 27/04/12 : added the facilitation map in the final linear combination of the feature maps    author:Rea\n  
 */
 
 

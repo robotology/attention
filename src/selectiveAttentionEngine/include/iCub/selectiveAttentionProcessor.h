@@ -75,24 +75,26 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;                // input port for the 1st cartesian saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
     
-    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > facilitPort;              // where the image of salient features in spatiocentric reference frame are sent
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiCartPort;             // where the image of cuncurrent inhibition of return can be sent (cartesian)
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhiPort;                 // where the image of cuncurrent inhibition of return can be sent 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > testPort;                 // debug mode port for testing the appearance of a particular image in the process
         
-    yarp::os::BufferedPort<yarp::os::Bottle> vergencePort;                                      //port dedicated to the communication with the vergence
+    yarp::os::BufferedPort<yarp::os::Bottle > vergencePort;                                      //port dedicated to the communication with the vergence
     yarp::os::BufferedPort<yarp::os::Bottle > centroidPort;                                     // output port where the centroid coordinate is sent
     yarp::os::BufferedPort<yarp::os::Bottle > gazeCoordPort;                                    // port that is dedicated to the streaming out gaze coordinates
     yarp::os::BufferedPort<yarp::os::Bottle > outputCmdPort;                                    // port that is dedicated to sending the typology of the gaze behaviour and some params
     yarp::os::BufferedPort<yarp::os::Bottle > vergenceCmdPort;                                  // port that is dedicated to command of vergence, this helps to calculated the relative depth of the object
     yarp::os::BufferedPort<yarp::os::Bottle > magnoCellFeedback;
+    
+    yarp::os::Port facilitRequestPort;                                                          // port where the correct portion of facilitation is requested
     yarp::os::Port portionRequestPort;                                                          // port dedicated to the process of requestion the correct portion in the mosaic
     yarp::os::Port feedbackPort;                                                                // port necessary to send back command to the preattentive processors
     
     
     //yarp::sig::ImageOf<yarp::sig::PixelMono>* outputImagePlane; //temp variable for plane extraction;
-    int cLoop;      //counter of the loop
-    int camSel;     //select the image plane: left or right ( 0: left, 1: right )
+    int cLoop;                                                  //counter of the loop
+    int camSel;                                                 //select the image plane: left or right ( 0: left, 1: right )
     int counterMotion; 
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *image_out;         // temp variable for plane extraction;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *image_tmp;        // temp variable for plane extraction;
@@ -162,9 +164,50 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono>* habituationImage; // mono image for habituation process
     float* habituation; // mono image for habituation process
 
+
+    yarp::sig::ImageOf<yarp::sig::PixelRgb >* inImage;          // input image  of the processing
+    yarp::sig::ImageOf<yarp::sig::PixelRgb >* inColourImage;    // input image  of the processing
+    yarp::sig::ImageOf<yarp::sig::PixelRgb >* inputLogImage;    // 3channel image representing the saliencymap in logpolar
+    
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* hueMap;           // hue map reference
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* satMap;           // saturation map reference
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map1_yarp;        // saliency map coming from the 1st source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map2_yarp;        // saliency map coming from the 2nd source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map3_yarp;        // saliency map coming from the 3rd source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map4_yarp;        // saliency map coming from the 4th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map5_yarp;        // saliency map coming from the 5th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* map6_yarp;        // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* motion_yarp;      // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhicart_yarp;    // cartesian input of the inhibition of return
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* facilit_yarp;     // cartesian image of the facilitation paradigm
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        // logpolar input of the inhibition of return
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* edges_yarp;       // yarp image of the composition of all the edges
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         // yarp image of regions of skin colour
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationImage;   //image result of linear combination of all the feature maps
+   
+    
+    
+    IplImage *cvImage16; // tmp IPLImage necessary for edge detection 16 bit
+    IplImage *cvImage8; //tmp IPLImage necessary for edge detection 16 bit
+    //Ipp8u* im_out;
+
+    int inputImage_flag;  //processor flag
+    
+    static const int CONVMAX_TH = 100; //parameter of the findEdges function
+    static const int CONVSEQ_TH = 500; //parameter of the findEdges function
+    
+    
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationPrev;      //result of the combination (previous time sample)
+    int centroid_x; //center of gravity of the selective attention (x position)
+    int centroid_y; //center of gravity of the selective attention (y position)
+    
+    
+    prioCollectorThread* earlyTrigger;
+
     static const int thresholdHabituation = 240;
 
-    prioCollectorThread* earlyTrigger;
+    
     
 public:
     /**
@@ -510,40 +553,6 @@ public:
      */
     void copy_C1R(yarp::sig::ImageOf<yarp::sig::PixelMono>* src, yarp::sig::ImageOf<yarp::sig::PixelMono>* dest);
     
-    
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> * inImage;          // input image  of the processing
-    yarp::sig::ImageOf<yarp::sig::PixelRgb> * inColourImage;    // input image  of the processing
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* hueMap;           // hue map reference
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* satMap;           // saturation map reference
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map1_yarp;        // saliency map coming from the 1st source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map2_yarp;        // saliency map coming from the 2nd source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map3_yarp;        // saliency map coming from the 3rd source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map4_yarp;        // saliency map coming from the 4th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map5_yarp;        // saliency map coming from the 5th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* map6_yarp;        // saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* motion_yarp;      // saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       // saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhicart_yarp;    // cartesian input of the inhibition of return
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        // logpolar input of the inhibition of return
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* edges_yarp;       // yarp image of the composition of all the edges
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         // yarp image of regions of skin colour
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationImage;   //
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>*  inputLogImage;    // 3channel image representing the saliencymap in logpolar
-    
-    
-    IplImage *cvImage16; // tmp IPLImage necessary for edge detection 16 bit
-    IplImage *cvImage8; //tmp IPLImage necessary for edge detection 16 bit
-    //Ipp8u* im_out;
-
-    int inputImage_flag;  //processor flag
-    
-    static const int CONVMAX_TH = 100; //parameter of the findEdges function
-    static const int CONVSEQ_TH = 500; //parameter of the findEdges function
-    
-    
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationPrev;      //result of the combination (previous time sample)
-    int centroid_x; //center of gravity of the selective attention (x position)
-    int centroid_y; //center of gravity of the selective attention (y position)
     
     
 };

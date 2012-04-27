@@ -98,12 +98,13 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
     int channels = src->getPixelCode();
     int width = src->width();
     int height = src->height();
+    /*
     unsigned char* psrc = src->getRawImage();
     unsigned char* pdest = dest->getRawImage();
     unsigned char* pface = faceMask->getRawImage();
     for (int r=0; r < height; r++) {
         for (int c=0; c < width; c++) {
-            /*
+            
             if(sat) {
                 if((*psrc>200)&&(*psrc<240)) {
                     *pface = (unsigned char) 127;
@@ -121,7 +122,7 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
                 }
             }
             pface++;
-            */
+            
             
             *pdest++ = (unsigned char) *psrc++;
         }
@@ -129,6 +130,7 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
         psrc += padding;
         pface += padding;
     }
+    */
 }
 
 selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThread(rateThread) {
@@ -1017,7 +1019,7 @@ cartSpace:
         //printf("outputing cartesian image dimension %d,%d-> %d,%d \n", width,height , intermCartOut->width() , intermCartOut->height());
         trsf.logpolarToCart(*intermCartOut,*inputLogImage);
         
-        //code for preparing the inhibition of return 
+        //-------------------------- code for preparing the inhibition of return  --------------------------
         if((inhiCartPort.getInputCount())&&(portionRequestPort.getOutputCount())) {
             //send information about the portion
             //double azimuth   =  10.0;
@@ -1043,6 +1045,31 @@ cartSpace:
                 //idle=false;
             }
         }
+        //---------------------- code for preparing facilitation map ------------------------------------------
+        if((facilitPort.getInputCount())&&(facilitRequestPort.getOutputCount())) {
+            Vector angles(3);
+            bool b = igaze->getAngles(angles);
+            //printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
+            Bottle* sent     = new Bottle();
+            Bottle* received = new Bottle();
+            sent->clear();
+            sent->addString("fetch");
+            sent->addDouble(angles[0]);
+            sent->addDouble(angles[1]);
+            portionRequestPort.write(*sent, *received);
+            delete sent;
+            delete received;
+        }        
+        Time::delay(0.05);
+        if(facilitPort.getInputCount()) {            
+            tmp = facilitPort.read(false);
+            if(tmp!= 0) {
+                copy_8u_C1R(tmp,facilit_yarp);
+                //idle=false;
+            }
+        }
+        //----------------------------------------------------------------------------------------------------
+        
         
         //find the max in the cartesian image and downsample
         maxValue=0;            
