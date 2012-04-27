@@ -278,7 +278,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     earlyTrigger->setMotionMap  (map2_yarp);
     earlyTrigger->setLinearMap  (linearCombinationImage);
     earlyTrigger->addObserver(*this);
-    //earlyTrigger->start();
+    earlyTrigger->start();
 }
 
 void selectiveAttentionProcessor::resizeImages(int width,int height) {
@@ -685,7 +685,8 @@ void selectiveAttentionProcessor::run(){
         //linearCombinationImage.resize(width,height);
         linearCombinationPort.prepare() = *linearCombinationImage;
 
-        double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
+        //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
+        double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  
         unsigned char  maxValue    = 0;
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
         unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
@@ -777,17 +778,17 @@ void selectiveAttentionProcessor::run(){
         plinearRight+= halfwidth;
 
         // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        //mutexInter.wait();
-        //if(interruptJump) {
-        //    printf("fell into the interruptJump \n");
-        //    interruptJump = false;
-        //    mutexInter.post();
-        //    printf("mutexInter.post \n");
-        //    goto cartSpace;
-        // }
-        //else{
-        //    mutexInter.post();
-        //}
+        mutexInter.wait();
+        if(interruptJump) {
+            printf("fell into the interruptJump \n");
+            //interruptJump = false;
+            mutexInter.post();
+            printf("mutexInter.post \n");
+            goto cartSpace;
+        }
+        else{
+            mutexInter.post();
+        }
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
         
         //printf("activating the second stage of early vision... \n"); 
@@ -797,7 +798,10 @@ void selectiveAttentionProcessor::run(){
             for(int y = 0 ; y < height; y++){
                 for(int x = 0 ; x < halfwidth; x++){
                     //unsigned char value = *pmap1++ + *pmap2++ + *pmap3++ + *pmap4++;
-                    double value = (double) (*pmap1Right++ * (k1/sumK) + *pmap2Right++ * (k2/sumK) + *pmap3Right++ * (k3/sumK) + *pmap4Right++ * (k4/sumK));
+                    double value = (double) (*pmap1Right++ * (k1/sumK) +
+                                             *pmap2Right++ * (k2/sumK) +
+                                             *pmap3Right++ * (k3/sumK) +
+                                             *pmap4Right++ * (k4/sumK));
                     *plinearRight++ = value;
                     if (value >= 255) {
                         printf("max in the second stage right \n");
@@ -810,7 +814,10 @@ void selectiveAttentionProcessor::run(){
                         //break;
                     } 
 
-                    value = (double) (*pmap1Left-- * (k1/sumK) + *pmap2Left-- * (k2/sumK) + *pmap3Left-- * (k3/sumK) + *pmap4Left-- * (k4/sumK));
+                    value = (double) (*pmap1Left-- * (k1/sumK) +
+                                      *pmap2Left-- * (k2/sumK) +
+                                      *pmap3Left-- * (k3/sumK) +
+                                      *pmap4Left-- * (k4/sumK));
                     *plinearLeft-- = value;
                     if (value >= 255) {
                         printf("max in the second stage left \n");
@@ -839,17 +846,17 @@ void selectiveAttentionProcessor::run(){
         
 
         // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        //mutexInter.wait();
-        //if(interruptJump) {
-        //    printf("fell into the interruptJump \n");
-        //    interruptJump = false;
-        //    mutexInter.post();
-        //    printf("mutexInter.post \n");
-        //    goto cartSpace;
-        //}
-        //else{
-        //    mutexInter.post();
-        //}
+        mutexInter.wait();
+        if(interruptJump) {
+            printf("fell into the interruptJump \n");
+            //interruptJump = false;
+            mutexInter.post();
+            printf("mutexInter.post \n");
+            goto cartSpace;
+        }
+        else{
+            mutexInter.post();
+        }
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
         //2. processing of the input images
@@ -894,17 +901,17 @@ void selectiveAttentionProcessor::run(){
         } 
 
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        //mutexInter.wait();
-        //if(interruptJump) {
-        //    printf("fell into the interruptJump \n");
-        //    interruptJump = false;
-        //    mutexInter.post();
-        //    printf("mutexInter.post \n");
-        //    goto cartSpace;
-        //}
-        //else{
-        //    mutexInter.post();
-        //}
+        mutexInter.wait();
+        if(interruptJump) {
+            printf("fell into the interruptJump \n");
+            //interruptJump = false;
+            mutexInter.post();
+            printf("mutexInter.post \n");
+            goto cartSpace;
+        }
+        else{
+            mutexInter.post();
+        }
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
         
         // combination of all the feature maps
@@ -995,6 +1002,12 @@ void selectiveAttentionProcessor::run(){
             
 //********************************************************************************************
 cartSpace:
+
+        if(interruptJump) {
+            interruptJump = false;
+            printf("right at the cartSpace \n");
+        }
+
         //trasform the logpolar to cartesian (the logpolar image has to be 3channel image)
         //printf("trasforming the logpolar image into cartesian \n");
         plinear = linearCombinationImage->getRawImage();
@@ -1025,7 +1038,10 @@ cartSpace:
         threshCartImage.resize(outputXSize,outputYSize);
         threshCartImage.zero();
         //printf("outputing cartesian image dimension %d,%d-> %d,%d \n", width,height , intermCartOut->width() , intermCartOut->height());
+
+        // =============== LOGPOLAR TRASFORMATION ===================
         trsf.logpolarToCart(*intermCartOut,*inputLogImage);
+        // ==========================================================
         
         //-------------------------- code for preparing the inhibition of return  --------------------------
         if((inhiCartPort.getInputCount())&&(portionRequestPort.getOutputCount())) {
@@ -1381,7 +1397,7 @@ cartSpace:
                 
                 if(outputCmdPort.getOutputCount()){
                     if(!handFixation) {            
-                        printf("sending saccade mono \n");
+                        printf("sending saccade mono %f \n", timing);
                         Bottle& commandBottle=outputCmdPort.prepare();
                         commandBottle.clear();
                         commandBottle.addString("SAC_MONO");
@@ -1756,14 +1772,15 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
         
         if(!strcmp(name.c_str(),"MOT")) {
             // interrupt coming from motion
-            printf("interrupt received by motion map \n");
-            //xm = (double) arg->get(1).asInt();
-            //ym = (double) arg->get(2).asInt();
+            //printf("interrupt received by motion map \n");
+            xm = (double) arg->get(1).asInt();
+            ym = (double) arg->get(2).asInt();
+            timing = 0.1;
             //printf("xm %f ym %f \n", xm, ym);
             
-            //mutexInter.wait();
-            //interruptJump = true;
-            //mutexInter.post();
+            mutexInter.wait();
+            interruptJump = true;
+            mutexInter.post();
         }
 
         if(!strcmp(name.c_str(),"CON")) {
