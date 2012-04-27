@@ -278,7 +278,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     earlyTrigger->setMotionMap  (map2_yarp);
     earlyTrigger->setLinearMap  (linearCombinationImage);
     earlyTrigger->addObserver(*this);
-    earlyTrigger->start();
+    //earlyTrigger->start();
 }
 
 void selectiveAttentionProcessor::resizeImages(int width,int height) {
@@ -582,7 +582,7 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
 * active loop of the thread
 */
 void selectiveAttentionProcessor::run(){
-    
+ 
     cLoop++;
     //synchronisation with the input image occuring
     if(!interrupted){
@@ -652,7 +652,7 @@ void selectiveAttentionProcessor::run(){
             */
         }
     
-        //printf("reading input signals \n");
+        printf("reading input signals \n");
         // reading intensity map
         tmp=map1Port.read(false);
         if((tmp == 0)&&(!reinit_flag)){
@@ -720,7 +720,7 @@ void selectiveAttentionProcessor::run(){
         double timeVariable;
 
         // ------------ early stage of response ---------------
-        //printf("entering the first stage of vision....\n");
+        printf("entering the first stage of vision....\n");
         earlystage = false;
         if(earlystage) {
             bool ret;
@@ -777,21 +777,22 @@ void selectiveAttentionProcessor::run(){
         plinearRight+= halfwidth;
 
         // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        mutexInter.wait();
-        if(interruptJump) {
-            printf("fell into the interruptJump \n");
-            interruptJump = false;
-            mutexInter.post();
-            goto cartSpace;
-        }
-        else{
-            mutexInter.post();
-        }
+        //mutexInter.wait();
+        //if(interruptJump) {
+        //    printf("fell into the interruptJump \n");
+        //    interruptJump = false;
+        //    mutexInter.post();
+        //    printf("mutexInter.post");
+        //    goto cartSpace;
+        // }
+        //else{
+        //    mutexInter.post();
+        //}
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-       
+        
+        printf("activating the second stage of early vision... \n"); 
         if(secondstage) {
-            //printf("activating the second stage of early vision... \n");             
+                        
             //------ second stage of response  ----------------            
             for(int y = 0 ; y < height; y++){
                 for(int x = 0 ; x < halfwidth; x++){
@@ -838,21 +839,22 @@ void selectiveAttentionProcessor::run(){
         
 
         // $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        mutexInter.wait();
-        if(interruptJump) {
-            printf("fell into the interruptJump \n");
-            interruptJump = false;
-            mutexInter.post();
-            goto cartSpace;
-        }
-        else{
-            mutexInter.post();
-        }
+        //mutexInter.wait();
+        //if(interruptJump) {
+        //    printf("fell into the interruptJump \n");
+        //    interruptJump = false;
+        //    mutexInter.post();
+        //    printf("mutexInter.post");
+        //    goto cartSpace;
+        //}
+        //else{
+        //    mutexInter.post();
+        //}
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
         //2. processing of the input images
         //if(!idle) {
-        //printf("processing the whole compilation of feature maps \n ");
+        printf("processing the whole compilation of feature maps \n ");
         timing = 1.0;
         if((map5Port.getInputCount())&&(k5!=0)) {
             tmp = map5Port.read(false);
@@ -892,16 +894,16 @@ void selectiveAttentionProcessor::run(){
         } 
 
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        mutexInter.wait();
-        if(interruptJump) {
-            printf("fell into the interruptJump \n");
-            interruptJump = false;
-            mutexInter.post();
-            goto cartSpace;
-        }
-        else{
-            mutexInter.post();
-        }
+        //mutexInter.wait();
+        //if(interruptJump) {
+        //    printf("fell into the interruptJump \n");
+        //    interruptJump = false;
+        //    mutexInter.post();
+        //    goto cartSpace;
+        //}
+        //else{
+        //    mutexInter.post();
+        //}
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
         
         // combination of all the feature maps
@@ -1046,6 +1048,7 @@ cartSpace:
             }
         }
         //---------------------- code for preparing facilitation map ------------------------------------------
+        /*
         if((facilitPort.getInputCount())&&(facilitRequestPort.getOutputCount())) {
             Vector angles(3);
             bool b = igaze->getAngles(angles);
@@ -1068,6 +1071,7 @@ cartSpace:
                 //idle=false;
             }
         }
+        */
         //----------------------------------------------------------------------------------------------------
         
         
@@ -1750,9 +1754,10 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
             xm = (double) arg->get(1).asInt();
             ym = (double) arg->get(2).asInt();
             printf("xm %f ym %f \n", xm, ym);
-            mutexInter.wait();
-            interruptJump = true;
-            mutexInter.post();
+            
+            //mutexInter.wait();
+            //interruptJump = true;
+            //mutexInter.post();
         }
 
         if(!strcmp(name.c_str(),"CON")) {
