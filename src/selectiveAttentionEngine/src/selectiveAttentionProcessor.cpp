@@ -1769,27 +1769,29 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
         printf("selectiveAttentionProcessor::update:bottle: %s \n", arg->toString().c_str());
         int size = arg->size();
         ConstString name = arg->get(0).asString();
-        
-        if(!strcmp(name.c_str(),"MOT")) {
-            // interrupt coming from motion
-            //printf("interrupt received by motion map \n");
-            xm = (double) arg->get(1).asInt();
-            ym = (double) arg->get(2).asInt();
-            timing = 0.1;
-            //printf("xm %f ym %f \n", xm, ym);
+        printf("counterMotion %d \n", counterMotion);
+        if(counterMotion > MAXCOUNTERMOTION) {
+            if(!strcmp(name.c_str(),"MOT")) {
+                // interrupt coming from motion
+                //printf("interrupt received by motion map \n");
+                xm = (double) arg->get(1).asInt();
+                ym = (double) arg->get(2).asInt();
+                timing = 0.1;
+                printf("------------------------->xm %f ym %f \n", xm, ym);
+                
+                cvCircle(linearCombinationImage->getIplImage(), cvPoint(10,10), 100, cvScalar(255),-1);
+                
+                mutexInter.wait();
+                interruptJump = true;
+                mutexInter.post();
+            }
             
-            mutexInter.wait();
-            interruptJump = true;
-            mutexInter.post();
-        }
-
-        if(!strcmp(name.c_str(),"CON")) {
-            // interrupt coming from contrast
-            printf("interrupt from connection \n");
-        }
-
-    }
-    
+            if(!strcmp(name.c_str(),"CON")) {
+                // interrupt coming from contrast
+                printf("interrupt from connection \n");
+            }
+        }//end maxcountermotion
+    }//end arg!=0
 }
 
 

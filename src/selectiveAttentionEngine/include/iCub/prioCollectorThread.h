@@ -139,7 +139,7 @@ public:
      * @param map2 map coming from motion feature map
      * @param linearCombination combinationof the linear maps
      */
-    bool earlyFilter(yarp::sig::ImageOf<yarp::sig::PixelMono>* map1,yarp::sig::ImageOf<yarp::sig::PixelMono>* map2, yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombination, double& xm, double& ym );
+    bool earlyFilter(yarp::sig::ImageOf<yarp::sig::PixelMono>* map1,yarp::sig::ImageOf<yarp::sig::PixelMono>* map2, yarp::sig::ImageOf<yarp::sig::PixelMono> linearCombination, double& xm, double& ym );
 
 
 };
