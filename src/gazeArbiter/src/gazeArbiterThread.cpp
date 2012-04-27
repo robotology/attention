@@ -224,6 +224,7 @@ bool gazeArbiterThread::threadInit() {
     }
 
     // get camera projection matrix from the configFile
+    printf("get Camera configuration \n");
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
         Matrix &Prj = *PrjL;
         cxl=Prj(0,2);
@@ -233,6 +234,7 @@ bool gazeArbiterThread::threadInit() {
     }
     
     //initializing gazecontrollerclient
+    printf("initialising gazeControllerClient \n");
     Property option;
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");

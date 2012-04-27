@@ -109,7 +109,6 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     //blobFinder->reinitialise(interThread->img->width(),interThread->img->height());
     
 
-
     /* get the number of angles */
 
     numberOfAngles        = rf.check("angles",

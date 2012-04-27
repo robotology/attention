@@ -98,13 +98,13 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
     int channels = src->getPixelCode();
     int width = src->width();
     int height = src->height();
-    /*
+    
     unsigned char* psrc = src->getRawImage();
     unsigned char* pdest = dest->getRawImage();
     unsigned char* pface = faceMask->getRawImage();
     for (int r=0; r < height; r++) {
         for (int c=0; c < width; c++) {
-            
+            /*
             if(sat) {
                 if((*psrc>200)&&(*psrc<240)) {
                     *pface = (unsigned char) 127;
@@ -122,7 +122,7 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
                 }
             }
             pface++;
-            
+            */
             
             *pdest++ = (unsigned char) *psrc++;
         }
@@ -130,7 +130,7 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
         psrc += padding;
         pface += padding;
     }
-    */
+    
 }
 
 selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThread(rateThread) {
@@ -652,7 +652,7 @@ void selectiveAttentionProcessor::run(){
             */
         }
     
-        printf("reading input signals \n");
+        //printf("reading input signals %f %f \n", k1, k2);
         // reading intensity map
         tmp=map1Port.read(false);
         if((tmp == 0)&&(!reinit_flag)){
@@ -720,7 +720,7 @@ void selectiveAttentionProcessor::run(){
         double timeVariable;
 
         // ------------ early stage of response ---------------
-        printf("entering the first stage of vision....\n");
+        //printf("entering the first stage of vision....\n");
         earlystage = false;
         if(earlystage) {
             bool ret;
@@ -782,7 +782,7 @@ void selectiveAttentionProcessor::run(){
         //    printf("fell into the interruptJump \n");
         //    interruptJump = false;
         //    mutexInter.post();
-        //    printf("mutexInter.post");
+        //    printf("mutexInter.post \n");
         //    goto cartSpace;
         // }
         //else{
@@ -790,7 +790,7 @@ void selectiveAttentionProcessor::run(){
         //}
         //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
         
-        printf("activating the second stage of early vision... \n"); 
+        //printf("activating the second stage of early vision... \n"); 
         if(secondstage) {
                         
             //------ second stage of response  ----------------            
@@ -844,7 +844,7 @@ void selectiveAttentionProcessor::run(){
         //    printf("fell into the interruptJump \n");
         //    interruptJump = false;
         //    mutexInter.post();
-        //    printf("mutexInter.post");
+        //    printf("mutexInter.post \n");
         //    goto cartSpace;
         //}
         //else{
@@ -854,7 +854,7 @@ void selectiveAttentionProcessor::run(){
 
         //2. processing of the input images
         //if(!idle) {
-        printf("processing the whole compilation of feature maps \n ");
+        //printf("processing the whole compilation of feature maps %f %f  \n ", k5, k6);
         timing = 1.0;
         if((map5Port.getInputCount())&&(k5!=0)) {
             tmp = map5Port.read(false);
@@ -899,6 +899,7 @@ void selectiveAttentionProcessor::run(){
         //    printf("fell into the interruptJump \n");
         //    interruptJump = false;
         //    mutexInter.post();
+        //    printf("mutexInter.post \n");
         //    goto cartSpace;
         //}
         //else{
@@ -918,7 +919,12 @@ void selectiveAttentionProcessor::run(){
                     value=0;
                 }
                 else {
-                    double combinValue = (double) ((*pmap1 * (k1/sumK) + *pmap2 * (k2/sumK) + *pmap3 * (k3/sumK) + *pmap4 * (k4/sumK) + *pface * (k5/sumK) + *pmap6 * (k6/sumK)));
+                    double combinValue = (double) ((*pmap1 * (k1/sumK) 
+                                                    + *pmap2 * (k2/sumK) 
+                                                    + *pmap3 * (k3/sumK) 
+                                                    + *pmap4 * (k4/sumK) 
+                                                    + *pface * (k5/sumK) 
+                                                    + *pmap6 * (k6/sumK)));
                     value=(unsigned char)ceil(combinValue);
                 }
                 
@@ -1751,9 +1757,9 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"MOT")) {
             // interrupt coming from motion
             printf("interrupt received by motion map \n");
-            xm = (double) arg->get(1).asInt();
-            ym = (double) arg->get(2).asInt();
-            printf("xm %f ym %f \n", xm, ym);
+            //xm = (double) arg->get(1).asInt();
+            //ym = (double) arg->get(2).asInt();
+            //printf("xm %f ym %f \n", xm, ym);
             
             //mutexInter.wait();
             //interruptJump = true;
