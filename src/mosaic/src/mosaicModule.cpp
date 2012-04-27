@@ -42,6 +42,17 @@ using namespace std;
 
 bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
+    if(rf.check("help")) {
+        printf("HELP \n");
+        printf("=====");
+        printf("--name  : name of the robot \n");
+        printf("--robot : reference to the robot \n");
+        printf("--widthOrig  : original dimension width \n");
+        printf("--heightOrig : original dimension height \n");
+        printf("--config     : config file for camera information \n");
+        printf("--width      : width  dimension \n");
+        printf("--height     : height dimension \n");
+    }
 
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
