@@ -668,7 +668,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
 
 
 void gazeArbiterThread::run() {
-    visualCorrection = true;
+    visualCorrection =false;
     Bottle& status = statusPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
@@ -821,10 +821,10 @@ void gazeArbiterThread::run() {
                 }
                 
                 printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
-
+                printf("visualCorrection %d \n", visualCorrection);
                 if (!isOnWings) {
                     printf("starting mono saccade with NO offset \n");
-                    if(tracker->getInputCount()) {
+                    if((tracker->getInputCount()) || (!visualCorrection)) {
                         printf("tracker input image ready \n");
                         double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
@@ -836,6 +836,7 @@ void gazeArbiterThread::run() {
                         timeout = 0;
                         timeoutStart = Time::now();
                         while ((dist > 8) && (timeout < TIMEOUT_CONST)) {
+                            printf("inside the while \n");
                             timeoutStop = Time::now();
                             timeout = timeoutStop - timeoutStart;
                             if(visualCorrection){
@@ -849,7 +850,7 @@ void gazeArbiterThread::run() {
                             px(1) = v;
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            Time::delay(0.01);
+                            Time::delay(0.1);
                             igaze->checkMotionDone(&done);
                             dist = 10;
                             

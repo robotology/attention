@@ -264,7 +264,10 @@ public:
     /**
     * function that sets the value of the visualCorrection for a visual feedback in saccade
     */
-    void setVisualFeedback(bool value) { visualCorrection = availableVisualCorr?value:false; };
+    void setVisualFeedback(bool value) { //visualCorrection = availableVisualCorr?value:false;
+        visualCorrection = value;
+        printf("visualAttention: value assigned %d \n",visualCorrection);
+    };
 
     /**
      * function that sets the value head pitch to which the head is blocked
