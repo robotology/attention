@@ -140,7 +140,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0;
     trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0;
     trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0;
-    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 0.0 ; trans(3,3) = 1.0;
+    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 1.0 ; trans(3,3) = 1.0;
     stateTransition=trans;
 
     Vector req(4);
@@ -1057,7 +1057,7 @@ void gazeArbiterThread::run() {
     else if(allowedTransitions(2)>0) {
         // ----------------  SMOOTH PURSUIT -----------------------  
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
-        printf(" in RUN of gazeArbiter thread Smooth Pursuit \n");
+        printf(" in RUN of gazeArbiter thread Smooth Pursuit %f %f \n", uVel, vVel);
         printf("velocity profile %f %f \n", uVel, vVel);
         //initilisation
         int c = 0;
@@ -1065,24 +1065,56 @@ void gazeArbiterThread::run() {
         Vector target(2);
         int camSel=0;   // select the image plane: 0 (left), 1 (right)
         Vector px(2);   // specify the pixel where to look
-        px[0] = cxl + uVel;
-        px[1] = cyl + vVel;        
+        px[0] = (double) cxl + uVel;
+        px[1] = (double) cyl + vVel;        
         double z=1.0;   // distance [m] of the object from the image plane (extended to infinity): yes, you probably need to guess, but it works pretty robustly
+        printf("velocity on the retina (%d %d)->(%f %f) \n",cxl,cyl,px[0], px[1]);
+
+        
         //cycle
         double timeend, timeout = 0;
         double timestart = Time::now();
-        
-        while(timeout < 2.0) {
+        bool exitloop = false;
+        while ((!exitloop)&&(timeout < time)) {
             //px[0] = 1.0;
             //px[1] = 1.0;
-            igaze->lookAtMonoPixelWithVergence(camSel,px,5);    // look!
+            igaze->lookAtMonoPixelWithVergence(camSel,px,4);    // look!
             Time::delay(0.01);
             timeend = Time::now();
             timeout = timeend - timestart;
             c++;
+            Vector x(3);
+            igaze->getFixationPoint(x); 
+            if(x[0] < xmin) {
+                exitloop = true;
+                printf("exiting because x< xmin \n");
+            }
+            else if(x[0] > xmax) {
+                exitloop = true;
+                printf("exiting because x> xmax \n");
+            }
+            else if(x[1] < ymin) {
+                exitloop = true;
+                printf("exiting because y< ymin \n");
+            }
+            else if(x[1] > ymax) {
+                exitloop = true;
+                printf("exiting because y> ymax \n");
+            }
+            else if(x[2] < zmin) {
+                exitloop = true;
+                printf("exiting because z< zmin \n");
+            }
+            else if(x[2] > zmax) {
+                exitloop = true;
+                printf("exiting because z< zmax \n");
+            }
         }
         
-        printf("position reached \n");
+        if(timeout>=time) {
+            printf("timeout occurred, ");
+        }
+        printf("position reached in %f \n \n \n", timeout);
 
     }
     else if(allowedTransitions(1)>0) {
@@ -1352,9 +1384,16 @@ void gazeArbiterThread::vergenceInAngle() {
 
             error = 5.0;
             
-        }
+        } // while
 #endif
         
+        
+    } // end if (visualCorrection)
+    else {  // else if (visualCorrection)
+        Vector pa(3);
+        printf("Vergence : look at relative angle with no feedback; phiRel:%f \n", phiRel);
+        pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
+        igaze->lookAtRelAngles(pa);
     }
 }
 
@@ -1457,7 +1496,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
             mutex.wait();
-            setVisualFeedback(true);
+            //setVisualFeedback(true); <<-------- TODO: remove because does not make any sense
             stateRequest[3] = 1;
             mutex.post();
             timetotStart = Time::now();
@@ -1497,7 +1536,8 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             printf("received a command of smooth pursuit ");
             uVel = arg->get(1).asDouble();
             vVel = arg->get(2).asDouble();
-            printf("velocity %f %f \n", uVel, vVel);
+            time = arg->get(3).asDouble();
+            printf("velocity %f %f %f \n", uVel, vVel,time);
             mutex.wait();
             stateRequest[2] = 1;
             //velControl->setVelocityComponents(uVel, vVel);

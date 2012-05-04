@@ -91,6 +91,7 @@ private:
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
     double uVel, vVel;                      // components of the velocities for smooth pursuit
+    double time;                            // time before the smooth pursuit becomes uneffective
     double errorVC;                         // error of the visual correction
     double errorVC_pre;                     // error of the visual correction in previous stap
     int width, height;                      // dimension of the image

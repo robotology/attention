@@ -43,8 +43,9 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
         printf("====== \n");
         printf("--name  : changes the rootname of the module ports \n");
         printf("--robot : changes the name of the robot where the module interfaces to  \n");
-        printf("--visualFeedback : ");
+        printf("--visualFeedback : indicates whether the visual feedback is active \n");
         printf("--name : rootname for all the connection of the module \n");
+        printf("--config : camera parameters");
         printf("--xmax, xmin, ymax, ymin, zmax, zmin : outOfReach limits \n");
         printf("--onWings : if the camera is mounted on the wings\n ");
         printf("--onDvs   : if the camera is DVS camera \n");
