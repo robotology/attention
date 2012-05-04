@@ -38,12 +38,16 @@ using namespace std;
 
 bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
 
+    collector   = 0;
+    prioritiser = 0;
+    controller  = 0;
+
     if(rf.check("help")) {
         printf("HELP \n");
         printf("--name : changes the rootname of the module ports \n");
         printf("--robot : changes the name of the robot where the module interfaces to  \n");
         printf("--learningController : learning process for the controller activated \n");
-        printf("--name :  \n");
+        printf("--name : rootname for all the connection of the module \n");
         printf("====== \n");
         printf("press CTRL-C to continue.. \n");
         return true;
@@ -262,15 +266,19 @@ bool attPrioritiserModule::interruptModule() {
 bool attPrioritiserModule::close() {
     handlerPort.close();
     //stopping threads
-    collector->stop();
-    prioritiser->stop();
-
+    printf("stopping threads \n ");
+    if(0 != collector) {
+        collector->stop();
+    }
+    if(0 != prioritiser) {
+        prioritiser->stop();
+    }
     //delete collector;
     //delete prioritiser;
-
+    printf("stopping the controller \n");
     if (controller != 0) {
         controller->stop();
-        //delete controller;
+        delete controller;
     }
     return true;
 }

@@ -142,7 +142,7 @@ bool oculomotorController::threadInit() {
     
     // --------- Reading Transition Matrix -------------------
     printf("initialisation of probability transition \n");
-    printf("reading values from the file.... \n");
+    printf("reading transition Matrix from the file.... \n");
     PsaFile = fopen("psaFile.txt","a+");
     n = 0; // number of bytes in the file
     if (NULL == PsaFile) { 
@@ -207,7 +207,7 @@ bool oculomotorController::threadInit() {
     qualityFile = fopen("qualityFile.txt","a+");
     n = 0; // number of bytes in the file
     if (NULL == qualityFile) { 
-        perror ("Error opening file");
+        perror ("Error opening Quality file");
     }
     else {
         while (!feof(qualityFile)) {
@@ -472,7 +472,7 @@ void oculomotorController::learningStep() {
     }
 
     
-    if(true) {
+    if(actionPerformed) {
         //state_now = 0;
         // 3 .updating the quality function of the next state: TD step
         
@@ -488,12 +488,14 @@ void oculomotorController::learningStep() {
                       - Q->operator()(state_now,action_now)) ;
 
         // 4. calculating the total Payoff
-        printf("adding the reward %f \n", rewardStateAction->operator()(state_now, action_now) * jiter );
+        printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
         totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
-        
+        printf("for the final totalPayoff %f \n", totalPayoff);
         jiter  = jiter * j;        
 
         // 5. moving to next state
+        state_now = state_next;
+        
     }
     else {
         //state_now = state_next;
@@ -690,88 +692,6 @@ void oculomotorController::update(observable* o, Bottle * arg) {
     }
 }
 
-
-
-void oculomotorController::threadRelease() {
-    printf("oculomotorController::threadRelease() : stopping threads \n");
-    
-    //stopping thread
-    if(0 != tp) {
-        tp->stop();
-    }
-    printf("oculomotorController::threadRelease() : about to stop outingThread \n");
-    ot->stop();
-
-    //closing ports
-    inCommandPort.close();
-
-    
-    //closing files
-    fclose(logFile);
-    // --- saving transition matrix ----------
-    fclose(PsaFile);
-    PsaFile = fopen("psaFile.txt","w+");
-    printf("saving updates in Psa \n");
-    double t;
-    if(0 == Psa) {
-        printf("pointer to Psa null \n");
-    }
-    double* val = Psa->data();
-
-    for(int row = 0; row < NUMSTATE * NUMACTION; row++ ) {
-        for(int col = 0; col < NUMSTATE; col++) {
-            t = *val;
-            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
-            fprintf(PsaFile,"%f ",t);
-            val++;
-        }
-        fprintf(PsaFile,"\n");
-    }
-    // --- saving value function ----------
-    fclose(qualityFile);
-    qualityFile = fopen("qualityFile.txt","w+");
-    printf("saving updates in value \n");
-    if(0 == Q) {
-        printf("pointer to value null \n");
-    }
-    val = Q->data();
-    
-    for(int row = 0; row < NUMSTATE; row++ ) {
-        for(int col = 0; col < NUMACTION; col++) {
-            t = *val;
-            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
-            fprintf(qualityFile,"%f ",t);
-            val++;
-        }
-        fprintf(qualityFile,"\n");
-    }
-    // --- saving reward function ----------
-    fclose(rewardFile);
-    rewardFile = fopen("rewardFile.txt","w+");
-    printf("saving updates in value \n");
-    if(0 == V) {
-        printf("pointer to value null \n");
-    }
-    val = rewardStateAction->data();
-    
-    for(int row = 0; row < NUMSTATE; row++ ) {
-        for(int col = 0; col < NUMACTION; col++) {
-            t = *val;
-            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
-            fprintf(rewardFile,"%f ",t);
-            val++;
-        }
-        fprintf(rewardFile,"\n");
-    }
-
-    delete Q;
-    //delete M;
-    delete V;
-    delete A;
-    delete P;
-}
-
-
 void oculomotorController::waitForActuator() {
     printf("----------------wait for actuator in state %d----------------- \n", state_now);
     bool   outOfWait = false;
@@ -918,5 +838,89 @@ void oculomotorController::waitForActuator() {
     }break;        
             
     }
-    printf(" ------------------- state_now %d ----------- \n", state_now);
+    printf(" ------------------- state_now %9d ----------- \n", state_now);
 }
+
+
+void oculomotorController::threadRelease() {
+    printf("oculomotorController::threadRelease() : stopping threads \n");
+    
+    //stopping thread
+    if(0 != tp) {
+        tp->stop();
+    }
+    printf("oculomotorController::threadRelease() : about to stop outingThread \n");
+    ot->stop();
+
+    //closing ports
+    inCommandPort.close();
+
+    
+    //closing files
+    fclose(logFile);
+    // --- saving transition matrix ----------
+    fclose(PsaFile);
+    PsaFile = fopen("psaFile.txt","w+");
+    printf("saving updates in Psa \n");
+    double t;
+    if(0 == Psa) {
+        printf("pointer to Psa null \n");
+    }
+    double* val = Psa->data();
+
+    for(int row = 0; row < NUMSTATE * NUMACTION; row++ ) {
+        for(int col = 0; col < NUMSTATE; col++) {
+            t = *val;
+            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            fprintf(PsaFile,"%f ",t);
+            val++;
+        }
+        fprintf(PsaFile,"\n");
+    }
+    // --- saving value function ----------
+    fclose(qualityFile);
+    qualityFile = fopen("qualityFile.txt","w+");
+    printf("saving updates in value \n");
+    if(0 == Q) {
+        printf("pointer to value null \n");
+    }
+    val = Q->data();
+    
+    for(int row = 0; row < NUMSTATE; row++ ) {
+        for(int col = 0; col < NUMACTION; col++) {
+            t = *val;
+            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            fprintf(qualityFile,"%f ",t);
+            val++;
+        }
+        fprintf(qualityFile,"\n");
+    }
+    // --- saving reward function ----------
+    fclose(rewardFile);
+    rewardFile = fopen("rewardFile.txt","w+");
+    printf("saving updates in value \n");
+    if(0 == V) {
+        printf("pointer to value null \n");
+    }
+    val = rewardStateAction->data();
+    
+    for(int row = 0; row < NUMSTATE; row++ ) {
+        for(int col = 0; col < NUMACTION; col++) {
+            t = *val;
+            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            fprintf(rewardFile,"%f ",t);
+            val++;
+        }
+        fprintf(rewardFile,"\n");
+    }
+
+    
+    printf("deleting the matrices \n");
+    delete Q;
+    //delete M;
+    delete V;
+    delete A;
+    delete P;
+}
+
+

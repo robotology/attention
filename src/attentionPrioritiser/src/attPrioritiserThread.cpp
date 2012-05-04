@@ -483,8 +483,10 @@ void attPrioritiserThread::run() {
         setChanged();
         notifyObservers(&notif);
         */
-
+        double Vx = 0, Vy = 0;
         bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
+
+        printf("after trajectory prediction \n");
         
 
         // nofiying state transition            
@@ -494,6 +496,8 @@ void attPrioritiserThread::run() {
         notif.addDouble(1);                  // code for prediction accomplished
         setChanged();
         notifyObservers(&notif); 
+
+        printf("just notified observers \n");
 
         predictionSuccess = false; // forcing the prediction failed
         if(predictionSuccess) {
