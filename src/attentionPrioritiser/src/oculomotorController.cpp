@@ -343,7 +343,10 @@ bool oculomotorController::randomWalk(int& statenext) {
     int pos = state_now * NUMACTION + action_now;
     printf("looking for position %d; State:%d,Action:%d\n", pos, state_now, action_now);
     Vector  v = Psa->getRow(pos);
-    //printf("v = %s \n", v.toString().c_str());
+    printf("v = %s \n", v.toString().c_str());
+    
+    // given the vector of transition and considering the transition probability
+    // select the action and 
     double maxInVector = 0.0;
     int posInVector = 0;
     for(int j = 0; j < v.size(); j++) {
@@ -354,7 +357,17 @@ bool oculomotorController::randomWalk(int& statenext) {
         }
         
     }
-    //printf("max value found in vector %f \n", maxInVector);
+    printf("max value found in position %d  of vector : %f  \n", posInVector, maxInVector);
+
+    // trying to execute the selected action 
+    // if successful the system moves to the next state
+    if(allowStateRequest(action_now)) {
+        //count++;
+        statenext = state_next;
+        ret = true;
+    }
+
+    state_next = posInVector;
     if(state_next == 0) {
         if(firstCount) {
             count++;
@@ -365,27 +378,21 @@ bool oculomotorController::randomWalk(int& statenext) {
     else {
         firstCount = true;
     }
-    state_next = posInVector;
+    
     printf("new state %d \n", state_next);
-    if(allowStateRequest(action_now)) {
-        //count++;
-        ret = true;
-    }
-
-    statenext = state_next;
+    
     
     return ret;
 }
 
-bool oculomotorController::allowStateRequest(int state) {
+bool oculomotorController::allowStateRequest(int action) {
     //setting flags in initialisation
-    ap->setAllowStateRequest(state, true);
+    ap->setAllowStateRequest(action, true);
 
     // executing command in buffer
     bool ret = false;
-    bool executed = ap->executeCommandBuffer(state);
+    bool executed = ap->executeCommandBuffer(action);
 
-    
     // if not executed because absent in the buffer, waits for few seconds
     if(!executed) {
         double timenow  = Time::now();
@@ -413,12 +420,13 @@ bool oculomotorController::allowStateRequest(int state) {
         }
     }
     else {
+        // action found and executed
         ret = true;
     }
 
     //setting flags at the end of the function
     ap->setValidAction(false);
-    ap->setAllowStateRequest(state, false);
+    ap->setAllowStateRequest(action, false);
 
     return ret;
 }

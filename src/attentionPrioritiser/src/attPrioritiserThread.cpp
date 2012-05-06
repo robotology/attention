@@ -825,9 +825,10 @@ void attPrioritiserThread::run() {
             // executing the saccade
             Bottle& commandBottle=outputPort.prepare();
             commandBottle.clear();
-            commandBottle.addString("SAC_MONO");
-            commandBottle.addInt(Vx);
-            commandBottle.addInt(Vy);
+            commandBottle.addString("SM_PUR");
+            commandBottle.addDouble(Vx);
+            commandBottle.addDouble(Vy);
+            commandBottle.addDouble(time);
             outputPort.write();
             
             printf("--------------------------------------------------\n");
@@ -1549,11 +1550,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();
             mono = false;
         }
-        else if(!strcmp(name.c_str(),"PUR")) {
+        else if(!strcmp(name.c_str(),"SM_PUR")) {
 
             // saving bottle in the buffer
             bufCommand[2] = *arg;
-
+            phi  = arg->get(1).asDouble();
+            phi2 = arg->get(2).asDouble();
+            phi3 = arg->get(3).asDouble();
             mutex.wait();
             printf("recognised PUR command \n");
             if(allowStateRequest[2]) {
