@@ -161,6 +161,7 @@
  * 23/03/12 : added nofity process between prioritiser and controller                                       author: Rea  \n
  * 05/04/12 : corrected and completed the transition matrix                                                 author: Rea  \n
  * 05/04/14 : added a new thread for plotting information about the learning                                author: Rea  \n
+ * 06/05/12 : separate oculomotor control in actionSelection and stateTransition part                       author :Rea  \n
 */
 
 

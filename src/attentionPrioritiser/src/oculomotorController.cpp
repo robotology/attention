@@ -367,6 +367,7 @@ bool oculomotorController::randomWalk(int& statenext) {
         ret = true;
     }
 
+    /*
     state_next = posInVector;
     if(state_next == 0) {
         if(firstCount) {
@@ -377,9 +378,9 @@ bool oculomotorController::randomWalk(int& statenext) {
     }
     else {
         firstCount = true;
-    }
-    
+    }    
     printf("new state %d \n", state_next);
+    */
     
     
     return ret;
@@ -468,6 +469,7 @@ void oculomotorController::learningStep() {
     // 2 .action selection and observation of the next state
     bool actionPerformed;
     printf("_______________ count % d _______________________ \n \n", count);
+
     //if(count < 30) {
     int state_next;
     if(true) {
@@ -481,6 +483,7 @@ void oculomotorController::learningStep() {
 
     
     if(actionPerformed) {
+        /*
         //state_now = 0;
         // 3 .updating the quality function of the next state: TD step
         
@@ -503,7 +506,7 @@ void oculomotorController::learningStep() {
 
         // 5. moving to next state
         state_now = state_next;
-        
+        */
     }
     else {
         //state_now = state_next;
@@ -556,14 +559,47 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
         switch(arg->get(0).asVocab()) {
         case COMMAND_VOCAB_STAT :{
-            printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
-            
+
+            printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());            
             int statevalue = arg->get(1).asInt();
-            printf("                                                                   State %s \n", stateList[statevalue].c_str());
+            state_next = statevalue;
+
+            // --------------------------  updating the entire state of the learner -----------------------------
+            //state_now = 0;
+            // 3 .updating the quality function of the next state: TD step
+            
+            // calculating the quality of state function            
+            //Q->operator()(state_next,action_now) = 
+            //    (1 - alfa) * Q->operator()(state_now,action_now) + 
+            //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
+            
+            Q->operator()(state_now,action_now) = 
+                Q->operator()(state_now,action_now) + 
+                alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
+                         - Q->operator()(state_now,action_now)) ;
+            
+            // 4. calculating the total Payoff
+            printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
+            totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
+            printf("for the final totalPayoff %f \n", totalPayoff);
+            jiter  = jiter * j;        
+            
+            // 5. moving to next state
             state_now = state_next;
-            state_next = statevalue;             
-            printf( "state_now:%d -> state_next:%d \n", state_now, state_next);
-            fprintf(logFile, "state_now:%s -> state_next:%s \n", stateList[state_now].c_str(), stateList[state_next].c_str());
+
+
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!   STATE TRANSITION  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+            
+            //---------------------------  state update arrived ------------------------------------------
+            printf("                                                                   State %s \n", stateList[statevalue].c_str());
+            state_prev = state_now;
+            state_now  = statevalue;
+                         
+            printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
+            fprintf(logFile, "state_prev:%s -> state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
+            fprintf(logFile, " totalPayoff %f \n ",totalPayoff);
             
             /*
             for (int j = 0; j < NUMSTATE; j++)  {
@@ -577,8 +613,11 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 }
             }
             */            
-            
-            // updating the transition matrix once we switch state
+
+
+                        
+
+            // -------------------------- updating the transition matrix once we switch state --------------------
             printf("updating the transition matrix \n");
             double sum = 0;
             double* point;
@@ -654,42 +693,42 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             if(action(0)) {
                 printf("                                                                  Action reset          \n");
                 action_now = 0;
-                fprintf(logFile, "action_now:%s ",actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ",actionList[action_now].c_str());
             }
             else if(action(1)){
                 printf("                                                                  Action vergence       \n");
                 action_now = 1;
-                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(2)){
                 printf("                                                                  Action smoothPursuit  \n");
                 action_now = 2;
-                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(3)){
                 printf("                                                                  Action microSaccade   \n");
                 action_now = 3;
-                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(4)){
                 printf("                                                                  Action mediumSaccade  \n");
                 action_now = 4;
-                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(5)){
                 printf("                                                                  Action largeSaccade   \n");
                 action_now = 5;
-                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(6)){
                 printf("                                                                  Action expressSaccade \n");
                 action_now = 6;
-                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
             }
             else if(action(7)){
                 printf("                                                                  Action predict        \n");
                 action_now = 7;
-                fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
             }
         } break;
         default: {

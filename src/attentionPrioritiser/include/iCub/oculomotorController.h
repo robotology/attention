@@ -165,11 +165,16 @@ class oculomotorController : public yarp::os::RateThread, public observer {
 private:
     bool idle;                 // flag that regulates when the active part is executed
     bool firstCycle;           // flga that triggers the initialisation of active part
-    bool firstCount;           // first 
+    bool firstCount;           // first count of the starting state
+    bool stateTransition;      // synchronisation betweee actionSelection and stateTransition
+    
     int count;                 // step counter of successful learning step
     int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
+    
+    yarp::os::Semaphore mutexStateTransition;                   // semaphore for controlling the state transition
+
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
    
     attPrioritiserThread* ap;                                   // reference to the attention prioritiser
@@ -190,6 +195,7 @@ private:
     double totalPayoff;                    // total payoff of the learning process
     double jiter;                          // cumulative j ^ iter 
 
+    int state_prev;                        // state in which the controller was previously
     int state_now;                         // state of the controller now
     int action_now;                        // action performed in this step
     int state_next;                        // state in which the controller will end

@@ -1009,14 +1009,13 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     else if (_pos > 5)            pos = _pos - 2;
     else                          pos = _pos;
     
-    printf("executing a command saved in the buffer pos %d->%d \n",_pos,pos);
+    printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
         printf("no action in the buffer for pos:%d \n", pos);        
         printCommandBuffer();
         return false;
     }
-    else {
-        
+    else {        
         printf("found action \n");
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
         stateRequest[pos] = 1.0;
