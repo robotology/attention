@@ -1111,11 +1111,21 @@ void gazeArbiterThread::run() {
             }
         }
         
-        if(timeout>=time) {
+        if(timeout >= time) {
             printf("timeout occurred, ");
         }
-        printf("position reached in %f \n \n \n", timeout);
-
+        else {
+            printf("position reached in %f \n \n \n", timeout);
+            printf("SM_PUR ACCOMPLISHED \n");
+            printf("SM_PUR ACCOMPLISHED \n");
+            printf("SM_PUR ACCOMPLISHED \n");
+            //sending the acknowledgement vergence_accomplished
+            Bottle& status2 = statusPort.prepare();
+            status2.clear();
+            status2.addString("SM_ACC");
+            statusPort.write();
+            //delete &status2;                    
+        }
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
