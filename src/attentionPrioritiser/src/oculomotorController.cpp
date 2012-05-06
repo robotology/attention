@@ -40,15 +40,16 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
-    ap =  apt;
-    count = 0;
-    iter  = 0;
-    jiter = 1;
-    state_now = 0;
-    cUpdate = 0;
+    ap         = apt;
+    count      = 0;
+    iter       = 0;
+    jiter      = 1;
+    state_now  = 0;
+    cUpdate    = 0;
     state_next = 0;
 
-    firstCount = false;
+    firstCount      = false;
+    stateTransition = true;
 };
 
 oculomotorController::~oculomotorController() {
@@ -464,56 +465,61 @@ void oculomotorController::learningStep() {
         //printf("state %d maxQ %f actionMax %d \n",state, maxQ, actionMax);
     }
     
-    
-    //printf("action selection section \n");
-    // 2 .action selection and observation of the next state
-    bool actionPerformed;
-    printf("_______________ count % d _______________________ \n \n", count);
+    bool _stateTransition;
+    mutexStateTransition.wait();
+    _stateTransition = stateTransition;
+    mutexStateTransition.post();
 
-    //if(count < 30) {
-    int state_next;
-    if(true) {
-        printf("randomWalk action selection \n");
-        actionPerformed = randomWalk(state_next);
-    }
-    else {
-        printf("policyWalk action selection \n");
-        actionPerformed = policyWalk();
-    }
-
-    
-    if(actionPerformed) {
-        /*
-        //state_now = 0;
-        // 3 .updating the quality function of the next state: TD step
+    if(!_stateTransition) {
+        //printf("action selection section \n");
+        // 2 .action selection and observation of the next state
+        bool actionPerformed;
+        printf("_______________ count % d _______________________ \n \n", count);
         
-        // calculating the value
-      
-        //Q->operator()(state_next,action_now) = 
-        //    (1 - alfa) * Q->operator()(state_now,action_now) + 
-        //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
+        //if(count < 30) {
+        int state_next;
+        if(true) {
+            printf("randomWalk action selection \n");
+            actionPerformed = randomWalk(state_next);
+        }
+        else {
+            printf("policyWalk action selection \n");
+            actionPerformed = policyWalk();
+        }
         
-        Q->operator()(state_now,action_now) = 
-             Q->operator()(state_now,action_now) + 
-             alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
-                      - Q->operator()(state_now,action_now)) ;
-
-        // 4. calculating the total Payoff
-        printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
-        totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
-        printf("for the final totalPayoff %f \n", totalPayoff);
-        jiter  = jiter * j;        
-
-        // 5. moving to next state
-        state_now = state_next;
-        */
-    }
-    else {
-        //state_now = state_next;
-        printf("action not performed in the learning. \n");
-    } 
-    //waitForActuator(); <-- do not wait for actutor here; it is performed previously
-
+    
+        if(actionPerformed) {
+            /*
+            //state_now = 0;
+            // 3 .updating the quality function of the next state: TD step
+            
+            // calculating the value
+            
+            //Q->operator()(state_next,action_now) = 
+            //    (1 - alfa) * Q->operator()(state_now,action_now) + 
+            //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
+            
+            Q->operator()(state_now,action_now) = 
+            Q->operator()(state_now,action_now) + 
+            alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
+            - Q->operator()(state_now,action_now)) ;
+            
+            // 4. calculating the total Payoff
+            printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
+            totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
+            printf("for the final totalPayoff %f \n", totalPayoff);
+            jiter  = jiter * j;        
+            
+            // 5. moving to next state
+            state_now = state_next;
+            */
+        }
+        else {
+            //state_now = state_next;
+            printf("action not performed in the learning. \n");
+        } 
+        //waitForActuator(); <-- do not wait for actutor here; it is performed previously     
+    } //end if(!_stateTransition)
 
     //printf("oculomotorController::learningStep : step performed \n");
     printf("\n");
@@ -644,6 +650,13 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             if(sum > 1.0) {
                 printf("!!!!the probability does not sum to 1!!!! \n");
             }
+
+
+            // awaking action selection
+            mutexStateTransition.wait();
+            stateTransition = false;
+            mutexStateTransition.post();
+            
                         
         } break;
         case COMMAND_VOCAB_ACT :{
