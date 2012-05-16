@@ -31,6 +31,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/Random.h>
 #include <yarp/sig/all.h>
 #include <yarp/math/Rand.h>
 
@@ -103,6 +104,7 @@ private:
     yarp::os::Semaphore mutex;                                  // semaphore for concurrent programming
     yarp::os::BufferedPort<yarp::os::Bottle> scopePort;         // port where all the totalPayoff is going to be sent
     std::string name;                                           // rootname of all the ports opened by this thread
+
     
 public:
     outingThread():yarp::os::RateThread(THRATE){
@@ -172,6 +174,11 @@ private:
     int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
+
+    yarp::os::ConstString logFilePath     ;
+    yarp::os::ConstString rewardFilePath  ;
+    yarp::os::ConstString psaFilePath     ;    
+    yarp::os::ConstString qualityFilePath ; 
     
     yarp::os::Semaphore mutexStateTransition;                   // semaphore for controlling the state transition
 
@@ -199,11 +206,14 @@ private:
     int state_now;                         // state of the controller now
     int action_now;                        // action performed in this step
     int state_next;                        // state in which the controller will end
+    int statevalue;
     
     FILE* PsaFile;                         // file that contains the Probability of Transitions
     FILE* logFile;                         // log file for actions and states
-    FILE* qualityFile;                       // memory of value function through runs
+    FILE* qualityFile;                     // memory of value function through runs
     FILE* rewardFile;                      // file that stores the reward function for state action
+
+    //yarp::os::ResourceFinder rf;           // finder of resource passed by module
 public:
     /**
     * default constructor
@@ -263,6 +273,46 @@ public:
     * @param value true/false idle/!idle the active method of the class
     */
     void setIdle(bool value) {idle = value;};
+
+    
+    /**
+     * function that sets the resource finder 
+     * @param rf reference to the resource finder assigned in the module
+     */
+    //void setResourceFinder(yarp::os::ResourceFinder rf);
+
+    /**
+     * function that sets the logFile path
+     * @param rf reference to the resource finder assigned in the module
+     */
+    void setLogFile(yarp::os::ConstString str) {
+        logFilePath = str;
+    };
+
+    /**
+     * function that sets the psaFile path
+     * @param rf reference to the resource finder assigned in the module
+     */
+    void setPsaFile(yarp::os::ConstString str) {
+        psaFilePath = str;
+    };
+
+    /**
+     * function that sets the psaFile path
+     * @param rf reference to the resource finder assigned in the module
+     */
+    void setRewardFile(yarp::os::ConstString str) {
+        rewardFilePath = str;
+    };
+
+    /**
+     * function that sets the psaFile path
+     * @param rf reference to the resource finder assigned in the module
+     */
+    void setQualityFile(yarp::os::ConstString str) {
+        qualityFilePath = str;
+    };
+
 
     /**
     * function that defines what has to be done once any observeble interrupts

@@ -111,6 +111,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     string str = (string) getName();
     str.append("/controller");
     controller->setName(str.c_str());
+    controller->setLogFile(rf.findFile("logFile.txt"));
+    controller->setPsaFile(rf.findFile("psaFile.txt"));
+    controller->setRewardFile(rf.findFile("rewardFile.txt"));
+    controller->setQualityFile(rf.findFile("qualityFile.txt"));
+    
+    //controller->setResourceFinder(rf);
     
     //if (rf.check("visualFeedback")) {
     //    prioritiser->setVisualFeedback(true);
@@ -280,6 +286,8 @@ bool attPrioritiserModule::close() {
         controller->stop();
         delete controller;
     }
+
+    printf("attPrioritiserModule::close:success in closing \n");
     return true;
 }
 

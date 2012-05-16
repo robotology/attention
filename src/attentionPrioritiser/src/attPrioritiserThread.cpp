@@ -820,16 +820,19 @@ void attPrioritiserThread::run() {
         state(4) = 0 ; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Smooth Pursuit  -----------------------
         if(!executing) {                       
-            printf("---------------- Smooth Pursuit --------------_\n");
-           
+            printf("---------------- Smooth Pursuit --------------\n");
+            printf("SM_PUR %f %f %f \n", Vx, Vy, time);
+            
             // executing the saccade
-            Bottle& commandBottle=outputPort.prepare();
-            commandBottle.clear();
-            commandBottle.addString("SM_PUR");
-            commandBottle.addDouble(Vx);
-            commandBottle.addDouble(Vy);
-            commandBottle.addDouble(time);
-            outputPort.write();
+            if(outputPort.getOutputCount()) {                
+                Bottle& commandBottle=outputPort.prepare();
+                commandBottle.clear();
+                commandBottle.addString("SM_PUR");
+                commandBottle.addDouble(Vx);
+                commandBottle.addDouble(Vy);
+                commandBottle.addDouble(time);
+                outputPort.write();
+            }
             
             printf("--------------------------------------------------\n");
         }
@@ -996,9 +999,9 @@ void attPrioritiserThread::run() {
 void attPrioritiserThread::printCommandBuffer() {
     for (int i = 0; i < NUMSTATES; i++) {
         if(bufCommand[i]!=NULL)
-            printf(">>>>> %s \n",bufCommand[i].toString().c_str());
+            printf("%d >>>>> %s \n",i,bufCommand[i].toString().c_str());
         else
-            printf(">>>>> NULL \n");
+            printf("%d >>>>> NULL \n",i);
     }
 }
 
@@ -1020,6 +1023,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
         stateRequest[pos] = 1.0;
         bufCommand[pos] = NULL;
+        return true;
     }
 }
 
@@ -1553,9 +1557,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             // saving bottle in the buffer
             bufCommand[2] = *arg;
-            phi  = arg->get(1).asDouble();
-            phi2 = arg->get(2).asDouble();
-            phi3 = arg->get(3).asDouble();
+            Vx   = arg->get(1).asDouble();
+            Vy   = arg->get(2).asDouble();
+            time = arg->get(3).asDouble();
             mutex.wait();
             printf("recognised PUR command \n");
             if(allowStateRequest[2]) {
@@ -1789,9 +1793,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notifyObservers(&notif); 
             
         }
-        else if(!strcmp(name.c_str(),"SP_ACC")) {
-            // vergence accomplished           
-            //printf("Vergence accomplished \n");
+        else if(!strcmp(name.c_str(),"SM_ACC")) {
+            // smooth pursuit accomplished           
+            printf("Smooth Pursuit  Accomplished \n");
             mutex.wait();
             if(allowStateRequest[2]) {
                 printf("setting stateRequest[2] \n");
@@ -1801,8 +1805,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[2] = false;
-            validAction  = true;
+            accomplFlag[2];
+            validAction  = false;
             mutexAcc.post();            
             mutex.post();
 
@@ -1810,9 +1814,62 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(4);                  // code for vergence accomplished in vergence ok state
+            notif.addDouble(2);                  // code for vergence accomplished in vergence ok state
             setChanged();
             notifyObservers(&notif);
+
+        }
+        else if(!strcmp(name.c_str(),"PRED_ACC")) {
+            // smooth pursuit accomplished           
+            printf("Prediction Accomplished \n");
+            mutex.wait();
+            if(allowStateRequest[5]) {
+                printf("setting stateRequest[5] \n");
+                pred_accomplished = true;
+                stateRequest[5] = 1;
+                //executing = false;
+            }
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[5];
+            validAction  = false;
+            mutexAcc.post();            
+            mutex.post();
+
+             // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(5);                  // code for prediction accomplished in vergence ok state
+            setChanged();
+            notifyObservers(&notif);
+
+        }
+        else if(!strcmp(name.c_str(),"RESET")) {
+            // smooth pursuit accomplished           
+            printf("Reset Accomplished \n");
+            mutex.wait();
+            if(allowStateRequest[0]) {
+                printf("setting stateRequest[0] \n");
+                sp_accomplished = true;
+                stateRequest[0] = 1;
+                //executing = false;
+            }
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[0];
+            validAction  = false;
+            mutexAcc.post();            
+            mutex.post();
+
+             // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(0);                  // code for reset accomplished in vergence ok state
+            setChanged();
+            notifyObservers(&notif);
+
         }
         else if(!strcmp(name.c_str(),"SIM")) {
             // vergence accomplished           

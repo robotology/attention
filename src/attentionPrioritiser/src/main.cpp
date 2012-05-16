@@ -48,6 +48,7 @@ int main(int argc, char * argv[])
  
     printf("running the module \n");
     module.runModule(rf);
+    printf("module closed with success \n");
     return 0;
 }
 

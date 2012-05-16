@@ -49,12 +49,20 @@ oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThre
     state_next = 0;
 
     firstCount      = false;
-    stateTransition = true;
+    stateTransition = false;
 };
 
 oculomotorController::~oculomotorController() {
     
 }
+
+//void oculomotorController::setResourceFinder(ResourceFinder resourceFinder) {
+    //rf = resourceFinder;
+    //rewardFilePath  = rf.findFile("rewardFile.txt");
+    //psaFilePath     = rf.findFile("psaFile.txt");
+    //qualityFilePath = rf.findPath("qualityFile.txt");
+    //logFilePath     = rf.findFile("logFile.txt");
+//}
 
 bool oculomotorController::threadInit() {
     printf(" oculomotorController::threadInit:starting the thread.... \n");
@@ -74,15 +82,18 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(3,true);    
     ap->setAllowStateRequest(4,true);
 
-
-    logFile = fopen("logFile.txt","w+");
+    // ------------- opening the logfile ----------------------
+    //logFilePath = "logFile.txt";
+    printf("printing the visited state in a log file ....  %s \n", logFilePath.c_str());
+    logFile = fopen(logFilePath.c_str(),"w+");
 
     // ------ Reading Reward State Action ------------------
     printf("resetting rewardStateAction \n");
     rewardStateAction = new Matrix(NUMSTATE,NUMACTION);
     double* val = rewardStateAction->data();
-
-    rewardFile = fopen("rewardFile.txt","a+");
+    
+    //rewardFilePath = "rewardFile.txt";
+    rewardFile = fopen(rewardFilePath ,"a+");
     int n = 0; // number of bytes in the file
     if (NULL == rewardFile) { 
         perror ("Error opening file");
@@ -99,7 +110,7 @@ bool oculomotorController::threadInit() {
     rewind(rewardFile);
 
     if(n == 0) {
-        // creating new Psa values                
+        // creating new reward values                
         printf("creating new reward values \n");
         double t;
         for(int row = 0; row < NUMSTATE ; row++ ) {
@@ -112,8 +123,7 @@ bool oculomotorController::threadInit() {
             fprintf(rewardFile,"\n");
         }
     }
-    else {
-        
+    else {        
         //reading values
         printf("reading values from file \n");
         // Reads from input file first segment of nsize samples into y:	
@@ -129,8 +139,7 @@ bool oculomotorController::threadInit() {
             *val = (double) x;
             val++; countVal++;
         }
-        printf("saved %d \n", countVal);
-        
+        printf("saved %d \n", countVal);        
     }
 
     
@@ -143,8 +152,10 @@ bool oculomotorController::threadInit() {
     
     // --------- Reading Transition Matrix -------------------
     printf("initialisation of probability transition \n");
-    printf("reading transition Matrix from the file.... \n");
-    PsaFile = fopen("psaFile.txt","a+");
+    
+    //psaFilePath = "psaFile.txt";
+    printf("reading transition Matrix from the file.... %s \n",psaFilePath.c_str());
+    PsaFile = fopen(psaFilePath.c_str(),"a+");
     n = 0; // number of bytes in the file
     if (NULL == PsaFile) { 
         perror ("Error opening file");
@@ -176,8 +187,7 @@ bool oculomotorController::threadInit() {
             fprintf(PsaFile,"\n");
         }
     }
-    else {
-        
+    else { 
         //reading values
         printf("reading values from file \n");
         // Reads from input file first segment of nsize samples into y:	
@@ -193,8 +203,7 @@ bool oculomotorController::threadInit() {
             *val = (double) x;
             val++; countVal++;
         }
-        //printf("saved %d \n", countVal);
-        
+        //printf("saved %d \n", countVal);        
     }
     
     printf("initialisation of the learning machines \n");
@@ -204,8 +213,9 @@ bool oculomotorController::threadInit() {
     Q = new Matrix(NUMSTATE,NUMACTION);
     Q->zero();
     
-    printf("Quality Function : reading values from the file.... \n");
-    qualityFile = fopen("qualityFile.txt","a+");
+    //qualityFilePath = "qualityFile.txt";
+    printf("Quality Function : reading values from the file %s.... \n",qualityFilePath.c_str());
+    qualityFile = fopen(qualityFilePath.c_str(),"a+");
     n = 0; // number of bytes in the file
     if (NULL == qualityFile) { 
         perror ("Error opening Quality file");
@@ -225,7 +235,7 @@ bool oculomotorController::threadInit() {
     
     val = Q->data();
     if(n == 0) {
-        // creating new Psa values                
+        // creating new quality values                
         printf("Value Function : creating new Values Function \n");
         double t; 
         for(int row = 0; row < NUMSTATE; row++ ) {
@@ -270,8 +280,6 @@ bool oculomotorController::threadInit() {
     A = new Matrix(1,NUMSTATE);
     A->zero();
     
-    
-    
     printf(" init of the trajectoryPredictor \n");
     tp = new trajectoryPredictor();
     tp->setName(getName("").c_str()); 
@@ -281,7 +289,6 @@ bool oculomotorController::threadInit() {
     ot = new outingThread();
     ot->setName(getName("").c_str()); 
     ot->start();
-    
     
     return true;
 }
@@ -335,7 +342,8 @@ bool oculomotorController::policyWalk(){
 
 bool oculomotorController::randomWalk(int& statenext) {
     bool ret = false;
-    double a = (rand() / 100000000) % NUMACTION ;
+    //double a = (rand() / 100000000) % NUMACTION ;
+    double a = Random::uniform() * NUMACTION;
     action_now = (int) a;
     printf(" %f \n", a);
     printf("selected action number %d: %s \n",action_now,actionList[action_now].c_str());
@@ -347,24 +355,39 @@ bool oculomotorController::randomWalk(int& statenext) {
     printf("v = %s \n", v.toString().c_str());
     
     // given the vector of transition and considering the transition probability
-    // select the action and 
+    // select the action and build the comulative vector
     double maxInVector = 0.0;
+    Vector c(v.size());
+    double sum = 0;
     int posInVector = 0;
     for(int j = 0; j < v.size(); j++) {
         if(v[j] > maxInVector) {
             maxInVector = v[j];
             posInVector = j;
             //Psa->operator()(pos,j) -= 0.01;
+            
         }
-        
+        sum += v[j];
+        c[j] = sum;
     }
+
+    printf("c = %s \n", c.toString().c_str());
     printf("max value found in position %d  of vector : %f  \n", posInVector, maxInVector);
+
+    double randAction = Random::uniform();
+    //double randAction = (rand() / 1000000000.0);
+    int j;
+    for (j = 0 ; j < c.size(); j++) {
+        if (c[j] > randAction) break;
+    }
+    printf("randomAction %f . action selected %d \n", randAction, j);
 
     // trying to execute the selected action 
     // if successful the system moves to the next state
     if(allowStateRequest(action_now)) {
         //count++;
-        statenext = state_next;
+        //statenext = state_next;
+        statevalue = j;
         ret = true;
     }
 
@@ -402,9 +425,12 @@ bool oculomotorController::allowStateRequest(int action) {
         double timeend;
         bool   validAction;
         
+        
         ap->isValidAction(validAction);
+        printf("checking valid action %d \n", validAction);
+        
         //waits for a valid action to occur;
-        while ((timediff < 5.0)&&(!validAction)) {
+        while ((timediff < 0.5)&&(!validAction)) {
             printf("\r%f \r", timediff);
             fflush(stdout); // Will now print everything in the stdout buffer
             timeend = Time::now();
@@ -412,7 +438,7 @@ bool oculomotorController::allowStateRequest(int action) {
             Time::delay(0.1);
         }
         printf("\n");
-        if(timeend >= 5.0) {
+        if(timeend >= 0.5) {
             printf("the action has not been performed; Timeout occurred \n" );
             ret = false;
         }
@@ -474,7 +500,7 @@ void oculomotorController::learningStep() {
         //printf("action selection section \n");
         // 2 .action selection and observation of the next state
         bool actionPerformed;
-        printf("_______________ count % d _______________________ \n \n", count);
+        printf("_______________ count % d  state_now %d_______________________ \n \n", count, state_now);
         
         //if(count < 30) {
         int state_next;
@@ -489,6 +515,11 @@ void oculomotorController::learningStep() {
         
     
         if(actionPerformed) {
+            printf("waiting for transition after action selection \n");
+            mutexStateTransition.wait();
+            stateTransition = true;
+            mutexStateTransition.post();
+
             /*
             //state_now = 0;
             // 3 .updating the quality function of the next state: TD step
@@ -522,8 +553,7 @@ void oculomotorController::learningStep() {
     } //end if(!_stateTransition)
 
     //printf("oculomotorController::learningStep : step performed \n");
-    printf("\n");
-    printf("\n");
+
 }
 
 void oculomotorController::run() {
@@ -567,8 +597,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
         case COMMAND_VOCAB_STAT :{
 
             printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());            
-            int statevalue = arg->get(1).asInt();
-            state_next = statevalue;
+            int actionvalue = arg->get(1).asInt();  // action that is just finalized
+            state_next = statevalue;                // state in which the system ends in.
 
             // --------------------------  updating the entire state of the learner -----------------------------
             //state_now = 0;
@@ -576,26 +606,25 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
             // calculating the quality of state function            
             //Q->operator()(state_next,action_now) = 
-            //    (1 - alfa) * Q->operator()(state_now,action_now) + 
-            //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
+            // //    (1 - alfa) * Q->operator()(state_now,action_now) + 
+            // //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
             
-            Q->operator()(state_now,action_now) = 
-                Q->operator()(state_now,action_now) + 
-                alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
-                         - Q->operator()(state_now,action_now)) ;
+            // Q->operator()(state_now,action_now) = 
+            //     Q->operator()(state_now,action_now) + 
+            //     alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
+            //              - Q->operator()(state_now,action_now)) ;
             
-            // 4. calculating the total Payoff
-            printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
-            totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
-            printf("for the final totalPayoff %f \n", totalPayoff);
-            jiter  = jiter * j;        
+            // // 4. calculating the total Payoff
+            // printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
+            // totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
+            // printf("for the final totalPayoff %f \n", totalPayoff);
+            // jiter  = jiter * j;        
             
-            // 5. moving to next state
-            state_now = state_next;
+            // // 5. moving to next state
+            // //state_now = state_next;
 
 
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!   STATE TRANSITION  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+            // // !!!!!!!!!!!!!!!!!!!!!!!!!!   STATE TRANSITION  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             
             //---------------------------  state update arrived ------------------------------------------
@@ -653,6 +682,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
 
             // awaking action selection
+            printf("enabling back again the action selection \n");
             mutexStateTransition.wait();
             stateTransition = false;
             mutexStateTransition.post();
@@ -920,7 +950,7 @@ void oculomotorController::threadRelease() {
     fclose(logFile);
     // --- saving transition matrix ----------
     fclose(PsaFile);
-    PsaFile = fopen("psaFile.txt","w+");
+    PsaFile = fopen(psaFilePath.c_str(),"w+");
     printf("saving updates in Psa \n");
     double t;
     if(0 == Psa) {
@@ -939,7 +969,7 @@ void oculomotorController::threadRelease() {
     }
     // --- saving value function ----------
     fclose(qualityFile);
-    qualityFile = fopen("qualityFile.txt","w+");
+    qualityFile = fopen(qualityFilePath.c_str(),"w+");
     printf("saving updates in value \n");
     if(0 == Q) {
         printf("pointer to value null \n");
@@ -957,7 +987,7 @@ void oculomotorController::threadRelease() {
     }
     // --- saving reward function ----------
     fclose(rewardFile);
-    rewardFile = fopen("rewardFile.txt","w+");
+    rewardFile = fopen(rewardFilePath.c_str(),"w+");
     printf("saving updates in value \n");
     if(0 == V) {
         printf("pointer to value null \n");
@@ -981,6 +1011,7 @@ void oculomotorController::threadRelease() {
     delete V;
     delete A;
     delete P;
+    printf("OculomotorController::threadRelease success \n  ");
 }
 
 

@@ -120,7 +120,7 @@ private:
     yarp::sig::Vector xFix;                 // fixation coordinates
     short numberState;                      // stores the number of the state in which the control can be
     
-    int accomplFlag[NUMSTATES];                     // series of flags representing any action accomplished
+    int accomplFlag[NUMSTATES];             // series of flags representing any action accomplished
     bool stopVergence;                      // flag that inhibits the vergence command
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
