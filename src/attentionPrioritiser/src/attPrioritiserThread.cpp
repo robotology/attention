@@ -143,6 +143,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     firstNull          = true;
     executing          = false;
     correcting         = false;
+    pred_accomplished  = false;
     stopVergence       = true;
 
     // initialisation of integer values
