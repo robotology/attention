@@ -489,10 +489,9 @@ void attPrioritiserThread::run() {
         setChanged();
         notifyObservers(&notif);
         */
-        double Vx = 0, Vy = 0;
-        bool predictionSuccess = trajPredictor->estimateVelocity(10,10,Vx,Vy);
-
-        printf("after trajectory prediction \n");
+        //double predVx = 0.0, predVy = 0.0;
+        bool predictionSuccess = trajPredictor->estimateVelocity(10, 10, predVx, predVy, predXpos, predYpos);
+        printf("after trajectory prediction %f %f (land: predXpos, predYpos) \n", predVx, predVy, predXpos, predYpos);
         
 
         // nofiying state transition            
@@ -507,7 +506,7 @@ void attPrioritiserThread::run() {
 
         predictionSuccess = false; // forcing the prediction failed
         if(predictionSuccess) {
-            printf("prediction success: velocity(%f, %f) time(0.5) \n", Vx, Vy);
+            printf("prediction success: velocity(%f, %f) time(0.5) \n", predVx, predVy);
             
             // action after prediction 
           
@@ -1374,9 +1373,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
 
-            /*
+            //--------------------------------------------------------------------------
             // prediction attemp after triggering stimulus
-            mutex.wait();
+            /*mutex.wait();
             if(allowStateRequest[5]) {
                 printf("setting stateRequest[5] \n");
                 reinfFootprint = true;
@@ -1390,7 +1389,18 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             mutex.post();     
             */
+            Bottle* sent     = new Bottle();
+            Bottle* received = new Bottle();    
+            sent->clear();
+            sent->addVocab(COMMAND_VOCAB_PRED);
+            sent->addInt(u);
+            sent->addInt(v);
+            highLevelLoopPort.write(*sent, *received);
+            delete sent;
+            delete received;
+
             
+            //---------------------------------------------------------------------------
             zDistance = arg->get(3).asDouble();
             time =  arg->get(4).asDouble();
             printf("saccade mono time: %f with allowed %d  \n", time,allowStateRequest[3]);
@@ -1824,7 +1834,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
         }
         else if(!strcmp(name.c_str(),"PRED_ACC")) {
-            // smooth pursuit accomplished           
+            // prediction accomplished           
             printf("Prediction Accomplished \n");
             mutex.wait();
             if(allowStateRequest[5]) {
@@ -1848,6 +1858,33 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             setChanged();
             notifyObservers(&notif);
 
+            //trigger new behaviours
+            // b. predictive saccade
+            if ((predXpos != -1) && (predYpos != 1)) {
+                Bottle* sentPred     = new Bottle();
+                Bottle* receivedPred = new Bottle();    
+                sentPred->clear();
+                sentPred->addString("SAC_MONO");
+                sentPred->addInt(predXpos);
+                sentPred->addInt(predYpos);
+                highLevelLoopPort.write(*sentPred, *receivedPred);
+                delete sentPred;
+                delete receivedPred;
+            }
+            // b. smooth pursuit
+            else if((predVx != 0) || (predVy != 0)) {
+                Bottle* sent     = new Bottle();
+                Bottle* received = new Bottle();    
+                sent->clear();
+                sent->addString("SM_PUR");
+                sent->addInt(predVx);
+                sent->addInt(predVy);
+                highLevelLoopPort.write(*sent, *received);
+                delete sent;
+                delete received; 
+            }
+            
+    
         }
         else if(!strcmp(name.c_str(),"RESET")) {
             // smooth pursuit accomplished           

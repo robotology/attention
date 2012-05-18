@@ -108,9 +108,13 @@ public:
     void extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMono>* image, int& x, int& y);
 
     /**
-     * function that estimate the velocity of the centroid in time
+     * @brief function that estimate the velocity of the centroid in time
+     * @param Vx estimated velocity along x axis
+     * @param Vy estimated velocity along y axis
+     * @param xPos estimated landing location along x axis
+     * @param yPos estimated landing location along x axis
      */
-    bool estimateVelocity(int x, int y, double& Vx, double& Vy);
+    bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos);
 };
 
 #endif  //_TRAJECTORY_PREDICTOR_H_

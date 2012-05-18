@@ -45,6 +45,7 @@
 #define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
 #define COMMAND_VOCAB_ACT                VOCAB3('a','c','t')
 
+#define COMMAND_VOCAB_PRED               VOCAB4('p','r','e','d')
 #define COMMAND_VOCAB_STAT               VOCAB4('s','t','a','t')
 #define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
 #define COMMAND_VOCAB_NULL               VOCAB4('n','u','l','l')
@@ -158,7 +159,9 @@ private:
     double xmax, xmin;                      // limits in fixation point
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
-    double Vx, Vy;                          // last predicted velocity profile
+    double Vx, Vy;                          // velocity profile for the smooth pursuit
+    double predVx, predVy;                  // last predicted velocity profile
+    double predXpos, predYpos;              // predicted X and Y position
     
     double phi;                             // value passed for relative vergence from the maximum shift
     double phi2;                            // value passed for relative vergence from the second maximum shift
@@ -209,8 +212,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
     yarp::os::BufferedPort<yarp::os::Bottle> outputPort;                                // port necessary to send the gaze command to the gazeArbiter
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
-    yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort;                         // port dedicated to the retroactive high level loop
     
+    yarp::os::Port highLevelLoopPort;               // port dedicated to the retroactive high level loop
     yarp::os::Port feedbackEarlyVision;             // port for feedback to the early vision component of attention
     yarp::os::Port feedbackSelective;               // port for feedback to the selective component of visual attention                              
     yarp::os::Port feedbackProtoObject;             // port for feedback to proto-object feature extractor                              

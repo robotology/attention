@@ -76,12 +76,13 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
     y = 10.0;
 }
 
-bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy) {
+bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos) {
     printf(" trajectoryPredictor::estimateVelocity %f %f  \n", Vx, Vy);
     bool predictionAccompl = true;
     Vx = 10.0;
     Vy = 10.0;
-    printf(" before returning \n");
+    xPos = -1;
+    yPos = -1;
     return predictionAccompl;
 }
 
