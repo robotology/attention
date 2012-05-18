@@ -561,7 +561,6 @@ void oculomotorController::learningStep() {
 void oculomotorController::run() {
     
     if(!idle) {        
-        printf("############################# inside the loop \n");
         iter++;   // main temporal counter for visualisation and active learning
          
         if(firstCycle) {

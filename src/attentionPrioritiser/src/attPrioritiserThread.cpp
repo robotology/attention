@@ -268,24 +268,27 @@ bool attPrioritiserThread::threadInit() {
     search_roi.width   = search_roi.height   = search_size;
 
     //opening port section 
-    string rootNameStatus("");rootNameStatus.append(getName("/feedback:o"));
+    string rootNameStatus("");rootNameStatus.append(         getName("/feedback:o"));
     feedbackPort.open(rootNameStatus.c_str());
-    string rootNameOutput("");rootNameOutput.append(getName("/cmd:o"));
+    string rootNameOutput("");rootNameOutput.append(         getName("/cmd:o"));
     outputPort.open(rootNameOutput.c_str());
-    string rootNameTiming("");rootNameTiming.append(getName("/timing:o"));
+    string rootNameTiming("");rootNameTiming.append(         getName("/timing:o"));
     timingPort.open(rootNameTiming.c_str());
-    string rootNameTemplate("");rootNameTemplate.append(getName("/template:o"));
+    string rootNameTemplate("");rootNameTemplate.append(     getName("/template:o"));
     templatePort.open(rootNameTemplate.c_str());
-    string rootNameDatabase("");rootNameDatabase.append(getName("/database:o"));
+    string rootNameDatabase("");rootNameDatabase.append(     getName("/database:o"));
     blobDatabasePort.open(rootNameDatabase.c_str());
-    string rootNameInhibition("");rootNameInhibition.append(getName("/inhibition:o"));
+    string rootNameInhibition("");rootNameInhibition.append( getName("/inhibition:o"));
     inhibitionPort.open(rootNameInhibition.c_str());
-    string nameFBEarlyVision("");nameFBEarlyVision.append(getName("/earlyVision:o"));
+    string nameFBEarlyVision("");nameFBEarlyVision.append(   getName("/earlyVision:o"));
     feedbackEarlyVision.open(nameFBEarlyVision.c_str());
-    string nameFBSelective("");nameFBSelective.append(getName("/selectiveAtt:o"));
+    string nameFBSelective("");nameFBSelective.append(       getName("/selectiveAtt:o"));
     feedbackSelective.open(nameFBSelective.c_str());    
-    string nameFBProtoObject("");nameFBProtoObject.append(getName("/protoObject:o"));
+    string nameFBProtoObject("");nameFBProtoObject.append(   getName("/protoObject:o"));
     feedbackProtoObject.open(nameFBProtoObject.c_str());
+    string nameHighLevelLoop("");nameHighLevelLoop.append(   getName("/highLoop:o"));
+    highLevelLoopPort.open(nameHighLevelLoop.c_str());
+    
 
     inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
@@ -323,6 +326,7 @@ void attPrioritiserThread::interrupt() {
     feedbackEarlyVision.interrupt();
     feedbackSelective.interrupt();
     feedbackProtoObject.interrupt();
+    highLevelLoopPort.interrupt();
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -336,12 +340,11 @@ void attPrioritiserThread::threadRelease() {
     blobDatabasePort.close();
     printf("closing inhibition port \n");
     inhibitionPort.close();
-    printf("closing feedback ports 1 \n");
+    printf("closing feedback ports  \n");
     feedbackEarlyVision.close();
-    printf("closing feedback ports 2 \n");
     feedbackSelective.close();
-    printf("closing feedback ports 3 \n");
     feedbackProtoObject.close();
+    highLevelLoopPort.close();
     
     printf("closing timing port \n");
     timingPort.close();
