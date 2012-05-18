@@ -130,6 +130,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 
 attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
+    printf("attPrioritiserThread::attPrioritiserThread \n");
     cUpdate = 0;
     collectionLocation = new int[4*2];
     numberState = 6; //null, vergence, smooth pursuit, saccade
@@ -225,6 +226,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     // 3 - planned saccade
     // 4 - express saccade
     // 5 - predict
+    printf("attPrioritiserThread::attPrioritiserThread: initilisation of the states (%d)  \n", NUMSTATES);
     for (int k = 0; k < NUMSTATES; k++) {
         allowStateRequest[k] = true;
         bufCommand[k]        = NULL;
@@ -244,7 +246,7 @@ attPrioritiserThread::~attPrioritiserThread() {
 
 bool attPrioritiserThread::threadInit() {
 
-    printf(" \nstarting the thread.... \n");
+    printf(" \n attPrioritiserThread::threadInit:starting the thread.... \n");
     
     eyeL = new iCubEye("left");
     eyeR = new iCubEye("right");    
@@ -1365,8 +1367,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // saving bottle in the buffer
             bufCommand[3] = *arg;
             printf("after saving %s \n", bufCommand[3].toString().c_str());
-            
-            
 
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
@@ -1390,7 +1390,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             zDistance = arg->get(3).asDouble();
             time =  arg->get(4).asDouble();
-            printf("saccade mono time: %f \n", time);
+            printf("saccade mono time: %f with allowed %d  \n", time,allowStateRequest[3]);
             //mutex.wait();
             if(time <= 0.5) {
                 // express saccade

@@ -101,7 +101,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     collector=new prioCollectorThread();
     collector->setName(getName().c_str());
     
-    printf("running the prioritiser \n");
+    printf("\n running the prioritiser \n");
     prioritiser=new attPrioritiserThread(configFile);
     prioritiser->setName(getName().c_str());
     prioritiser->setRobotName(robotName);
@@ -116,8 +116,10 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     controller->setRewardFile(rf.findFile("rewardFile.txt"));
     controller->setQualityFile(rf.findFile("qualityFile.txt"));
     
-    //controller->setResourceFinder(rf);
     
+    
+    
+    //controller->setResourceFinder(rf);
     //if (rf.check("visualFeedback")) {
     //    prioritiser->setVisualFeedback(true);
     //    printf("visualFeedback required \n");
@@ -226,11 +228,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     // setting observer and observable interactions    
     collector->addObserver(*prioritiser);
     prioritiser->addObserver(*controller);
-    
-    prioritiser->start();
-    collector->start();
-    controller->start();
-    
+
     /**
      * defining if the action selection is Q-learning controller`s call
      */
@@ -244,6 +242,15 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         prioritiser->setLearning(false);
         controller->setIdle(true);
     }
+    
+    printf("starting the prioritiser... \n");
+    prioritiser->start();
+    printf("starting the collector... \n");
+    collector->start();
+    printf("starting the controller... \n");
+    controller->start();
+    
+
     
 
     /*

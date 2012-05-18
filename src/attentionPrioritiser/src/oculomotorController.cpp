@@ -76,11 +76,13 @@ bool oculomotorController::threadInit() {
 
     // interacting with the attPrioritiserThread 
     firstCycle = true;
+
     ap->setAllowStateRequest(0,true);
     ap->setAllowStateRequest(1,true);
     ap->setAllowStateRequest(2,true);
     ap->setAllowStateRequest(3,true);    
     ap->setAllowStateRequest(4,true);
+
 
     // ------------- opening the logfile ----------------------
     //logFilePath = "logFile.txt";
@@ -557,7 +559,9 @@ void oculomotorController::learningStep() {
 }
 
 void oculomotorController::run() {
+    
     if(!idle) {        
+        printf("############################# inside the loop \n");
         iter++;   // main temporal counter for visualisation and active learning
          
         if(firstCycle) {
