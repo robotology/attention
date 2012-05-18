@@ -1389,14 +1389,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             mutex.post();     
             */
-            Bottle* sent     = new Bottle();
+            Bottle& sent     = highLevelLoopPort.prepare();
             Bottle* received = new Bottle();    
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_PRED);
-            sent->addInt(u);
-            sent->addInt(v);
-            highLevelLoopPort.write(*sent, *received);
-            delete sent;
+            sent.clear();
+            sent.addVocab(COMMAND_VOCAB_PRED);
+            sent.addInt(u);
+            sent.addInt(v);
+            highLevelLoopPort.write();
+            //delete sent;
             delete received;
 
             
@@ -1861,26 +1861,26 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //trigger new behaviours
             // b. predictive saccade
             if ((predXpos != -1) && (predYpos != 1)) {
-                Bottle* sentPred     = new Bottle();
+                Bottle& sentPred     = highLevelLoopPort.prepare();
                 Bottle* receivedPred = new Bottle();    
-                sentPred->clear();
-                sentPred->addString("SAC_MONO");
-                sentPred->addInt(predXpos);
-                sentPred->addInt(predYpos);
-                highLevelLoopPort.write(*sentPred, *receivedPred);
-                delete sentPred;
+                sentPred.clear();
+                sentPred.addString("SAC_MONO");
+                sentPred.addInt(predXpos);
+                sentPred.addInt(predYpos);
+                highLevelLoopPort.write();
+                
                 delete receivedPred;
             }
             // b. smooth pursuit
             else if((predVx != 0) || (predVy != 0)) {
-                Bottle* sent     = new Bottle();
+                Bottle& sent     = highLevelLoopPort.prepare();
                 Bottle* received = new Bottle();    
-                sent->clear();
-                sent->addString("SM_PUR");
-                sent->addInt(predVx);
-                sent->addInt(predVy);
-                highLevelLoopPort.write(*sent, *received);
-                delete sent;
+                sent.clear();
+                sent.addString("SM_PUR");
+                sent.addInt(predVx);
+                sent.addInt(predVy);
+                highLevelLoopPort.write();
+                //delete sent;
                 delete received; 
             }
             

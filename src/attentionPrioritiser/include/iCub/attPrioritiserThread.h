@@ -213,7 +213,7 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> outputPort;                                // port necessary to send the gaze command to the gazeArbiter
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
     
-    yarp::os::Port highLevelLoopPort;               // port dedicated to the retroactive high level loop
+    yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort;                         // port dedicated to the retroactive high level loop
     yarp::os::Port feedbackEarlyVision;             // port for feedback to the early vision component of attention
     yarp::os::Port feedbackSelective;               // port for feedback to the selective component of visual attention                              
     yarp::os::Port feedbackProtoObject;             // port for feedback to proto-object feature extractor                              
