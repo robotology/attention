@@ -491,7 +491,7 @@ void attPrioritiserThread::run() {
         */
         //double predVx = 0.0, predVy = 0.0;
         bool predictionSuccess = trajPredictor->estimateVelocity(10, 10, predVx, predVy, predXpos, predYpos);
-        printf("after trajectory prediction %f %f (land: predXpos, predYpos) \n", predVx, predVy, predXpos, predYpos);
+        printf("after trajectory prediction %f %f (land: %f, %f) \n", predVx, predVy, predXpos, predYpos);
         
 
         // nofiying state transition            
@@ -504,12 +504,15 @@ void attPrioritiserThread::run() {
 
         printf("just notified observers \n");
 
-        predictionSuccess = false; // forcing the prediction failed
+        //predictionSuccess = false; // forcing the prediction failed
         if(predictionSuccess) {
             printf("prediction success: velocity(%f, %f) time(0.5) \n", predVx, predVy);
             
             // action after prediction 
-          
+            Bottle& sent     = highLevelLoopPort.prepare();            
+            sent.clear();
+            sent.addString("PRED_ACC");
+            highLevelLoopPort.write();                        
         }
         else {
             printf("prediction failed \n");
@@ -1392,7 +1395,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle& sent     = highLevelLoopPort.prepare();
             Bottle* received = new Bottle();    
             sent.clear();
-            sent.addVocab(COMMAND_VOCAB_PRED);
+            sent.addString("PRED");
             sent.addInt(u);
             sent.addInt(v);
             highLevelLoopPort.write();
@@ -1541,7 +1544,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 timeoutStart = Time::now();
                 //  changing the accomplished flag
                 mutexAcc.wait();
-                accomplFlag[5];
+                accomplFlag[5] = false;
                 validAction = true;
                 mutexAcc.post();
                 
@@ -1741,18 +1744,20 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[3];
+            accomplFlag[3] = true;               // action number accomplished
             mutexAcc.post();
 
-            /*
+            
             // nofiying state transition to fixStable ok           
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(2);                  // code for fixStableOK accomplished in vergence ok state
+            notif.addDouble(2);                  // code for fixStableOK accomplished 
             setChanged();
             notifyObservers(&notif);
 
+            
+            /*
             // reset action
             notif.clear();
             printf("notify action reset \n");
@@ -1787,13 +1792,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(allowStateRequest[1]) {
                 printf("setting stateRequest[1] \n");
                 ver_accomplished = true;
-                stateRequest[1]  = 1;
-                
+                //stateRequest[1]  = 1;
                 //executing = false;
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[1];
+            accomplFlag[1] = true;              // action number accomplished
             validAction = true;
             mutexAcc.post();
             mutex.post();
@@ -1802,7 +1806,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(8);                  // code for vergence accomplished in vergence ok state
+            notif.addDouble(8);                  // code for vergence accomplished
             setChanged();
             notifyObservers(&notif); 
             
@@ -1814,13 +1818,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(allowStateRequest[2]) {
                 printf("setting stateRequest[2] \n");
                 sp_accomplished = true;
-                stateRequest[2]  = 1;
+                //stateRequest[2]  = 1;
                 //executing = false;
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[2];
-            validAction  = false;
+            accomplFlag[2] = true;              // action number accomplished
+            validAction    = false;
             mutexAcc.post();            
             mutex.post();
 
@@ -1828,24 +1832,24 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(2);                  // code for vergence accomplished in vergence ok state
+            notif.addDouble(4);                  // code for smooth-pursuit accomplished
             setChanged();
             notifyObservers(&notif);
 
         }
         else if(!strcmp(name.c_str(),"PRED_ACC")) {
             // prediction accomplished           
-            printf("Prediction Accomplished \n");
+            printf("Prediction Accomplished %f %f  \n", predVx, predVy);
             mutex.wait();
             if(allowStateRequest[5]) {
                 printf("setting stateRequest[5] \n");
                 pred_accomplished = true;
-                stateRequest[5] = 1;
+                //stateRequest[5] = 1;
                 //executing = false;
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[5];
+            accomplFlag[5] =  true;              // action number accomplished
             validAction  = false;
             mutexAcc.post();            
             mutex.post();
@@ -1854,11 +1858,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(5);                  // code for prediction accomplished in vergence ok state
+            notif.addDouble(1);                  // code for prediction accomplished
             setChanged();
             notifyObservers(&notif);
 
+            
             //trigger new behaviours
+            /*
             // b. predictive saccade
             if ((predXpos != -1) && (predYpos != 1)) {
                 Bottle& sentPred     = highLevelLoopPort.prepare();
@@ -1872,18 +1878,20 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 delete receivedPred;
             }
             // b. smooth pursuit
-            else if((predVx != 0) || (predVy != 0)) {
-                Bottle& sent     = highLevelLoopPort.prepare();
-                Bottle* received = new Bottle();    
-                sent.clear();
-                sent.addString("SM_PUR");
-                sent.addInt(predVx);
-                sent.addInt(predVy);
-                highLevelLoopPort.write();
-                //delete sent;
-                delete received; 
+            else 
+                if((predVx != 0) || (predVy != 0)) {
+                    
+                    printf(" ---------------- received prediction accomplished with %f %f \n", predVx, predVy);
+                    
+                    Bottle& sent     = highLevelLoopPort.prepare();                  
+                    sent.clear();
+                    sent.addString("SM_PUR");
+                    sent.addInt(predVx);
+                    sent.addInt(predVy);
+                    highLevelLoopPort.write();
+
             }
-            
+            */
     
         }
         else if(!strcmp(name.c_str(),"RESET")) {

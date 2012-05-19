@@ -169,9 +169,10 @@ bool oculomotorController::threadInit() {
         }
         //fclose (pFile);
         printf ("Total number of bytes: %d \n", n-1);
+        rewind(PsaFile);
+        n = n - 1;
     }
-    n = n - 1;
-    rewind(PsaFile);
+    
     Psa = new Matrix(NUMSTATE * NUMACTION,NUMSTATE);
     val = Psa->data();
     
@@ -376,13 +377,22 @@ bool oculomotorController::randomWalk(int& statenext) {
     printf("c = %s \n", c.toString().c_str());
     printf("max value found in position %d  of vector : %f  \n", posInVector, maxInVector);
 
-    double randAction = Random::uniform();
-    //double randAction = (rand() / 1000000000.0);
+    
+    // selecting using probability density function for the state/action
+    // the probability that the selection comes from stochastic measure is given by ifRandAction
+    double ifRandAction = Random::uniform();
     int j;
-    for (j = 0 ; j < c.size(); j++) {
-        if (c[j] > randAction) break;
+    if(ifRandAction > 0.9) {    
+        double randAction   = Random::uniform();
+        //double randAction = (rand() / 1000000000.0);        
+        for (j = 0 ; j < c.size(); j++) {
+            if (c[j] > randAction) break;
+        }
+        printf("randomAction %f . action selected %d \n", randAction, j);
     }
-    printf("randomAction %f . action selected %d \n", randAction, j);
+    else {
+        j = posInVector; //best choice given previous run
+    }
 
     // trying to execute the selected action 
     // if successful the system moves to the next state
@@ -390,6 +400,7 @@ bool oculomotorController::randomWalk(int& statenext) {
         //count++;
         //statenext = state_next;
         statevalue = j;
+        printf("success in the action, sets a new statevalue %d \n", statevalue);
         ret = true;
     }
 
@@ -522,8 +533,7 @@ void oculomotorController::learningStep() {
             stateTransition = true;
             mutexStateTransition.post();
 
-            /*
-            //state_now = 0;
+            
             // 3 .updating the quality function of the next state: TD step
             
             // calculating the value
@@ -544,8 +554,8 @@ void oculomotorController::learningStep() {
             jiter  = jiter * j;        
             
             // 5. moving to next state
-            state_now = state_next;
-            */
+            //state_now = state_next;
+            
         }
         else {
             //state_now = state_next;
@@ -598,10 +608,20 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
         switch(arg->get(0).asVocab()) {
         case COMMAND_VOCAB_STAT :{
-
-            printf("new state update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());            
-            int actionvalue = arg->get(1).asInt();  // action that is just finalized
-            state_next = statevalue;                // state in which the system ends in.
+                     
+            //int actionvalue = (int) arg->get(1).asDouble();  // action that is just finalized
+            int actionvalue = 0;
+            int statevalueparam    = (int) arg->get(1).asDouble();
+            
+            //printf("new state update arrived action: %d state :%f  \n", actionvalue, arg->get(2).asDouble()); 
+            if(!idle) {
+                state_next = statevalue;                // the update comes from the oculomotor with action stochastic result
+            }
+            else {
+                // update for evaluation of pSA without learning
+                state_next = statevalueparam;           // the update comes from the attPrioritiser with default state.
+            }
+            printf("state value = %d \n", state_next);
 
             // --------------------------  updating the entire state of the learner -----------------------------
             //state_now = 0;
@@ -631,9 +651,9 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
             
             //---------------------------  state update arrived ------------------------------------------
-            printf("                                                                   State %s \n", stateList[statevalue].c_str());
+            printf("                                                 new State %s \n",  stateList[statevalue].c_str());
             state_prev = state_now;
-            state_now  = statevalue;
+            state_now  = state_next;
                          
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
             fprintf(logFile, "state_prev:%s -> state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
@@ -651,9 +671,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 }
             }
             */            
-
-
-                        
+               
 
             // -------------------------- updating the transition matrix once we switch state --------------------
             printf("updating the transition matrix \n");

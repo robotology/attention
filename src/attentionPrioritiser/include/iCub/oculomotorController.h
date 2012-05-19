@@ -62,8 +62,8 @@ static const std::string stateList[11] =  {
     "trackKO",        //5
     "anticipOK",      //6
     "anticipWait",    //7
-    "vergenceK0",     //8
-    "vergenceOK",     //9
+    "vergenceOK",     //8
+    "vergenceKO",     //9
     "fixating"        //10    
 };
 
