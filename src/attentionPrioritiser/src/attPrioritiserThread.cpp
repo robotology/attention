@@ -1392,15 +1392,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             mutex.post();     
             */
-            Bottle& sent     = highLevelLoopPort.prepare();
-            Bottle* received = new Bottle();    
-            sent.clear();
-            sent.addString("PRED");
-            sent.addInt(u);
-            sent.addInt(v);
-            highLevelLoopPort.write();
-            //delete sent;
-            delete received;
+
+            // activating the predictor if learning is active            
+            if((learning) && (highLevelLoopPort.getOutputCount())) {
+                Bottle& sent     = highLevelLoopPort.prepare();
+                sent.clear();
+                sent.addString("PRED");
+                sent.addInt(u);
+                sent.addInt(v);
+                highLevelLoopPort.write();
+            }
 
             
             //---------------------------------------------------------------------------

@@ -614,7 +614,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             int statevalueparam    = (int) arg->get(1).asDouble();
             
             //printf("new state update arrived action: %d state :%f  \n", actionvalue, arg->get(2).asDouble()); 
-            if(!idle) {
+            if(false) {
                 state_next = statevalue;                // the update comes from the oculomotor with action stochastic result
             }
             else {
@@ -651,7 +651,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
             
             //---------------------------  state update arrived ------------------------------------------
-            printf("                                                 new State %s \n",  stateList[statevalue].c_str());
+            //printf("                                                 new State %s \n",  stateList[statevalue].c_str());
             state_prev = state_now;
             state_now  = state_next;
                          
