@@ -129,15 +129,15 @@ bool oculomotorController::threadInit() {
         //reading values
         printf("reading values from file \n");
         // Reads from input file first segment of nsize samples into y:	
-		unsigned int i;			
-		int numRead = 0, countVal = 0;
+        unsigned int i;			
+        int numRead = 0, countVal = 0;
         //int nsize = 10;
         //double y[10];
         float x;
         //double* py = &y[0];
-		while(numRead != -1){
-			numRead = fscanf(rewardFile, "%f", &x);
-			//printf("numRead %d > %f \n",numRead,(double)x);
+        while(numRead != -1){
+            numRead = fscanf(rewardFile, "%f", &x);
+            //printf("numRead %d > %f \n",numRead,(double)x);
             *val = (double) x;
             val++; countVal++;
         }
@@ -194,15 +194,15 @@ bool oculomotorController::threadInit() {
         //reading values
         printf("reading values from file \n");
         // Reads from input file first segment of nsize samples into y:	
-		unsigned int i;			
-		int numRead = 0, countVal = 0;
+        unsigned int i;			
+        int numRead = 0, countVal = 0;
         int nsize = 10;
         double y[10];
         float x;
         double* py = &y[0];
-		while(numRead != -1){
-			numRead = fscanf(PsaFile, "%f", &x);
-			//printf("numRead %d > %f \n",numRead,(double)x);
+        while(numRead != -1){
+            numRead = fscanf(PsaFile, "%f", &x);
+            //printf("numRead %d > %f \n",numRead,(double)x);
             *val = (double) x;
             val++; countVal++;
         }
@@ -255,15 +255,15 @@ bool oculomotorController::threadInit() {
         //reading values
         printf("Value Function : reading values from file \n");
         // Reads from input file first segment of nsize samples into y:	
-		unsigned int i;			
-		int numRead = 0, countVal = 0;
+        unsigned int i;			
+        int numRead = 0, countVal = 0;
         //int nsize = 10;
         //double y[10];
         float x;
         //double* py = &y[0];
-		while(numRead != -1){
-			numRead = fscanf(qualityFile, "%f", &x);
-			//printf("numRead %d > %f \n",numRead,(double)x);
+        while(numRead != -1){
+            numRead = fscanf(qualityFile, "%f", &x);
+            //printf("numRead %d > %f \n",numRead,(double)x);
             *val = (double) x;
             val++; countVal++;
         }
