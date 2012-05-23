@@ -233,10 +233,11 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
         bufCommand[k]        = NULL;
     }
 
-    //printf("starting the tracker.... \n");
-    //ResourceFinder* rf = new ResourceFinder();
-    //tracker = new trackerThread(*rf);
-    //tracker->start();
+    printf("starting the tracker.... \n");
+    ResourceFinder* rf = new ResourceFinder();
+    tracker = new trackerThread(*rf);
+    tracker->setName(getName("/matchTracker").c_str());
+    tracker->start();
     printf("attPrioritiserThread initialization ended correctly \n");
 }
 

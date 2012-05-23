@@ -91,7 +91,7 @@
 #include <highgui.h>
 
 //within project includes
-//#include <iCub/trackerThread.h>
+#include <iCub/trackerThread.h>
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 #include <iCub/sacPlannerThread.h>
@@ -231,7 +231,7 @@ private:
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     
 
-    //trackerThread*    tracker;                    // reference to the object in charge of tracking a tamplete surrounding a point
+    trackerThread*    tracker;                    // reference to the object in charge of tracking a tamplete surrounding a point
     sacPlannerThread    *sacPlanner;                // planner of saccadic movements (todo: make it a list of planners
     trajectoryPredictor *trajPredictor;             // predictor of the trajectory of a given stimulus
 

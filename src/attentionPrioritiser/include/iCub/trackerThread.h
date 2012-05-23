@@ -34,6 +34,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/sig/Image.h>
 
+
 #include <cv.h>
 #include <highgui.h>
 
@@ -63,9 +64,10 @@ protected:
 
     ImageOf<PixelMono> imgMonoIn;
     ImageOf<PixelMono> imgMonoPrev;
-
-    BufferedPort<ImageOf<PixelBgr> > inPort;
-    BufferedPort<ImageOf<PixelBgr> > outPort;
+    
+    BufferedPort<ImageOf<PixelBgr> > inPort;     // current image 
+    BufferedPort<ImageOf<PixelBgr> > outPort;    // output image extracted from the current
+    BufferedPort<ImageOf<PixelMono> > tmplPort;   // template image where the template is extracted
 
 public:
     /************************************************************************/
@@ -74,19 +76,42 @@ public:
     /************************************************************************/
     virtual bool threadInit()
     {
-        name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
-        template_size = 20; //rf.check("template_size",Value(20)).asInt();
-        search_size = 100; //rf.check("search_size",Value(100)).asInt();
+        //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
+        template_size = 10; //rf.check("template_size",Value(20)).asInt();
+        search_size = 50; //rf.check("search_size",Value(100)).asInt();
 
-        inPort.open(("/"+name+"/img:i").c_str());
-        outPort.open(("/"+name+"/img:o").c_str());
+        //inPort.open(("/"+name+"/img:i").c_str());
+        //outPort.open(("/"+name+"/img:o").c_str());
+        //tmplPort.open(("/"+name+"/tmpl:o").c_str());
+
+        inPort.open  ((name+"/img:i").c_str());
+        outPort.open ((name+"/img:o").c_str());
+        tmplPort.open((name+"/tmpl:o").c_str());
 
         firstConsistencyCheck = true;
         running = false;
         init_success = false;
+        point.x = 0;
+        point.y = 0;
 
         return true;
     }
+
+    /************************************************************************/
+    
+    void setName(string str) {
+        name=str;
+        printf("name: %s \n", name.c_str());
+    }
+
+    /************************************************************************/
+    
+    std::string getName(const char* p) {
+        string str(name);
+        str.append(p);
+        return str;
+    }
+    
 
     /************************************************************************/
 
@@ -116,13 +141,15 @@ public:
             cvCvtColor(pImgBgrIn->getIplImage(),imgMonoIn.getIplImage(),CV_BGR2GRAY);
 
             // copy input-image into output-image
-            ImageOf<PixelBgr> &imgBgrOut=outPort.prepare();
-            imgBgrOut=*pImgBgrIn;
+            ImageOf<PixelBgr>  &imgBgrOut   = outPort.prepare();
+            ImageOf<PixelMono> &imgTemplate = tmplPort.prepare();
+            imgBgrOut   = *pImgBgrIn;
+            imgTemplate = imgMonoPrev;
 
             if (running)
             {
-                ImageOf<PixelMono> &img=imgMonoIn;      // image where to seek for the template in
-                ImageOf<PixelMono> &tmp=imgMonoPrev;    // image containing the template
+                ImageOf<PixelMono> &img = imgMonoIn;      // image where to seek for the template in
+                ImageOf<PixelMono> &tmp = imgMonoPrev;    // image containing the template
 
                 // specify the searching area
                 search_roi.x=(std::max)(0,(std::min)(img.width()-search_roi.width,point.x-(search_roi.width>>1)));
@@ -150,6 +177,10 @@ public:
                 cvRectangle(imgBgrOut.getIplImage(),cvPoint(search_roi.x,search_roi.y),
                             cvPoint(search_roi.x+search_roi.width,search_roi.y+search_roi.height),
                             cvScalar(255,0,0),2);
+                
+                cvRectangle(imgBgrOut.getIplImage(),cvPoint(point.x - 1 ,point.y - 1),
+                            cvPoint(point.x + 1, point.y + 1),
+                            cvScalar(0,0,255),2);
 
                 cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
                             cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
@@ -160,9 +191,9 @@ public:
 
             // send out output-image
             outPort.write();
-
+            tmplPort.write();
             // save data for next cycle
-            imgMonoPrev=imgMonoIn;            
+            imgMonoPrev = imgMonoIn;            
         }
     }
 
