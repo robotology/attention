@@ -39,8 +39,8 @@ using namespace iCub::iKin;
 
 #define THRATE 10
 #define PI  3.14159265
-#define BASELINE 0.068     // distance in meters between eyes
-#define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
+#define BASELINE 0.068      // distance in meters between eyes
+#define TIMEOUT_CONST 10    // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
 
@@ -833,42 +833,44 @@ void gazeArbiterThread::run() {
                             v = (((((v - 64)/ 128.0) / 7.4) * 4) * 240) + 120;
                             printf("onDvs active %d %d \n", u,v);
                         }
-                        timeout = 0;
-                        timeoutStart = Time::now();
-                        while ((dist > 8) && (timeout < TIMEOUT_CONST)) {
-                            printf("inside the while \n");
-                            timeoutStop = Time::now();
-                            timeout = timeoutStop - timeoutStart;
-                            if(visualCorrection){
-                                printf("starting visual correction with\n");
-                                tracker->init(u,v);
-                                tracker->waitInitTracker();
-                                Time::delay(0.01);
-                            }
-                            Vector px(2);
-                            px(0) = u;
-                            px(1) = v;
-                            int camSel = 0;
-                            igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            Time::delay(0.1);
-                            igaze->checkMotionDone(&done);
-                            dist = 10;
-                            
-                            /*if(visualCorrection){
-                                tracker->getPoint(point);
-                                dx = (double) (point.x - px(0));
-                                dy = (double) (point.y - px(1));
-                                dist = sqrt(dx * dx + dy * dy);
-                                u = width  / 2;
-                                v = height / 2;
-                            }
-                            */
-                            dist = 0;
-                            
-                            printf("correcting distance %f \n", dist);
-                        }
-                        printf("saccadic event : started %d %d %f \n",u,v,zDistance);
-                    }
+                        for(int countSucc = 0; countSucc <3; countSucc++) {
+                            timeout = 0;
+                            timeoutStart = Time::now();
+                            while ((dist > 8) && (timeout < TIMEOUT_CONST)) {
+                                //printf("inside the while \n");
+                                timeoutStop = Time::now();
+                                timeout = timeoutStop - timeoutStart;
+                                if(visualCorrection){
+                                    printf("starting visual correction with\n");
+                                    tracker->init(u,v);
+                                    tracker->waitInitTracker();
+                                    Time::delay(0.01);
+                                }
+                                Vector px(2);
+                                px(0) = u;
+                                px(1) = v;
+                                int camSel = 0;
+                                igaze->lookAtMonoPixel(camSel,px,zDistance);
+                                Time::delay(0.1);
+                                igaze->checkMotionDone(&done);
+                                dist = 10;
+                                
+                                /*if(visualCorrection){
+                                  tracker->getPoint(point);
+                                  dx = (double) (point.x - px(0));
+                                  dy = (double) (point.y - px(1));
+                                  dist = sqrt(dx * dx + dy * dy);
+                                  u = width  / 2;
+                                  v = height / 2;
+                                  }
+                                */
+                                dist = 0;
+                                
+                                printf("correcting distance %f \n", dist);
+                            } //end while
+                            printf("saccadic event : started %d %d %f \n",u,v,zDistance);
+                        }//end for
+                    }//end if
                 }
                 else {
                     // monocular with stereo offsets 
