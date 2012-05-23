@@ -233,11 +233,12 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
         bufCommand[k]        = NULL;
     }
 
-    printf("starting the tracker.... \n");
-    ResourceFinder* rf = new ResourceFinder();
-    tracker = new trackerThread(*rf);
-    tracker->setName(getName("/matchTracker").c_str());
-    tracker->start();
+    //printf("starting the tracker.... \n");
+    //ResourceFinder* rf = new ResourceFinder();
+    //tracker = new trackerThread(*rf);
+    //tracker->setName(getName("/matchTracker").c_str());
+    //tracker->start();
+    
     printf("attPrioritiserThread initialization ended correctly \n");
 }
 
@@ -364,6 +365,11 @@ void attPrioritiserThread::threadRelease() {
         sacPlanner->stop();
     }
 
+    //if(0 != tracker) {
+    //    printf("stopping the tracker \n");
+    //    tracker->stop();
+    //}
+    
     //if(0!=trajPredictor) {
     //    trajPredictor->stop();
     //}
@@ -443,9 +449,7 @@ void attPrioritiserThread::run() {
             firstNull = true;
         }
     }
-    
-    
-    
+
     /*
     if(inLeftPort.getInputCount()){
        imgLeftIn = inLeftPort.read(false);    

@@ -36,6 +36,7 @@
 #include <string>
 
 //within project includes
+#include <iCub/trackerThread.h>
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 
@@ -47,6 +48,8 @@ private:
     yarp::os::Semaphore mutex; // semaphore for the variable of the prediction accomplished
     double Vx, Vy;             // components of velocity
     bool predictionAccompl;    // flag that indicates when the prediction was carried on correctly
+
+    trackerThread*    tracker; // reference to the object in charge of tracking a tamplete surrounding a point
 public:
     /**
     * default constructor
