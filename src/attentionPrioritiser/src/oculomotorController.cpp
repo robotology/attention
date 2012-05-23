@@ -293,6 +293,8 @@ bool oculomotorController::threadInit() {
     ot->setName(getName("").c_str()); 
     ot->start();
     
+    printf("oculomotorController::threadInit:initialisation correctly ended \n");
+    
     return true;
 }
 

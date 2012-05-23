@@ -74,6 +74,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/RFModule.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/all.h>
@@ -234,7 +235,7 @@ private:
     //trackerThread*    tracker;                    // reference to the object in charge of tracking a tamplete surrounding a point
     sacPlannerThread    *sacPlanner;                // planner of saccadic movements (todo: make it a list of planners
     trajectoryPredictor *trajPredictor;             // predictor of the trajectory of a given stimulus
-
+    yarp::os::ResourceFinder* rf;                   // resourceFinder for the pathfinder of other files
     FILE* PsaFile;                                  // file that contains the Probability of Transitions
     
 public:
@@ -299,6 +300,12 @@ public:
      * @param value true/false to enable/disable a particular oculomotor action
      */
     void setAllowStateRequest(int pos, int value) {allowStateRequest[pos] = value; }; 
+
+    /**
+     * @brief function that passes the resource finder to the class for further use of files
+     * @param resourceFinder reference to the object
+     */
+    void setResourceFinder(yarp::os::ResourceFinder* resourceFinder) {rf = resourceFinder; };
 
     /**
     * function that returns the original root name and appends another string iff passed as parameter

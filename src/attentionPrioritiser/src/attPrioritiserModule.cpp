@@ -104,6 +104,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     printf("\n running the prioritiser \n");
     prioritiser=new attPrioritiserThread(configFile);
     prioritiser->setName(getName().c_str());
+    prioritiser->setResourceFinder(&rf);
     prioritiser->setRobotName(robotName);
 
     printf("running the controller \n");
@@ -115,10 +116,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     controller->setPsaFile(rf.findFile("psaFile.txt"));
     controller->setRewardFile(rf.findFile("rewardFile.txt"));
     controller->setQualityFile(rf.findFile("qualityFile.txt"));
-    
-    
-    
-    
+
     //controller->setResourceFinder(rf);
     //if (rf.check("visualFeedback")) {
     //    prioritiser->setVisualFeedback(true);

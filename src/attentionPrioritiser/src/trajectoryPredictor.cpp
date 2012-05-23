@@ -32,7 +32,7 @@ using namespace std;
 #define THRATE 10
 
 trajectoryPredictor::trajectoryPredictor() {
-    
+    tracker = 0;
 }
 
 trajectoryPredictor::~trajectoryPredictor() {
@@ -47,11 +47,13 @@ bool trajectoryPredictor::threadInit() {
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str());
 
-    printf("starting the tracker.... \n");
+
+    printf("starting the tracker in the trajectoryPredictor.... \n");
     ResourceFinder* rf = new ResourceFinder();
-    tracker = new trackerThread(*rf);
-    tracker->setName(getName("/matchTracker").c_str());
-    tracker->start();
+    //tracker = new trackerThread(*rf);
+    //tracker->setName(getName("/matchTracker").c_str());
+    //tracker->start();
+    //printf("trajectoryPredictor::threadInit:end of the threadInit \n");
     
     return true;
 }
@@ -159,7 +161,7 @@ void trajectoryPredictor::threadRelease() {
     //printf("trajectoryPredictor::threadRelease() : \n");
     //inImagePort.close();
     if(0 != tracker) {
-        printf("stopping the tracker \n");
+        printf("trajectoryPredictor::threadRelease:stopping the tracker \n");
         tracker->stop();
     }
     
