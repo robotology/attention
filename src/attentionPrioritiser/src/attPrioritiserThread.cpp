@@ -139,6 +139,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     firstVer           = false;
     firstVergence      = true;
     done               = true;
+    idleReinf          = true;
     reinfFootprint     = true;
     postSaccCorrection = true;
     firstNull          = true;
@@ -1428,8 +1429,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             else {
                 // feedback saccade
                 // checking first for reinfFootPrint
-                if(!reinfFootprint) {
+                if((!reinfFootprint)&&(!idleReinf)) {
                     // reinforceFootprint already happened
+                    // and reinforcement enable
                     // feedback value must still be taken into account 
                     printf("Footprint still active \n");
                     printf("Footprint color  : %d-%d-%d \n", feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);

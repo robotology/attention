@@ -141,8 +141,9 @@ private:
     bool accomplished_flag;                 // flag for the accomplished vergence
     bool correcting;                        // flag that allows the test for correction to take place
     bool reinfFootprint;                    // flag that allows the reinforcement of the features of the desired object
+    bool idleReinf;                         // flag that enable the reinforcFootprint mechanism 
     bool learning;                          // flag that allows the Q-learning controller to take decisions
-    bool validAction;                     // flag that indicates when the action is valid
+    bool validAction;                       // flag that indicates when the action is valid
 
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
