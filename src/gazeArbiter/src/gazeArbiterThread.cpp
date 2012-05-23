@@ -668,7 +668,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
 
 
 void gazeArbiterThread::run() {
-    visualCorrection =false;
+    //visualCorrection =false; // TODO : check why this should be forced in leaning algorithm
     Bottle& status = statusPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
@@ -1114,18 +1114,17 @@ void gazeArbiterThread::run() {
         if(timeout >= time) {
             printf("timeout occurred, ");
         }
-        else {
-            printf("position reached in %f \n \n \n", timeout);
-            printf("SM_PUR ACCOMPLISHED \n");
-            printf("SM_PUR ACCOMPLISHED \n");
-            printf("SM_PUR ACCOMPLISHED \n");
-            //sending the acknowledgement vergence_accomplished
-            Bottle& status2 = statusPort.prepare();
-            status2.clear();
-            status2.addString("SM_ACC");
-            statusPort.write();
-            //delete &status2;                    
-        }
+        
+        printf("position reached in %f \n \n \n", timeout);
+        printf("SM_PUR ACCOMPLISHED \n");
+        printf("SM_PUR ACCOMPLISHED \n");
+        printf("SM_PUR ACCOMPLISHED \n");
+        //sending the acknowledgement vergence_accomplished
+        Bottle& status2 = statusPort.prepare();
+        status2.clear();
+        status2.addString("SM_ACC");
+        statusPort.write();
+        //delete &status2;                           
     }
     else if(allowedTransitions(1)>0) {
         state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
