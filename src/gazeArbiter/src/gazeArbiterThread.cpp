@@ -40,7 +40,7 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068      // distance in meters between eyes
-#define TIMEOUT_CONST 10    // time constant after which the motion is considered not-performed    
+#define TIMEOUT_CONST 3    // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
 
@@ -833,43 +833,73 @@ void gazeArbiterThread::run() {
                             v = (((((v - 64)/ 128.0) / 7.4) * 4) * 240) + 120;
                             printf("onDvs active %d %d \n", u,v);
                         }
-                        for(int countSucc = 0; countSucc <3; countSucc++) {
-                            timeout = 0;
-                            timeoutStart = Time::now();
-                            while ((dist > 8) && (timeout < TIMEOUT_CONST)) {
-                                //printf("inside the while \n");
-                                timeoutStop = Time::now();
-                                timeout = timeoutStop - timeoutStart;
-                                if(visualCorrection){
-                                    printf("starting visual correction with\n");
-                                    tracker->init(u,v);
-                                    tracker->waitInitTracker();
-                                    Time::delay(0.01);
-                                }
-                                Vector px(2);
-                                px(0) = u;
-                                px(1) = v;
-                                int camSel = 0;
-                                igaze->lookAtMonoPixel(camSel,px,zDistance);
-                                Time::delay(0.1);
-                                igaze->checkMotionDone(&done);
-                                dist = 10;
-                                
-                                /*if(visualCorrection){
-                                  tracker->getPoint(point);
-                                  dx = (double) (point.x - px(0));
-                                  dy = (double) (point.y - px(1));
-                                  dist = sqrt(dx * dx + dy * dy);
-                                  u = width  / 2;
-                                  v = height / 2;
-                                  }
-                                */
-                                dist = 0;
-                                
-                                printf("correcting distance %f \n", dist);
-                            } //end while
-                            printf("saccadic event : started %d %d %f \n",u,v,zDistance);
-                        }//end for
+                        
+                        timeout = 0;
+                        timeoutStart = Time::now();
+                        while ((dist > 8) && (timeout < TIMEOUT_CONST)) {
+                            //printf("inside the while \n");
+                            timeoutStop = Time::now();
+                            timeout = timeoutStop - timeoutStart;
+                            if(visualCorrection){
+                                printf("starting visual correction with\n");
+                                tracker->init(u,v);
+                                tracker->waitInitTracker();
+                                Time::delay(0.01);
+                            }
+                            Vector px(2);
+                            px(0) = u;
+                            px(1) = v;
+                            int camSel = 0;
+                            igaze->lookAtMonoPixel(camSel,px,zDistance);
+                            Time::delay(0.1);
+                            igaze->checkMotionDone(&done);
+                            dist = 10;
+                            
+                            igaze->getFixationPoint(xo);
+                            printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
+                            
+                            /*
+                            // check for offlimits by tracking out the stimulus
+                            
+                            if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (xo[2] < zmin) || (xo[2] > zmax)) {
+                            printf("                    OutOfRange ._._._._._.[%f,%f,%f] [%f,%f,%f] [%f,%f,%f] \n",xmin, xo[0], xmax, ymin, xo[1],ymax, zmin, xo[2], zmax);
+                            accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
+                            Vector px(3);
+                            px[0] = -0.5 + xOffset;
+                            px[1] =  0.0 + yOffset;
+                            px[2] =  0.3 + zOffset;
+                            //igaze->lookAtFixationPoint(px);
+                            px[0] = 0; 
+                            px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
+                            px[2] = 0;    
+                            igaze->lookAtAbsAngles(px);
+                            
+                            Time::delay(0.5);
+                            printf("waiting for motion done \n");
+                            u = width  / 2;
+                            v = height / 2;
+                            //waitMotionDone();
+                            printf("resetting the position: success! \n");
+                            return;
+                            }
+                            */
+                            
+                            
+                            /*if(visualCorrection){
+                              tracker->getPoint(point);
+                              dx = (double) (point.x - px(0));
+                              dy = (double) (point.y - px(1));
+                              dist = sqrt(dx * dx + dy * dy);
+                              u = width  / 2;
+                              v = height / 2;
+                              }
+                            */
+                            dist = 0;
+                            
+                            printf("correcting distance %f \n", dist);
+                        } //end while
+                        printf("saccadic event : started %d %d %f \n",u,v,zDistance);
+                        
                     }//end if
                 }
                 else {
@@ -965,7 +995,7 @@ void gazeArbiterThread::run() {
                 double errorx; // = (width  >> 1) - point.x;
                 double errory; // = (height >> 1) - point.y;                    
                 Vector px(2);
-                while((countDecrement < 1000) && ( countReach < 3)&&(timeout < TIMEOUT_CONST)&&(tracker->getInputCount())) {
+                while((countDecrement < 1000) && ( countReach < 3) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount())) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                    
@@ -996,6 +1026,10 @@ void gazeArbiterThread::run() {
                     //printf("norm error %f \n", errorVC);
                     int camSel = 0;
                     igaze->lookAtMonoPixel(camSel,px,zDistance);
+
+                    Vector xo;
+                    igaze->getFixationPoint(xo);
+                    printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
                     
                     //igaze->waitMotionDone();
                     tracker->getPoint(point); // have the get point as far as possible from look@mono
@@ -1499,6 +1533,8 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"STOP")) {
             printf("STOP request!!!!!! \n");
             timeout = 100;
+            suspend();
+            resume();
         }
         else if(!strcmp(name.c_str(),"SAC_MONO")) {
             // monocular saccades with visualFeedback
