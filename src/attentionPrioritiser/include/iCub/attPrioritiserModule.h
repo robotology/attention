@@ -194,7 +194,7 @@
 #define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
 #define COMMAND_VOCAB_SEEK               VOCAB4('s','e','e','k')
 #define COMMAND_VOCAB_CENT               VOCAB4('c','e','n','t')
-
+#define COMMAND_VOCAB_STOP               VOCAB4('s','t','o','p')
 
 #define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
 

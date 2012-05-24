@@ -51,8 +51,6 @@
 #define NUMACTION 8
 
 
-
-
 static const std::string stateList[11] =  {
     "null",           //0
     "predict",        //1        
@@ -138,6 +136,8 @@ public:
         str.append(p);
         return str;
     }
+
+
     
     /**
     * function called every time constant defined by rateThread
@@ -213,7 +213,9 @@ private:
     FILE* qualityFile;                     // memory of value function through runs
     FILE* rewardFile;                      // file that stores the reward function for state action
 
-    //yarp::os::ResourceFinder rf;           // finder of resource passed by module
+    yarp::os::ResourceFinder* rf;         // resource finder for initialisation of the tracker
+    
+
 public:
     /**
     * default constructor
@@ -275,6 +277,12 @@ public:
     void setIdle(bool value) {idle = value;};
 
     
+    /**
+     * @brief function that passes the resource finder to the class for further use of files
+     * @param resourceFinder reference to the object
+     */
+    void setResourceFinder(yarp::os::ResourceFinder* resourceFinder) {rf = resourceFinder; }; 
+
     /**
      * function that sets the resource finder 
      * @param rf reference to the resource finder assigned in the module

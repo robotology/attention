@@ -104,7 +104,6 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     printf("\n running the prioritiser \n");
     prioritiser=new attPrioritiserThread(configFile);
     prioritiser->setName(getName().c_str());
-    prioritiser->setResourceFinder(&rf);
     prioritiser->setRobotName(robotName);
 
     printf("running the controller \n");
@@ -112,6 +111,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     string str = (string) getName();
     str.append("/controller");
     controller->setName(str.c_str());
+    controller->setResourceFinder(&rf);
     controller->setLogFile(rf.findFile("logFile.txt"));
     controller->setPsaFile(rf.findFile("psaFile.txt"));
     controller->setRewardFile(rf.findFile("rewardFile.txt"));
@@ -342,6 +342,8 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
             //reply.addString();
             reply.addString("seek red \t : looking for a red color object");
             reply.addString("seek rgb \t : looking for a general color object");
+            reply.addString("sus  \t : suspending");
+            reply.addString("res  \t : resuming");
             //reply.addString();
 
 
@@ -352,6 +354,14 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
         rec = true;
         {
             prioritiser->suspend();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_STOP:
+        rec = true;
+        {
+            prioritiser->suspend();
+            prioritiser->resume();
             ok = true;
         }
         break;

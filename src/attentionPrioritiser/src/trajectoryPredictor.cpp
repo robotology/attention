@@ -49,11 +49,11 @@ bool trajectoryPredictor::threadInit() {
 
 
     printf("starting the tracker in the trajectoryPredictor.... \n");
-    ResourceFinder* rf = new ResourceFinder();
-    //tracker = new trackerThread(*rf);
-    //tracker->setName(getName("/matchTracker").c_str());
-    //tracker->start();
-    //printf("trajectoryPredictor::threadInit:end of the threadInit \n");
+    //ResourceFinder* rf = new ResourceFinder();
+    tracker = new trackerThread(*rf);
+    tracker->setName(getName("/matchTracker").c_str());
+    tracker->start();
+    printf("trajectoryPredictor::threadInit:end of the threadInit \n");
     
     return true;
 }

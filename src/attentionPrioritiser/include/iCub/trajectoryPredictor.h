@@ -43,13 +43,13 @@
 class trajectoryPredictor : public yarp::os::Thread, public observable{
 private:
     
-    std::string name;          // rootname of all the ports opened by this thread
+    std::string name;             // rootname of all the ports opened by this thread
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inImagePort;     //port where all the low level commands are sent
-    yarp::os::Semaphore mutex; // semaphore for the variable of the prediction accomplished
-    double Vx, Vy;             // components of velocity
-    bool predictionAccompl;    // flag that indicates when the prediction was carried on correctly
-
-    trackerThread*    tracker; // reference to the object in charge of tracking a tamplete surrounding a point
+    yarp::os::Semaphore mutex;    // semaphore for the variable of the prediction accomplished
+    double Vx, Vy;                // components of velocity
+    bool predictionAccompl;       // flag that indicates when the prediction was carried on correctly
+    yarp::os::ResourceFinder* rf; // resource finder for initialisation of the tracker
+    trackerThread*    tracker;    // reference to the object in charge of tracking a tamplete surrounding a point
 public:
     /**
     * default constructor
@@ -91,6 +91,12 @@ public:
     * @param str rootname as a string
     */
     void setName(std::string str);
+
+    /**
+     * @brief function that passes the resource finder to the class for further use of files
+     * @param resourceFinder reference to the object
+     */
+    void setResourceFinder(yarp::os::ResourceFinder* resourceFinder) {rf = resourceFinder; }; 
     
     /**
      * @brief function that returns if the prediction has been performed

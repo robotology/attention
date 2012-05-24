@@ -285,6 +285,7 @@ bool oculomotorController::threadInit() {
     
     printf(" init of the trajectoryPredictor \n");
     tp = new trajectoryPredictor();
+    tp->setResourceFinder(rf);
     tp->setName(getName("").c_str()); 
     tp->start();
 
@@ -293,7 +294,7 @@ bool oculomotorController::threadInit() {
     ot->setName(getName("").c_str()); 
     ot->start();
     
-    printf("oculomotorController::threadInit:initialisation correctly ended \n");
+    printf("\n oculomotorController::threadInit:initialisation correctly ended \n");
     
     return true;
 }
