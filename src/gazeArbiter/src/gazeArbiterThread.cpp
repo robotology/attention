@@ -1038,6 +1038,31 @@ void gazeArbiterThread::run() {
                     Vector xo;
                     igaze->getFixationPoint(xo);
                     printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
+
+                    // check for offlimits by tracking out the stimulus
+                            
+                    if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (xo[2] < zmin) || (xo[2] > zmax)) {
+                        printf("                    OutOfRange ._._._._._.[%f,%f,%f] [%f,%f,%f] [%f,%f,%f] \n",xmin, xo[0], xmax, ymin, xo[1],ymax, zmin, xo[2], zmax);
+                        accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
+                        Vector px(3);
+                        px[0] = -0.5 + xOffset;
+                        px[1] =  0.0 + yOffset;
+                        px[2] =  0.3 + zOffset;
+                        //igaze->lookAtFixationPoint(px);
+                        px[0] = 0; 
+                        px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
+                        px[2] = 0;    
+                        igaze->lookAtAbsAngles(px);
+                        
+                        Time::delay(0.5);
+                        printf("waiting for motion done \n");
+                        u = width  / 2;
+                        v = height / 2;
+                        //waitMotionDone();
+                        printf("resetting the position: success! \n");
+                        return;
+                    }
+                        
                     
                     //igaze->waitMotionDone();
                     tracker->getPoint(point); // have the get point as far as possible from look@mono
