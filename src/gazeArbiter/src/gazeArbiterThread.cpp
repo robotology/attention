@@ -921,16 +921,24 @@ void gazeArbiterThread::run() {
                 px[1] = yObject;
                 px[2] = zObject;
                 igaze->lookAtFixationPoint(px);
-                igaze->waitMotionDone();
-                goto exiting;
-                /*if(visualCorrection){
+                //igaze->waitMotionDone();
+                
+                Time::delay(0.5);
+                if(visualCorrection){
                     printf("starting visual correction with\n");
                     tracker->init(160,120);
                     tracker->waitInitTracker();
-                    Time::delay(0.01);
+                    Time::delay(0.5);
+
+                    const char BeepChar = '\a'; /* the "alarm" special char */
+                    cout << "Maybe you can hear a beep here---" << BeepChar << endl;
                 }
+                else{
+                    goto exiting;
+                }
+                    
                 printf("saccadic event : started %f %f %f \n",xObject,yObject,zObject);
-                */
+                
             }
 
             //Time::delay(0.05);
