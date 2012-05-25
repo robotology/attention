@@ -208,7 +208,8 @@
  * 20/10/11 : subtracted 1 to the y and x of the visual correction in saccadic event                author: Rea \n         
  * 26/10/11 : reduce all the temporal constant to 50ms. Trying to improve the response              author: Rea \n
  * 06/02/12 : added a novel thread for velocity tracking                                            author: Rea \n
-*/
+ * 25/05/12 : added min Cumulative measure  in the tracker                                          author: Rea \n
+ */
 
 
 

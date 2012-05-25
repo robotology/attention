@@ -1041,7 +1041,8 @@ void gazeArbiterThread::run() {
                     
                     //igaze->waitMotionDone();
                     tracker->getPoint(point); // have the get point as far as possible from look@mono
-                    //printf("the point ended up in %d  %d \n",point.x, point.y);
+                    float minCumul = tracker->getLastMinCumul();
+                    printf("the point ended up in (%d,%d) with minCumul %f \n",point.x, point.y, minCumul);
                 }
                 Time::delay(0.01);
                 if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {

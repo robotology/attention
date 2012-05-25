@@ -52,7 +52,8 @@ protected:
     string name;
     int template_size;
     int search_size;
-
+    float lastMinCumul;                         // last min cumulative value extracted by template matching                             
+ 
     CvRect  search_roi;
     CvRect  template_roi;
     CvPoint point;
@@ -66,7 +67,9 @@ protected:
     
     BufferedPort<ImageOf<PixelBgr> > inPort;     // current image 
     BufferedPort<ImageOf<PixelBgr> > outPort;    // output image extracted from the current
-    BufferedPort<ImageOf<PixelMono> > tmplPort;   // template image where the template is extracted
+    BufferedPort<ImageOf<PixelMono> > tmplPort;  // template image where the template is extracted
+
+    yarp::os::Semaphore mutex;                   // semaphore for the min cumulative value
 
 public:
     /************************************************************************/
@@ -119,6 +122,16 @@ public:
     }
 
     /************************************************************************/
+
+    int getLastMinCumul() {
+        float tmp;
+        mutex.wait();
+        tmp = lastMinCumul;
+        mutex.post();
+        return tmp;
+    }
+
+    /************************************************************************/
     virtual void run()
     {
         while (!isStopping())
@@ -159,7 +172,11 @@ public:
                 template_roi.y=(std::max)(0,(std::min)(tmp.height()-template_roi.height,point.y-(template_roi.height>>1)));
 
                 // perform tracking with template matching
-                CvPoint minLoc=sqDiff(img,search_roi,tmp,template_roi);
+                float ftmp;
+                CvPoint minLoc=sqDiff(img,search_roi,tmp,template_roi, ftmp);
+                mutex.wait();
+                lastMinCumul = ftmp;
+                mutex.post();
 
                 // update point coordinates
                 point.x=search_roi.x+minLoc.x+(template_roi.width>>1);
@@ -248,6 +265,43 @@ public:
     {
         bool firstCheck=true;
         float minCumul=0.0;
+        CvPoint minLoc;
+
+        for (int y=0; y<searchRoi.height-tmpRoi.height+1; y++)
+        {
+            for (int x=0; x<searchRoi.width-tmpRoi.width+1; x++)
+            {
+                float curCumul=0.0;
+            
+                for (int y1=0; y1<tmpRoi.height-1; y1++)
+                {
+                    for (int x1=0; x1<tmpRoi.width-1; x1++)
+                    {
+                        int diff=tmp(tmpRoi.x+x1,tmpRoi.y+y1)-img(searchRoi.x+x+x1,searchRoi.y+y+y1);
+                        curCumul+=diff*diff;
+                    }
+                }
+            
+                if ((curCumul<minCumul) || firstCheck)
+                {
+                    minLoc.x=x;
+                    minLoc.y=y;
+            
+                    minCumul=curCumul;
+                    firstCheck=false;
+                }
+            }
+        }
+
+        return minLoc;
+    }
+    
+    /************************************************************************/
+    CvPoint sqDiff(const ImageOf<PixelMono> &img, const CvRect searchRoi,
+                   const ImageOf<PixelMono> &tmp, const CvRect tmpRoi, float& minCumul)
+    {
+        bool firstCheck=true;
+        minCumul = 0.0;
         CvPoint minLoc;
 
         for (int y=0; y<searchRoi.height-tmpRoi.height+1; y++)
