@@ -295,7 +295,8 @@ bool attPrioritiserThread::threadInit() {
     desiredTrackPort.open(nameDesiredTrack.c_str());
     string nameTrackPosition("");nameTrackPosition.append(   getName("/trackPosition:i"));
     trackPositionPort.open(nameTrackPosition.c_str());
-    
+    string nameDirect("");nameDirect.append(                 getName("/direct:o"));
+    directPort.open(nameDirect.c_str());
 
     inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
@@ -336,6 +337,7 @@ void attPrioritiserThread::interrupt() {
     highLevelLoopPort.interrupt();
     desiredTrackPort.interrupt();
     trackPositionPort.interrupt();
+    directPort.interrupt();
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -357,6 +359,7 @@ void attPrioritiserThread::threadRelease() {
     printf("closing particle filter ports \n");
     trackPositionPort.close();
     desiredTrackPort.close();
+    directPort.close();
     
     printf("closing timing port \n");
     timingPort.close();
@@ -1552,25 +1555,60 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             // sending a command to the particle filter
-
+            Bottle& trackReq = desiredTrackPort.prepare();
+            trackReq.clear();
+            trackReq.addInt(u);
+            trackReq.addInt(v);
+            desiredTrackPort.write();
             // reading relavant position from the particol filter
-
+            Time::delay(0.5);
+            printf("\n");
+            int count = 0;
 
             
-            // sending command of monocular saccade
-            zDistance = 0.5;  // default interacting distance
-            time = 0.1;       // type of saccede : express = 0.1; normal = 0.5;
-            mutex.wait();
-            if(allowStateRequest[3]) {
-                //printf("setting stateRequest[3] \n");
-                stateRequest[3] = 1;
-                mutexAcc.wait();
-                accomplFlag[3] = false;
-                validAction = true;
-                mutexAcc.post();
-                reinfFootprint  = true;   // enabling back the control top-down footprint extraction
+            double timestart, timestop;
+            double diff = 0.0;
+            
+            timestart = Time::now();
+            while(diff < 30.0) {
+                Bottle* posTrack = trackPositionPort.read();
+                u = posTrack->get(0).asDouble();
+                v = posTrack->get(1).asDouble();
+                //printf("%d tracked position %d %d \n",count,u,v);
+                count++;
+                
+                Bottle& direct = directPort.prepare();
+                direct.clear();
+                direct.addString("left");
+                direct.addInt(u);
+                direct.addInt(v);
+                direct.addDouble(0.5);
+                directPort.write();
+
+                /*
+                // sending command of monocular saccade
+                zDistance = 0.5;  // default interacting distance
+                time = 0.1;       // type of saccede : express = 0.1; normal = 0.5;
+                mutex.wait();
+                if(allowStateRequest[3]) {
+                    //printf("setting stateRequest[3] \n");
+                    stateRequest[3] = 1;
+                    mutexAcc.wait();
+                    accomplFlag[3] = false;
+                    validAction = true;
+                    mutexAcc.post();
+                    //reinfFootprint  = true;   // enabling back the control top-down footprint extraction
+                }
+                mutex.post();
+                */
+  
+                timestop = Time::now();
+                diff = timestop - timestart;
+                
             }
-            mutex.post();
+            
+            
+          
               
         }
         else if(!strcmp(name.c_str(),"PRED")) {
