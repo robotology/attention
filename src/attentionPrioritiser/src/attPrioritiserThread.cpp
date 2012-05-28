@@ -291,6 +291,10 @@ bool attPrioritiserThread::threadInit() {
     feedbackProtoObject.open(nameFBProtoObject.c_str());
     string nameHighLevelLoop("");nameHighLevelLoop.append(   getName("/highLoop:o"));
     highLevelLoopPort.open(nameHighLevelLoop.c_str());
+    string nameDesiredTrack("");nameDesiredTrack.append(     getName("/desTrack:o"));
+    desiredTrackPort.open(nameDesiredTrack.c_str());
+    string nameTrackPosition("");nameTrackPosition.append(   getName("/trackPosition:i"));
+    trackPositionPort.open(nameTrackPosition.c_str());
     
 
     inLeftPort.open(getName("/imgMono:i").c_str());
@@ -330,6 +334,8 @@ void attPrioritiserThread::interrupt() {
     feedbackSelective.interrupt();
     feedbackProtoObject.interrupt();
     highLevelLoopPort.interrupt();
+    desiredTrackPort.interrupt();
+    trackPositionPort.interrupt();
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -348,6 +354,9 @@ void attPrioritiserThread::threadRelease() {
     feedbackSelective.close();
     feedbackProtoObject.close();
     highLevelLoopPort.close();
+    printf("closing particle filter ports \n");
+    trackPositionPort.close();
+    desiredTrackPort.close();
     
     printf("closing timing port \n");
     timingPort.close();
@@ -1534,6 +1543,35 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
             }
             mutex.post();           
+        }
+        else if(!strcmp(name.c_str(),"PF_REQ")) {
+            // particle filter request
+            // saving bottle in the buffer
+            bufCommand[5] = *arg;
+            // position of cartesian input image of the particle filter
+            u = arg->get(1).asInt();
+            v = arg->get(2).asInt();
+            // sending a command to the particle filter
+
+            // reading relavant position from the particol filter
+
+
+            
+            // sending command of monocular saccade
+            zDistance = 0.5;  // default interacting distance
+            time = 0.1;       // type of saccede : express = 0.1; normal = 0.5;
+            mutex.wait();
+            if(allowStateRequest[3]) {
+                //printf("setting stateRequest[3] \n");
+                stateRequest[3] = 1;
+                mutexAcc.wait();
+                accomplFlag[3] = false;
+                validAction = true;
+                mutexAcc.post();
+                reinfFootprint  = true;   // enabling back the control top-down footprint extraction
+            }
+            mutex.post();
+              
         }
         else if(!strcmp(name.c_str(),"PRED")) {
             

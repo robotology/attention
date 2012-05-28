@@ -212,6 +212,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inRightPort;      // output image port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb > > templatePort;     // port for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inhibitionPort;   // port for the segm
+    yarp::os::BufferedPort<yarp::os::Bottle> desiredTrackPort;                          // port sending the u,v position on the image plane for tracking
+    yarp::os::BufferedPort<yarp::os::Bottle> trackPositionPort;                         // port for the tracked position
     yarp::os::BufferedPort<yarp::os::Bottle> outputPort;                                // port necessary to send the gaze command to the gazeArbiter
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
     
