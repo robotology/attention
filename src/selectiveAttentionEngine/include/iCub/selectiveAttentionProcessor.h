@@ -394,7 +394,7 @@ public:
     /**
      * function that returns the value of the saccadicInterval
      */
-    int getSaccadicInterval() { return saccadicInterval; };
+    double getSaccadicInterval() { return saccadicInterval; };
     
     /**
      * function that returns the z dimension of the saccadic event
