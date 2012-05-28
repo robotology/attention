@@ -176,6 +176,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
                            Value(3000), 
                            "saccadic intervall in ms (int)").asInt();
     currentProcessor->setSaccadicInterval(saccadicInterval);
+    printf("saccadic interval selected : %d \n", saccadicInterval); 
 
     //concerning monocular gazing, we still have one degree of freedom given by
     //the distance of the object from the image plane

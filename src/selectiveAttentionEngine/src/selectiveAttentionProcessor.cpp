@@ -25,7 +25,6 @@
 
 #include <iCub/selectiveAttentionProcessor.h>
 
-
 #include <math.h>
 #include <iostream>
 #include <stdlib.h>
@@ -395,9 +394,9 @@ bool selectiveAttentionProcessor::threadInit(){
 
     habituationStart = Time::now();
 
-    printf("starting the earlyTrigger \n");
-    earlyTrigger = new prioCollectorThread();
-    earlyTrigger->setName(getName("").c_str());
+    //printf("starting the earlyTrigger \n");
+    //earlyTrigger = new prioCollectorThread();
+    //earlyTrigger->setName(getName("/prio").c_str());
 
     return true;
 }
