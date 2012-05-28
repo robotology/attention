@@ -276,8 +276,10 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     earlyTrigger->setContrastMap(map1_yarp);
     earlyTrigger->setMotionMap  (map2_yarp);
     earlyTrigger->setLinearMap  (linearCombinationImage);
+    printf("passing the images necessary for the earlyTrigger \n");
     earlyTrigger->addObserver(*this);
     earlyTrigger->start();
+    printf("success in the initialisation of earlyTrigger \n");
 }
 
 void selectiveAttentionProcessor::resizeImages(int width,int height) {
@@ -394,9 +396,9 @@ bool selectiveAttentionProcessor::threadInit(){
 
     habituationStart = Time::now();
 
-    //printf("starting the earlyTrigger \n");
-    //earlyTrigger = new prioCollectorThread();
-    //earlyTrigger->setName(getName("/prio").c_str());
+    printf("starting the earlyTrigger \n");
+    earlyTrigger = new prioCollectorThread();
+    earlyTrigger->setName(getName("/prio").c_str());
 
     return true;
 }
@@ -1306,6 +1308,9 @@ cartSpace:
         // idle: when any of the first two stages of response fires
         // maxresponse: when within the linear combination one region fires
         // the rest is a constant rate firing
+
+        printf("time diff: %f >? %d \n", diff * 1000, saccadeInterv);
+        
         if((diff * 1000 > saccadeInterv)||(idle)||(maxResponse)) {
             habituationStart = Time::now(); //resetting exponential of habituation
             memset(habituation, 0, height * width * sizeof(float));
