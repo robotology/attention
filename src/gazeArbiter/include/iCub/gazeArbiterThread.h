@@ -129,6 +129,7 @@ private:
     CvRect  template_roi;                   // region of interest of the template
     CvRect  search_roi;                     // region of interest of the search
     CvPoint point;                          // point result of the search
+    CvPoint point_prev;                     // point result of the search in the previous step
     
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgLeftIn;                                 // input image 3 channel
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* imgRightIn;                                // input mono image

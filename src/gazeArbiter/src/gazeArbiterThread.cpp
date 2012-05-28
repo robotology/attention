@@ -1000,10 +1000,14 @@ void gazeArbiterThread::run() {
                 double errorVC_pre = 100.0;
                 int countReach = 0;
                 int countDecrement = 0;
-                double errorx; // = (width  >> 1) - point.x;
-                double errory; // = (height >> 1) - point.y;                    
+                int errorx;                    // = (width  >> 1) - point.x;
+                int errory;                    // = (height >> 1) - point.y;  
+                double travelDistance = 10.0;     // distance travel by the tracked point
                 Vector px(2);
-                while((countDecrement < 1000) && ( countReach < 3) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount())) {
+                
+                point_prev = point;
+                
+                while((countDecrement < 1000) && ( countReach < 3) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) && (travelDistance >= 1000.0) ) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                    
@@ -1015,10 +1019,12 @@ void gazeArbiterThread::run() {
 #else
                     errorx = 160 - point.x;
                     errory = 120 - point.y;
-                    px(0) = cxl - errorx;
-                    px(1) = cyl - errory;
+                    px(0) = (double) (cxl - errorx);
+                    px(1) = (double) (cyl - errory);
+                    printf("cxl %d cyl %d point = (%d,%d) px = (%f,%f) \n",cxl,cyl,point.x, point.y, px(0), px(1));
 #endif
 
+                    
                     errorVC_pre = errorVC;
                     errorVC = sqrt(errorx * errorx + errory * errory);
                     //printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, errorVC);
@@ -1032,9 +1038,13 @@ void gazeArbiterThread::run() {
                         countDecrement = 0;
                     }
                     //printf("norm error %f \n", errorVC);
-                    int camSel = 0;
-                    igaze->lookAtMonoPixel(camSel,px,zDistance);
+                    
 
+                    int camSel = 0; 
+                    igaze->lookAtMonoPixel(camSel,px,0.5);
+                    
+
+                    /*
                     Vector xo;
                     igaze->getFixationPoint(xo);
                     printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
@@ -1062,13 +1072,26 @@ void gazeArbiterThread::run() {
                         printf("resetting the position: success! \n");
                         return;
                     }
-                        
+                      
+                    */
                     
                     //igaze->waitMotionDone();
-                    tracker->getPoint(point); // have the get point as far as possible from look@mono
+                    point_prev = point;        // changing the position of the tracked point in the previous step
+                    tracker->getPoint(point);  // have the get point as far as possible from look@mono
+                    travelDistance = sqrt( 
+                                         (point.x - point_prev.x) * (point.x - point_prev.x) + 
+                                         (point.y - point_prev.y) * (point.y - point_prev.y)
+                                          );
+                                          
                     float minCumul = tracker->getLastMinCumul();
-                    printf("the point ended up in (%d,%d) with minCumul %f \n",point.x, point.y, minCumul);
+                    printf("the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",point.x, point.y, minCumul, travelDistance);
+                    
+                  
+                    
                 }
+
+
+
                 Time::delay(0.01);
                 if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {
                     Vector px(3);
@@ -1108,7 +1131,9 @@ void gazeArbiterThread::run() {
                         }*/
                 }
                 else {
+ 
                     printf("saccade accomplished \n");
+           
                     // saccade accomplished
                     //----------------------------------
                     //sending the acknowledgement vergence_accomplished
