@@ -1574,9 +1574,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle* posTrack = trackPositionPort.read();
                 u = posTrack->get(0).asDouble();
                 v = posTrack->get(1).asDouble();
-                //printf("%d tracked position %d %d \n",count,u,v);
+                printf(" tracking position %d %d        \b ",count,u,v);
                 count++;
                 
+                /*
                 Bottle& direct = directPort.prepare();
                 direct.clear();
                 direct.addString("left");
@@ -1584,8 +1585,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 direct.addInt(v);
                 direct.addDouble(0.5);
                 directPort.write();
+                */
 
-                /*
+                
                 // sending command of monocular saccade
                 zDistance = 0.5;  // default interacting distance
                 time = 0.1;       // type of saccede : express = 0.1; normal = 0.5;
@@ -1600,14 +1602,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     //reinfFootprint  = true;   // enabling back the control top-down footprint extraction
                 }
                 mutex.post();
-                */
-  
+                
+                Time::delay(0.05);
                 timestop = Time::now();
                 diff = timestop - timestart;
                 
             }
             
-            
+            printf("end of the 30 seconds of control!");
           
               
         }

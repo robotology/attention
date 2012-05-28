@@ -140,15 +140,17 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 }
 
 void trajectoryPredictor::run() {
-    /*
-      while(isRunning()){
+    
+    while(isRunning()){
+        /*
         ImageOf<PixelMono>* b=inImagePort.read(true);
         int x,y;
         extractCentroid(b, x, y);
         estimateVelocity(x,y, Vx, Vy);
         printf("estimateVelocity %f %f \n",Vx,Vy );
+        */
     }
-    */
+    
 }
 
 void trajectoryPredictor::onStop() {

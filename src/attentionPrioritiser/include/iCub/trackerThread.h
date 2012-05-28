@@ -202,6 +202,7 @@ public:
     {
         inPort.interrupt();
         outPort.interrupt();
+        tmplPort.interrupt();
     }
 
     /************************************************************************/
@@ -209,6 +210,7 @@ public:
     {
         inPort.close();
         outPort.close();
+        tmplPort.close();
     }
 
     /************************************************************************/
