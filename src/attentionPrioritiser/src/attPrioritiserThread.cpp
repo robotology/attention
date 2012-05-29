@@ -302,6 +302,27 @@ bool attPrioritiserThread::threadInit() {
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
     //firstConsistencyCheck=true;
 
+    
+    //initializing gazecontrollerclient
+    printf("initialising gazeControllerClient \n");
+    Property option;
+    option.put("device","gazecontrollerclient");
+    option.put("remote","/iKinGazeCtrl");
+    string localCon("/attPrioritiser/gaze");
+    localCon.append(getName(""));
+    option.put("local",localCon.c_str());
+
+    clientGazeCtrl=new PolyDriver();
+    clientGazeCtrl->open(option);
+    igaze=NULL;
+
+    if (clientGazeCtrl->isValid()) {
+       clientGazeCtrl->view(igaze);
+    }
+    else
+        return false;
+    
+
     inhibitionImage = new ImageOf<PixelMono>;
     inhibitionImage->resize(320,240);
     inhibitionImage->zero();
@@ -315,8 +336,8 @@ bool attPrioritiserThread::threadInit() {
     sacPlanner->referenceRetina(imgLeftIn);
     sacPlanner->start();
 
-    //trajPredictor = new trajectoryPredictor();
-    //trajPredictor->start();
+    trajPredictor = new trajectoryPredictor();
+    trajPredictor->start();
     
     return true;
 }
@@ -360,17 +381,19 @@ void attPrioritiserThread::threadRelease() {
     trackPositionPort.close();
     desiredTrackPort.close();
     directPort.close();
+
+
     
     printf("closing timing port \n");
     timingPort.close();
     printf("successfully closed all the ports \n");
     delete eyeL;
     delete eyeR;
+
     printf("successfully deleted eyes references \n");
     //igaze->restoreContext(originalContext);
-    //printf("successfully restored previous gaze context \n");
-    
-    //delete clientGazeCtrl;
+    //printf("successfully restored previous gaze context \n"); 
+    delete clientGazeCtrl;
     
     if(0!=sacPlanner) {
         printf("deleting the clientPlanner \n");
@@ -382,9 +405,10 @@ void attPrioritiserThread::threadRelease() {
     //    tracker->stop();
     //}
     
-    //if(0!=trajPredictor) {
-    //    trajPredictor->stop();
-    //}
+    if(0!=trajPredictor) {
+        trajPredictor->stop();
+    }
+    
     //delete sacPlanner;
     printf("deleted the sacPlanner \n");
 }
@@ -1574,7 +1598,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle* posTrack = trackPositionPort.read();
                 u = posTrack->get(0).asDouble();
                 v = posTrack->get(1).asDouble();
-                printf(" tracking position %d %d        \b ",count,u,v);
+                printf("tracking position %d %d        \n ",u,v);
                 count++;
                 
                 /*
@@ -1587,7 +1611,19 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 directPort.write();
                 */
 
+                /*
+                // reinforce the template with the latest view of the stimulus
+                if(count % 15 == 0) {
+                    printf("REINFORCING the TEMPLATE in pos %d %d \n", u, v);
+                    Bottle& trackReq = desiredTrackPort.prepare();
+                    trackReq.clear();
+                    trackReq.addInt(u);
+                    trackReq.addInt(v);
+                    desiredTrackPort.write();
+                }
+                */
                 
+                /*
                 // sending command of monocular saccade
                 zDistance = 0.5;  // default interacting distance
                 time = 0.1;       // type of saccede : express = 0.1; normal = 0.5;
@@ -1602,8 +1638,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     //reinfFootprint  = true;   // enabling back the control top-down footprint extraction
                 }
                 mutex.post();
+                */
+                Vector px(2);
+                px(0) = u;
+                px(1) = v;
+                int camSel = 0;
+                igaze->lookAtMonoPixel(camSel,px,0.5);          
                 
-                Time::delay(0.05);
+                //Time::delay(0.05);
                 timestop = Time::now();
                 diff = timestop - timestart;
                 

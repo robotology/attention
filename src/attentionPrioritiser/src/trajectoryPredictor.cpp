@@ -88,12 +88,18 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
 bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos) {
     printf(" trajectoryPredictor::estimateVelocity %f %f  \n", Vx, Vy);
     
+    CvPoint p_curr, p_prev;
+    
     // initialisation of the tracker
     tracker->init(x,y);
+    printf("success in init \n");
+    printf("running value is %d \n", tracker->getRunning());
+    tracker->getPoint(p_curr);
+    printf("point %d %d \n",p_curr.x, p_curr.y );
     tracker->waitInitTracker();
+    printf("tracker successfully initialised \n");
    
-    CvPoint p_curr, p_prev;
-
+    
     double timeStart = Time::now();
     double timeStop, timeDiff;
     double velX, velY;

@@ -24,8 +24,8 @@
  * 
  */
 
-#ifndef _TRACKER_THREAD_H_
-#define _TRACKER_THREAD_H_
+#ifndef _TRACKER_THREAD2_H_
+#define _TRACKER_THREAD2_H_
 
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
@@ -47,12 +47,13 @@ using namespace yarp::os;
 using namespace yarp::sig;
 
 class trackerThread : public yarp::os::Thread {
-protected:
+private:
     ResourceFinder &rf;
 
     string name;
     int template_size;
     int search_size;
+    int check;
 
     CvRect  search_roi;
     CvRect  template_roi;
@@ -61,6 +62,7 @@ protected:
     bool firstConsistencyCheck;
     bool running;
     bool init_success;                           //flag that check whether initialisation was successful
+    bool run2;
 
     ImageOf<PixelMono> imgMonoIn;
     ImageOf<PixelMono> imgMonoPrev;
@@ -68,6 +70,8 @@ protected:
     BufferedPort<ImageOf<PixelBgr> > inPort;     // current image 
     BufferedPort<ImageOf<PixelBgr> > outPort;    // output image extracted from the current
     BufferedPort<ImageOf<PixelMono> > tmplPort;   // template image where the template is extracted
+    
+    Semaphore mutex;
 
 public:
     /************************************************************************/
@@ -90,9 +94,11 @@ public:
 
         firstConsistencyCheck = true;
         running = false;
+        run2    = false;
         init_success = false;
         point.x = 0;
         point.y = 0;
+        check = 100;
 
         return true;
     }
@@ -103,6 +109,13 @@ public:
         name=str;
         printf("name: %s \n", name.c_str());
     }
+    
+    /************************************************************************/
+    
+    bool getRunning() {        
+        return running;
+    }
+
 
     /************************************************************************/
     
@@ -120,7 +133,7 @@ public:
     }
 
     /************************************************************************/
-    virtual void run()
+    void run()
     {
         while (!isStopping())
         {
@@ -145,9 +158,13 @@ public:
             ImageOf<PixelMono> &imgTemplate = tmplPort.prepare();
             imgBgrOut   = *pImgBgrIn;
             imgTemplate = imgMonoPrev;
-
+            
+            mutex.wait();
+            printf("in the run : %d %d point %d %d \n", running, check, point.x, point.y);
             if (running)
             {
+                mutex.post();
+                printf("in the running procedure point (%d,%d) \n", point.x, point.y);
                 ImageOf<PixelMono> &img = imgMonoIn;      // image where to seek for the template in
                 ImageOf<PixelMono> &tmp = imgMonoPrev;    // image containing the template
 
@@ -188,6 +205,9 @@ public:
                 
                 init_success = true; // considering init success at the end of the first loop
             }
+            else {
+                mutex.post();
+            }
 
             // send out output-image
             outPort.write();
@@ -224,17 +244,23 @@ public:
         init_success = false;
         point.x = x;
         point.y = y;
-
-        search_roi.width = search_roi.height=search_size;
-        template_roi.width = template_roi.height=template_size;
-
-        running = true;
+        
+        search_roi.width   = search_roi.height   = search_size;
+        template_roi.width = template_roi.height = template_size;
+        
+        check = 99;
+        
+        mutex.wait();
+        running = true; run2 = true;
+        mutex.post();
     }
     /*****************************************************************************/
     
     void waitInitTracker() {
         while (!init_success) {
-            Time::delay(0.005);
+            printf("running %d %d \n", running, run2);
+            //Time::delay(0.005);
+            Time::delay(1.0);
         }
     }
 
@@ -353,7 +379,7 @@ public:
     }
 };
 
-#endif  //_TRACKER_THREAD_H_
+#endif  //_TRACKER_THREAD2_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 
