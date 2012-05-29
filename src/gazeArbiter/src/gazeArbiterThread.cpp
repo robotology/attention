@@ -40,7 +40,7 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068      // distance in meters between eyes
-#define TIMEOUT_CONST 3    // time constant after which the motion is considered not-performed    
+#define TIMEOUT_CONST 10    // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
 
@@ -1002,12 +1002,13 @@ void gazeArbiterThread::run() {
                 int countDecrement = 0;
                 int errorx;                    // = (width  >> 1) - point.x;
                 int errory;                    // = (height >> 1) - point.y;  
-                double travelDistance = 10.0;     // distance travel by the tracked point
+                double travelDistance = 0.0;     // distance travel by the tracked point
+                float minCumul = 0;
                 Vector px(2);
                 
                 point_prev = point;
                 
-                while((countDecrement < 1000) && ( countReach < 3) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) && (travelDistance >= 1000.0) ) {
+                while((countDecrement < 1000) && (countReach < 10) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) && (travelDistance <= 1000.0) /*&& (minCumul < 5000.0)*/ ) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                    
@@ -1031,12 +1032,14 @@ void gazeArbiterThread::run() {
                     if(errorVC <= 1) {
                         countReach++;
                     }
-                    if ((errorVC > 50 )&&(errorVC_pre <= errorVC )) {
+                    if ((errorVC > 4 ) /*&&(errorVC_pre <= errorVC )*/ ) {
                         //countDecrement++;
+                        if(countReach > 0)
+                            countReach--;
                     }
-                    else {
-                        countDecrement = 0;
-                    }
+                    //else {
+                    //    countDecrement = 0;
+                    //}
                     //printf("norm error %f \n", errorVC);
                     
 
@@ -1083,8 +1086,8 @@ void gazeArbiterThread::run() {
                                          (point.y - point_prev.y) * (point.y - point_prev.y)
                                           );
                                           
-                    float minCumul = tracker->getLastMinCumul();
-                    printf("the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",point.x, point.y, minCumul, travelDistance);
+                    minCumul = tracker->getLastMinCumul();
+                    printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
                     
                   
                     
@@ -1093,7 +1096,10 @@ void gazeArbiterThread::run() {
 
 
                 Time::delay(0.01);
-                if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {
+                if (minCumul > 5000) {
+                    printf("Error: out of correlation limits \n");
+                }
+                else if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {
                     Vector px(3);
                     printf("Error in reaching with visualFeedback \n");
                     printf("Error in reaching with visualFeedback \n");

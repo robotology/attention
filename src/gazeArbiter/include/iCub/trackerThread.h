@@ -79,7 +79,7 @@ public:
     virtual bool threadInit()
     {
         //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
-        template_size = 10; //rf.check("template_size",Value(20)).asInt();
+        template_size = 20; //rf.check("template_size",Value(20)).asInt();
         search_size = 50; //rf.check("search_size",Value(100)).asInt();
 
         //inPort.open(("/"+name+"/img:i").c_str());
