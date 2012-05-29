@@ -1466,7 +1466,7 @@ void selectiveAttentionProcessor::setYSize(int ySize) {
     ySizeValue=ySize;
 }
 
-void selectiveAttentionProcessor::setSaccadicInterval(int interval) {
+void selectiveAttentionProcessor::setSaccadicInterval(double interval) {
     this->saccadeInterv=interval;
 }
 
