@@ -22,6 +22,7 @@ FILE(GLOB folder_source
 	src/sacPlannerThread.cpp
     src/oculomotorController.cpp
     src/trajectoryPredictor.cpp
+
 )
 FILE(GLOB folder_header 
 	include/iCub/attPrioritiserModule.h

@@ -97,6 +97,11 @@ public:
      * @param resourceFinder reference to the object
      */
     void setResourceFinder(yarp::os::ResourceFinder* resourceFinder) {rf = resourceFinder; }; 
+
+    /**
+     * function that sets the reference to the tracker
+     */
+    void setTracker(trackerThread* tt) { tracker = tt; };
     
     /**
      * @brief function that returns if the prediction has been performed

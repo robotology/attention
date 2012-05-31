@@ -48,12 +48,12 @@ bool trajectoryPredictor::threadInit() {
     inImagePort.open(rootName.c_str());
 
 
-    printf("starting the tracker in the trajectoryPredictor.... \n");
+    //printf("starting the tracker in the trajectoryPredictor.... \n");
     //ResourceFinder* rf = new ResourceFinder();
-    tracker = new trackerThread(*rf);
-    tracker->setName(getName("/matchTracker").c_str());
-    tracker->start();
-    printf("trajectoryPredictor::threadInit:end of the threadInit \n");
+    //tracker = new trackerThread(*rf);
+    //tracker->setName(getName("/matchTracker").c_str());
+    //tracker->start();
+    //printf("trajectoryPredictor::threadInit:end of the threadInit \n");
     
     return true;
 }
@@ -86,19 +86,17 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
 }
 
 bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos) {
-    printf(" trajectoryPredictor::estimateVelocity %f %f  \n", Vx, Vy);
+    printf(" trajectoryPredictor::estimateVelocity in pos.%d,%d  \n", Vx, Vy);
     
     CvPoint p_curr, p_prev;
     
-    // initialisation of the tracker
-    tracker->init(x,y);
-    printf("success in init \n");
-    printf("running value is %d \n", tracker->getRunning());
-    tracker->getPoint(p_curr);
-    printf("point %d %d \n",p_curr.x, p_curr.y );
-    tracker->waitInitTracker();
-    printf("tracker successfully initialised \n");
-   
+    //// initialisation of the tracker
+    //tracker->init(x,y);
+    //printf("success in init \n");
+    //tracker->r = 1;
+    //printf("running %d \n", tracker->r);
+    //tracker->waitInitTracker();
+    //printf("tracker successfully initialised \n");
     
     double timeStart = Time::now();
     double timeStop, timeDiff;
@@ -108,7 +106,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     int nIter = 3;
     
     //for n times records the position of the object and extract an estimate
-    if(tracker->getInputCount()) {
+    if(true) {
         for (short n = 0; n < nIter; n++) {
             p_prev =  p_curr;
             tracker->getPoint(p_curr);

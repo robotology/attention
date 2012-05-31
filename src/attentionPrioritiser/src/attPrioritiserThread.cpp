@@ -338,6 +338,12 @@ bool attPrioritiserThread::threadInit() {
 
     trajPredictor = new trajectoryPredictor();
     trajPredictor->start();
+
+    ResourceFinder* rf = new ResourceFinder();
+    tracker = new trackerThread(*rf);
+    tracker->setName(getName("/matchTracker").c_str());
+    tracker->start();
+    printf("trajectoryPredictor::threadInit:end of the threadInit \n");
     
     return true;
 }
@@ -531,8 +537,11 @@ void attPrioritiserThread::run() {
         setChanged();
         notifyObservers(&notif);
         */
+        
         //double predVx = 0.0, predVy = 0.0;
-        bool predictionSuccess = trajPredictor->estimateVelocity(10, 10, predVx, predVy, predXpos, predYpos);
+        //bool predictionSuccess = false;
+        bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos);
+        tracker->init(u,v);tracker->waitInitTracker();
         printf("after trajectory prediction %f %f (land: %f, %f) \n", predVx, predVy, predXpos, predYpos);
         
 

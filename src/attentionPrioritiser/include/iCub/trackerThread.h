@@ -24,8 +24,8 @@
  * 
  */
 
-#ifndef _TRACKER_THREAD2_H_
-#define _TRACKER_THREAD2_H_
+#ifndef _TRACKER_THREAD_H_
+#define _TRACKER_THREAD_H_
 
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
@@ -33,7 +33,6 @@
 #include <yarp/os/Thread.h>
 #include <yarp/os/Time.h>
 #include <yarp/sig/Image.h>
-
 
 #include <cv.h>
 #include <highgui.h>
@@ -53,8 +52,8 @@ private:
     string name;
     int template_size;
     int search_size;
-    int check;
-
+    float lastMinCumul;                         // last min cumulative value extracted by template matching                             
+ 
     CvRect  search_roi;
     CvRect  template_roi;
     CvPoint point;
@@ -62,18 +61,19 @@ private:
     bool firstConsistencyCheck;
     bool running;
     bool init_success;                           //flag that check whether initialisation was successful
-    bool run2;
 
     ImageOf<PixelMono> imgMonoIn;
     ImageOf<PixelMono> imgMonoPrev;
     
     BufferedPort<ImageOf<PixelBgr> > inPort;     // current image 
     BufferedPort<ImageOf<PixelBgr> > outPort;    // output image extracted from the current
-    BufferedPort<ImageOf<PixelMono> > tmplPort;   // template image where the template is extracted
-    
-    Semaphore mutex;
+    BufferedPort<ImageOf<PixelMono> > tmplPort;  // template image where the template is extracted
+
+    yarp::os::Semaphore mutex;                   // semaphore for the min cumulative value
 
 public:
+    
+
     /************************************************************************/
     trackerThread(ResourceFinder &_rf) : rf(_rf) { }
 
@@ -81,7 +81,7 @@ public:
     virtual bool threadInit()
     {
         //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
-        template_size = 10; //rf.check("template_size",Value(20)).asInt();
+        template_size = 20; //rf.check("template_size",Value(20)).asInt();
         search_size = 50; //rf.check("search_size",Value(100)).asInt();
 
         //inPort.open(("/"+name+"/img:i").c_str());
@@ -94,11 +94,9 @@ public:
 
         firstConsistencyCheck = true;
         running = false;
-        run2    = false;
         init_success = false;
         point.x = 0;
         point.y = 0;
-        check = 100;
 
         return true;
     }
@@ -109,13 +107,6 @@ public:
         name=str;
         printf("name: %s \n", name.c_str());
     }
-    
-    /************************************************************************/
-    
-    bool getRunning() {        
-        return running;
-    }
-
 
     /************************************************************************/
     
@@ -133,7 +124,17 @@ public:
     }
 
     /************************************************************************/
-    void run()
+
+    int getLastMinCumul() {
+        float tmp;
+        mutex.wait();
+        tmp = lastMinCumul;
+        mutex.post();
+        return tmp;
+    }
+
+    /************************************************************************/
+    virtual void run()
     {
         while (!isStopping())
         {
@@ -158,13 +159,9 @@ public:
             ImageOf<PixelMono> &imgTemplate = tmplPort.prepare();
             imgBgrOut   = *pImgBgrIn;
             imgTemplate = imgMonoPrev;
-            
-            mutex.wait();
-            printf("in the run : %d %d point %d %d \n", running, check, point.x, point.y);
+
             if (running)
             {
-                mutex.post();
-                printf("in the running procedure point (%d,%d) \n", point.x, point.y);
                 ImageOf<PixelMono> &img = imgMonoIn;      // image where to seek for the template in
                 ImageOf<PixelMono> &tmp = imgMonoPrev;    // image containing the template
 
@@ -177,7 +174,11 @@ public:
                 template_roi.y=(std::max)(0,(std::min)(tmp.height()-template_roi.height,point.y-(template_roi.height>>1)));
 
                 // perform tracking with template matching
-                CvPoint minLoc=sqDiff(img,search_roi,tmp,template_roi);
+                float ftmp;
+                CvPoint minLoc=sqDiff(img,search_roi,tmp,template_roi, ftmp);
+                mutex.wait();
+                lastMinCumul = ftmp;
+                mutex.post();
 
                 // update point coordinates
                 point.x=search_roi.x+minLoc.x+(template_roi.width>>1);
@@ -205,9 +206,6 @@ public:
                 
                 init_success = true; // considering init success at the end of the first loop
             }
-            else {
-                mutex.post();
-            }
 
             // send out output-image
             outPort.write();
@@ -222,7 +220,6 @@ public:
     {
         inPort.interrupt();
         outPort.interrupt();
-        tmplPort.interrupt();
     }
 
     /************************************************************************/
@@ -230,7 +227,6 @@ public:
     {
         inPort.close();
         outPort.close();
-        tmplPort.close();
     }
 
     /************************************************************************/
@@ -244,23 +240,17 @@ public:
         init_success = false;
         point.x = x;
         point.y = y;
-        
-        search_roi.width   = search_roi.height   = search_size;
-        template_roi.width = template_roi.height = template_size;
-        
-        check = 99;
-        
-        mutex.wait();
-        running = true; run2 = true;
-        mutex.post();
+
+        search_roi.width = search_roi.height=search_size;
+        template_roi.width = template_roi.height=template_size;
+
+        running = true;
     }
     /*****************************************************************************/
     
     void waitInitTracker() {
         while (!init_success) {
-            printf("running %d %d \n", running, run2);
-            //Time::delay(0.005);
-            Time::delay(1.0);
+            Time::delay(0.005);
         }
     }
 
@@ -277,6 +267,43 @@ public:
     {
         bool firstCheck=true;
         float minCumul=0.0;
+        CvPoint minLoc;
+
+        for (int y=0; y<searchRoi.height-tmpRoi.height+1; y++)
+        {
+            for (int x=0; x<searchRoi.width-tmpRoi.width+1; x++)
+            {
+                float curCumul=0.0;
+            
+                for (int y1=0; y1<tmpRoi.height-1; y1++)
+                {
+                    for (int x1=0; x1<tmpRoi.width-1; x1++)
+                    {
+                        int diff=tmp(tmpRoi.x+x1,tmpRoi.y+y1)-img(searchRoi.x+x+x1,searchRoi.y+y+y1);
+                        curCumul+=diff*diff;
+                    }
+                }
+            
+                if ((curCumul<minCumul) || firstCheck)
+                {
+                    minLoc.x=x;
+                    minLoc.y=y;
+            
+                    minCumul=curCumul;
+                    firstCheck=false;
+                }
+            }
+        }
+
+        return minLoc;
+    }
+    
+    /************************************************************************/
+    CvPoint sqDiff(const ImageOf<PixelMono> &img, const CvRect searchRoi,
+                   const ImageOf<PixelMono> &tmp, const CvRect tmpRoi, float& minCumul)
+    {
+        bool firstCheck=true;
+        minCumul = 0.0;
         CvPoint minLoc;
 
         for (int y=0; y<searchRoi.height-tmpRoi.height+1; y++)
@@ -325,7 +352,7 @@ public:
             }
             else if (cmd=="stop")
             {
-                running=false;
+                running =false;
                 reply.addString("ack");
             }
             else if (cmd=="set")
@@ -379,7 +406,7 @@ public:
     }
 };
 
-#endif  //_TRACKER_THREAD2_H_
+#endif  //_TRACKER_THREAD_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 
