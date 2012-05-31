@@ -137,8 +137,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     }
 
     bool predictionAccompl = true;
-    Vx = 10.0;
-    Vy = 10.0;
+    Vx = meanVelX;
+    Vy = meanVelY;
     xPos = -1;
     yPos = -1;
     return predictionAccompl;

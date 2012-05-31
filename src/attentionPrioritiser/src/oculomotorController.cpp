@@ -719,6 +719,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             action.zero();
             //int a = (int) arg->get(1).asDouble();
             
+            //extracting the allowTransition matrix
             Vector a(6);
             a(0) = arg->get(1).asDouble();
             a(1) = arg->get(2).asDouble();
@@ -747,7 +748,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             action(0) = a(0);
             action(1) = a(1);
             action(2) = a(2);
-            if(amplitudeId == 2) {
+            if((amplitudeId == 2) && (a(3))) {
                 action(3) = 0;
                 action(4) = 0;
                 action(5) = 1;
