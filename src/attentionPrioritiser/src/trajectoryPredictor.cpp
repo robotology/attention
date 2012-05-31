@@ -107,6 +107,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     //for n times records the position of the object and extract an estimate
     if(true) {
+        printf("entering the for necessary to perform high level tracking \n");
         for (short n = 0; n < nIter; n++) {
             p_prev =  p_curr;
             tracker->getPoint(p_curr);
