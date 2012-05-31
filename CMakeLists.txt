@@ -23,10 +23,20 @@ find_package(IPOPT)
 include(iCubOptions)
 include(iCubHelpers)
 
+SET(CUDAVISION_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
+
 # default prefix for applications
 set(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}" CACHE PATH "Application path prefix")
 
 ### Go through single folder
+option(ENABLE_CUDA  "Do you want to compile with Cuda?" OFF)
+
+if (ENABLE_CUDA)  
+  add_definitions (-DWITH_CUDA)
+  add_subdirectory(cudaVision)
+endif (ENABLE_CUDA)
+
+
 add_subdirectory(app)
 add_subdirectory(src)
 
