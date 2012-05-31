@@ -100,10 +100,11 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     double timeStart = Time::now();
     double timeStop, timeDiff;
-    double velX, velY;
+    double velX, velY, velX_prev, velY_prev;
+    double accX, accY, maxAccX = 0, maxAccY = 0;
     double meanVelX, meanVelY;
     int distX, distY;
-    int nIter = 3;
+    int nIter = 10;
     
     //for n times records the position of the object and extract an estimate
     if(true) {
@@ -120,8 +121,14 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
                 distY = p_curr.y - p_prev.y;
                 printf("distance X: %d \n", distX);
                 printf("distance Y: %d \n", distY);
+                velX_prev = velX;
+                velY_prev = velY;
                 velX = distX / timeDiff;
                 velY = distY / timeDiff;
+                accX = (velX - velX_prev) / timeDiff;
+                accY = (velY - velY_prev) / timeDiff;
+                if(accY > maxAccY) maxAccY = accY;
+                if(accX > maxAccX) maxAccX = accX;
                 printf("velocity X: %f \n", velX);
                 printf("velocity Y: %f \n", velY);
                 meanVelX += velX;

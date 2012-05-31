@@ -2004,8 +2004,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             
             //trigger new behaviours
-            /*
-            // b. predictive saccade
+            // a. predictive saccade
             if ((predXpos != -1) && (predYpos != 1)) {
                 Bottle& sentPred     = highLevelLoopPort.prepare();
                 Bottle* receivedPred = new Bottle();    
@@ -2021,17 +2020,17 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             else 
                 if((predVx != 0) || (predVy != 0)) {
                     
-                    printf(" ---------------- received prediction accomplished with %f %f \n", predVx, predVy);
-                    
+                    printf(" ---------------- activate SMP after prediction accomplished with %f %f \n", predVx, predVy);               
                     Bottle& sent     = highLevelLoopPort.prepare();                  
                     sent.clear();
                     sent.addString("SM_PUR");
                     sent.addInt(predVx);
                     sent.addInt(predVy);
+                    sent.addDouble(0.5);
                     highLevelLoopPort.write();
 
             }
-            */
+            
     
         }
         else if(!strcmp(name.c_str(),"RESET")) {
