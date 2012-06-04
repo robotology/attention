@@ -40,7 +40,7 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068      // distance in meters between eyes
-#define TIMEOUT_CONST 10    // time constant after which the motion is considered not-performed    
+#define TIMEOUT_CONST 3    // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
 
@@ -853,10 +853,11 @@ void gazeArbiterThread::run() {
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
                             Time::delay(0.1);
                             igaze->checkMotionDone(&done);
+                            printf("first check motion done %d \n", done);
                             dist = 10;
                             
-                            igaze->getFixationPoint(xo);
-                            printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
+                            //igaze->getFixationPoint(xo);
+                            //printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
                             
                             /*
                             // check for offlimits by tracking out the stimulus
@@ -951,7 +952,7 @@ void gazeArbiterThread::run() {
             
             
             //TODO :  check why check motion done returns always false
-            //constant time of 10 sec after which the action is considered not performed
+            //constant time in sec after which the action is considered not performed
             timeoutStart = Time::now();
             while ((!done)&&(timeout < TIMEOUT_CONST)) {
                 while((!done)&&(timeout < TIMEOUT_CONST)) {
@@ -1022,7 +1023,7 @@ void gazeArbiterThread::run() {
                     errory = 120 - point.y;
                     px(0) = (double) (cxl - errorx);
                     px(1) = (double) (cyl - errory);
-                    printf("cxl %d cyl %d point = (%d,%d) px = (%f,%f) \n",cxl,cyl,point.x, point.y, px(0), px(1));
+                    //printf("cxl %d cyl %d point = (%d,%d) px = (%f,%f) \n",cxl,cyl,point.x, point.y, px(0), px(1));
 #endif
 
                     
@@ -1087,7 +1088,7 @@ void gazeArbiterThread::run() {
                                           );
                                           
                     minCumul = tracker->getLastMinCumul();
-                    printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
+                    //printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
                     
                   
                     
@@ -1158,7 +1159,7 @@ void gazeArbiterThread::run() {
     else if(allowedTransitions(2)>0) {
         // ----------------  SMOOTH PURSUIT -----------------------  
         state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
-        printf(" in RUN of gazeArbiter thread Smooth Pursuit %f %f \n", uVel, vVel);
+        printf(" in RUN of gazeArbiter threadSmooth Pursuit %f %f \n", uVel, vVel);
         printf("velocity profile %f %f \n", uVel, vVel);
         //initilisation
         int c = 0;
@@ -1184,6 +1185,8 @@ void gazeArbiterThread::run() {
             timeend = Time::now();
             timeout = timeend - timestart;
             c++;
+            
+            /*
             Vector x(3);
             igaze->getFixationPoint(x); 
             if(x[0] < xmin) {
@@ -1210,6 +1213,7 @@ void gazeArbiterThread::run() {
                 exitloop = true;
                 printf("exiting because z< zmax \n");
             }
+            */
         }
         
         if(timeout >= time) {
