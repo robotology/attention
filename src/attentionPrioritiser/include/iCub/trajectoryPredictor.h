@@ -127,8 +127,9 @@ public:
      * @param Vy estimated velocity along y axis
      * @param xPos estimated landing location along x axis
      * @param yPos estimated landing location along x axis
+     * @param time estimated time length of movement
      */
-    bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos);
+    bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time);
 };
 
 #endif  //_TRAJECTORY_PREDICTOR_H_

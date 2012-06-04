@@ -85,7 +85,7 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
     y = 10.0;
 }
 
-bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos) {
+bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time) {
     printf(" trajectoryPredictor::estimateVelocity in pos.%d,%d  \n", Vx, Vy);
     
     CvPoint p_curr, p_prev;
@@ -148,6 +148,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     Vy = meanVelY;
     xPos = -1;
     yPos = -1;
+    double maxAcc = maxAccX > maxAccY?maxAccX:maxAccY;
+    time = 2 * maxAcc;
     return predictionAccompl;
 }
 

@@ -203,6 +203,8 @@ public:
                 cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
                             cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
                             cvScalar(0,255,0),2);
+
+                cvCircle( imgBgrOut.getIplImage(), cvPoint(160,120), 30 , cvScalar(0,255,0), 1 );
                 
                 init_success = true; // considering init success at the end of the first loop
             }

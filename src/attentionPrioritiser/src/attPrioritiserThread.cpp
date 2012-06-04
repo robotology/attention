@@ -544,9 +544,9 @@ void attPrioritiserThread::run() {
         //double predVx = 0.0, predVy = 0.0;
         //bool predictionSuccess = false;
         tracker->init(u,v);tracker->waitInitTracker();
-        bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos);
+        bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime);
         
-        printf("after trajectory prediction %f %f (land: %f, %f) \n", predVx, predVy, predXpos, predYpos);
+        printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);
         
 
         // nofiying state transition            
@@ -2046,7 +2046,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     sent.addString("SM_PUR");
                     sent.addInt(predVx);
                     sent.addInt(predVy);
-                    sent.addDouble(0.5);
+                    sent.addDouble(predTime);
                     highLevelLoopPort.write();
 
             }
