@@ -36,12 +36,13 @@ using namespace yarp::math;
 using namespace iCub::iKin;
 
 
-#define THRATE 10
-#define PI  3.14159265
-#define BASELINE 0.068     // distance in meters between eyes
-#define TIMEOUT_CONST 5    // time constant after which the motion is considered not-performed    
-#define THCORR 0.99
-#define corrStep 10 
+#define THRATE          10
+#define PI              3.14159265
+#define BASELINE        0.068      // distance in meters between eyes
+#define TIMEOUT_CONST   5          // time constant after which the motion is considered not-performed    
+#define THCORR          0.99
+#define corrStep        10
+#define FOVEACONFID     20
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     int padding = src->getPadding();
@@ -1965,17 +1966,36 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.wait();
             accomplFlag[2] = true;              // action number accomplished
             validAction    = false;
-            mutexAcc.post();            
+            mutexAcc.post();           
             mutex.post();
 
-             // nofiying state transition            
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(4);                  // code for smooth-pursuit accomplished
-            setChanged();
-            notifyObservers(&notif);
+            //action ended look into the visual stimulus
+            CvPoint t; tracker->getPoint(t);
+            if((t.x > 160 - FOVEACONFID) && 
+               (t.x < 160 + FOVEACONFID) &&
+               (t.y > 120 - FOVEACONFID) &&
+               (t.y < 120 + FOVEACONFID)) {
 
+                // nofiying state transition into successful tracking
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(5);                  // code for smooth-pursuit accomplished
+                setChanged();
+                notifyObservers(&notif);
+                
+            }
+            else {
+                
+                // nofiying state transition into unsuccessful tracking
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(4);                  // code for smooth-pursuit accomplished
+                setChanged();
+                notifyObservers(&notif);
+                
+            }
         }
         else if(!strcmp(name.c_str(),"PRED_ACC")) {
             // prediction accomplished           
