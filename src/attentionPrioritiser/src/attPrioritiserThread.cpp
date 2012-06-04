@@ -2042,7 +2042,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(1);                  // code for prediction accomplished
             setChanged();
             notifyObservers(&notif);
-
             
             //trigger new behaviours
             // a. predictive saccade
@@ -2069,6 +2068,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     sent.addInt(predVy);
                     sent.addDouble(predTime);
                     highLevelLoopPort.write();
+                    printf("----------------- deactivate SMP after prediction \n");
 
                 }
             }    

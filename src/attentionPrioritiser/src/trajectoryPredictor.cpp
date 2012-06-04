@@ -154,7 +154,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     yPos = -1;
    
     double maxAcc = maxAccX > maxAccY?maxAccX:maxAccY;
-    time = maxAcc / 1000; 
+    time = maxAcc / 4000; 
     return predictionAccompl;
 }
 
