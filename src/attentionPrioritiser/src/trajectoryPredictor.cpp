@@ -116,7 +116,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             
             if (n > 0) {
                 timeDiff = timeStop - timeStart;
-                printf("timeDiff %f \n", timeDiff );
+                printf("----------------- \n timeDiff %f \n", timeDiff );
                 distX = p_curr.x - p_prev.x;
                 distY = p_curr.y - p_prev.y;
                 printf("distance X: %d \n", distX);
@@ -131,6 +131,10 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
                 if(accX > maxAccX) maxAccX = accX;
                 printf("velocity X: %f \n", velX);
                 printf("velocity Y: %f \n", velY);
+                printf("velocity diff X : %f \n",velX - velX_prev );
+                printf("velocity diff Y : %f \n",velY - velY_prev );
+                printf("accelar  X: %f \n", accX);
+                printf("accelar  Y: %f \n", accY);
                 meanVelX += velX;
                 meanVelY += velY;
             }
@@ -148,8 +152,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     Vy = meanVelY;
     xPos = -1;
     yPos = -1;
+   
     double maxAcc = maxAccX > maxAccY?maxAccX:maxAccY;
-    time = 2 * maxAcc;
+    time = maxAcc / 1000; 
     return predictionAccompl;
 }
 

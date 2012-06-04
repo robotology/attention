@@ -561,7 +561,7 @@ void attPrioritiserThread::run() {
 
         //predictionSuccess = false; // forcing the prediction failed
         if(predictionSuccess) {
-            printf("prediction success: velocity(%f, %f) time(0.5) \n", predVx, predVy);
+            printf("prediction success: velocity(%f, %f) time( %f) \n", predVx, predVy, predTime);
             
             // action after prediction 
             Bottle& sent     = highLevelLoopPort.prepare();            
@@ -1168,11 +1168,11 @@ void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int bl
     feedbackSelective.write(*sent, *received);
     
     //timing of the saccades
-    sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TIME);
-    sent->addDouble(tNull);
-    feedbackSelective.write(*sent, *received);
+    //sent->clear();
+    //sent->addVocab(COMMAND_VOCAB_SET);
+    //sent->addVocab(COMMAND_VOCAB_TIME);
+    //sent->addDouble(tNull);
+    //feedbackSelective.write(*sent, *received);
     
     //setting saliencyBlobFinder
     //weight BU
@@ -1289,11 +1289,11 @@ void attPrioritiserThread::seek(Bottle command) {
             feedbackSelective.write(*sent, *received);
             
             //timing of the saccades
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_TIME);
-            sent->addDouble(tNull);
-            feedbackSelective.write(*sent, *received);
+            //sent->clear();
+            //sent->addVocab(COMMAND_VOCAB_SET);
+            //sent->addVocab(COMMAND_VOCAB_TIME);
+            //sent->addDouble(tNull);
+            //feedbackSelective.write(*sent, *received);
             
             //setting saliencyBlobFinder
             //weight BU
@@ -1368,11 +1368,11 @@ void attPrioritiserThread::reinforceFootprint() {
     feedbackSelective.write(*sent, *received);
     
     //timing of the saccades
-    sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TIME);
-    sent->addDouble(tColOri);
-    feedbackSelective.write(*sent, *received);
+    //sent->clear();
+    //sent->addVocab(COMMAND_VOCAB_SET);
+    //sent->addVocab(COMMAND_VOCAB_TIME);
+    //sent->addDouble(tColOri);
+    //feedbackSelective.write(*sent, *received);
     
     //setting saliencyBlobFinder
     //weight BU
@@ -1775,6 +1775,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
             } //end if(!vergencestop)
         }
+
+        //****************************** ACTION RESPONSES  ************************************************//
+
         else if(!strcmp(name.c_str(),"SAC_FAIL")) {
             // saccade accomplished           
             mutex.wait();
@@ -1888,16 +1891,31 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             accomplFlag[3] = true;               // action number accomplished
             mutexAcc.post();
 
-            
-            // nofiying state transition to fixStable ok           
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(2);                  // code for fixStableOK accomplished 
-            setChanged();
-            notifyObservers(&notif);
+            CvPoint t; tracker->getPoint(t);
+            if((t.x > 160 - FOVEACONFID) && 
+               (t.x < 160 + FOVEACONFID) &&
+               (t.y > 120 - FOVEACONFID) &&
+               (t.y < 120 + FOVEACONFID)) {
+                
+                // nofiying state transition to fixStable ok           
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(2);                  // code for fixStableOK accomplished 
+                setChanged();
+                notifyObservers(&notif);
 
-            
+            }
+            else {
+                // nofiying state transition to fixStable ok           
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(3);                  // code for fixStableOK accomplished 
+                setChanged();
+                notifyObservers(&notif);
+            }
+
             /*
             // reset action
             notif.clear();
@@ -1943,6 +1961,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();
             mutex.post();
 
+
+            
             // nofiying state transition            
             Bottle notif;
             notif.clear();
@@ -1951,6 +1971,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             setChanged();
             notifyObservers(&notif); 
             
+
         }
         else if(!strcmp(name.c_str(),"SM_ACC")) {
             // smooth pursuit accomplished           
@@ -2037,10 +2058,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 delete receivedPred;
             }
             // b. smooth pursuit
-            else 
+            else { 
                 if((predVx != 0) || (predVy != 0)) {
                     
-                    printf(" ---------------- activate SMP after prediction accomplished with %f %f \n", predVx, predVy);               
+                    printf(" ---------------- activate SMP after prediction accomplished with %f %f %f \n", predVx, predVy, predTime);               
                     Bottle& sent     = highLevelLoopPort.prepare();                  
                     sent.clear();
                     sent.addString("SM_PUR");
@@ -2049,9 +2070,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     sent.addDouble(predTime);
                     highLevelLoopPort.write();
 
-            }
-            
-    
+                }
+            }    
         }
         else if(!strcmp(name.c_str(),"RESET")) {
             // smooth pursuit accomplished           
