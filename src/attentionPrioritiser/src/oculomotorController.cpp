@@ -403,7 +403,8 @@ bool oculomotorController::randomWalk(int& statenext) {
         //count++;
         //statenext = state_next;
         statevalue = j;
-        printf("success in the action, sets a new statevalue %d \n", statevalue);
+        printf("success in the action, probably sets a new statevalue %d \n", statevalue);
+        
         ret = true;
     }
 
@@ -427,8 +428,7 @@ bool oculomotorController::randomWalk(int& statenext) {
 }
 
 bool oculomotorController::allowStateRequest(int action) {
-    //logging the action in the file
-    logAction(action);
+   
    
     //setting flags in initialisation
     ap->setAllowStateRequest(action, true);
@@ -464,11 +464,15 @@ bool oculomotorController::allowStateRequest(int action) {
         else {
             printf("action performed!");
             ret = true;
+            //logging the action in the file
+            logAction(action);
         }
     }
     else {
         // action found and executed
         ret = true;
+        //logging the action in the file
+        logAction(action);
     }
 
     //setting flags at the end of the function
@@ -609,7 +613,9 @@ void oculomotorController::logAction(int a) {
     // mapping from action in prioritiser to action in controller
     // mapping from dimension 6 to dimension 8
     int amplitudeId = 2;
-    //printf("action %f %f \n", action(0), action(1));
+    printf("action %d \n", a);
+
+    /*
     switch(a) {
     case 0 :
         action(0) = 1;
@@ -634,6 +640,9 @@ void oculomotorController::logAction(int a) {
         action(7) = 1;
         break;
     }
+    */
+
+    action(a) = 1.0;
     
     
     if(action(0)) {

@@ -562,12 +562,12 @@ void attPrioritiserThread::run() {
         
 
         // nofiying state transition            
-        Bottle notif;
-        notif.clear();
-        notif.addVocab(COMMAND_VOCAB_STAT);
-        notif.addDouble(1);                  // code for prediction accomplished
-        setChanged();
-        notifyObservers(&notif); 
+        //Bottle notif;
+        //notif.clear();
+        //notif.addVocab(COMMAND_VOCAB_STAT);
+        //notif.addDouble(1);                  // code for prediction accomplished
+        //setChanged();
+        //notifyObservers(&notif); 
 
         printf("just notified observers \n");
 
@@ -584,11 +584,11 @@ void attPrioritiserThread::run() {
         else {
             printf("prediction failed \n");
             // nofiying state transition            
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(3);                  // code for prediction accomplished
-            setChanged();
-            notifyObservers(&notif);
+            //notif.clear();
+            //notif.addVocab(COMMAND_VOCAB_STAT);
+            //notif.addDouble(3);                  // code for prediction accomplished
+            //setChanged();
+            //notifyObservers(&notif);
             
         }
         printf("_________________ Trajectory prediction  _____________________\n");
@@ -652,23 +652,26 @@ void attPrioritiserThread::run() {
             }
             if(timeout >= 2.0) {
                 printf("Express Saccade timed out \n");
+                
                 // nofiying state transition            
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(3);                  // code for fixStableKO
-                setChanged();
-                notifyObservers(&notif);
+                //Bottle notif;
+                //notif.clear();
+                //notif.addVocab(COMMAND_VOCAB_STAT);
+                //notif.addDouble(3);                  // code for fixStableKO
+                //setChanged();
+                //notifyObservers(&notif);
+
             }
             else {
                 printf("Express Saccade  accomplished \n");
                 // nofiying state transition            
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(2);                  // code for fixStableKO
-                setChanged();
-                notifyObservers(&notif);
+                
+                //Bottle notif;
+                //notif.clear();
+                //notif.addVocab(COMMAND_VOCAB_STAT);
+                //notif.addDouble(2);                  // code for fixStableKO
+                //setChanged();
+                //notifyObservers(&notif);
             }        
 
             Time::delay(0.01);
@@ -822,25 +825,27 @@ void attPrioritiserThread::run() {
                     }
                     if(timeout > 5.0) {
                         printf("Saccade accomplished timeout \n");
+                        
                         // nofiying state transition            
-                        Bottle notif;
-                        notif.clear();
-                        notif.addVocab(COMMAND_VOCAB_STAT);
-                        notif.addDouble(3);                  // code for fixStableKO
-                        setChanged();
-                        notifyObservers(&notif);
+                        //Bottle notif;
+                        //notif.clear();
+                        //notif.addVocab(COMMAND_VOCAB_STAT);
+                        //notif.addDouble(3);                  // code for fixStableKO
+                        //setChanged();
+                        //notifyObservers(&notif);
                     }
                     else {
                         printf("Saccade accomplished command received \n");
+
                         // nofiying state transition            
-                        Bottle notif;
-                        notif.clear();
-                        notif.addVocab(COMMAND_VOCAB_STAT);
-                        notif.addDouble(2);                  // code for fixStableKO
-                        setChanged();
-                        notifyObservers(&notif);
-                        printf("stopping vergence \n");
-                        stopVergence = false;
+                        //Bottle notif;
+                        //notif.clear();
+                        //notif.addVocab(COMMAND_VOCAB_STAT);
+                        //notif.addDouble(2);                  // code for fixStableKO
+                        //setChanged();
+                        //notifyObservers(&notif);
+                        //printf("stopping vergence \n");
+                        //stopVergence = false;
                     }
 
 
@@ -1078,6 +1083,15 @@ void attPrioritiserThread::printCommandBuffer() {
         else
             printf("%d >>>>> NULL \n",i);
     }
+}
+
+void attPrioritiserThread::setAllowStateRequest(int _pos, int value) {
+    int pos;
+    //mapping of the state
+    if((_pos > 3) && (_pos <= 5)) pos = 3;    
+    else if (_pos > 5)            pos = _pos - 2;
+    else                          pos = _pos; 
+    allowStateRequest[pos] = value; 
 }
 
 bool attPrioritiserThread::executeCommandBuffer(int _pos) {

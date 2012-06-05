@@ -308,7 +308,7 @@ public:
      * @param pos id reference to the oculomotor action to enable/disable
      * @param value true/false to enable/disable a particular oculomotor action
      */
-    void setAllowStateRequest(int pos, int value) {allowStateRequest[pos] = value; }; 
+    void setAllowStateRequest(int pos, int value); 
 
     /**
      * @brief function that passes the resource finder to the class for further use of files
