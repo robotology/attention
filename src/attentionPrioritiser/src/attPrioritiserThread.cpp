@@ -475,8 +475,12 @@ void attPrioritiserThread::run() {
 
     // checking for pending communication
     if(isPendingCommand) {
+        printf ("!!!!!!!!!!!! PENDING COMMAND !!!!!!! \n");
         sendPendingCommand();
         isPendingCommand = false;
+        printf("sent the command \n");
+        printf("___________________________________ \n");
+        return;
     }
     //Vector-vector element-wise product operator between stateRequest possible transitions
     else if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)||(stateRequest(5) != 0)) {
@@ -507,22 +511,6 @@ void attPrioritiserThread::run() {
         }
     }
 
-    /*
-    if(inLeftPort.getInputCount()){
-       imgLeftIn = inLeftPort.read(false);    
-       if(imgLeftIn!=NULL) {
-           sacPlanner->referenceRetina(imgLeftIn);
-           if(templatePort.getOutputCount()) {
-               ImageOf<PixelRgb>& img = templatePort.prepare(); 
-               img.resize(252,152);
-               img.zero();
-               img.copy(*imgLeftIn);
-               //copy_8u_C1R(imgLeftIn,&img);
-               templatePort.write();
-           }
-       }       
-    }
-    */
 
     //mutex.post();
     //double end = Time::now();
@@ -576,10 +564,15 @@ void attPrioritiserThread::run() {
             printf("prediction success: velocity(%f, %f) time( %f) \n", predVx, predVy, predTime);
             
             // action after prediction 
-            Bottle& sent     = highLevelLoopPort.prepare();            
-            sent.clear();
-            sent.addString("PRED_ACC");
-            highLevelLoopPort.write();                        
+            //Bottle& sent     = highLevelLoopPort.prepare();            
+            //sent.clear();
+            //sent.addString("PRED_ACC");
+            //highLevelLoopPort.write();                        
+
+            pendingCommand->clear();
+            pendingCommand->addString("PRED_ACC");
+            isPendingCommand = true;     
+            
         }
         else {
             printf("prediction failed \n");
@@ -588,10 +581,9 @@ void attPrioritiserThread::run() {
             //notif.addVocab(COMMAND_VOCAB_STAT);
             //notif.addDouble(3);                  // code for prediction accomplished
             //setChanged();
-            //notifyObservers(&notif);
-            
+            //notifyObservers(&notif);            
         }
-        printf("_________________ Trajectory prediction  _____________________\n");
+        printf("_________________ Trajectory prediction  _____________________\n\n");
     }
     else if(allowedTransitions(4)>0) {
         state(5) = 0; state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
@@ -1655,6 +1647,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             setChanged();
             notifyObservers(&notif);
             */
+            
         }
         else if(!strcmp(name.c_str(),"RESET")) {
 
@@ -1888,6 +1881,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             setChanged();
             notifyObservers(&notif);
 
+            /*
             // reset action
             notif.clear();
             printf("notify action reset \n");
@@ -1908,6 +1902,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(0);                  // code for null state
             setChanged();
             notifyObservers(&notif);
+            */
             
         }
         else if(!strcmp(name.c_str(),"SAC_ACC")) {

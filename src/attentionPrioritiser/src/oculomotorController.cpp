@@ -712,7 +712,7 @@ void oculomotorController::logAction(int a) {
 void oculomotorController::update(observable* o, Bottle * arg) {
     cUpdate++;
     if (arg != 0) {
-        //printf("bottle: %s ", arg->toString().c_str());
+        printf("###############bottle: %s ", arg->toString().c_str());
         int size = arg->size();
         if (0 == size) {
             return;
