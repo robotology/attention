@@ -1009,7 +1009,7 @@ void gazeArbiterThread::run() {
                 
                 point_prev = point;
                 
-                while((countDecrement < 1000) && (countReach < 10) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) && (travelDistance <= 1000.0) /*&& (minCumul < 5000.0)*/ ) {
+                while((countDecrement < 1000) && (countReach < 3) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) && (travelDistance <= 1000.0) /*&& (minCumul < 5000.0)*/ ) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                    
@@ -1097,7 +1097,7 @@ void gazeArbiterThread::run() {
 
 
                 Time::delay(0.01);
-                if (minCumul > 5000) {
+                if (minCumul > 5000000) {
                     printf("Error: out of correlation limits \n");
                 }
                 else if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {
