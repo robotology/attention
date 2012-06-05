@@ -1527,7 +1527,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //--------------------------------------------------------------------------
             // prediction attemp after triggering stimulus
-            /*mutex.wait();
+            mutex.wait();
             if(allowStateRequest[5]) {
                 printf("setting stateRequest[5] \n");
                 reinfFootprint = true;
@@ -1540,7 +1540,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
             }
             mutex.post();     
-            */
+            
 
             // activating the predictor if learning is active            
             if((learning) && (highLevelLoopPort.getOutputCount())) {
@@ -1879,7 +1879,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
 
-            /*
+            
             // nofiying state transition to fixStable ok           
             Bottle notif;
             notif.clear();
@@ -1908,9 +1908,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(0);                  // code for null state
             setChanged();
             notifyObservers(&notif);
-            */
+            
         }
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
+            
             // saccade accomplished           
             mutex.wait();
             correcting = true;
@@ -2014,7 +2015,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // reset action
             notif.clear();
             printf("notify action reset \n");
-:q            notif.addVocab(COMMAND_VOCAB_ACT);
+            notif.addVocab(COMMAND_VOCAB_ACT);
             // code for reset action
             notif.addDouble(1.0);  // reset
             notif.addDouble(0.0);  // vergence 
@@ -2152,7 +2153,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             else { 
                 if((predVx != 0) || (predVy != 0)) {
                     
-                    printf(" ---------------- activate SMP after prediction accomplished with %f %f %f \n", predVx, predVy, predTime);               
+                                  
                     /*
                     Bottle& sent     = highLevelLoopPort.prepare();                  
                     sent.clear();
@@ -2170,8 +2171,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     pendingCommand->addDouble(predTime);
                     isPendingCommand = true;                    
 
-                    printf("----------------- deactivate SMP after prediction \n");
-
+                    
                 }
             }    
         }

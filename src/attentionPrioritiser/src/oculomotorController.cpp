@@ -436,22 +436,25 @@ bool oculomotorController::allowStateRequest(int action) {
     // executing command in buffer
     bool ret = false;
     bool executed = ap->executeCommandBuffer(action);
-
-
+    
+    /*
     if(!executed) {
+        printf("executing clone action \n");
         ap->executeClone(action);
         ret = true;
         logAction(action);
-        Time::delay(2);
     }
+    
     else {
         // action found and executed
         ret = true;
         //logging the action in the file
         logAction(action);
     }
+    */
 
-    /*
+
+    
     // if not executed because absent in the buffer, waits for few seconds
     if(!executed) {
         double timenow  = Time::now();
@@ -490,9 +493,11 @@ bool oculomotorController::allowStateRequest(int action) {
         //logging the action in the file
         logAction(action);
     }
-    */
+    
 
     //setting flags at the end of the function
+    
+    printf("setting valid action \n");
     ap->setValidAction(false);
     ap->setAllowStateRequest(action, false);
 
@@ -537,7 +542,7 @@ void oculomotorController::learningStep() {
     mutexStateTransition.post();
 
     if(!_stateTransition) {
-        //printf("action selection section \n");
+        printf("action selection section \n");
         // 2 .action selection and observation of the next state
         bool actionPerformed;
         printf("_______________ count % d  state_now %d_______________________ \n \n", count, state_now);
@@ -611,7 +616,7 @@ void oculomotorController::run() {
         }      
         
         //printf("count %d iter %d \n", count, iter);
-        if((count < 50) && (iter % 20 == 0)) {
+        if((count < 50) && (iter % 20 == 0) && (ap->readyForActions())) {
             learningStep();    
         }
         

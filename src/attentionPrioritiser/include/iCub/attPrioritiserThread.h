@@ -223,8 +223,6 @@ private:
     
     yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort;                         // port dedicated to the retroactive high level loop
 
-    yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort2;                         // port dedicated to the retroactive high level loop
-
     yarp::os::Port feedbackEarlyVision;             // port for feedback to the early vision component of attention
     yarp::os::Port feedbackSelective;               // port for feedback to the selective component of visual attention                              
     yarp::os::Port feedbackProtoObject;             // port for feedback to proto-object feature extractor                              
@@ -463,6 +461,8 @@ public:
      * function printCommandBuffer prints all the commands
      */
     void printCommandBuffer();
+
+    bool readyForActions() {return outputPort.getOutputCount();};
 
     /**
      * @brief function that executes one particular action in the buffer of commands
