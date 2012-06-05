@@ -323,6 +323,8 @@ bool attPrioritiserThread::threadInit() {
     else
         return false;
     
+    pendingCommand   = new Bottle();
+    isPendingCommand = false;
 
     inhibitionImage = new ImageOf<PixelMono>;
     inhibitionImage->resize(320,240);
@@ -391,7 +393,7 @@ void attPrioritiserThread::threadRelease() {
     desiredTrackPort.close();
     directPort.close();
 
-
+    delete pendingCommand;
     
     printf("closing timing port \n");
     timingPort.close();
@@ -459,15 +461,25 @@ void attPrioritiserThread::getPoint(CvPoint& p) {
 }
 
 
+void attPrioritiserThread::sendPendingCommand() {
+    highLevelLoopPort.prepare() = *pendingCommand;
+    highLevelLoopPort.write();
+}
+
 void attPrioritiserThread::run() {
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
-    
+
+    // checking for pending communication
+    if(isPendingCommand) {
+        sendPendingCommand();
+        isPendingCommand = false;
+    }
     //Vector-vector element-wise product operator between stateRequest possible transitions
-    if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)||(stateRequest(5) != 0)) {
+    else if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)||(stateRequest(5) != 0)) {
         printf("#### stateRequest: %s \n", stateRequest.toString().c_str());
         printf("#### state: %s \n", state.toString().c_str());
         Vector c(5);
@@ -2061,6 +2073,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if((predVx != 0) || (predVy != 0)) {
                     
                     printf(" ---------------- activate SMP after prediction accomplished with %f %f %f \n", predVx, predVy, predTime);               
+                    /*
                     Bottle& sent     = highLevelLoopPort.prepare();                  
                     sent.clear();
                     sent.addString("SM_PUR");
@@ -2068,6 +2081,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     sent.addInt(predVy);
                     sent.addDouble(predTime);
                     highLevelLoopPort.write();
+                    */
+
+                    pendingCommand->clear();
+                    pendingCommand->addString("SM_PUR");
+                    pendingCommand->addInt(predVx);
+                    pendingCommand->addInt(predVy);
+                    pendingCommand->addDouble(predTime);
+                    isPendingCommand = true;                    
+
                     printf("----------------- deactivate SMP after prediction \n");
 
                 }

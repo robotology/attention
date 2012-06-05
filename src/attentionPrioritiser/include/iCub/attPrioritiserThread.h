@@ -145,6 +145,7 @@ private:
     bool idleReinf;                         // flag that enable the reinforcFootprint mechanism 
     bool learning;                          // flag that allows the Q-learning controller to take decisions
     bool validAction;                       // flag that indicates when the action is valid
+    bool isPendingCommand;                    // flag that indicates that an action command must be sent in the highlevel loop
 
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
@@ -194,6 +195,7 @@ private:
     double kColor[7];                       // kValue for selection in color state
     double kColOri[7];                      // kValue for selection in color 'n' orientation state 
     yarp::os::Bottle bufCommand[NUMSTATES]; // buffer for the last actions arranged divided by type
+    yarp::os::Bottle *pendingCommand;       // control command to send
 
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
@@ -220,6 +222,9 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
     
     yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort;                         // port dedicated to the retroactive high level loop
+
+    yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort2;                         // port dedicated to the retroactive high level loop
+
     yarp::os::Port feedbackEarlyVision;             // port for feedback to the early vision component of attention
     yarp::os::Port feedbackSelective;               // port for feedback to the selective component of visual attention                              
     yarp::os::Port feedbackProtoObject;             // port for feedback to proto-object feature extractor                              
@@ -418,6 +423,12 @@ public:
      * @blueValue blue component of the color
      */
     void sendColorCommand(int redValue, int greenValue, int blueValue);
+
+
+    /**
+     * @brief function that send a action command that has to be performed via highLevelLoop
+     */
+    void sendPendingCommand();
 
     /**
      * @brief function that activates a seeking action
