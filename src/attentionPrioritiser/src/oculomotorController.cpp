@@ -437,14 +437,29 @@ bool oculomotorController::allowStateRequest(int action) {
     bool ret = false;
     bool executed = ap->executeCommandBuffer(action);
 
+
+    if(!executed) {
+        ap->executeClone(action);
+        ret = true;
+        logAction(action);
+        Time::delay(2);
+    }
+    else {
+        // action found and executed
+        ret = true;
+        //logging the action in the file
+        logAction(action);
+    }
+
+    /*
     // if not executed because absent in the buffer, waits for few seconds
     if(!executed) {
         double timenow  = Time::now();
         double timediff = 0;
         double timeend;
         bool   validAction;
-        
-        
+
+ 
         ap->isValidAction(validAction);
         printf("checking valid action %d \n", validAction);
         
@@ -457,6 +472,7 @@ bool oculomotorController::allowStateRequest(int action) {
             Time::delay(0.1);
         }
         printf("\n");
+
         if(timeend >= 0.5) {
             printf("the action has not been performed; Timeout occurred \n" );
             ret = false;
@@ -474,6 +490,7 @@ bool oculomotorController::allowStateRequest(int action) {
         //logging the action in the file
         logAction(action);
     }
+    */
 
     //setting flags at the end of the function
     ap->setValidAction(false);

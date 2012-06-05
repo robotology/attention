@@ -468,6 +468,12 @@ public:
      * @brief function that executes one particular action in the buffer of commands
      */
     bool executeCommandBuffer(int pos);
+
+    /**
+     * @brief function that executes one requested action event when not present in the buffer 
+     */
+    void executeClone(int pos);
+    
 };
 
 #endif  //_ATT_PRIORITISER_THREAD_H_

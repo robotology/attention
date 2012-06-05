@@ -1094,6 +1094,74 @@ void attPrioritiserThread::setAllowStateRequest(int _pos, int value) {
     allowStateRequest[pos] = value; 
 }
 
+void attPrioritiserThread::executeClone(int _pos) {
+    int pos;
+    //mapping of the state
+
+    if((_pos > 3) && (_pos <= 5)) pos = 3;    
+    else if (_pos > 5)            pos = _pos - 2;
+    else                          pos = _pos;
+
+    switch(pos) {
+    case 0: {
+        // reset
+        stateRequest[pos] = 1.0;
+        Bottle b;
+        b.addString("RESET");
+        bufCommand[pos] = b;
+    } break;
+    case 1: {
+        //vergence
+        stateRequest[pos] = 1.0;
+        Bottle b;
+        b.addString("VER");
+        b.addDouble(0.0);
+        bufCommand[pos] = b;
+    }break;
+    case 2: {
+        //sm_pursuit
+        stateRequest[pos] = 1.0;
+        Bottle b;
+        b.addString("SM_PUR");
+        b.addInt(0);
+        b.addInt(0);
+        b.addDouble(0.5);
+        bufCommand[pos] = b;
+    }
+    case 3 : {
+        //mono saccade
+        stateRequest[pos] = 1.0;
+        Bottle b;
+        b.addString("SAC_MONO");
+        b.addInt(160);
+        b.addInt(120);
+        b.addDouble(0.5);
+        b.addDouble(1.0);
+        bufCommand[pos] = b;
+    }break;
+    case 4 : {
+        //express saccade
+        stateRequest[pos] = 1.0;
+        Bottle b;
+        b.addString("SAC_EXP");
+        b.addInt(160);
+        b.addInt(120);
+        b.addDouble(0.5);
+        b.addDouble(0.1);
+        bufCommand[pos] = b;
+    }break;
+    case 5 : {
+        //express saccade
+        stateRequest[pos] = 1.0;
+        Bottle b;
+        b.addString("PRED");
+        b.addInt(160);
+        b.addInt(120);
+        bufCommand[pos] = b;
+    }break;
+    }
+}
+
 bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     int pos;
     //mapping of the state
@@ -1946,7 +2014,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // reset action
             notif.clear();
             printf("notify action reset \n");
-            notif.addVocab(COMMAND_VOCAB_ACT);
+:q            notif.addVocab(COMMAND_VOCAB_ACT);
             // code for reset action
             notif.addDouble(1.0);  // reset
             notif.addDouble(0.0);  // vergence 
@@ -1987,8 +2055,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();
             mutex.post();
 
-
-            
             // nofiying state transition            
             Bottle notif;
             notif.clear();
