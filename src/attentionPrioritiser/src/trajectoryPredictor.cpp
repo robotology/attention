@@ -139,7 +139,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
                 meanVelY += velY;
             }
             timeStart = Time::now();
-            Time::delay(0.1);
+            Time::delay(0.05);
         }
         
         meanVelX /= nIter;
@@ -154,7 +154,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     yPos = -1;
    
     double maxAcc = maxAccX > maxAccY?maxAccX:maxAccY;
-    time = maxAcc / 4000; 
+    //time = maxAcc / 5000; 
+    time = 0.18;
     return predictionAccompl;
 }
 

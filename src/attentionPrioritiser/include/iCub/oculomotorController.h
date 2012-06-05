@@ -298,6 +298,14 @@ public:
     };
 
     /**
+     * function that logs the new action in the file
+     * @param a actions identifier
+     */
+
+    void logAction(int a);
+    
+
+    /**
      * function that sets the psaFile path
      * @param rf reference to the resource finder assigned in the module
      */

@@ -427,6 +427,9 @@ bool oculomotorController::randomWalk(int& statenext) {
 }
 
 bool oculomotorController::allowStateRequest(int action) {
+    //logging the action in the file
+    logAction(action);
+   
     //setting flags in initialisation
     ap->setAllowStateRequest(action, true);
 
@@ -600,6 +603,81 @@ void oculomotorController::run() {
     }
 }
 
+void oculomotorController::logAction(int a) {
+    Vector action(8);
+    action.zero();
+    // mapping from action in prioritiser to action in controller
+    // mapping from dimension 6 to dimension 8
+    int amplitudeId = 2;
+    //printf("action %f %f \n", action(0), action(1));
+    switch(a) {
+    case 0 :
+        action(0) = 1;
+        break;
+    case 1 :
+        action(1) = 1;
+        break;
+    case 2 :
+        action(2) = 1;
+        break;
+    case 3 :
+        if(amplitudeId == 2) {
+            action(3) = 0;
+            action(4) = 0;
+            action(5) = 1;
+        }
+        break;
+    case 4 : 
+        action(6) = 1;
+        break;
+    case 5 :
+        action(7) = 1;
+        break;
+    }
+    
+    
+    if(action(0)) {
+        printf("                                                                  Action reset          \n");
+        action_now = 0;
+        fprintf(logFile, "\n action_now:%s ",actionList[action_now].c_str());
+    }
+    else if(action(1)){
+        printf("                                                                  Action vergence       \n");
+        action_now = 1;
+        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+    }
+    else if(action(2)){
+        printf("                                                                  Action smoothPursuit  \n");
+        action_now = 2;
+        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+    }
+    else if(action(3)){
+        printf("                                                                  Action microSaccade   \n");
+        action_now = 3;
+        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+    }
+    else if(action(4)){
+        printf("                                                                  Action mediumSaccade  \n");
+        action_now = 4;
+        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+    }
+    else if(action(5)){
+        printf("                                                                  Action largeSaccade   \n");
+        action_now = 5;
+        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+    }
+    else if(action(6)){
+        printf("                                                                  Action expressSaccade \n");
+        action_now = 6;
+        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+    }
+    else if(action(7)){
+        printf("                                                                  Action predict        \n");
+        action_now = 7;
+        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+    }
+}
+
 void oculomotorController::update(observable* o, Bottle * arg) {
     cUpdate++;
     if (arg != 0) {
@@ -741,63 +819,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             }
             */
 
-            // mapping from action in prioritiser to action in controller
-            // mapping from dimension 6 to dimension 8
-            int amplitudeId = 2;
-            //printf("action %f %f \n", action(0), action(1));
-            action(0) = a(0);
-            action(1) = a(1);
-            action(2) = a(2);
-            if((amplitudeId == 2) && (a(3))) {
-                action(3) = 0;
-                action(4) = 0;
-                action(5) = 1;
-            }
-            action(6) = a(4);
-            action(7) = a(5);
             
-            
-
-            if(action(0)) {
-                printf("                                                                  Action reset          \n");
-                action_now = 0;
-                fprintf(logFile, "\n action_now:%s ",actionList[action_now].c_str());
-            }
-            else if(action(1)){
-                printf("                                                                  Action vergence       \n");
-                action_now = 1;
-                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
-            }
-            else if(action(2)){
-                printf("                                                                  Action smoothPursuit  \n");
-                action_now = 2;
-                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
-            }
-            else if(action(3)){
-                printf("                                                                  Action microSaccade   \n");
-                action_now = 3;
-                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
-            }
-            else if(action(4)){
-                printf("                                                                  Action mediumSaccade  \n");
-                action_now = 4;
-                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
-            }
-            else if(action(5)){
-                printf("                                                                  Action largeSaccade   \n");
-                action_now = 5;
-                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
-            }
-            else if(action(6)){
-                printf("                                                                  Action expressSaccade \n");
-                action_now = 6;
-                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
-            }
-            else if(action(7)){
-                printf("                                                                  Action predict        \n");
-                action_now = 7;
-                fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
-            }
         } break;
         default: {
             printf("Command not recognized \n");
