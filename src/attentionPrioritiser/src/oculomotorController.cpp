@@ -648,42 +648,42 @@ void oculomotorController::logAction(int a) {
     if(action(0)) {
         printf("                                                                  Action reset          \n");
         action_now = 0;
-        fprintf(logFile, "\n action_now:%s ",actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ",actionList[action_now].c_str());
     }
     else if(action(1)){
         printf("                                                                  Action vergence       \n");
         action_now = 1;
-        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(2)){
         printf("                                                                  Action smoothPursuit  \n");
         action_now = 2;
-        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(3)){
         printf("                                                                  Action microSaccade   \n");
         action_now = 3;
-        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(4)){
         printf("                                                                  Action mediumSaccade  \n");
         action_now = 4;
-        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(5)){
         printf("                                                                  Action largeSaccade   \n");
         action_now = 5;
-        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(6)){
         printf("                                                                  Action expressSaccade \n");
         action_now = 6;
-        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(7)){
         printf("                                                                  Action predict        \n");
         action_now = 7;
-        fprintf(logFile, "\n action_now:%s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
 }
 
@@ -747,7 +747,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                          
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
             fprintf(logFile, "state_prev:%s -> state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
-            fprintf(logFile, " totalPayoff %f \n ",totalPayoff);
+            fprintf(logFile, " totalPayoff:%f \n ",totalPayoff);
             
             /*
             for (int j = 0; j < NUMSTATE; j++)  {
