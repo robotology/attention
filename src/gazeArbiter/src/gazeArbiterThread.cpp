@@ -798,7 +798,7 @@ void gazeArbiterThread::run() {
                     px[2] = 0;    
                     igaze->lookAtAbsAngles(px);
                     
-                    Time::delay(0.5);
+                    Time::delay(0.05);
                     printf("waiting for motion done \n");
                     u = width  / 2;
                     v = height / 2;
@@ -1327,7 +1327,13 @@ void gazeArbiterThread::run() {
                   bank = atan2(x1 * s - y1 * z1 * t , 1 - (x1*x1 + z1*z1) * t);
                   printf("headPose heading  %f attitude %f bank %f \n",heading,attitude,bank);
                 */
-            
+
+                // in the status port, notification of vergence refinement in action
+                Bottle& status2 = statusPort.prepare();
+                status2.clear();
+                status2.addString("VER_REF");
+                statusPort.write();
+                
             
             }
             else {   //else of the MONO branch
@@ -1627,7 +1633,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
             mutex.wait();
-            setVisualFeedback(false);
+            //setVisualFeedback(false);
             stateRequest[3] = 1;
             //executing = false;
             mutex.post();
