@@ -444,7 +444,6 @@ bool oculomotorController::allowStateRequest(int action) {
         ret = true;
         logAction(action);
     }
-    
     else {
         // action found and executed
         ret = true;
@@ -452,7 +451,6 @@ bool oculomotorController::allowStateRequest(int action) {
         logAction(action);
     }
     */
-
 
     
     // if not executed because absent in the buffer, waits for few seconds
@@ -467,7 +465,7 @@ bool oculomotorController::allowStateRequest(int action) {
         printf("checking valid action %d \n", validAction);
         
         //waits for a valid action to occur;
-        while ((timediff < 0.5)&&(!validAction)) {
+        while ((timediff < 0.3)&&(!validAction)) {
             printf("\r%f \r", timediff);
             fflush(stdout); // Will now print everything in the stdout buffer
             timeend = Time::now();
@@ -476,7 +474,7 @@ bool oculomotorController::allowStateRequest(int action) {
         }
         printf("\n");
 
-        if(timeend >= 0.5) {
+        if(timeend >= 0.3) {
             printf("the action has not been performed; Timeout occurred \n" );
             ret = false;
         }
@@ -493,6 +491,7 @@ bool oculomotorController::allowStateRequest(int action) {
         //logging the action in the file
         logAction(action);
     }
+    
     
 
     //setting flags at the end of the function
@@ -768,7 +767,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             state_now  = state_next;
                          
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
-            fprintf(logFile, "state_prev:%s -> state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
+            fprintf(logFile, "state_prev:%s state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
             fprintf(logFile, " totalPayoff:%f \n ",totalPayoff);
             
             /*

@@ -480,6 +480,7 @@ void attPrioritiserThread::run() {
         isPendingCommand = false;
         printf("sent the command \n");
         printf("___________________________________ \n");
+        Time::delay(5);
         return;
     }
     //Vector-vector element-wise product operator between stateRequest possible transitions
@@ -2034,6 +2035,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Time::delay(0.5);
             }
         }
+        else if(!strcmp(name.c_str(),"VER_REF")) {
+            // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(9);                  // code for vergence accomplished
+            setChanged();
+            notifyObservers(&notif);            
+        }
         else if(!strcmp(name.c_str(),"VER_ACC")) {
             // vergence accomplished           
             //printf("Vergence accomplished \n");
@@ -2100,7 +2110,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(4);                  // code for smooth-pursuit accomplished
+                notif.addDouble(4);                  // code for smooth-pursuit not accomplished
                 setChanged();
                 notifyObservers(&notif);
                 
