@@ -283,11 +283,11 @@ bool oculomotorController::threadInit() {
     A = new Matrix(1,NUMSTATE);
     A->zero();
     
-    printf(" init of the trajectoryPredictor \n");
-    tp = new trajectoryPredictor();
-    tp->setResourceFinder(rf);
-    tp->setName(getName("").c_str()); 
-    tp->start();
+    //printf(" init of the trajectoryPredictor \n");
+    //tp = new trajectoryPredictor();
+    //tp->setResourceFinder(rf);
+    //tp->setName(getName("").c_str()); 
+    //tp->start();
 
     printf(" init of the outing thread \n");
     ot = new outingThread();
@@ -404,7 +404,6 @@ bool oculomotorController::randomWalk(int& statenext) {
         //statenext = state_next;
         statevalue = j;
         printf("success in the action, probably sets a new statevalue %d \n", statevalue);
-        
         ret = true;
     }
 
@@ -461,7 +460,7 @@ bool oculomotorController::allowStateRequest(int action) {
         bool   validAction;
 
  
-        ap->isValidAction(validAction);
+        /*ap->isValidAction(validAction);
         printf("checking valid action %d \n", validAction);
         
         //waits for a valid action to occur;
@@ -484,6 +483,10 @@ bool oculomotorController::allowStateRequest(int action) {
             //logging the action in the file
             logAction(action);
         }
+        */
+        printf("\n");
+        ret = false;
+
     }
     else {
         // action found and executed
@@ -541,7 +544,7 @@ void oculomotorController::learningStep() {
     mutexStateTransition.post();
 
     if(!_stateTransition) {
-        printf("action selection section \n");
+        
         // 2 .action selection and observation of the next state
         bool actionPerformed;
         printf("_______________ count % d  state_now %d_______________________ \n \n", count, state_now);
@@ -579,7 +582,7 @@ void oculomotorController::learningStep() {
             - Q->operator()(state_now,action_now)) ;
             
             // 4. calculating the total Payoff
-            printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
+            printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.adding the reward  in pos (%d, %d) %f ",state_now, action_now, rewardStateAction->operator()(state_now, action_now) * jiter );
             totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
             printf("for the final totalPayoff %f \n", totalPayoff);
             jiter  = jiter * j;        
@@ -592,7 +595,6 @@ void oculomotorController::learningStep() {
             //state_now = state_next;
             printf("action not performed in the learning. \n");
         } 
-        //waitForActuator(); <-- do not wait for actutor here; it is performed previously     
     } //end if(!_stateTransition)
 
     //printf("oculomotorController::learningStep : step performed \n");
@@ -1013,9 +1015,10 @@ void oculomotorController::threadRelease() {
     printf("oculomotorController::threadRelease() : stopping threads \n");
     
     //stopping thread
-    if(0 != tp) {
-        tp->stop();
-    }
+    //if(0 != tp) {
+    //    tp->stop();
+    //}
+
     printf("oculomotorController::threadRelease() : about to stop outingThread \n");
     ot->stop();
 

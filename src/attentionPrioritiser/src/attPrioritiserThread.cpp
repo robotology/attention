@@ -411,14 +411,17 @@ void attPrioritiserThread::threadRelease() {
         sacPlanner->stop();
     }
 
-    //if(0 != tracker) {
-    //    printf("stopping the tracker \n");
-    //    tracker->stop();
-    //}
+    if(0 != tracker) {
+        printf("stopping the tracker \n");
+        tracker->stop();
+    }
     
     if(0!=trajPredictor) {
-        trajPredictor->stop();
+        printf("stopping the traject.Predictor \n");
+        //trajPredictor->stop();
+        printf("success in stopping traj.Predict \n");
     }
+    printf("corretly stopped the trajPredictor \n");
     
     //delete sacPlanner;
     printf("deleted the sacPlanner \n");
@@ -480,7 +483,6 @@ void attPrioritiserThread::run() {
         isPendingCommand = false;
         printf("sent the command \n");
         printf("___________________________________ \n");
-        Time::delay(5);
         return;
     }
     //Vector-vector element-wise product operator between stateRequest possible transitions
@@ -953,12 +955,12 @@ void attPrioritiserThread::run() {
                 //printf("vergence: accomplished sending resume command \n");
 
                 // nofiying state transition            
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(10);                  // code for vergence accomplished
-                setChanged();
-                notifyObservers(&notif);
+                //Bottle notif;
+                //notif.clear();
+                //notif.addVocab(COMMAND_VOCAB_STAT);
+                //notif.addDouble(10);                  // code for vergence accomplished
+                //setChanged();
+                //notifyObservers(&notif);
 
                 stopVergence = true;
 
@@ -976,12 +978,12 @@ void attPrioritiserThread::run() {
             }
             else {
                 // nofiying state transition            
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(8);                  // code for vergence angle under correction
-                setChanged();
-                notifyObservers(&notif);
+                //Bottle notif;
+                //notif.clear();
+                //notif.addVocab(COMMAND_VOCAB_STAT);
+                //notif.addDouble(8);                  // code for vergence angle under correction
+                //setChanged();
+                //notifyObservers(&notif);
                 
                 //printf("vergence: sending relative angle to the gazeArbiter \n");
                 bool port_is_writing;
@@ -997,9 +999,9 @@ void attPrioritiserThread::run() {
     
     }
     else if(allowedTransitions(0)>0) {
-        state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
+        state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
         // ----------------  null state  -----------------------
-        if(firstNull) {
+        //if(firstNull) {
             // nofiying state transition            
             Bottle notif;
             notif.clear();
@@ -1008,7 +1010,7 @@ void attPrioritiserThread::run() {
             setChanged();
             notifyObservers(&notif);
             firstNull = false;
-        }
+            //}
     }
     else {
         //printf("No transition \n");
@@ -1081,9 +1083,9 @@ void attPrioritiserThread::printCommandBuffer() {
 void attPrioritiserThread::setAllowStateRequest(int _pos, int value) {
     int pos;
     //mapping of the state
-    if((_pos > 3) && (_pos <= 5)) pos = 3;    
-    else if (_pos > 5)            pos = _pos - 2;
-    else                          pos = _pos; 
+    if((_pos >= 3) && (_pos <= 5)) pos = 3;    
+    else if (_pos > 5)             pos = _pos - 2;
+    else                           pos = _pos; 
     allowStateRequest[pos] = value; 
 }
 
@@ -1091,9 +1093,9 @@ void attPrioritiserThread::executeClone(int _pos) {
     int pos;
     //mapping of the state
 
-    if((_pos > 3) && (_pos <= 5)) pos = 3;    
-    else if (_pos > 5)            pos = _pos - 2;
-    else                          pos = _pos;
+    if((_pos >= 3) && (_pos <= 5)) pos = 3;    
+    else if (_pos > 5)             pos = _pos - 2;
+    else                           pos = _pos;
 
     switch(pos) {
     case 0: {
@@ -1161,6 +1163,12 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     if((_pos > 3) && (_pos <= 5)) pos = 3;    
     else if (_pos > 5)            pos = _pos - 2;
     else                          pos = _pos;
+
+    if((pos == 0) && (isLearning())) {
+        printf("found RESET action \n");
+        stateRequest[pos] = 1.0;
+        return true;
+    }
     
     printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {

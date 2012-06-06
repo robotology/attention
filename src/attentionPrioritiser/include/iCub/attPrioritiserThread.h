@@ -296,10 +296,16 @@ public:
     void setDimension(int width, int height);
 
     /**
-    * function that allows the Q-learning controller to take decisions
-    * @param value bool value true: Q-learning decides false: action selection regulated by priorities
-    */
+     * function that allows the Q-learning controller to take decisions
+     * @param value bool value true: Q-learning decides false: action selection regulated by priorities
+     */
     void setLearning(bool value) { learning = value; };
+
+    /**
+     * function that returns 1 if the learning process is active
+     * @param value bool value true: Q-learning decides false: action selection regulated by priorities
+     */
+    bool isLearning() { return learning; };
     
     /**
      * function set allowStateRequest flag enabling a particular subset of oculomotorActions
@@ -461,7 +467,10 @@ public:
      * function printCommandBuffer prints all the commands
      */
     void printCommandBuffer();
-
+    
+    /**
+     * function that returns when the gazeController is listening at the command port
+     */
     bool readyForActions() {return outputPort.getOutputCount();};
 
     /**

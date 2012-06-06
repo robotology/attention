@@ -175,16 +175,18 @@ void trajectoryPredictor::run() {
 
 void trajectoryPredictor::onStop() {
     printf("trajectoryPredictor::onStop() : closing ports \n");
-    inImagePort.interrupt();
-    inImagePort.close();
+    //inImagePort.interrupt();
+    //inImagePort.close();
+    printf("trajectoryPredictor::onStop() : success in closing ports \n");
 }
 
 void trajectoryPredictor::threadRelease() {
-    //printf("trajectoryPredictor::threadRelease() : \n");
+    printf("trajectoryPredictor::threadRelease() : \n");
     //inImagePort.close();
-    if(0 != tracker) {
-        printf("trajectoryPredictor::threadRelease:stopping the tracker \n");
-        tracker->stop();
-    }
+
+    //if(0 != tracker) {
+    //    printf("trajectoryPredictor::threadRelease:stopping the tracker \n");
+    //    tracker->stop();
+    //}
     
 }
