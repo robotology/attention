@@ -849,10 +849,10 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             while (( a(i) == 0 ) && (i < 7)) {
                 i++;
             }
-            printf("apLearning %d \n", i);
-            if (!ap->isLearning()) {
-                logAction(i);
-            }
+            //printf("apLearning %d \n", i);
+            //if (!ap->isLearning()) {
+            //    logAction(i);
+            //}
                        
         } break;
         default: {

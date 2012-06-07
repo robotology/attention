@@ -1011,6 +1011,11 @@ void attPrioritiserThread::run() {
             Time::delay(0.01);
             tdiff = Time::now() - tstart;
         }
+
+        pendingCommand->clear();
+        pendingCommand->addString("WAIT_ACC");
+        isPendingCommand = true;    
+        
         printf("____________________   Wait ____________________ \n");
         
     }
@@ -2053,7 +2058,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(2);                  // code for fixStableOK accomplished 
+                notif.addDouble(6);                  // code for fixStableOK accomplished 
                 setChanged();
                 notifyObservers(&notif);
 
@@ -2063,7 +2068,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(3);                  // code for fixStableOK accomplished 
+                notif.addDouble(7);                  // code for fixStableOK accomplished 
                 setChanged();
                 notifyObservers(&notif);
             }
@@ -2101,7 +2106,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(9);                  // code for vergence accomplished
+            notif.addDouble(13);                  // code for vergence accomplished
             setChanged();
             notifyObservers(&notif);            
         }
@@ -2126,7 +2131,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(8);                  // code for vergence accomplished
+            notif.addDouble(12);                  // code for vergence accomplished
             setChanged();
             notifyObservers(&notif); 
             
@@ -2160,7 +2165,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(5);                  // code for smooth-pursuit accomplished
+                notif.addDouble(8);                  // code for smooth-pursuit accomplished
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -2171,7 +2176,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(4);                  // code for smooth-pursuit not accomplished
+                notif.addDouble(9);                  // code for smooth-pursuit not accomplished
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -2247,7 +2252,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             else { //not stable object
                 if ((predXpos != -1) && (predYpos != 1)) {
-                    //move  -> movSaccade
+                    // move -> anticipatoryPredictor
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
@@ -2267,7 +2272,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
                 // b. smooth pursuit
                 else { 
-                                        
+                    //move  -> movSaccade                   
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
@@ -2334,6 +2339,51 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     
                 }
             }    
+        }
+        else if(!strcmp(name.c_str(),"WAIT_ACC")) {
+            // smooth pursuit accomplished           
+            printf("Wait Accomplished \n");
+            mutex.wait();
+            if(allowStateRequest[0]) {
+                printf("setting stateRequest[0] \n");
+                sp_accomplished = true;
+                stateRequest[0] = 1;
+                //executing = false;
+            }
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[1];
+            validAction  = false;
+            mutexAcc.post();            
+            mutex.post();
+
+            CvPoint t; tracker->getPoint(t);
+            if((t.x > 160 - FOVEACONFID) && 
+               (t.x < 160 + FOVEACONFID) &&
+               (t.y > 120 - FOVEACONFID) &&
+               (t.y < 120 + FOVEACONFID)) {
+
+                // nofiying state transition into successful tracking
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(10);                  // code for smooth-pursuit accomplished
+                setChanged();
+                notifyObservers(&notif);
+                
+            }
+            else {
+                
+                // nofiying state transition into unsuccessful tracking
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(11);                  // code for smooth-pursuit not accomplished
+                setChanged();
+                notifyObservers(&notif);
+                
+            }
+
         }
         else if(!strcmp(name.c_str(),"RESET")) {
             // smooth pursuit accomplished           
