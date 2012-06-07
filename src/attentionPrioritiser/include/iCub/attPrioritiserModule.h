@@ -162,8 +162,9 @@
  * 05/04/12 : corrected and completed the transition matrix                                                 author: Rea  \n
  * 05/04/14 : added a new thread for plotting information about the learning                                author: Rea  \n
  * 06/05/12 : separate oculomotor control in actionSelection and stateTransition part                       author :Rea  \n
- *28/05.12  : added port for interaction with particle filter                                               author :
+ *28/05/12  : added port for interaction with particle filter                                               author :
 Rea \n
+* 07/06/12  : added wait action and additional states                                                       author : Rea \n 
 */
 
 

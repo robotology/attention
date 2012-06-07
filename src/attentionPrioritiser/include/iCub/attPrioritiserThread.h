@@ -68,9 +68,6 @@
 #define COMMAND_VOCAB_MINDB              VOCAB3('m','d','b')           // minimum dimension of the blob drawn
 
 
-#define NUMSTATES 6 // number of states in the attPrioritiser
-                    // any state corresponds to an action for the oculomotorController
-
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
@@ -98,14 +95,18 @@
 #include <iCub/sacPlannerThread.h>
 #include <iCub/trajectoryPredictor.h>
 
+#define NUMSTATES 7 // number of states in the attPrioritiser
+                    // any state corresponds to an action for the oculomotorController
+
 /**
 * thread that given a series of collected commands executes the most prioritised command, calling
 * the correct interface function of the iKinGazeCtrl.
-* // state 5 = anticipatory saccade 
-* // state 4 = express saccade
-* // state 3 = saccade
-* // state 2 = smooth pursuit
-* // state 1 = vergence
+* // state 6 = anticipatory saccade 
+* // state 5 = express saccade
+* // state 4 = saccade
+* // state 3 = smooth pursuit
+* // state 2 = vergence
+* // state 1 = wait
 * // state 0 = null
 */
 

@@ -47,39 +47,44 @@
 #include <iCub/trajectoryPredictor.h>
 
 #define THRATE 10
-#define NUMSTATE 11
+#define NUMSTATE 15
 #define NUMACTION 8
 
 
-static const std::string stateList[11] =  {
+static const std::string stateList[15] =  {
     "null",           //0
-    "predict",        //1        
-    "fixStableOK",    //2
-    "fixStableKO",    //3
-    "trackOK",        //4
-    "trackKO",        //5
-    "anticipOK",      //6
-    "anticipWait",    //7
-    "vergenceOK",     //8
-    "vergenceKO",     //9
-    "fixating"        //10    
+    "uPredict",       //1
+    "mPredict",       //2
+    "LPredict",       //3
+    "motPredict",     //4
+    "antPredict",     //5
+    "fixStableOK",    //6
+    "fixStableNO",    //7
+    "trackOK",        //8
+    "trackKO",        //9
+    "anticipOK",      //10
+    "anticipWait",    //11
+    "vergenceOK",     //12
+    "vergenceKO",     //13
+    "fixating"        //14    
 };
 
-static const std::string actionList[8]  = {
+static const std::string actionList[9]  = {
     "reset",           //0
-    "vergence",        //1
-    "smoothPursuit",   //2
-    "microSaccade",    //3
-    "mediumSaccade",   //4
-    "largeSaccade",    //5
-    "expressSaccade",  //6
-    "predict"          //7
+    "wait",            //1
+    "vergence",        //2
+    "smoothPursuit",   //3
+    "microSaccade",    //4
+    "mediumSaccade",   //5
+    "largeSaccade",    //6
+    "expressSaccade",  //7
+    "predict"          //8
 };
 
 /*
 // reward for the particular state-action condition
-// dimensionality state(11) x action (6)
-static const double rewardStateAction[66] = {
+// dimensionality state(15) x action (9)
+static const double rewardStateAction[135] = {
     0.1,0.1,0.1,0.1,0.1,0.1,  // 0
         0.1,0.1,0.1,0.1,0.1,0.1,  // 1
         0.1,0.1,0.1,0.1,0.1,0.1,  // 2
