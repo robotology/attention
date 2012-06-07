@@ -674,38 +674,43 @@ void oculomotorController::logAction(int a) {
         fprintf(logFile, "action_now:%s ",actionList[action_now].c_str());
     }
     else if(action(1)){
-        printf("                                                                  Action vergence       \n");
+        printf("                                                                  Action wait       \n");
         action_now = 1;
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(2)){
-        printf("                                                                  Action smoothPursuit  \n");
+        printf("                                                                  Action vergence       \n");
         action_now = 2;
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(3)){
-        printf("                                                                  Action microSaccade   \n");
+        printf("                                                                  Action smoothPursuit  \n");
         action_now = 3;
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(4)){
-        printf("                                                                  Action mediumSaccade  \n");
+        printf("                                                                  Action microSaccade   \n");
         action_now = 4;
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(5)){
-        printf("                                                                  Action largeSaccade   \n");
+        printf("                                                                  Action mediumSaccade  \n");
         action_now = 5;
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(6)){
-        printf("                                                                  Action expressSaccade \n");
+        printf("                                                                  Action largeSaccade   \n");
         action_now = 6;
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(7)){
-        printf("                                                                  Action predict        \n");
+        printf("                                                                  Action expressSaccade \n");
         action_now = 7;
+        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+    }
+    else if(action(8)){
+        printf("                                                                  Action predict        \n");
+        action_now = 8;
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
 }
@@ -787,7 +792,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                
 
             // -------------------------- updating the transition matrix once we switch state --------------------
-            printf("updating the transition matrix \n");
+            printf("updating the transition matrix; state_now %d action_now %d \n", state_now, action_now);
             double sum = 0;
             double* point;
             
@@ -825,33 +830,30 @@ void oculomotorController::update(observable* o, Bottle * arg) {
         } break;
         case COMMAND_VOCAB_ACT :{
             //printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
-            Vector action(8);
-            action.zero();
+            //Vector action(8);
+            //action.zero();
             //int a = (int) arg->get(1).asDouble();
             
             //extracting the allowTransition matrix
-            Vector a(6);
+            Vector a(7);
             a(0) = arg->get(1).asDouble();
             a(1) = arg->get(2).asDouble();
             a(2) = arg->get(3).asDouble();
             a(3) = arg->get(4).asDouble();
             a(4) = arg->get(5).asDouble();
             a(5) = arg->get(6).asDouble();
+            a(6) = arg->get(7).asDouble();
             
-            /*         
-            switch(a) {
-            case 0: {action(0) = 1;} break;
-            case 1: {action(1) = 1;} break;
-            case 2: {action(2) = 1;} break;
-            case 3: {action(5) = 1;} break;    
-            case 4: {action(5) = 1;} break;
-            case 5: {action(5) = 1;} break;
-            case 6: {action(6) = 1;} break;
-            case 7: {action(7) = 1;} break;
+            // if it is not learning the action is trigger by these lines
+            int i = 0;
+            while (( a(i) == 0 ) && (i < 7)) {
+                i++;
             }
-            */
-
-            
+            printf("apLearning %d \n", i);
+            if (!ap->isLearning()) {
+                logAction(i);
+            }
+                       
         } break;
         default: {
             printf("Command not recognized \n");

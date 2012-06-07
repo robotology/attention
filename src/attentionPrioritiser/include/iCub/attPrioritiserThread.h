@@ -167,6 +167,7 @@ private:
     double predVx, predVy;                  // last predicted velocity profile
     double predXpos, predYpos;              // predicted X and Y position
     double predTime;                        // predicted time necessary to accomplished the tracking action
+    double waitTime;                        // time to allow in the wait action
     
     double phi;                             // value passed for relative vergence from the maximum shift
     double phi2;                            // value passed for relative vergence from the second maximum shift

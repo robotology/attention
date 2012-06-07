@@ -1002,7 +1002,15 @@ void attPrioritiserThread::run() {
         //--------------- wait --------------------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         
-        printf("Wait. Standby .... \n");
+        printf("--------------------- Wait -------------------- \n");
+        printf("Standby .... \n");
+        double tstart = Time::now();
+        double tdiff = 0;
+        while( tdiff < waitTime) {
+            Time::delay(0.01);
+            tdiff = Time::now() - tstart;
+        }
+        printf("____________________   Wait ____________________ \n");
         
     }
     else if(allowedTransitions(0)>0) {
@@ -1022,13 +1030,14 @@ void attPrioritiserThread::run() {
     else {
         //printf("No transition \n");
     }
-    
+
+    //------------------------------------------------------------------------------
     //printf("--------------------------------------------------------->%d \n",done);
     
     if(allowedTransitions(6)>0) { //prediction
         mutex.wait();
         state(6) = 0; state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
-        allowedTransitions(5) = 0;
+        allowedTransitions(6) = 0;
         executing = false;  //executing=false allows new action commands
         // execution = false moved to after the SAC_ACC is received
         //printf ("Transition request 4 reset \n");
@@ -1695,6 +1704,28 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             mutex.post();           
         }
+        else if(!strcmp(name.c_str(),"WAIT")) {
+
+            // saving bottle in the buffer
+            bufCommand[0] = *arg;
+            waitTime      = arg->get(1).asDouble();
+            
+            // reseting the state action history
+            mutex.wait();
+            if(allowStateRequest[1]) {
+                printf("setting stateRequest[1] \n");
+                reinfFootprint = true;
+                stateRequest[1] = 1;
+                timeoutStart = Time::now();
+                //  changing the accomplished flag
+                mutexAcc.wait();
+                accomplFlag[1] = false;
+                validAction = true;
+                mutexAcc.post();
+                
+            }
+            mutex.post();           
+        }
         else if(!strcmp(name.c_str(),"PF_REQ")) {
             // particle filter request
             // saving bottle in the buffer
@@ -2144,16 +2175,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // prediction accomplished           
             printf("Prediction Accomplished %f %f  \n", predVx, predVy);
             mutex.wait();
-            if(allowStateRequest[5]) {
-                printf("setting stateRequest[5] \n");
+            if(allowStateRequest[6]) {
+                printf("setting stateRequest[6] \n");
                 pred_accomplished = true;
                 //stateRequest[5] = 1;
                 //executing = false;
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[5] =  true;              // action number accomplished
-            validAction  = false;
+            accomplFlag[6] =  true;              // action number accomplished
+            validAction    = false;
             mutexAcc.post();            
             mutex.post();
 
@@ -2180,8 +2211,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             // b. smooth pursuit
             else { 
-                if((predVx != 0) || (predVy != 0)) {
-                    
+                if((predVx != 0) || (predVy != 0)) {                    
                                   
                     /*
                     Bottle& sent     = highLevelLoopPort.prepare();                  
