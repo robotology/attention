@@ -128,8 +128,9 @@ public:
      * @param xPos estimated landing location along x axis
      * @param yPos estimated landing location along x axis
      * @param time estimated time length of movement
+     * @param distance of the stimulus from the fovea
      */
-    bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time);
+    bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time, double& distance);
 };
 
 #endif  //_TRAJECTORY_PREDICTOR_H_

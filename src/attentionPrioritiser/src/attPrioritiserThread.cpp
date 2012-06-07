@@ -548,7 +548,7 @@ void attPrioritiserThread::run() {
         //double predVx = 0.0, predVy = 0.0;
         //bool predictionSuccess = false;
         tracker->init(u,v);tracker->waitInitTracker();
-        bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime);
+        bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime, predDistance);
         
         printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);
         
@@ -2194,26 +2194,27 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();            
             mutex.post();
 
+             // nofiying state transition            
+            //Bottle notif;
+            //notif.clear();
+            //notif.addVocab(COMMAND_VOCAB_STAT);
+            //notif.addDouble(1);                  // code for prediction accomplished
+            //setChanged();
+            //notifyObservers(&notif);
+
+            
             //notify correct state andtrigger new behaviours
             // a. stable-> uSaccade
             // b. stable-> mSaccade
             // c. stable-> LSaccade
             // d. move  -> movSaccade
             // e. ant   -> antSaccade
-
-             // nofiying state transition            
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(1);                  // code for prediction accomplished
-            setChanged();
-            notifyObservers(&notif);
             
             //stable stimulus
             if((predVx == 0) || (predVy == 0)) {
                 if(predDistance < 10) {
                     //a. stable-> uSaccade
-                
+                    printf("stable stimulus with uSaccade \n");
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
@@ -2224,6 +2225,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
                 else if((predDistance >= 10) && (predDistance < 80)) {
                     // b. stable-> mSaccade
+                    printf("stable stimulus with mSaccade \n");
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
@@ -2233,6 +2235,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notifyObservers(&notif);
                 }
                 else {
+                    printf("stable stimulus with LSaccade \n");
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();

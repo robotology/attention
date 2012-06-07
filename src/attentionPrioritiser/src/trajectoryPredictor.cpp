@@ -85,7 +85,7 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
     y = 10.0;
 }
 
-bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time) {
+bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time, double& distance) {
     printf(" trajectoryPredictor::estimateVelocity in pos.%d,%d  \n", Vx, Vy);
     
     CvPoint p_curr, p_prev;
@@ -107,45 +107,46 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     int nIter = 10;
     
     //for n times records the position of the object and extract an estimate
-    if(true) {
-        printf("entering the for necessary to perform high level tracking \n");
-        for (short n = 0; n < nIter; n++) {
-            p_prev =  p_curr;
-            tracker->getPoint(p_curr);
-            timeStop = Time::now();
-            
-            if (n > 0) {
-                timeDiff = timeStop - timeStart;
-                //printf("----------------- \n timeDiff %f \n", timeDiff );
-                distX = p_curr.x - p_prev.x;
-                distY = p_curr.y - p_prev.y;
-                //printf("distance X: %d \n", distX);
-                //printf("distance Y: %d \n", distY);
-                velX_prev = velX;
-                velY_prev = velY;
-                velX = distX / timeDiff;
-                velY = distY / timeDiff;
-                accX = (velX - velX_prev) / timeDiff;
-                accY = (velY - velY_prev) / timeDiff;
-                if(accY > maxAccY) maxAccY = accY;
-                if(accX > maxAccX) maxAccX = accX;
-                //printf("velocity X: %f \n", velX);
-                //printf("velocity Y: %f \n", velY);
-                //printf("velocity diff X : %f \n",velX - velX_prev );
-                //printf("velocity diff Y : %f \n",velY - velY_prev );
-                //printf("accelar  X: %f \n", accX);
-                //printf("accelar  Y: %f \n", accY);
-                meanVelX += velX;
-                meanVelY += velY;
-            }
-            timeStart = Time::now();
-            Time::delay(0.05);
+ 
+    printf("entering the for necessary to perform high level tracking \n");
+    for (short n = 0; n < nIter; n++) {
+        p_prev =  p_curr;
+        tracker->getPoint(p_curr);
+        timeStop = Time::now();
+        
+        if (n > 0) {
+            timeDiff = timeStop - timeStart;
+            //printf("----------------- \n timeDiff %f \n", timeDiff );
+            distX = p_curr.x - p_prev.x;
+            distY = p_curr.y - p_prev.y;
+            //printf("distance X: %d \n", distX);
+            //printf("distance Y: %d \n", distY);
+            velX_prev = velX;
+            velY_prev = velY;
+            velX = distX / timeDiff;
+            velY = distY / timeDiff;
+            accX = (velX - velX_prev) / timeDiff;
+            accY = (velY - velY_prev) / timeDiff;
+            if(accY > maxAccY) maxAccY = accY;
+            if(accX > maxAccX) maxAccX = accX;
+            //printf("velocity X: %f \n", velX);
+            //printf("velocity Y: %f \n", velY);
+            //printf("velocity diff X : %f \n",velX - velX_prev );
+            //printf("velocity diff Y : %f \n",velY - velY_prev );
+            //printf("accelar  X: %f \n", accX);
+            //printf("accelar  Y: %f \n", accY);
+            meanVelX += velX;
+            meanVelY += velY;
         }
-        
-        meanVelX /= nIter;
-        meanVelY /= nIter;
-        
+        timeStart = Time::now();
+        Time::delay(0.05);
     }
+    
+    meanVelX /= nIter;
+    meanVelY /= nIter;
+    
+    tracker->getPoint(p_curr);
+    distance = sqrt((p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
 
     bool predictionAccompl = true;
     Vx = meanVelX;
@@ -175,8 +176,8 @@ void trajectoryPredictor::run() {
 
 void trajectoryPredictor::onStop() {
     printf("trajectoryPredictor::onStop() : closing ports \n");
-    //inImagePort.interrupt();
-    //inImagePort.close();
+    inImagePort.interrupt();
+    inImagePort.close();
     printf("trajectoryPredictor::onStop() : success in closing ports \n");
 }
 
