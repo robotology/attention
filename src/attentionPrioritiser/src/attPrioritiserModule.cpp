@@ -247,9 +247,6 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     collector->start();
     printf("starting the controller... \n");
     controller->start();
-    
-
-    
 
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
@@ -263,7 +260,6 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
     attach(handlerPort);                  // attach to port
-    //attach(Port);                       // attach to port
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module

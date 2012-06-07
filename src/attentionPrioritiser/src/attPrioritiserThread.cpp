@@ -136,6 +136,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     collectionLocation = new int[4*2];
     numberState = 6; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
+    waitTime   = 3.0;
     // boolean values
     firstVer           = false;
     firstVergence      = true;
@@ -222,11 +223,12 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
 
     // initialisation of state relative flags
     // 0 - null action
-    // 1 - vergence
-    // 2 - smooth pursuit
-    // 3 - planned saccade
-    // 4 - express saccade
-    // 5 - predict
+    // 1 - wait
+    // 2 - vergence
+    // 3 - smooth pursuit
+    // 4 - planned saccade
+    // 5 - express saccade
+    // 6 - predict
     printf("attPrioritiserThread::attPrioritiserThread: initilisation of the states (%d)  \n", NUMSTATES);
     for (int k = 0; k < NUMSTATES; k++) {
         allowStateRequest[k] = true;
@@ -347,7 +349,6 @@ bool attPrioritiserThread::threadInit() {
     trajPredictor = new trajectoryPredictor();
     trajPredictor->setTracker(tracker);
     trajPredictor->start();
-    
     
     return true;
 }
@@ -1191,6 +1192,11 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
 
     if((pos == 0) && (isLearning())) {
         printf("found RESET action \n");
+        stateRequest[pos] = 1.0;
+        return true;
+    }
+    if((pos == 1) && (isLearning())) {
+        printf("found WAIT action \n");
         stateRequest[pos] = 1.0;
         return true;
     }
@@ -2188,6 +2194,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();            
             mutex.post();
 
+            //notify correct state andtrigger new behaviours
+            // a. stable-> uSaccade
+            // b. stable-> mSaccade
+            // c. stable-> LSaccade
+            // d. move  -> movSaccade
+            // e. ant   -> antSaccade
+
              // nofiying state transition            
             Bottle notif;
             notif.clear();
@@ -2196,7 +2209,92 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             setChanged();
             notifyObservers(&notif);
             
-            //trigger new behaviours
+            //stable stimulus
+            if((predVx == 0) || (predVy == 0)) {
+                if(predDistance < 10) {
+                    //a. stable-> uSaccade
+                
+                    // nofiying state transition            
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(1);                  // code for prediction accomplished
+                    setChanged();
+                    notifyObservers(&notif);
+                }
+                else if((predDistance >= 10) && (predDistance < 80)) {
+                    // b. stable-> mSaccade
+                    // nofiying state transition            
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(2);                  // code for prediction accomplished
+                    setChanged();
+                    notifyObservers(&notif);
+                }
+                else {
+                    // nofiying state transition            
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(3);                  // code for prediction accomplished
+                    setChanged();
+                    notifyObservers(&notif);
+                }               
+            }
+            else { //not stable object
+                if ((predXpos != -1) && (predYpos != 1)) {
+                    //move  -> movSaccade
+                    // nofiying state transition            
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(5);                  // code for prediction accomplished in anticipatory state
+                    setChanged();
+                    notifyObservers(&notif);                    
+
+                    Bottle& sentPred     = highLevelLoopPort.prepare();
+                    Bottle* receivedPred = new Bottle();    
+                    sentPred.clear();
+                    sentPred.addString("SAC_MONO");
+                    sentPred.addInt(predXpos);
+                    sentPred.addInt(predYpos);
+                    highLevelLoopPort.write();                    
+                    delete receivedPred;
+                }
+                // b. smooth pursuit
+                else { 
+                                        
+                    // nofiying state transition            
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(4);                  // code for prediction accomplished in motion state
+                    setChanged();
+                    notifyObservers(&notif);
+                    
+                    /*
+                      Bottle& sent     = highLevelLoopPort.prepare();                  
+                      sent.clear();
+                      sent.addString("SM_PUR");
+                      sent.addInt(predVx);
+                      sent.addInt(predVy);
+                      sent.addDouble(predTime);
+                      highLevelLoopPort.write();
+                    */
+                    
+                    pendingCommand->clear();
+                    pendingCommand->addString("SM_PUR");
+                    pendingCommand->addInt(predVx);
+                    pendingCommand->addInt(predVy);
+                    pendingCommand->addDouble(predTime);
+                    isPendingCommand = true;                    
+                    
+                    
+                }
+            }
+
+
             // a. predictive saccade
             if ((predXpos != -1) && (predYpos != 1)) {
                 Bottle& sentPred     = highLevelLoopPort.prepare();
