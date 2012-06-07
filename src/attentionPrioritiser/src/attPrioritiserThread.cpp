@@ -1114,8 +1114,8 @@ void attPrioritiserThread::printCommandBuffer() {
 void attPrioritiserThread::setAllowStateRequest(int _pos, int value) {
     int pos;
     //mapping of the state
-    if((_pos >= 3) && (_pos <= 5)) pos = 3;    
-    else if (_pos > 5)             pos = _pos - 2;
+    if((_pos >= 4) && (_pos <= 6)) pos = 5;    
+    else if (_pos > 6)             pos = _pos - 2;
     else                           pos = _pos; 
     allowStateRequest[pos] = value; 
 }
@@ -1124,8 +1124,8 @@ void attPrioritiserThread::executeClone(int _pos) {
     int pos;
     //mapping of the state
 
-    if((_pos >= 3) && (_pos <= 5)) pos = 3;    
-    else if (_pos > 5)             pos = _pos - 2;
+    if((_pos >= 4) && (_pos <= 6)) pos = 5;    
+    else if (_pos > 6)             pos = _pos - 2;
     else                           pos = _pos;
 
     switch(pos) {
@@ -1944,7 +1944,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(3);                  // code for fixStableKO saccade not accomplished
+            notif.addDouble(7);                  // code for fixStableKO saccade not accomplished
             setChanged();
             notifyObservers(&notif);
 

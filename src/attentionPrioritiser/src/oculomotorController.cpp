@@ -82,6 +82,8 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(2,true);
     ap->setAllowStateRequest(3,true);    
     ap->setAllowStateRequest(4,true);
+    ap->setAllowStateRequest(5,true);
+    ap->setAllowStateRequest(6,true);
 
 
     // ------------- opening the logfile ----------------------
@@ -499,7 +501,7 @@ bool oculomotorController::allowStateRequest(int action) {
 
     //setting flags at the end of the function
     
-    printf("setting valid action \n");
+    printf("setting valid action to false (action %d) \n", action);
     ap->setValidAction(false);
     ap->setAllowStateRequest(action, false);
 
@@ -608,11 +610,14 @@ void oculomotorController::run() {
          
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
+            // sets all flag that allow action to false
             ap->setAllowStateRequest(0,false);
             ap->setAllowStateRequest(1,false);
             ap->setAllowStateRequest(2,false);
             ap->setAllowStateRequest(3,false);    
             ap->setAllowStateRequest(4,false);  
+            ap->setAllowStateRequest(5,false);
+            ap->setAllowStateRequest(6,false);
             firstCycle = false;
         }      
         
