@@ -48,7 +48,7 @@
 
 #define THRATE 10
 #define NUMSTATE 15
-#define NUMACTION 8
+#define NUMACTION 9
 
 
 static const std::string stateList[15] =  {

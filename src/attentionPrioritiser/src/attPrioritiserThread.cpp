@@ -486,7 +486,9 @@ void attPrioritiserThread::run() {
         return;
     }
     //Vector-vector element-wise product operator between stateRequest possible transitions
-    else if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)||(stateRequest(5) != 0)||(stateRequest(6) != 0)) {
+    else if ((stateRequest(0) != 0) || (stateRequest(1) != 0) || (stateRequest(2) != 0) ||
+             (stateRequest(3) != 0) || (stateRequest(4) != 0) || (stateRequest(5) != 0) ||
+             (stateRequest(6) != 0)) {
         printf("#### stateRequest: %s \n", stateRequest.toString().c_str());
         printf("#### state: %s \n", state.toString().c_str());
         Vector c(6);
@@ -1114,7 +1116,7 @@ void attPrioritiserThread::printCommandBuffer() {
 void attPrioritiserThread::setAllowStateRequest(int _pos, int value) {
     int pos;
     //mapping of the state
-    if((_pos >= 4) && (_pos <= 6)) pos = 5;    
+    if((_pos >= 4) && (_pos <= 6)) pos = 4;    
     else if (_pos > 6)             pos = _pos - 2;
     else                           pos = _pos; 
     allowStateRequest[pos] = value; 
@@ -1124,7 +1126,7 @@ void attPrioritiserThread::executeClone(int _pos) {
     int pos;
     //mapping of the state
 
-    if((_pos >= 4) && (_pos <= 6)) pos = 5;    
+    if((_pos >= 4) && (_pos <= 6)) pos = 4;    
     else if (_pos > 6)             pos = _pos - 2;
     else                           pos = _pos;
 
@@ -1191,10 +1193,11 @@ void attPrioritiserThread::executeClone(int _pos) {
 bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     int pos;
     //mapping of the state
-    if((_pos > 3) && (_pos <= 5)) pos = 3;    
-    else if (_pos > 5)            pos = _pos - 2;
-    else                          pos = _pos;
-
+    if((_pos >= 4) && (_pos <= 6)) pos = 4;    
+    else if (_pos > 6)             pos = _pos - 2;
+    else                           pos = _pos;
+    
+    /*
     if((pos == 0) && (isLearning())) {
         printf("found RESET action \n");
         stateRequest[pos] = 1.0;
@@ -1205,13 +1208,14 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         stateRequest[pos] = 1.0;
         return true;
     }
+    */
     
     printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
         printf("no action in the buffer for pos:%d \n", pos);        
         printCommandBuffer();
         return false;
-    }
+    }   
     else {        
         printf("found action \n");
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
@@ -1219,6 +1223,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         bufCommand[pos] = NULL;
         return true;
     }
+    
 }
 
 
@@ -1555,13 +1560,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         
         if(!strcmp(name.c_str(),"SAC_MONO")) {
             
-            // saving bottle in the buffer
-            bufCommand[3] = *arg;
-            printf("after saving %s \n", bufCommand[3].toString().c_str());
 
+            
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
 
+            /*
             //--------------------------------------------------------------------------
             // prediction attempt after triggering stimulus
             mutex.wait();
@@ -1578,7 +1582,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             mutex.post();     
             
-
+            
             // activating the predictor if learning is active            
             if((learning) && (highLevelLoopPort.getOutputCount())) {
                 Bottle& sent     = highLevelLoopPort.prepare();
@@ -1588,7 +1592,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 sent.addInt(v);
                 highLevelLoopPort.write();
             }
-
+            */
             
             //---------------------------------------------------------------------------
             zDistance = arg->get(3).asDouble();
@@ -1596,22 +1600,29 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("saccade mono time: %f with allowed %d  \n", time,allowStateRequest[3]);
             //mutex.wait();
             if(time <= 0.5) {
+
+                // saving bottle in the buffer
+                bufCommand[5] = *arg;
+                
                 // express saccade
                 mutex.wait();
-                if(allowStateRequest[7]) {
-                    printf("setting stateRequest[7] \n");
+                if(allowStateRequest[5]) {
+                    printf("setting stateRequest[5] \n");
                     reinfFootprint = true;
-                    stateRequest[7] = 1;
+                    stateRequest[5] = 1;
                     timeoutStart = Time::now();
                     //  changing the accomplished flag
                     mutexAcc.wait();
-                    accomplFlag[7] = false;
+                    accomplFlag[5] = false;
                     validAction = true;
                     mutexAcc.post();
                 }
                 mutex.post();
             } 
             else {
+                // saving bottle in the buffer
+                bufCommand[4] = *arg;
+                
                 // feedback saccade
                 // checking first for reinfFootPrint
                 if((!reinfFootprint)&&(!idleReinf)) {
@@ -1651,11 +1662,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     else {                        
                         printf("footprint desired is not the footprint in fovea \n");                        
                         mutex.wait();
-                        if(allowStateRequest[6]) {
-                            //printf("setting stateRequest[3] \n");
-                            stateRequest[6] = 1;
+                        if(allowStateRequest[4]) {
+                            //printf("setting stateRequest[4] \n");
+                            stateRequest[4] = 1;
                             mutexAcc.wait();
-                            accomplFlag[6] = false;
+                            accomplFlag[4] = false;
                             validAction = true;
                             mutexAcc.post();
                             reinfFootprint  = true;   // enabling back the control top-down footprint extraction
@@ -1666,11 +1677,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 else {
                     //reinforceFootprint has not happened yet
                     mutex.wait();
-                    if(allowStateRequest[6]) {
-                        printf("setting stateRequest[3] after checking for flag \n");
-                        stateRequest[6] = 1;
+                    if(allowStateRequest[4]) {
+                        printf("setting stateRequest[4], reinforceFootprint has not happened \n");
+                        stateRequest[4] = 1;
                         mutexAcc.wait();
-                        accomplFlag[6] = false;
+                        accomplFlag[4] = false;
                         validAction = true;
                         mutexAcc.post();
                     }
@@ -1720,7 +1731,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"WAIT")) {
 
             // saving bottle in the buffer
-            bufCommand[0] = *arg;
+            bufCommand[1] = *arg;
             waitTime      = arg->get(1).asDouble();
             
             // reseting the state action history
@@ -1826,21 +1837,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"PRED")) {
             
             // saving bottle in the buffer
-            bufCommand[5] = *arg;
+            bufCommand[6] = *arg;
 
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             
             // prediction attemp after triggering stimulus
             mutex.wait();
-            if(allowStateRequest[8]) {
-                printf("setting stateRequest[8] \n");
+            if(allowStateRequest[6]) {
+                printf("setting stateRequest[6] \n");
                 reinfFootprint = true;
-                stateRequest[8] = 1;
+                stateRequest[6] = 1;
                 timeoutStart = Time::now();
                 //  changing the accomplished flag
                 mutexAcc.wait();
-                accomplFlag[8] = false;
+                accomplFlag[6] = false;
                 validAction = true;
                 mutexAcc.post();
                 
@@ -1855,10 +1866,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             v = -1;
             mutex.wait();
             //printf("setting stateRequest[3] \n");
-            if(allowStateRequest[6]) {
-                stateRequest[6] = 1;
+            if(allowStateRequest[4]) {
+                stateRequest[4] = 1;
                 mutexAcc.wait();
-                accomplFlag[6] = false;
+                accomplFlag[4] = false;
                 validAction = true;
                 mutexAcc.post();
                 //executing = false;
@@ -1869,7 +1880,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"SM_PUR")) {
 
             // saving bottle in the buffer
-            bufCommand[2] = *arg;
+            bufCommand[3] = *arg;
             Vx   = arg->get(1).asDouble();
             Vy   = arg->get(2).asDouble();
             time = arg->get(3).asDouble();
@@ -1889,7 +1900,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"VER_REL")) {
 
             // saving bottle in the buffer
-            bufCommand[1] = *arg;
+            bufCommand[2] = *arg;
 
             //printf("\r                                                      \r");
             if(!stopVergence) {
@@ -2045,9 +2056,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 reinfFootprint = false;
             }
 
-            //  changing the accomplished flga
+            //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[3] = true;               // action number accomplished
+            accomplFlag[4] = true;               // action number accomplished
             mutexAcc.post();
 
             CvPoint t; tracker->getPoint(t);
@@ -2124,7 +2135,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[2] = true;              // action number accomplished
+            accomplFlag[2] = true;                // action number accomplished
             validAction = true;
             mutexAcc.post();
             mutex.post();
@@ -2196,7 +2207,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[8] =  true;              // action number accomplished
+            accomplFlag[6] =  true;              // action number accomplished
             validAction    = false;
             mutexAcc.post();            
             mutex.post();
@@ -2355,8 +2366,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             //  changing the accomplished flag
             mutexAcc.wait();
-            accomplFlag[1];
-            validAction  = false;
+            accomplFlag[1] = true;
+            validAction    = false;
             mutexAcc.post();            
             mutex.post();
 

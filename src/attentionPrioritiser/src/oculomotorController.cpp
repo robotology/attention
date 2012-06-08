@@ -84,6 +84,8 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(4,true);
     ap->setAllowStateRequest(5,true);
     ap->setAllowStateRequest(6,true);
+    ap->setAllowStateRequest(7,true);
+    ap->setAllowStateRequest(8,true);
 
 
     // ------------- opening the logfile ----------------------
@@ -432,7 +434,7 @@ bool oculomotorController::allowStateRequest(int action) {
    
    
     //setting flags in initialisation
-    ap->setAllowStateRequest(action, true);
+    //ap->setAllowStateRequest(action, true);
 
     // executing command in buffer
     bool ret = false;
@@ -456,10 +458,10 @@ bool oculomotorController::allowStateRequest(int action) {
     
     // if not executed because absent in the buffer, waits for few seconds
     if(!executed) {
-        double timenow  = Time::now();
-        double timediff = 0;
-        double timeend;
-        bool   validAction;
+        //double timenow  = Time::now();
+        //double timediff = 0;
+        //double timeend;
+        //bool   validAction;
 
  
         /*ap->isValidAction(validAction);
@@ -618,6 +620,8 @@ void oculomotorController::run() {
             ap->setAllowStateRequest(4,false);  
             ap->setAllowStateRequest(5,false);
             ap->setAllowStateRequest(6,false);
+            ap->setAllowStateRequest(7,false);
+            ap->setAllowStateRequest(8,false);            
             firstCycle = false;
         }      
         
