@@ -102,7 +102,7 @@ bool oculomotorController::threadInit() {
     rewardFile = fopen(rewardFilePath ,"a+");
     int n = 0; // number of bytes in the file
     if (NULL == rewardFile) { 
-        perror ("Error opening file");
+        perror ("Error opening reward file");
     }
     else {
         while (!feof(rewardFile)) {
@@ -164,7 +164,7 @@ bool oculomotorController::threadInit() {
     PsaFile = fopen(psaFilePath.c_str(),"a+");
     n = 0; // number of bytes in the file
     if (NULL == PsaFile) { 
-        perror ("Error opening file");
+        perror ("Error opening psa file");
     }
     else {
         while (!feof(PsaFile)) {
@@ -294,9 +294,9 @@ bool oculomotorController::threadInit() {
     //tp->start();
 
     printf(" init of the outing thread \n");
-    ot = new outingThread();
-    ot->setName(getName("").c_str()); 
-    ot->start();
+    //ot = new outingThread();
+    //ot->setName(getName("").c_str()); 
+    //ot->start();
     
     printf("\n oculomotorController::threadInit:initialisation correctly ended \n");
     

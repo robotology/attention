@@ -116,6 +116,8 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     controller->setPsaFile(rf.findFile("psaFile.txt"));
     controller->setRewardFile(rf.findFile("rewardFile.txt"));
     controller->setQualityFile(rf.findFile("qualityFile.txt"));
+    printf("controller correctly initialised \n");
+    
 
     //controller->setResourceFinder(rf);
     //if (rf.check("visualFeedback")) {
@@ -247,6 +249,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     collector->start();
     printf("starting the controller... \n");
     controller->start();
+    printf("all the components correcly started \n");
 
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module

@@ -165,7 +165,7 @@ public:
         scopePort.interrupt();
     };
     
-    void setValue(double v){mutex.wait(); value = v; mutex.post();};
+    void setValue(double v){/*mutex.wait(); value = v; mutex.post();*/};
 };
 
 class oculomotorController : public yarp::os::RateThread, public observer {

@@ -1197,7 +1197,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     else if (_pos > 6)             pos = _pos - 2;
     else                           pos = _pos;
     
-    /*
+    
     if((pos == 0) && (isLearning())) {
         printf("found RESET action \n");
         stateRequest[pos] = 1.0;
@@ -1208,7 +1208,6 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         stateRequest[pos] = 1.0;
         return true;
     }
-    */
     
     printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
@@ -1565,7 +1564,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
 
-            /*
+            
             //--------------------------------------------------------------------------
             // prediction attempt after triggering stimulus
             mutex.wait();
@@ -1592,7 +1591,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 sent.addInt(v);
                 highLevelLoopPort.write();
             }
-            */
+            
             
             //---------------------------------------------------------------------------
             zDistance = arg->get(3).asDouble();
