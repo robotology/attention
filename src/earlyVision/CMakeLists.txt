@@ -35,7 +35,14 @@ IF (folder_source)
     )
 
     MESSAGE("OpenCV_LIBS ${OpenCV_LIBS}" )
-    TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${OpenCV_LIBS} ${YARP_LIBRARIES} )	
+
+    if (ENABLE_CUDA)  
+        TARGET_LINK_LIBRARIES(${KEYWORD} logpolar cudaVision ${OpenCV_LIBS} ${YARP_LIBRARIES} )	
+    else (ENABLE_CUDA)
+        TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${OpenCV_LIBS} ${YARP_LIBRARIES} )	
+    endif (ENABLE_CUDA)
+
+
     INSTALL_TARGETS(/bin ${KEYWORD})
 	
 ELSE (folder_source)

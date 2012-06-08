@@ -30,6 +30,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
+
 edgesThread::edgesThread():RateThread(RATE_OF_EDGES_THREAD) {   
     
     edgesThreadIsProcessing = false;
@@ -136,6 +137,40 @@ void edgesThread::edgesExtract() {
 
     setFlagForThreadProcessing(true);
 
+#ifdef WITH_CUDA   
+        static const float SOBLE_ROW[] =  {-1.62658,  -3.25315,  -0.00000,   3.25315,   1.62658 };
+        static const float SOBLE_COL[] =  {-0.61479,  -2.45915,  -3.68873,  -2.45915,  -0.61479 };
+
+        CvSize size = cvSize(intensityImage->width(), intensityImage->height());     
+        IplImage* hImg = cvCreateImage(size, IPL_DEPTH_32F, 1);
+        cvCvtScale((IplImage*)intensityImage.getIplImage(),hImg, 1.0/255.0); 
+
+        //alocating memory on GPU if it's required
+        // we allocate a big image for left and right together 
+        float *dImgIn, *dImgBuff, dImgOut;
+        HANDLE_ERROR( cudaMalloc((void **)&dImgIn,  size.width*size.height*sizeof(float)) );
+        HANDLE_ERROR( cudaMalloc((void **)&dImgBuff, size.width*size.height*sizeof(float)) );
+        HANDLE_ERROR( cudaMalloc((void **)&dImgOut, size.width*size.height*sizeof(float)) );
+
+        HANDLE_ERROR( cudaMemcpy(dImgIn, hImg->imageData, 
+                                 size.width*size.height*sizeof(float), cudaMemcpyHostToDevice) );
+        // 1D ROW and COl                          
+        setConvolutionKernel(SOBLE_ROW, 0, 5);
+        setConvolutionKernel(SOBLE_COL, 1, 5);
+        convRowsF32Sep(dImgIn, dImgBuff, 
+                       size.width, size.height, 0, 5);
+        convRowsF32Sep(dImgBuff, dImgOut, 
+                       size.width, size.height, 1, 5);
+
+        HANDLE_ERROR( cudaMemcpy(hImg->imageData, dImgOut, 
+                      size.width*size.height*sizeof(float), cudaMemcpyDeviceToHost) ); 
+
+
+        HANDLE_ERROR( cudaFree(dImgIn) );
+        HANDLE_ERROR( cudaFree(dImgBuff) );
+        HANDLE_ERROR( cudaFree(dImgOut) );
+        cvReleaseImage(hImg);
+#else
     // X derivative 
     tmpMonoSobelImage1->zero();
     sobel2DXConvolution->convolve2D(intensityImage,tmpMonoSobelImage1);
@@ -143,7 +178,7 @@ void edgesThread::edgesExtract() {
     // Y derivative
     tmpMonoSobelImage2->zero();     // This can be removed 
     sobel2DYConvolution->convolve2D(intensityImage,tmpMonoSobelImage2);     
-
+#endif
     setFlagForThreadProcessing(false);    
 
     //clearing up the previous value
