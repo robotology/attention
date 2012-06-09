@@ -99,7 +99,7 @@ bool oculomotorController::threadInit() {
     double* val = rewardStateAction->data();
     
     //rewardFilePath = "rewardFile.txt";
-    rewardFile = fopen(rewardFilePath ,"a+");
+    rewardFile = fopen(rewardFilePath ,"w+");
     int n = 0; // number of bytes in the file
     if (NULL == rewardFile) { 
         perror ("Error opening reward file");
@@ -161,7 +161,7 @@ bool oculomotorController::threadInit() {
     
     //psaFilePath = "psaFile.txt";
     printf("reading transition Matrix from the file.... %s \n",psaFilePath.c_str());
-    PsaFile = fopen(psaFilePath.c_str(),"a+");
+    PsaFile = fopen(psaFilePath.c_str(),"w+");
     n = 0; // number of bytes in the file
     if (NULL == PsaFile) { 
         perror ("Error opening psa file");
@@ -222,7 +222,7 @@ bool oculomotorController::threadInit() {
     
     //qualityFilePath = "qualityFile.txt";
     printf("Quality Function : reading values from the file %s.... \n",qualityFilePath.c_str());
-    qualityFile = fopen(qualityFilePath.c_str(),"a+");
+    qualityFile = fopen(qualityFilePath.c_str(),"w+");
     n = 0; // number of bytes in the file
     if (NULL == qualityFile) { 
         perror ("Error opening Quality file");
@@ -283,7 +283,9 @@ bool oculomotorController::threadInit() {
     P = new Matrix(NUMSTATE,NUMACTION);
     P->zero();
 
-    //action
+    // max-reward action vector
+    // vector populated with the action that maximise reward in a particular state
+    // the column of the vector reference to the state
     A = new Matrix(1,NUMSTATE);
     A->zero();
     
@@ -328,6 +330,7 @@ bool oculomotorController::policyWalk(){
     int pos = state_now * NUMACTION + action_now;
     printf("looking for position %d  : %d %d\n", pos, state_now, action_now);
     Vector v = Psa->getRow(pos);
+    
     printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
     int posInVector = 0;
@@ -340,11 +343,11 @@ bool oculomotorController::policyWalk(){
         
     }
     printf("max value found in vector %f \n", maxInVector);
-    state_next = posInVector;
-    if(state_next == 10) {
-        count++;
-        ret = true;
-    }
+    //state_next = posInVector;
+    //if(state_next == 10) {
+    //    count++;
+    //    ret = true;
+    //}
     printf("new state %d \n", state_next);
     return ret;
 }
@@ -528,9 +531,14 @@ void oculomotorController::learningStep() {
         int actionMax = 0;
         
         for(int action = 0; action < NUMACTION; action++) {
-            P->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
-            if(P->operator()(state, action) > maxQ) {
-                maxQ = P->operator()(state, action);
+            //P->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
+            //if(P->operator()(state, action) > maxQ) {
+            //    maxQ = P->operator()(state, action);
+            //    actionMax = action;
+            //}
+            Q->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
+            if(Q->operator()(state, action) > maxQ) {
+                maxQ = Q->operator()(state, action);
                 actionMax = action;
             }
         }
@@ -555,7 +563,7 @@ void oculomotorController::learningStep() {
         
         //if(count < 30) {
         int state_next;
-        if(true) {
+        if(countSucc < 1) {
             printf("randomWalk action selection \n");
             actionPerformed = randomWalk(state_next);
         }
@@ -739,6 +747,15 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             //int actionvalue = (int) arg->get(1).asDouble();  // action that is just finalized
             int actionvalue = 0;
             int statevalueparam    = (int) arg->get(1).asDouble();
+
+            // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
+            if(statevalueparam == 14) {
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                countSucc++;
+            }
+
             
             //printf("new state update arrived action: %d state :%f  \n", actionvalue, arg->get(2).asDouble()); 
             if(false) {
@@ -798,7 +815,10 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 }
             }
             */            
-               
+            
+
+            
+
 
             // -------------------------- updating the transition matrix once we switch state --------------------
             printf("updating the transition matrix; state_now %d action_now %d \n", state_now, action_now);
@@ -1031,13 +1051,14 @@ void oculomotorController::threadRelease() {
     //}
 
     printf("oculomotorController::threadRelease() : about to stop outingThread \n");
-    ot->stop();
+    //ot->stop();
 
     //closing ports
-    inCommandPort.close();
+    //inCommandPort.close();
 
     
     //closing files
+    printf("closing the files correctly \n");
     fclose(logFile);
     // --- saving transition matrix ----------
     fclose(PsaFile);
