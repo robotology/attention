@@ -175,7 +175,7 @@ private:
     bool firstCount;           // first count of the starting state
     bool stateTransition;      // synchronisation betweee actionSelection and stateTransition
     
-    int count;                 // step counter of successful learning step
+    int countSucc;             // step counter of successful learning step
     int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
