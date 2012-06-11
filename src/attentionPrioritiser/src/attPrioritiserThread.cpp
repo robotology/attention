@@ -241,11 +241,11 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
         bufCommand[k]        = NULL;
     }
 
-    //printf("starting the tracker.... \n");
-    //ResourceFinder* rf = new ResourceFinder();
-    //tracker = new trackerThread(*rf);
-    //tracker->setName(getName("/matchTracker").c_str());
-    //tracker->start();
+    printf("starting the tracker.... \n");
+    ResourceFinder* rf = new ResourceFinder();
+    tracker = new trackerThread(*rf);
+    tracker->setName(getName("/matchTracker").c_str());
+    tracker->start();
     
     printf("attPrioritiserThread initialization ended correctly \n");
 }
@@ -555,7 +555,8 @@ void attPrioritiserThread::run() {
         
         //double predVx = 0.0, predVy = 0.0;
         //bool predictionSuccess = false;
-        tracker->init(u,v);tracker->waitInitTracker();
+        tracker->init(u,v);
+        tracker->waitInitTracker();
         bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime, predDistance);
         
         printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);
@@ -1203,7 +1204,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     else if (_pos > 6)             pos = _pos - 2;
     else                           pos = _pos;
     
-    
+    /*
     if((pos == 0) && (isLearning())) {
         printf("found RESET action \n");
         stateRequest[pos] = 1.0;
@@ -1214,6 +1215,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         stateRequest[pos] = 1.0;
         return true;
     }
+    */
     
     printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
