@@ -283,12 +283,15 @@ bool attPrioritiserModule::close() {
     if(0 != prioritiser) {
         prioritiser->stop();
     }
+
     //delete collector;
     //delete prioritiser;
+
     printf("stopping the controller \n");
     if (controller != 0) {
-        controller->stop();
-        delete controller;
+        //controller->stop();
+        //delete controller;
+        printf("deleting controller \n");
     }
 
     printf("attPrioritiserModule::close:success in closing \n");

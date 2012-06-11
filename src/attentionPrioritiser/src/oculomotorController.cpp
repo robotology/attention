@@ -100,6 +100,73 @@ bool oculomotorController::threadInit() {
     //logFilePath = "logFile.txt";
     printf("printing the visited state in a log file ....  %s \n", logFilePath.c_str());
     logFile = fopen(logFilePath.c_str(),"r+");
+
+
+        
+    
+    // --------- Reading Transition Matrix -------------------
+    printf("initialisation of probability transition \n");
+    
+    //psaFilePath = "psaFile.txt";
+    printf("reading transition Matrix from the file.... %s \n",psaFilePath.c_str());
+    PsaFile = fopen(psaFilePath.c_str(),"r+");
+    int n = 0; // number of bytes in the file
+    double* valPsa = Psa->data();
+
+    
+    printf("opening psa file \n");
+    if (NULL == PsaFile) { 
+        printf ("Error opening psa file \n");
+    }
+    else {
+        
+        while (!feof(PsaFile)) {
+            fgetc (PsaFile);
+            n++;
+        }
+        
+        printf ("Total number of bytes: %d \n", n-1);
+        
+    }
+    
+    rewind(PsaFile);
+    n = n - 1;
+
+    if(n == 0) {
+        // creating new Psa values                
+        printf("creating new Psa values \n");
+        double t;
+        for(int row = 0; row < NUMSTATE * NUMACTION; row++ ) {
+            for(int col = 0; col < NUMSTATE; col++) {
+                //t = rand() / 10000000000.0 ;
+                t = 1.0 / (double)NUMSTATE;
+                fprintf(PsaFile,"%f ",t);
+                *valPsa = t; valPsa++;
+            }
+            fprintf(PsaFile,"\n");
+        }
+    }
+    else { 
+        
+        //reading values
+        printf("reading values from file \n");
+        // Reads from input file first segment of nsize samples into y:	
+        unsigned int i;			
+        int numRead = 1; int countVal = 0;
+        int nsize = 10;
+        double y[10];
+        float x;
+        double* py = &y[0];
+        while(numRead != -1){
+            numRead = fscanf(PsaFile, "%f", &x);
+            printf("numRead %d > %f \n",numRead,x);
+            *valPsa = (double) x;
+            valPsa++; countVal++;
+        }
+        //printf("saved %d \n", countVal);        
+        
+    }
+    
     
 
     // ------ Reading Reward State Action ------------------
@@ -109,7 +176,7 @@ bool oculomotorController::threadInit() {
     
     //rewardFilePath = "rewardFile.txt";
     rewardFile = fopen(rewardFilePath ,"r+");
-    int n = 0; // number of bytes in the file
+    n = 0; // number of bytes in the file
 
     
     if (NULL == rewardFile) { 
@@ -125,7 +192,6 @@ bool oculomotorController::threadInit() {
     }
     n = n - 1;
     rewind(rewardFile);
-
     
     if(n == 0) {
         // creating new reward values                
@@ -133,7 +199,6 @@ bool oculomotorController::threadInit() {
         double t;
         for(int row = 0; row < NUMSTATE ; row++ ) {
             for(int col = 0; col < NUMACTION; col++) {
-                //t = rand() / 10000000000.0 ;
                 t = 0.1;
                 fprintf(rewardFile,"%f ",t);
                 *val = t; val++;
@@ -153,96 +218,23 @@ bool oculomotorController::threadInit() {
         //double* py = &y[0];
         while(numRead != -1){
             numRead = fscanf(rewardFile, "%f", &x);
-            //printf("numRead %d > %f \n",numRead,(double)x);
+            printf("numRead %d > %f \n",numRead,x);
             *val = (double) x;
             val++; countVal++;
         }
         printf("saved %d \n", countVal);        
     }
-    
-    
-    //for(int row = 0; row < NUMSTATE; row++ ) {
-    //    for(int col = 0; col < NUMACTION; col++) {
-    //        *val = 0.1; val++;
-    //    }
-    //}
-    
-    
-    // --------- Reading Transition Matrix -------------------
-    printf("initialisation of probability transition \n");
-    
-    
-    //psaFilePath = "psaFile.txt";
-    printf("reading transition Matrix from the file.... %s \n",psaFilePath.c_str());
-    PsaFile = fopen(psaFilePath.c_str(),"r+");
-    n = 0; // number of bytes in the file
-    val = Psa->data();
 
-    
-    printf("opening psa file \n");
-    if (NULL == PsaFile) { 
-        printf ("Error opening psa file \n");
-    }
-    else {
-        
-        while (!feof(PsaFile)) {
-            fgetc (PsaFile);
-            n++;
-        }
-        
-        printf ("Total number of bytes: %d \n", n-1);
-        //rewind(PsaFile);
-        //n = n - 1;
-    }
-    
-    
-    
-    /*
-    if(n == 0) {
-        // creating new Psa values                
-        printf("creating new Psa values \n");
-        double t;
-        for(int row = 0; row < NUMSTATE * NUMACTION; row++ ) {
-            for(int col = 0; col < NUMSTATE; col++) {
-                //t = rand() / 10000000000.0 ;
-                t = 1.0 / NUMSTATE;
-                fprintf(PsaFile,"%f ",t);
-                *val = t; val++;
-            }
-            fprintf(PsaFile,"\n");
-        }
-    }
-    else { 
-        //reading values
-        printf("reading values from file \n");
-        // Reads from input file first segment of nsize samples into y:	
-        unsigned int i;			
-        int numRead = 0, countVal = 0;
-        int nsize = 10;
-        double y[10];
-        float x;
-        double* py = &y[0];
-        while(numRead != -1){
-            numRead = fscanf(PsaFile, "%f", &x);
-            //printf("numRead %d > %f \n",numRead,(double)x);
-            *val = (double) x;
-            val++; countVal++;
-        }
-        //printf("saved %d \n", countVal);        
-    }
-    
+   
     printf("initialisation of the learning machines \n");
-    */
-    
-    
-    
+     
     // --------- Reading Quality Function -------------------         
     //qualityFilePath = "qualityFile.txt";
     printf("Quality Function : reading values from the file %s.... \n",qualityFilePath.c_str());
     qualityFile = fopen(qualityFilePath.c_str(),"r+");
     n = 0; // number of bytes in the file
 
-    /*
+    
     if (NULL == qualityFile) { 
         perror ("Error opening Quality file");
     }
@@ -257,9 +249,10 @@ bool oculomotorController::threadInit() {
     n = n - 1;
     rewind(qualityFile);
     //V = new Matrix(NUMSTATE,NUMSTATE);
-
+    
     
     val = Q->data();
+    
     if(n == 0) {
         // creating new quality values                
         printf("Value Function : creating new Values Function \n");
@@ -275,6 +268,7 @@ bool oculomotorController::threadInit() {
         }
     }
     else {
+        
         //reading values
         printf("Value Function : reading values from file \n");
         // Reads from input file first segment of nsize samples into y:	
@@ -284,15 +278,26 @@ bool oculomotorController::threadInit() {
         //double y[10];
         float x;
         //double* py = &y[0];
-        while(numRead != -1){
+        int col = 0, row =0;
+        countVal =0;
+        while((numRead != -1)&&(countVal < NUMACTION * NUMSTATE)){
             numRead = fscanf(qualityFile, "%f", &x);
-            //printf("numRead %d > %f \n",numRead,(double)x);
-            *val = (double) x;
-            val++; countVal++;
+            Q->operator()(row,col) = (double) x;
+            printf("numRead %d (%d,%d) > %f \n",numRead,row,col,numRead,(double)x);
+
+            col++;
+            if(col == NUMACTION) {
+                row++;
+                col = 0;
+            }
+            countVal++;
+            //*val = (double) x;
+            //val++; countVal++;
         }
-         printf("saved %d \n", countVal);
+        printf("saved %d \n", countVal);
+        
     }
-    */
+
 
     printf("init quality measure and action state \n");
 
@@ -1082,11 +1087,15 @@ void oculomotorController::threadRelease() {
 
     
     //closing files
-    printf("closing the files correctly \n");
+    printf("closing the files... \n");
+
+    /*
     fclose(logFile);
+    printf("correctly closed the logFile \n");
+    
     // --- saving transition matrix ----------
     fclose(PsaFile);
-    PsaFile = fopen(psaFilePath.c_str(),"r+");
+    PsaFile = fopen(psaFilePath.c_str(),"w+");
     printf("saving updates in Psa \n");
     double t;
     if(0 == Psa) {
@@ -1103,9 +1112,12 @@ void oculomotorController::threadRelease() {
         }
         fprintf(PsaFile,"\n");
     }
+    printf("correcly saved the PsaFile \n");
+    
+    
     // --- saving value function ----------
     fclose(qualityFile);
-    qualityFile = fopen(qualityFilePath.c_str(),"r+");
+    qualityFile = fopen(qualityFilePath.c_str(),"w+");
     printf("saving updates in value \n");
     if(0 == Q) {
         printf("pointer to value null \n");
@@ -1121,9 +1133,12 @@ void oculomotorController::threadRelease() {
         }
         fprintf(qualityFile,"\n");
     }
+    printf("correctly closed the quality file \n");
+    
+    
     // --- saving reward function ----------
     fclose(rewardFile);
-    rewardFile = fopen(rewardFilePath.c_str(),"r+");
+    rewardFile = fopen(rewardFilePath.c_str(),"w+");
     printf("saving updates in value \n");
     if(0 == V) {
         printf("pointer to value null \n");
@@ -1139,14 +1154,16 @@ void oculomotorController::threadRelease() {
         }
         fprintf(rewardFile,"\n");
     }
+    printf("correctly saved the reward function \n");
+    */
 
     
-    printf("deleting the matrices \n");
-    delete Q;
-    //delete M;
-    delete V;
-    delete A;
-    delete P;
+    //printf("deleting the matrices \n");
+    //delete Q;
+    //delete V;
+    //delete A;
+    //delete P;
+
     printf("OculomotorController::threadRelease success \n  ");
 }
 

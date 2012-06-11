@@ -137,6 +137,12 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     numberState = 6; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
     waitTime   = 3.0;
+
+
+    sacPlanner    = 0;
+    trajPredictor = 0;
+    tracker       = 0;
+
     // boolean values
     firstVer           = false;
     firstVergence      = true;
