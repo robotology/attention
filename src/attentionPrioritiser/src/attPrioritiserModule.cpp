@@ -289,7 +289,7 @@ bool attPrioritiserModule::close() {
 
     printf("stopping the controller \n");
     if (controller != 0) {
-        //controller->stop();
+        controller->stop();
         //delete controller;
         printf("deleting controller \n");
     }
