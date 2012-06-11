@@ -804,16 +804,16 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             // //    (1 - alfa) * Q->operator()(state_now,action_now) + 
             // //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
             
-            // Q->operator()(state_now,action_now) = 
-            //     Q->operator()(state_now,action_now) + 
-            //     alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
-            //              - Q->operator()(state_now,action_now)) ;
+             Q->operator()(state_now,action_now) = 
+                 Q->operator()(state_now,action_now) + 
+                 alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
+                          - Q->operator()(state_now,action_now)) ;
             
             // // 4. calculating the total Payoff
-            // printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
-            // totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
-            // printf("for the final totalPayoff %f \n", totalPayoff);
-            // jiter  = jiter * j;        
+             printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
+             totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
+             printf("for the final totalPayoff %f \n", totalPayoff);
+             jiter  = jiter * j;        
             
             // // 5. moving to next state
             // //state_now = state_next;
@@ -1130,7 +1130,7 @@ void oculomotorController::threadRelease() {
     for(int row = 0; row < NUMSTATE; row++ ) {
         for(int col = 0; col < NUMACTION; col++) {
             t = Q->operator()(row,col);
-            //if(t > 0.1) printf("changed value from 0.09 to %f \n", t);
+            printf("changed (%d,%d),%f \n",row, col,t);
             fprintf(qualityFile,"%f ",t);
             //valQ++;
         }
