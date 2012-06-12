@@ -558,12 +558,14 @@ void oculomotorController::learningStep() {
         int actionMax = 0;
         
         for(int action = 0; action < NUMACTION; action++) {
+
             //P->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
             //if(P->operator()(state, action) > maxQ) {
             //    maxQ = P->operator()(state, action);
             //    actionMax = action;
             //}
-            Q->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
+
+            //Q->operator()(state, action) = rewardStateAction->operator()(state, action) + j * M(state, action);
             if(Q->operator()(state, action) > maxQ) {
                 maxQ = Q->operator()(state, action);
                 actionMax = action;
@@ -621,7 +623,7 @@ void oculomotorController::learningStep() {
             - Q->operator()(state_now,action_now)) ;
             
             // 4. calculating the total Payoff
-            printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.adding the reward  in pos (%d, %d) %f ",state_now, action_now, rewardStateAction->operator()(state_now, action_now) * jiter );
+            printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.adding the reward  in pos (%d, %d) %f %f ",state_now, action_now, rewardStateAction->operator()(state_now, action_now) * jiter,Q->operator()(state_now,action_now) );
             totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
             printf("for the final totalPayoff %f \n", totalPayoff);
             jiter  = jiter * j;        
@@ -810,7 +812,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                           - Q->operator()(state_now,action_now)) ;
             
             // // 4. calculating the total Payoff
-             printf("adding the reward %f ", rewardStateAction->operator()(state_now, action_now) * jiter );
+             printf("adding the reward %f  Q(%d,%d): %f", rewardStateAction->operator()(state_now, action_now) * jiter,state_now, action_now, Q->operator()(state_now,action_now));
              totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
              printf("for the final totalPayoff %f \n", totalPayoff);
              jiter  = jiter * j;        

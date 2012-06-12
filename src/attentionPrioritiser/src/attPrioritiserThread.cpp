@@ -1204,7 +1204,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     else if (_pos > 6)             pos = _pos - 2;
     else                           pos = _pos;
     
-    /*
+    
     if((pos == 0) && (isLearning())) {
         printf("found RESET action \n");
         stateRequest[pos] = 1.0;
@@ -1215,7 +1215,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         stateRequest[pos] = 1.0;
         return true;
     }
-    */
+    
     
     printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
@@ -1739,7 +1739,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             // saving bottle in the buffer
             bufCommand[1] = *arg;
-            waitTime      = arg->get(1).asDouble();
+            waitType      = arg->get(1).asString(); // reading the typology of waiting: ant (anticipatory), fix (fixation)
+            waitTime      = arg->get(2).asDouble();
             
             // reseting the state action history
             mutex.wait();
@@ -2378,31 +2379,42 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();            
             mutex.post();
 
-            CvPoint t; tracker->getPoint(t);
-            if((t.x > 160 - FOVEACONFID) && 
-               (t.x < 160 + FOVEACONFID) &&
-               (t.y > 120 - FOVEACONFID) &&
-               (t.y < 120 + FOVEACONFID)) {
-
-                // nofiying state transition into successful tracking
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(10);                  // code for smooth-pursuit accomplished
-                setChanged();
-                notifyObservers(&notif);
+            if(!strcmp(waitType.c_str(), "ant")) {
+                CvPoint t; tracker->getPoint(t);
+                if((t.x > 160 - FOVEACONFID) && 
+                   (t.x < 160 + FOVEACONFID) &&
+                   (t.y > 120 - FOVEACONFID) &&
+                   (t.y < 120 + FOVEACONFID)) {
+                    
+                    // nofiying state transition into successful tracking
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(10);                  // code for smooth-pursuit accomplished
+                    setChanged();
+                    notifyObservers(&notif);
+                    
+                }
+                else {
+                    
+                    // nofiying state transition into unsuccessful tracking
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(11);                  // code for smooth-pursuit not accomplished
+                    setChanged();
+                    notifyObservers(&notif);
                 
+                }
             }
             else {
-                
                 // nofiying state transition into unsuccessful tracking
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(11);                  // code for smooth-pursuit not accomplished
+                notif.addDouble(14);                  // code for smooth-pursuit not accomplished
                 setChanged();
-                notifyObservers(&notif);
-                
+                notifyObservers(&notif);                
             }
 
         }

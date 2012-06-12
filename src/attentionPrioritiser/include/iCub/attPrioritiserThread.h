@@ -116,6 +116,7 @@ private:
     std::string name;                       // rootname of all the ports opened by this thread
     std::string robot;                      // name of the robot read by the ResourceFinder
     std::string configFile;                 // configuration file of cameras (LEFT RIGHT)
+    std::string waitType;                   // typology of the waiting
     yarp::sig::Matrix stateTransition;      // matrix of the state transition; weights of the transition
     yarp::sig::Vector stateRequest;         // buffer of requests  (vergence, smooth pursuit, saccade)
     yarp::sig::Vector state;                // vector where just one element can be 1 indicating the state in which the system is
@@ -241,7 +242,6 @@ private:
     yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     
-
     trackerThread*    tracker;                    // reference to the object in charge of tracking a tamplete surrounding a point
     sacPlannerThread    *sacPlanner;                // planner of saccadic movements (todo: make it a list of planners
     trajectoryPredictor *trajPredictor;             // predictor of the trajectory of a given stimulus
