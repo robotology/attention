@@ -175,9 +175,21 @@ bool gazeArbiterThread::threadInit() {
     done=true;
     executing = false;
     printf("starting the thread.... \n");
+
+    Bottle info;
+    igaze->getInfo(info);
+    int head_version = info.check("head_version", Value(1)).asInt();
+
+    if(head_version == 1) {
+        eyeL = new iCubEye("left");
+        eyeR = new iCubEye("right");
+    }
+    else {
+        eyeL = new iCubEye("left_v2");
+        eyeR = new iCubEye("right_v2");
+    }
+
     
-    eyeL = new iCubEye("left");
-    eyeR = new iCubEye("right");    
 
     // remove constraints on the links
     // we use the chains for logging purpose
