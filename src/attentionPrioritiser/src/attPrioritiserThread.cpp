@@ -138,6 +138,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     configFile = _configFile;
     waitTime   = 3.0;
 
+    waitType = "ant";
 
     sacPlanner    = 0;
     trajPredictor = 0;
@@ -1013,7 +1014,7 @@ void attPrioritiserThread::run() {
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         
         printf("--------------------- Wait -------------------- \n");
-        printf("Standby .... \n");
+        printf("Standby in Wait ....%s \n", waitType.c_str());
         double tstart = Time::now();
         double tdiff = 0;
         while( tdiff < waitTime) {
@@ -1213,6 +1214,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     if((pos == 1) && (isLearning())) {
         printf("found WAIT action \n");
         stateRequest[pos] = 1.0;
+        //waitType = "ant";
         return true;
     }
     
@@ -2155,6 +2157,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(12);                  // code for vergence accomplished
             setChanged();
             notifyObservers(&notif); 
+
+            pendingCommand->clear();
+            pendingCommand->addString("WAIT");
+            pendingCommand->addString("fix");
+            pendingCommand->addDouble(0.5);
+            isPendingCommand = true;      
             
 
         }
@@ -2364,7 +2372,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"WAIT_ACC")) {
             // smooth pursuit accomplished           
-            printf("Wait Accomplished \n");
+            printf("Wait Accomplished with waitType %s \n", waitType.c_str());
             mutex.wait();
             if(allowStateRequest[1]) {
                 printf("setting stateRequest[0] \n");
@@ -2379,7 +2387,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();            
             mutex.post();
 
-            if(!strcmp(waitType.c_str(), "ant")) {
+            if(!strcmp(waitType.c_str(),"ant")) {
                 CvPoint t; tracker->getPoint(t);
                 if((t.x > 160 - FOVEACONFID) && 
                    (t.x < 160 + FOVEACONFID) &&
@@ -2408,6 +2416,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
             }
             else {
+                printf("IN FIXATING \n");
+                printf("IN FIXATING \n");
                 // nofiying state transition into unsuccessful tracking
                 Bottle notif;
                 notif.clear();

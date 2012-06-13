@@ -113,6 +113,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     controller->setName(str.c_str());
     controller->setResourceFinder(&rf);
     controller->setLogFile(rf.findFile("logFile.txt"));
+    controller->setLogState(rf.findFile("logState.txt"));
     controller->setPsaFile(rf.findFile("psaFile.txt"));
     controller->setRewardFile(rf.findFile("rewardFile.txt"));
     controller->setQualityFile(rf.findFile("qualityFile.txt"));

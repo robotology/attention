@@ -184,6 +184,7 @@ private:
     yarp::os::ConstString rewardFilePath  ;
     yarp::os::ConstString psaFilePath     ;    
     yarp::os::ConstString qualityFilePath ; 
+    yarp::os::ConstString logStatePath    ; 
     
     yarp::os::Semaphore mutexStateTransition;                   // semaphore for controlling the state transition
 
@@ -214,7 +215,8 @@ private:
     int statevalue;
     
     FILE* PsaFile;                         // file that contains the Probability of Transitions
-    FILE* logFile;                         // log file for actions and states
+    FILE* logFile;                         // log file for actions and statesWY
+    FILE* logState;                        // log file for only states
     FILE* qualityFile;                     // memory of value function through runs
     FILE* rewardFile;                      // file that stores the reward function for state action
 
@@ -300,6 +302,14 @@ public:
      */
     void setLogFile(yarp::os::ConstString str) {
         logFilePath = str;
+    };
+
+    /**
+     * function that sets the logState path
+     * @param rf reference to the resource finder assigned in the module
+     */
+    void setLogState(yarp::os::ConstString str) {
+        logStatePath = str;
     };
 
     /**
