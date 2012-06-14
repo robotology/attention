@@ -835,7 +835,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
             fprintf(logFile, "state_prev:%s state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
             fprintf(logFile, " totalPayoff:%f             \n ",totalPayoff);
-            fprintf(logState,"%d \n", state_now);
+            fprintf(logState,"%d %f\n", state_now, totalPayoff);
             
             /*
             for (int j = 0; j < NUMSTATE; j++)  {
