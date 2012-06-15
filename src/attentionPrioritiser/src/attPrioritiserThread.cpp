@@ -1206,22 +1206,58 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     else                           pos = _pos;
     
     
-    if((pos == 0) && (isLearning())) {
-        printf("found RESET action \n");
-        stateRequest[pos] = 1.0;
-        return true;
-    }
-    if((pos == 1) && (isLearning())) {
-        printf("found WAIT action \n");
-        stateRequest[pos] = 1.0;
-        //waitType = "ant";
-        return true;
-    }
-    
-    
     printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
     if (bufCommand[pos] == NULL) {
         printf("no action in the buffer for pos:%d \n", pos);        
+        if(isLearning()) {
+            printf("using default value when in Learning \n");
+            switch (pos) {
+            case 0: {
+                printf("default RESET action \n");
+                stateRequest[pos] = 1.0;
+                return true;
+            }break;
+            case 1: {
+                printf("default WAIT action \n");
+                stateRequest[pos] = 1.0;
+                //waitType = "ant";
+                return true;
+            }break;
+            case 2: {
+                printf("default VERG action \n");
+                stateRequest[pos] = 1.0;
+                //waitType = "ant";
+                return true;
+            }break;
+            case 3: {
+                printf("default SMP action \n");
+                stateRequest[pos] = 1.0;
+                //waitType = "ant";
+                return true;
+            }break;                
+            case 4: {
+                printf("default SAC action \n");
+                stateRequest[pos] = 1.0;
+                u = 160;
+                v = 120;
+                return true;
+            }break;
+            case 5: {
+                printf("default EXPR_SAC action \n");
+                stateRequest[pos] = 1.0;
+                u = 160;
+                v = 120;
+                return true;
+            }break;
+            case 6: {
+                printf("default PRED action \n");
+                stateRequest[pos] = 1.0;
+                u = 160;
+                v = 120;
+                return true;
+            }break;    
+            }
+        }
         printCommandBuffer();
         return false;
     }   

@@ -352,14 +352,16 @@ std::string oculomotorController::getName(const char* p) {
 
 bool oculomotorController::policyWalk(){
     bool ret = false;
-    printf("%d \n", A->operator()(0,state_now));
+    printf("state_now : %d \n", A->operator()(0,state_now));
     action_now = A->operator()(0,state_now);
+    Vector a = A->getRow(0);
     printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
+    printf("a = %s \n", a.toString().c_str());
     
     //looking at the Psa for this state and the selected action
     int pos = state_now * NUMACTION + action_now;
     printf("looking for position %d  : %d %d\n", pos, state_now, action_now);
-    Vector v = Psa->getRow(pos);
+    Vector v = Q->getRow(pos);
     
     printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
@@ -373,12 +375,25 @@ bool oculomotorController::policyWalk(){
         
     }
     printf("max value found in vector %f \n", maxInVector);
-    //state_next = posInVector;
+    state_next = posInVector;
     //if(state_next == 10) {
     //    count++;
     //    ret = true;
     //}
     printf("new state %d \n", state_next);
+
+    // trying to execute the selected action 
+    // if successful the system moves to the next state
+    if(allowStateRequest(action_now)) {
+        //count++;
+        //statenext = state_next;
+        statevalue = posInVector;
+        printf("success in the action, probably sets a new statevalue %d \n", statevalue);
+        ret = true;
+    }
+    
+
+
     return ret;
 }
 
@@ -595,7 +610,7 @@ void oculomotorController::learningStep() {
         
         //if(count < 30) {
         int state_next;
-        if(countSucc < 1) {
+        if(countSucc < 5) {
             printf("randomWalk action selection \n");
             actionPerformed = randomWalk(state_next);
         }
@@ -787,6 +802,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
                 fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
                 countSucc++;
+                statevalueparam = 0; //move to null state right after the success in fixating
             }
 
             
