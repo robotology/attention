@@ -358,6 +358,7 @@ bool oculomotorController::policyWalk(){
     printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
     printf("a = %s \n", a.toString().c_str());
     
+    /*
     //looking at the Psa for this state and the selected action
     int pos = state_now * NUMACTION + action_now;
     printf("looking for position %d  : %d %d\n", pos, state_now, action_now);
@@ -374,6 +375,9 @@ bool oculomotorController::policyWalk(){
         }
         
     }
+    */
+   
+    /*
     printf("max value found in vector %f \n", maxInVector);
     state_next = posInVector;
     //if(state_next == 10) {
@@ -381,14 +385,16 @@ bool oculomotorController::policyWalk(){
     //    ret = true;
     //}
     printf("new state %d \n", state_next);
+    */
 
+    
     // trying to execute the selected action 
     // if successful the system moves to the next state
     if(allowStateRequest(action_now)) {
         //count++;
         //statenext = state_next;
-        statevalue = posInVector;
-        printf("success in the action, probably sets a new statevalue %d \n", statevalue);
+        //statevalue = posInVector;
+        //printf("success in the action, probably sets a new statevalue %d \n", statevalue);
         ret = true;
     }
     
@@ -570,7 +576,9 @@ void oculomotorController::learningStep() {
     //printf("M = \n");
     //printf("%s \n", M.toString().c_str());
     
+    
     //calculating the V
+    //printf("calculating the V..... \n");
     for (int state = 0; state < NUMSTATE; state++ ) {
         double maxQ  = 0;
         int actionMax = 0;
@@ -597,6 +605,7 @@ void oculomotorController::learningStep() {
         //printf("state %d maxQ %f actionMax %d \n",state, maxQ, actionMax);
     }
     
+    
     bool _stateTransition;
     mutexStateTransition.wait();
     _stateTransition = stateTransition;
@@ -610,7 +619,11 @@ void oculomotorController::learningStep() {
         
         //if(count < 30) {
         int state_next;
-        if(countSucc < 5) {
+        if(countSucc == 2) {
+            printf("IN THE POLICY!!!! \n");
+            fprintf(logFile,"IN THE POLICY!!!! \n");
+        }
+        if(countSucc < 2) {
             printf("randomWalk action selection \n");
             actionPerformed = randomWalk(state_next);
         }
@@ -629,7 +642,9 @@ void oculomotorController::learningStep() {
             
             // 3 .updating the quality function of the next state: TD step
             
-            // calculating the value
+            // calculating the reward using (amplitude, temporal aspects, accuracy)
+            //r = rewardStateAction->operator()(state_now,action_now);
+            double r =
             
             //Q->operator()(state_next,action_now) = 
             //    (1 - alfa) * Q->operator()(state_now,action_now) + 
@@ -679,7 +694,7 @@ void oculomotorController::run() {
             firstCycle = false;
         }      
         
-        //printf("count %d iter %d \n", count, iter);
+        //printf("count %d iter %d \n", countSucc, iter);
         if((countSucc < 50) && (iter % 20 == 0) && (ap->readyForActions())) {
             learningStep();    
         }
@@ -802,6 +817,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
                 fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
                 countSucc++;
+                
                 statevalueparam = 0; //move to null state right after the success in fixating
             }
 
@@ -865,9 +881,6 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 }
             }
             */            
-            
-
-            
 
 
             // -------------------------- updating the transition matrix once we switch state --------------------
@@ -904,6 +917,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             mutexStateTransition.wait();
             stateTransition = false;
             mutexStateTransition.post();
+            printf("enabled back again the action selection \n");
             
                         
         } break;

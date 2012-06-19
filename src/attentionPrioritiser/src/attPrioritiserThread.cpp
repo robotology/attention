@@ -138,7 +138,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     configFile = _configFile;
     waitTime   = 3.0;
 
-    waitType = "ant";
+    waitType = "ant"; //ant-anticip, fix-fixation 
 
     sacPlanner    = 0;
     trajPredictor = 0;
@@ -648,6 +648,14 @@ void attPrioritiserThread::run() {
             //commandBottleON.addString("COR_ON");
             //outputPort.write();
 
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(6);                  // code for fixStableKO
+            setChanged();
+            notifyObservers(&notif);
+            
+            /*
             //correcting flag is set when the saccade is accomplished
             timeout = 0;
             timeoutStart = Time::now();
@@ -678,7 +686,8 @@ void attPrioritiserThread::run() {
                 //notif.addDouble(2);                  // code for fixStableKO
                 //setChanged();
                 //notifyObservers(&notif);
-            }        
+            } 
+            */
 
             Time::delay(0.01);
             
@@ -1220,19 +1229,18 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
             case 1: {
                 printf("default WAIT action \n");
                 stateRequest[pos] = 1.0;
-                //waitType = "ant";
+
                 return true;
             }break;
             case 2: {
                 printf("default VERG action \n");
                 stateRequest[pos] = 1.0;
-                //waitType = "ant";
+ 
                 return true;
             }break;
             case 3: {
                 printf("default SMP action \n");
-                stateRequest[pos] = 1.0;
-                //waitType = "ant";
+                stateRequest[pos] = 1.0;                
                 return true;
             }break;                
             case 4: {
@@ -1881,7 +1889,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
               
         }
         else if(!strcmp(name.c_str(),"PRED")) {
-            
+            waitType = "ant";
             // saving bottle in the buffer
             bufCommand[6] = *arg;
 
@@ -2170,7 +2178,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notifyObservers(&notif);            
         }
         else if(!strcmp(name.c_str(),"VER_ACC")) {
-            // vergence accomplished           
+            // vergence accomplished        
+            waitType = "fix";
             //printf("Vergence accomplished \n");
             mutex.wait();
             if(allowStateRequest[1]) {
@@ -2218,6 +2227,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             validAction    = false;
             mutexAcc.post();           
             mutex.post();
+            
+            // gets the proximity measure from the tracker
+            tracker->getProxMeasure();
 
             //action ended look into the visual stimulus
             CvPoint t; tracker->getPoint(t);
