@@ -642,10 +642,10 @@ void oculomotorController::learningStep() {
             
             // 3 .updating the quality function of the next state: TD step
             
+            /*
             // calculating the reward using (amplitude, temporal aspects, accuracy)
             //r = rewardStateAction->operator()(state_now,action_now);
-            double r =
-            
+                        
             //Q->operator()(state_next,action_now) = 
             //    (1 - alfa) * Q->operator()(state_now,action_now) + 
             //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
@@ -663,6 +663,7 @@ void oculomotorController::learningStep() {
             
             // 5. moving to next state
             //state_now = state_next;
+            */
             
         }
         else {
@@ -809,6 +810,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             //int actionvalue = (int) arg->get(1).asDouble();  // action that is just finalized
             int actionvalue = 0;
             int statevalueparam    = (int) arg->get(1).asDouble();
+            double timing          =       arg->get(2).asDouble();
+            double amplitude       =       arg->get(3).asInt();
 
             // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
             if(statevalueparam == 14) {
@@ -836,21 +839,28 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             //state_now = 0;
             // 3 .updating the quality function of the next state: TD step
             
-            // calculating the quality of state function            
+            // calculating the quality of state function
+            
+            //estimate the reward 
+            //double r = rewardStateAction->operator()(state_now,action_now) ;
+            double r = 1.0;
+            
             //Q->operator()(state_next,action_now) = 
             // //    (1 - alfa) * Q->operator()(state_now,action_now) + 
             // //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
             
              Q->operator()(state_now,action_now) = 
                  Q->operator()(state_now,action_now) + 
-                 alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_next) 
+                 alfa * ( r + j * V->operator()(0,state_next) 
                           - Q->operator()(state_now,action_now)) ;
             
             // // 4. calculating the total Payoff
-             printf("adding the reward %f  Q(%d,%d): %f", rewardStateAction->operator()(state_now, action_now) * jiter,state_now, action_now, Q->operator()(state_now,action_now));
-             totalPayoff = totalPayoff + rewardStateAction->operator()(state_now, action_now) * jiter;
-             printf("for the final totalPayoff %f \n", totalPayoff);
-             jiter  = jiter * j;        
+            printf("adding the reward %f  Q(%d,%d): %f", rewardStateAction->operator()(state_now, action_now) * jiter,state_now, action_now, Q->operator()(state_now,action_now));
+            
+
+            totalPayoff = totalPayoff + r * jiter;
+            printf("for the final totalPayoff %f \n", totalPayoff);
+            jiter  = jiter * j;        
             
             // // 5. moving to next state
             // //state_now = state_next;
