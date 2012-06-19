@@ -180,6 +180,7 @@ private:
     double timetotStart,timetotStop;        // start and stop timing for the complete fixation task
     double timeout;                         // actual timer of the saccadic action
     double timetot;                         // actual timer of the complete fixation task
+    double startAction;                     // starting the time measure for the action
 
     unsigned char feedbackBlobRed;          // value returned from the feedback coming from blobFinder
     unsigned char feedbackBlobGreen;        // value returned from the feedback coming from blobFinder

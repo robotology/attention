@@ -2006,12 +2006,19 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
 
-            
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
+
             // nofiying state transition to fixStable ok           
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
             notif.addDouble(7);                  // code for fixStableKO saccade not accomplished
+            notif.addDouble(timing);
+            notif.addDouble(accuracy);
+            notif.addDouble(amplitude);
             setChanged();
             notifyObservers(&notif);
 
@@ -2115,6 +2122,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             accomplFlag[4] = true;               // action number accomplished
             mutexAcc.post();
 
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
+
             CvPoint t; tracker->getPoint(t);
             if((t.x > 160 - FOVEACONFID) && 
                (t.x < 160 + FOVEACONFID) &&
@@ -2126,6 +2138,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(6);                  // code for fixStableOK accomplished 
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
                 setChanged();
                 notifyObservers(&notif);
 
@@ -2136,6 +2151,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(7);                  // code for fixStableOK accomplished 
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
                 setChanged();
                 notifyObservers(&notif);
             }
@@ -2169,6 +2187,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
         }
         else if(!strcmp(name.c_str(),"VER_REF")) {
+
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
+            
             // nofiying state transition            
             Bottle notif;
             notif.clear();
@@ -2188,6 +2212,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 //stateRequest[1]  = 1;
                 //executing = false;
             }
+
             //  changing the accomplished flag
             mutexAcc.wait();
             accomplFlag[2] = true;                // action number accomplished
@@ -2195,11 +2220,19 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();
             mutex.post();
 
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
+
             // nofiying state transition            
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
             notif.addDouble(12);                  // code for vergence accomplished
+            notif.addDouble(timing);
+            notif.addDouble(accuracy);
+            notif.addDouble(amplitude);
             setChanged();
             notifyObservers(&notif); 
 
@@ -2229,7 +2262,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();
             
             // gets the proximity measure from the tracker
-            tracker->getProxMeasure();
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
 
             //action ended look into the visual stimulus
             CvPoint t; tracker->getPoint(t);
@@ -2243,6 +2278,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(8);                  // code for smooth-pursuit accomplished
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -2254,6 +2292,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(9);                  // code for smooth-pursuit not accomplished
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -2275,6 +2316,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             validAction    = false;
             mutexAcc.post();            
             mutex.post();
+
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
 
              // nofiying state transition            
             //Bottle notif;
@@ -2302,6 +2348,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(1);                  // code for prediction accomplished
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                 }
@@ -2313,6 +2362,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(2);                  // code for prediction accomplished
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                 }
@@ -2323,6 +2375,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(3);                  // code for prediction accomplished
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                 }               
@@ -2335,6 +2390,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(5);                  // code for prediction accomplished in anticipatory state
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);                    
 
@@ -2355,6 +2413,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(4);                  // code for prediction accomplished in motion state
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                     
@@ -2435,6 +2496,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutexAcc.post();            
             mutex.post();
 
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
+
             if(!strcmp(waitType.c_str(),"ant")) {
                 CvPoint t; tracker->getPoint(t);
                 if((t.x > 160 - FOVEACONFID) && 
@@ -2447,6 +2513,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(10);                  // code for smooth-pursuit accomplished
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                     
@@ -2458,6 +2527,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(11);                  // code for smooth-pursuit not accomplished
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                 
@@ -2471,6 +2543,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(14);                  // code for smooth-pursuit not accomplished
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
                 setChanged();
                 notifyObservers(&notif);                
             }

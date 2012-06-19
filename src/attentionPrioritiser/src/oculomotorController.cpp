@@ -811,7 +811,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             int actionvalue = 0;
             int statevalueparam    = (int) arg->get(1).asDouble();
             double timing          =       arg->get(2).asDouble();
-            double amplitude       =       arg->get(3).asInt();
+            double accuracy        =       arg->get(3).asDouble();
+            double amplitude       =       arg->get(3).asDouble();
 
             // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
             if(statevalueparam == 14) {
