@@ -518,6 +518,7 @@ void attPrioritiserThread::run() {
         setChanged();
         notifyObservers(&notif);
 
+        startAction = Time::now();
 
         if(!allowedTransitions(0)) {
             firstNull = true;

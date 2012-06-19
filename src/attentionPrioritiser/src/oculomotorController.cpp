@@ -75,6 +75,8 @@ bool oculomotorController::threadInit() {
     Q->zero();
     Psa->zero();
     rewardStateAction->zero();
+
+
     
     // open ports 
     string rootName("");
@@ -553,8 +555,7 @@ bool oculomotorController::allowStateRequest(int action) {
         logAction(action);
     }
     
-    
-
+   
     //setting flags at the end of the function
     
     printf("setting valid action to false (action %d) \n", action);
@@ -812,7 +813,9 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             int statevalueparam    = (int) arg->get(1).asDouble();
             double timing          =       arg->get(2).asDouble();
             double accuracy        =       arg->get(3).asDouble();
-            double amplitude       =       arg->get(3).asDouble();
+            double amplitude       =       arg->get(4).asDouble();
+            
+            printf("\n timing:%f accuracy:%f amplitude:%f \n", timing, accuracy, amplitude);
 
             // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
             if(statevalueparam == 14) {
@@ -844,7 +847,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
             //estimate the reward 
             //double r = rewardStateAction->operator()(state_now,action_now) ;
-            double r = 1.0;
+            double r = accuracy - timing * cost[statevalueparam] * amplitude;
             
             //Q->operator()(state_next,action_now) = 
             // //    (1 - alfa) * Q->operator()(state_now,action_now) + 
@@ -856,7 +859,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                           - Q->operator()(state_now,action_now)) ;
             
             // // 4. calculating the total Payoff
-            printf("adding the reward %f  Q(%d,%d): %f", rewardStateAction->operator()(state_now, action_now) * jiter,state_now, action_now, Q->operator()(state_now,action_now));
+            printf("adding the reward %f  Q(%d,%d): %f", r * jiter,state_now, action_now, Q->operator()(state_now,action_now));
             
 
             totalPayoff = totalPayoff + r * jiter;

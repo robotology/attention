@@ -256,6 +256,8 @@ public:
         search_roi.width = search_roi.height=search_size;
         template_roi.width = template_roi.height=template_size;
 
+        proxMeasure = 0;
+
         running = true;
     }
     /*****************************************************************************/

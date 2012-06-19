@@ -50,6 +50,7 @@
 #define NUMSTATE 15
 #define NUMACTION 9
 
+const static double cost[NUMACTION] = { 1.0 ,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
 
 static const std::string stateList[15] =  {
     "null",           //0
@@ -204,6 +205,7 @@ private:
 
     const static double j    = 0.99;       // discount factor
     const static double alfa = 0.1;        // learning rate  
+    
     
     double totalPayoff;                    // total payoff of the learning process
     double jiter;                          // cumulative j ^ iter 
