@@ -474,6 +474,7 @@ void attPrioritiserThread::getPoint(CvPoint& p) {
 void attPrioritiserThread::sendPendingCommand() {
     highLevelLoopPort.prepare() = *pendingCommand;
     highLevelLoopPort.write();
+    printf("sending %s \n", pendingCommand->toString().c_str());
 }
 
 void attPrioritiserThread::run() {
@@ -606,7 +607,8 @@ void attPrioritiserThread::run() {
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
         printf("------------------ Express Saccade --------------- \n");
-      
+        tracker->init(u,v);
+        tracker->waitInitTracker();
             
         if(feedbackPort.getOutputCount()) {
             Bottle* sent     = new Bottle();
@@ -744,6 +746,8 @@ void attPrioritiserThread::run() {
     }    
     else if(allowedTransitions(4)>0) {
         state(6) = 0; state(5) = 0 ; state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        tracker->init(u,v);
+        tracker->waitInitTracker();
         
         //forcing in idle early processes during oculomotor actions
         /*if(feedbackPort.getOutputCount()) {
@@ -914,6 +918,9 @@ void attPrioritiserThread::run() {
     }
     else if(allowedTransitions(3)>0) {
         state(6) = 0 ; state(5) = 0 ; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        tracker->init(u,v);
+        tracker->waitInitTracker();
+
         // ----------------  Smooth Pursuit  -----------------------
         if(!executing) {                       
             printf("---------------- Smooth Pursuit --------------\n");
@@ -936,6 +943,9 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(2)>0) {
         // ----------------  Vergence  -----------------------
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
+        tracker->init(u,v);
+        tracker->waitInitTracker();
+
         printf(" __________________ Vergence __________________ \n");
         /*    
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
@@ -1022,6 +1032,8 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(1)>0) {
         //--------------- wait --------------------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
+        tracker->init(u,v);
+        tracker->waitInitTracker();
         
         printf("--------------------- Wait -------------------- \n");
         printf("Standby in Wait ....%s \n", waitType.c_str());
@@ -1041,6 +1053,9 @@ void attPrioritiserThread::run() {
     }
     else if(allowedTransitions(0)>0) {
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
+        tracker->init(u,v);
+        tracker->waitInitTracker();
+
         // ----------------  reset  -----------------------
         //if(firstNull) {
             // nofiying state transition            
@@ -2341,6 +2356,18 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             //stable stimulus
             if((predVx == 0) || (predVy == 0)) {
+
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(1);                  // code for prediction accomplished
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
+                setChanged();
+                notifyObservers(&notif);
+                
+                /*
                 if(predDistance < 10) {
                     //a. stable-> uSaccade
                     printf("stable stimulus with uSaccade \n");
@@ -2381,7 +2408,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(amplitude);
                     setChanged();
                     notifyObservers(&notif);
-                }               
+                } 
+                */
             }
             else { //not stable object
                 if ((predXpos != -1) && (predYpos != 1)) {

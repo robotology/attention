@@ -847,7 +847,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
             //estimate the reward 
             //double r = rewardStateAction->operator()(state_now,action_now) ;
-            double r = accuracy - timing * cost[statevalueparam] * amplitude;
+            double r = accuracy / 10.0 - timing * cost[statevalueparam] * amplitude;
             
             //Q->operator()(state_next,action_now) = 
             // //    (1 - alfa) * Q->operator()(state_now,action_now) + 
@@ -859,11 +859,11 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                           - Q->operator()(state_now,action_now)) ;
             
             // // 4. calculating the total Payoff
-            printf("adding the reward %f  Q(%d,%d): %f", r * jiter,state_now, action_now, Q->operator()(state_now,action_now));
+            printf("adding the reward %f  Q(%d,%d): %f \n", r * jiter,state_now, action_now, Q->operator()(state_now,action_now));
             
 
             totalPayoff = totalPayoff + r * jiter;
-            printf("for the final totalPayoff %f \n", totalPayoff);
+            printf("final totalPayoff %f \n", totalPayoff);
             jiter  = jiter * j;        
             
             // // 5. moving to next state

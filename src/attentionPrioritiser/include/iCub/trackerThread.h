@@ -209,8 +209,12 @@ public:
 
                 // updating the proximity measure
                 double distance = sqrt((point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
-                proxMeasure += 20.0 / distance;
-                
+                if(distance!= 0) {
+                    proxMeasure += 20.0 / distance;
+                }
+                else {
+                    proxMeasure = 20.0;
+                }
                 init_success = true; // considering init success at the end of the first loop
             }
 
