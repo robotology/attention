@@ -176,11 +176,44 @@ bool gazeArbiterThread::threadInit() {
     executing = false;
     printf("starting the thread.... \n");
 
-    //Bottle info;
-    //igaze->getInfo(info);
-    //int head_version = info.check("head_version", Value(1)).asInt();
 
-    int head_version = 1;
+    
+    //initializing gazecontrollerclient
+    printf("initialising gazeControllerClient \n");
+    Property option;
+    option.put("device","gazecontrollerclient");
+    option.put("remote","/iKinGazeCtrl");
+    string localCon("/client/gaze");
+    localCon.append(getName(""));
+    option.put("local",localCon.c_str());
+
+    clientGazeCtrl=new PolyDriver();
+    clientGazeCtrl->open(option);
+    igaze=NULL;
+
+    if (clientGazeCtrl->isValid()) {
+       clientGazeCtrl->view(igaze);
+    }
+    else
+        return false;
+
+    
+    igaze->storeContext(&originalContext);
+  
+    if(blockNeckPitchValue != -1) {
+        igaze->blockNeckPitch(blockNeckPitchValue);
+        printf("pitch fixed at %f \n",blockNeckPitchValue);
+    }
+    else {
+        printf("pitch free to change\n");
+    }
+
+    // -----------------------------------------------------------------
+
+    Bottle info;
+    igaze->getInfo(info);
+    printf("just got the info \n");    
+    int head_version = info.check("head_version", Value(1)).asInt();
     
     printf("head_version extracted from gazeArbiter \n");
 
@@ -192,14 +225,13 @@ bool gazeArbiterThread::threadInit() {
         eyeL = new iCubEye("left_v2");
         eyeR = new iCubEye("right_v2");
     }
-
     printf("correctly istantiated the head \n");
-    
 
+    
     // remove constraints on the links
     // we use the chains for logging purpose
-    //eyeL->setAllConstraints(false);
-    //eyeR->setAllConstraints(false);
+    // eyeL->setAllConstraints(false);
+    // eyeR->setAllConstraints(false);
 
     // release links
     eyeL->releaseLink(0);
@@ -249,36 +281,8 @@ bool gazeArbiterThread::threadInit() {
         printf("pixel fovea in the config file %d %d \n", cxl,cyl);
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
     }
-    
-    //initializing gazecontrollerclient
-    printf("initialising gazeControllerClient \n");
-    Property option;
-    option.put("device","gazecontrollerclient");
-    option.put("remote","/iKinGazeCtrl");
-    string localCon("/client/gaze");
-    localCon.append(getName(""));
-    option.put("local",localCon.c_str());
 
-    clientGazeCtrl=new PolyDriver();
-    clientGazeCtrl->open(option);
-    igaze=NULL;
-
-    if (clientGazeCtrl->isValid()) {
-       clientGazeCtrl->view(igaze);
-    }
-    else
-        return false;
-
-    
-    igaze->storeContext(&originalContext);
-  
-    if(blockNeckPitchValue != -1) {
-        igaze->blockNeckPitch(blockNeckPitchValue);
-        printf("pitch fixed at %f \n",blockNeckPitchValue);
-    }
-    else {
-        printf("pitch free to change\n");
-    }
+    //--------------------------------------------------------------------
 
     
     string headPort = "/" + robot + "/head";
