@@ -69,13 +69,13 @@
 <connection>
   <from>/logPolarTransform/icub/left_cam/image:o</from>
   <to>/vergence/left:i</to>
-  <protocol>shmem</protocol>
+  <protocol>tcp</protocol>
 </connection>
 
 <connection>
   <from>/logPolarTransform/icub/right_cam/image:o</from>
   <to>/vergence/right:i</to>
-  <protocol>shmem</protocol>
+  <protocol>tcp</protocol>
 </connection>
 
 <connection>

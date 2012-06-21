@@ -1,5 +1,5 @@
 <application>
-<name>Attention Application </name>
+<name>Attention Application Main </name>
 
 <dependencies>
 	<port>/icub/cam/left</port>
@@ -9,14 +9,14 @@
 <module>
    <name>logpolarTransform</name>
    <parameters>--name logPolarTransform/icub/left_cam --xsize 320 --ysize 240 --direction CARTESIAN2LOGPOLAR</parameters>
-   <node>icub-b14</node>
+   <node>icub-b17</node>
    <tag>leftLogPolarTransform</tag>
 </module>
 
 <module>
    <name>logpolarTransform</name>
    <parameters>--name logPolarTransform/icub/right_cam --xsize 320 --ysixe 240 --direction CARTESIAN2LOGPOLAR</parameters>
-   <node>icub-b14</node>
+   <node>icub-b17</node>
    <tag>rightLogPolarTransform</tag>
 </module>
 
@@ -24,34 +24,34 @@
         <name>objectsPropertiesCollector</name>
         <parameters>--name objectPropertiesCollector/icub/left_cam</parameters>
         <tag>propertiesCollector</tag>
-        <node>/icub-b16</node>
+        <node>/icub-b18</node>
 </module>
 
 <module>
         <name>iCubGuiPopulator</name>
         <parameters>--name /icubGuiPopulator/icub/left_cam</parameters>
         <tag>populator</tag>
-        <node>/icub-b16</node>
+        <node>/icub-b18</node>
 </module>
 
 <module>
    <name>vergence</name>
    <parameters>--ctrl arbitrer</parameters>
-   <node>icub-b14</node>
+   <node>icub-b18</node>
    <tag>vergenceModule</tag>
 </module>
 
 <module>
 	<name>zdfMod</name>
     <parameters></parameters>
-	<node>icub-b14</node>
+	<node>icub-b18</node>
 	<tag>zdfMod</tag>no
 </module>
 
 <connection>
         <from>/icub/camcalib/left/out</from>
-		<to>/matchTracker/img:i</to>
-		<protocol>udp</protocol>
+	<to>/matchTracker/img:i</to>
+	<protocol>udp</protocol>
 </connection>
 
 <connection>
@@ -69,19 +69,13 @@
 <connection>
   <from>/logPolarTransform/icub/left_cam/image:o</from>
   <to>/vergence/left:i</to>
-  <protocol>shmem</protocol>
+  <protocol>tcp</protocol>
 </connection>
 
 <connection>
   <from>/logPolarTransform/icub/right_cam/image:o</from>
   <to>/vergence/right:i</to>
-  <protocol>shmem</protocol>
-</connection>
-
-<connection>
-  <from>/vergence/cmd:o</from>
-  <to>/gazeArbiter/icub/left_cam/cmd:i</to>
-  <protocol>udp</protocol>
+  <protocol>tcp</protocol>
 </connection>
 
 <connection>
@@ -124,12 +118,6 @@
   <from>/icub/camcalib/right/out</from>
   <to>/zdfMod/imageRight:i</to>
   <protocol>udp</protocol>
-</connection>
-
-<connection>
-        <from>/selectiveAttentionEngine/icub/left_cam/cmd:o</from>
-        <to>/gazeArbiter/icub/left_cam/cmd:i</to>
-        <protocol>shmem</protocol>
 </connection>
 
 <connection>

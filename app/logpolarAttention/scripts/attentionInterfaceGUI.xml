@@ -1,54 +1,51 @@
 <application>
-<name>Attention Application </name>
+<name>Attention Application GUI</name>
 
 <dependencies>
-	<port>/icub/cam/left</port>
-	<port>/icub/cam/right</port>	
+  <port>/icub/cam/left</port>
+  <port>/icub/cam/right</port>	
 </dependencies>
 
 <module>
-   <name>yarpview</name>
-   <parameters>--name /leftLogPolarImage --x 000 --y 0 --RefreshTime 33</parameters>
-   <node>icub14</node>
-   <tag>leftLogPolarImage</tag>
+  <name>yarpview</name>
+  <parameters>--name /leftLogPolarImage --x 000 --y 0 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>leftLogPolarImage</tag>
 </module>
 
 <module>
-   <name>yarpview</name>
-   <parameters>--name /rightLogPolarImage --x 340 --y 0 --RefreshTime 33</parameters>
-   <node>icub14</node>
-   <tag>rightLogpolarImage</tag>
+  <name>yarpview</name>
+  <parameters>--name /rightLogPolarImage --x 340 --y 0 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>rightLogpolarImage</tag>
 </module>
 
 <module>
-		<name>selAttentionInterface</name>
-		<parameters>--name /selectiveAttentionInterface/icub/left_cam --x 700 --y 0</parameters>
-		<tag>selectiveAttInterfaceLeft</tag>
-		<node>icub14</node>
+  <name>selAttentionInterface</name>
+  <parameters>--name /selectiveAttentionInterface/icub/left_cam --x 700 --y 0</parameters>
+  <tag>selectiveAttInterfaceLeft</tag>
+  <node>icub14</node>
 </module>
+
 <module>
-		<name>zdfControl</name>
-		<parameters>--x 900 --y 0</parameters>
-		<tag>zdf control</tag>
-		<node>icub14</node>
+  <name>yarpview</name>
+  <parameters>--name /icub/left_cam/attentionCartesian --x 000 --y 340 --RefreshTime 33</parameters>
+  <tag>attCartLeft</tag>
+  <node>icub14</node>
 </module>
+
 <module>
-		<name>yarpview</name>
-		<parameters>--name /icub/left_cam/attentionCartesian --x 000 --y 340 --RefreshTime 33</parameters>
-		<tag>attCartLeft</tag>
-		<node>icub14</node>
+  <name>yarpview</name>
+  <parameters>--name /icub/left_cam/combinationView --x 340 --y 340 --RefreshTime 33</parameters>
+  <tag>combViewLeft</tag>
+  <node>icub14</node>
 </module>
+
 <module>
-		<name>yarpview</name>
-		<parameters>--name /icub/left_cam/combinationView --x 340 --y 340 --RefreshTime 33</parameters>
-		<tag>combViewLeft</tag>
-		<node>icub14</node>
-</module>
-<module>
-      <name>yarpview</name>
-      <parameters>--name /view/Seg --x 680 --y 360 --RefreshTime 33</parameters>
-      <node>icub14</node>
-	  <tag>view Seg</tag>
+  <name>yarpview</name>
+  <parameters>--name /icub/left_cam/corrView --x 680 --y 340 --RefreshTime 33</parameters>
+  <tag>corrViewLeft</tag>
+  <node>icub14</node>
 </module>
 
 <module>
@@ -60,61 +57,111 @@
 
 <module>
       <name>yarpview</name>
-      <parameters>--name /mosaicView --x 680 --y 660 --RefreshTime 33</parameters>
+      <parameters>--name /matchPredictor --x 340 --y 660 --RefreshTime 33</parameters>
       <node>icub14</node>
-      <tag>mosaicViewer</tag>
+      <tag>matchTrackerPredictor</tag>
 </module>
 
+<module>
+  <name>yarpview</name>
+  <parameters>--name /histoViewer --x 1020 --y 660 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>histogramView</tag>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /foveaViewer --x 680 --y 660 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>foveaView</tag>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /view/Seg --x 180 --y 960 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>view Seg</tag>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /mosaicView --x 180 --y 960 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>mosaicViewer</tag>
+</module>
+
+<module>
+  <name>zdfControl</name>
+  <parameters>--x 100 --y 100</parameters>
+  <tag>zdf control</tag>
+  <node>icub14</node>
+</module>
+
+<!---------------- connections --------------->
 <connection>
   <from>/logPolarTransform/icub/left_cam/image:o</from>
   <to>/leftLogPolarImage</to>
   <protocol>udp</protocol>
 </connection>
-
 <connection>
   <from>/logPolarTransform/icub/right_cam/image:o</from>
   <to>/rightLogPolarImage</to>
   <protocol>udp</protocol>
 </connection>
-
 <connection>
-        <from>/selectiveAttentionInterface/icub/left_cam/command:o</from>
-		<to>/selectiveAttentionEngine/icub/left_cam</to>
-		<protocol>tcp</protocol>
+  <from>/selectiveAttentionInterface/icub/left_cam/command:o</from>
+  <to>/selectiveAttentionEngine/icub/left_cam</to>
+  <protocol>tcp</protocol>
 </connection>
 <connection>
-        <from>/zdfControl/command:o</from>
-		<to>/zdfMod</to>
-		<protocol>tcp</protocol>
-</connection>
-
-<connection>
-        <from>/selectiveAttentionEngine/icub/left_cam/cartesian:o</from>
-		<to>/icub/left_cam/attentionCartesian</to>
-		<protocol>udp</protocol>
-</connection>
-
-<connection>
-        <from>/selectiveAttentionEngine/icub/left_cam/combination:o</from>
-		<to>/icub/left_cam/combinationView</to>
-		<protocol>udp</protocol>
-</connection>
-
-<connection>
-		<from>/zdfMod/imageSeg:o</from>
-  		<to>/view/Seg</to>
-  		<protocol>udp</protocol>
-</connection>
-
-<connection>
-		<from>/matchTracker/img:o</from>
-  		<to>/matchViewer</to>
-  		<protocol>udp</protocol>
+  <from>/zdfControl/command:o</from>
+  <to>/zdfMod</to>
+  <protocol>tcp</protocol>
 </connection>
 <connection>
-		<from>/mosaic/icub/image:o</from>
-  		<to>/mosaicView</to>
-  		<protocol>udp</protocol>
+  <from>/selectiveAttentionEngine/icub/left_cam/cartesian:o</from>
+  <to>/icub/left_cam/attentionCartesian</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/selectiveAttentionEngine/icub/left_cam/combination:o</from>
+  <to>/icub/left_cam/combinationView</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/gazeArbiter/icub/matchTracker/img:o</from>
+  <to>/matchViewer</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/attPrioritiser/icub/matchTracker/img:o</from>
+  <to>/matchPredictor</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/attPrioritiser/icub/sacPlanner/corr:o</from>
+  <to>/icub/left_cam/corrView</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/vergence/histo:o</from>
+  <to>/histoViewer</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/blobFinder/icub/left_cam/foveaRgbBlob:o</from>
+  <to>/foveaViewer</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/zdfMod/imageSeg:o</from>
+  <to>/view/Seg</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/mosaic/icub/image:o</from>
+  <to>/mosaicView</to>
+  <protocol>udp</protocol>
 </connection>
 
 </application>

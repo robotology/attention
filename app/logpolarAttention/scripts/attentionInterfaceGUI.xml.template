@@ -42,7 +42,7 @@
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /icub/left_cam/corrView --x 700 --y 340 --RefreshTime 33</parameters>
+  <parameters>--name /icub/left_cam/corrView --x 680 --y 340 --RefreshTime 33</parameters>
   <tag>corrViewLeft</tag>
   <node>icub14</node>
 </module>
@@ -55,8 +55,15 @@
 </module>
 
 <module>
+      <name>yarpview</name>
+      <parameters>--name /matchPredictor --x 340 --y 660 --RefreshTime 33</parameters>
+      <node>icub14</node>
+      <tag>matchTrackerPredictor</tag>
+</module>
+
+<module>
   <name>yarpview</name>
-  <parameters>--name /histoViewer --x 680 --y 660 --RefreshTime 33</parameters>
+  <parameters>--name /histoViewer --x 1020 --y 660 --RefreshTime 33</parameters>
   <node>icub14</node>
   <tag>histogramView</tag>
 </module>
@@ -69,24 +76,24 @@
 </module>
 
 <module>
-  <name>zdfControl</name>
-  <parameters>--x 900 --y 0</parameters>
-  <tag>zdf control</tag>
-  <node>icub14</node>
-</module>
-
-<module>
   <name>yarpview</name>
-  <parameters>--name /view/Seg --x 680 --y 360 --RefreshTime 33</parameters>
+  <parameters>--name /view/Seg --x 180 --y 960 --RefreshTime 33</parameters>
   <node>icub14</node>
   <tag>view Seg</tag>
 </module>
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /mosaicView --x 680 --y 660 --RefreshTime 33</parameters>
+  <parameters>--name /mosaicView --x 180 --y 960 --RefreshTime 33</parameters>
   <node>icub14</node>
   <tag>mosaicViewer</tag>
+</module>
+
+<module>
+  <name>zdfControl</name>
+  <parameters>--x 100 --y 100</parameters>
+  <tag>zdf control</tag>
+  <node>icub14</node>
 </module>
 
 <!---------------- connections --------------->
@@ -123,6 +130,11 @@
 <connection>
   <from>/gazeArbiter/icub/matchTracker/img:o</from>
   <to>/matchViewer</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/attPrioritiser/icub/matchTracker/img:o</from>
+  <to>/matchPredictor</to>
   <protocol>udp</protocol>
 </connection>
 <connection>
