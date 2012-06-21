@@ -239,6 +239,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     printf("attPrioritiserThread::attPrioritiserThread: initilisation of the states (%d)  \n", NUMSTATES);
     for (int k = 0; k < NUMSTATES; k++) {
         allowStateRequest[k] = true;
+        waitResponse[k]      = true;
         bufCommand[k]        = NULL;
     }
 
@@ -536,8 +537,10 @@ void attPrioritiserThread::run() {
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
 
     if(allowedTransitions(6)>0) {
-        state(6) = 1; state(5) = 0; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Trajectory Prediction  -----------------------
+        state(6) = 1; state(5) = 0; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        waitResponse[6] = true;
+        
         printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
         
         /*
@@ -602,8 +605,10 @@ void attPrioritiserThread::run() {
         printf("_________________ Trajectory prediction  _____________________\n\n");
     }
     else if(allowedTransitions(5)>0) {
-        state(6) = 0; state(5) = 1 ; state(4) = 0; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  Express Saccade  -----------------------
+        state(6) = 0; state(5) = 1 ; state(4) = 0; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        waitResponse[4] = true;
+        
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
         printf("------------------ Express Saccade --------------- \n");
@@ -745,21 +750,13 @@ void attPrioritiserThread::run() {
         Time::delay(0.01);
     }    
     else if(allowedTransitions(4)>0) {
+        // ----------------  Planned Saccade  -----------------------
         state(6) = 0; state(5) = 0 ; state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        waitResponse[4] = true;
         tracker->init(u,v);
         tracker->waitInitTracker();
         
         //forcing in idle early processes during oculomotor actions
-        /*if(feedbackPort.getOutputCount()) {
-            printf("feedback suppression \n");
-            Bottle* sent = new Bottle();
-            Bottle* received = new Bottle();    
-            sent->clear();
-            sent->addVocab(COMMAND_VOCAB_INH);
-            feedbackPort.write(*sent, *received);
-        }
-        */
-
         if(feedbackPort.getOutputCount()) {
             //printf("feedback resetting \n");
             Bottle* sent     = new Bottle();
@@ -771,8 +768,6 @@ void attPrioritiserThread::run() {
             delete received;
         }
 
-
-        // ----------------  Planned Saccade  -----------------------
         if(!executing) {                       
             //printf("\n \n ____________________ Planned Saccade ___________________ \n");
             
@@ -917,11 +912,13 @@ void attPrioritiserThread::run() {
         Time::delay(0.005);
     }
     else if(allowedTransitions(3)>0) {
+        // ----------------  Smooth Pursuit  -----------------------
         state(6) = 0 ; state(5) = 0 ; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+        waitResponse[3] = true;
         tracker->init(u,v);
         tracker->waitInitTracker();
 
-        // ----------------  Smooth Pursuit  -----------------------
+        
         if(!executing) {                       
             printf("---------------- Smooth Pursuit --------------\n");
             printf("SM_PUR %f %f %f \n", Vx, Vy, time);
@@ -943,6 +940,7 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(2)>0) {
         // ----------------  Vergence  -----------------------
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
+        waitResponse[2] = true;
         tracker->init(u,v);
         tracker->waitInitTracker();
 
@@ -1032,6 +1030,7 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(1)>0) {
         //--------------- wait --------------------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
+        waitResponse[1] = true;
         tracker->init(u,v);
         tracker->waitInitTracker();
         
@@ -1052,11 +1051,12 @@ void attPrioritiserThread::run() {
         
     }
     else if(allowedTransitions(0)>0) {
+        // ----------------  reset  -----------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
         tracker->init(u,v);
         tracker->waitInitTracker();
 
-        // ----------------  reset  -----------------------
+        
         //if(firstNull) {
             // nofiying state transition            
             Bottle notif;
@@ -2015,7 +2015,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         //****************************** ACTION RESPONSES  ************************************************//
         //**** this section regulates the state transition indicating state of agent after action *********//
 
-        else if(!strcmp(name.c_str(),"SAC_FAIL")) {
+        else if((!strcmp(name.c_str(),"SAC_FAIL")) && (waitResponse[4])) {
+            waitResponse[4] = false;
+            
             // saccade accomplished           
             mutex.wait();
             correcting = true;
@@ -2062,7 +2064,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             */
             
         }
-        else if(!strcmp(name.c_str(),"SAC_ACC")) {
+        else if((!strcmp(name.c_str(),"SAC_ACC")) && (waitResponse[4])) {
+            waitResponse[4] = false;
             
             // saccade accomplished           
             mutex.wait();
@@ -2202,7 +2205,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Time::delay(0.5);
             }
         }
-        else if(!strcmp(name.c_str(),"VER_REF")) {
+        else if((!strcmp(name.c_str(),"VER_REF")) && (waitResponse[2])) {
+            waitResponse[2] = false;
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
@@ -2217,7 +2221,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             setChanged();
             notifyObservers(&notif);            
         }
-        else if(!strcmp(name.c_str(),"VER_ACC")) {
+        else if((!strcmp(name.c_str(),"VER_ACC")) && (waitResponse[2])) {
+            waitResponse[2] = false;
+            
             // vergence accomplished        
             waitType = "fix";
             //printf("Vergence accomplished \n");
@@ -2260,7 +2266,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
 
         }
-        else if(!strcmp(name.c_str(),"SM_ACC")) {
+        else if((!strcmp(name.c_str(),"SM_ACC")) && (waitResponse[3])) {
+            waitResponse[3] = false;
+            
             // smooth pursuit accomplished           
             printf("Smooth Pursuit  Accomplished \n");
             mutex.wait();
@@ -2316,7 +2324,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
             }
         }
-        else if(!strcmp(name.c_str(),"PRED_ACC")) {
+        else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
+            waitResponse[6] = false;
+
             // prediction accomplished           
             printf("Prediction Accomplished %f %f  \n", predVx, predVy);
             mutex.wait();
@@ -2465,7 +2475,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     pendingCommand->addDouble(predTime);
                     isPendingCommand = true;                    
                     
-                    
                 }
             }
 
@@ -2508,7 +2517,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             } 
             */
         }
-        else if(!strcmp(name.c_str(),"WAIT_ACC")) {
+        else if((!strcmp(name.c_str(),"WAIT_ACC")) && (waitResponse[1])) {
+            waitResponse[1] = false;
+
             // smooth pursuit accomplished           
             printf("Wait Accomplished with waitType %s \n", waitType.c_str());
             mutex.wait();

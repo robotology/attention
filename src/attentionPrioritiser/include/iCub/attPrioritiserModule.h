@@ -162,9 +162,10 @@
  * 05/04/12 : corrected and completed the transition matrix                                                 author: Rea  \n
  * 05/04/14 : added a new thread for plotting information about the learning                                author: Rea  \n
  * 06/05/12 : separate oculomotor control in actionSelection and stateTransition part                       author: Rea  \n
- *28/05/12  : added port for interaction with particle filter                                               author: Rea  \n
+ * 28/05/12  : added port for interaction with particle filter                                              author: Rea  \n
  * 07/06/12 : added wait action and additional states                                                       author: Rea  \n 
  * 12/06/12 : added the typology of waiting: anticipatory or in fixatioon                                   author: Rea  \n
+ * 21/06/12 : added the control in the expected response                                                    author: Rea  \n
 */
 
 
@@ -181,7 +182,6 @@
 #include <iCub/oculomotorController.h>
 #include <iCub/attPrioritiserThread.h>
 #include <iCub/prioCollectorThread.h>
-
 
 // general command vocab's
 #define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')

@@ -128,7 +128,8 @@ private:
     bool stopVergence;                      // flag that inhibits the vergence command
     bool done;                              // flag set to true when an gaze action is completed
     bool executing;                         // flag that is set during the execution of motion
-    bool allowStateRequest[NUMSTATES];              // vector of flags for allowing state request
+    bool allowStateRequest[NUMSTATES];      // vector of flags for allowing state request
+    bool waitResponse[NUMSTATES];           // flag that indicates which response should be waiting
     bool firstNull;                         // flags that limits the number of null state messages
     //bool firstConsistencyCheck;           // boolean flag that check whether consistency happened
     //bool visualCorrection;                // boolean flag for allowing visual correction of the fine position

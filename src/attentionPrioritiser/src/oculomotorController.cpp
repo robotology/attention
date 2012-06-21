@@ -848,17 +848,20 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             //estimate the reward 
             //double r = rewardStateAction->operator()(state_now,action_now) ;
             double r = accuracy / 10.0 - timing * cost[statevalueparam] * amplitude;
+            printf("calculated the accuracy for state, action %d,%d \n", state_now,action_now);
+            
             
             //Q->operator()(state_next,action_now) = 
             // //    (1 - alfa) * Q->operator()(state_now,action_now) + 
             // //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
             
-             Q->operator()(state_now,action_now) = 
-                 Q->operator()(state_now,action_now) + 
-                 alfa * ( r + j * V->operator()(0,state_next) 
-                          - Q->operator()(state_now,action_now)) ;
+            Q->operator()(state_now,action_now) = 
+                Q->operator()(state_now,action_now) + 
+                alfa * ( r + j * V->operator()(0,state_next) 
+                         - Q->operator()(state_now,action_now)) ;
             
             // // 4. calculating the total Payoff
+            printf("calculating accuracy \n");
             printf("adding the reward %f  Q(%d,%d): %f \n", r * jiter,state_now, action_now, Q->operator()(state_now,action_now));
             
 
