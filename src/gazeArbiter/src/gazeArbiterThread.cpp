@@ -176,9 +176,13 @@ bool gazeArbiterThread::threadInit() {
     executing = false;
     printf("starting the thread.... \n");
 
-    Bottle info;
-    igaze->getInfo(info);
-    int head_version = info.check("head_version", Value(1)).asInt();
+    //Bottle info;
+    //igaze->getInfo(info);
+    //int head_version = info.check("head_version", Value(1)).asInt();
+
+    int head_version = 1;
+    
+    printf("head_version extracted from gazeArbiter \n");
 
     if(head_version == 1) {
         eyeL = new iCubEye("left");
@@ -189,6 +193,7 @@ bool gazeArbiterThread::threadInit() {
         eyeR = new iCubEye("right_v2");
     }
 
+    printf("correctly istantiated the head \n");
     
 
     // remove constraints on the links
@@ -816,6 +821,13 @@ void gazeArbiterThread::run() {
                     v = height / 2;
                     //waitMotionDone();
                     printf("resetting the position: success! \n");
+
+                    // sending error message for saccade SAC_FAIL
+                    Bottle& status = statusPort.prepare();
+                    status.clear();
+                    status.addString("SAC_FAIL");
+                    statusPort.write();
+
                     return;
                 }
                 else {
@@ -1236,6 +1248,7 @@ void gazeArbiterThread::run() {
         printf("SM_PUR ACCOMPLISHED \n");
         printf("SM_PUR ACCOMPLISHED \n");
         printf("SM_PUR ACCOMPLISHED \n");
+        printf("\n");
         //sending the acknowledgement vergence_accomplished
         Bottle& status2 = statusPort.prepare();
         status2.clear();
@@ -1273,6 +1286,7 @@ void gazeArbiterThread::run() {
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
+                    printf("\n");
                     //sending the acknowledgement vergence_accomplished
                     Bottle& status2 = statusPort.prepare();
                     status2.clear();
