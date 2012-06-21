@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <application>
 	<name>Early Attention Mechanism</name>
  	<dependencies>
@@ -211,20 +212,45 @@
    
    <connection>
      <from>/attPrioritiser/icub/earlyVision:o</from>
-        <to>/earlyVision/icub/left_cam</to>
-        <protocol>tcp</protocol>
+     <to>/earlyVision/icub/left_cam</to>
+     <protocol>tcp</protocol>
    </connection>
    
    <connection>
      <from>/attPrioritiser/icub/protoObject:o</from>
-        <to>/blobFinder/icub/left_cam</to>
-        <protocol>tcp</protocol>
+     <to>/blobFinder/icub/left_cam</to>
+     <protocol>tcp</protocol>
    </connection>
    
    <connection>
      <from>/attPrioritiser/icub/selectiveAtt:o</from>
-        <to>/selectiveAttentionEngine/icub/left_cam</to>
-        <protocol>tcp</protocol>
+     <to>/selectiveAttentionEngine/icub/left_cam</to>
+     <protocol>tcp</protocol>
    </connection>
+   
+   <connection>
+     <from>/attPrioritiser/icub/highLoop:o</from>
+     <to>/attPrioritiser/icub/cmd:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/desTrack:o</from>
+     <to>/activeSegLeft/fixPoint:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/templatePFTracker/target:o</from>
+     <to>/attPrioritiser/icub/trackPosition:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/direct:o</from>
+     <to>/iKinGazeCtrl/head/mono:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+   
 
 </application>
