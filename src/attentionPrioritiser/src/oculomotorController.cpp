@@ -31,13 +31,14 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
+
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
     iter         = 0;
     jiter        = 1;
     cUpdate      = 0;
     state_next   = 0;
-    totalPayoff = 0;
+    totalPayoff  = 0;
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
@@ -795,6 +796,10 @@ void oculomotorController::logAction(int a) {
     }
 }
 
+double oculomotorController::estimateReward(double timing, double accuracy, double amplitude, double frequency) {
+    return (accuracy / 10.0) - timing  *  cost[action_now] * amplitude * frequency;
+}
+
 void oculomotorController::update(observable* o, Bottle * arg) {
     printf("update \n");
     cUpdate++;
@@ -814,6 +819,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             double timing          =       arg->get(2).asDouble();
             double accuracy        =       arg->get(3).asDouble();
             double amplitude       =       arg->get(4).asDouble();
+            double frequency       =       arg->get(5).asDouble();
             
             printf("\n timing:%f accuracy:%f amplitude:%f \n", timing, accuracy, amplitude);
 
@@ -847,7 +853,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
             //estimate the reward 
             //double r = rewardStateAction->operator()(state_now,action_now) ;
-            double r = accuracy / 10.0 - timing * cost[statevalueparam] * amplitude;
+            double r = estimateReward(timing, accuracy, amplitude, frequency);
+            //double r = accuracy / 10.0 - timing * cost[action_now] * amplitude;
             printf("calculated the accuracy for state, action %d,%d \n", state_now,action_now);
             
             

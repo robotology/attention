@@ -307,6 +307,8 @@ bool attPrioritiserThread::threadInit() {
     trackPositionPort.open(nameTrackPosition.c_str());
     string nameDirect("");nameDirect.append(                 getName("/direct:o"));
     directPort.open(nameDirect.c_str());
+    string nameFace("");nameFace.append(                     getName("/face:o"));
+    facePort.open(nameFace.c_str());
 
     inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
@@ -378,6 +380,7 @@ void attPrioritiserThread::interrupt() {
     desiredTrackPort.interrupt();
     trackPositionPort.interrupt();
     directPort.interrupt();
+    facePort.close();
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -400,6 +403,7 @@ void attPrioritiserThread::threadRelease() {
     trackPositionPort.close();
     desiredTrackPort.close();
     directPort.close();
+    facePort.close();
 
     delete pendingCommand;
     
@@ -485,6 +489,13 @@ void attPrioritiserThread::run() {
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
 
+
+    if(facePort.getOutputCount()) {
+        Bottle& value = facePort.prepare();
+        value.addString("M0B");
+        facePort.write();
+    }
+
     // checking for pending communication
     if(isPendingCommand) {
         printf ("!!!!!!!!!!!! PENDING COMMAND !!!!!!! \n");
@@ -561,6 +572,7 @@ void attPrioritiserThread::run() {
         
         //double predVx = 0.0, predVy = 0.0;
         //bool predictionSuccess = false;
+        amplitude = 0;
         tracker->init(u,v);
         tracker->waitInitTracker();
         bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime, predDistance);
@@ -612,6 +624,7 @@ void attPrioritiserThread::run() {
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
         printf("------------------ Express Saccade --------------- \n");
+        amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
         tracker->init(u,v);
         tracker->waitInitTracker();
             
@@ -753,6 +766,7 @@ void attPrioritiserThread::run() {
         // ----------------  Planned Saccade  -----------------------
         state(6) = 0; state(5) = 0 ; state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[4] = true;
+        amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
         tracker->init(u,v);
         tracker->waitInitTracker();
         
@@ -915,6 +929,7 @@ void attPrioritiserThread::run() {
         // ----------------  Smooth Pursuit  -----------------------
         state(6) = 0 ; state(5) = 0 ; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[3] = true;
+        amplitude = 1;
         tracker->init(u,v);
         tracker->waitInitTracker();
 
@@ -941,6 +956,7 @@ void attPrioritiserThread::run() {
         // ----------------  Vergence  -----------------------
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
         waitResponse[2] = true;
+        amplitude = 1;
         tracker->init(u,v);
         tracker->waitInitTracker();
 
@@ -1031,6 +1047,7 @@ void attPrioritiserThread::run() {
         //--------------- wait --------------------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         waitResponse[1] = true;
+        amplitude = 0;
         tracker->init(u,v);
         tracker->waitInitTracker();
         
@@ -1053,6 +1070,7 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(0)>0) {
         // ----------------  reset  -----------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
+        amplitude = 0;
         tracker->init(u,v);
         tracker->waitInitTracker();
 
@@ -1628,9 +1646,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         ConstString name = arg->get(0).asString();
         
         if(!strcmp(name.c_str(),"SAC_MONO")) {
-            
-
-            
+                        
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
 
@@ -2025,9 +2041,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();
 
             //extracting reward measures
-            double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure();            
-            double amplitude = 1.0;
+            timing    = Time::now() - startAction;
+            accuracy  = tracker->getProxMeasure();            
+            amplitude = 1.0;
 
             // nofiying state transition to fixStable ok           
             Bottle notif;
@@ -2037,6 +2053,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(timing);
             notif.addDouble(accuracy);
             notif.addDouble(amplitude);
+            notif.addDouble(frequency);
             setChanged();
             notifyObservers(&notif);
 
@@ -2160,6 +2177,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addDouble(timing);
                 notif.addDouble(accuracy);
                 notif.addDouble(amplitude);
+                notif.addDouble(frequency);
                 setChanged();
                 notifyObservers(&notif);
 
@@ -2173,6 +2191,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addDouble(timing);
                 notif.addDouble(accuracy);
                 notif.addDouble(amplitude);
+                notif.addDouble(frequency);
                 setChanged();
                 notifyObservers(&notif);
             }
@@ -2218,6 +2237,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
             notif.addDouble(13);                  // code for vergence accomplished
+            notif.addDouble(timing);
+            notif.addDouble(accuracy);
+            notif.addDouble(amplitude);
+            notif.addDouble(frequency);
             setChanged();
             notifyObservers(&notif);            
         }
@@ -2255,6 +2278,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notif.addDouble(timing);
             notif.addDouble(accuracy);
             notif.addDouble(amplitude);
+            notif.addDouble(frequency);
             setChanged();
             notifyObservers(&notif); 
 
@@ -2305,6 +2329,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addDouble(timing);
                 notif.addDouble(accuracy);
                 notif.addDouble(amplitude);
+                notif.addDouble(frequency);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -2319,6 +2344,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addDouble(timing);
                 notif.addDouble(accuracy);
                 notif.addDouble(amplitude);
+                notif.addDouble(frequency);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -2374,6 +2400,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addDouble(timing);
                 notif.addDouble(accuracy);
                 notif.addDouble(amplitude);
+                notif.addDouble(frequency);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -2431,7 +2458,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(5);                  // code for prediction accomplished in anticipatory state
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
+                    notif.addDouble(amplitude);notif.addDouble(frequency);
+                    
                     setChanged();
                     notifyObservers(&notif);                    
 
@@ -2454,7 +2482,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(4);                  // code for prediction accomplished in motion state
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
+                    notif.addDouble(amplitude);notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);
                     
@@ -2555,7 +2583,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(10);                  // code for smooth-pursuit accomplished
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
+                    notif.addDouble(amplitude);notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);
                     
@@ -2569,7 +2597,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(11);                  // code for smooth-pursuit not accomplished
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
+                    notif.addDouble(amplitude);notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);
                 
@@ -2585,7 +2613,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addDouble(14);                  // code for smooth-pursuit not accomplished
                 notif.addDouble(timing);
                 notif.addDouble(accuracy);
-                notif.addDouble(amplitude);
+                notif.addDouble(amplitude);notif.addDouble(frequency);
                 setChanged();
                 notifyObservers(&notif);                
             }

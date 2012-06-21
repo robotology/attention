@@ -204,8 +204,7 @@ private:
     yarp::sig::Matrix* P;                  // copy quality measure of a particular state across different actions dim: NUMSTATE x NUMACTION
 
     const static double j    = 0.99;       // discount factor
-    const static double alfa = 0.1;        // learning rate  
-    
+    const static double alfa = 0.1;        // learning rate      
     
     double totalPayoff;                    // total payoff of the learning process
     double jiter;                          // cumulative j ^ iter 
@@ -371,6 +370,14 @@ public:
     * @brief one single step of the learning which consists in selecting a path from the initial state to the final state.
     */
     void learningStep();
+    
+    /**
+     * @brief function that estimates the reward given the parameter of the performance
+     * @param timing temporal extension of the oculomotor action
+     * @param accuracy measure of how good the stimulus is kept in the fovea
+     * @param amplitude measure of the dimension of the action performed
+     */
+    double estimateReward(double timing, double accuracy, double amplitude, double frequency);
 
     /**
      * given the state where tha actuator is supposed to go 

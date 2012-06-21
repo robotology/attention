@@ -182,6 +182,10 @@ private:
     double timeout;                         // actual timer of the saccadic action
     double timetot;                         // actual timer of the complete fixation task
     double startAction;                     // starting the time measure for the action
+    double timing;                          // temporal extension of the ocular movement [s]
+    double accuracy;                        // measure of how close is the attention to the stimulus
+    double amplitude;                       // amplitude of the single component of the ocular movement [deg/submov]
+    double frequency;                       // frequency of the action [submov/sec]
 
     unsigned char feedbackBlobRed;          // value returned from the feedback coming from blobFinder
     unsigned char feedbackBlobGreen;        // value returned from the feedback coming from blobFinder
@@ -226,6 +230,7 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> directPort;                                // port sending the u,v position on the image plane for tracking
     yarp::os::BufferedPort<yarp::os::Bottle> outputPort;                                // port necessary to send the gaze command to the gazeArbiter
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
+    yarp::os::BufferedPort<yarp::os::Bottle> facePort;                                  // port for low-level face control
     
     yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort;                         // port dedicated to the retroactive high level loop
 

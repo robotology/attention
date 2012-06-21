@@ -207,14 +207,20 @@ public:
 
                 cvCircle( imgBgrOut.getIplImage(), cvPoint(160,120), 30 , cvScalar(0,255,0), 1 );
 
+                //-------------------------------------------------------------------------------------------
                 // updating the proximity measure
                 double distance = sqrt((point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
-                if(distance!= 0) {
+                if((distance>0) && (distance <= 20)) {
                     proxMeasure += 20.0 / distance;
                 }
-                else {
+                else if(distance == 0) {
                     proxMeasure = 20.0;
                 }
+                else {
+                    proxMeasure = 0;
+                }
+                //--------------------------------------------------------------------------------------------
+                
                 init_success = true; // considering init success at the end of the first loop
             }
 
