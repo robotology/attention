@@ -843,7 +843,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 // update for evaluation of pSA without learning
                 state_next = statevalueparam;           // the update comes from the attPrioritiser with default state.
             }
-            printf("state value = %d \n", state_next);
+            printf("state now  = %d \n", state_next);
+            printf("action now = %d \n", action_now);
 
             // --------------------------  updating the entire state of the learner -----------------------------
             //state_now = 0;
@@ -967,9 +968,9 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 i++;
             }
             //printf("apLearning %d \n", i);
-            //if (!ap->isLearning()) {
-            //    logAction(i);
-            //}
+            if (!ap->isLearning()) {
+                logAction(i);
+            }
                        
         } break;
         default: {
