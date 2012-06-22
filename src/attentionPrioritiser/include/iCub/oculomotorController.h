@@ -39,18 +39,20 @@
 #include <iostream>
 #include <string>
 
-
 //within project includes
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 #include <iCub/attPrioritiserThread.h>
 #include <iCub/trajectoryPredictor.h>
 
-#define THRATE 10
-#define NUMSTATE 15
-#define NUMACTION 9
+#define THRATE       10
+#define NUMSTATE     15
+#define NUMACTION     9
+#define MAXCOUNTRAND 20
 
-const static double cost[NUMACTION] = { 1.0 ,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+const static double cost[NUMACTION] = { 1.0, 1.0, 1.0,
+                                        1.0, 1.0, 1.0,
+                                        1.0, 1.0, 1.0};
 
 static const std::string stateList[15] =  {
     "null",           //0

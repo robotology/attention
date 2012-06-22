@@ -31,7 +31,6 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
     iter         = 0;
@@ -59,14 +58,6 @@ oculomotorController::~oculomotorController() {
     
 }
 
-//void oculomotorController::setResourceFinder(ResourceFinder resourceFinder) {
-    //rf = resourceFinder;
-    //rewardFilePath  = rf.findFile("rewardFile.txt");
-    //psaFilePath     = rf.findFile("psaFile.txt");
-    //qualityFilePath = rf.findPath("qualityFile.txt");
-    //logFilePath     = rf.findFile("logFile.txt");
-//}
-
 bool oculomotorController::threadInit() {
     printf(" oculomotorController::threadInit:starting the thread.... \n");
     // initialisation of relevant matrices
@@ -76,8 +67,6 @@ bool oculomotorController::threadInit() {
     Q->zero();
     Psa->zero();
     rewardStateAction->zero();
-
-
     
     // open ports 
     string rootName("");
@@ -337,10 +326,6 @@ bool oculomotorController::threadInit() {
     
     return true;
 }
-
-// void oculomotorController::interrupt() {
-//     inCommandPort.interrupt();
-// }
 
 void oculomotorController::setName(string str) {
     this->name=str;
@@ -617,21 +602,31 @@ void oculomotorController::learningStep() {
         
         // 2 .action selection and observation of the next state
         bool actionPerformed;
-        printf("_______________ countSucc % d  state_now %d_______________________ \n \n", countSucc, state_now);
-        
-        //if(count < 30) {
         int state_next;
-        if(countSucc == 2) {
-            printf("IN THE POLICY!!!! \n");
-            fprintf(logFile,"IN THE POLICY!!!! \n");
+        printf("_______________ countSucc % d  state_now %d_______________________ \n \n", countSucc, state_now);
+
+       
+        //if(countSucc == MAXCOUNTRAND) {
+        //    printf("always IN THE POLICY!!!! \n");
+        //    fprintf(logFile,"IN THE POLICY!!!! \n");
+        //}
+
+
+        double k = 1 - countSucc / MAXCOUNTRAND;
+        if(k < 0) {
+            k = 0;
         }
-        if(countSucc < 2) {
-            printf("randomWalk action selection \n");
-            actionPerformed = randomWalk(state_next);
+        double s = Random::uniform();
+
+        if(s >= k) {
+            printf("policyWalk action selection \n");
+            fprintf(logFile,"policyWalk : ");
+            actionPerformed = policyWalk();
         }
         else {
-            printf("policyWalk action selection \n");
-            actionPerformed = policyWalk();
+            printf("randomWalk action selection \n");
+            fprintf(logFile,"randomWalk : ");
+            actionPerformed = randomWalk(state_next);
         }
         
     

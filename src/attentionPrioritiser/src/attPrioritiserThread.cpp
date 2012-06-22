@@ -239,7 +239,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     printf("attPrioritiserThread::attPrioritiserThread: initilisation of the states (%d)  \n", NUMSTATES);
     for (int k = 0; k < NUMSTATES; k++) {
         allowStateRequest[k] = true;
-        waitResponse[k]      = false;
+        waitResponse[k]      = true;
         bufCommand[k]        = NULL;
     }
 
@@ -532,7 +532,7 @@ void attPrioritiserThread::run() {
         notifyObservers(&notif);
 
         startAction = Time::now();
-
+        
         if(!allowedTransitions(0)) {
             firstNull = true;
         }
@@ -607,12 +607,17 @@ void attPrioritiserThread::run() {
         }
         else {
             printf("prediction failed \n");
+            
             // nofiying state transition            
             //notif.clear();
             //notif.addVocab(COMMAND_VOCAB_STAT);
             //notif.addDouble(3);                  // code for prediction accomplished
             //setChanged();
             //notifyObservers(&notif);            
+
+            pendingCommand->clear();
+            pendingCommand->addString("PRED_FAIL");
+            isPendingCommand = true;  
         }
         printf("_________________ Trajectory prediction  _____________________\n\n");
     }
@@ -669,12 +674,16 @@ void attPrioritiserThread::run() {
             //commandBottleON.addString("COR_ON");
             //outputPort.write();
 
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(6);                  // code for fixStableKO
-            setChanged();
-            notifyObservers(&notif);
+            // Bottle notif;
+            // notif.clear();
+            // notif.addVocab(COMMAND_VOCAB_STAT);
+            // notif.addDouble(6);                  // code for fixStableKO
+            // setChanged();
+            // notifyObservers(&notif);
+
+            pendingCommand->clear();
+            pendingCommand->addString("SAC_ACC");
+            isPendingCommand = true; 
             
             /*
             //correcting flag is set when the saccade is accomplished
@@ -1075,7 +1084,6 @@ void attPrioritiserThread::run() {
         tracker->waitInitTracker();
 
         
-        
         // nofiying state transition            
         Bottle notif;
         notif.clear();
@@ -1084,15 +1092,14 @@ void attPrioritiserThread::run() {
         setChanged();
         notifyObservers(&notif);
         firstNull = false;
-           
+        
     }
     else {
         //printf("No transition \n");
     }
 
     //------------------------------------------------------------------------------
-    printf(" waitResponse > %d, %d, %d, %d, %d, %d \n \n \n",
-           waitResponse[0],waitResponse[1],waitResponse[2], waitResponse[3], waitResponse[4], waitResponse[5], waitResponse[6]);
+    //printf("--------------------------------------------------------->%d \n",done);
     
     if(allowedTransitions(6)>0) { //prediction
         mutex.wait();
@@ -2354,6 +2361,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
             waitResponse[6] = false;
 
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(0);                  // code for prediction fail goes into the NULL state
+            notif.addDouble(timing);
+            notif.addDouble(accuracy);
+            notif.addDouble(amplitude);
+            notif.addDouble(frequency);
+            setChanged();
+            notifyObservers(&notif); 
+
+        }
+        else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
+            waitResponse[6] = false;
+
             // prediction accomplished           
             printf("Prediction Accomplished %f %f  \n", predVx, predVy);
             mutex.wait();
@@ -2459,8 +2481,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(5);                  // code for prediction accomplished in anticipatory state
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);notif.addDouble(frequency);
-                    
+                    notif.addDouble(amplitude);
+                    notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);                    
 
