@@ -1309,7 +1309,7 @@ cartSpace:
         // maxresponse: when within the linear combination one region fires
         // the rest is a constant rate firing
 
-        printf("time diff: %f >? %d \n", diff * 1000, saccadeInterv);
+        //printf("time diff: %f >? %d \n", diff * 1000, saccadeInterv);
         
         if((diff * 1000 > saccadeInterv)||(idle)||(maxResponse)) {
             habituationStart = Time::now(); //resetting exponential of habituation
