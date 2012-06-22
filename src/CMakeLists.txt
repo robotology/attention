@@ -4,7 +4,8 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-add_subdirectory( attentionPrioritiser      )
+
+add_subdirectory( audioAttention            )
 add_subdirectory( eyePathFinder             )
 add_subdirectory( earlyMotion               )
 add_subdirectory( earlyVision               )
@@ -20,7 +21,6 @@ add_subdirectory( salBlobFinderInterface    )
 add_subdirectory( vergence                  )
 add_subdirectory( visualFeatureExtractor    )
 add_subdirectory( zdfControl                )
-add_subdirectory( saliencyBlobFinder        )
 add_subdirectory( stereoAttentiveSelector   )
 #add_subdirectory(visualFilter)    
 #add_subdirectory(zdfModule)
@@ -33,7 +33,10 @@ else(IPP_FOUND)
 endif(IPP_FOUND)
 
 if(IPOPT_FOUND)
-    add_subdirectory(gazeArbiter)
+    add_subdirectory( gazeArbiter               )
+    add_subdirectory( attentionPrioritiser      )
+    add_subdirectory( saliencyBlobFinder        )
+
 else(IPOPT_FOUND)
     message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
 endif(IPOPT_FOUND)
