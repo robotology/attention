@@ -821,28 +821,13 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             double amplitude       =       arg->get(4).asDouble();
             double frequency       =       arg->get(5).asDouble();
             
-            printf("\n timing:%f accuracy:%f amplitude:%f \n", timing, accuracy, amplitude);
-
-            // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
-            if(statevalueparam == 14) {
-                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
-                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
-                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
-                fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
-                countSucc++;
-                
-                statevalueparam = 0; //move to null state right after the success in fixating
-            }
+            printf("\n timing:%f accuracy:%f amplitude:%f \n", timing, accuracy, amplitude);           
 
             
             //printf("new state update arrived action: %d state :%f  \n", actionvalue, arg->get(2).asDouble()); 
-            if(false) {
-                state_next = statevalue;                // the update comes from the oculomotor with action stochastic result
-            }
-            else {
-                // update for evaluation of pSA without learning
-                state_next = statevalueparam;           // the update comes from the attPrioritiser with default state.
-            }
+            // update for evaluation of pSA without learning
+            state_next = statevalueparam;           // the update comes from the attPrioritiser with default state.
+            
             printf("state now  = %d \n", state_next);
             printf("action now = %d \n", action_now);
 
@@ -883,7 +868,18 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
             // // !!!!!!!!!!!!!!!!!!!!!!!!!!   STATE TRANSITION  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            
+            // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
+            if(statevalueparam == 14) {
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
+                countSucc++;
+                
+                state_next = statevalueparam = 0; //move to null state right after the success in fixating
+                totalPayoff = 0;
+            }
+
             //---------------------------  state update arrived ------------------------------------------
             //printf("                                                 new State %s \n",  stateList[statevalue].c_str());
             state_prev = state_now;

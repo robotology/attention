@@ -239,7 +239,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     printf("attPrioritiserThread::attPrioritiserThread: initilisation of the states (%d)  \n", NUMSTATES);
     for (int k = 0; k < NUMSTATES; k++) {
         allowStateRequest[k] = true;
-        waitResponse[k]      = true;
+        waitResponse[k]      = false;
         bufCommand[k]        = NULL;
     }
 
@@ -1075,23 +1075,24 @@ void attPrioritiserThread::run() {
         tracker->waitInitTracker();
 
         
-        //if(firstNull) {
-            // nofiying state transition            
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(0);                  // code for prediction accomplished
-            setChanged();
-            notifyObservers(&notif);
-            firstNull = false;
-            //}
+        
+        // nofiying state transition            
+        Bottle notif;
+        notif.clear();
+        notif.addVocab(COMMAND_VOCAB_STAT);
+        notif.addDouble(0);                  // code for prediction accomplished
+        setChanged();
+        notifyObservers(&notif);
+        firstNull = false;
+           
     }
     else {
         //printf("No transition \n");
     }
 
     //------------------------------------------------------------------------------
-    //printf("--------------------------------------------------------->%d \n",done);
+    printf(" waitResponse > %d, %d, %d, %d, %d, %d \n \n \n",
+           waitResponse[0],waitResponse[1],waitResponse[2], waitResponse[3], waitResponse[4], waitResponse[5], waitResponse[6]);
     
     if(allowedTransitions(6)>0) { //prediction
         mutex.wait();
