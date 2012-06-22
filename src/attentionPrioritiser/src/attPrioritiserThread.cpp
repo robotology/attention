@@ -44,6 +44,17 @@ using namespace iCub::iKin;
 #define corrStep        10
 #define FOVEACONFID     20
 
+//defining the frequency [event/sec] as relation between time and event
+const static double frequencyRule[NUMSTATES] = { 
+    0.0,  // reset
+    0.0,  // wait
+    0.5,  // vergenge
+    10.0, // SMP
+    1.0,  // planned saccade 
+    0.5,  // exprSacc
+    0.0   // Pred
+};
+
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
     int padding = src->getPadding();
     int channels = src->getPixelCode();
@@ -489,12 +500,8 @@ void attPrioritiserThread::run() {
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
 
-
-    if(facePort.getOutputCount()) {
-        Bottle& value = facePort.prepare();
-        value.addString("M0B");
-        facePort.write();
-    }
+    
+    
 
     // checking for pending communication
     if(isPendingCommand) {
@@ -536,6 +543,13 @@ void attPrioritiserThread::run() {
         if(!allowedTransitions(0)) {
             firstNull = true;
         }
+        
+        if(facePort.getOutputCount()) {
+            Bottle& value = facePort.prepare();
+            value.clear();
+            value.addString("M08");
+            facePort.write();
+        }
     }
 
 
@@ -576,6 +590,7 @@ void attPrioritiserThread::run() {
         tracker->init(u,v);
         tracker->waitInitTracker();
         bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime, predDistance);
+        amplitude = 0; // null amplitude in prediction )no action involved)
         
         printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);
         
@@ -938,7 +953,7 @@ void attPrioritiserThread::run() {
         // ----------------  Smooth Pursuit  -----------------------
         state(6) = 0 ; state(5) = 0 ; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[3] = true;
-        amplitude = 1;
+        amplitude = sqrt(Vx * Vx + Vy * Vy) / 100.0;
         tracker->init(u,v);
         tracker->waitInitTracker();
 
@@ -2041,6 +2056,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
         else if((!strcmp(name.c_str(),"SAC_FAIL")) && (waitResponse[4])) {
             waitResponse[4] = false;
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M38");
+                facePort.write();
+            }
             
             // saccade accomplished           
             mutex.wait();
@@ -2052,6 +2073,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             timing    = Time::now() - startAction;
             accuracy  = tracker->getProxMeasure();            
             amplitude = 1.0;
+            frequency = frequencyRule[4];
 
             // nofiying state transition to fixStable ok           
             Bottle notif;
@@ -2091,6 +2113,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"SAC_ACC")) && (waitResponse[4])) {
             waitResponse[4] = false;
+
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M0B");
+                facePort.write();
+            }
             
             // saccade accomplished           
             mutex.wait();
@@ -2170,6 +2199,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             double timing    = Time::now() - startAction;
             double accuracy  = tracker->getProxMeasure();            
             double amplitude = 1.0;
+            double frequency = frequencyRule[4];
 
             CvPoint t; tracker->getPoint(t);
             if((t.x > 160 - FOVEACONFID) && 
@@ -2234,11 +2264,18 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"VER_REF")) && (waitResponse[2])) {
             waitResponse[2] = false;
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M38");
+                facePort.write();
+            }
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
             double accuracy  = tracker->getProxMeasure();            
             double amplitude = 1.0;
+            double frequency = frequencyRule[2];
             
             // nofiying state transition            
             Bottle notif;
@@ -2254,6 +2291,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"VER_ACC")) && (waitResponse[2])) {
             waitResponse[2] = false;
+      
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M0B");
+                facePort.write();
+            }
             
             // vergence accomplished        
             waitType = "fix";
@@ -2276,6 +2320,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //extracting reward measures
             double timing    = Time::now() - startAction;
             double accuracy  = tracker->getProxMeasure();            
+            double frequency = frequencyRule[2];
             double amplitude = 1.0;
 
             // nofiying state transition            
@@ -2300,6 +2345,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"SM_ACC")) && (waitResponse[3])) {
             waitResponse[3] = false;
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M0B");
+                facePort.write();
+            }
             
             // smooth pursuit accomplished           
             printf("Smooth Pursuit  Accomplished \n");
@@ -2320,6 +2371,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // gets the proximity measure from the tracker
             double timing    = Time::now() - startAction;
             double accuracy  = tracker->getProxMeasure();            
+            double frequency = frequencyRule[3];
             double amplitude = 1.0;
 
             //action ended look into the visual stimulus
@@ -2358,8 +2410,20 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
             }
         }
-        else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
+        else if((!strcmp(name.c_str(),"PRED_FAIL")) && (waitResponse[6])) {
             waitResponse[6] = false;
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M38");
+                facePort.write();
+            }
+            
+            // gets the proximity measure from the tracker
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double frequency = frequencyRule[6];
+            double amplitude = 1.0;
 
             Bottle notif;
             notif.clear();
@@ -2375,6 +2439,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
             waitResponse[6] = false;
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M0B");
+                facePort.write();
+            }
 
             // prediction accomplished           
             printf("Prediction Accomplished %f %f  \n", predVx, predVy);
@@ -2394,7 +2464,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure();            
+            double accuracy  = tracker->getProxMeasure();
+            double frequency = frequencyRule[6];
             double amplitude = 1.0;
 
              // nofiying state transition            
@@ -2570,6 +2641,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"WAIT_ACC")) && (waitResponse[1])) {
             waitResponse[1] = false;
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M0B");
+                facePort.write();
+            }
 
             // smooth pursuit accomplished           
             printf("Wait Accomplished with waitType %s \n", waitType.c_str());
@@ -2590,6 +2667,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //extracting reward measures
             double timing    = Time::now() - startAction;
             double accuracy  = tracker->getProxMeasure();            
+            double frequency = frequencyRule[1];
             double amplitude = 1.0;
 
             if(!strcmp(waitType.c_str(),"ant")) {

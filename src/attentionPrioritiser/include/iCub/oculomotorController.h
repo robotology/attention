@@ -50,9 +50,18 @@
 #define NUMACTION     9
 #define MAXCOUNTRAND 20
 
-const static double cost[NUMACTION] = { 1.0, 1.0, 1.0,
-                                        1.0, 1.0, 1.0,
-                                        1.0, 1.0, 1.0};
+//defining the cost [cost/degree]
+const static double cost[NUMACTION] = { 
+    0.0,  // reset
+    0.0,  // wait
+    0.1,  // vergenge
+    3.0,  // SMP
+    1.0,  // usacc 
+    1.0,  // msacc
+    1.0,  // Lsacc
+    0.5,  // exprSacc
+    0.0   // Pred
+};
 
 static const std::string stateList[15] =  {
     "null",           //0
