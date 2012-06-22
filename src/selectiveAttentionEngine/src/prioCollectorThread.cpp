@@ -281,8 +281,8 @@ bool prioCollectorThread::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<Pix
 
 void prioCollectorThread::run() {
     printf("prioCollectorThread::run \n");
-    ImageOf<PixelMono>* tmp = new ImageOf<PixelMono>;
-    tmp->resize(320,240);
+    //ImageOf<PixelMono>* tmp = new ImageOf<PixelMono>;
+    //tmp->resize(320,240);
 
     while(isStopping() != true){
                 
