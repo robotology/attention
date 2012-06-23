@@ -120,6 +120,7 @@ void prioCollectorThread::reinitialise(int width, int height){
 
 bool prioCollectorThread::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp, ImageOf<PixelMono> linearCombinationImage, double& xm, double&ym) {
     
+    /*
     unsigned char* pmap1Left   = map1_yarp->getRawImage();
     unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
     unsigned char* pmap2Left   = map2_yarp->getRawImage();  
@@ -277,6 +278,7 @@ bool prioCollectorThread::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<Pix
     testPort.write();
 
     return ret;
+    */
 }
 
 void prioCollectorThread::run() {
@@ -286,80 +288,71 @@ void prioCollectorThread::run() {
 
     while(isStopping() != true){
                 
+        if((0 != map1_yarp)&& (0 != map2_yarp) && (0 != linearCombinationImage))  {
+   
 
-        if(0 == map1_yarp) {
-            continue;            
-        }
-        if(0 == map2_yarp) {
-            continue;
-        }
-        if(0 == linearCombinationImage) {
-            continue;
-        }
-
-      
-
-        //if((tmp == 0)&&(!reinit_flag)){
-        //    continue;
-        //}                
-
-        /*
-        if(!reinit_flag){
-            printf("reinit \n");
-            reinitialise(tmp->width(), tmp->height());
-            reinit_flag = true;
-        }
-        */
-
-        /*
+                //if((tmp == 0)&&(!reinit_flag)){
+                //    continue;
+                //}                
+                
+                /*
+                  if(!reinit_flag){
+                  printf("reinit \n");
+                  reinitialise(tmp->width(), tmp->height());
+                  reinit_flag = true;
+                  }
+                */
+                
+                /*
+                  
+                  idle = false;
+                  //reading contrast map 
+                  printf("copying the contrast map \n");
+                  if((map1Port->getInputCount())&&(k1!=0)) {
+                  if(tmp != 0) {                
+                  copy_8u_C1R(tmp,map1_yarp);
+                  //idle=false;
+                  }
+                  }
+                  
+                  //reading motion map       
+                  if((map2Port->getInputCount())&&(k2!=0)) { 
+                  tmp = map2Port->read(false);
+                  printf("Copying motion map \n");
+                  if(tmp != 0) {
+                  copy_8u_C1R(tmp,map2_yarp);
+                  //idle=false;
+                  }
+                  }
         
-        idle = false;
-        //reading contrast map 
-        printf("copying the contrast map \n");
-        if((map1Port->getInputCount())&&(k1!=0)) {
-            if(tmp != 0) {                
-                copy_8u_C1R(tmp,map1_yarp);
-                //idle=false;
-            }
-        }
+                  double xm, ym;
+                  
 
-        //reading motion map       
-        if((map2Port->getInputCount())&&(k2!=0)) { 
-            tmp = map2Port->read(false);
-            printf("Copying motion map \n");
-            if(tmp != 0) {
-                copy_8u_C1R(tmp,map2_yarp);
-                //idle=false;
-            }
-        }
-        
-        double xm, ym;
-        
-
-        //ImageOf<PixelMono>& linearCombinationImage = linearCombinationPort.prepare();
-        //linearCombinationImage.resize(width,height);
-        
-        if(false){
-            
-        }
-        
-        */
-        
-        double xm,ym;
-        bool res = earlyFilter(map1_yarp, map2_yarp, *linearCombinationImage, xm, ym);
-        if(res) {
-            //printf("max in contrast or motion \n");
-            Bottle b;
-            b.addString("MOT");
-            b.addInt(xm);
-            b.addInt(ym);
-            setChanged();
-            notifyObservers(&b);
-        }
-
-        Time::delay(0.033);
-
-    }
+                  //ImageOf<PixelMono>& linearCombinationImage = linearCombinationPort.prepare();
+                  //linearCombinationImage.resize(width,height);
+                  
+                  if(false){
+                  
+                  }
+                  
+                */
+                
+                double xm,ym;
+                bool res = earlyFilter(map1_yarp, map2_yarp, *linearCombinationImage, xm, ym);
+                if(res) {
+                    //printf("max in contrast or motion \n");
+                    Bottle b;
+                    b.addString("MOT");
+                    b.addInt(xm);
+                    b.addInt(ym);
+                    setChanged();
+                    notifyObservers(&b);
+                }
+                
+                Time::delay(0.033);
+            }// end if
+                
+    }//end while
 }
 
 void prioCollectorThread::onStop() {
