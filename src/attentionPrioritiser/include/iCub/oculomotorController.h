@@ -48,10 +48,10 @@
 #define THRATE       10
 #define NUMSTATE     15
 #define NUMACTION     9
-#define MAXCOUNTRAND 20
 
-//defining the cost [cost/degree]
-const static double cost[NUMACTION] = { 
+
+//defining the costAmplitude [cost/degree]
+const static double costAmplitude[NUMACTION] = { 
     0.0,  // reset
     0.0,  // wait
     0.1,  // vergenge
@@ -61,6 +61,19 @@ const static double cost[NUMACTION] = {
     1.0,  // Lsacc
     0.5,  // exprSacc
     0.0   // Pred
+};
+
+//defining the costEvent [cost/event]
+const static double costEvent[NUMACTION] = { 
+    0.5,  // reset
+    0.5,  // wait
+    0.1,  // vergenge
+    3.0,  // SMP
+    1.0,  // usacc 
+    1.0,  // msacc
+    1.0,  // Lsacc
+    0.5,  // exprSacc
+    0.5   // Pred
 };
 
 static const std::string stateList[15] =  {

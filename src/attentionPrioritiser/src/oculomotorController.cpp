@@ -31,6 +31,8 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
+#define MAXCOUNTRAND 20
+
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
     iter         = 0;
@@ -620,12 +622,12 @@ void oculomotorController::learningStep() {
 
         if(s >= k) {
             printf("policyWalk action selection \n");
-            fprintf(logFile,"policyWalk : ");
+            fprintf(logFile,"policyWalk > ");
             actionPerformed = policyWalk();
         }
         else {
             printf("randomWalk action selection \n");
-            fprintf(logFile,"randomWalk : ");
+            fprintf(logFile,"randomWalk > ");
             actionPerformed = randomWalk(state_next);
         }
         
@@ -792,7 +794,12 @@ void oculomotorController::logAction(int a) {
 }
 
 double oculomotorController::estimateReward(double timing, double accuracy, double amplitude, double frequency) {
-    return (accuracy / 10.0) - timing  *  cost[action_now] * amplitude * frequency;
+    double res = (accuracy / 10.0) 
+        - timing  * frequency * costAmplitude[action_now] * amplitude * frequency
+        - timing  * frequency * costEvent[action_now];
+
+    if(res < 0) res = 0;
+    return res;
 }
 
 void oculomotorController::update(observable* o, Bottle * arg) {
@@ -882,7 +889,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                          
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
             fprintf(logFile, "state_prev:%s state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
-            fprintf(logFile, " totalPayoff:%f             \n ",totalPayoff);
+            fprintf(logFile, " totalPayoff:%f / 10 - %f -%f => %f         \n ",accuracy,timing  *  costAmplitude[action_now] * amplitude * frequency,
+                    timing  * frequency * costEvent[action_now],totalPayoff);
             fprintf(logState,"%d %f\n", state_now, totalPayoff);
             
             /*
@@ -1183,7 +1191,7 @@ void oculomotorController::threadRelease() {
     for(int row = 0; row < NUMSTATE; row++ ) {
         for(int col = 0; col < NUMACTION; col++) {
             t = Q->operator()(row,col);
-            printf("changed (%d,%d),%f \n",row, col,t);
+            //printf("changed (%d,%d),%f \n",row, col,t);
             fprintf(qualityFile,"%f ",t);
             //valQ++;
         }

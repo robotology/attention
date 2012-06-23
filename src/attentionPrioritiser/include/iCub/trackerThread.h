@@ -254,7 +254,12 @@ public:
 
     /************************************************************************/
     double getProxMeasure() {
-        return proxMeasure;
+        // if within the range returns proxMeasure otherwise 0
+        double distance = sqrt((point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
+        if(distance < 20)
+            return proxMeasure;
+        else
+            return 0;
     }
 
     /************************************************************************/

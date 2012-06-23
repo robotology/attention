@@ -46,13 +46,13 @@ using namespace iCub::iKin;
 
 //defining the frequency [event/sec] as relation between time and event
 const static double frequencyRule[NUMSTATES] = { 
-    0.0,  // reset
-    0.0,  // wait
+    0.1,  // reset
+    0.1,  // wait
     0.5,  // vergenge
     10.0, // SMP
     1.0,  // planned saccade 
     0.5,  // exprSacc
-    0.0   // Pred
+    0.1   // Pred
 };
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
@@ -415,17 +415,15 @@ void attPrioritiserThread::threadRelease() {
     desiredTrackPort.close();
     directPort.close();
     facePort.close();
-
-    delete pendingCommand;
-    
     printf("closing timing port \n");
     timingPort.close();
-    printf("successfully closed all the ports \n");
+    printf("\n \n successfully closed all the ports \n");
+
     delete eyeL;
     delete eyeR;
-
     printf("successfully deleted eyes references \n");
-    //igaze->restoreContext(originalContext);
+
+
     //printf("successfully restored previous gaze context \n"); 
     delete clientGazeCtrl;
     
@@ -538,7 +536,7 @@ void attPrioritiserThread::run() {
         setChanged();
         notifyObservers(&notif);
 
-        startAction = Time::now();
+        startAction = Time::now(); //start the time counter for the activated action
         
         if(!allowedTransitions(0)) {
             firstNull = true;
@@ -589,6 +587,7 @@ void attPrioritiserThread::run() {
         amplitude = 0;
         tracker->init(u,v);
         tracker->waitInitTracker();
+
         bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime, predDistance);
         amplitude = 0; // null amplitude in prediction )no action involved)
         
@@ -696,6 +695,7 @@ void attPrioritiserThread::run() {
             // setChanged();
             // notifyObservers(&notif);
 
+            // immediate accomplish command for express saccade
             pendingCommand->clear();
             pendingCommand->addString("SAC_ACC");
             isPendingCommand = true; 
@@ -954,8 +954,6 @@ void attPrioritiserThread::run() {
         state(6) = 0 ; state(5) = 0 ; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[3] = true;
         amplitude = sqrt(Vx * Vx + Vy * Vy) / 100.0;
-        tracker->init(u,v);
-        tracker->waitInitTracker();
 
         
         if(!executing) {                       
@@ -981,8 +979,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
         waitResponse[2] = true;
         amplitude = 1;
-        tracker->init(u,v);
-        tracker->waitInitTracker();
+        
 
         printf(" __________________ Vergence __________________ \n");
         /*    
@@ -1072,8 +1069,8 @@ void attPrioritiserThread::run() {
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         waitResponse[1] = true;
         amplitude = 0;
-        tracker->init(u,v);
-        tracker->waitInitTracker();
+        //tracker->init(u,v);
+        //tracker->waitInitTracker();
         
         printf("--------------------- Wait -------------------- \n");
         printf("Standby in Wait ....%s \n", waitType.c_str());
@@ -1095,8 +1092,8 @@ void attPrioritiserThread::run() {
         // ----------------  reset  -----------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
         amplitude = 0;
-        tracker->init(u,v);
-        tracker->waitInitTracker();
+        //tracker->init(u,v);
+        //tracker->waitInitTracker();
 
         
         // nofiying state transition            
@@ -2127,6 +2124,74 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
 
+            
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[4] = true;               // action number accomplished
+            mutexAcc.post();
+
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
+            double frequency = frequencyRule[4];
+
+            CvPoint t; tracker->getPoint(t);
+
+            double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+            
+            if(distance < FOVEACONFID) {
+                
+                // nofiying state transition to fixStable ok           
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(6);                  // code for fixStableOK accomplished 
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
+                notif.addDouble(frequency);
+                setChanged();
+                notifyObservers(&notif);
+
+            }
+            else {
+                // nofiying state transition to fixStable ok           
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(7);                  // code for fixStableOK accomplished 
+                notif.addDouble(timing);
+                notif.addDouble(accuracy);
+                notif.addDouble(amplitude);
+                notif.addDouble(frequency);
+                setChanged();
+                notifyObservers(&notif);
+            }
+
+            /*
+            // reset action
+            notif.clear();
+            printf("notify action reset \n");
+            notif.addVocab(COMMAND_VOCAB_ACT);
+            // code for reset action
+            notif.addDouble(1.0);  // reset
+            notif.addDouble(0.0);  // vergence 
+            notif.addDouble(0.0);  // smooth pursuit
+            notif.addDouble(0.0);  // planned saccade
+            notif.addDouble(0.0);  // express saccade
+            notif.addDouble(0.0);  // trajectory prediction
+            setChanged();
+            notifyObservers(&notif);
+            
+            // null state
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(0);                  // code for null state
+            setChanged();
+            notifyObservers(&notif);
+            */
+
             //gathering information about the feature from the preattentive stage (earlyVision)
             if(feedbackEarlyVision.getOutputCount()) {
                 //cout<<"communication activated with the earlyVision: ";
@@ -2190,73 +2255,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 reinfFootprint = false;
             }
 
-            //  changing the accomplished flag
-            mutexAcc.wait();
-            accomplFlag[4] = true;               // action number accomplished
-            mutexAcc.post();
-
-            //extracting reward measures
-            double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure();            
-            double amplitude = 1.0;
-            double frequency = frequencyRule[4];
-
-            CvPoint t; tracker->getPoint(t);
-            if((t.x > 160 - FOVEACONFID) && 
-               (t.x < 160 + FOVEACONFID) &&
-               (t.y > 120 - FOVEACONFID) &&
-               (t.y < 120 + FOVEACONFID)) {
-                
-                // nofiying state transition to fixStable ok           
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(6);                  // code for fixStableOK accomplished 
-                notif.addDouble(timing);
-                notif.addDouble(accuracy);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
-                setChanged();
-                notifyObservers(&notif);
-
-            }
-            else {
-                // nofiying state transition to fixStable ok           
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(7);                  // code for fixStableOK accomplished 
-                notif.addDouble(timing);
-                notif.addDouble(accuracy);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
-                setChanged();
-                notifyObservers(&notif);
-            }
-
-            /*
-            // reset action
-            notif.clear();
-            printf("notify action reset \n");
-            notif.addVocab(COMMAND_VOCAB_ACT);
-            // code for reset action
-            notif.addDouble(1.0);  // reset
-            notif.addDouble(0.0);  // vergence 
-            notif.addDouble(0.0);  // smooth pursuit
-            notif.addDouble(0.0);  // planned saccade
-            notif.addDouble(0.0);  // express saccade
-            notif.addDouble(0.0);  // trajectory prediction
-            setChanged();
-            notifyObservers(&notif);
-            
-            // null state
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(0);                  // code for null state
-            setChanged();
-            notifyObservers(&notif);
-            */
-
+            // reinforcing footprint if allowed
             if(reinfFootprint) {                
                 reinforceFootprint();
                 Time::delay(0.5);
@@ -2376,10 +2375,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //action ended look into the visual stimulus
             CvPoint t; tracker->getPoint(t);
-            if((t.x > 160 - FOVEACONFID) && 
-               (t.x < 160 + FOVEACONFID) &&
-               (t.y > 120 - FOVEACONFID) &&
-               (t.y < 120 + FOVEACONFID)) {
+            double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+            
+            if(distance < FOVEACONFID) {
 
                 // nofiying state transition into successful tracking
                 Bottle notif;
@@ -2672,10 +2670,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             if(!strcmp(waitType.c_str(),"ant")) {
                 CvPoint t; tracker->getPoint(t);
-                if((t.x > 160 - FOVEACONFID) && 
-                   (t.x < 160 + FOVEACONFID) &&
-                   (t.y > 120 - FOVEACONFID) &&
-                   (t.y < 120 + FOVEACONFID)) {
+                double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                
+                if(distance < FOVEACONFID){
                     
                     // nofiying state transition into successful tracking
                     Bottle notif;
