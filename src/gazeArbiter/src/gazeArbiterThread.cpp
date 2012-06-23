@@ -1359,6 +1359,7 @@ void gazeArbiterThread::run() {
                 */
 
                 // in the status port, notification of vergence refinement in action
+                printf("Vergence Refinement \n \n");
                 Bottle& status2 = statusPort.prepare();
                 status2.clear();
                 status2.addString("VER_REF");
