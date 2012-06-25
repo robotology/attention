@@ -26,27 +26,27 @@
 #include <yarp/sig/Sound.h>
 #include <yarp/dev/PolyDriver.h>
 #include <stdio.h>
-// #include <math.h>
-// #include <yarp/os/all.h>
-// #include <yarp/os/Network.h>
-// #include <yarp/os/Port.h>
+#include <math.h>
+#include <yarp/os/all.h>
+#include <yarp/os/Network.h>
+#include <yarp/os/Port.h>
 
-// using namespace yarp::os;
-// using namespace yarp::sig;
-// using namespace yarp::dev;
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace yarp::dev;
 
-// int main(int argc, char *argv[]) {
+ int main(int argc, char *argv[]) {
 
-//     // Open the network
-//     Network yarp;
-//     BufferedPort<Sound> pReceiver;
-//     pReceiver.open("/receiver");
-//     //Network::connect("/sender", "/receiver");
+     // Open the network
+     Network yarp;
+     BufferedPort<Sound> pReceiver;
+     pReceiver.open("/receiver");
+     //Network::connect("/sender", "/receiver");
 
-//     Port pSender;
-//     pSender.open("/sender");
-
-//     // Get an audio write device.
+     Port pSender;
+     pSender.open("/sender");
+     
+     // Get an audio write device.
     Property conf;
     conf.put("device","portaudio");
     conf.put("samples", "4096");
