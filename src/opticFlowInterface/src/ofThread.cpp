@@ -185,6 +185,11 @@ bool ofThread::threadInit() {
     string rootNameForgetting("");rootNameForgetting.append(getName("/forgetting:o"));
     forgettingPort.open(rootNameForgetting.c_str());
     inLeftPort.open(getName("/of/imgMono:i").c_str());
+    
+    printf("before the velocity \n");
+    velocityPort = new BufferedPort<Bottle>();
+    velocityPort->open("/ofInterface/velocity:o");
+    
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
     firstConsistencyCheck=true;
 
@@ -208,6 +213,7 @@ void ofThread::interrupt() {
     blobDatabasePort.interrupt();
     templatePort.interrupt();
     timingPort.interrupt();
+    velocityPort->interrupt();
 }
 
 void ofThread::setDimension(int w, int h) {
@@ -310,6 +316,13 @@ void ofThread::run() {
         forgettingPort.prepare() = *forgettingImage;
         forgettingPort.write();
     }
+
+    if(velocityPort->getOutputCount()) {
+        Bottle& b = velocityPort->prepare();
+        b.clear();
+        b.addDouble(1.0);
+        velocityPort->write();
+    }
 }
 
 void ofThread::threadRelease() {
@@ -320,6 +333,7 @@ void ofThread::threadRelease() {
     blobDatabasePort.close();
     forgettingPort.close();
     timingPort.close();
+    velocityPort->close();
 
     printf("freeing memory \n");
     free(spatialMemoryU);

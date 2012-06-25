@@ -112,6 +112,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *forgettingImage;                          // image associated to the forgetting factor
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
+    yarp::os::BufferedPort<yarp::os::Bottle> *velocityPort;                                // port where the timing of the fixation point redeployment is sent
     yarp::sig::ImageOf<yarp::sig::PixelMono> *inhibitionImage;                          // image for the inhibition of return
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
