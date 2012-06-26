@@ -117,7 +117,10 @@ public:
 /**************************************************************************/
 class minJerkModel : public predModel {
 protected:
-    
+    static const double a = 1;    // parameters of the model
+    static const double b = 1;    // parameters of the model
+    static const double c = 1;    // parameters of the model
+    double T;                     // period of the motion 
 
 public:
     minJerkModel();    

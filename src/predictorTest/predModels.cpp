@@ -129,6 +129,8 @@ bool minJerkModel::operator ==(const minJerkModel &model) {
 }
 
 void minJerkModel::init(double param) {
+    T = param;
+    
     Matrix _A(3,3);
     Matrix _B(3,1);
     A = _A;
@@ -136,5 +138,10 @@ void minJerkModel::init(double param) {
 
     A.zero();
     B.zero();
-    B(1,0) = 1;
+    
+    A(0,1) = 1;
+    A(1,2) = 1;
+    A(2,0) = a / (T * T * T);
+    A(2,1) = b / (T * T);
+    A(2,2) = c / (T * T);    
 }
