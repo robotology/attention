@@ -50,11 +50,13 @@ public:
 
     yarp::sig::Matrix getA() const    {return A; };
     yarp::sig::Matrix getB() const    {return B; };
+    void setA(const yarp::sig::Matrix mat) {A = mat;};
+    void setB(const yarp::sig::Matrix mat) {B = mat;};
 
     //virtual yarp::sig::Matrix getA() const = 0;
     //virtual yarp::sig::Matrix getB() const = 0;
-    virtual void setA(yarp::sig::Matrix mat) = 0;
-    virtual void setB(yarp::sig::Matrix mat) = 0;
+    virtual void init(double param) = 0;
+    //virtual void setB(yarp::sig::Matrix mat) = 0;
     
     virtual bool operator ==(const predModel &pModel) = 0;
 
@@ -64,27 +66,80 @@ public:
 /**************************************************************************/
 class linVelModel : public predModel {
 protected:
-    int stamp;
+   
 
 public:
     linVelModel();    
     linVelModel(const linVelModel &model);
     
 
-    linVelModel &operator = (const linVelModel &event);
+    linVelModel &operator = (const linVelModel &model);
     bool operator ==(const linVelModel &model);    
 
-    //yarp::sig::Matrix getA() const    {return A; };
-    //yarp::sig::Matrix getB() const    {return B; };
-        
-    void setA(const yarp::sig::Matrix mat) {A = mat; };
-    void setB(const yarp::sig::Matrix mat) {B = mat; };
-
-    int getLength() const { return 1; }
+    int getLength() const  { return 1; }
     bool operator ==(const predModel &model) { return operator==(dynamic_cast<const linVelModel&>(model)); }
+    
+    /**
+    * initialisation of the matrices typical
+    * @param parameter of the parametric initialisation
+    */
+    void init(double param);
 
 };
 
+/**************************************************************************/
+class linAccModel : public predModel {
+protected:
+    
+
+public:
+    linAccModel();    
+    linAccModel(const linAccModel &model);
+    
+
+    linAccModel &operator = (const linAccModel &model);
+    bool operator ==(const linAccModel &model);    
+        
+    //void setA(const yarp::sig::Matrix mat) {A = mat; };
+    //void setB(const yarp::sig::Matrix mat) {B = mat; };
+
+    int getLength() const { return 1; }
+    bool operator ==(const predModel &model) { return operator==(dynamic_cast<const linAccModel&>(model)); }
+
+    /**
+    * initialisation of the matrices typical
+    * @param parameter of the parametric initialisation
+    */
+    void init(double param);
+
+};
+
+/**************************************************************************/
+class minJerkModel : public predModel {
+protected:
+    
+
+public:
+    minJerkModel();    
+    minJerkModel(const minJerkModel &model);
+    
+
+    minJerkModel &operator = (const minJerkModel &model);
+    bool operator ==(const minJerkModel &model);    
+        
+    //void setA(const yarp::sig::Matrix mat) {A = mat; };
+    //void setB(const yarp::sig::Matrix mat) {B = mat; };
+
+    int getLength() const { return 1; }
+    bool operator ==(const predModel &model) { return operator==(dynamic_cast<const minJerkModel&>(model)); }
+
+    /**
+    * initialisation of the matrices typical
+    * @param parameter of the parametric initialisation
+    */
+    void init(double param);
+
+};
 
 
 //}

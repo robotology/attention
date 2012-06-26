@@ -18,8 +18,11 @@ FILE(GLOB folder_source
   predModels.cpp
   )
 FILE(GLOB folder_header 
-  predModels.h
+  *.h
 )
+
+message("${folder_header}")
+
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
