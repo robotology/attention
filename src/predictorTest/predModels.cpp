@@ -143,5 +143,7 @@ void minJerkModel::init(double param) {
     A(1,2) = 1;
     A(2,0) = a / (T * T * T);
     A(2,1) = b / (T * T);
-    A(2,2) = c / (T * T);    
+    A(2,2) = c / (T * T);
+
+    B(2,0) = a / (T * T * T);
 }
