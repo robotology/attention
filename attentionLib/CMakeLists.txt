@@ -12,17 +12,10 @@ SET(PROJECT_INCLUDE_DIRS
 # Find .cpp and .h files automatically.  This is a bit lazy,
 # and in principle it would be better to list these files manually.
 SET(folder_source 
-  src/.cpp
-  src/.cpp
-  src/.cpp
-  src/.cpp
 )
 
 SET(folder_header 
-  include/iCub/attention/*.h
-  include/iCub/attention/*.h
-  include/iCub/attention/*.h
-  include/iCub/attention/*.h 
+  
 )
 
 MESSAGE("folder_header ${folder_header}")
