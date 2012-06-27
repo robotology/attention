@@ -10,6 +10,7 @@ INCLUDE_DIRECTORIES(
     ${YARP_INCLUDE_DIRS}
     ${ICUB_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
+    ${ATTENTIONLIB_INCLUDE_DIRS}
 )
 
 # Search for source code.
@@ -37,6 +38,7 @@ IF (folder_source)
 	        ${YARP_LIBRARIES}
 	        ${OpenCV_LIBRARIES}
 	        icubmod
+            attentionLib
 	)	
 
     INSTALL_TARGETS(/bin ${KEYWORD})
