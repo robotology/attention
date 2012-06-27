@@ -11,6 +11,7 @@ INCLUDE_DIRECTORIES(
     ${ICUB_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
     ${iKin_INCLUDE_DIRS}
+    ${ATTENTIONLIB_INCLUDE_DIRS}
 )
 
 # Search for source code.
@@ -50,6 +51,7 @@ IF (folder_source)
 	        ${OpenCV_LIBRARIES}
 	        iKin
 	        icubmod 
+            attentionLib
 	)	
 
     INSTALL_TARGETS(/bin ${KEYWORD})

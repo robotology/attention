@@ -23,10 +23,12 @@
  */
 
 #include <iCub/trajectoryPredictor.h>
+#include <iCub/attention/predModels.h>
 #include <cstring>
 
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace attention::predictor;
 using namespace std;
 
 #define THRATE 10
@@ -46,14 +48,6 @@ bool trajectoryPredictor::threadInit() {
     rootName.append(getName("/blobImage:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str());
-
-
-    //printf("starting the tracker in the trajectoryPredictor.... \n");
-    //ResourceFinder* rf = new ResourceFinder();
-    //tracker = new trackerThread(*rf);
-    //tracker->setName(getName("/matchTracker").c_str());
-    //tracker->start();
-    //printf("trajectoryPredictor::threadInit:end of the threadInit \n");
     
     return true;
 }
@@ -100,6 +94,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     double timeStart = Time::now();
     double timeStop, timeDiff;
+    double vel;
     double velX, velY, velX_prev, velY_prev;
     double accX, accY, maxAccX = 0, maxAccY = 0;
     double meanVelX, meanVelY;
@@ -107,7 +102,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     int nIter = 10;
     
     //for n times records the position of the object and extract an estimate
- 
+    // extracting the velocity of the stimulus; saving it into a vector 
+    Vector zMeasurements(nIter,3);
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
         p_prev =  p_curr;
@@ -125,6 +121,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             velY_prev = velY;
             velX = distX / timeDiff;
             velY = distY / timeDiff;
+            vel = sqrt( velX * velX + velY * velY);
             accX = (velX - velX_prev) / timeDiff;
             accY = (velY - velY_prev) / timeDiff;
             if(accY > maxAccY) maxAccY = accY;
@@ -144,6 +141,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     meanVelX /= nIter;
     meanVelY /= nIter;
+
+    //estimate the predictor model that best fits the velocity measured
+
     
     tracker->getPoint(p_curr);
     distance = sqrt((p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
