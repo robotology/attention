@@ -12,10 +12,11 @@ SET(PROJECT_INCLUDE_DIRS
 # Find .cpp and .h files automatically.  This is a bit lazy,
 # and in principle it would be better to list these files manually.
 SET(folder_source 
+  ./src/predModels.cpp
 )
 
 SET(folder_header 
-  
+  ./include/iCub/attention/predModels.h
 )
 
 MESSAGE("folder_header ${folder_header}")
