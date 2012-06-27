@@ -33,7 +33,7 @@
 
 
 // forward declaration
-//class eEventQueue;
+class modelQueue;
 
 
 /**************************************************************************/
@@ -62,9 +62,58 @@ public:
 
 };
 
+/**************************************************************************/
+class genPredModel : public predModel {
+protected:
+   
+
+public:
+    genPredModel();    
+    genPredModel(const genPredModel &model);
+    
+
+    genPredModel &operator = (const genPredModel &model);
+    bool operator ==(const genPredModel &model);    
+
+    int getLength() const  { return 1; }
+    bool operator ==(const predModel &model) { return operator==(dynamic_cast<const genPredModel&>(model)); }
+    
+    /**
+    * initialisation of the matrices typical
+    * @param parameter of the parametric initialisation
+    */
+    void init(double param);
+
+};
 
 /**************************************************************************/
-class linVelModel : public predModel {
+class modelQueue : public std::deque<predModel*>
+{
+private:
+    modelQueue(const modelQueue&);
+    modelQueue &operator=(const modelQueue&);
+
+protected:
+    bool owner;
+
+public:
+    modelQueue()                    { owner = true;        }
+    modelQueue(const bool _owner)   { owner = _owner;      }
+    void setOwner(const bool owner) { this->owner = owner; }
+    bool getOwner()                 { return owner;      }
+    ~modelQueue() {
+        if (owner)
+            for (size_t i=0; i<size(); i++)
+                if ((*this)[i]!=NULL)
+                    delete (*this)[i];
+        
+        clear();
+    }
+};
+
+
+/**************************************************************************/
+class linVelModel : public genPredModel {
 protected:
    
 
@@ -88,7 +137,7 @@ public:
 };
 
 /**************************************************************************/
-class linAccModel : public predModel {
+class linAccModel : public genPredModel {
 protected:
     
 
@@ -115,7 +164,7 @@ public:
 };
 
 /**************************************************************************/
-class minJerkModel : public predModel {
+class minJerkModel : public genPredModel {
 protected:
     static const double a = 1;    // parameters of the model
     static const double b = 1;    // parameters of the model

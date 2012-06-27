@@ -22,12 +22,47 @@
 using namespace yarp::sig;
 
 
-//namespace emorph
+//namespace logpolar
 //{
 
-//namespace ecodec
+//namespace predictor
 //{
 
+
+genPredModel::genPredModel() {
+    valid = true;
+    type = "constVelocity";
+    
+}
+
+genPredModel::genPredModel(const genPredModel &model) {
+    valid = true;
+    type = "constVelocity";
+}
+
+genPredModel &genPredModel::operator =(const genPredModel &model) {
+    valid = model.valid;
+    type  = model.valid;
+    A = model.A;
+    B = model.B;
+    return *this;
+}
+
+bool genPredModel::operator ==(const genPredModel &model) {
+    return ((valid==model.valid)&&(type==model.type)&&(A==model.A)&&(B==model.B)); 
+}
+
+void genPredModel::init(double param) {
+    printf("genPredModel::init: start \n");
+    Matrix _A(3,3);
+    Matrix _B(3,3);
+    A = _A;
+    B = _B;   
+    A.zero();
+    B.zero();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 linVelModel::linVelModel() {
     valid = true;
@@ -55,7 +90,7 @@ bool linVelModel::operator ==(const linVelModel &model) {
 void linVelModel::init(double param) {
     printf("linVelModel::init: start \n");
     Matrix _A(3,3);
-    Matrix _B(3,1);
+    Matrix _B(3,3);
     A = _A;
     B = _B;
     
@@ -92,13 +127,13 @@ bool linAccModel::operator ==(const linAccModel &model) {
 
 void linAccModel::init(double param) {
     Matrix _A(3,3);
-    Matrix _B(3,1);
+    Matrix _B(3,3);
     A = _A;
     B = _B;
 
     A.zero();
     B.zero();
-    B(1,0) = 1;
+    B(1,1) = 1;
 }
 
 
@@ -132,7 +167,7 @@ void minJerkModel::init(double param) {
     T = param;
     
     Matrix _A(3,3);
-    Matrix _B(3,1);
+    Matrix _B(3,3);
     A = _A;
     B = _B;
 
@@ -145,5 +180,5 @@ void minJerkModel::init(double param) {
     A(2,1) = b / (T * T);
     A(2,2) = c / (T * T);
 
-    B(2,0) = a / (T * T * T);
+    B(2,2) = a / (T * T * T);
 }
