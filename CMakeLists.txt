@@ -23,7 +23,8 @@ find_package(IPOPT)
 include(iCubOptions)
 include(iCubHelpers)
 
-SET(CUDAVISION_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
+SET(CUDAVISION_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
+SET(ATTENTIONLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/attentionLib/include)
 
 # default prefix for applications
 set(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}" CACHE PATH "Application path prefix")
@@ -36,7 +37,7 @@ if (ENABLE_CUDA)
   add_subdirectory(cudaVision)
 endif (ENABLE_CUDA)
 
-
+ADD_SUBDIRECTORY(attentionLib)
 add_subdirectory(app)
 add_subdirectory(src)
 
