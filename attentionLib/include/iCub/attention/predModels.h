@@ -169,7 +169,7 @@ protected:
     double a ;    // parameters of the model
     double b ;    // parameters of the model
     double c ;    // parameters of the model
-    double T;                     // period of the motion 
+    double T;     // period of the motion 
 
 public:
     minJerkModel();    
