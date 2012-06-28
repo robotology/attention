@@ -24,6 +24,10 @@
 #include <iCub/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/edgesThread.h>
 
+#ifdef WITH_CUDA
+#include <iCub/cudaVision/cudaVision.h>
+#endif
+
 #include <cstring>
 
 using namespace yarp::os;
@@ -47,12 +51,16 @@ edgesThread::edgesThread():RateThread(RATE_OF_EDGES_THREAD) {
     sobelIsNormalized = 0;
     sobelLimits[0] = 0;
     sobelLimits[1] = 2.0;    
+
+    dImgIn   = 0;
+    dImgOut  = 0;
+    dImgBuff = 0;
    
 }
 
 edgesThread::~edgesThread() {
     
- printf("Edges thread object destroyed.\n");   
+    printf("Edges thread object destroyed.\n");   
     
     
 }
@@ -65,6 +73,16 @@ bool edgesThread::threadInit() {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }    
+    
+    if (!debugOutPort.open(getName("/debug:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }  
+
+#ifdef WITH_CUDA
+    setKernelF32Sep(SOBLE_ROW_H, 0, SOBEL_KERNSIZE);
+    setKernelF32Sep(SOBLE_COL_H, 1, SOBEL_KERNSIZE);
+#endif
     
     return true;
 }
@@ -103,6 +121,9 @@ void edgesThread::resize(int w,int h) {
     tmpMonoSobelImage1->resize(w,h);
     tmpMonoSobelImage2->resize(w,h);
     resized = true;   
+
+
+
 }
 
 
@@ -138,38 +159,51 @@ void edgesThread::edgesExtract() {
     setFlagForThreadProcessing(true);
 
 #ifdef WITH_CUDA   
-        static const float SOBLE_ROW[] =  {-1.62658,  -3.25315,  -0.00000,   3.25315,   1.62658 };
-        static const float SOBLE_COL[] =  {-0.61479,  -2.45915,  -3.68873,  -2.45915,  -0.61479 };
+        // static float SOBLE_ROW[] =  {-1.62658,  -3.25315,  -0.00000,   3.25315,   1.62658 };
+        // static float SOBLE_COL[] =  {-0.61479,  -2.45915,  -3.68873,  -2.45915,  -0.61479 };
 
         CvSize size = cvSize(intensityImage->width(), intensityImage->height());     
         IplImage* hImg = cvCreateImage(size, IPL_DEPTH_32F, 1);
-        cvCvtScale((IplImage*)intensityImage.getIplImage(),hImg, 1.0/255.0); 
+        cvCvtScale((IplImage*)intensityImage->getIplImage(),hImg, 1.0/255.0); 
 
+        
         //alocating memory on GPU if it's required
         // we allocate a big image for left and right together 
-        float *dImgIn, *dImgBuff, dImgOut;
-        HANDLE_ERROR( cudaMalloc((void **)&dImgIn,  size.width*size.height*sizeof(float)) );
-        HANDLE_ERROR( cudaMalloc((void **)&dImgBuff, size.width*size.height*sizeof(float)) );
-        HANDLE_ERROR( cudaMalloc((void **)&dImgOut, size.width*size.height*sizeof(float)) );
+        
+        if(!dImgIn) { 
+            HANDLE_ERROR( cudaMalloc((void **) &dImgIn,   size.width * size.height * sizeof(float)) );
+        }
+        if(!dImgBuff) {
+            HANDLE_ERROR( cudaMalloc((void **) &dImgBuff, size.width * size.height * sizeof(float)) );
+        }
+        if(!dImgOut) {
+            HANDLE_ERROR( cudaMalloc((void **) &dImgOut,  size.width * size.height * sizeof(float)) );  
+        }
 
         HANDLE_ERROR( cudaMemcpy(dImgIn, hImg->imageData, 
-                                 size.width*size.height*sizeof(float), cudaMemcpyHostToDevice) );
+                                 size.width * size.height * sizeof(float), cudaMemcpyHostToDevice) );
+        
         // 1D ROW and COl                          
-        setConvolutionKernel(SOBLE_ROW, 0, 5);
-        setConvolutionKernel(SOBLE_COL, 1, 5);
-        convRowsF32Sep(dImgIn, dImgBuff, 
-                       size.width, size.height, 0, 5);
-        convRowsF32Sep(dImgBuff, dImgOut, 
-                       size.width, size.height, 1, 5);
-
+        
+        convF32Sep(dImgOut, dImgIn, 
+                   size.width, size.height,
+                   0, 1, SOBEL_KERNSIZE, dImgBuff);        
+               
         HANDLE_ERROR( cudaMemcpy(hImg->imageData, dImgOut, 
                       size.width*size.height*sizeof(float), cudaMemcpyDeviceToHost) ); 
-
-
-        HANDLE_ERROR( cudaFree(dImgIn) );
-        HANDLE_ERROR( cudaFree(dImgBuff) );
-        HANDLE_ERROR( cudaFree(dImgOut) );
-        cvReleaseImage(hImg);
+      
+        //sending image to a debug port
+        if(debugOutPort.getOutputCount()) {
+            ImageOf<PixelMono> &debugOutImage = debugOutPort.prepare(); 
+            debugOutImage.resize(intensityImage->width(),intensityImage->height());
+            //IplImage *cvDebugOutImage = (IplImage*)debugOutImage.getIplImage();
+            cvCvtScale(hImg, debugOutImage.getIplImage(), 255);
+            //cvCopy(hImg, debugOutImage.getIplImage());
+            debugOutPort.write();
+        }
+             
+     
+        cvReleaseImage(&hImg);
 #else
     // X derivative 
     tmpMonoSobelImage1->zero();
@@ -240,11 +274,25 @@ void edgesThread::threadRelease() {
     printf("Releasing edges thread ...\n");
     edges.interrupt();
     edges.close();
+    debugOutPort.interrupt();
+    debugOutPort.close();
 
     //deallocating resources
     delete intensityImage;
     delete tmpMonoSobelImage1;
     delete tmpMonoSobelImage2;  
+
+#ifdef WITH_CUDA
+    if(dImgIn) {
+        HANDLE_ERROR( cudaFree(dImgIn) );
+    }
+    if(dImgBuff) {
+        HANDLE_ERROR( cudaFree(dImgBuff) );
+    }
+    if(dImgOut) {
+        HANDLE_ERROR( cudaFree(dImgOut) );
+    }
+#endif
 
     printf("Done with releasing edges thread\n");
     

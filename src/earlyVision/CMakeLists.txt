@@ -14,9 +14,9 @@ FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${logpolar_INCLUDE_DIRS}
+    ${CUDAVISION_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS} 	
     ${OPENCV_INCLUDE_DIR}    
-    	
 )
 
 # Search for source code.
@@ -37,7 +37,8 @@ IF (folder_source)
     MESSAGE("OpenCV_LIBS ${OpenCV_LIBS}" )
 
     if (ENABLE_CUDA)  
-        TARGET_LINK_LIBRARIES(${KEYWORD} logpolar cudaVision ${OpenCV_LIBS} ${YARP_LIBRARIES} )	
+        INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
+        TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${CUDA_LIBRARIES} cudaVision ${OpenCV_LIBS} ${YARP_LIBRARIES} )	
     else (ENABLE_CUDA)
         TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${OpenCV_LIBS} ${YARP_LIBRARIES} )	
     endif (ENABLE_CUDA)

@@ -498,9 +498,42 @@ void attPrioritiserThread::run() {
     //double start = Time::now();
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
-
     
-    
+    // checking for missed commands
+    double timeoutResponse = Time::now() - timeoutResponseStart;
+    if(timeoutResponse > 10.0) {
+ 
+        pendingCommand->clear();
+        if(waitResponse[0]) {
+            printf("TIMEOUT RESPONSE in WAITING\n");
+            pendingCommand->addString("WAIT_ACC");
+        }
+        else if(waitResponse[1]) {
+            printf("TIMEOUT RESPONSE in WAITING\n");
+            pendingCommand->addString("WAIT_ACC");
+        }
+        else if(waitResponse[2]) {
+            printf("TIMEOUT RESPONSE in VERGENCE\n");
+            pendingCommand->addString("VER_REF");
+        }
+        else if(waitResponse[3]) {
+            printf("TIMEOUT RESPONSE in SMPURSUIT \n");
+            pendingCommand->addString("SM_ACC");
+        }
+        else if(waitResponse[4]) {
+            printf("TIMEOUT RESPONSE in SACCADE \n");
+            pendingCommand->addString("SAC_FAIL");
+        }
+        else if(waitResponse[5]) {
+            printf("TIMEOUT RESPONSE in \n");
+            pendingCommand->addString("SAC_FAIL");
+        }
+        else if(waitResponse[6]) {
+            printf("TIMEOUT RESPONSE in SACCADE\n");
+            pendingCommand->addString("PRED_FAIL");
+        }
+        isPendingCommand = true;    
+    }
 
     // checking for pending communication
     if(isPendingCommand) {
@@ -564,6 +597,7 @@ void attPrioritiserThread::run() {
         // ----------------  Trajectory Prediction  -----------------------
         state(6) = 1; state(5) = 0; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[6] = true;
+        timeoutResponseStart = Time::now(); //starting the timer for a control on responses
         
         printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
         
@@ -639,7 +673,8 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(5)>0) {
         // ----------------  Express Saccade  -----------------------
         state(6) = 0; state(5) = 1 ; state(4) = 0; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
-        waitResponse[4] = true;
+        waitResponse[4] = true;            // waitResponse[4] because action is planned saccade
+        timeoutResponseStart = Time::now(); //starting the timer for a control on responses
         
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
@@ -964,6 +999,7 @@ void attPrioritiserThread::run() {
         // ----------------  Smooth Pursuit  -----------------------
         state(6) = 0 ; state(5) = 0 ; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[3] = true;
+        timeoutResponseStart = Time::now();
         amplitude = sqrt(Vx * Vx + Vy * Vy) / 100.0;
 
         if(!executing) {                       
@@ -988,6 +1024,7 @@ void attPrioritiserThread::run() {
         // ----------------  Vergence  -----------------------
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
         waitResponse[2] = true;
+        timeoutResponseStart = Time::now();
         amplitude = 1;
         
 
@@ -1078,6 +1115,7 @@ void attPrioritiserThread::run() {
         //--------------- wait --------------------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         waitResponse[1] = true;
+        timeoutResponseStart = Time::now();
         amplitude = 0;
         //tracker->init(u,v);
         //tracker->waitInitTracker();
@@ -2061,6 +2099,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         //****************************** ACTION RESPONSES  ************************************************//
         //**** this section regulates the state transition indicating state of agent after action *********//
         else if(!strcmp(name.c_str(),"SAC_FAIL")) {
+            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
             printf("reset the correcting flag \n");
             // saccade accomplished flag reset           
             mutex.wait();
@@ -2277,6 +2316,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"VER_REF")) && (waitResponse[2])) {
             waitResponse[2] = false;
+            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
+             
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();
@@ -2357,6 +2398,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
         }
         else if((!strcmp(name.c_str(),"SM_ACC")) && (waitResponse[3])) {
+            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
             waitResponse[3] = false;
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -2423,6 +2465,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
         }
         else if((!strcmp(name.c_str(),"PRED_FAIL")) && (waitResponse[6])) {
+            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
             waitResponse[6] = false;
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -2653,6 +2696,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"WAIT_ACC")) && (waitResponse[1])) {
             waitResponse[1] = false;
+            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
+
+
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();

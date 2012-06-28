@@ -182,6 +182,13 @@ static double GabM45D[25] = {
   -0.000000000000000,  -0.000525673033146,  -0.001191308487465,  -0.001576939035873,  -0.001445020194082
 };
 
+#ifdef WITH_CUDA
+#define SOBEL_KERNSIZE 5
+static float SOBLE_ROW_H[] =  {2.6387e-04, 1.0645e-01, 7.8657e-01, 1.0645e-01, 2.6387e-04};
+static float SOBLE_COL_H[] =  {2.6387e-04, 1.0645e-01, 7.8657e-01, 1.0645e-01, 2.6387e-04};
+static float SOBLE_COL_V[] =  {2.6387e-04, 1.0645e-01, 7.8657e-01, 1.0645e-01, 2.6387e-04};
+static float SOBLE_ROW_V[] =  {2.6387e-04, 1.0645e-01, 7.8657e-01, 1.0645e-01, 2.6387e-04};
+#endif
 
 
 // 5x5 Sobel matrix is non-separable (has rank 2), hence convolution is 2D

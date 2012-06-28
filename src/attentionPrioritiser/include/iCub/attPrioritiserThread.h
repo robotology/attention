@@ -170,6 +170,7 @@ private:
     double predXpos, predYpos;              // predicted X and Y position
     double predTime;                        // predicted time necessary to accomplished the tracking action
     double waitTime;                        // time to allow in the wait action
+    double timeoutResponseStart;            // starting time measure for the wait response
     double predDistance;                    // predicted distance of the stimulus from the fovea
     
     double phi;                             // value passed for relative vergence from the maximum shift

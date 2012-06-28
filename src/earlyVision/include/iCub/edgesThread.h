@@ -73,7 +73,8 @@ sobel2DXConvolution;
 sobel2DYConvolution;    
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edges;    
-
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > debugOutPort;    
+    
     int widthLP;         // original width of logpolar image 
     int heightLP;
     int widthUnXnt;
@@ -87,7 +88,10 @@ sobel2DYConvolution;
     yarp::sig::ImageOf<yarp::sig::PixelMono>  *intensityImage;  // unextended intensity image 
     SobelOutputImage *tmpMonoSobelImage1;
     SobelOutputImage *tmpMonoSobelImage2;
-    float sobelLimits[2];   // maximum and minimum of Sobel operator results    
+
+    float sobelLimits[2];                          // maximum and minimum of Sobel operator results    
+    float *dImgIn, *dImgBuff, *dImgOut;            // variables for cuda processing
+    
     std::string name;       // rootname of all the ports opened by this thread    
 
 public:
