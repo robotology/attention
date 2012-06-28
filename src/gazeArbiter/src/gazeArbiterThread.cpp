@@ -872,17 +872,25 @@ void gazeArbiterThread::run() {
                                 printf("starting visual correction with\n");
                                 tracker->init(u,v);
                                 tracker->waitInitTracker();
-                                Time::delay(0.01);
+                                Time::delay(0.5);
                             }
                             Vector px(2);
                             px(0) = u;
                             px(1) = v;
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            Time::delay(0.1);
+                            Time::delay(0.2);
                             igaze->checkMotionDone(&done);
                             printf("first check motion done %d \n", done);
                             dist = 10;
+                            Time::delay(0.5);
+                            
+                            if(visualCorrection){
+                                printf("starting visual correction with\n");
+                                tracker->init(160,120);
+                                tracker->waitInitTracker();
+                                Time::delay(0.5);
+                            }
                             
                             //igaze->getFixationPoint(xo);
                             //printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
