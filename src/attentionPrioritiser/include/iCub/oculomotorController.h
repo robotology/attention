@@ -381,14 +381,16 @@ public:
     * @brief function that performs Q-learning using a perfect random decision of the action to take
     * @return true if and only if the next state (selected) is the sink state
     * @param state_next next state where the controller ends up
+    * @param randomProb probability of choosing completely random value
     */
-    bool randomWalk(int& state_next);
+    bool randomWalk(int& state_next, double randomProb);
 
     /**
     * @brief function that performs Q-learning using the built policy.
     * @return true if and only if the next state (selected) is the sink state
+    * @param policyProb probability of choosing policy action over random action
     */
-    bool policyWalk();
+    bool policyWalk(double policyProb);
 
     /**
     * @brief one single step of the learning which consists in selecting a path from the initial state to the final state.

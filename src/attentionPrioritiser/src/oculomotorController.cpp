@@ -340,7 +340,7 @@ std::string oculomotorController::getName(const char* p) {
     return str;
 }
 
-bool oculomotorController::policyWalk(){
+bool oculomotorController::policyWalk(double policyProb){
     bool ret = false;
     printf("state_now : %d \n", A->operator()(0,state_now));
     action_now = A->operator()(0,state_now);
@@ -348,24 +348,41 @@ bool oculomotorController::policyWalk(){
     printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
     printf("a = %s \n", a.toString().c_str());
     
-    /*
+    
     //looking at the Psa for this state and the selected action
-    int pos = state_now * NUMACTION + action_now;
-    printf("looking for position %d  : %d %d\n", pos, state_now, action_now);
+    int pos = state_now; // * NUMACTION + action_now;
+    printf("looking for position %d  ; %d %d\n", pos, state_now, action_now);
     Vector v = Q->getRow(pos);
     
     printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
+    Vector c(v.size());
+    double sum = 0;
     int posInVector = 0;
     for(int j = 0; j < v.size(); j++) {
         if(v[j] > maxInVector) {
             maxInVector = v[j];
             posInVector = j;
-            //Psa->operator()(pos,j) -= 0.01;
         }
-        
+        sum += v[j];
+        c[j] = sum;
     }
-    */
+
+    double ifPolicyAction = Random::uniform();
+    int j;
+    if(ifPolicyAction > policyProb) {
+        // performing completely random action
+        double randAction   = Random::uniform();
+        //double randAction = (rand() / 1000000000.0);        
+        for (j = 0 ; j < c.size(); j++) {
+            if (c[j] > randAction) break;
+        }
+        printf("randomAction %f . action selected %d \n", randAction, j);
+    }
+    else {
+        // performing the action with greater quality measure
+        j = posInVector; //best choice given previous run
+    }
    
     /*
     printf("max value found in vector %f \n", maxInVector);
@@ -380,6 +397,7 @@ bool oculomotorController::policyWalk(){
     
     // trying to execute the selected action 
     // if successful the system moves to the next state
+    action_now = j;
     if(allowStateRequest(action_now)) {
         //count++;
         //statenext = state_next;
@@ -387,29 +405,27 @@ bool oculomotorController::policyWalk(){
         //printf("success in the action, probably sets a new statevalue %d \n", statevalue);
         ret = true;
     }
-    
-
 
     return ret;
 }
 
 
-bool oculomotorController::randomWalk(int& statenext) {
+bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     bool ret = false;
-    //double a = (rand() / 100000000) % NUMACTION ;
+    
     double a = Random::uniform() * NUMACTION;
     action_now = (int) a;
     printf(" %f \n", a);
     printf("selected action number %d: %s \n",action_now,actionList[action_now].c_str());
 
     //looking at the Psa for this state and the selected action
-    int pos = state_now * NUMACTION + action_now;
+    int pos = state_now; // * NUMACTION + action_now;
     printf("looking for position %d; State:%d,Action:%d\n", pos, state_now, action_now);
-    Vector  v = Psa->getRow(pos);
+    Vector  v = Q->getRow(pos);
     printf("v = %s \n", v.toString().c_str());
     
     // given the vector of transition and considering the transition probability
-    // select the action and build the comulative vector
+    // select the action and build the cumulative vector
     double maxInVector = 0.0;
     Vector c(v.size());
     double sum = 0;
@@ -418,8 +434,6 @@ bool oculomotorController::randomWalk(int& statenext) {
         if(v[j] > maxInVector) {
             maxInVector = v[j];
             posInVector = j;
-            //Psa->operator()(pos,j) -= 0.01;
-            
         }
         sum += v[j];
         c[j] = sum;
@@ -433,7 +447,8 @@ bool oculomotorController::randomWalk(int& statenext) {
     // the probability that the selection comes from stochastic measure is given by ifRandAction
     double ifRandAction = Random::uniform();
     int j;
-    if(ifRandAction > 0.9) {    
+    if(ifRandAction > randomProb) {
+        // performing completely random action
         double randAction   = Random::uniform();
         //double randAction = (rand() / 1000000000.0);        
         for (j = 0 ; j < c.size(); j++) {
@@ -442,6 +457,7 @@ bool oculomotorController::randomWalk(int& statenext) {
         printf("randomAction %f . action selected %d \n", randAction, j);
     }
     else {
+        // performing the action with greater quality measure
         j = posInVector; //best choice given previous run
     }
 
@@ -623,12 +639,12 @@ void oculomotorController::learningStep() {
         if(s >= k) {
             printf("policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
-            actionPerformed = policyWalk();
+            actionPerformed = policyWalk(s);
         }
         else {
             printf("randomWalk action selection \n");
             fprintf(logFile,"randomWalk > ");
-            actionPerformed = randomWalk(state_next);
+            actionPerformed = randomWalk(state_next,s);
         }
         
     

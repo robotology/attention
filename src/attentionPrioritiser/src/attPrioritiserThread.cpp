@@ -391,7 +391,7 @@ void attPrioritiserThread::interrupt() {
     desiredTrackPort.interrupt();
     trackPositionPort.interrupt();
     directPort.interrupt();
-    facePort.close();
+    facePort.interrupt();
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -417,35 +417,36 @@ void attPrioritiserThread::threadRelease() {
     facePort.close();
     printf("closing timing port \n");
     timingPort.close();
-    printf("\n \n successfully closed all the ports \n");
+    printf("\n \n attPrioritiserThread::threadRelease:successfully closed all the ports \n");
 
     delete eyeL;
     delete eyeR;
-    printf("successfully deleted eyes references \n");
+    printf("attPrioritiserThread::threadRelease:successfully deleted eyes references \n");
 
 
-    //printf("successfully restored previous gaze context \n"); 
+    
     delete clientGazeCtrl;
+    printf("attPrioritiserThread::threadRelease:successfully restored previous gaze context \n"); 
     
     if(0!=sacPlanner) {
-        printf("deleting the clientPlanner \n");
+        printf("attPrioritiserThread::threadRelease:deleting the clientPlanner \n");
         sacPlanner->stop();
     }
 
     if(0 != tracker) {
-        printf("stopping the tracker \n");
+        printf("attPrioritiserThread::threadRelease:stopping the tracker \n");
         tracker->stop();
     }
     
     if(0!=trajPredictor) {
-        printf("stopping the traject.Predictor \n");
+        printf("attPrioritiserThread::threadRelease:stopping the traject.Predictor \n");
         //trajPredictor->stop();
-        printf("success in stopping traj.Predict \n");
+        printf("attPrioritiserThread::threadRelease:success in stopping traj.Predict \n");
     }
-    printf("corretly stopped the trajPredictor \n");
+    printf("attPrioritiserThread::threadRelease:corretly stopped the trajPredictor \n");
     
     //delete sacPlanner;
-    printf("deleted the sacPlanner \n");
+    printf("attPrioritiserThread::threadRelease:deleted the sacPlanner \n");
 }
 
 void attPrioritiserThread::setDimension(int w, int h) {
@@ -697,7 +698,7 @@ void attPrioritiserThread::run() {
 
             // immediate accomplish command for express saccade
             pendingCommand->clear();
-            pendingCommand->addString("SAC_ACC");
+            pendingCommand->addString("SAC_ACC_HIGH");
             isPendingCommand = true; 
             
             /*
@@ -886,6 +887,11 @@ void attPrioritiserThread::run() {
                         //notif.addDouble(3);                  // code for fixStableKO
                         //setChanged();
                         //notifyObservers(&notif);
+
+                        // immediate accomplish command for express saccade
+                        pendingCommand->clear();
+                        pendingCommand->addString("SAC_FAIL_HIGH");
+                        isPendingCommand = true; 
                     }
                     else {
                         printf("Saccade accomplished command received \n");
@@ -899,6 +905,11 @@ void attPrioritiserThread::run() {
                         //notifyObservers(&notif);
                         //printf("stopping vergence \n");
                         //stopVergence = false;
+                        
+                        // immediate accomplish command for express saccade
+                        pendingCommand->clear();
+                        pendingCommand->addString("SAC_ACC_HIGH");
+                        isPendingCommand = true; 
                     }
 
 
@@ -955,7 +966,6 @@ void attPrioritiserThread::run() {
         waitResponse[3] = true;
         amplitude = sqrt(Vx * Vx + Vy * Vy) / 100.0;
 
-        
         if(!executing) {                       
             printf("---------------- Smooth Pursuit --------------\n");
             printf("SM_PUR %f %f %f \n", Vx, Vy, time);
@@ -2050,8 +2060,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
         //****************************** ACTION RESPONSES  ************************************************//
         //**** this section regulates the state transition indicating state of agent after action *********//
-
-        else if((!strcmp(name.c_str(),"SAC_FAIL")) && (waitResponse[4])) {
+        else if(!strcmp(name.c_str(),"SAC_FAIL")) {
+            printf("reset the correcting flag \n");
+            // saccade accomplished flag reset           
+            mutex.wait();
+            correcting = false;
+            //executing = false;
+            mutex.post();
+        }
+        else if((!strcmp(name.c_str(),"SAC_FAIL_HIGH")) && (waitResponse[4])) {
             waitResponse[4] = false;
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -2059,12 +2076,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 value.addString("M38");
                 facePort.write();
             }
-            
-            // saccade accomplished           
-            mutex.wait();
-            correcting = true;
-            //executing = false;
-            mutex.post();
 
             //extracting reward measures
             timing    = Time::now() - startAction;
@@ -2108,7 +2119,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             */
             
         }
-        else if((!strcmp(name.c_str(),"SAC_ACC")) && (waitResponse[4])) {
+        else if(!strcmp(name.c_str(),"SAC_ACC")) {
+            printf("changing the correcting status");
+
+            // saccade accomplished flag set 
+            mutex.wait();
+            correcting = true;
+            //executing = false;
+            mutex.post();
+        }
+        else if((!strcmp(name.c_str(),"SAC_ACC_HIGH")) && (waitResponse[4])) {
             waitResponse[4] = false;
 
             if(facePort.getOutputCount()) {
@@ -2117,12 +2137,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 value.addString("M0B");
                 facePort.write();
             }
-            
-            // saccade accomplished           
-            mutex.wait();
-            correcting = true;
-            //executing = false;
-            mutex.post();
 
             
             //  changing the accomplished flag
