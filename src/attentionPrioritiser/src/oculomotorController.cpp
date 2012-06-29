@@ -31,7 +31,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 20
+#define MAXCOUNTRAND 1
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
@@ -341,6 +341,11 @@ std::string oculomotorController::getName(const char* p) {
 }
 
 bool oculomotorController::policyWalk(double policyProb){
+    
+    ap->setFacialExpression("L04");
+    ap->setFacialExpression("R04");
+
+
     bool ret = false;
     printf("state_now : %d \n", A->operator()(0,state_now));
     action_now = A->operator()(0,state_now);
@@ -411,6 +416,10 @@ bool oculomotorController::policyWalk(double policyProb){
 
 
 bool oculomotorController::randomWalk(int& statenext, double randomProb) {
+
+    ap->setFacialExpression("L06");
+    ap->setFacialExpression("R06");
+    
     bool ret = false;
     
     double a = Random::uniform() * NUMACTION;
@@ -639,12 +648,12 @@ void oculomotorController::learningStep() {
         if(s >= k) {
             printf("policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
-            actionPerformed = policyWalk(s);
+            actionPerformed = policyWalk(0.9);
         }
         else {
             printf("randomWalk action selection \n");
             fprintf(logFile,"randomWalk > ");
-            actionPerformed = randomWalk(state_next,s);
+            actionPerformed = randomWalk(state_next,0.1);
         }
         
     

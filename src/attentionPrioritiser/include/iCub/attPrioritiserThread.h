@@ -332,6 +332,12 @@ public:
     void setResourceFinder(yarp::os::ResourceFinder* resourceFinder) {rf = resourceFinder; };
 
     /**
+     * @brief function that sends a particular command to the serial port for facial express
+     * @param command string to be sent to the serial port
+     */
+    void setFacialExpression(std::string command);
+
+    /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added
     * @return rootname 
