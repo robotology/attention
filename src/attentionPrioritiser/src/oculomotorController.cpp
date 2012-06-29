@@ -417,8 +417,8 @@ bool oculomotorController::policyWalk(double policyProb){
 
 bool oculomotorController::randomWalk(int& statenext, double randomProb) {
 
-    ap->setFacialExpression("L06");
-    ap->setFacialExpression("R06");
+    ap->setFacialExpression("L08");
+    ap->setFacialExpression("R08");
     
     bool ret = false;
     
