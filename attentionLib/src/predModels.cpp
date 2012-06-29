@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /* 
- * Copyright (C) 2011 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
- * Author: Ugo Pattacini
- * email:  ugo.pattacini@iit.it
+ * Copyright (C) 2012 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+ * Author: Francesco Rea
+ * email:  francesco.rea@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -32,7 +32,8 @@ namespace predictor
 genPredModel::genPredModel() {
     valid = true;
     type = "constVelocity";
-    
+    rowA = 0;
+    colA = 0;
 }
 
 genPredModel::genPredModel(const genPredModel &model) {
@@ -52,14 +53,18 @@ bool genPredModel::operator ==(const genPredModel &model) {
     return ((valid==model.valid)&&(type==model.type)&&(A==model.A)&&(B==model.B)); 
 }
 
-void genPredModel::init(double param) {
-    
+    void genPredModel::init(double paramA, double paramB) {
+    rowA = 3;
+    colA = 3;
     Matrix _A(3,3);
     Matrix _B(3,3);
+    Matrix _H(3,3);
     A = _A;
     B = _B;   
+    H = _H;
     A.zero();
     B.zero();
+    H.zero();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,28 +85,32 @@ linVelModel &linVelModel::operator =(const linVelModel &model) {
     type  = model.valid;
     A = model.A;
     B = model.B;
+    H = model.H;
     return *this;
 }
 
 bool linVelModel::operator ==(const linVelModel &model) {
-    return ((valid==model.valid)&&(type==model.type)&&(A==model.A)&&(B==model.B)); 
+    return ((valid == model.valid) && (type == model.type) && 
+            (A == model.A) && (B == model.B) && (H == model.H)); 
 }
 
-void linVelModel::init(double param) {
-
+    void linVelModel::init(double paramA, double paramB) {
+    rowA = 2;
+    colA = 2;
     Matrix _A(2,2);
     Matrix _B(2,1);
+    Matrix _H(2,2);
     A = _A;
-    B = _B;    
+    B = _B;
+    H = _H;   
     A.zero();
     B.zero();
-    
+    H.zero();    
        
-    A(0,0) = 1; A(0,1) = 0;
-    A(1,0) = 0; A(1,1) = 1;
-    B(0,0) = 0.01;
-    B(1,0) = 0;
-    
+    A(0,0) = 1; 
+    A(1,1) = 1;
+    B(0,0) = 0.01;   
+    H(1,1) = 1;
     
 }
  
@@ -129,20 +138,26 @@ linAccModel &linAccModel::operator =(const linAccModel &model) {
 bool linAccModel::operator ==(const linAccModel &model) {
     return ((valid == model.valid) && (type == model.type) && (A == model.A) && (B == model.B)); 
 }
-
-void linAccModel::init(double param) {
+    
+    void linAccModel::init(double paramA, double paramB) {
+    rowA = 2;
+    colA = 2;
     Matrix _A(2,2);
     Matrix _B(2,1);
+    Matrix _H(2,2);
     A = _A;
     B = _B;
+    H = _H;
     A.zero();
     B.zero();
-    
+    H.zero();    
+       
     //discratisation with sampling rate 0.01
     A(0,0) = 1; A(0,1) = 0.01;
-    A(1,0) = 0; A(1,1) = 1;
+    A(1,1) = 1;
     B(0,1) = 5e-05;
     B(1,0) = 0.01;
+    H(1,1) = 1;
 }
 
 
@@ -172,8 +187,9 @@ bool minJerkModel::operator ==(const minJerkModel &model) {
             && (A == model.A)&&(B == model.B)); 
 }
 
-void minJerkModel::init(double param) {
-    T = param;
+    void minJerkModel::init(double paramT, double paramU) {
+    T = paramT;
+    u = paramU;
     double T2 = T * T;
     double T3 = T2 * T;
 
@@ -181,12 +197,17 @@ void minJerkModel::init(double param) {
     b = -84.9812819469538/T2;
     c = -15.9669610709384/T;
     
+    rowA = 3;
+    colA = 3;
     Matrix _A(3,3);
-    Matrix _B(3,3);
+    Matrix _B(3,1);
+    Matrix _H(3,3);
     A = _A;
     B = _B;
+    H = _H;
     A.zero();
     B.zero();
+    H.zero();
     
     //discretisation with sampling rate 0.01;
     if(T==1) {          
@@ -196,16 +217,16 @@ void minJerkModel::init(double param) {
         B(0,0) = 2.415e-05;
         B(1,0) = 0.0071480;
         B(2,0) = 1.391;
+        H(1,1) = 1;
     }
-    else if (T== 2){
-          
-        A(0,0) = 1;  A(0,1) =  0.009997; A(0,2)=   4.869e-05;
-        A(1,0) =  -0.0009175; A(1,1) = 0.999;  A(1,2) =   0.009608;
-        A(2,0) = -0.1811; A(2,1) =     -0.205; A(2,2) =     0.9223;
-        
+    else if (T== 2){          
+        A(0,0) = 1.000000000; A(0,1) = 0.009997; A(0,2) =  4.869e-05;
+        A(1,0) =  -0.0009175; A(1,1) = 0.999000; A(1,2) =   0.009608;
+        A(2,0) = -0.18110000; A(2,1) = -0.20500; A(2,2) =     0.9223;       
         B(0,0) = 3.079e-06;
         B(1,0) = 0.0009175;
         B(2,0) = 0.1811;
+        H(1,1) = 1;
     }
 
 

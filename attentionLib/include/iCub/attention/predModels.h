@@ -43,21 +43,30 @@ protected:
     std::string type;           // defines the typology of the model
     yarp::sig::Matrix A;        // matrices of the space state
     yarp::sig::Matrix B;        // matrices of the space state
+    yarp::sig::Matrix H;        // trasformation matrix from state to measure
+    int inputId;                // reference to the input value
+    int rowA,colA;              // dimension of the matrix A
 public:
     predModel() : valid(false), type("") { }
     bool isValid() const        { return valid; }
     std::string getType() const { return type;  }
 
-    yarp::sig::Matrix getA() const    {return A; };
-    yarp::sig::Matrix getB() const    {return B; };
+    yarp::sig::Matrix getA() const    {return A;    };
+    yarp::sig::Matrix getB() const    {return B;    };
+    yarp::sig::Matrix getH() const    {return H;    };
+    int               getRowA() const {return rowA; };
+    int               getColA() const {return colA; };
     void setA(const yarp::sig::Matrix mat) {A = mat;};
     void setB(const yarp::sig::Matrix mat) {B = mat;};
-
-    //virtual yarp::sig::Matrix getA() const = 0;
-    //virtual yarp::sig::Matrix getB() const = 0;
-    virtual void init(double param) = 0;
-    //virtual void setB(yarp::sig::Matrix mat) = 0;
+    void setH(const yarp::sig::Matrix mat) {H = mat;};
     
+    /**
+     * @brief function for the initialisation of the kalman filter
+     * @param  param1 first parameter ( only one in 1-Dimension space) 
+     * @param param2 second paramter (eventually NULL in 1-Dimension space)
+     */
+    virtual void init(double param1, double param2 = 0) = 0;
+
     virtual bool operator ==(const predModel &pModel) = 0;
 
 };
@@ -80,9 +89,10 @@ public:
     
     /**
     * initialisation of the matrices typical
-    * @param parameter of the parametric initialisation
+    * @paramA parameter of the parametric initialisation
+    * @second parameter of the initialisation
     */
-    void init(double param);
+    void init(double paramA, double paramB = 0);
 
 };
 
@@ -132,7 +142,7 @@ public:
     * initialisation of the matrices typical
     * @param parameter of the parametric initialisation
     */
-    void init(double param);
+    void init(double paramA, double paramB = 0);
 
 };
 
@@ -144,7 +154,6 @@ protected:
 public:
     linAccModel();    
     linAccModel(const linAccModel &model);
-    
 
     linAccModel &operator = (const linAccModel &model);
     bool operator ==(const linAccModel &model);    
@@ -159,7 +168,7 @@ public:
     * initialisation of the matrices typical
     * @param parameter of the parametric initialisation
     */
-    void init(double param);
+    void init(double paramA, double paramB = 0);
 
 };
 
@@ -169,7 +178,8 @@ protected:
     double a ;    // parameters of the model
     double b ;    // parameters of the model
     double c ;    // parameters of the model
-    double T;     // period of the motion 
+    double T ;    // period of the motion 
+    double u ;    // final position of the predictor
 
 public:
     minJerkModel();    
@@ -189,7 +199,7 @@ public:
     * initialisation of the matrices typical
     * @param parameter of the parametric initialisation
     */
-    void init(double param);
+    void init(double paramA, double paramB = 0);
 
 };
 
