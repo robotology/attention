@@ -382,7 +382,7 @@ bool oculomotorController::policyWalk(double policyProb){
         for (j = 0 ; j < c.size(); j++) {
             if (c[j] > randAction) break;
         }
-        printf("randomAction %f . action selected %d \n", randAction, j);
+        printf("in policy selection randomAction %f . action selected %d \n", randAction, j);
     }
     else {
         // performing the action with greater quality measure
@@ -417,19 +417,19 @@ bool oculomotorController::policyWalk(double policyProb){
 
 bool oculomotorController::randomWalk(int& statenext, double randomProb) {
 
-    ap->setFacialExpression("L08");
-    ap->setFacialExpression("R08");
+    ap->setFacialExpression("L01");
+    ap->setFacialExpression("R01");
     
     bool ret = false;
     
     double a = Random::uniform() * NUMACTION;
-    action_now = (int) a;
+    
     printf(" %f \n", a);
-    printf("selected action number %d: %s \n",action_now,actionList[action_now].c_str());
+    printf("if random, selects action number %d: %s \n",(int)a,actionList[(int)a].c_str());
 
     //looking at the Psa for this state and the selected action
     int pos = state_now; // * NUMACTION + action_now;
-    printf("looking for position %d; State:%d,Action:%d\n", pos, state_now, action_now);
+    printf("looking for position %d; State:%d,Action:%d\n", pos, state_now,(int) a);
     Vector  v = Q->getRow(pos);
     printf("v = %s \n", v.toString().c_str());
     
@@ -464,10 +464,13 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
             if (c[j] > randAction) break;
         }
         printf("randomAction %f . action selected %d \n", randAction, j);
+        action_now = (int) a;
     }
     else {
+        printf("performing policy selection in randomWalk \n");
         // performing the action with greater quality measure
         j = posInVector; //best choice given previous run
+        action_now = j;
     }
 
     // trying to execute the selected action 
@@ -823,7 +826,7 @@ double oculomotorController::estimateReward(double timing, double accuracy, doub
         - timing  * frequency * costAmplitude[action_now] * amplitude * frequency
         - timing  * frequency * costEvent[action_now];
 
-    if(res < 0) res = 0;
+    //if(res < 0) res = 0;
     return res;
 }
 

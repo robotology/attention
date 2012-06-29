@@ -397,6 +397,10 @@ void attPrioritiserThread::interrupt() {
 }
 
 void attPrioritiserThread::threadRelease() {
+
+    delete clientGazeCtrl;
+    printf("attPrioritiserThread::threadRelease:successfully restored previous gaze context \n"); 
+
     inLeftPort.close();
     inRightPort.close();
     printf("closing feedback port \n");
@@ -416,7 +420,7 @@ void attPrioritiserThread::threadRelease() {
     trackPositionPort.close();
     desiredTrackPort.close();
     directPort.close();
-    facePort.close();
+    //facePort.close();
     printf("closing timing port \n");
     timingPort.close();
     printf("\n \n attPrioritiserThread::threadRelease:successfully closed all the ports \n");
@@ -427,8 +431,7 @@ void attPrioritiserThread::threadRelease() {
 
 
     
-    delete clientGazeCtrl;
-    printf("attPrioritiserThread::threadRelease:successfully restored previous gaze context \n"); 
+    
     
     if(0!=sacPlanner) {
         printf("attPrioritiserThread::threadRelease:deleting the clientPlanner \n");
@@ -558,6 +561,8 @@ void attPrioritiserThread::run() {
         if(!allowedTransitions(0)) {
             firstNull = true;
         }
+        
+        setFacialExpression("M08");
         
         //if(facePort.getOutputCount()) {
         //    Bottle& value = facePort.prepare();
@@ -1124,12 +1129,16 @@ void attPrioritiserThread::run() {
                 //printf("vergence: sending relative angle to the gazeArbiter \n");
                 bool port_is_writing;
                 Bottle& commandBottle = outputPort.prepare();
-                commandBottle.clear();
-                commandBottle.addString("VER_REL");
-                commandBottle.addDouble(phi);
-                commandBottle.addDouble(phi2);
-                commandBottle.addDouble(phi3);
-                outputPort.write();
+                for (int i = 0; i < 10 ; i++) {
+                    printf("@");
+                    commandBottle.clear();
+                    commandBottle.addString("VER_REL");
+                    commandBottle.addDouble(phi);
+                    commandBottle.addDouble(phi2);
+                    commandBottle.addDouble(phi3);
+                    outputPort.write();
+                    Time::delay(0.1);
+                }
             }                        
         }
     
