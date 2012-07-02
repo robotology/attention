@@ -1150,18 +1150,17 @@ void attPrioritiserThread::run() {
         amplitude = 0;
         //tracker->init(u,v);
         //tracker->waitInitTracker();
-
-        // executing the saccade
-        Bottle& commandBottle=outputPort.prepare();
+        Bottle& commandBottle = outputPort.prepare();
         commandBottle.clear();
-        commandBottle.addString("SAC_MONO");
-        commandBottle.addInt(u);
-        commandBottle.addInt(v);
-        commandBottle.addDouble(zDistance);
+        commandBottle.addString("WAIT");
+        commandBottle.addDouble(u);
+        commandBottle.addDouble(v);
+        commandBottle.addDouble(0.5);
         outputPort.write();
         
         printf("--------------------- Wait -------------------- \n");
         printf("Standby in Wait ....%s \n", waitType.c_str());
+        /*
         double tstart = Time::now();
         double tdiff = 0;
         while( tdiff < waitTime) {
@@ -1172,6 +1171,7 @@ void attPrioritiserThread::run() {
         pendingCommand->clear();
         pendingCommand->addString("WAIT_ACC");
         isPendingCommand = true;    
+        */
         
         printf("____________________   Wait ____________________ \n");
         

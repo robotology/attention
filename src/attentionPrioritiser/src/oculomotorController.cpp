@@ -343,7 +343,7 @@ std::string oculomotorController::getName(const char* p) {
 bool oculomotorController::policyWalk(double policyProb){
     
     ap->setFacialExpression("L04");
-    ap->setFacialExpression("R04");
+    
 
 
     bool ret = false;
@@ -411,7 +411,10 @@ bool oculomotorController::policyWalk(double policyProb){
         ret = true;
     }
 
+    ap->setFacialExpression("R04");
     return ret;
+
+    
 }
 
 
