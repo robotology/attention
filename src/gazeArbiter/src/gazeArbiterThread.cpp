@@ -153,7 +153,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     stateRequest = req;
     allowedTransitions = req;
 
-    Vector s(4);
+    Vector s(5);
     s(0) = 1;
     s(1) = 0;
     s(2) = 0;
