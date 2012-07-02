@@ -1,0 +1,231 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
+/* 
+ * Copyright (C) 2012 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+ * Author: Francesco Rea
+ * email:  francesco.rea@iit.it
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+
+#ifndef __EVALUATION_THREAD_H__
+#define __EVALUATION_THREAD_H__
+
+#include <yarp/os/all.h>
+#include <yarp/sig/all.h>
+#include <iCub/ctrl/kalman.h>
+#include <yarp/math/Math.h>
+#include <yarp/math/SVD.h>
+#include <iCub/attention/predModels.h>
+
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace iCub::ctrl;
+using namespace yarp::math;
+
+namespace attention
+{
+
+namespace predictor
+{
+
+
+class evalThread : public yarp::os::Thread {
+ protected:
+    iCub::ctrl::Kalman* kSolver;
+    genPredModel gPredModel;
+
+    int numIter;
+    
+    bool dataReady;
+    bool evalFinished;
+   
+    Semaphore mutexR, mutexF; 
+    Vector u, x, z;    
+    Matrix zMeasure, uMeasure;   
+    
+ public:
+    evalThread(){
+        numIter = 3;
+    }
+
+    evalThread(const Matrix &A,const Matrix &B,const Matrix &H,const Matrix &Q,const Matrix &R) {
+        numIter = 3;
+        kSolver = new Kalman(A,B,H,Q,R);
+    }
+    
+    evalThread(genPredModel gpm) {
+        numIter = 3;
+        gPredModel = gpm;
+        int rowA = model->getRowA();
+        int colA = model->getColA();        
+    
+        // initialisation of the karman filter
+        Matrix A = model->getA();
+        Matrix B = model->getB();
+        Matrix H = model->getH();
+        
+        Matrix R (rowA,colA);
+        Matrix Q (rowA,colA);
+        Matrix P0(rowA,colA);
+        
+        Vector z0(rowA);
+        Vector x0(rowA);
+        Vector z(colA);
+        Vector x(colA);
+        Vector u(1);
+        
+        for (int i = 0; i < rowA; i++) {
+            for (int j = 0; j < colA; j++) { 
+                Q(i, j) += 0.01; 
+                R(i, j) += 0.001;
+                P0(i,j) += 0.01;
+            }      
+        }
+
+        kSolver = new Kalman(A,B,H,Q,R);
+        
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////
+
+    virtual bool threadInit(){
+        printf("thread init \n");
+        dataReady    = false;
+        evalFinished = false;
+
+        Time::delay(1);
+        return true;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    
+    virtual void run() {
+        while (!isStopping()) {
+            printf("inside the while \n");
+            
+            mutexR.wait();
+            bool dataR = dataReady;
+            mutexR.post();
+
+            printf("after mutex %d \n", dataR);
+            
+            while(!dataR) {
+                Time::delay(0.5);
+                printf(". \n");
+               
+                mutexR.wait();
+                dataR = dataReady;
+                printf("after data Ready \n");
+                mutexR.post();
+            }
+            printf("out of while \n");
+            
+            // running the filter for the number of measurements
+            mutexR.wait();
+            dataReady = false;
+            mutexR.post();
+
+            for(int i = 0; i < numIter ; i++) {
+                printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
+                
+                double s = Random::uniform() + 0.5 ; 
+                                
+                z = zMeasure.getRow(i);
+                printf("just extracted z = \n %s \n", z.toString().c_str());
+                u = uMeasure.getCol(i);
+                u.resize(1,0);
+                u(0) = 1.5;
+                printf("just extracted u = \n %s \n", u.toString().c_str());
+                x = kSolver->filt(u,z);
+                printf("estim.state %s from % \n", x.toString().c_str()); 
+                //printf("estim.error covariance P:\n %s \n",kSolver.get_P().toString().c_str());
+                
+               
+            }
+
+            //setting the result out
+            printf("setting the result out \n");
+            mutexF.wait();
+            evalFinished = true;
+            mutexF.post();
+            
+        }
+        
+    }
+
+
+
+    ///////////////////////////////////////////////////////////////////
+
+    virtual void onStop() {
+        dataReady = true;
+        numIter = 0;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    virtual void threadRelease() {
+        delete kSolver;
+    }
+
+    //////////////////////////////////////////////////////////////////
+
+    void init(Vector z0, Vector x0, Matrix P0) {
+        kSolver->init(z0, x0, P0);
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    void setMeasurements(Matrix _u, Matrix _z) {
+        printf("setMeasurement \n");
+        dataReady = true;
+        evalFinished = false;
+        uMeasure = _u; zMeasure = _z;
+        printf("uMeasure %s \n", uMeasure.toString().c_str());
+    }
+
+    ////////////////////////////////////////////////////////////////
+
+    Matrix getP() {
+        //mutexF.wait();
+        //while(!finished) {
+        //    mutexF.post();
+        //    Time::delay(0.1);
+        //    mutexF.wait();
+        //}
+        //mutexF.post();
+
+        return kSolver->get_P();
+    }
+
+    ///////////////////////////////////////////////////////////////
+
+    bool getEvalFinished() {
+         mutexF.wait();
+         bool ef = evalFinished;
+         mutexF.post();
+
+         return ef;
+    }
+
+
+};
+
+}
+
+}
+
+#endif
+
+
