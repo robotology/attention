@@ -1432,26 +1432,25 @@ void gazeArbiterThread::run() {
     
     //printf("--------------------------------------------------------->%d \n",done);
  exiting:
-    if(allowedTransitions(4)>0) {
+    if(allowedTransitions(4)>0) { //SACCADE
         mutex.wait();
         allowedTransitions(4) = 0;
         executing = false;
         mutex.post();
     }
-    if(allowedTransitions(3)>0) {
+    if(allowedTransitions(3)>0) {   //SMP
         mutex.wait();
         allowedTransitions(3) = 0;
         executing = false;  //executing=false allows new action commands
         mutex.post();              
     }
-    if(allowedTransitions(2)>0) {
+    if(allowedTransitions(2)>0) { //vergence
         mutex.wait();
         allowedTransitions(2) = 0;
         executing = false;
         mutex.post();
     }
-    if(allowedTransitions(1)>0) {
-        printf("resetting vergence \n");
+    if(allowedTransitions(1)>0) {   // wait
         mutex.wait();
         allowedTransitions(1) = 0;
         executing = false;
@@ -1674,6 +1673,22 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             timeout = 100;
             suspend();
             resume();
+        }
+        else if(!strcmp(name.c_str(),"WAIT")) {
+            // monocular saccades with visualFeedback
+            printf("MONO SACCADE request \n");
+            u = arg->get(1).asInt();
+            v = arg->get(2).asInt();
+            zDistance = 0.5;
+            time = arg->get(3).asDouble();
+            mutex.wait();
+            //setVisualFeedback(true); <<-------- TODO: remove because does not make any sense
+            stateRequest[1] = 1;
+            mutex.post();
+            timetotStart = Time::now();
+            mono = true;
+            firstVer = true;
+            firstVergence = true;
         }
         else if(!strcmp(name.c_str(),"SAC_MONO")) {
             // monocular saccades with visualFeedback
