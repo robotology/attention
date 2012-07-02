@@ -823,7 +823,7 @@ void oculomotorController::logAction(int a) {
 
 double oculomotorController::estimateReward(double timing, double accuracy, double amplitude, double frequency) {
     double res = (accuracy / 10.0) 
-        - timing  * frequency * costAmplitude[action_now] * amplitude * frequency
+        - timing /*s*/ * frequency /*#*/ * costAmplitude[action_now]/*1/degree*/ * amplitude /*degree*/ 
         - timing  * frequency * costEvent[action_now];
 
     //if(res < 0) res = 0;

@@ -505,7 +505,6 @@ void attPrioritiserThread::sendPendingCommand() {
     //highLevelLoopPort.prepare() = *pendingCommand;
     //highLevelLoopPort.write();
     printf("sending pending %s \n", pendingCommand->toString().c_str());
-        
     update(this, pendingCommand);
 }
 
@@ -1151,6 +1150,15 @@ void attPrioritiserThread::run() {
         amplitude = 0;
         //tracker->init(u,v);
         //tracker->waitInitTracker();
+
+        // executing the saccade
+        Bottle& commandBottle=outputPort.prepare();
+        commandBottle.clear();
+        commandBottle.addString("SAC_MONO");
+        commandBottle.addInt(u);
+        commandBottle.addInt(v);
+        commandBottle.addDouble(zDistance);
+        outputPort.write();
         
         printf("--------------------- Wait -------------------- \n");
         printf("Standby in Wait ....%s \n", waitType.c_str());
@@ -1917,8 +1925,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             // saving bottle in the buffer
             bufCommand[1] = *arg;
-            waitType      = arg->get(1).asString(); // reading the typology of waiting: ant (anticipatory), fix (fixation)
-            waitTime      = arg->get(2).asDouble();
+            u             = arg->get(1).asInt();
+            v             = arg->get(2).asInt();
+            waitType      = arg->get(3).asString(); // reading the typology of waiting: ant (anticipatory), fix (fixation)
+            waitTime      = arg->get(4).asDouble();
             
             // reseting the state action history
             mutex.wait();
@@ -2422,6 +2432,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             pendingCommand->clear();
             pendingCommand->addString("WAIT");
+            pendingCommand->addInt(160);
+            pendingCommand->addInt(140);
             pendingCommand->addString("fix");
             pendingCommand->addDouble(0.5);
             isPendingCommand = true;      
@@ -2643,6 +2655,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     setChanged();
                     notifyObservers(&notif);                    
 
+                    /*
                     Bottle& sentPred     = highLevelLoopPort.prepare();
                     Bottle* receivedPred = new Bottle();    
                     sentPred.clear();
@@ -2651,6 +2664,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     sentPred.addInt(predYpos);
                     highLevelLoopPort.write();                    
                     delete receivedPred;
+                    */
+                    
+                    pendingCommand->clear();
+                    pendingCommand->addString("WAIT");
+                    pendingCommand->addInt(predVx);
+                    pendingCommand->addInt(predVy);
+                    pendingCommand->addString("ant");
+                    pendingCommand->addDouble(0.5);
+                    isPendingCommand = true;
+                    
                 }
                 // b. smooth pursuit
                 else { 
@@ -2662,7 +2685,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(4);                  // code for prediction accomplished in motion state
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);notif.addDouble(frequency);
+                    notif.addDouble(amplitude);
+                    notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);
                     
