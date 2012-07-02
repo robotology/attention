@@ -136,18 +136,20 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     xOffset = yOffset = zOffset = 0;
     blockNeckPitchValue =-1;
 
-    Matrix trans(4,4);
-    trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0;
-    trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0;
-    trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0;
-    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 1.0 ; trans(3,3) = 1.0;
+    Matrix trans(5,5);
+    trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0;
+    trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0; trans(1,4) = 1.0;
+    trans(2,0) = 1.0 ; trans(2,1) = 1.0 ; trans(2,2) = 1.0 ; trans(2,3) = 1.0; trans(2,4) = 1.0;
+    trans(3,0) = 1.0 ; trans(3,1) = 1.0 ; trans(3,2) = 1.0 ; trans(3,3) = 1.0; trans(3,4) = 1.0;
+    trans(4,0) = 1.0 ; trans(4,1) = 1.0 ; trans(4,2) = 1.0 ; trans(4,3) = 1.0; trans(4,4) = 1.0;
     stateTransition=trans;
 
-    Vector req(4);
+    Vector req(5);
     req(0) = 0;
     req(1) = 0;
     req(2) = 0;
     req(3) = 0;
+    req(4) = 0;
     stateRequest = req;
     allowedTransitions = req;
 
@@ -156,6 +158,7 @@ gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     s(1) = 0;
     s(2) = 0;
     s(3) = 0;
+    s(4) = 0;
     state = s;
     
     Vector t(3);
@@ -196,8 +199,7 @@ bool gazeArbiterThread::threadInit() {
     }
     else
         return false;
-
-    
+   
     igaze->storeContext(&originalContext);
   
     if(blockNeckPitchValue != -1) {
@@ -588,8 +590,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     q[5]=head[2]* ratio;
     q[6]=head[3]* ratio;
     q[7]=head[4]* ratio;
-    double ver = head[5];
-    //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0]/ratio,q[1]/ratio,q[2]/ratio,q[3]/ratio,q[4]/ratio,q[5]/ratio,q[6]/ratio,q[7]/ratio);                        
+    double ver = head[5];                    
                             
     Vector x(3);
     printf("varDistance %f \n", varDistance);
@@ -606,11 +607,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     Matrix eyeH = eyeL->getH(q);
     //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
     Vector xo = yarp::math::operator *(eyeH,xe);
-    
-    //fp.resize(3,0.0);
-    //fp[0]=xo[0];
-    //fp[1]=xo[1];
-    //fp[2]=xo[2];
+
     printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);    
     
     //adding novel position to the 
@@ -696,12 +693,12 @@ void gazeArbiterThread::run() {
     
     //mutex.wait();
     //Vector-vector element-wise product operator between stateRequest possible transitions
-    if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)) {
+    if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)) {
         printf("stateRequest: %s \n", stateRequest.toString().c_str());
-        Vector c(4);
+        Vector c(5);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c );
-        stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0;
+        stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
         printf("state: %s \n", state.toString().c_str());
         printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     }
@@ -719,8 +716,8 @@ void gazeArbiterThread::run() {
     //printf("state: %s \n", state.toString().c_str());
     //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     
-    if(allowedTransitions(3)>0) {
-        state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
+    if(allowedTransitions(4)>0) {
+        state(4) = 1; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         // ----------------  SACCADE -----------------------
         if(!executing) {                       
             // starting saccade toward the direction of the required position
@@ -1125,12 +1122,8 @@ void gazeArbiterThread::run() {
                                           
                     minCumul = tracker->getLastMinCumul();
                     //printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
-                    
-                  
-                    
+                                        
                 }
-
-
 
                 Time::delay(0.01);
                 if (minCumul > 5000000) {
@@ -1192,9 +1185,9 @@ void gazeArbiterThread::run() {
             Time::delay(0.1);
         }
     }
-    else if(allowedTransitions(2)>0) {
+    else if(allowedTransitions(3)>0) {
         // ----------------  SMOOTH PURSUIT -----------------------  
-        state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
+        state(4) = 0; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         printf(" in RUN of gazeArbiter threadSmooth Pursuit %f %f \n", uVel, vVel);
         printf("velocity profile %f %f \n", uVel, vVel);
         //initilisation
@@ -1268,8 +1261,8 @@ void gazeArbiterThread::run() {
         statusPort.write();
         //delete &status2;                           
     }
-    else if(allowedTransitions(1)>0) {
-        state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
+    else if(allowedTransitions(2)>0) {
+        state(4) = 0; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
         // ----------------  VERGENCE -----------------------     
         //printf("vergence_accomplished : %d \n",accomplished_flag);
         printf("----------  VERGENCE ----------------------- \n");
@@ -1399,25 +1392,57 @@ void gazeArbiterThread::run() {
             }
         }
     }
+    else if(allowedTransitions(1)>0) {
+        // ----------------  WAIT -----------------------  
+        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
+        if((160 != u) && (120 != v)) {
+            // performing saccade
+            
+        }
+        //cycle for the wait of the action
+        double timeend, timeout = 0;
+        double timestart = Time::now();
+        bool exitloop = false;
+        while (timeout < time) {
+            
+        }
+        
+        if(timeout >= time) {
+            printf("timeout occurred, ");
+        }
+        
+        printf("position reached in %f \n \n \n", timeout);
+        printf("WAIT ACCOMPLISHED \n");
+        
+        printf("\n");
+        //sending the acknowledgement vergence_accomplished
+        Bottle& status2 = statusPort.prepare();
+        status2.clear();
+        status2.addString("WAIT_ACC");
+        statusPort.write();
+        //delete &status2;                           
+    }
     else if(allowedTransitions(0)>0) {
-        state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
+        //-------------------- NULL -------------------------------------------
+        state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
     }
     else {
         //printf("No transition \n");
     }
     
     //printf("--------------------------------------------------------->%d \n",done);
- exiting:            
+ exiting:
+    if(allowedTransitions(4)>0) {
+        mutex.wait();
+        allowedTransitions(4) = 0;
+        executing = false;
+        mutex.post();
+    }
     if(allowedTransitions(3)>0) {
-        //igaze->checkMotionDone(&done);  // the only action that should not be tracking therefore it make wait till the end
-        //if (done) {
         mutex.wait();
         allowedTransitions(3) = 0;
         executing = false;  //executing=false allows new action commands
-        printf ("\n\n\n\n\n");
-        mutex.post();
-        // printf("saccadic event : done \n");
-        //}        
+        mutex.post();              
     }
     if(allowedTransitions(2)>0) {
         mutex.wait();
@@ -1658,7 +1683,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             zDistance = arg->get(3).asDouble();
             mutex.wait();
             //setVisualFeedback(true); <<-------- TODO: remove because does not make any sense
-            stateRequest[3] = 1;
+            stateRequest[4] = 1;
             mutex.post();
             timetotStart = Time::now();
             mono = true;
@@ -1673,7 +1698,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             zDistance = arg->get(3).asDouble();
             mutex.wait();
             //setVisualFeedback(false);
-            stateRequest[3] = 1;
+            stateRequest[4] = 1;
             //executing = false;
             mutex.post();
             timetotStart = Time::now();
@@ -1687,7 +1712,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             zObject = arg->get(3).asDouble();
             printf("received request of abs saccade in position %f %f %f \n", xObject, yObject, zObject);
             mutex.wait();
-            stateRequest[3] = 1;
+            stateRequest[4] = 1;
             //executing = false;
             mutex.post();
             mono = false;
@@ -1700,7 +1725,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             time = arg->get(3).asDouble();
             printf("velocity %f %f %f \n", uVel, vVel,time);
             mutex.wait();
-            stateRequest[2] = 1;
+            stateRequest[3] = 1;
             //velControl->setVelocityComponents(uVel, vVel);
             //executing = false;
             mutex.post();
@@ -1712,7 +1737,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             phi3 = arg->get(3).asDouble();
             mutex.wait();
             mono = true;
-            stateRequest[1] = 1;
+            stateRequest[2] = 1;
             //executing = false;
             mutex.post();
         }
@@ -1724,7 +1749,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             
             mutex.wait();
             mono = true;
-            stateRequest[1] = 1;
+            stateRequest[2] = 1;
             //executing = false;
             mutex.post();
         }
