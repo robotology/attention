@@ -38,11 +38,10 @@ namespace attention
 namespace predictor
 {
 
-
 class evalThread : public yarp::os::Thread {
  protected:
     iCub::ctrl::Kalman* kSolver;
-    genPredModel gPredModel;
+    genPredModel* gPredModel;
 
     int numIter;
     
@@ -63,9 +62,9 @@ class evalThread : public yarp::os::Thread {
         kSolver = new Kalman(A,B,H,Q,R);
     }
     
-    evalThread(genPredModel gpm) {
+    evalThread(genPredModel* model) {
         numIter = 3;
-        gPredModel = gpm;
+        gPredModel = model;
         int rowA = model->getRowA();
         int colA = model->getColA();        
     
@@ -112,13 +111,13 @@ class evalThread : public yarp::os::Thread {
     
     virtual void run() {
         while (!isStopping()) {
-            printf("inside the while \n");
+            //printf("inside the while \n");
             
             mutexR.wait();
             bool dataR = dataReady;
             mutexR.post();
 
-            printf("after mutex %d \n", dataR);
+            //printf("after mutex %d \n", dataR);
             
             while(!dataR) {
                 Time::delay(0.5);
@@ -126,7 +125,7 @@ class evalThread : public yarp::os::Thread {
                
                 mutexR.wait();
                 dataR = dataReady;
-                printf("after data Ready \n");
+
                 mutexR.post();
             }
             printf("out of while \n");
