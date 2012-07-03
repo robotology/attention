@@ -137,8 +137,10 @@ public:
     /************************************************************************/
     virtual void run()
     {
+        int count = 0;
         while (!isStopping())
         {
+            count++;
             // acquire new image
             ImageOf<PixelBgr> *pImgBgrIn=inPort.read(true);
 
@@ -184,28 +186,30 @@ public:
                 // update point coordinates
                 point.x=search_roi.x+minLoc.x+(template_roi.width>>1);
                 point.y=search_roi.y+minLoc.y+(template_roi.height>>1);
-
-                // draw results on the output-image
-                CvPoint p0, p1;
-                p0.x=point.x-(template_roi.width>>1);
-                p0.y=point.y-(template_roi.height>>1);
-                p1.x=p0.x+template_roi.width;
-                p1.y=p0.y+template_roi.height;
-                cvRectangle(imgBgrOut.getIplImage(),p0,p1,cvScalar(0,0,255),1);
-
-                cvRectangle(imgBgrOut.getIplImage(),cvPoint(search_roi.x,search_roi.y),
-                            cvPoint(search_roi.x+search_roi.width,search_roi.y+search_roi.height),
-                            cvScalar(255,0,0),2);
                 
-                cvRectangle(imgBgrOut.getIplImage(),cvPoint(point.x - 1 ,point.y - 1),
-                            cvPoint(point.x + 1, point.y + 1),
-                            cvScalar(0,0,255),2);
-
-                cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
-                            cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
-                            cvScalar(0,255,0),2);
-
-                cvCircle( imgBgrOut.getIplImage(), cvPoint(160,120), 30 , cvScalar(0,255,0), 1 );
+                if(count%5 == 0) {
+                    // draw results on the output-image
+                    CvPoint p0, p1;
+                    p0.x=point.x-(template_roi.width>>1);
+                    p0.y=point.y-(template_roi.height>>1);
+                    p1.x=p0.x+template_roi.width;
+                    p1.y=p0.y+template_roi.height;
+                    cvRectangle(imgBgrOut.getIplImage(),p0,p1,cvScalar(0,0,255),1);
+                    
+                    cvRectangle(imgBgrOut.getIplImage(),cvPoint(search_roi.x,search_roi.y),
+                                cvPoint(search_roi.x+search_roi.width,search_roi.y+search_roi.height),
+                                cvScalar(255,0,0),2);
+                    
+                    cvRectangle(imgBgrOut.getIplImage(),cvPoint(point.x - 1 ,point.y - 1),
+                                cvPoint(point.x + 1, point.y + 1),
+                                cvScalar(0,0,255),2);
+                    
+                    cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
+                                cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
+                                cvScalar(0,255,0),2);
+                    
+                    cvCircle( imgBgrOut.getIplImage(), cvPoint(160,120), 30 , cvScalar(0,255,0), 1 );
+                }
 
                 //-------------------------------------------------------------------------------------------
                 // updating the proximity measure

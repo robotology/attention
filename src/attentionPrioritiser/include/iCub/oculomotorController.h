@@ -78,7 +78,7 @@ const static double costEvent[NUMACTION] = {
 
 static const std::string stateList[15] =  {
     "null",           //0
-    "uPredict",       //1
+    "fixPredict",     //1
     "mPredict",       //2
     "LPredict",       //3
     "motPredict",     //4

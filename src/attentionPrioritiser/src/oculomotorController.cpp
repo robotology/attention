@@ -31,7 +31,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 1
+#define MAXCOUNTRAND 100.0
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
@@ -341,11 +341,10 @@ std::string oculomotorController::getName(const char* p) {
 }
 
 bool oculomotorController::policyWalk(double policyProb){
-    
+    countSucc++;
+    ap->setFacialExpression("R04");
     ap->setFacialExpression("L04");
     
-
-
     bool ret = false;
     printf("state_now : %d \n", A->operator()(0,state_now));
     action_now = A->operator()(0,state_now);
@@ -411,7 +410,7 @@ bool oculomotorController::policyWalk(double policyProb){
         ret = true;
     }
 
-    ap->setFacialExpression("R04");
+
     return ret;
 
     
@@ -419,9 +418,10 @@ bool oculomotorController::policyWalk(double policyProb){
 
 
 bool oculomotorController::randomWalk(int& statenext, double randomProb) {
-
-    ap->setFacialExpression("L01");
+    countSucc++;
     ap->setFacialExpression("R01");
+    ap->setFacialExpression("L01");
+   
     
     bool ret = false;
     
@@ -462,12 +462,14 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     if(ifRandAction > randomProb) {
         // performing completely random action
         double randAction   = Random::uniform();
+        
         //double randAction = (rand() / 1000000000.0);        
         for (j = 0 ; j < c.size(); j++) {
             if (c[j] > randAction) break;
         }
         printf("randomAction %f . action selected %d \n", randAction, j);
         action_now = (int) a;
+ 
     }
     else {
         printf("performing policy selection in randomWalk \n");
@@ -636,7 +638,14 @@ void oculomotorController::learningStep() {
         // 2 .action selection and observation of the next state
         bool actionPerformed;
         int state_next;
-        printf("_______________ countSucc % d  state_now %d_______________________ \n \n", countSucc, state_now);
+
+        double k = 1.0 - double (countSucc / MAXCOUNTRAND);
+        if(k < 0) {
+            k = 0;
+        }
+        double s = Random::uniform();
+
+        printf("_______________ countSucc % d  state_now %d s %f k %f______________ \n \n", countSucc, state_now, s, k);
 
        
         //if(countSucc == MAXCOUNTRAND) {
@@ -645,11 +654,7 @@ void oculomotorController::learningStep() {
         //}
 
 
-        double k = 1 - countSucc / MAXCOUNTRAND;
-        if(k < 0) {
-            k = 0;
-        }
-        double s = Random::uniform();
+        
 
         if(s >= k) {
             printf("policyWalk action selection \n");
