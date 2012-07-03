@@ -120,6 +120,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
     numberState  = 4; //null, vergence, smooth pursuit, saccade
     countVerNull = 0;
+    camSel       = 0;
     configFile = _configFile;
     
     //boolean flag initialisation
@@ -1397,18 +1398,25 @@ void gazeArbiterThread::run() {
         state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         if((160 != u) && (120 != v)) {
             // performing saccade
+            Vector px(2);
+            printf("saccadic event before the waiting %d %d \n", u,v );
+            px[0] = u;
+            px[1] = v;
             
+            igaze->lookAtMonoPixel(camSel,px,0.5);
+            igaze->waitMotionDone();
         }
         //cycle for the wait of the action
         double timeend, timeout = 0;
         double timestart = Time::now();
         bool exitloop = false;
         while (timeout < time) {
-            
+            timeout = Time::now() - timestart;
+            Time::delay(0.05);
         }
         
         if(timeout >= time) {
-            printf("timeout occurred, ");
+            printf("timeout occurred \n");
         }
         
         printf("position reached in %f \n \n \n", timeout);
