@@ -276,6 +276,15 @@ bool attPrioritiserModule::interruptModule() {
 
 bool attPrioritiserModule::close() {
     handlerPort.close();
+    
+    printf("stopping the controller \n");
+    if (controller != 0) {
+        controller->stop();
+        //delete controller;
+        printf("deleting controller \n");
+    }
+   
+    //------------------------------------------
     //stopping threads
     printf("stopping threads \n ");
     if(0 != collector) {
@@ -284,16 +293,11 @@ bool attPrioritiserModule::close() {
     if(0 != prioritiser) {
         prioritiser->stop();
     }
-
     //delete collector;
-    //delete prioritiser;
+    delete prioritiser;
+    //------------------------------------------
 
-    printf("stopping the controller \n");
-    if (controller != 0) {
-        controller->stop();
-        //delete controller;
-        printf("deleting controller \n");
-    }
+
 
     printf("attPrioritiserModule::close:success in closing \n");
     return true;

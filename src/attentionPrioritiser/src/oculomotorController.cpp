@@ -31,10 +31,11 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 100.0
+#define MAXCOUNTRAND 200.0
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
+    countStep    = 0;
     iter         = 0;
     jiter        = 1;
     cUpdate      = 0;
@@ -45,6 +46,7 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
     ap           = apt;
     countSucc    = 0;
+    countStep    = 0; 
     iter         = 0;
     jiter        = 1;
     state_now    = 0;
@@ -341,7 +343,7 @@ std::string oculomotorController::getName(const char* p) {
 }
 
 bool oculomotorController::policyWalk(double policyProb){
-    countSucc++;
+    countStep++;
     ap->setFacialExpression("R04");
     ap->setFacialExpression("L04");
     
@@ -418,7 +420,7 @@ bool oculomotorController::policyWalk(double policyProb){
 
 
 bool oculomotorController::randomWalk(int& statenext, double randomProb) {
-    countSucc++;
+    countStep++;
     ap->setFacialExpression("R01");
     ap->setFacialExpression("L01");
    
@@ -639,13 +641,13 @@ void oculomotorController::learningStep() {
         bool actionPerformed;
         int state_next;
 
-        double k = 1.0 - double (countSucc / MAXCOUNTRAND);
+        double k = 1.0 - double (countStep / MAXCOUNTRAND);
         if(k < 0) {
             k = 0;
         }
         double s = Random::uniform();
 
-        printf("_______________ countSucc % d  state_now %d s %f k %f______________ \n \n", countSucc, state_now, s, k);
+        printf("_______________ countSucc %d countStep %d  state_now %d s %f k %f______________ \n \n", countSucc,countStep, state_now, s, k);
 
        
         //if(countSucc == MAXCOUNTRAND) {
@@ -1168,6 +1170,9 @@ void oculomotorController::waitForActuator() {
 
 void oculomotorController::threadRelease() {
     double t;
+    idle = true;
+    //closing ports
+    //  inCommandPort.close();
     
     printf("oculomotorController::threadRelease() : stopping threads \n");
     
@@ -1178,21 +1183,23 @@ void oculomotorController::threadRelease() {
 
     printf("oculomotorController::threadRelease() : about to stop outingThread \n");
     //ot->stop();
-
-    //closing ports
-    //inCommandPort.close();
-
-    
+ 
+    //-------------------------------------------------------
+    // TODO: trying to correcly close the files
     //closing files
     printf("closing the files... \n");
     
-    fclose(logFile);
-    fclose(logState);
+    //fclose(logFile);
+    //fclose(logState);
+    
     //fclose(PsaFile);
     //fclose(qualityFile);
     //fclose(rewardFile);
     printf("correctly closed the logFile \n");
-        
+    //--------------------------------------------------------
+
+    
+    /*    
     // --- saving transition matrix ----------    
     PsaFile = fopen(psaFilePath.c_str(),"w+");
     printf("saving updates in Psa \n");
@@ -1254,13 +1261,14 @@ void oculomotorController::threadRelease() {
         fprintf(rewardFile,"\n");
     }
     printf("correctly saved the reward function \n");
+    */
     
 
-    printf("deleting the matrices \n");
-    delete Q;
-    delete V;
-    delete A;
-    delete P;
+    //printf("deleting the matrices \n");
+    // delete Q;
+    //delete V;
+    //delete A;
+    // delete P;
 
     printf("OculomotorController::threadRelease success \n  ");
 }

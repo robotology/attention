@@ -206,6 +206,16 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     kColOri[5] = 0.40;  // proto-objects
     //tColOri    = 5000;
 
+
+    // selection kValue for color and orientation top-down
+    /*kMotion[0] = 0.00;  // intensity
+    kMotion[1] = 0.90;  // motion
+    kMotion[2] = 0.10;  // chrominance
+    kMotion[3] = 0.00;  // orientation
+    kMotion[4] = 0.00;  // edges
+    kMotion[5] = 0.00;  // proto-objects
+    */
+
     Matrix trans(NUMSTATES,NUMSTATES);
     trans(0,0) = 1.0 ; trans(0,1) = 1.0 ; trans(0,2) = 1.0 ; trans(0,3) = 1.0; trans(0,4) = 1.0; trans(0,5) = 1.0; trans(0,6) = 1.0;
     trans(1,0) = 1.0 ; trans(1,1) = 1.0 ; trans(1,2) = 1.0 ; trans(1,3) = 1.0; trans(1,4) = 1.0; trans(1,5) = 1.0; trans(1,6) = 1.0;
@@ -425,6 +435,7 @@ void attPrioritiserThread::threadRelease() {
     timingPort.close();
     printf("\n \n attPrioritiserThread::threadRelease:successfully closed all the ports \n");
 
+    /*
     delete eyeL;
     delete eyeR;
     printf("attPrioritiserThread::threadRelease:successfully deleted eyes references \n");
@@ -447,6 +458,8 @@ void attPrioritiserThread::threadRelease() {
     }
     printf("attPrioritiserThread::threadRelease:corretly stopped the trajPredictor \n");
     
+    */
+
     //delete sacPlanner;
     printf("attPrioritiserThread::threadRelease:deleted the sacPlanner \n");
 }
@@ -2362,6 +2375,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
 
             // reinforcing footprint if allowed
+            reinfFootprint = false;
             if(reinfFootprint) {                
                 reinforceFootprint();
                 Time::delay(0.5);
