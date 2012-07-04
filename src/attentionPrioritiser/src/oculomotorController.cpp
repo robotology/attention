@@ -346,6 +346,8 @@ bool oculomotorController::policyWalk(double policyProb){
     countStep++;
     ap->setFacialExpression("R04");
     ap->setFacialExpression("L04");
+
+    printf("oculomotorController::policyWalk: just set facial expressions \n");
     
     bool ret = false;
     printf("state_now : %d \n", A->operator()(0,state_now));
@@ -657,11 +659,17 @@ void oculomotorController::learningStep() {
 
 
         
-
-        if(s >= k) {
+        if (countSucc < 1) {
+           printf("randomWalk action selection \n");
+           fprintf(logFile,"randomWalk > ");
+           actionPerformed = randomWalk(state_next,0.1); 
+        }
+        else if(s >= k) {
             printf("policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
+            printf("policyWalk > \n");
             actionPerformed = policyWalk(0.9);
+            printf("success in policy action performed \n");
         }
         else {
             printf("randomWalk action selection \n");
