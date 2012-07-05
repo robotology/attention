@@ -572,6 +572,7 @@ void attPrioritiserThread::run() {
         }
         
         setFacialExpression("M08");
+        setFacialExpression("L01");
         
     }
     else if(timeoutResponse > 10.0) {
@@ -864,7 +865,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0 ; state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[4] = true;
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-        printf("resetting response timer \n");
+        printf("resetting response timer %d %d \n", u,v);
         amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
         tracker->init(u,v);
         tracker->waitInitTracker();
@@ -1142,16 +1143,16 @@ void attPrioritiserThread::run() {
                 //printf("vergence: sending relative angle to the gazeArbiter \n");
                 bool port_is_writing;
                 Bottle& commandBottle = outputPort.prepare();
-                for (int i = 0; i < 10 ; i++) {
-                    printf("@");
-                    commandBottle.clear();
-                    commandBottle.addString("VER_REL");
-                    commandBottle.addDouble(phi);
-                    commandBottle.addDouble(phi2);
-                    commandBottle.addDouble(phi3);
-                    outputPort.write();
-                    Time::delay(0.1);
-                }
+                
+                printf("VER@%f %f %f \n", phi, phi2, phi3);
+                commandBottle.clear();
+                commandBottle.addString("VER_REL");
+                commandBottle.addDouble(phi);
+                commandBottle.addDouble(phi2);
+                commandBottle.addDouble(phi3);
+                outputPort.write();
+                Time::delay(0.1);
+                
             }                        
         }
     
@@ -1194,6 +1195,8 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(0)>0) {
         // ----------------  reset  -----------------------
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;
+        waitResponse[0] = true;
+        timeoutResponseStart = Time::now();
         amplitude = 0;
         //tracker->init(u,v);
         //tracker->waitInitTracker();
@@ -1207,6 +1210,7 @@ void attPrioritiserThread::run() {
         setChanged();
         notifyObservers(&notif);
         firstNull = false;
+        waitResponse[0] = false;
         
     }
     else {
@@ -1314,10 +1318,13 @@ void attPrioritiserThread::executeClone(int _pos) {
     } break;
     case 1: {
         //vergence
+        printf("executeClone::vergence \n");
         stateRequest[pos] = 1.0;
         Bottle b;
         b.addString("VER");
-        b.addDouble(0.0);
+        b.addDouble(1.0);
+        b.addDouble(1.0);
+        b.addDouble(1.0);
         bufCommand[pos] = b;
     }break;
     case 2: {
@@ -1393,7 +1400,9 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
             case 2: {
                 printf("default VERG action \n");
                 stateRequest[pos] = 1.0;
- 
+                phi  = 1.0;
+                phi2 = 1.0;
+                phi3 = 1.0;
                 return true;
             }break;
             case 3: {
@@ -2119,12 +2128,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             // saving bottle in the buffer
             bufCommand[2] = *arg;
-
+            
+            phi  = arg->get(1).asDouble();
+            phi2 = arg->get(2).asDouble();
+            phi3 = arg->get(3).asDouble();
+            
             //printf("\r                                                      \r");
             if(!stopVergence) {
-                phi  = arg->get(1).asDouble();
-                phi2 = arg->get(2).asDouble();
-                phi3 = arg->get(3).asDouble();
+                
                 //printf("vergence command received %d \n", firstVergence);
                 if(firstVergence){
                     
@@ -2809,7 +2820,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure();            
+            double accuracy  = tracker->getProxMeasure() + 300;            
             double frequency = frequencyRule[1];
             double amplitude = 1.0;
 

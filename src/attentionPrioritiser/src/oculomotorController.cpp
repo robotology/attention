@@ -31,11 +31,12 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 200.0
+#define MAXCOUNTRAND 600.0
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
     countStep    = 0;
+    countVergence= 0;
     iter         = 0;
     jiter        = 1;
     cUpdate      = 0;
@@ -47,6 +48,7 @@ oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThre
     ap           = apt;
     countSucc    = 0;
     countStep    = 0; 
+    countVergence= 0;
     iter         = 0;
     jiter        = 1;
     state_now    = 0;
@@ -430,8 +432,13 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     bool ret = false;
     
     double a = Random::uniform() * NUMACTION;
+    if((int) a == 2) {
+
+        printf("Counting vergence 3 \n");
+        countVergence = 3;
+    }
     
-    printf(" %f \n", a);
+    printf(" a =%f, countVergence=%d \n", a, countVergence);
     printf("if random, selects action number %d: %s \n",(int)a,actionList[(int)a].c_str());
 
     //looking at the Psa for this state and the selected action
@@ -472,7 +479,13 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
             if (c[j] > randAction) break;
         }
         printf("randomAction %f . action selected %d \n", randAction, j);
-        action_now = (int) a;
+        if(countVergence > 0) {
+            action_now = 2;
+            countVergence--;
+        }
+        else {
+            action_now = (int) a;
+        }
  
     }
     else {
@@ -517,9 +530,13 @@ bool oculomotorController::allowStateRequest(int action) {
     //setting flags in initialisation
     //ap->setAllowStateRequest(action, true);
 
+  
+    
     // executing command in buffer
     bool ret = false;
-    bool executed = ap->executeCommandBuffer(action);
+    bool executed;
+    executed = ap->executeCommandBuffer(action);
+    
     
     /*
     if(!executed) {
@@ -659,12 +676,13 @@ void oculomotorController::learningStep() {
 
 
         
-        if (countSucc < 1) {
+        /*if (countSucc < 1) {
            printf("randomWalk action selection \n");
            fprintf(logFile,"randomWalk > ");
            actionPerformed = randomWalk(state_next,0.1); 
         }
-        else if(s >= k) {
+        else */
+            if(s >= k) {
             printf("policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
             printf("policyWalk > \n");
@@ -1207,7 +1225,7 @@ void oculomotorController::threadRelease() {
     //--------------------------------------------------------
 
     
-    /*    
+       
     // --- saving transition matrix ----------    
     PsaFile = fopen(psaFilePath.c_str(),"w+");
     printf("saving updates in Psa \n");
@@ -1269,9 +1287,7 @@ void oculomotorController::threadRelease() {
         fprintf(rewardFile,"\n");
     }
     printf("correctly saved the reward function \n");
-    */
     
-
     //printf("deleting the matrices \n");
     // delete Q;
     //delete V;

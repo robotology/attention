@@ -202,6 +202,7 @@ private:
     
     int countStep;             // counter of learning step
     int countSucc;             // counter of successful learning episodes
+    int countVergence;         // counter of vergence commands
     int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning
     std::string name;          // rootname of all the ports opened by this thread
