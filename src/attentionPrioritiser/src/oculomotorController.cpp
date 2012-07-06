@@ -26,6 +26,7 @@
 #include <yarp/math/Math.h>
 #include <cstring>
 
+using namespace cv;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
@@ -33,15 +34,29 @@ using namespace std;
 
 #define MAXCOUNTRAND 600.0
 
+/*
+#ifndef isnan
+inline bool isnan(double x) {
+    return x != x;
+}
+#endif
+*/
+
 oculomotorController::oculomotorController() : RateThread(THRATE) {
     countSucc    = 0;
     countStep    = 0;
     countVergence= 0;
+    countEntropy = 0;
     iter         = 0;
     jiter        = 1;
     cUpdate      = 0;
     state_next   = 0;
     totalPayoff  = 0;
+    entropy      = 0;
+
+    firstCount      = false;
+    stateTransition = false;
+    firstImage      = true;
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
@@ -49,15 +64,19 @@ oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThre
     countSucc    = 0;
     countStep    = 0; 
     countVergence= 0;
+    countEntropy = 0;
     iter         = 0;
     jiter        = 1;
     state_now    = 0;
     cUpdate      = 0;
     state_next   = 0;
-    totalPayoff = 0;
+    totalPayoff  = 0;
+    entropy      = 0;
+   
 
     firstCount      = false;
     stateTransition = false;
+    firstImage      = true;
 };
 
 oculomotorController::~oculomotorController() {
@@ -77,8 +96,10 @@ bool oculomotorController::threadInit() {
     // open ports 
     string rootName("");
     printf("opening ports with rootname %s .... \n", rootName.c_str());
-    rootName.append(getName("/cmd:i"));
-    inCommandPort.open(rootName.c_str());
+    string cmdName = rootName; cmdName.append(getName("/cmd:i"));
+    inCommandPort.open(cmdName.c_str());
+    string entName = rootName; entName.append(getName("/entImage:i"));
+    entImgPort.open(entName.c_str());
     
 
     // interacting with the attPrioritiserThread 
@@ -114,7 +135,8 @@ bool oculomotorController::threadInit() {
     
     printf("opening psa file \n");
     if (NULL == PsaFile) { 
-        printf ("Error opening psa file \n");
+        printf ("Error opening psa file \n"); 
+        return false;
     }
     else {
         
@@ -179,6 +201,7 @@ bool oculomotorController::threadInit() {
     
     if (NULL == rewardFile) { 
         perror ("Error opening reward file");
+        return false;
     }
     else {
         while (!feof(rewardFile)) {
@@ -237,6 +260,7 @@ bool oculomotorController::threadInit() {
     
     if (NULL == qualityFile) { 
         perror ("Error opening Quality file");
+        return false;
     }
     else {
         while (!feof(qualityFile)) {
@@ -344,6 +368,11 @@ std::string oculomotorController::getName(const char* p) {
     return str;
 }
 
+void  oculomotorController::resize(int _width, int _height) {
+    width  = _width;
+    height = _height;
+}
+
 bool oculomotorController::policyWalk(double policyProb){
     countStep++;
     ap->setFacialExpression("R04");
@@ -354,7 +383,7 @@ bool oculomotorController::policyWalk(double policyProb){
     bool ret = false;
     printf("state_now : %d \n", A->operator()(0,state_now));
     action_now = A->operator()(0,state_now);
-    Vector a = A->getRow(0);
+    yarp::sig::Vector a = A->getRow(0);
     printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
     printf("a = %s \n", a.toString().c_str());
     
@@ -362,11 +391,11 @@ bool oculomotorController::policyWalk(double policyProb){
     //looking at the Psa for this state and the selected action
     int pos = state_now; // * NUMACTION + action_now;
     printf("looking for position %d  ; %d %d\n", pos, state_now, action_now);
-    Vector v = Q->getRow(pos);
+    yarp::sig::Vector v = Q->getRow(pos);
     
     printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
-    Vector c(v.size());
+    yarp::sig::Vector c(v.size());
     double sum = 0;
     int posInVector = 0;
     for(int j = 0; j < v.size(); j++) {
@@ -444,13 +473,13 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     //looking at the Psa for this state and the selected action
     int pos = state_now; // * NUMACTION + action_now;
     printf("looking for position %d; State:%d,Action:%d\n", pos, state_now,(int) a);
-    Vector  v = Q->getRow(pos);
+    yarp::sig::Vector  v = Q->getRow(pos);
     printf("v = %s \n", v.toString().c_str());
     
     // given the vector of transition and considering the transition probability
     // select the action and build the cumulative vector
     double maxInVector = 0.0;
-    Vector c(v.size());
+    yarp::sig::Vector c(v.size());
     double sum = 0;
     int posInVector = 0;
     for(int j = 0; j < v.size(); j++) {
@@ -736,7 +765,90 @@ void oculomotorController::learningStep() {
     } //end if(!_stateTransition)
 
     //printf("oculomotorController::learningStep : step performed \n");
+}
 
+double oculomotorController::calculateEntropy(yarp::sig::ImageOf<yarp::sig::PixelBgr>* entImg,double& entropy, int& counter) {
+    //printf("calculating entropy.... %d %d \n", width, height);
+    ImageOf<PixelRgb>* hsv = new ImageOf<PixelRgb>;
+    hsv->resize(width, height);
+    cvCvtColor(entImg->getIplImage(), hsv->getIplImage(), CV_BGR2HSV);
+
+    //cv::Mat hsv;
+    //IplImage hsvI;
+    //cv::Mat* p = (cv::Mat*) entImg.getIplImage();
+    //cvtColor(entImg->getIplImage()) , hsvI, CV_BGR2HSV);
+
+    // let`s quantize the value to 30 levels
+    // let's quantize the hue to 30 levels
+    // and the saturation to 32 levels
+    int hbins = 30, sbins = 32,  vbins = 30;
+    //MatND* hist = new MatND();
+    MatND hist;
+    int histSize[] = {hbins, sbins, vbins};
+    // hue varies from 0 to 179, see cvtColor
+    float hranges[] = { 0, 180 };
+    // saturation varies from 0 (black-gray-white) to
+    // 255 (pure spectrum color)
+    float sranges[] = { 0, 256 };
+    
+    float vranges[] = { 0, 256 } ;
+    const float* ranges[] = { hranges, sranges, vranges };
+    
+    // we compute the histogram from the 0-th and 1-st channels
+    int channels[] = {0, 1, 2};
+
+
+    //cv::Mat matImage;
+    const cv::Mat mat((const IplImage*) hsv->getIplImage(), true);
+    //cvConvert(hsv->getIplImage(),mat);
+    //    matImage.data = (char *)hsv->getIplImage().imageData;
+    //nst cv::Mat* cvHsvP = (const cv::Mat*)hsv->getIplImage();
+    calcHist(&mat,1,channels, Mat(), // do not use mask
+        hist, 3, histSize, ranges,
+        true, // the histogram is uniform
+        false );
+    
+
+
+    //double maxVal=0;
+    //minMaxLoc(hist, 0, &maxVal, 0, 0);
+    yarp::sig::Matrix hsProb(hbins, sbins);    
+    yarp::sig::Vector vProb(vbins);
+
+    // calculating entropy in v
+    double sumEntropyV = 0;
+
+    for( int v = 0 ; v < vbins; v++) {
+        // calculating entropy in h
+        double sumEntropyH = 0;
+        for( int h = 0; h < hbins; h++ ) {
+            double sum = 0;
+            double sumEntropyS =0;
+            for( int s = 0; s < sbins; s++ )
+                {
+                    float binVal = hist.at<float>(h, s, v);
+                    sum += binVal;
+                    
+                    //int intensity = cvRound(binVal*255/maxVal);
+                }
+            for( int s = 0; s < sbins; s++ )
+                {
+                    float binVal = hist.at<float>(h, s, v);
+                    hsProb(h,s) = binVal / sum; // extracing the probability
+                    double entropyS     =  -1 * hsProb(h,s) * log2(hsProb(h,s)) ;
+                    if(!isnan(entropyS))
+                        sumEntropyS += entropyS;
+                    //printf("entropyS = %f upto 5.0 \n", entropyS,sumEntropyS);
+                }
+            sumEntropyH += sumEntropyS;
+            //printf("sumEntropyS %f \n", sumEntropyS);
+        }
+        //printf("entropyH = %f upto 1500 \n", sumEntropyH);    
+        sumEntropyV += sumEntropyH;
+    }
+    //printf("entropyV = %f upto 4800 \n",sumEntropyV);
+    entropy += sumEntropyV;
+    return (entropy / counter);
 }
 
 void oculomotorController::run() {
@@ -756,7 +868,21 @@ void oculomotorController::run() {
             ap->setAllowStateRequest(7,false);
             ap->setAllowStateRequest(8,false);            
             firstCycle = false;
-        }      
+        } 
+
+        // calculating the entropy
+        ImageOf<PixelBgr> *entImg = entImgPort.read(false);
+        if(entImg!=NULL) {
+            if(firstImage) {
+                firstImage = false;                
+                resize(entImg->width(), entImg->height());
+            }
+            countEntropy++;
+            meanEntropy = calculateEntropy(entImg,entropy,countEntropy);
+            
+            //fprintf(logFile,"entropy: %f \n", entropy);
+            //fprintf(logState, "%f ", entropy);            
+        }
         
         //printf("count %d iter %d \n", countSucc, iter);
         if((countSucc < 50) && (iter % 20 == 0) && (ap->readyForActions())) {
@@ -773,7 +899,7 @@ void oculomotorController::run() {
 }
 
 void oculomotorController::logAction(int a) {
-    Vector action(8);
+    yarp::sig::Vector action(8);
     action.zero();
     // mapping from action in prioritiser to action in controller
     // mapping from dimension 6 to dimension 8
@@ -942,8 +1068,11 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
                 countSucc++;
                 
-                state_next = statevalueparam = 0; //move to null state right after the success in fixating
-                totalPayoff = 0;
+                state_next   = statevalueparam = 0; //move to null state right after the success in fixating
+                // resetting payoff and j term
+                totalPayoff  = 0;
+                iter         = 0;
+                jiter        = 1;
             }
 
             //---------------------------  state update arrived ------------------------------------------
@@ -955,7 +1084,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             fprintf(logFile, "state_prev:%s state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
             fprintf(logFile, " totalPayoff:%f / 10 - %f -%f => %f         \n ",accuracy,timing  *  costAmplitude[action_now] * amplitude * frequency,
                     timing  * frequency * costEvent[action_now],totalPayoff);
-            fprintf(logState,"%d %f\n", state_now, totalPayoff);
+            fprintf(logFile, "entropy : %f \n", meanEntropy);
+            fprintf(logState,"%d %f %f\n", state_now, totalPayoff, meanEntropy);
             
             /*
             for (int j = 0; j < NUMSTATE; j++)  {
@@ -1011,12 +1141,12 @@ void oculomotorController::update(observable* o, Bottle * arg) {
         } break;
         case COMMAND_VOCAB_ACT :{
             //printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
-            //Vector action(8);
+            //yarp::sig::Vector action(8);
             //action.zero();
             //int a = (int) arg->get(1).asDouble();
             
             //extracting the allowTransition matrix
-            Vector a(7);
+            yarp::sig::Vector a(7);
             a(0) = arg->get(1).asDouble();
             a(1) = arg->get(2).asDouble();
             a(2) = arg->get(3).asDouble();
@@ -1194,11 +1324,18 @@ void oculomotorController::waitForActuator() {
 }
 
 
+void oculomotorController::interrupt(){
+    inCommandPort.interrupt();
+    entImgPort.interrupt();
+}
+
+
 void oculomotorController::threadRelease() {
     double t;
     idle = true;
     //closing ports
-    //  inCommandPort.close();
+    //inCommandPort.close();
+    //entImgPort.close();
     
     printf("oculomotorController::threadRelease() : stopping threads \n");
     

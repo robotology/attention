@@ -283,6 +283,7 @@ bool attPrioritiserModule::close() {
         //delete controller;
         printf("deleting controller \n");
     }
+    Time::delay(5.0);
    
     //------------------------------------------
     //stopping threads

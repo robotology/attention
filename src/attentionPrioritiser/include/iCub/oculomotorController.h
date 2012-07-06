@@ -38,6 +38,8 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
+#include <cv.h>
+#include <highgui.h>
 
 //within project includes
 #include <iCub/observer.h>
@@ -48,7 +50,6 @@
 #define THRATE       10
 #define NUMSTATE     15
 #define NUMACTION     9
-
 
 //defining the costAmplitude [cost/degree]
 const static double costAmplitude[NUMACTION] = { 
@@ -199,12 +200,15 @@ private:
     bool firstCycle;           // flga that triggers the initialisation of active part
     bool firstCount;           // first count of the starting state
     bool stateTransition;      // synchronisation betweee actionSelection and stateTransition
+    bool firstImage;
     
     int countStep;             // counter of learning step
     int countSucc;             // counter of successful learning episodes
     int countVergence;         // counter of vergence commands
+    int countEntropy;          // counter of entropy measures
     int cUpdate;               // counter of observable updates
     int iter;                  // counter of any iteration in learning
+    int width, height;         // image dimension
     std::string name;          // rootname of all the ports opened by this thread
 
     yarp::os::ConstString logFilePath     ;
@@ -216,6 +220,10 @@ private:
     yarp::os::Semaphore mutexStateTransition;                   // semaphore for controlling the state transition
 
     yarp::os::BufferedPort<yarp::os::Bottle> inCommandPort;     // port where all the low level commands are sent
+    // reference to the port for inputImae for entropy
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > entImgPort;
+    yarp::sig::ImageOf<yarp::sig::PixelBgr> entImg;           // input image for the entropy   
+    
    
     attPrioritiserThread* ap;                                   // reference to the attention prioritiser
     trajectoryPredictor*  tp;                                   // reference to the trajectory predictor
@@ -234,7 +242,9 @@ private:
     
     double totalPayoff;                    // total payoff of the learning process
     double jiter;                          // cumulative j ^ iter 
-
+    double entropy;                        // sum value of the entropy since the start
+    double meanEntropy;                    // mean entropy
+    
     int state_prev;                        // state in which the controller was previously
     int state_now;                         // state of the controller now
     int action_now;                        // action performed in this step
@@ -309,8 +319,7 @@ public:
     * @param value true/false idle/!idle the active method of the class
     */
     void setIdle(bool value) {idle = value;};
-
-    
+  
     /**
      * @brief function that passes the resource finder to the class for further use of files
      * @param resourceFinder reference to the object
@@ -420,7 +429,18 @@ public:
      * @retur returns whether the request has been successful
      */
     bool allowStateRequest(int state);
-    
+
+    /**
+     * resize function for the first input image received
+     * @param width image width
+     * @param height image height
+     */
+    void resize(int width, int height);
+
+    /**
+     * function that calculated the mean Entropy in iterative process
+     */
+    double calculateEntropy(yarp::sig::ImageOf<yarp::sig::PixelBgr>* entImg,double& entropy, int& counter);
 };
 
 

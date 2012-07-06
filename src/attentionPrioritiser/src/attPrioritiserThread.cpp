@@ -390,15 +390,17 @@ void attPrioritiserThread::interrupt() {
     //interrupting ports
     inLeftPort.interrupt();
     inRightPort.interrupt();
+
     feedbackPort.interrupt();
     templatePort.interrupt();
     inhibitionPort.interrupt();
     blobDatabasePort.interrupt();
-    templatePort.interrupt();
+   
     timingPort.interrupt();
     feedbackEarlyVision.interrupt();
     feedbackSelective.interrupt();
     feedbackProtoObject.interrupt();
+
     highLevelLoopPort.interrupt();
     desiredTrackPort.interrupt();
     trackPositionPort.interrupt();
@@ -413,26 +415,30 @@ void attPrioritiserThread::threadRelease() {
 
     inLeftPort.close();
     inRightPort.close();
+
     printf("closing feedback port \n");
     feedbackPort.close();
     printf("closing template port \n");
     templatePort.close();
     printf("closing database port \n");
-    blobDatabasePort.close();
     printf("closing inhibition port \n");
     inhibitionPort.close();
+    blobDatabasePort.close();
+    
+    timingPort.close();
     printf("closing feedback ports  \n");
     feedbackEarlyVision.close();
     feedbackSelective.close();
     feedbackProtoObject.close();
+
     highLevelLoopPort.close();
     printf("closing particle filter ports \n");
-    trackPositionPort.close();
     desiredTrackPort.close();
+    trackPositionPort.close();    
     directPort.close();
-    //facePort.close();
+    facePort.close();
     printf("closing timing port \n");
-    timingPort.close();
+    
     printf("\n \n attPrioritiserThread::threadRelease:successfully closed all the ports \n");
 
     /*
@@ -492,7 +498,6 @@ void attPrioritiserThread::setFacialExpression(std::string command) {
         facePort.write();
     }    
 }
-
 
 void attPrioritiserThread::setRobotName(string str) {
     this->robot = str;
@@ -635,6 +640,7 @@ void attPrioritiserThread::run() {
         waitResponse[6] = true;
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
         printf("resetting response timer \n");
+        
         
         printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
         
@@ -867,6 +873,7 @@ void attPrioritiserThread::run() {
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
         printf("resetting response timer %d %d \n", u,v);
         amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
+        //initialising the tracker
         tracker->init(u,v);
         tracker->waitInitTracker();
         
@@ -1043,6 +1050,8 @@ void attPrioritiserThread::run() {
         printf("resetting response timer \n");
         amplitude = sqrt(Vx * Vx + Vy * Vy) / 100.0;
 
+        // smooth pursuit does not initialise the tracker because the pred does it
+
         if(!executing) {                       
             printf("---------------- Smooth Pursuit --------------\n");
             printf("SM_PUR %f %f %f \n", Vx, Vy, time);
@@ -1067,6 +1076,9 @@ void attPrioritiserThread::run() {
         waitResponse[2] = true;
         timeoutResponseStart = Time::now();
         printf("resetting response timer \n");
+        //initialising the tracker
+        tracker->init(160,120);
+        tracker->waitInitTracker();
         amplitude = 1;
         
 
@@ -1952,8 +1964,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             bufCommand[1] = *arg;
             u             = arg->get(1).asInt();
             v             = arg->get(2).asInt();
-            waitType      = arg->get(3).asString(); // reading the typology of waiting: ant (anticipatory), fix (fixation)
-            waitTime      = arg->get(4).asDouble();
+            //waitType      = arg->get(3).asString(); // reading the typology of waiting: ant (anticipatory), fix (fixation)
+            waitTime      = arg->get(3).asDouble();
             
             // reseting the state action history
             mutex.wait();
@@ -2062,7 +2074,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
               
         }
         else if(!strcmp(name.c_str(),"PRED")) {
-            waitType = "ant";
+            
             // saving bottle in the buffer
             bufCommand[6] = *arg;
 
@@ -2434,6 +2446,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             // vergence accomplished        
             waitType = "fix";
+            printf("waitAccomplished set waitType=fix \n");
             //printf("Vergence accomplished \n");
             mutex.wait();
             if(allowStateRequest[1]) {
@@ -2578,6 +2591,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             waitResponse[6] = false;
             timeoutResponseStart = Time::now();
             printf("resetting response timer \n");
+            waitType = "ant";
+            
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();
