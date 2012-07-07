@@ -1076,9 +1076,10 @@ void attPrioritiserThread::run() {
         waitResponse[2] = true;
         timeoutResponseStart = Time::now();
         printf("resetting response timer \n");
-        //initialising the tracker
-        tracker->init(160,120);
-        tracker->waitInitTracker();
+        // initialising the tracker not necessary because it started before
+        // the risk is that it redefines tracking for every vergence command
+        //tracker->init(160,120);
+        //tracker->waitInitTracker();
         amplitude = 1;
         
 
@@ -1784,9 +1785,9 @@ void attPrioritiserThread::reinforceFootprint() {
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     cUpdate++;
-    printf("ACK. Aware of observable asking for attention \n");
+    //printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
-        printf("bottle: %s ", arg->toString().c_str());
+        //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
         ConstString name = arg->get(0).asString();
         

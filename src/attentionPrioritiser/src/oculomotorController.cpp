@@ -32,7 +32,8 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 600.0
+#define MAXCOUNTRAND 600.0   // #iteration after which the policy is only quality-based
+#define GOALSTATE     14     // goal state success in episodic learning
 
 /*
 #ifndef isnan
@@ -330,6 +331,7 @@ bool oculomotorController::threadInit() {
     // other needed matrices
     V = new Matrix(1,NUMSTATE);
     V->zero();
+    V[0,GOALSTATE] = 100; //a-priori value of the state because never visited
 
     P = new Matrix(NUMSTATE,NUMACTION);
     P->zero();
@@ -1031,9 +1033,13 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
             //estimate the reward 
             //double r = rewardStateAction->operator()(state_now,action_now) ;
-            double r = estimateReward(timing, accuracy, amplitude, frequency);
+            double   r = estimateReward(timing, accuracy, amplitude, frequency);
             //double r = accuracy / 10.0 - timing * cost[action_now] * amplitude;
             printf("calculated the accuracy for state, action %d,%d \n", state_now,action_now);
+
+            if (statevalueparam == GOALSTATE) {
+                r += 500;
+            }
             
             
             //Q->operator()(state_next,action_now) = 
@@ -1060,20 +1066,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
             // // !!!!!!!!!!!!!!!!!!!!!!!!!!   STATE TRANSITION  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
-            if(statevalueparam == 14) {
-                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
-                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
-                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
-                fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
-                countSucc++;
-                
-                state_next   = statevalueparam = 0; //move to null state right after the success in fixating
-                // resetting payoff and j term
-                totalPayoff  = 0;
-                iter         = 0;
-                jiter        = 1;
-            }
+            
 
             //---------------------------  state update arrived ------------------------------------------
             //printf("                                                 new State %s \n",  stateList[statevalue].c_str());
@@ -1086,19 +1079,23 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                     timing  * frequency * costEvent[action_now],totalPayoff);
             fprintf(logFile, "entropy : %f \n", meanEntropy);
             fprintf(logState,"%d %f %f\n", state_now, totalPayoff, meanEntropy);
+
             
-            /*
-            for (int j = 0; j < NUMSTATE; j++)  {
-                if(statevalue == j) {
-                    printf("                                                                   State %s \n", stateList[j].c_str());
-                    state_now = state_next;
-                    state_next = j; 
-                    
-                    fprintf(logFile, "state_now:%s -> state_next:%s \n", stateList[state_now].c_str(), stateList[state_next].c_str());
-                    
-                }
-            }
-            */            
+            // -------------------------- checking for successfull learning, fixating Reached!!!  -------------
+            // after log file to save the final condition that brought success
+            if(statevalueparam == GOALSTATE) {
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
+                fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
+                countSucc++;
+                
+                state_next   = statevalueparam = 0; //move to null state right after the success in fixating
+                // resetting payoff and j term
+                totalPayoff  = 0;
+                iter         = 0;
+                jiter        = 1;
+            }         
 
 
             // -------------------------- updating the transition matrix once we switch state --------------------

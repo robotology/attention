@@ -884,9 +884,16 @@ void gazeArbiterThread::run() {
                             Time::delay(0.5);
                             
                             if(visualCorrection){
-                                printf("starting visual correction with\n");
+                                printf("starting visual correction with tracker refresh\n");
+                                // second init of the tracker to remove postsaccadic error
                                 tracker->init(160,120);
                                 tracker->waitInitTracker();
+                                // sending refinement message for the attPrioritiser TRACK
+                                Bottle& status = statusPort.prepare();
+                                status.clear();
+                                status.addString("TRACK_REF");
+                                statusPort.write();
+                                Time::delay(0.5);
                                 Time::delay(0.5);
                             }
                             
@@ -960,10 +967,10 @@ void gazeArbiterThread::run() {
                 
                 Time::delay(0.5);
                 if(visualCorrection){
-                    printf("starting visual correction with\n");
+                    printf("starting visual correction within the stereo saccade\n");
                     tracker->init(160,120);
                     tracker->waitInitTracker();
-                    Time::delay(0.5);
+                    
 
                     const char BeepChar = '\a'; /* the "alarm" special char */
                     cout << "Maybe you can hear a beep here---" << BeepChar << endl;

@@ -77,6 +77,7 @@ private:
     bool isOnWings;                         // flag that gives information on where the cameras are mounted
     bool onDvs;                             // flag for remapping dvs location into standard dimension
     bool firstVergence;                     // flag that indicates when the vergence command is the first of a train of commands
+    int camSel;                             // value of selected drive eye (0-left, 1 -right)
     int u,v;                                // values passed for saccades
     int cxl,cyl;                            // center of the eye in the configfile
     int originalContext;                    // original context for the gaze Controller
