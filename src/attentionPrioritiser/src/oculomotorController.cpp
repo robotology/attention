@@ -331,14 +331,17 @@ bool oculomotorController::threadInit() {
     // other needed matrices
     V = new Matrix(1,NUMSTATE);
     V->zero();
-    V[0,GOALSTATE] = 100; //a-priori value of the state because never visited
+    //V[0,GOALSTATE] = 100; //a-priori value of the state because never visited
 
+    
+    printf("initialisation of the P matrix %d %d \n", NUMSTATE, NUMACTION);
     P = new Matrix(NUMSTATE,NUMACTION);
     P->zero();
 
     // max-reward action vector
     // vector populated with the action that maximise reward in a particular state
     // the column of the vector reference to the state
+    printf("initialisation of the A matrix %d \n", NUMSTATE);
     A = new Matrix(1,NUMSTATE);
     A->zero();
     

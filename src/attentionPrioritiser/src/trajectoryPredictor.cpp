@@ -50,6 +50,7 @@ bool trajectoryPredictor::threadInit() {
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str());    
 
+    
     printf("Creating prediction models \n");
     linVelModel* modelA = new linVelModel();
     modelA->init(1.0);
@@ -58,6 +59,7 @@ bool trajectoryPredictor::threadInit() {
     //evalVel1(mA);
     evalThread etA(mA);
     evalVel1 = etA;
+    evalVel1.start();
 
     linAccModel* modelB = new linAccModel();
     modelB->init(1.0);
@@ -65,6 +67,7 @@ bool trajectoryPredictor::threadInit() {
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
     evalThread etB(mB);
     evalAcc1 = etB;
+    evalAcc1.start();
     
     minJerkModel* modelC = new minJerkModel();
     modelC->init(1, 1);
@@ -72,6 +75,8 @@ bool trajectoryPredictor::threadInit() {
     genPredModel* mC = dynamic_cast<genPredModel*>(modelC);
     evalThread etC(mC);
     evalMJ1_T1 = etC;
+    evalMJ1_T1.start();
+    
         
     return true;
 }
@@ -213,5 +218,9 @@ void trajectoryPredictor::threadRelease() {
     //    printf("trajectoryPredictor::threadRelease:stopping the tracker \n");
     //    tracker->stop();
     //}
+
+    evalVel1.stop();
+    evalAcc1.stop();
+    evalMJ1_T1.stop();
     
 }
