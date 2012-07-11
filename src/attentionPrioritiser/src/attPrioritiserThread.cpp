@@ -2836,7 +2836,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure() + 300;            
+            double accuracy  = tracker->getProxMeasure();            
             double frequency = frequencyRule[1];
             double amplitude = 1.0;
 

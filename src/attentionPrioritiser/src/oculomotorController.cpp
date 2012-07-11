@@ -1022,7 +1022,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             // update for evaluation of pSA without learning
             state_next = statevalueparam;           // the update comes from the attPrioritiser with default state.
             
-            printf("state now  = %d \n", state_next);
+            printf("state now  = %d \n", state_now);
             printf("action now = %d \n", action_now);
 
             // --------------------------  updating the entire state of the learner -----------------------------
@@ -1065,7 +1065,31 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
 
             // // !!!!!!!!!!!!!!!!!!!!!!!!!!   STATE TRANSITION  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+            // -------------------------- updating the transition matrix once we switch state --------------------
+            printf("updating the transition matrix; state_now %d action_now %d \n", state_now, action_now);
+            double sum = 0;
+            double* point;
+            for(int i = 0; i < NUMSTATE; i ++) {
+                point = &Psa->operator()(state_now * NUMACTION + action_now, i);
+                                
+                if(i != state_next) {
+                    if (*point >= 0.001) {
+                        *point -= 0.001;
+                    }
+                    sum += *point;
+                }
+                else {
+                    if(*point <= 1.0 - 0.01) {
+                        *point += 0.01;
+                    }
+                    sum += *point;
+                }
+                
+            }            
+            printf("checking if the row sums one \n");
+            if(sum > 1.0) {
+                printf("!!!!the probability does not sum to 1!!!! \n");
+            }
             
 
             //---------------------------  state update arrived ------------------------------------------
@@ -1090,7 +1114,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
                 countSucc++;
                 
-                state_next   = statevalueparam = 0; //move to null state right after the success in fixating
+                state_now    = 0; //move to null state right after the success in fixating
                 // resetting payoff and j term
                 totalPayoff  = 0;
                 iter         = 0;
@@ -1098,33 +1122,9 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             }         
 
 
-            // -------------------------- updating the transition matrix once we switch state --------------------
-            printf("updating the transition matrix; state_now %d action_now %d \n", state_now, action_now);
-            double sum = 0;
-            double* point;
             
-            for(int i = 0; i < NUMSTATE; i ++) {
-                point = &Psa->operator()(state_now * NUMACTION + action_now, i);
-                                
-                if(i != state_next) {
-                    if (*point >= 0.001) {
-                        *point -= 0.001;
-                    }
-                    sum += *point;
-                }
-                else {
-                    if(*point <= 1.0 - 0.01) {
-                        *point += 0.01;
-                    }
-                    sum += *point;
-                }
-                
-            }
+            printf("check after reset state; state_now %d action_now %d \n", state_now, action_now);
             
-            printf("checking if the row sums one \n");
-            if(sum > 1.0) {
-                printf("!!!!the probability does not sum to 1!!!! \n");
-            }
 
 
             // awaking action selection
