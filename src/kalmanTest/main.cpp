@@ -82,7 +82,7 @@ using namespace iCub::ctrl;
          z(0) = Random::uniform() + 0.5;
          z(1) = Random::uniform() + 0.5;
          printf("measure %s \n",z.toString().c_str());
-         x = kSolver.filt(z);
+         x = kSolver.filt(z,z);
          printf("estim.state %s \n", x.toString().c_str());
          fprintf(stateDump, "%s \n",x.toString().c_str() );
          printf("estim.state %s \n", kSolver.get_x().toString().c_str());

@@ -30,6 +30,7 @@
 #include <yarp/math/Math.h>
 #include <yarp/math/SVD.h>
 #include <iCub/attention/predModels.h>
+#include <iCub/attention/evalThread.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -37,120 +38,16 @@ using namespace iCub::ctrl;
 using namespace yarp::math;
 using namespace attention::predictor;
 
-#define numIter 3
-
-class evalThread : public yarp::os::Thread {
- protected:
-    iCub::ctrl::Kalman* kSolver;
-    
-    bool ready;
-    bool finished;
-    Semaphore mutexR, mutexF;
-    
-    Vector u, x, z;
-    
-    Matrix zMeasure, uMeasure;   
-    
- public:
-    evalThread(){
-        
-    }
-
-    evalThread(const Matrix &A,const Matrix &B,const Matrix &H,const Matrix &Q,const Matrix &R) {
-        kSolver = new Kalman(A,B,H,Q,R);
-    }
-
-    ////////////////////////////////////////////////////////////////////
-
-    virtual bool threadInit(){
-        ready    = false;
-        finished = false;
-
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    
-    virtual void run() {
-        while (!isStopping()) {
-            while(!ready) {
-                //Time::wait(0.1);
-            }
-            // running the filter for the number of measurements
-            mutexR.wait();
-            ready = false;
-            mutexR.post();
-
-            for(int i = 0; i < numIter ; i++) {
-                printf("----------------------------------------------------------\n");
-                
-                u(0) = Random::uniform() + 0.5 ; 
-                
-                z = zMeasure.getRow(i);
-                u = uMeasure.getRow(i);
-                x = kSolver->filt(u,z);
-                //printf("estim.state %s \n", x.toString().c_str()); 
-                //printf("estim.error covariance P:\n %s \n",kSolver.get_P().toString().c_str());
-                
-                printf("----------------------------------------------------------\n");
-            }
-
-            //setting the result out
-            mutexF.wait();
-            finished = true;
-            mutexF.post();
-            
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    virtual void onStop() {
-
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    virtual void threadRelease() {
-        delete kSolver;
-    }
-
-    //////////////////////////////////////////////////////////////////
-
-    void init(Vector z0, Vector x0, Matrix P0) {
-        kSolver->init(z0, x0, P0);
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    void setMeasurements(Matrix _u, Matrix _z) {
-        ready = true;
-        finished = false;
-        uMeasure = _u; zMeasure = _z;
-    }
-
-    ////////////////////////////////////////////////////////////////
-
-    Matrix getP() {
-        mutexF.wait();
-        while(!finished) {
-            mutexF.post();
-            Time::delay(0.1);
-            mutexF.wait();
-        }
-        mutexF.post();
-
-        return kSolver->get_P();
-    }
 
 
-};
 
-Matrix evaluateModel(genPredModel* model,Matrix zMeasure ) {
+//___________________________________________________________________________________________________
+
+Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
     printf(" \n\n\nEVALUATING THE MODEL: %s \n", model->getType().c_str());
     
     int rowA = model->getRowA();
-    int colA = model->getColA();
-        
+    int colA = model->getColA();        
     
     // initialisation of the karman filter
     Matrix A = model->getA();
@@ -185,40 +82,34 @@ Matrix evaluateModel(genPredModel* model,Matrix zMeasure ) {
     }
 
     Kalman kSolver(A,B,H,Q,R);
+    evalThread et(model);
    
     // initialisation of the initial state of the karman filter
     kSolver.init (z0, x0, P0);
+    et.init(z0, x0, P0);
+    et.start();
+    Time::delay(2.0);
+    
+    //double c = 1.0;
+    //Matrix uMeasure(numIter, 2);
+    //uMeasure.zero();
+   
+
+    //printf("setting measurements \n");
+    et.setMeasurements(uMeasure,zMeasure);
     
     //printf("estim.state %s \n", kSolver.get_x().toString().c_str());
     //printf("estim.error covariance\n %s \n",kSolver.get_P().toString().c_str());
-
-    double c = 1.0;
-     
-     
-    for(int i = 0; i < numIter ; i++) {
-        printf("----------------------------------------------------------\n");
-        //z(0) = Random::uniform() + 0.5;
-        //z(1) = Random::uniform() + 0.5;
-        if(rowA == 2) {
-            u(0) = c + Random::uniform() + 0.5 ; 
-        }
-        else {
-            u(0) = c + Random::uniform() + 0.5 ;
-        }
-        
-        z = zMeasure.getRow(i);
-        //printf("measure %s \n",z.toString().c_str());
-        //printf("input  %s \n", u.toString().c_str());
-        x = kSolver.filt(u,z);
-        printf("estim.state %s \n", x.toString().c_str());
-        //fprintf(stateDump, "%s \n",x.toString().c_str() );
-        //printf("K \n %s \n", kSolver.get_K().toString().c_str());
-        printf("estim.error covariance P:\n %s \n",kSolver.get_P().toString().c_str());
-        //printf(errorDump,"%s \n",kSolver.get_P().getRow(1).toString().c_str());
-        printf("----------------------------------------------------------\n");
+   
+    while(!et.getEvalFinished()) {
+        Time::delay(0.1);
     }
-    return kSolver.get_P();
+    printf("Stopping the thread \n");
+    et.stop();
+
+    return et.getP();
 }
+
 
  int main(int argc, char *argv[]) {
     //Network::init();
@@ -239,24 +130,35 @@ Matrix evaluateModel(genPredModel* model,Matrix zMeasure ) {
     printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
 
     modelQueue mQueue(false);
-    //mQueue.push_back(modelA);
+    mQueue.push_back(modelA);
     //mQueue.push_back(modelB);
-    mQueue.push_back(modelC);
-
+    //mQueue.push_back(modelC);
     Matrix zMeasure;
-    
-    
+    Matrix uMeasure;
+
+    int numIter = 3;
     for (size_t i = 0; i < mQueue.size(); i++) {        
         genPredModel* m = dynamic_cast<genPredModel*>(mQueue[i]);
+        
+        Matrix uMeasure(m->getRowA(),numIter);
         zMeasure.resize(numIter,m->getRowA());
-        for(int j = 0; i < numIter; i++) {
+        uMeasure.resize(m->getRowA(),numIter);
+        for(int j = 0; j < numIter; j++) {
             for (int k  =0 ; k < m->getRowA(); k ++) {
-                zMeasure(j,k) = 1.0 + Random::uniform();
+                zMeasure(k,j) = 1.0 + Random::uniform();
+                uMeasure(k,j) = 1.0 + Random::uniform();
             }
         }
-        Matrix res = evaluateModel(m,zMeasure); 
+        printf("uMeasure %s \n", uMeasure.toString().c_str());
+        Matrix res = evaluateModel(m,uMeasure,zMeasure); 
         printf("error:\n  %s \n", res.toString().c_str());
+
+        
+        
     }
+
+
+
     
     delete modelA;
     delete modelB;
@@ -265,3 +167,5 @@ Matrix evaluateModel(genPredModel* model,Matrix zMeasure ) {
     Network::fini();
     
 }
+
+

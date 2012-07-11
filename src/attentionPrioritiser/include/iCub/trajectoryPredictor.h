@@ -26,6 +26,10 @@
 #ifndef _TRAJECTORY_PREDICTOR_H_
 #define _TRAJECTORY_PREDICTOR_H_
 
+
+#include <iCub/attention/predModels.h>
+#include <iCub/attention/evalThread.h>
+
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/Bottle.h>
@@ -40,16 +44,33 @@
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 
+
+
 class trajectoryPredictor : public yarp::os::Thread, public observable{
 private:
-    
+    static const int numEvalVel;  // number of evaluator based on const velocity 
+    static const int numEvalAcc;  // number of evaluator based on const acceleration
+    static const int numEvalMj ;  // number of evaluator based on minimum jerk
+
+    double Vx, Vy;                // components of velocity
     std::string name;             // rootname of all the ports opened by this thread
+
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inImagePort;     //port where all the low level commands are sent
     yarp::os::Semaphore mutex;    // semaphore for the variable of the prediction accomplished
-    double Vx, Vy;                // components of velocity
+    
     bool predictionAccompl;       // flag that indicates when the prediction was carried on correctly
     yarp::os::ResourceFinder* rf; // resource finder for initialisation of the tracker
     trackerThread*    tracker;    // reference to the object in charge of tracking a tamplete surrounding a point
+    
+    attention::predictor::evalThread evalVel1;          // evaluation thread velocity 1
+    attention::predictor::evalThread evalVel2;          // evaluation thread velocity 2
+    attention::predictor::evalThread evalAcc1;          // evaluation thread acceleration 1
+    attention::predictor::evalThread evalAcc2;          // evaluation thread accelaration 2
+    attention::predictor::evalThread evalMJ1_T1;        // evaluation thread minJerk distance 1 - period 1
+    attention::predictor::evalThread evalMJ2_T1;        // evaluation thread minJerk distance 2 - period 1
+    attention::predictor::evalThread evalMJ1_T2;        // evaluation thread minJerk distance 1 - period 2
+    attention::predictor::evalThread evalMJ2_T2;        // evaluation thread minJerk distance 2 - period 2
+
 public:
     /**
     * default constructor

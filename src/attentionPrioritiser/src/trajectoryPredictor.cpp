@@ -22,8 +22,9 @@
  * @brief Implementation of the thread of trajectory predictor(see header trajectoryPredictor.h)
  */
 
+
 #include <iCub/trajectoryPredictor.h>
-#include <iCub/attention/predModels.h>
+
 #include <cstring>
 
 using namespace yarp::os;
@@ -47,8 +48,31 @@ bool trajectoryPredictor::threadInit() {
     string rootName("");
     rootName.append(getName("/blobImage:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
-    inImagePort.open(rootName.c_str());
+    inImagePort.open(rootName.c_str());    
+
+    printf("Creating prediction models \n");
+    linVelModel* modelA = new linVelModel();
+    modelA->init(1.0);
+    printf("modelA\n %s \n %s \n", modelA->getA().toString().c_str(), modelA->getB().toString().c_str());
+    genPredModel* mA = dynamic_cast<genPredModel*>(modelA);
+    //evalVel1(mA);
+    evalThread etA(mA);
+    evalVel1 = etA;
+
+    linAccModel* modelB = new linAccModel();
+    modelB->init(1.0);
+    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
+    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
+    evalThread etB(mB);
+    evalAcc1 = etB;
     
+    minJerkModel* modelC = new minJerkModel();
+    modelC->init(1, 1);
+    printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
+    genPredModel* mC = dynamic_cast<genPredModel*>(modelC);
+    evalThread etC(mC);
+    evalMJ1_T1 = etC;
+        
     return true;
 }
 
