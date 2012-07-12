@@ -97,7 +97,7 @@ bool trajectoryPredictor::threadInit() {
         for (int k  =0 ; k < rowA; k ++) {
             zMeasure(k,j) = 1.0 + Random::uniform();
             uMeasure(k,j) = 1.0 + Random::uniform();
-            }
+        }
     }
         
     printf("initialising the matrices of the Kalman Filter \n");
