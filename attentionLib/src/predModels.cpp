@@ -53,7 +53,7 @@ bool genPredModel::operator ==(const genPredModel &model) {
     return ((valid==model.valid)&&(type==model.type)&&(A==model.A)&&(B==model.B)); 
 }
 
-    void genPredModel::init(double paramA, double paramB) {
+void genPredModel::init(double paramA, double paramB) {
     rowA = 3;
     colA = 3;
     Matrix _A(3,3);
@@ -94,9 +94,10 @@ bool linVelModel::operator ==(const linVelModel &model) {
             (A == model.A) && (B == model.B) && (H == model.H)); 
 }
 
-    void linVelModel::init(double paramA, double paramB) {
+void linVelModel::init(double paramA, double paramB) {
     rowA = 2;
     colA = 2;
+    printf("initialisation matrix A,B,H with main dimension %d \n", rowA, colA);
     Matrix _A(2,2);
     Matrix _B(2,1);
     Matrix _H(2,2);

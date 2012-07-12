@@ -31,12 +31,16 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace iCub::ctrl;
 using namespace yarp::math;
+using namespace attention::predictor;
+
 
 namespace attention
 {
 
-namespace predictor
+namespace evaluator
 {
+
+class evalQueue;
 
 class evalThread : public yarp::os::Thread {
  protected:
@@ -62,8 +66,10 @@ class evalThread : public yarp::os::Thread {
         kSolver = new Kalman(A,B,H,Q,R);
     }
     
-    evalThread(genPredModel* model) {
+    /*
+    evalThread(const attention::predictor::genPredModel& model) {
         numIter = 3;
+        
         gPredModel = model;
         int rowA = model->getRowA();
         int colA = model->getColA();        
@@ -92,18 +98,19 @@ class evalThread : public yarp::os::Thread {
         }
 
         kSolver = new Kalman(A,B,H,Q,R);
-        
+      
     }
+    */
     
     
     ////////////////////////////////////////////////////////////////////
 
     virtual bool threadInit(){
-        printf("thread init \n");
+        printf("evalThread::threadInit::thread init \n");
         dataReady    = false;
         evalFinished = false;
 
-        Time::delay(1);
+        printf("evalThread::end of initialisation \n");
         return true;
     }
 
@@ -111,11 +118,14 @@ class evalThread : public yarp::os::Thread {
     
     virtual void run() {
         while (!isStopping()) {
+            
+            /*
+
             //printf("inside the while \n");
             
-            mutexR.wait();
+            //mutexR.wait();
             bool dataR = dataReady;
-            mutexR.post();
+            //mutexR.post();
 
             //printf("after mutex %d \n", dataR);
             
@@ -158,6 +168,9 @@ class evalThread : public yarp::os::Thread {
             mutexF.wait();
             evalFinished = true;
             mutexF.post();
+
+            */
+
             
         }
         
@@ -182,6 +195,38 @@ class evalThread : public yarp::os::Thread {
 
     void init(Vector z0, Vector x0, Matrix P0) {
         kSolver->init(z0, x0, P0);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void setModel(genPredModel* model){
+        int rowA = model->getRowA();
+        int colA = model->getColA();        
+    
+        // initialisation of the karman filter
+        Matrix A = model->getA();
+        Matrix B = model->getB();
+        Matrix H = model->getH();
+        
+        Matrix R (rowA,colA);
+        Matrix Q (rowA,colA);
+        Matrix P0(rowA,colA);
+        
+        Vector z0(rowA);
+        Vector x0(rowA);
+        Vector z(colA);
+        Vector x(colA);
+        Vector u(1);
+        
+        for (int i = 0; i < rowA; i++) {
+            for (int j = 0; j < colA; j++) { 
+                Q(i, j) += 0.01; 
+                R(i, j) += 0.001;
+                P0(i,j) += 0.01;
+            }      
+        }
+
+        kSolver = new Kalman(A,B,H,Q,R);
     }
 
     /////////////////////////////////////////////////////////////////
@@ -220,6 +265,32 @@ class evalThread : public yarp::os::Thread {
 
 
 };
+
+/**************************************************************************/
+class evalQueue : public std::deque<evalThread*>
+{
+private:
+    evalQueue(const evalQueue&);
+    evalQueue &operator=(const evalQueue&);
+
+protected:
+    bool owner;
+
+public:
+    evalQueue()                    { owner = true;        }
+    evalQueue(const bool _owner)   { owner = _owner;      }
+    void setOwner(const bool owner) { this->owner = owner; }
+    bool getOwner()                 { return owner;      }
+    ~evalQueue() {
+        if (owner)
+            for (size_t i=0; i<size(); i++)
+                if ((*this)[i]!=NULL)
+                    delete (*this)[i];
+        
+        clear();
+    }
+};
+
 
 }
 
