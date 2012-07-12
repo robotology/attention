@@ -280,7 +280,7 @@ attPrioritiserThread::~attPrioritiserThread() {
 
 bool attPrioritiserThread::threadInit() {
 
-    printf(" \n attPrioritiserThread::threadInit:starting the thread.... \n");
+    printf(" \n ---------------------------- attPrioritiserThread::threadInit:starting the thread.... \n");
     
     eyeL = new iCubEye("left");
     eyeR = new iCubEye("right");    
@@ -366,22 +366,26 @@ bool attPrioritiserThread::threadInit() {
     int rowsizeInhi = inhibitionImage->getRowSize();
     
     string name = getName("");
+    timeoutResponseStart = Time::now();
     
+    printf("attPrioritiserThread::threadInit: starting the saccade planner \n");
     sacPlanner = new sacPlannerThread(name);       
     sacPlanner->referenceRetina(imgLeftIn);
     sacPlanner->start();
 
+    printf("attPrioritiserThread::threadInit: starting the tracker \n");
     ResourceFinder* rf = new ResourceFinder();
     tracker = new trackerThread(*rf);
     tracker->setName(getName("/matchTracker").c_str());
     tracker->start();
-    printf("trajectoryPredictor::threadInit:end of the threadInit \n");
-
+    
+    printf("attPrioritiserThread::threadInit:starting the trajectoryPredictor \n");
     trajPredictor = new trajectoryPredictor();
     trajPredictor->setTracker(tracker);
     trajPredictor->start();
+    printf("--------------------------------attPrioritiser::threadInit:end of the threadInit \n");
 
-    timeoutResponseStart = Time::now();
+    
     
     return true;
 }
@@ -527,7 +531,7 @@ void attPrioritiserThread::run() {
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
-    //printf("stateRequest: %s \n", stateRequest.toString().c_str());
+    printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
     
     // checking for missed commands

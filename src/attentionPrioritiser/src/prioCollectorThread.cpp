@@ -43,12 +43,13 @@ prioCollectorThread::~prioCollectorThread() {
 }
 
 bool prioCollectorThread::threadInit() {
-    printf("starting the thread.... \n");
+    printf("----------------------------------------prioCollectorThread::threadInit:starting the thread.... \n");
     /* open ports */
     string rootName("");
     rootName.append(getName("/cmd:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inCommandPort.open(rootName.c_str());
+    printf("----------------------------------------prioCollectorThread::threadInit():end of the initialisation \n");
     return true;
 }
 

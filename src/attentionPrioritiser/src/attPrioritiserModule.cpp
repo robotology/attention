@@ -245,7 +245,13 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     }
     
     printf("starting the prioritiser... \n");
-    prioritiser->start();
+    if(!prioritiser->start()){
+        printf("Att.prioritiser thread did not start. \n");
+        return false;
+    }
+    else {
+        printf("Att.prioritiser thread correctly start. \n");
+    }
     printf("starting the collector... \n");
     collector->start();
     printf("starting the controller... \n");

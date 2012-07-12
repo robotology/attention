@@ -30,6 +30,7 @@
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace attention::predictor;
+using namespace attention::evaluator;
 using namespace std;
 
 #define THRATE 10
@@ -43,31 +44,83 @@ trajectoryPredictor::~trajectoryPredictor() {
 }
 
 bool trajectoryPredictor::threadInit() {
-    printf("starting the thread.... \n");
+    printf("-------------------------------trajectoryPredictor::threadInit:starting the thread.... \n");
     /* open ports */
     string rootName("");
     rootName.append(getName("/blobImage:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
-    inImagePort.open(rootName.c_str());    
-
+    inImagePort.open(rootName.c_str()); 
     
+    //-----------------------------------------------------------------------------------
+    int rowA,colA;
+
+    Matrix R;
+    Matrix Q;
+    Matrix P0;
+    
+    Vector z0;
+    Vector x0;
+    Vector z;
+    Vector x;
+    Vector u;
+
+    eQueue = new evalQueue(false);
+    
+    //-------------------------------------------------------------------------------------------------
     printf("Creating prediction models \n");
     linVelModel* modelA = new linVelModel();
     modelA->init(1.0);
     printf("modelA\n %s \n %s \n", modelA->getA().toString().c_str(), modelA->getB().toString().c_str());
     genPredModel* mA = dynamic_cast<genPredModel*>(modelA);
-    //evalVel1(mA);
-    evalThread etA(mA);
-    evalVel1 = etA;
-    evalVel1.start();
+    printf("after dynamic_cast setting the model \n");
+    attention::evaluator::evalThread evalVel1;
+    evalVel1.setModel(modelA);
+    rowA = modelA->getRowA();
+    colA = modelA->getColA();
+    printf("success in setting the model \n");
 
+    R.resize (rowA,colA);
+    Q.resize (rowA,colA);
+    P0.resize(rowA,colA);
+    
+    z0.resize (rowA);
+    x0.resize (rowA);
+    z.resize (colA);
+    x.resize (colA);
+    u.resize (1);
+    
+    printf("preparing the set of measurements \n");
+    zMeasure.resize(numIter, rowA);
+    uMeasure.resize(numIter, rowA);
+    
+    for(int j = 0; j < numIter; j++) {
+        for (int k  =0 ; k < rowA; k ++) {
+            zMeasure(k,j) = 1.0 + Random::uniform();
+            uMeasure(k,j) = 1.0 + Random::uniform();
+            }
+    }
+        
+    printf("initialising the matrices of the Kalman Filter \n");
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colA; j++) { 
+            Q(i, j) += 0.01; 
+            R(i, j) += 0.001;
+            P0(i,j) += 0.01;
+        }      
+    }
+    
+    evalVel1.init(z0, x0, P0);
+    evalVel1.start();
+    //eQueue.push_back(evalVel1);
+
+    /*
     linAccModel* modelB = new linAccModel();
-    modelB->init(1.0);
-    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
+    modelB->init(1.0);printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
     evalThread etB(mB);
     evalAcc1 = etB;
     evalAcc1.start();
+    eQueue.push_back(evalAcc1);
     
     minJerkModel* modelC = new minJerkModel();
     modelC->init(1, 1);
@@ -76,7 +129,10 @@ bool trajectoryPredictor::threadInit() {
     evalThread etC(mC);
     evalMJ1_T1 = etC;
     evalMJ1_T1.start();
-    
+    eQueue.push_back(evalMJ1_T1);  
+    */
+
+    printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
         
     return true;
 }
@@ -172,7 +228,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     meanVelY /= nIter;
 
     //estimate the predictor model that best fits the velocity measured
-
+    printf("setting measurements \n");
+    
+    evalVel1.setMeasurements(uMeasure,zMeasure);
     
     tracker->getPoint(p_curr);
     distance = sqrt((p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
@@ -192,6 +250,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 void trajectoryPredictor::run() {
     
     while(isRunning()){
+
+        printf("trajectory Predictor \n");
+        
         /*
         ImageOf<PixelMono>* b=inImagePort.read(true);
         int x,y;

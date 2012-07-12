@@ -85,7 +85,7 @@ oculomotorController::~oculomotorController() {
 }
 
 bool oculomotorController::threadInit() {
-    printf(" oculomotorController::threadInit:starting the thread.... \n");
+    printf(" ------------------ oculomotorController::threadInit:starting the thread.... \n");
     // initialisation of relevant matrices
     Q                 = new Matrix(NUMSTATE,  NUMACTION);
     Psa               = new Matrix(NUMSTATE * NUMACTION, NUMSTATE);
@@ -357,7 +357,7 @@ bool oculomotorController::threadInit() {
     //ot->start();
     
     
-    printf("\n oculomotorController::threadInit:initialisation correctly ended \n");
+    printf("\n ------------------------oculomotorController::threadInit:initialisation correctly ended \n");
     
     return true;
 }
