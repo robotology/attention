@@ -36,9 +36,8 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace iCub::ctrl;
 using namespace yarp::math;
-using namespace attention::predictor;
-
-
+using namespace attention;
+//using namespace attention;
 
 
 //___________________________________________________________________________________________________
@@ -80,26 +79,31 @@ Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
             P0(i,j) += 0.01;
         }      
     }
-
-    Kalman kSolver(A,B,H,Q,R);
-    evalThread et(model);
-   
-    // initialisation of the initial state of the karman filter
-    kSolver.init (z0, x0, P0);
+    
+    printf("initialising the model evalThread \n");
+    evaluator::evalThread et;
+    et.setModel(model);
+    printf("just passed the predicting model \n");
     et.init(z0, x0, P0);
+    printf("just initialised the prediction model \n");
     et.start();
+    
+    // initialisation of the initial state of the karman filter
+    printf("creating a new kalman filter \n");
+    Kalman kSolver(A,B,H,Q,R);
+    kSolver.init (z0, x0, P0);
     Time::delay(2.0);
     
     //double c = 1.0;
     //Matrix uMeasure(numIter, 2);
     //uMeasure.zero();
    
-
-    //printf("setting measurements \n");
+    
+    printf("setting measurements \n");
     et.setMeasurements(uMeasure,zMeasure);
     
-    //printf("estim.state %s \n", kSolver.get_x().toString().c_str());
-    //printf("estim.error covariance\n %s \n",kSolver.get_P().toString().c_str());
+    printf("estim.state %s \n", kSolver.get_x().toString().c_str());
+    printf("estim.error covariance\n %s \n",kSolver.get_P().toString().c_str());
    
     while(!et.getEvalFinished()) {
         Time::delay(0.1);
@@ -118,21 +122,21 @@ Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
     
     printf("Creating prediction models \n");
     linVelModel* modelA = new linVelModel();
-    modelA->init(0.5);
+    modelA->init(1.0);
     printf("modelA\n %s \n %s \n", modelA->getA().toString().c_str(), modelA->getB().toString().c_str());
 
     linAccModel* modelB = new linAccModel();
-    modelB->init(0.5);
+    modelB->init(1.0);
     printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
     
     minJerkModel* modelC = new minJerkModel();
-    modelC->init(2, 3);
+    modelC->init(1, 1);
     printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
 
     modelQueue mQueue(false);
     mQueue.push_back(modelA);
-    //mQueue.push_back(modelB);
-    //mQueue.push_back(modelC);
+    mQueue.push_back(modelB);
+    mQueue.push_back(modelC);
     Matrix zMeasure;
     Matrix uMeasure;
 
