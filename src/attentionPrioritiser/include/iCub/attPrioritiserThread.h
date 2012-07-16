@@ -94,6 +94,8 @@
 #include <iCub/observable.h>
 #include <iCub/sacPlannerThread.h>
 #include <iCub/trajectoryPredictor.h>
+#include <iCub/attention/predModels.h>
+#include <iCub/attention/evalThread.h>
 
 #define NUMSTATES 7 // number of states in the attPrioritiser
                     // any state corresponds to an action for the oculomotorController
@@ -112,6 +114,8 @@
 
 class attPrioritiserThread : public yarp::os::RateThread, public observer, public observable {
 private:
+    static const int numIter    = 10;       // number of iteractions
+    
     int cUpdate;                            // counter of updates
     std::string name;                       // rootname of all the ports opened by this thread
     std::string robot;                      // name of the robot read by the ResourceFinder
@@ -249,8 +253,22 @@ private:
     yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
     yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
+
+    attention::evaluator::evalThread evalVel1;      // evaluation thread velocity 1
+    attention::evaluator::evalThread evalVel2;      // evaluation thread velocity 2
+    attention::evaluator::evalThread evalAcc1;      // evaluation thread acceleration 1
+    attention::evaluator::evalThread evalAcc2;      // evaluation thread accelaration 2
+    attention::evaluator::evalThread evalMJ1_T1;    // evaluation thread minJerk distance 1 - period 1
+    attention::evaluator::evalThread evalMJ2_T1;    // evaluation thread minJerk distance 2 - period 1
+    attention::evaluator::evalThread evalMJ1_T2;    // evaluation thread minJerk distance 1 - period 2
+    attention::evaluator::evalThread evalMJ2_T2;    // evaluation thread minJerk distance 2 - period 2
+
+    attention::evaluator::evalQueue* eQueue;        // queue of evaluation threads
     
-    trackerThread*    tracker;                    // reference to the object in charge of tracking a tamplete surrounding a point
+    yarp::sig::Matrix zMeasure;                     // vector of measurements
+    yarp::sig::Matrix uMeasure;                     // vector of the input values
+    
+    trackerThread*    tracker;                      // reference to the object in charge of tracking a tamplete surrounding a point
     sacPlannerThread    *sacPlanner;                // planner of saccadic movements (todo: make it a list of planners
     trajectoryPredictor *trajPredictor;             // predictor of the trajectory of a given stimulus
     yarp::os::ResourceFinder* rf;                   // resourceFinder for the pathfinder of other files

@@ -15,14 +15,30 @@
 #include <assert.h>
 #include <iCub/cudaVision/cudaVision.h>
 
+
+// Assuming ROW_TILE_W, KERNEL_RADIUS_ALIGNED and dataW 
+// are multiples of coalescing granularity size,
+// all global memory operations are coalesced in convolutionRowGPU()
+#define ROW_TILE_W              128
+#define KERNEL_RADIUS_ALIGNED   16
+
+// Assuming COLUMN_TILE_W and dataW are multiples
+// of coalescing granularity size, all global memory operations 
+// are coalesced in convolutionColumnGPU()
+#define COLUMN_TILE_W           16
+#define COLUMN_TILE_H           48
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Convolution kernel storage
 ////////////////////////////////////////////////////////////////////////////////
 __constant__ float c_Kernel[MAX_KERNEL_NUM][MAX_KERNEL_LENGTH];
 
 
-extern "C" void setConvolutionKernel(float *h_Kernel, int k_Index, size_t k_Size)
+extern "C" void setKernelF32Sep(float *h_Kernel, int k_Index, size_t k_Size)
 {
+    assert( k_Size <= MAX_KERNEL_LENGTH );
+    assert( k_Index < MAX_KERNEL_NUM );
     cudaMemcpyToSymbol(c_Kernel[k_Index], h_Kernel, k_Size*sizeof(float));
 }
 
@@ -59,58 +75,80 @@ extern "C" void addF32(
 }
 
 
-// Row convolution filter
-#define   ROWS_BLOCKDIM_X       32//16
-#define   ROWS_BLOCKDIM_Y       4
-#define   ROWS_RESULT_STEPS     5//8
-#define   ROWS_HALO_STEPS       1
 
+/**
+ * Seperable Convlution
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+// Row convolution filter
+////////////////////////////////////////////////////////////////////////////////
 __global__ void convRowsF32SepKernel(
-    float *d_Dst,
-    float *d_Src,
-    int imageW,
-    int imageH,
-    int pitch,
-    int k_index,
+    float *d_Result,
+    float *d_Data,
+    int dataW,
+    int dataH,
+    int k_Index,    
     int k_radius)
 {
-    __shared__ float s_Data[ROWS_BLOCKDIM_Y][(ROWS_RESULT_STEPS + 2 * ROWS_HALO_STEPS) * ROWS_BLOCKDIM_X];
+    //Data cache
+    __shared__ float data[MAX_KERNEL_RADIUS + ROW_TILE_W + MAX_KERNEL_RADIUS];
 
-    //Offset to the left halo edge
-    const int baseX = (blockIdx.x * ROWS_RESULT_STEPS - ROWS_HALO_STEPS) * ROWS_BLOCKDIM_X + threadIdx.x;
-    const int baseY = blockIdx.y * ROWS_BLOCKDIM_Y + threadIdx.y;
+    //Current tile and apron limits, relative to row start
+    const int tileStart = IMUL(blockIdx.x, ROW_TILE_W);
+    const int tileEnd = tileStart + ROW_TILE_W - 1;
+    const int apronStart = tileStart - k_radius;
+    const int apronEnd = tileEnd + k_radius;
 
-    d_Src += baseY * pitch + baseX;
-    d_Dst += baseY * pitch + baseX;
+    //Clamp tile and apron limits by image borders
+    const int tileEndClamped = min(tileEnd, dataW - 1);
+    const int apronStartClamped = max(apronStart, 0);
+    const int apronEndClamped = min(apronEnd, dataW - 1);
 
-    //Load main data
-    #pragma unroll
-    for(int i = ROWS_HALO_STEPS; i < ROWS_HALO_STEPS + ROWS_RESULT_STEPS; i++)
-        s_Data[threadIdx.y][threadIdx.x + i * ROWS_BLOCKDIM_X] = d_Src[i * ROWS_BLOCKDIM_X];
+    //Row start index in d_Data[]
+    const int rowStart = IMUL(blockIdx.y, dataW);
 
-    //Load left halo
-    #pragma unroll
-    for(int i = 0; i < ROWS_HALO_STEPS; i++)
-        s_Data[threadIdx.y][threadIdx.x + i * ROWS_BLOCKDIM_X] = (baseX >= -i * ROWS_BLOCKDIM_X ) ? d_Src[i * ROWS_BLOCKDIM_X] : 0;
+    //Aligned apron start. Assuming dataW and ROW_TILE_W are multiples 
+    //of half-warp size, rowStart + apronStartAligned is also a 
+    //multiple of half-warp size, thus having proper alignment 
+    //for coalesced d_Data[] read.
+    const int apronStartAligned = tileStart - KERNEL_RADIUS_ALIGNED;
 
-    //Load right halo
-    #pragma unroll
-    for(int i = ROWS_HALO_STEPS + ROWS_RESULT_STEPS; i < ROWS_HALO_STEPS + ROWS_RESULT_STEPS + ROWS_HALO_STEPS; i++)
-        s_Data[threadIdx.y][threadIdx.x + i * ROWS_BLOCKDIM_X] = (imageW - baseX > i * ROWS_BLOCKDIM_X) ? d_Src[i * ROWS_BLOCKDIM_X] : 0;
+    const int loadPos = apronStartAligned + threadIdx.x;
+    //Set the entire data cache contents
+    //Load global memory values, if indices are within the image borders,
+    //or initialize with zeroes otherwise
+    if(loadPos >= apronStart)
+    {
+        const int smemPos = loadPos - apronStart;
 
-    //Compute and store results
+        data[smemPos] = 
+            ((loadPos >= apronStartClamped) && (loadPos <= apronEndClamped)) ?
+            d_Data[rowStart + loadPos] : 0;
+    }
+
+
+    //Ensure the completness of the loading stage
+    //because results, emitted by each thread depend on the data,
+    //loaded by another threads
     __syncthreads();
-    #pragma unroll
-    for(int i = ROWS_HALO_STEPS; i < ROWS_HALO_STEPS + ROWS_RESULT_STEPS; i++){
+    const int writePos = tileStart + threadIdx.x;
+    
+    //Assuming dataW and ROW_TILE_W are multiples of half-warp size,
+    //rowStart + tileStart is also a multiple of half-warp size,
+    //thus having proper alignment for coalesced d_Result[] write.
+    if(writePos <= tileEndClamped)
+    {
+        const int smemPos = writePos - apronStart;
         float sum = 0;
 
-        #pragma unroll
-        for(int j = -k_radius; j <= k_radius; j++)
-            sum += c_Kernel[k_index][k_radius - j] * s_Data[threadIdx.y][threadIdx.x + i * ROWS_BLOCKDIM_X + j];
+        for(int k = -k_radius; k <= k_radius; k++)
+            sum += data[smemPos + k] * c_Kernel[k_Index][k_radius - k];
 
-        d_Dst[i * ROWS_BLOCKDIM_X] = sum;
+        d_Result[rowStart + writePos] = sum;
     }
 }
+
 
 extern "C" void convRowsF32Sep(
     float *d_Dst,
@@ -121,77 +159,91 @@ extern "C" void convRowsF32Sep(
     int k_Size)
 {
     int k_radius = ((k_Size % 2) == 0) ? k_Size/2 : (k_Size-1)/2;
-    assert( ROWS_BLOCKDIM_X * ROWS_HALO_STEPS >= k_radius );
-    assert( imageW % (ROWS_RESULT_STEPS * ROWS_BLOCKDIM_X) == 0 );
-    assert( imageH % ROWS_BLOCKDIM_Y == 0 );
-
-    dim3 blocks(imageW / (ROWS_RESULT_STEPS * ROWS_BLOCKDIM_X), imageH / ROWS_BLOCKDIM_Y);
-    dim3 threads(ROWS_BLOCKDIM_X, ROWS_BLOCKDIM_Y);
+    dim3 blocks(IDIVUP(imageW, ROW_TILE_W), imageH);
+    dim3 threads(KERNEL_RADIUS_ALIGNED + ROW_TILE_W + k_radius);	// 16 128 8
 
     convRowsF32SepKernel<<<blocks, threads>>>(
         d_Dst,
         d_Src,
         imageW,
         imageH,
-        imageW,
         k_Index,
         k_radius);
-    //cutilCheckMsg("convolutionRowsKernel() execution failed\n");
 }
 
 
 
-
+////////////////////////////////////////////////////////////////////////////////
 // Column convolution filter
-#define   COLUMNS_BLOCKDIM_X        16
-#define   COLUMNS_BLOCKDIM_Y        16 //8
-#define   COLUMNS_RESULT_STEPS      5 //8
-#define   COLUMNS_HALO_STEPS        1
-
+////////////////////////////////////////////////////////////////////////////////
 __global__ void convColsF32SepKernel(
-    float *d_Dst,
-    float *d_Src,
-    int imageW,
-    int imageH,
-    int pitch,
+    float *d_Result,
+    float *d_Data,
+    int dataW,
+    int dataH,
     int k_index,
-    int k_radius)
+    int k_radius,
+    int smemStride,
+    int gmemStride)
 {
-    __shared__ float s_Data[COLUMNS_BLOCKDIM_X][(COLUMNS_RESULT_STEPS + 2 * COLUMNS_HALO_STEPS) * COLUMNS_BLOCKDIM_Y + 1];
+    //Data cache
+    __shared__ float data[COLUMN_TILE_W * (MAX_KERNEL_RADIUS + COLUMN_TILE_H + MAX_KERNEL_RADIUS)];
 
-    //Offset to the upper halo edge
-    const int baseX = blockIdx.x * COLUMNS_BLOCKDIM_X + threadIdx.x;
-    const int baseY = (blockIdx.y * COLUMNS_RESULT_STEPS - COLUMNS_HALO_STEPS) * COLUMNS_BLOCKDIM_Y + threadIdx.y;
-    d_Src += baseY * pitch + baseX;
-    d_Dst += baseY * pitch + baseX;
+    //Current tile and apron limits, in rows
+    const int tileStart = IMUL(blockIdx.y, COLUMN_TILE_H);
+    const int tileEnd = tileStart + COLUMN_TILE_H - 1;
+    const int apronStart = tileStart - k_radius;
+    const int apronEnd = tileEnd + k_radius;
 
-    //Main data
-    #pragma unroll
-    for(int i = COLUMNS_HALO_STEPS; i < COLUMNS_HALO_STEPS + COLUMNS_RESULT_STEPS; i++)
-        s_Data[threadIdx.x][threadIdx.y + i * COLUMNS_BLOCKDIM_Y] = d_Src[i * COLUMNS_BLOCKDIM_Y * pitch];
+    //Clamp tile and apron limits by image borders
+    const int tileEndClamped = min(tileEnd, dataH - 1);
+    const int apronStartClamped = max(apronStart, 0);
+    const int apronEndClamped = min(apronEnd, dataH - 1);
 
-    //Upper halo
-    #pragma unroll
-    for(int i = 0; i < COLUMNS_HALO_STEPS; i++)
-        s_Data[threadIdx.x][threadIdx.y + i * COLUMNS_BLOCKDIM_Y] = (baseY >= -i * COLUMNS_BLOCKDIM_Y) ? d_Src[i * COLUMNS_BLOCKDIM_Y * pitch] : 0;
+    //Current column index
+    const int columnStart = IMUL(blockIdx.x, COLUMN_TILE_W) + threadIdx.x;
 
-    //Lower halo
-    #pragma unroll
-    for(int i = COLUMNS_HALO_STEPS + COLUMNS_RESULT_STEPS; i < COLUMNS_HALO_STEPS + COLUMNS_RESULT_STEPS + COLUMNS_HALO_STEPS; i++)
-        s_Data[threadIdx.x][threadIdx.y + i * COLUMNS_BLOCKDIM_Y]= (imageH - baseY > i * COLUMNS_BLOCKDIM_Y) ? d_Src[i * COLUMNS_BLOCKDIM_Y * pitch] : 0;
+    //Shared and global memory indices for current column
+    int smemPos = IMUL(threadIdx.y, COLUMN_TILE_W) + threadIdx.x;
+    int gmemPos = IMUL(apronStart + threadIdx.y, dataW) + columnStart;
+    
+    //Cycle through the entire data cache
+    //Load global memory values, if indices are within the image borders,
+    //or initialize with zero otherwise
+    for(int y = apronStart + threadIdx.y; y <= apronEnd; y += blockDim.y)
+    {
+        data[smemPos] = 
+        ((y >= apronStartClamped) && (y <= apronEndClamped)) ? 
+        d_Data[gmemPos] : 0;
+        smemPos += smemStride;
+        gmemPos += gmemStride;
+    }
 
-    //Compute and store results
+    //Ensure the completness of the loading stage
+    //because results, emitted by each thread depend on the data, 
+    //loaded by another threads
     __syncthreads();
-    #pragma unroll
-    for(int i = COLUMNS_HALO_STEPS; i < COLUMNS_HALO_STEPS + COLUMNS_RESULT_STEPS; i++){
+    
+    //Shared and global memory indices for current column
+    smemPos = IMUL(threadIdx.y + k_radius, COLUMN_TILE_W) + threadIdx.x;
+    gmemPos = IMUL(tileStart + threadIdx.y , dataW) + columnStart;
+    
+    //Cycle through the tile body, clamped by image borders
+    //Calculate and output the results
+    for(int y = tileStart + threadIdx.y; y <= tileEndClamped; y += blockDim.y)
+    {
         float sum = 0;
-        #pragma unroll
-        for(int j = -k_radius; j <= k_radius; j++)
-            sum += c_Kernel[k_index][k_radius - j] * s_Data[threadIdx.x][threadIdx.y + i * COLUMNS_BLOCKDIM_Y + j];
+        for(int k = -k_radius; k <= k_radius; k++)
+            sum += 
+                data[smemPos + IMUL(k, COLUMN_TILE_W)] *
+                c_Kernel[k_index][k_radius - k];
 
-        d_Dst[i * COLUMNS_BLOCKDIM_Y * pitch] = sum;
+        d_Result[gmemPos] = sum;
+        smemPos += smemStride;
+        gmemPos += gmemStride;
     }
 }
+
 
 extern "C" void convColsF32Sep(
     float *d_Dst,
@@ -201,25 +253,19 @@ extern "C" void convColsF32Sep(
     int k_Index,
     int k_Size)
 {
-
     int k_radius = ((k_Size % 2) == 0) ? k_Size/2 : (k_Size-1)/2;
-    assert( COLUMNS_BLOCKDIM_Y * COLUMNS_HALO_STEPS >= k_radius );
-    assert( imageW % COLUMNS_BLOCKDIM_X == 0 );
-    assert( imageH % (COLUMNS_RESULT_STEPS * COLUMNS_BLOCKDIM_Y) == 0 );
-
-    dim3 blocks(imageW / COLUMNS_BLOCKDIM_X, imageH / (COLUMNS_RESULT_STEPS * COLUMNS_BLOCKDIM_Y));
-    dim3 threads(COLUMNS_BLOCKDIM_X, COLUMNS_BLOCKDIM_Y);
+    dim3 blocks(IDIVUP(imageW, COLUMN_TILE_W), IDIVUP(imageH, COLUMN_TILE_H));
+    dim3 threads(COLUMN_TILE_W, 8);
 
     convColsF32SepKernel<<<blocks, threads>>>(
         d_Dst,
         d_Src,
         imageW,
-        imageH,
-        imageW,
+        imageH,        
         k_Index,
-        k_radius
-    );
-    //cutilCheckMsg("convolutionColumnsKernel() execution failed\n");
+        k_radius,
+        COLUMN_TILE_W*threads.y,
+        imageW*threads.y);
 }
 
 
@@ -228,7 +274,8 @@ extern "C" void convF32Sep(
     float *d_Src,
     int imageW,
     int imageH,
-    int k_Index,
+    int k_IndexRow,
+    int k_IndexCol,
     int k_Size,
     float* d_Buffer)
 {
@@ -236,14 +283,14 @@ extern "C" void convF32Sep(
     if(d_Buffer == NULL)
     {
         HANDLE_ERROR( cudaMalloc((void **)&d_Buffer, imageW*imageH*sizeof(float)) );   
-        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_Index, k_Size);
-        convColsF32Sep(d_Dst, d_Buffer, imageW, imageH, k_Index, k_Size);
+        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_IndexRow, k_Size);
+        convColsF32Sep(d_Dst, d_Buffer, imageW, imageH, k_IndexCol, k_Size);
         HANDLE_ERROR( cudaFree(d_Buffer ) );
     }
     else
     {
-        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_Index, k_Size);
-        convColsF32Sep(d_Dst, d_Buffer, imageW, imageH, k_Index, k_Size);
+        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_IndexRow, k_Size);
+        convColsF32Sep(d_Dst, d_Buffer, imageW, imageH, k_IndexCol, k_Size);
     }
 }
 
@@ -253,7 +300,8 @@ extern "C" void convF32SepAdd(
     float *d_Src,
     int imageW,
     int imageH,
-    int k_Index,
+    int k_IndexRow,
+    int k_IndexCol,
     int k_Size,
     float* d_Buffer)
 {
@@ -261,18 +309,18 @@ extern "C" void convF32SepAdd(
     if(d_Buffer == NULL)
     {
         HANDLE_ERROR( cudaMalloc((void **)&d_Buffer, imageW*imageH*sizeof(float)) );   
-        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_Index, k_Size);
+        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_IndexRow, k_Size);
         HANDLE_ERROR( cudaDeviceSynchronize() );
-        convColsF32Sep(d_Dst, d_Src, imageW, imageH, k_Index, k_Size);
+        convColsF32Sep(d_Dst, d_Src, imageW, imageH, k_IndexCol, k_Size);
         addF32(d_Dst, d_Dst, d_Buffer, imageW, imageH); 
         HANDLE_ERROR( cudaDeviceSynchronize() );
         HANDLE_ERROR( cudaFree(d_Buffer ) );
     }
     else
     {
-        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_Index, k_Size);
+        convRowsF32Sep(d_Buffer, d_Src, imageW, imageH, k_IndexRow, k_Size);
         HANDLE_ERROR( cudaDeviceSynchronize() );
-        convColsF32Sep(d_Dst, d_Src, imageW, imageH, k_Index, k_Size);
+        convColsF32Sep(d_Dst, d_Src, imageW, imageH, k_IndexCol, k_Size);
         HANDLE_ERROR( cudaDeviceSynchronize() );
         addF32(d_Dst, d_Dst, d_Buffer, imageW, imageH);        
         HANDLE_ERROR( cudaDeviceSynchronize() );
@@ -280,157 +328,4 @@ extern "C" void convF32SepAdd(
 }
 
 
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-// Texture convolution
-////////////////////////////////////////////////////////////////////////////////
-//Maps to a single instruction on G8x / G9x / G10x
-#define IMAD(a, b, c) ( __mul24((a), (b)) + (c) )
-
-//Use unrolled innermost convolution loop
-//#define UNROLL_INNER 1
-
-//Round a / b to nearest higher integer value
-inline int iDivUp(int a, int b){
-    return (a % b != 0) ? (a / b + 1) : (a / b);
-}
-
-//Align a to nearest higher multiple of b
-inline int iAlignUp(int a, int b){
-    return (a % b != 0) ?  (a - a % b + b) : a;
-}
-
-texture<float, 2, cudaReadModeElementType> texSrc;
-
-extern "C" void setInputArray(cudaArray *a_Src){
-}
-
-extern "C" void detachInputArray(void){
-}
-*/
-
-/*
-// Loop unrolling templates, needed for best performance
-template<int i> __device__ float convolutionRow(float x, float y){
-    return 
-        tex2D(texSrc, x + (float)(KERNEL_RADIUS - i), y) * c_Kernel[i]
-        + convolutionRow<i - 1>(x, y);
-}
-
-template<> __device__ float convolutionRow<-1>(float x, float y){
-    return 0;
-}
-
-template<int i> __device__ float convolutionColumn(float x, float y){
-    return 
-        tex2D(texSrc, x, y + (float)(KERNEL_RADIUS - i)) * c_Kernel[i]
-        + convolutionColumn<i - 1>(x, y);
-}
-
-template<> __device__ float convolutionColumn<-1>(float x, float y){
-    return 0;
-}
-*/
-
-/*
-// Row convolution filter
-__global__ void convRowsF32TexKernel(
-    float *d_Dst,
-    int imageW,
-    int imageH,
-    int k_radius)
-{
-    const   int ix = IMAD(blockDim.x, blockIdx.x, threadIdx.x);
-    const   int iy = IMAD(blockDim.y, blockIdx.y, threadIdx.y);
-    const float  x = (float)ix + 0.5f;
-    const float  y = (float)iy + 0.5f;
-
-    if(ix >= imageW || iy >= imageH)
-        return;
-
-    float sum = 0;
-
-    //#if(UNROLL_INNER)
-    //    sum = convolutionRow<2 * k_radius>(x, y);
-    //#else
-        for(int k = -k_radius; k <= k_radius; k++)
-        sum += tex2D(texSrc, x + (float)k, y) * c_Kernel[k_radius - k];
-    //#endif
-
-    d_Dst[IMAD(iy, imageW, ix)] = sum;
-}
-
-
-extern "C" void convRowsF32Tex(
-    float *d_Dst,
-    cudaArray *a_Src,
-    int imageW,
-    int imageH,
-    int k_radius)
-{
-    dim3 threads(16, 12);
-    dim3 blocks(iDivUp(imageW, threads.x), iDivUp(imageH, threads.y));
-
-    HANDLE_ERROR( cudaBindTextureToArray(texSrc, a_Src) );
-    convRowsF32TexKernel<<<blocks, threads>>>(
-        d_Dst,
-        imageW,
-        imageH,
-        k_radius
-    );
-    HANDLE_ERROR( cudaUnbindTexture(texSrc) );
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Column convolution filter
-////////////////////////////////////////////////////////////////////////////////
-__global__ void convColsF32TexKernel(
-    float *d_Dst,
-    int imageW,
-    int imageH,
-    int k_radius)
-{
-    const   int ix = IMAD(blockDim.x, blockIdx.x, threadIdx.x);
-    const   int iy = IMAD(blockDim.y, blockIdx.y, threadIdx.y);
-    const float  x = (float)ix + 0.5f;
-    const float  y = (float)iy + 0.5f;
-
-    if(ix >= imageW || iy >= imageH)
-        return;
-
-    float sum = 0;
-
-    //#if(UNROLL_INNER)
-    //    sum = convolutionColumn<2 * k_radius>(x, y);
-    //#else
-        for(int k = -k_radius; k <= k_radius; k++)
-            sum += tex2D(texSrc, x, y + (float)k) * c_Kernel[k_radius - k];
-    //#endif
-
-     d_Dst[IMAD(iy, imageW, ix)] = sum;
-}
-
-
-extern "C" void convColsF32Tex(
-    float *d_Dst,
-    cudaArray *a_Src,
-    int imageW,
-    int imageH,
-    int k_radius)
-{
-    dim3 threads(16, 12);
-    dim3 blocks(iDivUp(imageW, threads.x), iDivUp(imageH, threads.y));
-
-    HANDLE_ERROR(cudaBindTextureToArray(texSrc, a_Src) );
-    convColsF32TexKernel<<<blocks, threads>>>(
-        d_Dst,
-        imageW,
-        imageH,
-        k_radius);
-    HANDLE_ERROR( cudaUnbindTexture(texSrc) );
-}
-*/
 

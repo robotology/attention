@@ -34,6 +34,8 @@ using namespace yarp::dev;
 using namespace std;
 using namespace yarp::math;
 using namespace iCub::iKin;
+using namespace attention::predictor;
+using namespace attention::evaluator;
 
 
 #define THRATE          10
@@ -269,6 +271,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     tracker = new trackerThread(*rf);
     tracker->setName(getName("/matchTracker").c_str());
     tracker->start();
+
     
     printf("attPrioritiserThread initialization ended correctly \n");
 }
@@ -345,15 +348,19 @@ bool attPrioritiserThread::threadInit() {
     localCon.append(getName(""));
     option.put("local",localCon.c_str());
 
+    printf("opening the polydriver gaze Controller \n");
     clientGazeCtrl=new PolyDriver();
     clientGazeCtrl->open(option);
     igaze=NULL;
 
     if (clientGazeCtrl->isValid()) {
+        printf("success in opening igaze \n");
        clientGazeCtrl->view(igaze);
     }
-    else
+    else {
+        printf("could not open the clientGazeCtrl \n");
         return false;
+    }
     
     pendingCommand   = new Bottle();
     isPendingCommand = false;
@@ -385,7 +392,66 @@ bool attPrioritiserThread::threadInit() {
     trajPredictor->start();
     printf("--------------------------------attPrioritiser::threadInit:end of the threadInit \n");
 
+    //-----------------------------------------------------------------------------------
+    int rowA,colA;
+
+    Matrix R;
+    Matrix Q;
+    Matrix P0;
     
+    Vector z0;
+    Vector x0;
+    Vector z;
+    Vector x;
+    Vector u;
+    
+    eQueue = new evalQueue(false);
+    //-------------------------------------------------------------------------------------------------
+    printf("Creating prediction models \n");
+    linVelModel* modelA = new linVelModel();
+    modelA->init(1.0);
+    printf("modelA\n %s \n %s \n", modelA->getA().toString().c_str(), modelA->getB().toString().c_str());
+    genPredModel* mA = dynamic_cast<genPredModel*>(modelA);
+    printf("after dynamic_cast setting the model \n");
+    attention::evaluator::evalThread evalVel1;
+    evalVel1.setModel(modelA);
+    rowA = modelA->getRowA();
+    colA = modelA->getColA();
+    printf("success in setting the model \n");
+    
+    R.resize (rowA,colA);
+    Q.resize (rowA,colA);
+    P0.resize(rowA,colA);
+    
+    z0.resize (rowA);
+    x0.resize (rowA);
+    z.resize (colA);
+    x.resize (colA);
+    u.resize (1);
+    
+    printf("preparing the set of measurements %d %d \n", numIter, rowA);
+    zMeasure.resize(numIter, rowA);
+    uMeasure.resize(numIter, rowA);
+
+    for(int j = 0; j < numIter; j++) {
+        for (int k = 0 ; k < rowA; k ++) {
+            zMeasure(k,j) = 1.0 + Random::uniform();
+            uMeasure(k,j) = 1.0 + Random::uniform();
+        }
+    }
+    
+    printf("initialising the matrices of the Kalman Filter \n");
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colA; j++) { 
+            Q(i, j) += 0.01; 
+            R(i, j) += 0.001;
+            P0(i,j) += 0.01;
+        }      
+    }
+    
+    evalVel1.init(z0, x0, P0);
+    //evalVel1.start();
+    //eQueue->push_back(evalVel1);
     
     return true;
 }
@@ -414,8 +480,10 @@ void attPrioritiserThread::interrupt() {
 
 void attPrioritiserThread::threadRelease() {
 
+    printf("--------------------------------- attPrioritiserThread::threadRelease:successfully restored previous gaze context \n"); 
     delete clientGazeCtrl;
-    printf("attPrioritiserThread::threadRelease:successfully restored previous gaze context \n"); 
+
+    evalVel1.stop();
 
     inLeftPort.close();
     inRightPort.close();
@@ -471,7 +539,7 @@ void attPrioritiserThread::threadRelease() {
     */
 
     //delete sacPlanner;
-    printf("attPrioritiserThread::threadRelease:deleted the sacPlanner \n");
+    printf("----------------------------------- attPrioritiserThread::threadRelease:success in releasing all the components \n");
 }
 
 void attPrioritiserThread::setDimension(int w, int h) {
@@ -531,7 +599,7 @@ void attPrioritiserThread::run() {
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
-    printf("stateRequest: %s \n", stateRequest.toString().c_str());
+    //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
     
     // checking for missed commands

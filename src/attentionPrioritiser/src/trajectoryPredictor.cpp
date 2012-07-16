@@ -51,68 +51,11 @@ bool trajectoryPredictor::threadInit() {
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str()); 
     
-    //-----------------------------------------------------------------------------------
-    int rowA,colA;
+    
 
-    Matrix R;
-    Matrix Q;
-    Matrix P0;
     
-    Vector z0;
-    Vector x0;
-    Vector z;
-    Vector x;
-    Vector u;
-
-    eQueue = new evalQueue(false);
     
-    //-------------------------------------------------------------------------------------------------
-    printf("Creating prediction models \n");
-    linVelModel* modelA = new linVelModel();
-    modelA->init(1.0);
-    printf("modelA\n %s \n %s \n", modelA->getA().toString().c_str(), modelA->getB().toString().c_str());
-    genPredModel* mA = dynamic_cast<genPredModel*>(modelA);
-    printf("after dynamic_cast setting the model \n");
-    attention::evaluator::evalThread evalVel1;
-    evalVel1.setModel(modelA);
-    rowA = modelA->getRowA();
-    colA = modelA->getColA();
-    printf("success in setting the model \n");
-
-    R.resize (rowA,colA);
-    Q.resize (rowA,colA);
-    P0.resize(rowA,colA);
     
-    z0.resize (rowA);
-    x0.resize (rowA);
-    z.resize (colA);
-    x.resize (colA);
-    u.resize (1);
-    
-    printf("preparing the set of measurements \n");
-    zMeasure.resize(numIter, rowA);
-    uMeasure.resize(numIter, rowA);
-    
-    for(int j = 0; j < numIter; j++) {
-        for (int k  =0 ; k < rowA; k ++) {
-            zMeasure(k,j) = 1.0 + Random::uniform();
-            uMeasure(k,j) = 1.0 + Random::uniform();
-        }
-    }
-        
-    printf("initialising the matrices of the Kalman Filter \n");
-    for (int i = 0; i < rowA; i++) {
-        for (int j = 0; j < colA; j++) { 
-            Q(i, j) += 0.01; 
-            R(i, j) += 0.001;
-            P0(i,j) += 0.01;
-        }      
-    }
-    
-    evalVel1.init(z0, x0, P0);
-    evalVel1.start();
-    //eQueue.push_back(evalVel1);
-
     /*
     linAccModel* modelB = new linAccModel();
     modelB->init(1.0);printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
@@ -168,14 +111,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     printf(" trajectoryPredictor::estimateVelocity in pos.%d,%d  \n", Vx, Vy);
     
     CvPoint p_curr, p_prev;
-    
-    //// initialisation of the tracker
-    //tracker->init(x,y);
-    //printf("success in init \n");
-    //tracker->r = 1;
-    //printf("running %d \n", tracker->r);
-    //tracker->waitInitTracker();
-    //printf("tracker successfully initialised \n");
+
     
     double timeStart = Time::now();
     double timeStop, timeDiff;
@@ -249,10 +185,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 
 void trajectoryPredictor::run() {
     
-    while(isRunning()){
-
-        printf("trajectory Predictor \n");
-        
+    while(isRunning()){        
         /*
         ImageOf<PixelMono>* b=inImagePort.read(true);
         int x,y;

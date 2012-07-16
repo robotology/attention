@@ -14,8 +14,8 @@
  */
 
 
-#ifndef __CUDAVISION_H__
-#define __CUDAVISION_H__
+#ifndef __FILTERS_H__
+#define __FILTERS_H__
 
 #include <stdio.h>
 #include <cuda.h>
@@ -23,13 +23,21 @@
 
 
 #define MAX_KERNEL_NUM          16
-#define MAX_KERNEL_LENGTH       64
+#define MAX_KERNEL_LENGTH       33
+#define MAX_KERNEL_RADIUS       16
+
+
+#define IMUL(a, b)              __mul24(a, b)
+#define IDIVUP(a, b)            ((a % b != 0) ? (a / b + 1) : (a / b))
+#define IDIVDOWN(a, b)          (a / b)
+#define IALIGNUP(a, b)          ((a % b != 0) ?  (a - a % b + b) : a)
+#define IALIGNDOWN(a, b)        (a - (a % b))
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // GPU convolution generic functions
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void setConvolutionKernel(float *h_Kernel, int k_Index, size_t k_Size);
+extern "C" void setKernelF32Sep(float *h_Kernel, int k_Index, size_t k_Size);
 
 ////////////////////////////////////////////////////////////////////////////////
 // GPU simple arethmatic functions
@@ -69,7 +77,8 @@ extern "C" void convF32Sep(
     float *d_Src,
     int imageW,
     int imageH,
-    int k_Index,
+    int k_IndexRow,
+    int k_IndexCol,
     int k_Size,
     float* d_Buffer
 );
@@ -80,32 +89,12 @@ extern "C" void convF32SepAdd(
     float *d_Src,
     int imageW,
     int imageH,
-    int k_Index,
+    int k_IndexRow,
+    int k_IndexCol,
     int k_Size,
     float* d_Buffer
 );
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-// GPU convolution Texture
-////////////////////////////////////////////////////////////////////////////////
-extern "C" void convRowsF32Tex(
-    float *d_Dst,
-    cudaArray *a_Src,
-    int imageW,
-    int imageH,
-    int k_radius
-);
-
-
-extern "C" void convColsF32Tex(
-    float *d_Dst,
-    cudaArray *a_Src,
-    int imageW,
-    int imageH,
-    int k_radius
-);
-*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // Error Handling
@@ -128,4 +117,4 @@ static void HandleError( cudaError_t err,
                                     __FILE__, __LINE__ ); \
                             exit( EXIT_FAILURE );}}
 #endif
-#endif  // __CUDAVISION_H__
+#endif  // __FILTERS_H__

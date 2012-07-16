@@ -1337,7 +1337,7 @@ void oculomotorController::threadRelease() {
     //inCommandPort.close();
     //entImgPort.close();
     
-    printf("oculomotorController::threadRelease() : stopping threads \n");
+    printf("------------------------------- oculomotorController::threadRelease() : stopping threads \n");
     
     //stopping thread
     //if(0 != tp) {
@@ -1431,7 +1431,7 @@ void oculomotorController::threadRelease() {
     //delete A;
     // delete P;
 
-    printf("OculomotorController::threadRelease success \n  ");
+    printf("--------------------------- OculomotorController::threadRelease success \n  ");
 }
 
 

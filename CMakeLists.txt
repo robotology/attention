@@ -33,8 +33,9 @@ set(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}" CACHE PATH "Application path pref
 option(ENABLE_CUDA  "Do you want to compile with Cuda?" OFF)
 
 if (ENABLE_CUDA)  
-  add_definitions (-DWITH_CUDA)
-  add_subdirectory(cudaVision)
+    find_package(CUDA QUIET REQUIRED)
+    add_definitions (-DWITH_CUDA)
+    add_subdirectory(cudaVision)
 endif (ENABLE_CUDA)
 
 ADD_SUBDIRECTORY(attentionLib)

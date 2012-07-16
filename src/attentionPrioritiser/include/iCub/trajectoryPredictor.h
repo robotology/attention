@@ -51,7 +51,7 @@ private:
     static const int numEvalVel = 1;  // number of evaluator based on const velocity 
     static const int numEvalAcc = 1;  // number of evaluator based on const acceleration
     static const int numEvalMj  = 1;  // number of evaluator based on minimum jerk
-    static const int numIter    = 10;  // number of iteractions
+    static const int numIter    = 10; // number of iteractions
 
     double Vx, Vy;                // components of velocity
     std::string name;             // rootname of all the ports opened by this thread
@@ -63,19 +63,21 @@ private:
     yarp::os::ResourceFinder* rf; // resource finder for initialisation of the tracker
     trackerThread*    tracker;    // reference to the object in charge of tracking a tamplete surrounding a point
     
-    yarp::sig::Matrix zMeasure;   // vector of measurements
-    yarp::sig::Matrix uMeasure;   // vector of the input values
-    
-    attention::evaluator::evalThread evalVel1;          // evaluation thread velocity 1
-    attention::evaluator::evalThread evalVel2;          // evaluation thread velocity 2
-    attention::evaluator::evalThread evalAcc1;          // evaluation thread acceleration 1
-    attention::evaluator::evalThread evalAcc2;          // evaluation thread accelaration 2
-    attention::evaluator::evalThread evalMJ1_T1;        // evaluation thread minJerk distance 1 - period 1
-    attention::evaluator::evalThread evalMJ2_T1;        // evaluation thread minJerk distance 2 - period 1
-    attention::evaluator::evalThread evalMJ1_T2;        // evaluation thread minJerk distance 1 - period 2
-    attention::evaluator::evalThread evalMJ2_T2;        // evaluation thread minJerk distance 2 - period 2
+    attention::evaluator::evalThread evalVel1;      // evaluation thread velocity 1
+    attention::evaluator::evalThread evalVel2;      // evaluation thread velocity 2
+    attention::evaluator::evalThread evalAcc1;      // evaluation thread acceleration 1
+    attention::evaluator::evalThread evalAcc2;      // evaluation thread accelaration 2
+    attention::evaluator::evalThread evalMJ1_T1;    // evaluation thread minJerk distance 1 - period 1
+    attention::evaluator::evalThread evalMJ2_T1;    // evaluation thread minJerk distance 2 - period 1
+    attention::evaluator::evalThread evalMJ1_T2;    // evaluation thread minJerk distance 1 - period 2
+    attention::evaluator::evalThread evalMJ2_T2;    // evaluation thread minJerk distance 2 - period 2
 
-    attention::evaluator::evalQueue* eQueue;             // queue of evaluation threads
+    attention::evaluator::evalQueue* eQueue;        // queue of evaluation threads
+    
+    yarp::sig::Matrix zMeasure;                     // vector of measurements
+    yarp::sig::Matrix uMeasure;                     // vector of the input values
+    
+    
 
 public:
     /**

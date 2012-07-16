@@ -109,7 +109,6 @@ class evalThread : public yarp::os::Thread {
         printf("evalThread::threadInit::thread init \n");
         dataReady    = false;
         evalFinished = false;
-
         printf("evalThread::end of initialisation \n");
         return true;
     }
@@ -117,10 +116,13 @@ class evalThread : public yarp::os::Thread {
     ////////////////////////////////////////////////////////////////////
     
     virtual void run() {
+        printf("in the run \n");
         while (!isStopping()) {
             
+            Time::delay(1.0);
+        }
+            //printf(". \n");
             /*
-
             //printf("inside the while \n");
             
             //mutexR.wait();
@@ -171,8 +173,8 @@ class evalThread : public yarp::os::Thread {
 
             */
 
-            
-        }
+            //Time::delay(0.05);
+            // }
         
     }
 
