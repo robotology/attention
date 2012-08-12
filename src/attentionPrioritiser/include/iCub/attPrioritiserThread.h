@@ -153,6 +153,7 @@ private:
     bool learning;                          // flag that allows the Q-learning controller to take decisions
     bool validAction;                       // flag that indicates when the action is valid
     bool isPendingCommand;                  // flag that indicates that an action command must be sent in the highlevel loop
+    bool visualFeedback;                    // indicates when input signal for visual feedback is present
 
     int u,v;                                // values passed for saccades
     double time;                            // request of preparing time 
@@ -408,6 +409,11 @@ public:
     * function that sets the value of the parameter y limits
     */
     void setYLimits(double max,double  min) { ymax = max; ymin = min; };
+
+    /**
+    * function that sets the variable visualFeedback
+    */
+    void setVisualFeedback(double value) { visualFeedback = value; };
 
     /**
      * function that sets the value head pitch to which the head is blocked

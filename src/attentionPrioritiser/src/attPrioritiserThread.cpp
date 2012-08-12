@@ -268,9 +268,15 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
 
     printf("starting the tracker.... \n");
     ResourceFinder* rf = new ResourceFinder();
-    tracker = new trackerThread(*rf);
-    tracker->setName(getName("/matchTracker").c_str());
-    tracker->start();
+    
+    if(visualFeedback) {
+        tracker = new trackerThread(*rf);
+        tracker->setName(getName("/matchTracker").c_str());
+        tracker->start();
+    }
+    else {
+        printf("tracker not started because visualFeedback disable by user \n");
+    }
 
     
     printf("attPrioritiserThread initialization ended correctly \n");
@@ -620,8 +626,8 @@ void attPrioritiserThread::run() {
              (stateRequest(3) != 0) || (stateRequest(4) != 0) || (stateRequest(5) != 0) ||
              (stateRequest(6) != 0)) {
         printf("time of inactivity %f \n",Time::now() - timeoutResponseStart );
-        printf("#### stateRequest: %s \n", stateRequest.toString().c_str());
-        printf("#### state: %s \n", state.toString().c_str());
+        printf("#### stateRequest      : %s \n", stateRequest.toString().c_str());
+        printf("#### state             : %s \n", state.toString().c_str());
         Vector c(6);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c);
@@ -788,7 +794,7 @@ void attPrioritiserThread::run() {
     else if(allowedTransitions(5)>0) {
         // ----------------  Express Saccade  -----------------------
         state(6) = 0; state(5) = 1 ; state(4) = 0; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
-        waitResponse[4] = true;            // waitResponse[4] because action is planned saccade
+        waitResponse[5] = true;            // waitResponse[4] because action is planned saccade
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
         printf("resetting response timer \n");
         
@@ -946,8 +952,14 @@ void attPrioritiserThread::run() {
         printf("resetting response timer %d %d \n", u,v);
         amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
         //initialising the tracker
-        tracker->init(u,v);
-        tracker->waitInitTracker();
+        if(visualFeedback) {
+            printf("tracker enable for planned saccade \n");
+            tracker->init(u,v);
+            tracker->waitInitTracker();
+        }
+        else {
+            printf("tracker disabled due user`s request \n");
+        }
         
         //forcing in idle early processes during oculomotor actions
         if(feedbackPort.getOutputCount()) {
@@ -1871,29 +1883,32 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             //--------------------------------------------------------------------------
             // prediction attempt after triggering stimulus
-            mutex.wait();
-            if(allowStateRequest[6]) {
-                printf("setting stateRequest[6] \n");
-                reinfFootprint = true;
-                stateRequest[6] = 1;
-                timeoutStart = Time::now();
-                //  changing the accomplished flag
-                mutexAcc.wait();
-                accomplFlag[6];
-                mutexAcc.post();
+            if(visualFeedback) {
+                mutex.wait();
+                if(allowStateRequest[6]) {
+                    printf("setting stateRequest[6] \n");
+                    reinfFootprint = true;
+                    stateRequest[6] = 1;
+                    timeoutStart = Time::now();
+                    //  changing the accomplished flag
+                    mutexAcc.wait();
+                    accomplFlag[6];
+                    mutexAcc.post();
+                    
+                }
+                mutex.post();     
+            
                 
-            }
-            mutex.post();     
             
-            
-            // activating the predictor if learning is active            
-            if((learning) && (highLevelLoopPort.getOutputCount())) {
-                Bottle& sent     = highLevelLoopPort.prepare();
-                sent.clear();
-                sent.addString("PRED");
-                sent.addInt(u);
-                sent.addInt(v);
-                highLevelLoopPort.write();
+                // activating the predictor if learning is active            
+                if((learning) && (highLevelLoopPort.getOutputCount())) {
+                    Bottle& sent     = highLevelLoopPort.prepare();
+                    sent.clear();
+                    sent.addString("PRED");
+                    sent.addInt(u);
+                    sent.addInt(v);
+                    highLevelLoopPort.write();
+                }
             }
             
             
@@ -1905,8 +1920,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(time <= 0.5) {
 
                 // saving bottle in the buffer
-                bufCommand[5] = *arg;
-                
+                bufCommand[5] = *arg;                
                 // express saccade
                 mutex.wait();
                 if(allowStateRequest[5]) {
@@ -1921,6 +1935,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     mutexAcc.post();
                 }
                 mutex.post();
+
             } 
             else {
                 // saving bottle in the buffer

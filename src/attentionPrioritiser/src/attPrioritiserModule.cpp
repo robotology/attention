@@ -47,6 +47,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         printf("--name : changes the rootname of the module ports \n");
         printf("--robot : changes the name of the robot where the module interfaces to  \n");
         printf("--learningController : learning process for the controller activated \n");
+        printf("--visualFeedback : indicates whether the tracker can be initialised \n");
         printf("--name : rootname for all the connection of the module \n");
         printf("====== \n");
         printf("press CTRL-C to continue.. \n");
@@ -95,7 +96,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         configFile.clear();
     }
 
-
+    robotName             = rf.check("visualFeedback", 
+                                     Value("icub"), 
+                                     "Robot name (string)").asString();
+    robotPortName         = "/" + robotName + "/head";
+    printf("robotName: %s \n", robotName.c_str());
+    
     //launching components
     printf("running the prioCollectorThread \n");
     collector=new prioCollectorThread();
@@ -229,6 +235,21 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     // setting observer and observable interactions    
     collector->addObserver(*prioritiser);
     prioritiser->addObserver(*controller);
+
+    
+    /**
+     * indicates whether the module owns a visual feedback for preditction
+     */
+    if(rf.check("visualFeedback")) {
+        printf("The module can use visual feedback for prediction \n");
+        prioritiser->setVisualFeedback(true);
+        
+    }
+    else {
+        printf("The module cannot use visual feedback for prediction \n");
+        prioritiser->setVisualFeedback(false);
+    }
+
 
     /**
      * defining if the action selection is Q-learning controller`s call
