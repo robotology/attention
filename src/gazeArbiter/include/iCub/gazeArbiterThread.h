@@ -31,6 +31,8 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/RpcClient.h>
+#include <yarp/os/Vocab.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/all.h>
@@ -140,13 +142,17 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                            // image for the inhibition of return
+
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;
+    yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
+    yarp::os::RpcClient egoMotionFeedback;          // client for egoMotion feedback
+
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
     yarp::dev::PolyDriver *polyTorso, *robotHead;   // polydriver for the control of the head
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
-    yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
+    
     
     velocityController* velControl;                 // velocity controller for tracking
     trackerThread* tracker;                         // reference to the object in charge of tracking a tamplete surrounding a point

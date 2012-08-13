@@ -29,6 +29,7 @@
 #include <cstring>
 
 
+
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
@@ -326,6 +327,8 @@ bool gazeArbiterThread::threadInit() {
     //opening port section 
     string rootNameStatus("");rootNameStatus.append(getName("/status:o"));
     statusPort.open(rootNameStatus.c_str());
+    string rootNameEgoMotion("");rootNameEgoMotion.append(getName("/egoMotion:o"));
+    egoMotionFeedback.open(rootNameEgoMotion.c_str());
     string rootNameTiming("");rootNameTiming.append(getName("/timing:o"));
     timingPort.open(rootNameTiming.c_str());
     string rootNameTemplate("");rootNameTemplate.append(getName("/template:o"));
@@ -1198,6 +1201,16 @@ void gazeArbiterThread::run() {
         state(4) = 0; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         printf(" in RUN of gazeArbiter threadSmooth Pursuit %f %f \n", uVel, vVel);
         printf("velocity profile %f %f \n", uVel, vVel);
+        // sending the egoMotion velocity as Feedback
+        if(egoMotionFeedback.getOutputCount()) {
+            Bottle query;
+            query.addVocab(VOCAB3('E','G','O'));
+            query.addDouble(uVel);
+            query.addDouble(vVel);
+            Bottle response;
+            egoMotionFeedback.write(query,response);
+        }
+
         //initilisation
         int c = 0;
         int u = 160, v = 120;
@@ -1262,12 +1275,24 @@ void gazeArbiterThread::run() {
         printf("SM_PUR ACCOMPLISHED \n");
         printf("SM_PUR ACCOMPLISHED \n");
         printf("\n");
+
         //sending the acknowledgement vergence_accomplished
         Bottle& status2 = statusPort.prepare();
         status2.clear();
         status2.addString("SM_ACC");
         statusPort.write();
         //delete &status2;                           
+
+        // sending the egoMotion velocity null as feedback of SM_ACC
+        if(egoMotionFeedback.getOutputCount()) {
+            Bottle query;
+            query.addVocab(VOCAB3('E','G','O'));
+            query.addDouble(0);
+            query.addDouble(0);
+            Bottle response;
+            egoMotionFeedback.write(query,response);
+        }
+
     }
     else if(allowedTransitions(2)>0) {
         state(4) = 0; state(3) = 0 ; state(2) = 1 ; state(1) = 0 ; state(0) = 0;
