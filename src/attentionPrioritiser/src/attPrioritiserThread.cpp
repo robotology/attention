@@ -339,6 +339,10 @@ bool attPrioritiserThread::threadInit() {
     directPort.open(nameDirect.c_str());
     string nameFace("");nameFace.append(                     getName("/face:o"));
     facePort.open(nameFace.c_str());
+    string nameEmo("");nameEmo.append(                       getName("/emotions:o"));
+    emoPort.open(nameEmo.c_str());
+    string nameEnergy("");nameEnergy.append(                 getName("/energy:i"));
+    energyPort.open(nameEnergy.c_str());
 
     inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
@@ -482,6 +486,8 @@ void attPrioritiserThread::interrupt() {
     trackPositionPort.interrupt();
     directPort.interrupt();
     facePort.interrupt();
+    emoPort.interrupt();
+    energyPort.interrupt();
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -515,6 +521,8 @@ void attPrioritiserThread::threadRelease() {
     trackPositionPort.close();    
     directPort.close();
     facePort.close();
+    emoPort.close();
+    energyPort.close();
     printf("closing timing port \n");
     
     printf("\n \n attPrioritiserThread::threadRelease:successfully closed all the ports \n");
@@ -575,6 +583,22 @@ void attPrioritiserThread::setFacialExpression(std::string command) {
         value.addString(command.c_str());
         facePort.write();
     }    
+    if(emoPort.getOutputCount()) {
+        printf("sending emotion command!!!!!!!!!!!!!!!!!!!!!!!!! \n") ;
+        int valueSent;
+        if(command == "M08") {
+            valueSent = 1;
+        }
+        else if(command == "M38") {
+            valueSent = 30;
+        }
+
+        Bottle& value = emoPort.prepare();
+        value.clear();
+        value.addString("EMO");
+        value.addInt(valueSent);
+        facePort.write();
+    }
 }
 
 void attPrioritiserThread::setRobotName(string str) {
@@ -1000,8 +1024,7 @@ void attPrioritiserThread::run() {
                 notif.addDouble(3);                  // code for fixStableKO
                 setChanged();
                 notifyObservers(&notif);
-                */
-                
+                */                
                 printf("initialising the planner thread %f \n", time);
                 /*
                 sacPlanner->setSaccadicTarget(u,v);
@@ -2611,6 +2634,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             mutex.post();
 
             printf("end SM_PUR; accomplFlag[3] = true \n");
+
+            // getting energy Value
+            if(energyPort.getInputCount()) {
+                Bottle* b = energyPort.read(false);
+                double  v = b->get(0).asDouble();
+                printf("energyconsumption %f \n",v );
+            }
+
             
             // gets the proximity measure from the tracker
             double timing    = Time::now() - startAction;

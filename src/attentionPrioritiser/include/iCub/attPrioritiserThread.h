@@ -156,10 +156,11 @@ private:
     bool visualFeedback;                    // indicates when input signal for visual feedback is present
 
     int u,v;                                // values passed for saccades
-    double time;                            // request of preparing time 
     int* collectionLocation;                // collection of location for the center of gravity saccade
     int  originalContext;                   // original context for the gaze Controller
     int  width, height;                     // dimension of the image
+
+    double time;                            // request of preparing time 
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
     double varDistance;                     // calculated distance of the object from the eye 
@@ -237,6 +238,8 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> outputPort;                                // port necessary to send the gaze command to the gazeArbiter
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
     yarp::os::BufferedPort<yarp::os::Bottle> facePort;                                  // port for low-level face control
+    yarp::os::BufferedPort<yarp::os::Bottle> emoPort;                                   // port for emotionInterface
+    yarp::os::BufferedPort<yarp::os::Bottle> energyPort;                                // input port for energy measure
     
     yarp::os::BufferedPort<yarp::os::Bottle> highLevelLoopPort;                         // port dedicated to the retroactive high level loop
 
