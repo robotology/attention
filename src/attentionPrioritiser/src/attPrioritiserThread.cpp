@@ -2212,7 +2212,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Vy   = arg->get(2).asDouble();
             time = arg->get(3).asDouble();
             mutex.wait();
-            printf("recognised PUR command \n");
+            printf("recognised PUR command Vx %f Vy %f \n", Vx, Vy);
+
+            // condition : SM_PUR allowed and accomplished previous SM_PUR
             if(allowStateRequest[3]) {
                 printf("setting stateRequest[2] \n");
                 stateRequest[3] = 1;
@@ -2221,6 +2223,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 validAction = true;
                 mutexAcc.post();
                 //executing = false;
+            }
+            else {
+                printf("SM_PUR not allowed \n");
             }
             mutex.post();            
         }
@@ -2604,6 +2609,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             validAction    = false;
             mutexAcc.post();           
             mutex.post();
+
+            printf("end SM_PUR; accomplFlag[3] = true \n");
             
             // gets the proximity measure from the tracker
             double timing    = Time::now() - startAction;
