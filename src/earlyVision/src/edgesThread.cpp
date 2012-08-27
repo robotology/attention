@@ -165,7 +165,7 @@ void edgesThread::edgesExtract() {
         CvSize size = cvSize(intensityImage->width(), intensityImage->height());     
         IplImage* hImg = cvCreateImage(size, IPL_DEPTH_32F, 1);
         cvCvtScale((IplImage*)intensityImage->getIplImage(),hImg, 1.0/255.0); 
-
+        /*
         
         //alocating memory on GPU if it's required
         // we allocate a big image for left and right together 
@@ -192,6 +192,7 @@ void edgesThread::edgesExtract() {
         HANDLE_ERROR( cudaMemcpy(hImg->imageData, dImgOut, 
                       size.width*size.height*sizeof(float), cudaMemcpyDeviceToHost) ); 
       
+        */
         //sending image to a debug port
         if(debugOutPort.getOutputCount()) {
             ImageOf<PixelMono> &debugOutImage = debugOutPort.prepare(); 

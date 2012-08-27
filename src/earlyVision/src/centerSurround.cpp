@@ -26,6 +26,9 @@
 #include <stdlib.h>
 #include "iCub/centerSurround.h"
 
+#ifdef WITH_CUDA
+#include <iCub/cudaVision/cudaVision.h>
+#endif
 
 #define KERNSIZE 3    //kernsize (odd, >= 3)
 #define PI 3.1415
@@ -147,6 +150,10 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
 }
 
 void CenterSurround::make_pyramid( IplImage* im_32f) {
+#ifdef WITH_CUDA   
+
+
+#else
     //copy im to pyramid[0]:
     cvCopy(im_32f,pyramid[0],NULL);
 
@@ -178,6 +185,7 @@ void CenterSurround::make_pyramid( IplImage* im_32f) {
         cvResize(pyramid_gauss[sg],gauss[sg],interpolation);
             
     }
+#endif
 }
 
 
