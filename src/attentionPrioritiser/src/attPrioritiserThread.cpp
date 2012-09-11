@@ -684,13 +684,15 @@ void attPrioritiserThread::run() {
     }
     else if(timeoutResponse > 10.0) {
         printf("TIMEOUT %f \n %d %d %d %d %d %d \n", timeoutResponse,
-               waitResponse[0],
-               waitResponse[1],
-               waitResponse[2],
-               waitResponse[3],
-               waitResponse[4],
-               waitResponse[5],
-               waitResponse[6]);
+               // wait response used to know what the system is aspecting as accomplished
+               //must reset right after the accomplished is received
+               waitResponse[0],   //reset
+               waitResponse[1],   //wait
+               waitResponse[2],   //vergence
+               waitResponse[3],   //smooth pursuit
+               waitResponse[4],   //planned saccade
+               waitResponse[5],   //express saccade
+               waitResponse[6]);  // traj.prediction
         pendingCommand->clear();
         isPendingCommand = true;
         if(waitResponse[0]) {
@@ -2606,7 +2608,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
 
         }
-        else if((!strcmp(name.c_str(),"SM_ACC")) && (waitResponse[3])) {
+        else if((!strcmp(name.c_str(),"SM_ACC")) ) {
+            printf("smooth pursuit accomplished \n");
+            if(!waitResponse[3]){
+                printf("it was not waiting for response \n");
+                return;
+            }
+            else {
+                printf("it was waiting for response \n");
+            }
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
             printf("resetting response timer \n");
             waitResponse[3] = false;

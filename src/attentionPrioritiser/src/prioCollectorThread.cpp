@@ -72,7 +72,7 @@ void prioCollectorThread::run() {
     while(isStopping() != true){
         Bottle* b=inCommandPort.read(true);
         if(b!=0) {
-            //printf(" bottle received : %s ",b->toString().c_str());
+            printf(" bottle received : %s ",b->toString().c_str());
             setChanged();
             notifyObservers(b);
         }
