@@ -8,49 +8,49 @@
 		<name>earlyVision</name>
 		<parameters>--name /earlyVision/icub/left_cam</parameters>
 		<tag>earlyvis</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b15</node>
 	</module>
 		<module>
 		<name>earlyMotion</name>
 		<parameters>--name /earlyMotion/icub/left_cam</parameters>
 		<tag>earlymot</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b15</node>
 	</module>
 	<module>
 		<name>saliencyBlobFinder</name>
 		<parameters>--from saliencyBlobFinder.ini --context logpolarAttention/conf --config icubEyes.ini</parameters>
 		<tag>blobFinderModule</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b15</node>
 	</module>
 	<module>
 		<name>selectiveAttentionEngine</name>
 		<parameters>--from selectiveAttentionLeft.ini --context logpolarAttention/conf </parameters>
 		<tag>earlySelectiveAtt</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b15</node>
 	</module>
     <module>
 		<name>mosaic</name>
 		<parameters>--name /inhiMosaic  --config icubEyes.ini</parameters>
 		<tag>inhibitionMosaic</tag>
-		<node>/icub-b18</node>
+		<node>/icub-b16</node>
 	</module>
     <module>
 		<name>mosaic</name>
 		<parameters>--name /facilMosaic --config icubEyes.ini </parameters>
 		<tag>facilitationMosaic</tag>
-		<node>/icub-b18</node>
+		<node>/icub-b16</node>
 	</module>
 	<module>
 		<name>attentionPrioritiser</name>
         <parameters>--name /attPrioritiser/icub </parameters>
         <tag>prioritiser</tag>
-        <node>/icub-b17</node>
+        <node>/icub-b15</node>
     </module>    
     <module>
 		<name>gazeArbiter</name>
         <parameters>--name /gazeArbiter/icub --visualFeedback</parameters>
         <tag>gArbiter</tag>
-        <node>/icub-b17</node>
+        <node>/icub-b15</node>
     </module>
 	
    <connection>
@@ -254,6 +254,18 @@
    <connection>
      <from>/attPrioritiser/icub/direct:o</from>
      <to>/iKinGazeCtrl/head/mono:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/face:o</from>
+     <to>/icub/face/raw/in</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/logPolarTransform/icub/left_cam/image:o</from>
+     <to>/attPrioritiser/icub/controller/entImage:i</to>
      <protocol>tcp</protocol>
    </connection>
 

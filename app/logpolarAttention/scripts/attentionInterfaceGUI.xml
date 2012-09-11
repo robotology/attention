@@ -1,6 +1,5 @@
 <application>
 <name>Attention Application GUI</name>
-
 <dependencies>
   <port>/icub/cam/left</port>
   <port>/icub/cam/right</port>	
