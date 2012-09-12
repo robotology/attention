@@ -650,12 +650,12 @@ void oculomotorController::learningStep() {
     //printf("V = \n");
     //printf("%s \n", V->toString().c_str());
     
-    //printf("M = \n");
+    printf("M = \n");
     //printf("%s \n", M.toString().c_str());
     
     
     //calculating the V
-    //printf("calculating the V..... \n");
+    printf("calculating the V..... \n");
     for (int state = 0; state < NUMSTATE; state++ ) {
         double maxQ  = 0;
         int actionMax = 0;
@@ -687,8 +687,12 @@ void oculomotorController::learningStep() {
     mutexStateTransition.wait();
     _stateTransition = stateTransition;
     mutexStateTransition.post();
-
+    
+    // stateTransition branch is executed when the stateTransion = false
+    // this flag is set true when an action is performed 
+    // this flag is set false when the action is accomplished
     if(!_stateTransition) {
+        printf("!stateTransition branch \n");
         
         // 2 .action selection and observation of the next state
         bool actionPerformed;
@@ -716,7 +720,9 @@ void oculomotorController::learningStep() {
            actionPerformed = randomWalk(state_next,0.1); 
         }
         else */
-            if(s >= k) {
+        
+        printf("s %f \n ", s);
+        if(s >= k) {
             printf("policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
             printf("policyWalk > \n");
@@ -891,6 +897,7 @@ void oculomotorController::run() {
         
         //printf("count %d iter %d \n", countSucc, iter);
         if((countSucc < 50) && (iter % 20 == 0) && (ap->readyForActions())) {
+            printf("learning step \n");
             learningStep();    
         }
         

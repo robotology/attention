@@ -641,8 +641,7 @@ void attPrioritiserThread::run() {
         printf ("!!!!!!!!!!!! PENDING COMMAND !!!!!!! \n");
         sendPendingCommand();
         isPendingCommand = false;
-        printf("sent the command \n");
-        printf("___________________________________ \n");
+        printf("!!!!!!!!!!!!! sent PENDING COMMAND !!!!!!!! \n");
         return;
     }
     //Vector-vector element-wise product operator between stateRequest possible transitions
@@ -729,7 +728,6 @@ void attPrioritiserThread::run() {
         }
     }
 
-
     //mutex.post();
     //double end = Time::now();
     //double interval = end - start;
@@ -743,7 +741,7 @@ void attPrioritiserThread::run() {
         state(6) = 1; state(5) = 0; state(4) = 0 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[6] = true;
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-        printf("resetting response timer \n");
+        printf("resetting response timer in trajectory prediction \n");
         
         
         printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
@@ -822,7 +820,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 1 ; state(4) = 0; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[5] = true;            // waitResponse[4] because action is planned saccade
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-        printf("resetting response timer \n");
+        printf("resetting response timer in expressed saccade \n");
         
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
@@ -975,7 +973,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0 ; state(4) = 1 ; state(3) = 0; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[4] = true;
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-        printf("resetting response timer %d %d \n", u,v);
+        printf("resetting response timer in planned saccade %d %d \n", u,v);
         amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
         //initialising the tracker
         if(visualFeedback) {
@@ -1156,7 +1154,7 @@ void attPrioritiserThread::run() {
         state(6) = 0 ; state(5) = 0 ; state(4) = 0 ; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
         waitResponse[3] = true;
         timeoutResponseStart = Time::now();
-        printf("resetting response timer \n");
+        printf("resetting response timer in smooth pursuit \n");
         amplitude = sqrt(Vx * Vx + Vy * Vy) / 100.0;
 
         // smooth pursuit does not initialise the tracker because the pred does it
@@ -1184,7 +1182,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
         waitResponse[2] = true;
         timeoutResponseStart = Time::now();
-        printf("resetting response timer \n");
+        printf("resetting response timer in vergence \n");
         // initialising the tracker not necessary because it started before
         // the risk is that it redefines tracking for every vergence command
         //tracker->init(160,120);
@@ -1284,7 +1282,7 @@ void attPrioritiserThread::run() {
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         waitResponse[1] = true;
         timeoutResponseStart = Time::now();
-        printf("resetting response timer \n");
+        printf("resetting response timer in wait \n");
         amplitude = 0;
         //tracker->init(u,v);
         //tracker->waitInitTracker();
@@ -2305,7 +2303,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         //**** this section regulates the state transition indicating state of agent after action *********//
         else if(!strcmp(name.c_str(),"SAC_FAIL")) {
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting response timer \n");
+            printf("resetting response timer saccade fail \n");
             printf("reset the correcting flag \n");
             // saccade accomplished flag reset           
             mutex.wait();
@@ -2373,10 +2371,62 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
         }
-        else if((!strcmp(name.c_str(),"SAC_ACC_HIGH")) && (waitResponse[4])) {
+        else if(!strcmp(name.c_str(),"SAC_ACC_HIGH"))  {
+            // saccade accomplished high for expressed saccade
+            printf("received the SAC_ACC_HIGH \n");
+            if(!waitResponse[5]) {
+                return;
+            }
+                
+            waitResponse[5] = false;
+            timeoutResponseStart = Time::now();
+            printf("resetting response timer express saccade accomplished \n");
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M0B");
+                facePort.write();
+            }
+
+            
+            //  changing the accomplished flag
+            mutexAcc.wait();
+            accomplFlag[5] = true;               // action number accomplished
+            mutexAcc.post();
+
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            double accuracy  = tracker->getProxMeasure();            
+            double amplitude = 1.0;
+            double frequency = frequencyRule[4];
+
+            CvPoint t; tracker->getPoint(t);
+
+            double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+            
+                       
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(7);                  // code for fixStableOK accomplished 
+            notif.addDouble(timing);
+            notif.addDouble(accuracy);
+            notif.addDouble(amplitude);
+            notif.addDouble(frequency);
+            setChanged();
+            notifyObservers(&notif);
+            
+        }
+        else if(!strcmp(name.c_str(),"SAC_ACC_HIGH"))  {
+            // saccade accomplished high for planned saccade
+            printf("received the SAC_ACC_HIGH \n");
+            if(!waitResponse[4]) {
+                return;
+            }
+                
             waitResponse[4] = false;
             timeoutResponseStart = Time::now();
-            printf("resetting response timer \n");
+            printf("resetting response timer saccade accomplished \n");
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();
@@ -2416,7 +2466,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             }
             else {
-                // nofiying state transition to fixStable ok           
+                // nofiying state transition to fixStable no           
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
@@ -2525,7 +2575,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if((!strcmp(name.c_str(),"VER_REF")) && (waitResponse[2])) {
             waitResponse[2] = false;
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting response timer \n");
+            printf("resetting response timer vergence refinement \n");
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();
@@ -2618,7 +2668,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 printf("it was waiting for response \n");
             }
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting response timer \n");
+            printf("resetting response timer smoothPursuit accomplished \n");
             waitResponse[3] = false;
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -2696,7 +2746,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if((!strcmp(name.c_str(),"PRED_FAIL")) && (waitResponse[6])) {
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting response timer \n");
+            printf("resetting response timer prediction failed  \n");
             waitResponse[6] = false;
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -2726,7 +2776,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
             waitResponse[6] = false;
             timeoutResponseStart = Time::now();
-            printf("resetting response timer \n");
+            printf("resetting response timer in prediction accomplished \n");
             waitType = "ant";
             
             if(facePort.getOutputCount()) {
@@ -2944,7 +2994,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if((!strcmp(name.c_str(),"WAIT_ACC")) && (waitResponse[1])) {
             waitResponse[1] = false;
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting response timer \n");
+            printf("resetting response timer in wait accomplished \n");
 
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
