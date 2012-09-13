@@ -727,6 +727,8 @@ void attPrioritiserThread::run() {
              timeoutResponseStart = Time::now(); //starting the timer for a control on responses
         }
     }
+    
+    //printf("TIMEOUT %f \n", timeoutResponse);
 
     //mutex.post();
     //double end = Time::now();
@@ -826,6 +828,7 @@ void attPrioritiserThread::run() {
         // not postsaccadic correction
         printf("------------------ Express Saccade --------------- \n");
         amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
+        //waiting for the tracker to be active
         tracker->init(u,v);
         tracker->waitInitTracker();
             
@@ -1057,7 +1060,7 @@ void attPrioritiserThread::run() {
                 
                 // post-saccadic connection
                 if(postSaccCorrection) {
-                    //printf("waiting for saccade accomplished in postSaccadic correction \n");
+                    printf("waiting for saccade accomplished in postSaccadic correction \n");
                     // wait for accomplished saccadic event
                     timeout = 0;
                     timeoutStart = Time::now();
@@ -2311,7 +2314,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //executing = false;
             mutex.post();
         }
-        else if((!strcmp(name.c_str(),"SAC_FAIL_HIGH")) && (waitResponse[4])) {
+        else if(!strcmp(name.c_str(),"SAC_FAIL_HIGH")) {
+            printf("received command SAC_FAIL_HIGH with waitResponse[4] = %d \n", waitResponse[4]);
+            printf("received command SAC_FAIL_HIGH for planned saccade \n");
+                
             waitResponse[4] = false;
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -2361,112 +2367,40 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notifyObservers(&notif);
             */
             
-        }
-        else if(!strcmp(name.c_str(),"SAC_ACC")) {
-            printf("changing the correcting status \n");
-
-            // saccade accomplished flag set 
-            mutex.wait();
-            correcting = true;
-            //executing = false;
-            mutex.post();
-        }
-        else if(!strcmp(name.c_str(),"SAC_ACC_HIGH"))  {
+        }        
+        else if(!strcmp(name.c_str(),"SAC_ACC_HIGH"))   {
+            printf("received a SAC_ACC_HIGH command \n");
             // saccade accomplished high for expressed saccade
-            printf("received the SAC_ACC_HIGH \n");
-            if(!waitResponse[5]) {
-                return;
-            }
+            if(waitResponse[5]) {
+                printf("received the SAC_ACC_HIGH for express saccade \n");    
+            
+                waitResponse[5] = false;
+                timeoutResponseStart = Time::now();
+                printf("resetting response timer express saccade accomplished \n");
+                if(facePort.getOutputCount()) {
+                    Bottle& value = facePort.prepare();
+                    value.clear();
+                    value.addString("M0B");
+                    facePort.write();
+                }
                 
-            waitResponse[5] = false;
-            timeoutResponseStart = Time::now();
-            printf("resetting response timer express saccade accomplished \n");
-            if(facePort.getOutputCount()) {
-                Bottle& value = facePort.prepare();
-                value.clear();
-                value.addString("M0B");
-                facePort.write();
-            }
-
-            
-            //  changing the accomplished flag
-            mutexAcc.wait();
-            accomplFlag[5] = true;               // action number accomplished
-            mutexAcc.post();
-
-            //extracting reward measures
-            double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure();            
-            double amplitude = 1.0;
-            double frequency = frequencyRule[4];
-
-            CvPoint t; tracker->getPoint(t);
-
-            double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
-            
-                       
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(7);                  // code for fixStableOK accomplished 
-            notif.addDouble(timing);
-            notif.addDouble(accuracy);
-            notif.addDouble(amplitude);
-            notif.addDouble(frequency);
-            setChanged();
-            notifyObservers(&notif);
-            
-        }
-        else if(!strcmp(name.c_str(),"SAC_ACC_HIGH"))  {
-            // saccade accomplished high for planned saccade
-            printf("received the SAC_ACC_HIGH \n");
-            if(!waitResponse[4]) {
-                return;
-            }
                 
-            waitResponse[4] = false;
-            timeoutResponseStart = Time::now();
-            printf("resetting response timer saccade accomplished \n");
-            if(facePort.getOutputCount()) {
-                Bottle& value = facePort.prepare();
-                value.clear();
-                value.addString("M0B");
-                facePort.write();
-            }
-
+                //  changing the accomplished flag
+                mutexAcc.wait();
+                accomplFlag[5] = true;               // action number accomplished
+                mutexAcc.post();
             
-            //  changing the accomplished flag
-            mutexAcc.wait();
-            accomplFlag[4] = true;               // action number accomplished
-            mutexAcc.post();
-
-            //extracting reward measures
-            double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure();            
-            double amplitude = 1.0;
-            double frequency = frequencyRule[4];
-
-            CvPoint t; tracker->getPoint(t);
-
-            double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
-            
-            if(distance < FOVEACONFID) {
+                //extracting reward measures
+                double timing    = Time::now() - startAction;
+                double accuracy  = tracker->getProxMeasure();            
+                double amplitude = 1.0;
+                double frequency = frequencyRule[4];
                 
-                // nofiying state transition to fixStable ok           
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(6);                  // code for fixStableOK accomplished 
-                notif.addDouble(timing);
-                notif.addDouble(accuracy);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
-                setChanged();
-                notifyObservers(&notif);
-
-            }
-            else {
-                // nofiying state transition to fixStable no           
+                CvPoint t; tracker->getPoint(t);
+                
+                double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                
+                
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
@@ -2477,100 +2411,173 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addDouble(frequency);
                 setChanged();
                 notifyObservers(&notif);
-            }
-
-            /*
-            // reset action
-            notif.clear();
-            printf("notify action reset \n");
-            notif.addVocab(COMMAND_VOCAB_ACT);
-            // code for reset action
-            notif.addDouble(1.0);  // reset
-            notif.addDouble(0.0);  // vergence 
-            notif.addDouble(0.0);  // smooth pursuit
-            notif.addDouble(0.0);  // planned saccade
-            notif.addDouble(0.0);  // express saccade
-            notif.addDouble(0.0);  // trajectory prediction
-            setChanged();
-            notifyObservers(&notif);
             
-            // null state
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(0);                  // code for null state
-            setChanged();
-            notifyObservers(&notif);
-            */
-
-            //gathering information about the feature from the preattentive stage (earlyVision)
-            if(feedbackEarlyVision.getOutputCount()) {
-                //cout<<"communication activated with the earlyVision: ";
-                Bottle rep;
-                Bottle req;
-
-                req.clear();
-                req.addVocab(COMMAND_VOCAB_GET);
-                req.addVocab(COMMAND_VOCAB_ORI);
-                req.addVocab(COMMAND_VOCAB_P0);
-                feedbackEarlyVision.write(req, rep);
-                cout<<"orientation pos.0 : "<<rep.toString().c_str()<<endl;
-                feedbackOri0 = rep.get(0).asInt(); 
-
-                req.clear();
-                req.addVocab(COMMAND_VOCAB_GET);
-                req.addVocab(COMMAND_VOCAB_ORI);
-                req.addVocab(COMMAND_VOCAB_P90);
-                feedbackEarlyVision.write(req, rep);
-                cout<<"orientation pos.90 : "<<rep.toString().c_str()<<endl;
-                feedbackOri90 = rep.get(0).asInt();
+            }
+            else if(waitResponse[4])  {
+                // saccade accomplished high for planned saccade
+                printf("received the SAC_ACC_HIGH for planned saccade \n");
                 
-                req.clear();
-                req.addVocab(COMMAND_VOCAB_GET);
-                req.addVocab(COMMAND_VOCAB_ORI);
-                req.addVocab(COMMAND_VOCAB_P45);
-                feedbackEarlyVision.write(req, rep);
-                cout<<"orientation pos.45 : "<<rep.toString().c_str()<<endl;
-                feedbackOri45 = rep.get(0).asInt();
+                waitResponse[4] = false;
+                timeoutResponseStart = Time::now();
+                printf("resetting response timer saccade accomplished \n");
                 
-                req.clear();
-                req.addVocab(COMMAND_VOCAB_GET);
-                req.addVocab(COMMAND_VOCAB_ORI);
-                req.addVocab(COMMAND_VOCAB_N45);
-                feedbackEarlyVision.write(req, rep);
-                cout<<"orientation neg.45 : "<<rep.toString().c_str()<<endl;
-                feedbackOriM45 = rep.get(0).asInt();
-            }
-            else {
-                cout<<"no active feedback to earlyVision"<<endl;
-            }
+                if(facePort.getOutputCount()) {
+                    Bottle& value = facePort.prepare();
+                    value.clear();
+                    value.addString("M0B");
+                    facePort.write();
+                }
 
-            //gathering information about the feature from the preattentive stage (protoObject component)
-            if(feedbackProtoObject.getOutputCount()) {
-                cout<<"communication activated with the protoObject: \n";
-                Bottle rep;
-                Bottle req;
+            
+                //  changing the accomplished flag
+                mutexAcc.wait();
+                accomplFlag[4] = true;               // action number accomplished
+                mutexAcc.post();
 
-                req.clear();
-                req.addVocab(COMMAND_VOCAB_GET);
-                req.addVocab(COMMAND_VOCAB_FRGB);
-                feedbackProtoObject.write(req, rep);
-                cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
-                feedbackBlobRed   = rep.get(0).asInt();
-                feedbackBlobGreen = rep.get(1).asInt();
-                feedbackBlobBlue  = rep.get(2).asInt();
-                printf("rgb colour value %d %d %d \n",feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
-            }
-            else {
-                cout<<"no active feedback to protoObject"<<endl;
+                //extracting reward measures
+                double timing    = Time::now() - startAction;
+                double accuracy  = tracker->getProxMeasure();            
+                double amplitude = 1.0;
+                double frequency = frequencyRule[4];
+                
+                CvPoint t; tracker->getPoint(t);
+                
+                double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                
+                if(distance < FOVEACONFID) {
+                    
+                    // nofiying state transition to fixStable ok           
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(6);                  // code for fixStableOK accomplished 
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
+                    notif.addDouble(frequency);
+                    setChanged();
+                    notifyObservers(&notif);
+                    
+                }
+                else {
+                    // nofiying state transition to fixStable no           
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(7);                  // code for fixStableOK accomplished 
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
+                    notif.addDouble(frequency);
+                    setChanged();
+                    notifyObservers(&notif);
+                }
+
+                /*
+                // reset action
+                notif.clear();
+                printf("notify action reset \n");
+                notif.addVocab(COMMAND_VOCAB_ACT);
+                // code for reset action
+                notif.addDouble(1.0);  // reset
+                notif.addDouble(0.0);  // vergence 
+                notif.addDouble(0.0);  // smooth pursuit
+                notif.addDouble(0.0);  // planned saccade
+                notif.addDouble(0.0);  // express saccade
+                notif.addDouble(0.0);  // trajectory prediction
+                setChanged();
+                notifyObservers(&notif);
+                
+                // null state
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(0);                  // code for null state
+                setChanged();
+                notifyObservers(&notif);
+                */
+                
+                //gathering information about the feature from the preattentive stage (earlyVision)
+                if(feedbackEarlyVision.getOutputCount()) {
+                    //cout<<"communication activated with the earlyVision: ";
+                    Bottle rep;
+                    Bottle req;
+                    
+                    req.clear();
+                    req.addVocab(COMMAND_VOCAB_GET);
+                    req.addVocab(COMMAND_VOCAB_ORI);
+                    req.addVocab(COMMAND_VOCAB_P0);
+                    feedbackEarlyVision.write(req, rep);
+                    cout<<"orientation pos.0 : "<<rep.toString().c_str()<<endl;
+                    feedbackOri0 = rep.get(0).asInt(); 
+                    
+                    req.clear();
+                    req.addVocab(COMMAND_VOCAB_GET);
+                    req.addVocab(COMMAND_VOCAB_ORI);
+                    req.addVocab(COMMAND_VOCAB_P90);
+                    feedbackEarlyVision.write(req, rep);
+                    cout<<"orientation pos.90 : "<<rep.toString().c_str()<<endl;
+                    feedbackOri90 = rep.get(0).asInt();
+                    
+                    req.clear();
+                    req.addVocab(COMMAND_VOCAB_GET);
+                    req.addVocab(COMMAND_VOCAB_ORI);
+                    req.addVocab(COMMAND_VOCAB_P45);
+                    feedbackEarlyVision.write(req, rep);
+                    cout<<"orientation pos.45 : "<<rep.toString().c_str()<<endl;
+                    feedbackOri45 = rep.get(0).asInt();
+                    
+                    req.clear();
+                    req.addVocab(COMMAND_VOCAB_GET);
+                    req.addVocab(COMMAND_VOCAB_ORI);
+                    req.addVocab(COMMAND_VOCAB_N45);
+                    feedbackEarlyVision.write(req, rep);
+                    cout<<"orientation neg.45 : "<<rep.toString().c_str()<<endl;
+                    feedbackOriM45 = rep.get(0).asInt();
+                }
+                else {
+                    cout<<"no active feedback to earlyVision"<<endl;
+                }
+                
+                //gathering information about the feature from the preattentive stage (protoObject component)
+                if(feedbackProtoObject.getOutputCount()) {
+                    cout<<"communication activated with the protoObject: \n";
+                    Bottle rep;
+                    Bottle req;
+                    
+                    req.clear();
+                    req.addVocab(COMMAND_VOCAB_GET);
+                    req.addVocab(COMMAND_VOCAB_FRGB);
+                    feedbackProtoObject.write(req, rep);
+                    cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
+                    feedbackBlobRed   = rep.get(0).asInt();
+                    feedbackBlobGreen = rep.get(1).asInt();
+                    feedbackBlobBlue  = rep.get(2).asInt();
+                    printf("rgb colour value %d %d %d \n",feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
+                }
+                else {
+                    cout<<"no active feedback to protoObject"<<endl;
+                    reinfFootprint = false;
+                }
+                
+                // reinforcing footprint if allowed
                 reinfFootprint = false;
+                if(reinfFootprint) {                
+                    reinforceFootprint();
+                    Time::delay(0.5);
+                }
             }
+            else{
+                printf("SAC_ACC_HIGH received but waitResponse[4] and waitResponse[5] false  \n");
+            }
+        }
+        else if(!strcmp(name.c_str(),"SAC_ACC")) {
+            printf("changing the correcting status \n");
 
-            // reinforcing footprint if allowed
-            reinfFootprint = false;
-            if(reinfFootprint) {                
-                reinforceFootprint();
-                Time::delay(0.5);
-            }
+            // saccade accomplished flag set 
+            mutex.wait();
+            correcting = true;
+            //executing = false;
+            mutex.post();
         }
         else if((!strcmp(name.c_str(),"VER_REF")) && (waitResponse[2])) {
             waitResponse[2] = false;
