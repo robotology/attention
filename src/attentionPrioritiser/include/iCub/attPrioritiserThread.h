@@ -360,6 +360,14 @@ public:
     void setFacialExpression(std::string command);
 
     /**
+     * @brief function that sets if the waiting is of type anticipatory or fixation
+     * @param type string representing the type of waiting ("ant", "fix")
+     */
+    void setWaitType(std::string type) {
+        waitType = type;
+    };
+
+    /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added
     * @return rootname 

@@ -2097,11 +2097,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             mutex.post();           
         }
-        
         else if(!strcmp(name.c_str(),"TRACK_REF")) {
+            //tracker refinement to reset the tracker during saccadic movement
             printf("TRACKER REFINEMENT \n\n");
-            tracker->init(160,120);
-            tracker->waitInitTracker();
+            //tracker->init(160,120);
+            //tracker->waitInitTracker();
         }
         else if(!strcmp(name.c_str(),"PF_REQ")) {
             // particle filter request

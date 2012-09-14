@@ -896,7 +896,7 @@ void oculomotorController::run() {
         }
         
         //printf("count %d iter %d \n", countSucc, iter);
-        if((countSucc < 50) && (iter % 20 == 0) && (ap->readyForActions())) {
+        if((countSucc < 20) && (iter % 20 == 0) && (ap->readyForActions())) {
             //printf("learning step \n");
             learningStep();    
         }
@@ -1129,6 +1129,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 totalPayoff  = 0;
                 iter         = 0;
                 jiter        = 1;
+                ap->setWaitType("ant");
             }         
 
 
