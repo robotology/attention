@@ -886,6 +886,7 @@ void gazeArbiterThread::run() {
                             dist = 10;
                             Time::delay(0.5);
                             
+                            /*
                             if(visualCorrection){
                                 printf("starting visual correction with tracker refresh\n");
                                 // second init of the tracker to remove postsaccadic error
@@ -897,8 +898,9 @@ void gazeArbiterThread::run() {
                                 status.addString("TRACK_REF");
                                 statusPort.write();
                                 Time::delay(0.5);
-                                Time::delay(0.5);
+                                
                             }
+                            */
                             
                             //igaze->getFixationPoint(xo);
                             //printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
