@@ -73,7 +73,7 @@ prioCollectorThread::~prioCollectorThread() {
 }
 
 bool prioCollectorThread::threadInit() {
-    printf("starting the thread.... \n");
+    printf(" prioCollectorThread::threadInit:starting the thread.... \n");
     /* open ports */
     string rootName("");
     rootName.append(getName("/cmd:i"));
@@ -279,17 +279,20 @@ bool prioCollectorThread::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<Pix
 
     return ret;
     */
+
+    return false;
 }
 
 void prioCollectorThread::run() {
-    printf("prioCollectorThread::run \n");
+
     //ImageOf<PixelMono>* tmp = new ImageOf<PixelMono>;
     //tmp->resize(320,240);
 
     while(isStopping() != true){
-                
+        
         if((0 != map1_yarp)&& (0 != map2_yarp) && (0 != linearCombinationImage))  {
-   
+            
+           
 
                 //if((tmp == 0)&&(!reinit_flag)){
                 //    continue;
@@ -338,7 +341,10 @@ void prioCollectorThread::run() {
                 */
                 
                 double xm,ym;
-                bool res = earlyFilter(map1_yarp, map2_yarp, *linearCombinationImage, xm, ym);
+                bool res;
+                //bool res = earlyFilter(map1_yarp, map2_yarp, *linearCombinationImage, xm, ym);
+                
+                
                 if(res) {
                     //printf("max in contrast or motion \n");
                     Bottle b;

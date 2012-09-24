@@ -149,6 +149,7 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     cLoop           = 0;
     endInt          = 0;
     counterMotion   = 0;
+    maxResponse     = 0;
     startInt=Time::now();
     saccadeInterv = 3000; //milliseconds    
     
@@ -301,31 +302,31 @@ void selectiveAttentionProcessor::resizeImages(int width,int height) {
 bool selectiveAttentionProcessor::threadInit(){
     printf("Thread initialization .... \n");
     //opening ports"
-    vergencePort.open(getName("/vergence:o").c_str());
+    vergencePort.open(          getName("/vergence:o").c_str());
 
-    map1Port.open(getName("/intensity:i").c_str());
-    map2Port.open(getName("/motion:i").c_str());
-    map3Port.open(getName("/chrominance:i").c_str());
-    map4Port.open(getName("/orientation:i").c_str());
-    map5Port.open(getName("/edges:i").c_str());
-    map6Port.open(getName("/blobs:i").c_str());
+    map1Port.open(              getName("/intensity:i").c_str());
+    map2Port.open(              getName("/motion:i").c_str());
+    map3Port.open(              getName("/chrominance:i").c_str());
+    map4Port.open(              getName("/orientation:i").c_str());
+    map5Port.open(              getName("/edges:i").c_str());
+    map6Port.open(              getName("/blobs:i").c_str());
 
-    cart1Port.open(getName("/cart1:i").c_str());
-    motionPort.open(getName("/motionCart:i").c_str());
+    cart1Port.open(             getName("/cart1:i").c_str());
+    motionPort.open(            getName("/motionCart:i").c_str());
 
-    inhiCartPort.open(getName("/inhiCart:i").c_str());
-    inhiPort.open(getName("/inhi:i").c_str());
+    inhiCartPort.open(          getName("/inhiCart:i").c_str());
+    inhiPort.open(              getName("/inhi:i").c_str());
 
-    linearCombinationPort.open(getName("/combination:o").c_str());
-    centroidPort.open(getName("/centroid:o").c_str());
-    vergenceCmdPort.open(getName("/vergence:i").c_str());
-    outputCmdPort.open(getName("/cmd:o").c_str());
-    feedbackPort.open(getName("/feedback:o").c_str());
-    imageCartOut.open(getName("/cartesian:o").c_str());
-    thImagePort.open(getName("/wta:o").c_str());
-    portionRequestPort.open(getName("/portionRequest:o").c_str());
-    testPort.open(getName("/test:o").c_str());
-    magnoCellFeedback.open(getName("/magnoCells:o").c_str());
+    linearCombinationPort.open( getName("/combination:o").c_str());
+    centroidPort.open(          getName("/centroid:o").c_str());
+    vergenceCmdPort.open(       getName("/vergence:i").c_str());
+    outputCmdPort.open(         getName("/cmd:o").c_str());
+    feedbackPort.open(          getName("/feedback:o").c_str());
+    imageCartOut.open(          getName("/cartesian:o").c_str());
+    thImagePort.open(           getName("/wta:o").c_str());
+    portionRequestPort.open(    getName("/portionRequest:o").c_str());
+    testPort.open(              getName("/test:o").c_str());
+    magnoCellFeedback.open(     getName("/magnoCells:o").c_str());
 
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
@@ -399,6 +400,7 @@ bool selectiveAttentionProcessor::threadInit(){
     printf("starting the earlyTrigger \n");
     earlyTrigger = new prioCollectorThread();
     earlyTrigger->setName(getName("/prio").c_str());
+    earlyTrigger->start();
 
     return true;
 }
