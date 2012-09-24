@@ -120,6 +120,9 @@ void prioCollectorThread::reinitialise(int width, int height){
 
 bool prioCollectorThread::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp, ImageOf<PixelMono> linearCombinationImage, double& xm, double&ym) {
     
+    printf("prioCollectorThread::earlyFilter \n");
+
+
     /*
     unsigned char* pmap1Left   = map1_yarp->getRawImage();
     unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
@@ -291,8 +294,7 @@ void prioCollectorThread::run() {
     while(isStopping() != true){
         
         if((0 != map1_yarp)&& (0 != map2_yarp) && (0 != linearCombinationImage))  {
-            
-           
+            printf("inside the run \n");
 
                 //if((tmp == 0)&&(!reinit_flag)){
                 //    continue;
@@ -340,24 +342,25 @@ void prioCollectorThread::run() {
                   
                 */
                 
-                double xm,ym;
-                bool res;
-                //bool res = earlyFilter(map1_yarp, map2_yarp, *linearCombinationImage, xm, ym);
-                
-                
-                if(res) {
-                    //printf("max in contrast or motion \n");
-                    Bottle b;
-                    b.addString("MOT");
-                    b.addInt(xm);
-                    b.addInt(ym);
-                    setChanged();
-                    notifyObservers(&b);
-                }
-                
-                Time::delay(0.033);
-            }// end if
-                
+            double xm,ym;
+            bool res;
+            printf("calling the earlyFilter %08x %08x  \n", map1_yarp, map2_yarp);
+            res = earlyFilter(map1_yarp, map2_yarp, *linearCombinationImage, xm, ym);
+            
+            res = false;
+            if(res) {
+                //printf("max in contrast or motion \n");
+                Bottle b;
+                b.addString("MOT");
+                b.addInt(xm);
+                b.addInt(ym);
+                setChanged();
+                notifyObservers(&b);
+            }
+            
+            Time::delay(0.033);
+        }// end if
+        
     }//end while
 }
 

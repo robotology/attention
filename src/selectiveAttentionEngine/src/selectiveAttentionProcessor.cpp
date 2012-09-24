@@ -400,7 +400,7 @@ bool selectiveAttentionProcessor::threadInit(){
     printf("starting the earlyTrigger \n");
     earlyTrigger = new prioCollectorThread();
     earlyTrigger->setName(getName("/prio").c_str());
-    earlyTrigger->start();
+    // earlyTrigger->start();
 
     return true;
 }
