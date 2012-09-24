@@ -86,11 +86,12 @@ sacPlannerThread::~sacPlannerThread() {
 
 
 bool sacPlannerThread::threadInit() {
-    idle = false;
-    sleep = true;
-    compare = false;
-    direction = 0;
-    countDirection = 0;
+    idle            = false;
+    sleep           = true;
+    compare         = false;
+    correctionReady = false;
+    direction       = 0;
+    countDirection  = 0;
     printf("starting the thread.... \n");
     /* open ports */
     string rootName("");

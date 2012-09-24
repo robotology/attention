@@ -61,6 +61,7 @@ private:
     bool sleep;                                                 // flag set after the prediction is memorised
     bool compare;                                               // flag that indicates when it is checking the difference between predicted saccadic image with the current saccadic image
     bool idle;                                                  // flag that inhibith the computation when a saccade process is performed
+    bool correctionReady;                                        // flag that indicates when an alternative direction is ready
     
     yarp::sig::ImageOf <yarp::sig::PixelRgb>* inputImage;                                     // reference to the input image for saccadic adaptation    
     yarp::sig::ImageOf <yarp::sig::PixelRgb>* predictedImage;                                 // reference to the predicted image for saccadic adaptation    
@@ -74,6 +75,7 @@ private:
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > corrPort;                //output port for representing the correlation measure in the adaptation
     yarp::os::Semaphore mutex;
+    yarp::os::Semaphore correctionMutex;                                               // mutex for the correctionFlag
 
     double corrValue;                                           // correlation value between the predicted image and the current 
     double direction;                                              // direction of the more likely increment in correlation
@@ -200,7 +202,12 @@ public:
      * @return angle in degree of the direction
      */
     double getCorrValue(){return corrValue;};
-
+    
+    /**
+     * function that returns the most likely direction that is more likely to increase the correlation
+     * @return angle in degree of the direction
+     */
+    double getCorrection(){if(correctionReady ) return direction; else return -1.0; };
 
     
 };

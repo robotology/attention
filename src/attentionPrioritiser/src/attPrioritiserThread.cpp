@@ -47,14 +47,15 @@ using namespace attention::evaluator;
 #define FOVEACONFID     20
 
 //defining the frequency [event/sec] as relation between time and event
+// smp has frequent corrections whereas the other perform action only once
 const static double frequencyRule[NUMSTATES] = { 
-    0.1,  // reset
-    0.1,  // wait
-    0.5,  // vergenge
+    1.0,  // reset
+    1.0,  // wait
+    1.0,  // vergenge
     10.0, // SMP
     1.0,  // planned saccade 
-    0.5,  // exprSacc
-    0.1   // Pred
+    1.0,  // exprSacc
+    1.0   // Pred
 };
 
 inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
@@ -625,6 +626,23 @@ void attPrioritiserThread::sendPendingCommand() {
     update(this, pendingCommand);
 }
 
+int attPrioritiserThread::waitCorrection() {
+    int ready = -1;
+    while ((ready == -1) && (sacPlanner->getCorrValue() > THCORR )) {
+        ready = sacPlanner->getCorrection();
+        Time::delay(0.1);
+    }
+    if(ready != -1) {
+        // the alternative direction is now known
+        return ready;
+    } 
+    else {
+        // the correlation value is high; no need for correction
+        return -1;
+    }
+    
+}
+
 void attPrioritiserThread::run() {
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
@@ -1109,26 +1127,42 @@ void attPrioritiserThread::run() {
                     sacPlanner->setCompare(true);
                     sacPlanner->wakeup();
                     Time::delay(0.05);
+
+                    /* code generated the 25/09/2012
+                    int resultC = waitCorrection();
+                    int uCorr, vCorr;
+                    if( resultC != -1) {
+                        //further corrections needed
+                        uCorr = cos(resultC) * 5;
+                        vCorr = sin(resultC) * 5;
+                        commandBottle.clear();
+                        commandBottle.addString("SAC_MONO");
+                        commandBottle.addInt(u);
+                        commandBottle.addInt(v);
+                        commandBottle.addDouble(zDistance);
+                        outputPort.write();
+                    }
+                    */
                     
-                    /*
+                    
                     // correction or second saccade??
                     double corr = sacPlanner->getCorrValue();
                     printf("received the response from the planner %f \n", corr);
                     if(corr < THCORR) {
-                    //getDirection and calculating the pixel dimension of the correction
-                    double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
-                    printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
-                    int xVar = (int) floor(cos(dirRad) * corrStep);
-                    int yVar = (int) floor(sin(dirRad) * corrStep);
-                    Bottle& commandBottle=outputPort.prepare();
-                    commandBottle.clear();
-                    commandBottle.addString("SAC_MONO");
-                    commandBottle.addInt(160 + xVar);
-                    commandBottle.addInt(120 + yVar);
-                    commandBottle.addDouble(zDistance);
-                    outputPort.write();
+                        //getDirection and calculating the pixel dimension of the correction
+                        double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
+                        printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
+                        int xVar = (int) floor(cos(dirRad) * corrStep);
+                        int yVar = (int) floor(sin(dirRad) * corrStep);
+                        Bottle& commandBottle = outputPort.prepare();
+                        commandBottle.clear();
+                        commandBottle.addString("SAC_MONO");
+                        commandBottle.addInt(160 + xVar);
+                        commandBottle.addInt(120 + yVar);
+                        commandBottle.addDouble(zDistance);
+                        outputPort.write();
                     } 
-                    */
+                    
                     
                     Time::delay(0.05);
                     
@@ -2100,8 +2134,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"TRACK_REF")) {
             //tracker refinement to reset the tracker during saccadic movement
             printf("TRACKER REFINEMENT \n\n");
-            //tracker->init(160,120);
-            //tracker->waitInitTracker();
+            tracker->init(160 + 20,120);
+            tracker->waitInitTracker();
         }
         else if(!strcmp(name.c_str(),"PF_REQ")) {
             // particle filter request
@@ -2302,8 +2336,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             } //end if(!vergencestop)
         }
 
-        //****************************** ACTION RESPONSES  ************************************************//
-        //**** this section regulates the state transition indicating state of agent after action *********//
+        //****************************** ACTION RESPONSES (FAIL)  ************************************************//
+        //**** this section regulates the state transition indicating state of agent after action ****************//
         else if(!strcmp(name.c_str(),"SAC_FAIL")) {
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
             printf("resetting response timer saccade fail \n");
@@ -2328,7 +2362,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //extracting reward measures
             timing    = Time::now() - startAction;
-            accuracy  = tracker->getProxMeasure();            
+            //accuracy  = tracker->getProxMeasure();            
+            accuracy  = 0.0;
             amplitude = 1.0;
             frequency = frequencyRule[4];
 
@@ -2367,7 +2402,69 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notifyObservers(&notif);
             */
             
-        }        
+        } 
+         else if((!strcmp(name.c_str(),"VER_REF")) && (waitResponse[2])) {
+            waitResponse[2] = false;
+            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
+            printf("resetting response timer vergence refinement \n");
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M38");
+                facePort.write();
+            }
+
+            //extracting reward measures
+            double timing    = Time::now() - startAction;
+            //double accuracy  = tracker->getProxMeasure();            
+            double accuracy = 0;    // null accuracy for failure in vergence
+            double amplitude = 1.0;
+            double frequency = frequencyRule[2];
+            
+            // nofiying state transition            
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(13);                  // code for vergence accomplished
+            notif.addDouble(timing);
+            notif.addDouble(accuracy);
+            notif.addDouble(amplitude);
+            notif.addDouble(frequency);
+            setChanged();
+            notifyObservers(&notif);            
+        }
+        else if((!strcmp(name.c_str(),"PRED_FAIL")) && (waitResponse[6])) {
+            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
+            printf("resetting response timer prediction failed  \n");
+            waitResponse[6] = false;
+            if(facePort.getOutputCount()) {
+                Bottle& value = facePort.prepare();
+                value.clear();
+                value.addString("M38");
+                facePort.write();
+            }
+            
+            // gets the proximity measure from the tracker
+            double timing    = Time::now() - startAction;
+            //double accuracy  = tracker->getProxMeasure() + 300;            
+            double accuracy  = 0;   // null accuracy for failure in prediction           
+            double frequency = frequencyRule[6];
+            double amplitude = 1.0;
+
+            Bottle notif;
+            notif.clear();
+            notif.addVocab(COMMAND_VOCAB_STAT);
+            notif.addDouble(0);                  // code for prediction fail goes into the NULL state
+            notif.addDouble(timing);
+            notif.addDouble(accuracy);
+            notif.addDouble(amplitude);
+            notif.addDouble(frequency);
+            setChanged();
+            notifyObservers(&notif); 
+
+        }
+        //****************************** ACTION RESPONSES (SUCCESS)  ************************************************//
+        //**** this section regulates the state transition indicating state of agent after action ****************//
         else if(!strcmp(name.c_str(),"SAC_ACC_HIGH"))   {
             printf("received a SAC_ACC_HIGH command \n");
             // saccade accomplished high for expressed saccade
@@ -2392,7 +2489,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
                 //extracting reward measures
                 double timing    = Time::now() - startAction;
-                double accuracy  = tracker->getProxMeasure();            
+                double accuracy  = tracker->getProxMeasure() + 50;            
                 double amplitude = 1.0;
                 double frequency = frequencyRule[4];
                 
@@ -2436,7 +2533,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
                 //extracting reward measures
                 double timing    = Time::now() - startAction;
-                double accuracy  = tracker->getProxMeasure();            
+                double accuracy  = tracker->getProxMeasure() + 300;            
                 double amplitude = 1.0;
                 double frequency = frequencyRule[4];
                 
@@ -2572,42 +2669,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
             printf("changing the correcting status \n");
-
             // saccade accomplished flag set 
             mutex.wait();
             correcting = true;
             //executing = false;
             mutex.post();
         }
-        else if((!strcmp(name.c_str(),"VER_REF")) && (waitResponse[2])) {
-            waitResponse[2] = false;
-            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting response timer vergence refinement \n");
-            if(facePort.getOutputCount()) {
-                Bottle& value = facePort.prepare();
-                value.clear();
-                value.addString("M38");
-                facePort.write();
-            }
-
-            //extracting reward measures
-            double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure();            
-            double amplitude = 1.0;
-            double frequency = frequencyRule[2];
-            
-            // nofiying state transition            
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(13);                  // code for vergence accomplished
-            notif.addDouble(timing);
-            notif.addDouble(accuracy);
-            notif.addDouble(amplitude);
-            notif.addDouble(frequency);
-            setChanged();
-            notifyObservers(&notif);            
-        }
+       
         else if((!strcmp(name.c_str(),"VER_ACC")) && (waitResponse[2])) {
             waitResponse[2] = false;
             timeoutResponseStart = Time::now();
@@ -2751,35 +2819,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
             }
         }
-        else if((!strcmp(name.c_str(),"PRED_FAIL")) && (waitResponse[6])) {
-            timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting response timer prediction failed  \n");
-            waitResponse[6] = false;
-            if(facePort.getOutputCount()) {
-                Bottle& value = facePort.prepare();
-                value.clear();
-                value.addString("M38");
-                facePort.write();
-            }
-            
-            // gets the proximity measure from the tracker
-            double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure() + 300;            
-            double frequency = frequencyRule[6];
-            double amplitude = 1.0;
-
-            Bottle notif;
-            notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(0);                  // code for prediction fail goes into the NULL state
-            notif.addDouble(timing);
-            notif.addDouble(accuracy);
-            notif.addDouble(amplitude);
-            notif.addDouble(frequency);
-            setChanged();
-            notifyObservers(&notif); 
-
-        }
+        
         else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
             waitResponse[6] = false;
             timeoutResponseStart = Time::now();
@@ -2811,7 +2851,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure() + 300;
+            double accuracy  = tracker->getProxMeasure() + 50;
             double frequency = frequencyRule[6];
             double amplitude = 1.0;
 

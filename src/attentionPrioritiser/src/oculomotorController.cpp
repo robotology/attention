@@ -32,7 +32,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 600.0   // #iteration after which the policy is only quality-based
+#define MAXCOUNTRAND 1000.0  // #iteration after which the policy is only quality-based
 #define GOALSTATE     14     // goal state success in episodic learning
 
 /*
@@ -726,7 +726,9 @@ void oculomotorController::learningStep() {
             printf("policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
             printf("policyWalk > \n");
-            actionPerformed = policyWalk(0.9);
+            // the probability as parameter introduces the probability
+            // of a random action within the policy walk
+            actionPerformed = policyWalk(0.75);
             printf("success in policy action performed \n");
         }
         else {
@@ -895,8 +897,8 @@ void oculomotorController::run() {
             //fprintf(logState, "%f ", entropy);            
         }
         
-        //printf("count %d iter %d \n", countSucc, iter);
         if((countSucc < 20) && (iter % 20 == 0) && (ap->readyForActions())) {
+            printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
             learningStep();    
         }
@@ -1109,7 +1111,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                          
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
             fprintf(logFile, "state_prev:%s state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
-            fprintf(logFile, " totalPayoff:%f / 10 - %f -%f => %f         \n ",accuracy,timing  *  costAmplitude[action_now] * amplitude * frequency,
+            fprintf(logFile, "jiter %f * totalPayoff:%f / 10 - %f -%f => %f         \n ",jiter,accuracy,timing  *  costAmplitude[action_now] * amplitude * frequency,
                     timing  * frequency * costEvent[action_now],totalPayoff);
             fprintf(logFile, "entropy : %f \n", meanEntropy);
             fprintf(logState,"%d %f %f\n", state_now, totalPayoff, meanEntropy);

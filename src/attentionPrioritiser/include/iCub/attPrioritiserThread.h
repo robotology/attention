@@ -504,6 +504,12 @@ public:
     void waitMotionDone() {
         igaze->waitMotionDone();
     }
+
+    /**
+    * function that returns only when the corrective angle is ready for the sacPlannerThread
+    * @return -1 only if correction is not necessary otherwise send the angle in degrees back 
+    */
+    int waitCorrection();
     
     /**
      * function that extracts the feature of the object in fovea to command feedback
