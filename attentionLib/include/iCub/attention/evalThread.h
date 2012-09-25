@@ -66,18 +66,18 @@ class evalThread : public yarp::os::Thread {
         kSolver = new Kalman(A,B,H,Q,R);
     }
     
-    /*
+    
     evalThread(const attention::predictor::genPredModel& model) {
         numIter = 3;
         
-        gPredModel = model;
-        int rowA = model->getRowA();
-        int colA = model->getColA();        
+        gPredModel = (attention::predictor::genPredModel*) &model;
+        int rowA = model.getRowA();
+        int colA = model.getColA();        
     
         // initialisation of the karman filter
-        Matrix A = model->getA();
-        Matrix B = model->getB();
-        Matrix H = model->getH();
+        Matrix A = model.getA();
+        Matrix B = model.getB();
+        Matrix H = model.getH();
         
         Matrix R (rowA,colA);
         Matrix Q (rowA,colA);
@@ -91,16 +91,16 @@ class evalThread : public yarp::os::Thread {
         
         for (int i = 0; i < rowA; i++) {
             for (int j = 0; j < colA; j++) { 
-                Q(i, j) += 0.01; 
-                R(i, j) += 0.001;
-                P0(i,j) += 0.01;
+                Q (i, j) += 0.01; 
+                R (i, j) += 0.001;
+                P0(i, j) += 0.01;
             }      
         }
 
         kSolver = new Kalman(A,B,H,Q,R);
       
     }
-    */
+    
     
     
     ////////////////////////////////////////////////////////////////////
