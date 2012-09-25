@@ -51,20 +51,16 @@ bool trajectoryPredictor::threadInit() {
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str()); 
     
-    
-
-    
-    
-    
-    /*
     linAccModel* modelB = new linAccModel();
     modelB->init(1.0);printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
-    evalThread etB(mB);
+    evalThread etB(*mB);
     evalAcc1 = etB;
     evalAcc1.start();
-    eQueue.push_back(evalAcc1);
+    eQueue->push_back(&evalAcc1);
     
+    
+    /*
     minJerkModel* modelC = new minJerkModel();
     modelC->init(1, 1);
     printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
@@ -74,6 +70,7 @@ bool trajectoryPredictor::threadInit() {
     evalMJ1_T1.start();
     eQueue.push_back(evalMJ1_T1);  
     */
+    
 
     printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
         
