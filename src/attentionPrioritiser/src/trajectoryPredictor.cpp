@@ -52,7 +52,8 @@ bool trajectoryPredictor::threadInit() {
     inImagePort.open(rootName.c_str()); 
     
     linAccModel* modelB = new linAccModel();
-    modelB->init(1.0);printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
+    modelB->init(1.0);
+    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
     evalThread etB(*mB);
     evalAcc1 = etB;
@@ -60,16 +61,15 @@ bool trajectoryPredictor::threadInit() {
     eQueue->push_back(&evalAcc1);
     
     
-    /*
+    
     minJerkModel* modelC = new minJerkModel();
     modelC->init(1, 1);
     printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
     genPredModel* mC = dynamic_cast<genPredModel*>(modelC);
-    evalThread etC(mC);
+    evalThread etC(*mC);
     evalMJ1_T1 = etC;
     evalMJ1_T1.start();
-    eQueue.push_back(evalMJ1_T1);  
-    */
+    eQueue->push_back(&evalMJ1_T1);  
     
 
     printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
@@ -164,6 +164,10 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     printf("setting measurements \n");
     
     evalVel1.setMeasurements(uMeasure,zMeasure);
+    while(!evalVel1.getEvalFinished()) {
+        printf("evalVel1 evaluation \n");
+        Time::delay(0.1);
+    }
     
     tracker->getPoint(p_curr);
     distance = sqrt((p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
