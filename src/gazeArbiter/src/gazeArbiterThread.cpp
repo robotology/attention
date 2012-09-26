@@ -1215,7 +1215,7 @@ void gazeArbiterThread::run() {
 
         //initilisation
         int c = 0;
-        int u = 160, v = 120;
+        int u = 64, v = 64;
         Vector target(2);
         int camSel=0;   // select the image plane: 0 (left), 1 (right)
         Vector px(2);   // specify the pixel where to look
