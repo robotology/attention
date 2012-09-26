@@ -56,7 +56,7 @@ class evalThread : public yarp::os::Thread {
     yarp::os::Semaphore mutexR;
     yarp::os::Semaphore    mutexF; 
     Vector u, x, z;    
-    Vector zMeasure, uMeasure;   
+    Matrix zMeasure, uMeasure;   
     
  public:
     evalThread(){
@@ -251,7 +251,7 @@ class evalThread : public yarp::os::Thread {
 
     /////////////////////////////////////////////////////////////////
 
-    void setMeasurements(Vector _u, Vector _z) {
+    void setMeasurements(Matrix _u, Matrix _z) {
         printf("setMeasurement \n");
         //mutexR.wait();
         dataReady = true;
