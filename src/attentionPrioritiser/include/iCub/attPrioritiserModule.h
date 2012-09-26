@@ -184,6 +184,8 @@
 #include <iCub/oculomotorController.h>
 #include <iCub/attPrioritiserThread.h>
 #include <iCub/prioCollectorThread.h>
+#include <iCub/attention/predModels.h>
+#include <iCub/attention/evalThread.h>
 
 // general command vocab's
 #define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
@@ -223,6 +225,15 @@ class attPrioritiserModule:public yarp::os::RFModule {
     int width, height;                          // parameter set by user dimensioning input image
     yarp::os::Port handlerPort;                 // a port to handle messages 
     yarp::os::RpcServer remoteProgPort;         // port associated with the remote programming
+
+    attention::evaluator::evalThread evalVel1;      // evaluation thread velocity 1
+    attention::evaluator::evalThread evalVel2;      // evaluation thread velocity 2
+    attention::evaluator::evalThread evalAcc1;      // evaluation thread acceleration 1
+    attention::evaluator::evalThread evalAcc2;      // evaluation thread accelaration 2
+    attention::evaluator::evalThread evalMJ1_T1;    // evaluation thread minJerk distance 1 - period 1
+    attention::evaluator::evalThread evalMJ2_T1;    // evaluation thread minJerk distance 2 - period 1
+    attention::evaluator::evalThread evalMJ1_T2;    // evaluation thread minJerk distance 1 - period 2
+    attention::evaluator::evalThread evalMJ2_T2;    // evaluation thread minJerk distance 2 - period 2
     
     yarp::os::Semaphore mutex;                  // semaphore for the respond function
 

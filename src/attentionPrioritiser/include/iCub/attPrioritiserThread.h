@@ -541,6 +541,19 @@ public:
      */
     void executeClone(int pos);
     
+    /**
+     *  @brief function that adds all the evalThread to the attPrioritiser
+     */
+    void addCollectionEvalThread();
+
+    /**
+     * @brief function that adds evalThread to the list
+     * @param et evalThread reference to evaluator to add
+     */
+    void addEvalThread(attention::evaluator::evalThread* et){
+        printf(">>>>>>>>>>>>>>>>attPrioritiser::addEvalThread %08X \n", et);
+        eQueue->push_back(et);
+    };
 };
 
 #endif  //_ATT_PRIORITISER_THREAD_H_

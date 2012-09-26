@@ -28,6 +28,8 @@
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
+using namespace attention::predictor;
+using namespace attention::evaluator;
 
 /* 
  * Configure method. Receive a previously initialized
@@ -264,6 +266,26 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         prioritiser->setLearning(false);
         controller->setIdle(true);
     }
+
+    /**
+     * adding predictors to the attPrioritiserThread
+     */
+    
+    linAccModel* modelB = new linAccModel();
+    modelB->init(1.0);
+    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
+    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
+   
+    evalThread etB(*mB);
+    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>just started genPredModel %08X \n",&etB);
+    //evalAcc1(*mB);
+    
+    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>just started evalAcc %08X \n",&evalAcc1);
+    prioritiser->addEvalThread(&etB);
+
+    etB.start();
+    
+    
     
     printf("starting the prioritiser... \n");
     if(!prioritiser->start()){

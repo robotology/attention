@@ -37,31 +37,29 @@ using namespace std;
 
 trajectoryPredictor::trajectoryPredictor() {
     tracker = 0;
+    eQueue = new evalQueue();
 }
 
 trajectoryPredictor::~trajectoryPredictor() {
-    
+    delete eQueue;
 }
 
 bool trajectoryPredictor::threadInit() {
     printf("-------------------------------trajectoryPredictor::threadInit:starting the thread.... \n");
+    
+    
+
     /* open ports */
     string rootName("");
     rootName.append(getName("/blobImage:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str()); 
     
-    linAccModel* modelB = new linAccModel();
-    modelB->init(1.0);
-    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
-    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
-    evalThread etB(*mB);
-    evalAcc1 = etB;
-    evalAcc1.start();
-    eQueue->push_back(&evalAcc1);
     
     
     
+    
+    /*
     minJerkModel* modelC = new minJerkModel();
     modelC->init(1, 1);
     printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
@@ -70,8 +68,8 @@ bool trajectoryPredictor::threadInit() {
     evalMJ1_T1 = etC;
     evalMJ1_T1.start();
     eQueue->push_back(&evalMJ1_T1);  
+    */
     
-
     printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
         
     return true;
@@ -109,19 +107,20 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     CvPoint p_curr, p_prev;
 
-    
     double timeStart = Time::now();
     double timeStop, timeDiff;
-    double vel;
+    double dist, vel, acc;
     double velX, velY, velX_prev, velY_prev;
     double accX, accY, maxAccX = 0, maxAccY = 0;
     double meanVelX, meanVelY;
     int distX, distY;
+    
     int nIter = 10;
     
     //for n times records the position of the object and extract an estimate
     // extracting the velocity of the stimulus; saving it into a vector 
-    Vector zMeasurements(nIter,3);
+    Matrix zMeasurements(nIter,3.0);
+    Matrix uMeasurements(nIter,3.0);
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
         p_prev =  p_curr;
@@ -133,23 +132,27 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             //printf("----------------- \n timeDiff %f \n", timeDiff );
             distX = p_curr.x - p_prev.x;
             distY = p_curr.y - p_prev.y;
-            //printf("distance X: %d \n", distX);
-            //printf("distance Y: %d \n", distY);
+            dist  = sqrt( distX * distX + distY * distY);
+            zMeasurements(n - 1, 0) = dist;
+
             velX_prev = velX;
             velY_prev = velY;
             velX = distX / timeDiff;
             velY = distY / timeDiff;
             vel = sqrt( velX * velX + velY * velY);
+            zMeasurements(n - 1, 1) = vel;
+
             accX = (velX - velX_prev) / timeDiff;
             accY = (velY - velY_prev) / timeDiff;
-            if(accY > maxAccY) maxAccY = accY;
-            if(accX > maxAccX) maxAccX = accX;
-            //printf("velocity X: %f \n", velX);
-            //printf("velocity Y: %f \n", velY);
-            //printf("velocity diff X : %f \n",velX - velX_prev );
-            //printf("velocity diff Y : %f \n",velY - velY_prev );
-            //printf("accelar  X: %f \n", accX);
-            //printf("accelar  Y: %f \n", accY);
+            acc = sqrt( accX * accX + accY * accY);
+            zMeasurements(n - 1, 2) = acc;
+
+            if(accY > maxAccY) { 
+                maxAccY = accY;
+            }
+            if(accX > maxAccX) {
+                maxAccX = accX;
+            }
             meanVelX += velX;
             meanVelY += velY;
         }
@@ -160,14 +163,34 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     meanVelX /= nIter;
     meanVelY /= nIter;
 
-    //estimate the predictor model that best fits the velocity measured
-    printf("setting measurements \n");
+    uMeasurements(1,0) = 2.0; uMeasurements(2,0) = 4.0;
+    zMeasurements(2,0) = 3.0; zMeasurements(1,1) = 1.0;
     
-    evalVel1.setMeasurements(uMeasure,zMeasure);
-    while(!evalVel1.getEvalFinished()) {
-        printf("evalVel1 evaluation \n");
-        Time::delay(0.1);
+    //estimate the predictor model that best fits the velocity measured
+    printf("setting measurements \n z = %s \n", zMeasurements.toString().c_str());
+    printf("setting measurements \n u = %s \n", uMeasurements.toString().c_str());
+    deque<evalThread*>::iterator it;
+    evalThread* tmp;
+    it = eQueue->begin();
+    tmp = *it;  // pointer to the thread
+    tmp->setMeasurements(uMeasure,zMeasure);
+    printf("entering the loop for %08X with getdatReady %d \n",tmp, tmp->getDataReady());
+    /*
+    while(it != eQueue->end() ) { 
+        printf("reading evalThread reference from the queue \n");
+        tmp = *it;  // pointer to the thread
+        tmp->setMeasurements(uMeasure,zMeasure);
+        printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
+        //while(!(*it)->getEvalFinished()) {
+        //    //printf("evalVel1 evaluation \n");
+        //    Time::delay(0.1);
+        //}
+        
+        printf("out of the loop \n");
+        it++;
+        
     }
+*/
     
     tracker->getPoint(p_curr);
     distance = sqrt((p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
@@ -186,14 +209,17 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 
 void trajectoryPredictor::run() {
     
-    while(isRunning()){        
-        /*
-        ImageOf<PixelMono>* b=inImagePort.read(true);
+    while(!isStopping()){    
+        printf("trajectoryPredictor::run \n");       
+        ImageOf<PixelMono>* b = inImagePort.read(true);
+        printf("after the imagePort \n");
         int x,y;
+        double Vx, Vy, xPos, yPos, time, distance;
         extractCentroid(b, x, y);
-        estimateVelocity(x,y, Vx, Vy);
+        estimateVelocity(x, y, Vx, Vy, xPos, yPos, time, distance);
         printf("estimateVelocity %f %f \n",Vx,Vy );
-        */
+        
+        Time::delay(1.0);
     }
     
 }
@@ -214,8 +240,8 @@ void trajectoryPredictor::threadRelease() {
     //    tracker->stop();
     //}
 
-    evalVel1.stop();
-    evalAcc1.stop();
-    evalMJ1_T1.stop();
+    //evalVel1.stop();
+    //evalAcc1.stop();
+    //evalMJ1_T1.stop();
     
 }

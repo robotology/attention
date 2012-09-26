@@ -116,11 +116,15 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(7,true);
     ap->setAllowStateRequest(8,true);
 
-
+if(ap->isLearning())
     // ------------- opening the logfile ----------------------
     //logFilePath = "logFile.txt";
     printf("printing the visited state and performance in a log files .... %s  %s \n", logStatePath.c_str(), logFilePath.c_str());
     logFile  = fopen(logFilePath.c_str(),"w+");
+    if (logFile == NULL)
+        return false;
+    fprintf(logFile, "beginning of the logFile \n");
+    
     logState = fopen(logStatePath.c_str(),"w+");
       
     
@@ -918,18 +922,25 @@ void oculomotorController::logAction(int a) {
     // mapping from action in prioritiser to action in controller
     // mapping from dimension 6 to dimension 8
     int amplitudeId = 2;
-    printf("action %d \n", a);
+    printf("action %d --> ", a);
 
-    /*
+    
+    // this must be  active only when it is not learning
     switch(a) {
-    case 0 :
+    case 0 : {
         action(0) = 1;
+        printf("action 0  \n");
+    }
         break;
-    case 1 :
+    case 1 : {
         action(1) = 1;
+        printf("action 1  \n");
+    }
         break;
-    case 2 :
+    case 2 :{
         action(2) = 1;
+        printf("action 2  \n");
+    }
         break;
     case 3 :
         if(amplitudeId == 2) {
@@ -937,18 +948,28 @@ void oculomotorController::logAction(int a) {
             action(4) = 0;
             action(5) = 1;
         }
+        printf("action 5  \n");
         break;
-    case 4 : 
+    case 4 : {
         action(6) = 1;
+        printf("action 6  \n");
+    }
         break;
-    case 5 :
+    case 5 :{
         action(7) = 1;
+        printf("action 7  \n");
+    }
+        break;
+    case 6 :{
+        action(8) = 1;
+        printf("action 8  \n");
+    }
         break;
     }
-    */
-
-    action(a) = 1.0;
     
+
+    //action(a) = 1.0;
+   
     
     if(action(0)) {
         printf("                                                                  Action reset          \n");
@@ -957,22 +978,22 @@ void oculomotorController::logAction(int a) {
     }
     else if(action(1)){
         printf("                                                                  Action wait       \n");
-        action_now = 1;
+        action_now = 1;       
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(2)){
         printf("                                                                  Action vergence       \n");
-        action_now = 2;
+        action_now = 2;       
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(3)){
         printf("                                                                  Action smoothPursuit  \n");
-        action_now = 3;
+        action_now = 3;       
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(4)){
         printf("                                                                  Action microSaccade   \n");
-        action_now = 4;
+        action_now = 4;       
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(5)){
@@ -982,19 +1003,21 @@ void oculomotorController::logAction(int a) {
     }
     else if(action(6)){
         printf("                                                                  Action largeSaccade   \n");
-        action_now = 6;
+        action_now = 6;        
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(7)){
         printf("                                                                  Action expressSaccade \n");
-        action_now = 7;
+        action_now = 7;       
         fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
     }
     else if(action(8)){
         printf("                                                                  Action predict        \n");
-        action_now = 8;
-        fprintf(logFile, "action_now:%s ", actionList[action_now].c_str());
+        action_now = 8;        
+        fprintf(logFile, "action_now: %s ", actionList[action_now].c_str());
+        fprintf(logFile, "action_now: \n ");
     }
+    printf("ultimated the logAction method \n");
 }
 
 double oculomotorController::estimateReward(double timing, double accuracy, double amplitude, double frequency) {
@@ -1111,8 +1134,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                          
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
             fprintf(logFile, "state_prev:%s state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
-            fprintf(logFile, "jiter %f * totalPayoff:%f / 10 - %f -%f => %f         \n ",jiter,accuracy,timing  *  costAmplitude[action_now] * amplitude * frequency,
-                    timing  * frequency * costEvent[action_now],totalPayoff);
+            fprintf(logFile, " totalPayoff:%f / 10 - %f -%f => %f         \n ",accuracy,timing  *  costAmplitude[action_now] * amplitude * frequency,timing  * frequency * costEvent[action_now],totalPayoff);
+
             fprintf(logFile, "entropy : %f \n", meanEntropy);
             fprintf(logState,"%d %f %f\n", state_now, totalPayoff, meanEntropy);
 
@@ -1170,8 +1193,10 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             while (( a(i) == 0 ) && (i < 7)) {
                 i++;
             }
-            //printf("apLearning %d \n", i);
-            if (!ap->isLearning()) {
+            
+            printf("apLearning %d \n", i);
+            if (ap->isLearning() == false) {
+                
                 logAction(i);
             }
                        

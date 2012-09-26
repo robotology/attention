@@ -63,21 +63,19 @@ private:
     yarp::os::ResourceFinder* rf; // resource finder for initialisation of the tracker
     trackerThread*    tracker;    // reference to the object in charge of tracking a tamplete surrounding a point
     
-    attention::evaluator::evalThread evalVel1;      // evaluation thread velocity 1
-    attention::evaluator::evalThread evalVel2;      // evaluation thread velocity 2
-    attention::evaluator::evalThread evalAcc1;      // evaluation thread acceleration 1
-    attention::evaluator::evalThread evalAcc2;      // evaluation thread accelaration 2
-    attention::evaluator::evalThread evalMJ1_T1;    // evaluation thread minJerk distance 1 - period 1
-    attention::evaluator::evalThread evalMJ2_T1;    // evaluation thread minJerk distance 2 - period 1
-    attention::evaluator::evalThread evalMJ1_T2;    // evaluation thread minJerk distance 1 - period 2
-    attention::evaluator::evalThread evalMJ2_T2;    // evaluation thread minJerk distance 2 - period 2
+    //attention::evaluator::evalThread evalVel1;      // evaluation thread velocity 1
+    //attention::evaluator::evalThread evalVel2;      // evaluation thread velocity 2
+    //attention::evaluator::evalThread evalAcc1;      // evaluation thread acceleration 1
+    //attention::evaluator::evalThread evalAcc2;      // evaluation thread accelaration 2
+    //attention::evaluator::evalThread evalMJ1_T1;    // evaluation thread minJerk distance 1 - period 1
+    //attention::evaluator::evalThread evalMJ2_T1;    // evaluation thread minJerk distance 2 - period 1
+    //attention::evaluator::evalThread evalMJ1_T2;    // evaluation thread minJerk distance 1 - period 2
+    //attention::evaluator::evalThread evalMJ2_T2;    // evaluation thread minJerk distance 2 - period 2
 
     attention::evaluator::evalQueue* eQueue;        // queue of evaluation threads
     
     yarp::sig::Matrix zMeasure;                     // vector of measurements
     yarp::sig::Matrix uMeasure;                     // vector of the input values
-    
-    
 
 public:
     /**
@@ -151,13 +149,21 @@ public:
     void extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMono>* image, int& x, int& y);
 
     /**
+     * function that adds the evaluation thread to the list
+     */
+    void addEvalThread(attention::evaluator::evalThread* et){ 
+        printf(">>>>>>>>>>>>>>>>>>>>>trajectoryPredictor::addEvalThread %08X \n", et);
+        eQueue->push_back(et); 
+    };
+
+    /**
      * @brief function that estimate the velocity of the centroid in time
      * @param Vx estimated velocity along x axis
      * @param Vy estimated velocity along y axis
-     * @param xPos estimated landing location along x axis
-     * @param yPos estimated landing location along x axis
-     * @param time estimated time length of movement
-     * @param distance of the stimulus from the fovea
+     * @param xPos estimated landing location along x axis (return)
+     * @param yPos estimated landing location along x axis (return)
+     * @param time estimated time length of movement       (return)
+     * @param distance of the stimulus from the fovea      (return)
      */
     bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time, double& distance);
 };

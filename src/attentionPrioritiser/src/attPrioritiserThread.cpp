@@ -145,6 +145,9 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 
 attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
+
+    eQueue = new evalQueue();
+
     printf("attPrioritiserThread::attPrioritiserThread \n");
     cUpdate = 0;
     collectionLocation = new int[4*2];
@@ -286,6 +289,8 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
 attPrioritiserThread::~attPrioritiserThread() {
     // MUST BE REMOVED THE RF AND TRACKER ALLOCATED IN THE CONSTRUCTOR
     //tracker->stop();
+    
+    delete eQueue;
 }
 
 bool attPrioritiserThread::threadInit() {
@@ -400,7 +405,9 @@ bool attPrioritiserThread::threadInit() {
     printf("attPrioritiserThread::threadInit:starting the trajectoryPredictor \n");
     trajPredictor = new trajectoryPredictor();
     trajPredictor->setTracker(tracker);
+    addCollectionEvalThread();
     trajPredictor->start();
+
     printf("--------------------------------attPrioritiser::threadInit:end of the threadInit \n");
 
     //-----------------------------------------------------------------------------------
@@ -465,6 +472,19 @@ bool attPrioritiserThread::threadInit() {
     //eQueue->push_back(evalVel1);
     
     return true;
+}
+
+void attPrioritiserThread::addCollectionEvalThread() {
+    
+    deque<evalThread*>::iterator it;
+    it = eQueue->begin();
+    while (it != eQueue->end()) {
+        printf("adding eval Thread %08X \n", *it);
+        trajPredictor->addEvalThread(*it);
+        it++;
+    }
+    printf("saved %d eventPredictors \n", eQueue->size());
+   
 }
 
 void attPrioritiserThread::interrupt() {
@@ -552,6 +572,8 @@ void attPrioritiserThread::threadRelease() {
     printf("attPrioritiserThread::threadRelease:corretly stopped the trajPredictor \n");
     
     */
+
+    evalVel1.stop();
 
     //delete sacPlanner;
     printf("----------------------------------- attPrioritiserThread::threadRelease:success in releasing all the components \n");
@@ -788,6 +810,7 @@ void attPrioritiserThread::run() {
         tracker->init(u,v);
         tracker->waitInitTracker();
 
+        printf("estimating velocity ... \n");
         bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime, predDistance);
         amplitude = 0; // null amplitude in prediction )no action involved)
         
