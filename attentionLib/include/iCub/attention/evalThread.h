@@ -48,17 +48,20 @@ class evalThread : public yarp::os::Thread {
     genPredModel* gPredModel;
 
     int numIter;
+    int a;
     
     bool dataReady;
     bool evalFinished;
    
-    Semaphore mutexR, mutexF; 
+    yarp::os::Semaphore mutexR;
+    yarp::os::Semaphore    mutexF; 
     Vector u, x, z;    
-    Matrix zMeasure, uMeasure;   
+    Vector zMeasure, uMeasure;   
     
  public:
     evalThread(){
         numIter = 3;
+        a = 0;
     }
 
     evalThread(const Matrix &A,const Matrix &B,const Matrix &H,const Matrix &Q,const Matrix &R) {
@@ -107,8 +110,12 @@ class evalThread : public yarp::os::Thread {
 
     virtual bool threadInit(){
         printf("evalThread::threadInit::thread init \n");
+        mutexR.wait();
         dataReady    = false;
+        mutexR.post();
+        mutexF.wait();
         evalFinished = false;
+        mutexF.post();
         printf("evalThread::end of initialisation \n");
         return true;
     }
@@ -117,41 +124,52 @@ class evalThread : public yarp::os::Thread {
     
     virtual void run() {
         printf("in the run \n");
+        bool dataR;
         while (!isStopping()) {
-            
-            Time::delay(1.0);
-        }
-            //printf(". \n");
-            /*
+
+            //printf("evalThread cycle \n");
+            //Time::delay(1.0);
+            //}*/
+
+            //printf(". \n");        
             //printf("inside the while \n");
             
+            
+            printf("pre mutex %d \n", dataR);
             //mutexR.wait();
-            bool dataR = dataReady;
+            dataR = getDataReady();
             //mutexR.post();
-
-            //printf("after mutex %d \n", dataR);
+            printf("after mutex %d \n", dataR);
+            
+           
             
             while(!dataR) {
-                Time::delay(0.5);
-                printf(". \n");
-               
-                mutexR.wait();
-                dataR = dataReady;
-
-                mutexR.post();
+                Time::delay(1.5);
+                printf(". ");
+        
+                //mutexR.wait();
+                dataR = getDataReady();                
+                printf("dataR %d %d %d \n", dataR, dataReady, a);
+                //mutexR.post();
             }
-            printf("out of while \n");
+            
+
+            printf("out of while %08X %d  \n",this, dataReady);
+            //printf("out of while %d  \n", dataReady);
+            //printf("out of while %d  \n", dataReady);
+            //printf("out of while %d  \n", dataReady);
+            
             
             // running the filter for the number of measurements
-            mutexR.wait();
+            // mutexR.wait();
             dataReady = false;
-            mutexR.post();
-
+            //mutexR.post();
+            
             for(int i = 0; i < numIter ; i++) {
                 printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
                 
                 double s = Random::uniform() + 0.5 ; 
-                                
+                
                 z = zMeasure.getRow(i);
                 printf("just extracted z = \n %s \n", z.toString().c_str());
                 u = uMeasure.getCol(i);
@@ -162,19 +180,19 @@ class evalThread : public yarp::os::Thread {
                 printf("estim.state %s from % \n", x.toString().c_str()); 
                 //printf("estim.error covariance P:\n %s \n",kSolver.get_P().toString().c_str());
                 
-               
             }
-
+        
             //setting the result out
             printf("setting the result out \n");
             mutexF.wait();
             evalFinished = true;
             mutexF.post();
-
-            */
-
-            //Time::delay(0.05);
-            // }
+            
+            
+            
+            Time::delay(1.5);
+           
+        }
         
     }
 
@@ -233,12 +251,18 @@ class evalThread : public yarp::os::Thread {
 
     /////////////////////////////////////////////////////////////////
 
-    void setMeasurements(Matrix _u, Matrix _z) {
+    void setMeasurements(Vector _u, Vector _z) {
         printf("setMeasurement \n");
+        //mutexR.wait();
         dataReady = true;
+        printf("setMeasurements:dataReady %d \n", dataReady);
+        //mutexR.post();
+        //mutexF.wait();
         evalFinished = false;
+        //mutexF.post();
         uMeasure = _u; zMeasure = _z;
-        printf("uMeasure %s \n", uMeasure.toString().c_str());
+        printf("_u %s uMeasure %s \n", _u.toString().c_str(), uMeasure.toString().c_str());
+        a = 2;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -263,6 +287,16 @@ class evalThread : public yarp::os::Thread {
          mutexF.post();
 
          return ef;
+    }
+
+     ///////////////////////////////////////////////////////////////
+
+    bool getDataReady() {
+        // mutexR.wait();
+         bool dr = dataReady;
+         // mutexR.post();
+
+         return dr;
     }
 
 
