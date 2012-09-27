@@ -213,7 +213,7 @@ public:
 
                 //-------------------------------------------------------------------------------------------
                 // updating the proximity measure
-                double distance = sqrt((point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
+                double distance = std::sqrt((double)(point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
                 if((distance>0) && (distance <= 20)) {
                     proxMeasure += 20.0 / distance;
                 }
@@ -259,7 +259,7 @@ public:
     /************************************************************************/
     double getProxMeasure() {
         // if within the range returns proxMeasure otherwise 0
-        double distance = sqrt((point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
+        double distance = std::sqrt((double)(point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
         if(distance < 20)
             return proxMeasure;
         else

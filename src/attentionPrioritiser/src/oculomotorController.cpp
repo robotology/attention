@@ -35,15 +35,24 @@ using namespace std;
 #define MAXCOUNTRAND 1000.0  // #iteration after which the policy is only quality-based
 #define GOALSTATE     14     // goal state success in episodic learning
 
-/*
+
 #ifndef isnan
 inline bool isnan(double x) {
     return x != x;
 }
 #endif
-*/
+
+// Calculates log2 of number.   
+double Log2( double n )   
+{   
+    // log(n)/log(2) is log2.   
+    return std::log( (double) n ) / log( (double)2.0 );   
+} 
+
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
+    j            = 0.9999;
+    alfa         = 0.1;
     countSucc    = 0;
     countStep    = 0;
     countVergence= 0;
@@ -61,6 +70,8 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
+    j            = 0.9999;
+    alfa         = 0.1;
     ap           = apt;
     countSucc    = 0;
     countStep    = 0; 
@@ -852,7 +863,7 @@ double oculomotorController::calculateEntropy(yarp::sig::ImageOf<yarp::sig::Pixe
                 {
                     float binVal = hist.at<float>(h, s, v);
                     hsProb(h,s) = binVal / sum; // extracing the probability
-                    double entropyS     =  -1 * hsProb(h,s) * log2(hsProb(h,s)) ;
+                    double entropyS     =  -1 * hsProb(h,s) * Log2(hsProb(h,s)) ;
                     if(!isnan(entropyS))
                         sumEntropyS += entropyS;
                     //printf("entropyS = %f upto 5.0 \n", entropyS,sumEntropyS);

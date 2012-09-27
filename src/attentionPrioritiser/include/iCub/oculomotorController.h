@@ -39,6 +39,7 @@
 #include <iostream>
 #include <string>
 #include <cv.h>
+#include <math.h>
 #include <highgui.h>
 
 //within project includes
@@ -237,8 +238,8 @@ private:
     yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim NUMACTION x 1
     yarp::sig::Matrix* P;                  // copy quality measure of a particular state across different actions dim: NUMSTATE x NUMACTION
 
-    const static double j    = 0.9999;   // discount factor ( the closer to 1 the slower to learn)
-    const static double alfa = 0.1;        // learning rate      
+    double j;//    = 0.9999;   // discount factor ( the closer to 1 the slower to learn)
+    double alfa;// = 0.1;        // learning rate      
     
     double totalPayoff;                    // total payoff of the learning process
     double jiter;                          // cumulative j ^ iter 

@@ -868,7 +868,7 @@ void attPrioritiserThread::run() {
         // forcing in idle early processes during oculomotor actions
         // not postsaccadic correction
         printf("------------------ Express Saccade --------------- \n");
-        amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
+        amplitude = std::sqrt((double)(u - 160) * (u - 160) + (v - 120) * (v - 120));
         //waiting for the tracker to be active
         tracker->init(u,v);
         tracker->waitInitTracker();
@@ -1018,7 +1018,7 @@ void attPrioritiserThread::run() {
         waitResponse[4] = true;
         timeoutResponseStart = Time::now(); //starting the timer for a control on responses
         printf("resetting response timer in planned saccade %d %d \n", u,v);
-        amplitude = sqrt( (u - 160) * (u - 160) + (v - 120) * (v - 120));
+        amplitude = std::sqrt((double) (u - 160) * (u - 160) + (v - 120) * (v - 120));
         //initialising the tracker
         if(visualFeedback) {
             printf("tracker enable for planned saccade \n");
@@ -2051,7 +2051,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     printf("current  fovea colour %d %d %d \n",currentBlobRed , currentBlobGreen ,  currentBlobBlue);
                     
                     //calculating the distance between feedback color and current fovea color
-                    double colourDistance = sqrt (
+                    double colourDistance = std::sqrt ( (double)
                                                   (feedbackBlobRed   - currentBlobRed)   * (feedbackBlobRed   - currentBlobRed)   + 
                                                   (feedbackBlobGreen - currentBlobGreen) * (feedbackBlobGreen - currentBlobGreen) + 
                                                   (feedbackBlobBlue  - currentBlobBlue)  * (feedbackBlobBlue  - currentBlobBlue)   
@@ -2518,7 +2518,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
                 CvPoint t; tracker->getPoint(t);
                 
-                double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                double distance = std::sqrt((double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
                 
                 
                 Bottle notif;
@@ -2562,7 +2562,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
                 CvPoint t; tracker->getPoint(t);
                 
-                double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                double distance = std::sqrt((double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
                 
                 if(distance < FOVEACONFID) {
                     
@@ -2809,7 +2809,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //action ended look into the visual stimulus
             CvPoint t; tracker->getPoint(t);
-            double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+            double distance = std::sqrt( (double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
             
             if(distance < FOVEACONFID) {
 
@@ -3097,7 +3097,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             if(!strcmp(waitType.c_str(),"ant")) {
                 CvPoint t; tracker->getPoint(t);
-                double distance = sqrt((t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                double distance = std::sqrt( (double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
                 
                 if(distance < FOVEACONFID){
                     

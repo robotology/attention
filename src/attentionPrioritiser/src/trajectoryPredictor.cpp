@@ -132,7 +132,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             //printf("----------------- \n timeDiff %f \n", timeDiff );
             distX = p_curr.x - p_prev.x;
             distY = p_curr.y - p_prev.y;
-            dist  = sqrt( distX * distX + distY * distY);
+            dist  = sqrt((double)distX * distX + distY * distY);
             zMeasurements(n - 1, 0) = dist;
 
             velX_prev = velX;
@@ -193,7 +193,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 */
     
     tracker->getPoint(p_curr);
-    distance = sqrt((p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
+    distance = std::sqrt((double)(p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
 
     bool predictionAccompl = true;
     Vx = meanVelX;
