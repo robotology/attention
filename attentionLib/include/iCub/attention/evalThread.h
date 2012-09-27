@@ -47,31 +47,52 @@ class evalThread : public yarp::os::Thread {
     iCub::ctrl::Kalman* kSolver;
     genPredModel* gPredModel;
 
-    int numIter;
-    int a;
+    static const int numIter    = 10;
     
     bool dataReady;
     bool evalFinished;
    
     yarp::os::Semaphore mutexR;
-    yarp::os::Semaphore    mutexF; 
-    Vector u, x, z;    
-    Matrix zMeasure, uMeasure;   
+    yarp::os::Semaphore mutexF; 
+    Vector* u;
+    Vector* x;
+    Vector* z;    
+    Matrix *zMeasure, *uMeasure;   
     
  public:
     evalThread(){
-        numIter = 3;
-        a = 0;
+        //numIter = 3;
+        printf("generic constructor %d \n", numIter);
+        Matrix tmp(numIter, 3);
+        tmp.zero();
+        //uMeasure = tmp;
+        //zMeasure = tmp;
+        z = new Vector(3);
+        x = new Vector(3);
     }
 
     evalThread(const Matrix &A,const Matrix &B,const Matrix &H,const Matrix &Q,const Matrix &R) {
-        numIter = 3;
+        //numIter = 3;
+        printf("constructor from matrices \n");
+        //uMeasure(numIter,3);
+        //zMeasure(numIter,3);
         kSolver = new Kalman(A,B,H,Q,R);
+        z = new Vector(3);
+        x = new Vector(3);
     }
     
     
     evalThread(const attention::predictor::genPredModel& model) {
-        numIter = 3;
+        printf("constructor from generic Model \n");
+        //numIter = 3;
+        Matrix tmp(numIter, 3);
+        tmp.zero();
+        uMeasure = new Matrix(numIter,3);
+        zMeasure = new Matrix(numIter,3);
+        printf("\n evalThread::evalThread:uMeasure %08x  \n%s \n",this, uMeasure->toString().c_str()); 
+        
+        //uMeasure(numIter,3);
+        //zMeasure(numIter,3);
         
         gPredModel = (attention::predictor::genPredModel*) &model;
         int rowA = model.getRowA();
@@ -88,8 +109,12 @@ class evalThread : public yarp::os::Thread {
         
         Vector z0(rowA);
         Vector x0(rowA);
-        Vector z(colA);
-        Vector x(colA);
+        z = new Vector(3);
+        z->zero();
+        printf("z: %08X \n", z);
+        x = new Vector(3);
+        printf("################################ initialisation of the z and x size %d \n", z->length());
+        
         Vector u(1);
         
         for (int i = 0; i < rowA; i++) {
@@ -104,6 +129,12 @@ class evalThread : public yarp::os::Thread {
       
     }
     
+    /////////////////////////////////////////////////////////////////////
+    
+    ~evalThread() {
+        delete x;
+        delete z;
+    }
     
     
     ////////////////////////////////////////////////////////////////////
@@ -149,7 +180,7 @@ class evalThread : public yarp::os::Thread {
         
                 //mutexR.wait();
                 dataR = getDataReady();                
-                printf("dataR %d %d %d \n", dataR, dataReady, a);
+                printf("dataR %d %d \n", dataR, dataReady);
                 //mutexR.post();
             }
             
@@ -169,24 +200,28 @@ class evalThread : public yarp::os::Thread {
                 printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
                 
                 double s = Random::uniform() + 0.5 ; 
-                
-                z = zMeasure.getRow(i);
-                printf("just extracted z = \n %s \n", z.toString().c_str());
-                u = uMeasure.getCol(i);
-                u.resize(1,0);
-                u(0) = 1.5;
-                printf("just extracted u = \n %s \n", u.toString().c_str());
-                x = kSolver->filt(u,z);
-                printf("estim.state %s from % \n", x.toString().c_str()); 
+                // z = new Vector(3);
+                //z->resize(3);
+                printf("%08X z size %d \n",z , z->length());
+                printf("zMeasure %s \n", zMeasure->toString().c_str());
+                printf("z %s \n", z->toString().c_str())
+                (*z) = zMeasure->getRow(i);
+                printf("just extracted z = \n %s \n", z->toString().c_str());
+                //(*u) = uMeasure->getRow(i);
+                //u.resize(1,0);
+                //u(0) = 1.5;
+                //printf("just extracted u = \n %s \n", u->toString().c_str());
+                //(*x) = kSolver->filt(*u,*z);
+                //printf("estim.state %s from % \n", x->toString().c_str()); 
                 //printf("estim.error covariance P:\n %s \n",kSolver.get_P().toString().c_str());
                 
             }
         
             //setting the result out
             printf("setting the result out \n");
-            mutexF.wait();
+            //mutexF.wait();
             evalFinished = true;
-            mutexF.post();
+            //mutexF.post();
             
             
             
@@ -202,7 +237,6 @@ class evalThread : public yarp::os::Thread {
 
     virtual void onStop() {
         dataReady = true;
-        numIter = 0;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -252,7 +286,7 @@ class evalThread : public yarp::os::Thread {
     /////////////////////////////////////////////////////////////////
 
     void setMeasurements(Matrix _u, Matrix _z) {
-        printf("setMeasurement \n");
+        printf("%08x z  %d \n",z , z->length());
         //mutexR.wait();
         dataReady = true;
         printf("setMeasurements:dataReady %d \n", dataReady);
@@ -260,9 +294,14 @@ class evalThread : public yarp::os::Thread {
         //mutexF.wait();
         evalFinished = false;
         //mutexF.post();
-        uMeasure = _u; zMeasure = _z;
-        printf("_u %s uMeasure %s \n", _u.toString().c_str(), uMeasure.toString().c_str());
-        a = 2;
+        //printf("this %08x %d %d \n",this, uMeasure->rows(), zMeasure->cols());
+        //uMeasure = _u;
+        //zMeasure = _z;
+
+        //printf(" uMeasure %s  \n",  uMeasure->toString().c_str());
+        //printf("_u %s  \n", _u.toString().c_str());
+        //printf("_z %s zMeasure %s \n", _z.toString().c_str(), zMeasure->toString().c_str());
+     
     }
 
     ////////////////////////////////////////////////////////////////
