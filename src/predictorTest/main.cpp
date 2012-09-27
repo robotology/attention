@@ -123,15 +123,15 @@ Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
     printf("Creating prediction models \n");
     linVelModel* modelA = new linVelModel();
     modelA->init(1.0);
-    printf("modelA\n %s \n %s \n", modelA->getA().toString().c_str(), modelA->getB().toString().c_str());
+    printf("modelA\n %s \n \n %s \n", modelA->getA().toString().c_str(), modelA->getB().toString().c_str());
 
     linAccModel* modelB = new linAccModel();
     modelB->init(1.0);
-    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
+    printf("modelB\n %s \n \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());
     
     minJerkModel* modelC = new minJerkModel();
     modelC->init(1, 1);
-    printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
+    printf("modelC\n %s \n \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
 
     modelQueue mQueue(false);
     mQueue.push_back(modelA);
@@ -147,13 +147,15 @@ Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
         Matrix uMeasure(m->getRowA(),numIter);
         zMeasure.resize(numIter,m->getRowA());
         uMeasure.resize(m->getRowA(),numIter);
+        printf("preparing the zMeasure and uMeasure %d x %d \n", numIter, m->getRowA());
         for(int j = 0; j < numIter; j++) {
             for (int k  =0 ; k < m->getRowA(); k ++) {
                 zMeasure(k,j) = 1.0 + Random::uniform();
                 uMeasure(k,j) = 1.0 + Random::uniform();
             }
         }
-        printf("uMeasure %s \n", uMeasure.toString().c_str());
+        printf("zMeasure \n %s \n", zMeasure.toString().c_str());
+        printf("uMeasure \n %s \n", uMeasure.toString().c_str());
         Matrix res = evaluateModel(m,uMeasure,zMeasure); 
         printf("error:\n  %s \n", res.toString().c_str());
 
