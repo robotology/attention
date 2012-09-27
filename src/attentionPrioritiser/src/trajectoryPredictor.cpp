@@ -173,7 +173,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     evalThread* tmp;
     it = eQueue->begin();
     tmp = *it;  // pointer to the thread
-    tmp->setMeasurements(uMeasure,zMeasure);
+    tmp->setMeasurements(uMeasurements,zMeasurements);
     printf("entering the loop for %08X with getdatReady %d \n",tmp, tmp->getDataReady());
     /*
     while(it != eQueue->end() ) { 
