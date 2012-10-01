@@ -34,6 +34,7 @@ genPredModel::genPredModel() {
     type = "constVelocity";
     rowA = 0;
     colA = 0;
+
 }
 
 genPredModel::genPredModel(const genPredModel &model) {
@@ -171,6 +172,9 @@ bool linAccModel::operator ==(const linAccModel &model) {
 minJerkModel::minJerkModel() {
     valid = true;
     type = "minimumJerk";
+    a    = 1.0;
+    b    = 1.0;
+    c    = 1.0;
 }
 
 minJerkModel::minJerkModel(const minJerkModel &model) {
