@@ -141,26 +141,29 @@ bool linAccModel::operator ==(const linAccModel &model) {
 }
     
     void linAccModel::init(double paramA, double paramB) {
-    rowA = 2;
-    colA = 2;
-    Matrix _A(2,2);
-    Matrix _B(2,1);
-    Matrix _H(2,2);
-    A = _A;
-    B = _B;
-    H = _H;
-    A.zero();
-    B.zero();
-    H.zero();    
-       
-    //discratisation with sampling rate 0.01
-    A(0,0) = 1; A(0,1) = 0.01;
-    A(1,1) = 1;
-    B(0,1) = 5e-05;
-    B(1,0) = 0.01;
-    H(1,1) = 1;
-}
+        printf("linAccModel::init:start \n");
+        rowA = 2;
+        colA = 2;
+        Matrix _A(2,2);
+        Matrix _B(2,1);
+        Matrix _H(2,2);
+        A = _A;
+        B = _B;
+        H = _H;
+        A.zero();
+        B.zero();
+        H.zero();    
+        
+        //discratisation with sampling rate 0.01
+        A(0,0) = 1; A(0,1) = 0.01;
+        A(1,1) = 1;
+        B(0,1) = 5e-05;
+        B(1,0) = 0.01;
+        H(1,1) = 1;
 
+        printf("linAccModel::init:stop \n");
+    }
+    
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
