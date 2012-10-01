@@ -15,6 +15,7 @@ INCLUDE_DIRECTORIES(
     ${logpolar_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS} 	
     ${IPP_INCLUDE_DIRS}	
+    ${GSL_INCLUDE_DIRS}
 )
 
 # Search for source code.

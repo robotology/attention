@@ -321,8 +321,8 @@ void mosaicThread::setMosaicDim(int w, int h) {
     width = w;
     height = h;
     //default position of input image's center
-    xcoord = floor(height / 2);
-    ycoord = floor(width / 2);   
+    xcoord = floor((double)height / 2.0);
+    ycoord = floor((double)width  / 2.0);   
     
     memoryLocation = new int[w*h];
     outputImageMosaic->resize(width,height);
@@ -1266,17 +1266,17 @@ void mosaicThread::makeMosaic(ImageOf<yarp::sig::PixelMono>* iImageLeft, ImageOf
         
     ycoord = shiftx + 320 + 320;
     xcoord = shifty + 240;
-    ycoordRight = shiftxRight + floor(width / 2);
-    xcoordRight = shiftyRight + floor(height / 2);
+    ycoordRight = shiftxRight + floor((double)width  / 2.0);
+    xcoordRight = shiftyRight + floor((double)height / 2.0);
 
     mosaicX = ycoord - 160 ;
     //mosaicX -= floor(iH / 2);
     mosaicY = xcoord - 120;
     //mosaicY -= floor(iW / 2);
     mosaicXRight = ycoordRight ;
-    mosaicXRight -= floor(iH / 2);
+    mosaicXRight -= floor( (double)iH / 2.0);
     mosaicYRight = xcoordRight ;
-    mosaicYRight -= floor(iW / 2);
+    mosaicYRight -= floor((double)iW / 2.0);
     float alfa = 0.96;
 
     //int dimWarpX = max(c1[1].x, c1[3].x) - min(c1[0].x,c1[2].x);

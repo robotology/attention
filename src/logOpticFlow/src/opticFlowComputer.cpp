@@ -66,7 +66,7 @@ opticFlowComputer::opticFlowComputer(int i, int pXi,int pGamma, int n):Thread() 
     neigh = n ;
     width = 6; height = 6;
     dimComput = 6;
-
+    qdouble = Na / PI;
     fout = fopen("dump.txt","w+");
 
     fprintf(fout, "\n \n");
@@ -106,7 +106,7 @@ bool opticFlowComputer::threadInit() {
 
     printf(" \n correctly initialised variables \n");
 
-    halfNeigh = floor(neigh / 2); 
+    halfNeigh = floor((double)neigh / 2.0); 
     calcHalf  = (12 - 2 - 2 - 2) / 2;
     gammaStart = posGamma - 3; gammaEnd = posGamma + 3;
     xiStart    = posXi - 3;    xiEnd    = posXi + 3;

@@ -439,7 +439,7 @@ class convolve {
                 secondDimension = firstDimension;                
             }
             float radiusSquared = firstDimension*firstDimension;
-            float radiusIntoRootTwo = sqrt(2)*firstDimension;
+            float radiusIntoRootTwo = sqrt(2.0)*firstDimension;
             int rowSize         = img->getRowSize()/sizeof(ptrInput);
             int resRowSize = resImg->getRowSize()/sizeof(ptrOutput);
             

@@ -25,7 +25,7 @@
 #include <iCub/chrominanceThread.h>
 
 #include <cstring>
-#include <sys/time.h>
+//#include <sys/time.h>
 
 #include <time.h>
 

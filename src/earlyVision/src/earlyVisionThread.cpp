@@ -401,7 +401,7 @@ void earlyVisionThread::extractPlanes() {
             *shift[2] = *inputPointer++;
 
             *shift[3]++ = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
-            *ptrIntensityImg = ONE_BY_ROOT_THREE * sqrt(*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]);
+            *ptrIntensityImg = ONE_BY_ROOT_THREE * sqrt((double) (*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]));
             
 
             // RGB to Y'UV conversion

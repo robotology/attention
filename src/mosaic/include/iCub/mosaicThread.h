@@ -192,7 +192,7 @@ public:
      * function that set to a specific value the flag  for rectification
      * @param value true/false when rectification is required/not required 
      */
-    bool setRectification(bool value) { rectified = true; };
+    bool setRectification(bool value) { rectified = true; return true;};
 
     /**
     * function to create mosaic image from a given input image of type RGB

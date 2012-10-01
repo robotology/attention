@@ -117,7 +117,7 @@ void logGabor::setLogGabor(int m, double sigmaF, double minWave, double cuttoff_
 
     double freq0;
 
-    double maxWave = minWave*pow(m,(LOG_GABOR_SCALE-1));
+    double maxWave = minWave*pow( (double) m,(LOG_GABOR_SCALE-1));
     
 
     double spread;
@@ -138,7 +138,7 @@ void logGabor::setLogGabor(int m, double sigmaF, double minWave, double cuttoff_
         for(int orientOfFilter =0;orientOfFilter<LOG_GABOR_ORIENTATION; ++orientOfFilter){  //for each orientation
 
             
-            freq0 = 1.0/(minWave*pow(m,scaleOfFilter));
+            freq0 = 1.0/(minWave*pow( (double) m,scaleOfFilter));
             ang = orientOfFilter*PI_Gab/LOG_GABOR_ORIENTATION;
          
             for(int i=0; i<COL_SIZE; ++i){

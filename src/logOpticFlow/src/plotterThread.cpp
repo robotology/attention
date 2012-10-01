@@ -185,7 +185,7 @@ plotterThread::plotterThread():RateThread(RATE_OF_PLOTTER_THREAD) {
     for (int i = 0; i < COUNTCOMPUTERSX * COUNTCOMPUTERSY; i++ ) {
         computersValueU[i] = (short*) malloc(dimComput * dimComput * sizeof(short));
         computersValueV[i] = (short*) malloc(dimComput * dimComput * sizeof(short));
-        int row = floor(i  / COUNTCOMPUTERSX);
+        int row = floor( (double) i  / COUNTCOMPUTERSX);
         int col = i  - row * COUNTCOMPUTERSX;
         posXi[i] = 12 * row + (6 + 1) ;
         posGamma[i] = 12 * col + (6 + 5);
@@ -696,7 +696,7 @@ void plotterThread::extractPlanes() {
             *shift[2] = *inputPointer++;
 
             *shift[3]++ = (unsigned char)((*shift[0] >> 1) + (*shift[1] >> 1));
-            *ptrIntensityImg = ONE_BY_ROOT_THREE * sqrt(*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]);
+            *ptrIntensityImg = ONE_BY_ROOT_THREE * sqrt((double) (*shift[0] * *shift[0] +*shift[1] * *shift[1] +*shift[2] * *shift[2]));
             
 
             // RGB to Y'UV conversion

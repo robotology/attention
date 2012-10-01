@@ -1074,7 +1074,7 @@ void gazeArbiterThread::run() {
 
                     
                     errorVC_pre = errorVC;
-                    errorVC = sqrt(errorx * errorx + errory * errory);
+                    errorVC = sqrt((double) (errorx * errorx + errory * errory));
                     //printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, errorVC);
                     if(errorVC <= 1) {
                         countReach++;
@@ -1128,7 +1128,7 @@ void gazeArbiterThread::run() {
                     //igaze->waitMotionDone();
                     point_prev = point;        // changing the position of the tracked point in the previous step
                     tracker->getPoint(point);  // have the get point as far as possible from look@mono
-                    travelDistance = sqrt( 
+                    travelDistance = sqrt( (double)
                                          (point.x - point_prev.x) * (point.x - point_prev.x) + 
                                          (point.y - point_prev.y) * (point.y - point_prev.y)
                                           );

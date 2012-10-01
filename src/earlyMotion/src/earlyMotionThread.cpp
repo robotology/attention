@@ -244,7 +244,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
             
             //*pout += (unsigned char) floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * row)   / (double)height_orig) - 1));
             *pout += (unsigned char) floor(
-                                           (sqrt(diff10) + sqrt(diff20) + sqrt(diff30) + sqrt(diff40) + sqrt(diff21) + sqrt(diff32)) 
+                                           (sqrt((double)diff10) + sqrt((double)diff20) + sqrt((double)diff30) + sqrt((double)diff40) + sqrt((double)diff21) + sqrt((double)diff32)) 
                                            * 
                                            (exp((1.25 * row)   / (double)height_orig) - 1)
                 );

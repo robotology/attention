@@ -99,7 +99,7 @@ private:
     yarp::sig::Matrix *of;
     
     //static double const q       = 0.5 * (Na / PI);
-    static double const qdouble = Na / PI;
+    double qdouble; // = Na / PI;
 
     float fcos[262];                    // LUT of cos(gamma)
     float fsin[262];                    // LUT of sin(gamma)

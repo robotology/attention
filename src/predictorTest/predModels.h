@@ -166,9 +166,9 @@ public:
 /**************************************************************************/
 class minJerkModel : public genPredModel {
 protected:
-    static const double a = 1;    // parameters of the model
-    static const double b = 1;    // parameters of the model
-    static const double c = 1;    // parameters of the model
+    double a;    // parameters of the model
+    double b;    // parameters of the model
+    double c;    // parameters of the model
     double T;                     // period of the motion 
 
 public:

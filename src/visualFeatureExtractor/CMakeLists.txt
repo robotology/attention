@@ -14,8 +14,9 @@ MESSAGE("${OPENCV_INCLUDE_DIR}")
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${logpolar_INCLUDE_DIRS}
-    ${YARP_INCLUDE_DIRS} 	
-    ${OPENCV_INCLUDE_DIR}	
+    ${YARP_INCLUDE_DIRS}
+    ${OPENCV_INCLUDE_DIR}
+    ${GSL_INCLUDE_DIR}
 )
 
 # Search for source code.

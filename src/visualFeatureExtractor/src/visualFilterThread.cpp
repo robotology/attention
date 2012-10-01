@@ -3131,7 +3131,7 @@ void visualFilterThread::setLogGabor(){
     //double logGabor[nscale][norient][ht][wd];       // very larger array
     double freq0;// = 1.0;
 
-    double maxWave = minWave*pow(m,(nscale-1));
+    double maxWave = minWave*pow( (double) m,(nscale-1));
     double cuttoff_butterworth = (double)intCutoff/100.0; //.45;
     int sharpness_butterworth = intSharpness;//15;
 
@@ -3155,7 +3155,7 @@ void visualFilterThread::setLogGabor(){
             logGaborFilterImage[scaleOfFilter][orientOfFilter] = cvCreateImage(cvSize(ROW_SIZE,COL_SIZE),IPL_DEPTH_32F, 1 );
             float* ptrLogGaborImage = (float*)logGaborFilterImage[scaleOfFilter][orientOfFilter]->imageData;
 
-            freq0 = 1.0/(minWave*pow(m,scaleOfFilter));
+            freq0 = 1.0/(minWave*pow( (double) m,scaleOfFilter));
             ang = orientOfFilter*PI/norient;
          
             for(int i=0; i<ht; ++i){
