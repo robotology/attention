@@ -36,11 +36,11 @@ using namespace std;
 #define GOALSTATE     14     // goal state success in episodic learning
 
 
-#ifndef isnan
-inline bool isnan(double x) {
+
+inline bool isnan_fun(double x) {
     return x != x;
 }
-#endif
+
 
 // Calculates log2 of number.   
 double Log2( double n )   
@@ -864,7 +864,7 @@ double oculomotorController::calculateEntropy(yarp::sig::ImageOf<yarp::sig::Pixe
                     float binVal = hist.at<float>(h, s, v);
                     hsProb(h,s) = binVal / sum; // extracing the probability
                     double entropyS     =  -1 * hsProb(h,s) * Log2(hsProb(h,s)) ;
-                    if(!isnan(entropyS))
+                    if(!isnan_fun(entropyS))
                         sumEntropyS += entropyS;
                     //printf("entropyS = %f upto 5.0 \n", entropyS,sumEntropyS);
                 }
