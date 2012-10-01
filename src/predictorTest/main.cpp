@@ -52,6 +52,10 @@ Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
     Matrix A = model->getA();
     Matrix B = model->getB();
     Matrix H = model->getH();
+
+    printf("operation matrices \n");
+    printf("A \n %s \n", A.toString().c_str());
+    printf("B \n %s \n", B.toString().c_str());
     
     /*
     Matrix H(3,3);
@@ -100,6 +104,16 @@ Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
    
     
     printf("setting measurements \n");
+    printf("uMeasure \n %s \n", uMeasure.toString().c_str());
+    printf("zMeasure \n %s \n", zMeasure.toString().c_str());
+    /*
+    Vector _u = uMeasure.getCol(1);
+    Vector _z = zMeasure.getRow(1);
+
+    printf("_u \n %s \n", _u.toString().c_str());
+    printf("_z \n %s \n", _z.toString().c_str());
+    */
+    
     et.setMeasurements(uMeasure,zMeasure);
     
     printf("estim.state %s \n", kSolver.get_x().toString().c_str());

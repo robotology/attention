@@ -96,7 +96,8 @@ void linVelModel::init(double param) {
     
     A.zero();
     B.zero();
-    B(0,0) = 1;
+    //B(0,0) = 1;
+    B(0,0) = param;
     printf("linVelModel::init : end \n");
 }
  
@@ -126,6 +127,7 @@ bool linAccModel::operator ==(const linAccModel &model) {
 }
 
 void linAccModel::init(double param) {
+    printf("linAccModel::init: start \n");
     Matrix _A(3,3);
     Matrix _B(3,3);
     A = _A;
@@ -133,7 +135,9 @@ void linAccModel::init(double param) {
 
     A.zero();
     B.zero();
-    B(1,1) = 1;
+    //B(1,1) = 1;
+    B(1,1) = param;  // as using always the same speed the output matrix changes
+    printf("linAccModel::init: stop \n");
 }
 
 
@@ -143,11 +147,14 @@ void linAccModel::init(double param) {
 minJerkModel::minJerkModel() {
     valid = true;
     type = "minimumJerk";
+    
 }
 
 minJerkModel::minJerkModel(const minJerkModel &model) {
     valid = true;
     type = "minimumJerk";
+    A = model.A;
+    B = model.B;
 }
 
 minJerkModel &minJerkModel::operator =(const minJerkModel &model) {
@@ -164,7 +171,11 @@ bool minJerkModel::operator ==(const minJerkModel &model) {
 }
 
 void minJerkModel::init(double param) {
+    printf("minJerkModel::init:start \n");
     T = param;
+    //a = -150.7659;
+    //b = -84.9813;
+    //c = -15.9670;
     
     Matrix _A(3,3);
     Matrix _B(3,3);
@@ -181,4 +192,5 @@ void minJerkModel::init(double param) {
     A(2,2) = c / (T);
 
     B(2,2) = a / (T * T * T);
+    printf("minJerkModel::init:stop \n");
 }
