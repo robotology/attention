@@ -410,7 +410,12 @@ bool attPrioritiserThread::threadInit() {
 
     printf("--------------------------------attPrioritiser::threadInit:end of the threadInit \n");
 
+    
+    eQueue = new evalQueue(false);
+
+
     //-----------------------------------------------------------------------------------
+    /*
     int rowA,colA;
 
     Matrix R;
@@ -423,7 +428,7 @@ bool attPrioritiserThread::threadInit() {
     Vector x;
     Vector u;
     
-    eQueue = new evalQueue(false);
+    
     //-------------------------------------------------------------------------------------------------
     printf("Creating prediction models \n");
     linVelModel* modelA = new linVelModel();
@@ -468,6 +473,8 @@ bool attPrioritiserThread::threadInit() {
     }
     
     evalVel1.init(z0, x0, P0);
+    */
+    
     //evalVel1.start();
     //eQueue->push_back(evalVel1);
     
