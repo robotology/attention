@@ -119,8 +119,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     //for n times records the position of the object and extract an estimate
     // extracting the velocity of the stimulus; saving it into a vector 
-    Matrix zMeasurements(nIter,3.0);
-    Matrix uMeasurements(nIter,3.0);
+    Matrix zMeasurements(nIter,2.0);
+    Matrix uMeasurements(2.0, nIter);
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
         p_prev =  p_curr;
@@ -145,7 +145,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             accX = (velX - velX_prev) / timeDiff;
             accY = (velY - velY_prev) / timeDiff;
             acc = sqrt( accX * accX + accY * accY);
-            zMeasurements(n - 1, 2) = acc;
+            //zMeasurements(n - 1, 2) = acc;
 
             if(accY > maxAccY) { 
                 maxAccY = accY;
@@ -163,34 +163,43 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     meanVelX /= nIter;
     meanVelY /= nIter;
 
-    uMeasurements(1,0) = 2.0; uMeasurements(2,0) = 4.0;
-    zMeasurements(2,0) = 3.0; zMeasurements(1,1) = 1.0;
+    uMeasurements(1,0) = 2.0; uMeasurements(0,0) = 4.0;
+    zMeasurements(0,0) = 3.0; zMeasurements(1,1) = 1.0;
     
     //estimate the predictor model that best fits the velocity measured
-    printf("setting measurements \n z = %s \n", zMeasurements.toString().c_str());
-    printf("setting measurements \n u = %s \n", uMeasurements.toString().c_str());
+    printf("setting measurements \n z = \n %s \n", zMeasurements.toString().c_str());
+    printf("u = \n %s \n", uMeasurements.toString().c_str());
     deque<evalThread*>::iterator it;
     evalThread* tmp;
     it = eQueue->begin();
-    tmp = *it;  // pointer to the thread
+    /*
+    tmp = *it;  // copy using pointer to the thread
     tmp->setMeasurements(uMeasurements,zMeasurements);
     printf("entering the loop for %08X with getdatReady %d \n",tmp, tmp->getDataReady());
-    /*
+    */
+
+
+
     while(it != eQueue->end() ) { 
         printf("reading evalThread reference from the queue \n");
         tmp = *it;  // pointer to the thread
-        tmp->setMeasurements(uMeasure,zMeasure);
+        tmp->setMeasurements(uMeasurements,zMeasurements);
         printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
-        //while(!(*it)->getEvalFinished()) {
-        //    //printf("evalVel1 evaluation \n");
-        //    Time::delay(0.1);
-        //}
+        printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
+        
+        /*
+        while(!(tmp)->getEvalFinished()) {
+            //printf("evalVel1 evaluation \n");
+            Time::delay(0.1);
+        }
+        */
         
         printf("out of the loop \n");
         it++;
         
     }
-*/
+    
+
     
     tracker->getPoint(p_curr);
     distance = std::sqrt((double)(p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));

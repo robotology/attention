@@ -273,10 +273,30 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     
     linAccModel* modelB = new linAccModel();
     modelB->init(1.0);
+    int rowA = modelB->getA().rows();
+    int colA = modelB->getA().cols();
+    Vector z0(rowA);
+    Vector x0(rowA);
+    Matrix P0(rowA,colA);
+    printf("initialisation of P0 %d %d \n", rowA, colA);
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colA; j++) { 
+
+            P0(i,j) += 0.01;
+        }      
+    }
     printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
+    printf("P0\n %s \n", P0.toString().c_str());    
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
    
+    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ creating eval thread \n");
     evalThread etB(*mB);
+    etB.init(z0,x0,P0);
+
+    printf("genPred model A \n %s \n",mB    ->getA().toString().c_str());
+    printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
+    
+
     printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>just started genPredModel %08X \n",&etB);
     //evalAcc1(*mB);
     
