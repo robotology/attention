@@ -77,6 +77,7 @@ bool trajectoryPredictor::threadInit() {
     eQueue->push_back(&evalMJ1_T1);  
     */
 
+    // ---------------------------------------------------------------------------
     linAccModel* modelB = new linAccModel();
     modelB->init(1.0);
     int rowA = modelB->getA().rows();
@@ -103,6 +104,18 @@ bool trajectoryPredictor::threadInit() {
     printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
     printf("just initialised genPredModel %08X \n",&eval);
     eval->start();
+    eQueue->push_back(eval); 
+    
+
+    //------------------------------------------------------------------------------
+    printf("moving to the next predictor \n");
+    modelB = new linAccModel();
+    modelB->init(2.0);
+    mB = dynamic_cast<genPredModel*>(modelB);
+    eval = new evalThread(*mB);
+    eval->init(z0,x0,P0);
+    eval->start();
+    eQueue->push_back(eval); 
     
     printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
         
@@ -203,25 +216,39 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     //estimate the predictor model that best fits the velocity measured
     //printf("setting measurements \n z = \n %s \n", zMeasurements.toString().c_str());
     //printf("u = \n %s \n", uMeasurements.toString().c_str());
-    //deque<evalThread*>::iterator it;
-    //evalQueue::iterator it;
-    //evalThread* tmp;
-    //it = eQueue->begin();
+    
+    //eval->setMeasurements(uMeasurements,zMeasurements);     // alternative for debug
+
+    // pointer to the beginning of the evalQueue
+    evalQueue::iterator it;
+    evalThread* tmp;
+    it = eQueue->begin();
     //printf("got the pointer to the evalThread %08x \n", (*it));
     //Vector xCheck = (*it)->getX();
     //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
     
     
-    
-    
-    //it->init();
-    /*
-    tmp = *it;  // copy using pointer to the thread
-    tmp->setMeasurements(uMeasurements,zMeasurements);
-    printf("entering the loop for %08X with getdatReady %d \n",tmp, tmp->getDataReady());
-    */
+    //tmp = *it;  // copy using pointer to the thread
+    //tmp->setMeasurements(uMeasurements,zMeasurements);
+    //printf("entering the loop for %08X with getdatReady %d \n",tmp, tmp->getDataReady());
 
-    //eval->setMeasurements(uMeasurements,zMeasurements);
+    
+    //starting different evalution threads
+    while(it != eQueue->end() ) { 
+        printf("____________________________________________________________________________________________________\n");
+        tmp = *it;  // pointer to the thread
+        printf("reading evalThread reference from the queue it = %08X \n", tmp);
+        tmp->setMeasurements(uMeasurements,zMeasurements);
+        printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
+        printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
+        it++;   
+        printf("____________________________________________________________________________________________________\n \n \n");
+    }
+
+    printf("out of the loop \n");
+
+
+    // waiting for the evaluation already started
     printf("entering the loop with eval \n");
     printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
     while(!eval->getEvalFinished()) {
@@ -229,26 +256,6 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             Time::delay(0.1);
     }
     printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
-
-
-    /*
-    while(it != eQueue->end() ) { 
-        tmp = *it;  // pointer to the thread
-        printf("reading evalThread reference from the queue it = %08X \n", tmp);
-        tmp->setMeasurements(uMeasurements,zMeasurements);
-        printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
-        printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
-        
-        
-        //
-        
-        
-        printf("out of the loop \n");
-        it++;
-        
-    }
-    */
-    
 
     
     tracker->getPoint(p_curr);
