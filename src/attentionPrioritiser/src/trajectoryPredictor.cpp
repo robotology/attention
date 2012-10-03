@@ -251,10 +251,21 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     // waiting for the evaluation already started
     printf("entering the loop with eval \n");
     printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
-    while(!eval->getEvalFinished()) {
-            printf("eval evaluation \n");
-            Time::delay(0.1);
+    it = eQueue->begin();
+    int finished = 0 ;
+    while(finished < eQueue->size()) {
+        printf("eval evaluation %d < %d \n",finished, eQueue->size() );
+        Time::delay(0.1);
+        while(it != eQueue->end() ) {
+            if((*it)->getEvalFinished()){
+                finished++;
+                printf("state %s \n", (*it)->getX().toString().c_str());
+            }
+            it++;
+        }
+        it = eQueue->begin();
     }
+    printf("eval evaluation %d >= %d \n",finished, eQueue->size() );
     printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
 
     
