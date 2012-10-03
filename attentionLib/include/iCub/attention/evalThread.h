@@ -344,7 +344,7 @@ class evalThread : public yarp::os::Thread {
 
     void setMeasurements(Matrix _u, Matrix _z) {
         printf(">>>>>>>>>this %08X >>>>>>>>>>>>>>>>>>>> %08x z  %d \n",this, z , z->length());
-        //mutexR.wait();
+        mutexR.wait();
         dataReady = true;
         printf("setMeasurements:dataReady %d \n", dataReady);
         mutexR.post();
