@@ -73,6 +73,7 @@ private:
     //attention::evaluator::evalThread evalMJ2_T2;    // evaluation thread minJerk distance 2 - period 2
 
     attention::evaluator::evalQueue* eQueue;        // queue of evaluation threads
+    attention::evaluator::evalThread* eval; 
     
     yarp::sig::Matrix zMeasure;                     // vector of measurements
     yarp::sig::Matrix uMeasure;                     // vector of the input values
@@ -153,6 +154,8 @@ public:
      */
     void addEvalThread(attention::evaluator::evalThread* et){ 
         printf(">>>>>>>>>>>>>>>>>>>>>trajectoryPredictor::addEvalThread %08X \n", et);
+        Vector x = et->getX();
+        printf("trajectoryPredictor::addEvalThread: x = \n %s \n", x.toString().c_str());
         eQueue->push_back(et); 
     };
 

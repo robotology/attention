@@ -261,7 +261,7 @@ if(ap->isLearning())
             val++; countVal++;
         }
         printf("saved %d \n", countVal);        
-        fclose(rewardFile);
+        //fclose(rewardFile);    //TODO : check this istruction
     }
 
    

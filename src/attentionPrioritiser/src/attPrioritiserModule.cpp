@@ -267,60 +267,6 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         controller->setIdle(true);
     }
 
-    /**
-     * adding predictors to the attPrioritiserThread
-     */
-    
-    linAccModel* modelB = new linAccModel();
-    modelB->init(1.0);
-    int rowA = modelB->getA().rows();
-    int colA = modelB->getA().cols();
-    Vector z0(rowA);
-    Vector x0(rowA);
-    Matrix P0(rowA,colA);
-    printf("initialisation of P0 %d %d \n", rowA, colA);
-    for (int i = 0; i < rowA; i++) {
-        for (int j = 0; j < colA; j++) { 
-
-            P0(i,j) += 0.01;
-        }      
-    }
-    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
-    printf("P0\n %s \n", P0.toString().c_str());    
-    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
-   
-    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ creating eval thread \n");
-    evalThread etB(*mB);
-    etB.init(z0,x0,P0);
-
-    printf("genPred model A \n %s \n",mB    ->getA().toString().c_str());
-    printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
-    
-
-    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>just started genPredModel %08X \n",&etB);
-    //evalAcc1(*mB);
-    
-    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>just started evalAcc %08X \n",&evalAcc1);
-    prioritiser->addEvalThread(&etB);
-
-    etB.start();
-    
-    
-    
-    printf("starting the prioritiser... \n");
-    if(!prioritiser->start()){
-        printf("Att.prioritiser thread did not start. \n");
-        return false;
-    }
-    else {
-        printf("Att.prioritiser thread correctly start. \n");
-    }
-    printf("starting the collector... \n");
-    collector->start();
-    printf("starting the controller... \n");
-    controller->start();
-    printf("all the components correcly started \n");
-
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
@@ -333,6 +279,66 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
     attach(handlerPort);                  // attach to port
+    
+
+    /**
+     * adding predictors to the attPrioritiserThread
+     */
+    /*
+    printf("\n \n ------------------------------------------------- ADDING PREDICTORS --------------------------------- \n");
+    linAccModel* modelB = new linAccModel();
+    modelB->init(1.0);
+    int rowA = modelB->getA().rows();
+    int colA = modelB->getA().cols();
+    Vector z0(rowA);
+    Vector x0(rowA);
+    x0.zero();z0.zero();
+    Matrix P0(rowA,colA);
+    printf("initialisation of P0 %d %d \n", rowA, colA);
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colA; j++) { 
+
+            P0(i,j) += 0.01;
+        }      
+    }
+    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
+    printf("P0\n %s \n", P0.toString().c_str());    
+    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
+   
+    printf(" creating eval thread \n");
+    evalThread etB(*mB);
+    etB.init(z0,x0,P0);
+    printf("genPred model A \n %s \n",mB    ->getA().toString().c_str());
+    printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
+    printf("just initialised genPredModel %08X \n",&etB);
+    etB.start();
+    prioritiser->addEvalThread(&etB);
+    printf("just started genPredModel %08X \n",&etB);
+    printf("------------------------------------------------------------------------------------------- \n");
+    */
+    
+    
+    printf("starting the collector... \n");
+    collector->start();
+    printf("starting the controller... \n");
+    controller->start();
+    
+
+    printf("starting the prioritiser... \n");
+    if(!prioritiser->start()){
+        printf("Att.prioritiser thread did not start. \n");
+        return false;
+    }
+    else {
+        printf("Att.prioritiser thread correctly start. \n");
+    }
+    
+
+
+    
+    printf("all the components correcly started \n");
+
+    
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module

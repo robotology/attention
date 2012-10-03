@@ -405,13 +405,13 @@ bool attPrioritiserThread::threadInit() {
     printf("attPrioritiserThread::threadInit:starting the trajectoryPredictor \n");
     trajPredictor = new trajectoryPredictor();
     trajPredictor->setTracker(tracker);
+    printf("\n \n attPrioritiserThread::threadInit:adding collection of evaluation thread \n");
     addCollectionEvalThread();
     trajPredictor->start();
-
     printf("--------------------------------attPrioritiser::threadInit:end of the threadInit \n");
 
     
-    eQueue = new evalQueue(false);
+    // eQueue = new evalQueue(false);
 
 
     //-----------------------------------------------------------------------------------
@@ -483,14 +483,17 @@ bool attPrioritiserThread::threadInit() {
 
 void attPrioritiserThread::addCollectionEvalThread() {
     
-    deque<evalThread*>::iterator it;
+    //deque<evalThread*>::iterator it;
+    evalQueue::iterator it;
     it = eQueue->begin();
     while (it != eQueue->end()) {
-        printf("adding eval Thread %08X \n", *it);
+        printf("attPrioritiserThread::addCollectionEvalThread: adding eval Thread %08X \n", *it);
         trajPredictor->addEvalThread(*it);
+        Vector x = (*it)->getX();
+        printf("attPrioritiserThread::addCollectionEvalThread: x = \n %s \n", x.toString().c_str());
         it++;
     }
-    printf("saved %d eventPredictors \n", eQueue->size());
+    printf("attPrioritiserThread::addCollectionEvalThread:saved %d eventPredictors \n", eQueue->size());
    
 }
 

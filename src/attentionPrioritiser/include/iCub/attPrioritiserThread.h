@@ -552,6 +552,8 @@ public:
      */
     void addEvalThread(attention::evaluator::evalThread* et){
         printf(">>>>>>>>>>>>>>>>attPrioritiser::addEvalThread %08X \n", et);
+        Vector x = et->getX();
+        printf("attPRioritiser::addEvalThread: x = \n %s \n", x.toString().c_str());
         eQueue->push_back(et);
     };
 };

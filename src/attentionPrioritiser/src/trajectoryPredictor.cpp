@@ -56,8 +56,15 @@ bool trajectoryPredictor::threadInit() {
     inImagePort.open(rootName.c_str()); 
     
     
-    
-    
+    printf(" \n \n ----------------- trajectoryPredictor::threadInit --------------------- \n");
+    evalQueue::iterator it;
+    evalThread* tmp;
+    it = eQueue->begin();
+    printf("got the pointer to the evalThread %08x \n", (*it));
+   
+    //Vector xCheck = (*it)->getX();
+    //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
+    printf("---------------------------------------------------------------------------------\n");
     
     /*
     minJerkModel* modelC = new minJerkModel();
@@ -69,6 +76,33 @@ bool trajectoryPredictor::threadInit() {
     evalMJ1_T1.start();
     eQueue->push_back(&evalMJ1_T1);  
     */
+
+    linAccModel* modelB = new linAccModel();
+    modelB->init(1.0);
+    int rowA = modelB->getA().rows();
+    int colA = modelB->getA().cols();
+    Vector z0(rowA);
+    Vector x0(rowA);
+    x0.zero();z0.zero();
+    x0(0) = 1.0; 
+    Matrix P0(rowA,colA);
+    printf("initialisation of P0 %d %d \n", rowA, colA);
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colA; j++) { 
+            P0(i,j) += 0.01;
+        }      
+    }
+    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
+    printf("P0\n %s \n", P0.toString().c_str());    
+    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
+   
+    printf(" creating eval thread \n");
+    eval = new evalThread(*mB);
+    eval->init(z0,x0,P0);
+    printf("genPred model A \n %s \n",mB    ->getA().toString().c_str());
+    printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
+    printf("just initialised genPredModel %08X \n",&eval);
+    eval->start();
     
     printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
         
@@ -167,37 +201,53 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     zMeasurements(0,0) = 3.0; zMeasurements(1,1) = 1.0;
     
     //estimate the predictor model that best fits the velocity measured
-    printf("setting measurements \n z = \n %s \n", zMeasurements.toString().c_str());
-    printf("u = \n %s \n", uMeasurements.toString().c_str());
-    deque<evalThread*>::iterator it;
-    evalThread* tmp;
-    it = eQueue->begin();
+    //printf("setting measurements \n z = \n %s \n", zMeasurements.toString().c_str());
+    //printf("u = \n %s \n", uMeasurements.toString().c_str());
+    //deque<evalThread*>::iterator it;
+    //evalQueue::iterator it;
+    //evalThread* tmp;
+    //it = eQueue->begin();
+    //printf("got the pointer to the evalThread %08x \n", (*it));
+    //Vector xCheck = (*it)->getX();
+    //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
+    
+    
+    
+    
+    //it->init();
     /*
     tmp = *it;  // copy using pointer to the thread
     tmp->setMeasurements(uMeasurements,zMeasurements);
     printf("entering the loop for %08X with getdatReady %d \n",tmp, tmp->getDataReady());
     */
 
+    //eval->setMeasurements(uMeasurements,zMeasurements);
+    printf("entering the loop with eval \n");
+    printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
+    while(!eval->getEvalFinished()) {
+            printf("eval evaluation \n");
+            Time::delay(0.1);
+    }
+    printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
 
 
+    /*
     while(it != eQueue->end() ) { 
-        printf("reading evalThread reference from the queue \n");
         tmp = *it;  // pointer to the thread
+        printf("reading evalThread reference from the queue it = %08X \n", tmp);
         tmp->setMeasurements(uMeasurements,zMeasurements);
         printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
         printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
         
-        /*
-        while(!(tmp)->getEvalFinished()) {
-            //printf("evalVel1 evaluation \n");
-            Time::delay(0.1);
-        }
-        */
+        
+        //
+        
         
         printf("out of the loop \n");
         it++;
         
     }
+    */
     
 
     
@@ -217,19 +267,68 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 }
 
 void trajectoryPredictor::run() {
+    printf(" trajectoryPredictor::run %d %d \n", numIter, numEvalVel); 
+
+    //Time::delay(5.0);
     
-    while(!isStopping()){    
-        printf("trajectoryPredictor::run \n");       
-        ImageOf<PixelMono>* b = inImagePort.read(true);
-        printf("after the imagePort \n");
+    
+    
+    //it2 = eQueue->begin();
+    //printf("got the pointer to the evalThread %08x \n", (*it2));
+    //Vector xCheck2 = (*it2)->getX();
+    //printf(" xCheck2 = \n %s \n", xCheck2.toString().c_str());
+    
+
+    // trajectory predictor does not need active run anymore.
+    // estimateVelocity function is called from the att.Prioritiser
+    
+    while(!isStopping()){
+
+        /*
+        it = eQueue->begin();
+        printf("got the pointer %d  to the evalThread in run %08x \n",eQueue->size(),(*it));
+        Vector xCheck = (*it)->getX();
+        printf(" xCheck = \n %s \n", xCheck.toString().c_str());
+
+        
+        //ImageOf<PixelMono>* b = inImagePort.read(true);
+        //  printf("after the imagePort \n");
+        */
+        
+        /*
+        printf("trajectoryPreditctor in run %d %d \n", numIter, numEvalVel);
+        evalQueue::iterator it, it2;
+        //it = eQueue->begin();
+        //printf("got the pointer to the evalThread %08x \n", (*it));
+        //Vector xCheck = (*it)->getX();
+        //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
+
+        Vector xTraj = eval->getX();
+        printf(" xTraj = \n %s \n", xTraj.toString().c_str());
+        */
+        
+        //evalQueue::iterator it;
+        //evalThread* tmp;
+        //it = eQueue->begin();
+        //printf("got the pointer to the evalThread %08x \n", (*it));
+        //Vector xCheck = (*it)->getX();
+        //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
+        
+        
+        /*
+        // estimating velocity
         int x,y;
         double Vx, Vy, xPos, yPos, time, distance;
-        extractCentroid(b, x, y);
+        //extractCentroid(b, x, y);
         estimateVelocity(x, y, Vx, Vy, xPos, yPos, time, distance);
         printf("estimateVelocity %f %f \n",Vx,Vy );
+        */
         
-        Time::delay(1.0);
+        Time::delay(5.0);
+    
     }
+
+    
     
 }
 
