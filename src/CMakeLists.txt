@@ -22,6 +22,7 @@ add_subdirectory( vergence                  )
 add_subdirectory( visualFeatureExtractor    )
 add_subdirectory( zdfControl                )
 add_subdirectory( stereoAttentiveSelector   )
+add_subdirectory( test                      )
 #add_subdirectory(visualFilter)    
 #add_subdirectory(zdfModule)
 
