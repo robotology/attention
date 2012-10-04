@@ -247,7 +247,7 @@ class evalThread : public yarp::os::Thread {
            
              
             while(!dataR) {
-                Time::delay(1.5);
+                Time::delay(0.5);
                 printf(". ");
                 
                 dataR = getDataReady();                
@@ -256,7 +256,7 @@ class evalThread : public yarp::os::Thread {
             }
             
 
-            printf("out of while %08X %d  \n",this, dataReady);
+            printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>out of while %08X %d  \n",this, dataReady);
             
             
             
@@ -266,7 +266,7 @@ class evalThread : public yarp::os::Thread {
             mutexR.post();
             
             for(int i = 0; i < numIter ; i++) {
-                //printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
+                printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
                 //printf("%08X  %d \n", this, id);
                 double s = Random::uniform() + 0.5 ; 
                 // z = new Vector(3);
@@ -292,7 +292,9 @@ class evalThread : public yarp::os::Thread {
                 
             }
             
-        
+            
+            Time::delay(5.0);
+            
             //setting the result out
             printf("setting the result out \n");
             mutexF.wait();
@@ -399,6 +401,8 @@ class evalThread : public yarp::os::Thread {
         mutexR.wait();
         dataReady = true;
         mutexR.post();
+        printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. just set the dataReady %d \n");
+
 
         mutexF.wait();
         evalFinished = false;
