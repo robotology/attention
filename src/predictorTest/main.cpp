@@ -95,7 +95,7 @@ Matrix evaluateModel(genPredModel* model,Matrix uMeasure,Matrix zMeasure ) {
     // initialisation of the initial state of the karman filter
     printf("creating a new kalman filter \n");
     Kalman kSolver(A,B,H,Q,R);
-    kSolver.init (z0, x0, P0);
+    kSolver.init (x0, P0);
     Time::delay(2.0);
     
     //double c = 1.0;

@@ -68,7 +68,7 @@ using namespace iCub::ctrl;
      x0(0) = 0; x0(1) = 0;     
      Matrix P0(2,2);
      P0(0,0) = 0; P0(0,1) = 0; P0(1,0) = 0; P0(1,1) =  0;
-     kSolver.init (z0, x0, P0);
+     kSolver.init (x0, P0);
           
    
      printf("estim.state %s \n", kSolver.get_x().toString().c_str());
