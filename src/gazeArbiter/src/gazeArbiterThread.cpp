@@ -402,13 +402,21 @@ bool gazeArbiterThread::threadInit() {
 
     printf("     \n zmax = %f \n", zmax);
 
-    printf("starting the tracker.... \n");
+    printf("starting the trackers.... \n");
+    // active agent for countinuos tracking
     ResourceFinder* rf = new ResourceFinder();
     tracker = new trackerThread(*rf);
     tracker->setName(getName("/matchTracker").c_str());
     tracker->start();
     printf("tracker successfully started \n");
+    
+    //active agent for periodic tracking
+    ptracker = new periodicTrackerThread(*rf);
+    ptracker->setName(getName("/periodicTracker").c_str());
+    ptracker->start();
+    printf("periodic tracker successfully started \n");
 
+    // active agent for velocity control
     printf("starting the velocity controller \n");
     velControl = new velocityController();
     velControl->setName(getName("/velControl").c_str());
@@ -869,12 +877,14 @@ void gazeArbiterThread::run() {
                             //printf("inside the while \n");
                             timeoutStop = Time::now();
                             timeout = timeoutStop - timeoutStart;
+                            // initialisation of the visual correction 
                             if(visualCorrection){
-                                printf("starting visual correction with\n");
+                                printf("starting visual correction \n");
                                 tracker->init(u,v);
                                 tracker->waitInitTracker();
                                 Time::delay(0.5);
                             }
+                            printf("visual correction mechanism correctly initialised \n");
                             Vector px(2);
                             px(0) = u;
                             px(1) = v;
@@ -886,21 +896,22 @@ void gazeArbiterThread::run() {
                             dist = 10;
                             Time::delay(0.5);
                             
-                            /*
+                            visualCorrection = false;
                             if(visualCorrection){
-                                printf("starting visual correction with tracker refresh\n");
+                                //printf("starting visual correction with tracker refresh\n");
                                 // second init of the tracker to remove postsaccadic error
-                                tracker->init(160,120);
-                                tracker->waitInitTracker();
-                                // sending refinement message for the attPrioritiser TRACK
+                                //tracker->init(160,120);
+                                //tracker->waitInitTracker();
+
+                                /*
+                                // sending refinement message to the attPrioritiser TRACK
                                 Bottle& status = statusPort.prepare();
                                 status.clear();
                                 status.addString("TRACK_REF");
                                 statusPort.write();
                                 Time::delay(0.5);
-                                
-                            }
-                            */
+                                */
+                            }                                        
                             
                             //igaze->getFixationPoint(xo);
                             //printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
@@ -1036,11 +1047,14 @@ void gazeArbiterThread::run() {
                     printf("checkMotionDone %d \n", done);
                 }
             }
+
+            printf("\n \n ");
             
             
             //correcting the macrosaccade using the visual feedback (only if required)
             timeoutStart = Time::now();
             timeout = 0;
+            visualCorrection = false;
             if (visualCorrection) {
                 printf("Using visual correction \n");
                 double errorVC = 100.0;
@@ -1052,10 +1066,11 @@ void gazeArbiterThread::run() {
                 double travelDistance = 0.0;     // distance travel by the tracked point
                 float minCumul = 0;
                 Vector px(2);
-                
+                timeout = 0;
                 point_prev = point;
                 
-                while((countDecrement < 1000) && (countReach < 3) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) && (travelDistance <= 1000.0) /*&& (minCumul < 5000.0)*/ ) {
+                
+                while((countDecrement < 1000) && (countReach < 3) && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) && (travelDistance <= 1000.0)  ) {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                    
@@ -1079,7 +1094,7 @@ void gazeArbiterThread::run() {
                     if(errorVC <= 1) {
                         countReach++;
                     }
-                    if ((errorVC > 4 ) /*&&(errorVC_pre <= errorVC )*/ ) {
+                    if ((errorVC > 4 ) ) {
                         //countDecrement++;
                         if(countReach > 0)
                             countReach--;
@@ -1094,36 +1109,36 @@ void gazeArbiterThread::run() {
                     igaze->lookAtMonoPixel(camSel,px,0.5);
                     
 
-                    /*
-                    Vector xo;
-                    igaze->getFixationPoint(xo);
-                    printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
+                    
+                    //Vector xo;
+                    //igaze->getFixationPoint(xo);
+                    //printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
 
                     // check for offlimits by tracking out the stimulus
                             
-                    if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (xo[2] < zmin) || (xo[2] > zmax)) {
-                        printf("                    OutOfRange ._._._._._.[%f,%f,%f] [%f,%f,%f] [%f,%f,%f] \n",xmin, xo[0], xmax, ymin, xo[1],ymax, zmin, xo[2], zmax);
-                        accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
-                        Vector px(3);
-                        px[0] = -0.5 + xOffset;
-                        px[1] =  0.0 + yOffset;
-                        px[2] =  0.3 + zOffset;
+                    //if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (xo[2] < zmin) || (xo[2] > zmax)) {
+                    //    printf("                    OutOfRange ._._._._._.[%f,%f,%f] [%f,%f,%f] [%f,%f,%f] \n",xmin, xo[0], xmax, ymin, xo[1],ymax, zmin, xo[2], zmax);
+                    //    accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
+                    //    Vector px(3);
+                    //    px[0] = -0.5 + xOffset;
+                    //    px[1] =  0.0 + yOffset;
+                    //    px[2] =  0.3 + zOffset;
                         //igaze->lookAtFixationPoint(px);
-                        px[0] = 0; 
-                        px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
-                        px[2] = 0;    
-                        igaze->lookAtAbsAngles(px);
+                    //   px[0] = 0; 
+                    //    px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
+                    //    px[2] = 0;    
+                    //    igaze->lookAtAbsAngles(px);
                         
-                        Time::delay(0.5);
-                        printf("waiting for motion done \n");
-                        u = width  / 2;
-                        v = height / 2;
+                    //    Time::delay(0.5);
+                    //    printf("waiting for motion done \n");
+                    //    u = width  / 2;
+                    //    v = height / 2;
                         //waitMotionDone();
-                        printf("resetting the position: success! \n");
-                        return;
-                    }
+                    //    printf("resetting the position: success! \n");
+                    //   return;
+                    //}
                       
-                    */
+                    
                     
                     //igaze->waitMotionDone();
                     point_prev = point;        // changing the position of the tracked point in the previous step
@@ -1137,6 +1152,7 @@ void gazeArbiterThread::run() {
                     //printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
                                         
                 }
+            
 
                 Time::delay(0.01);
                 if (minCumul > 5000000) {
@@ -1694,6 +1710,9 @@ void gazeArbiterThread::threadRelease() {
     if(tracker!=0) {
         tracker->stop();
     }
+    //if(ptracker!=0) {
+    //    ptracker->stop();
+    //}
     printf("trying to release the velControl \n");
     if(velControl!=0) {
         velControl->stop();
