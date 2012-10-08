@@ -209,9 +209,9 @@
  * 26/10/11 : reduce all the temporal constant to 50ms. Trying to improve the response              author: Rea \n
  * 06/02/12 : added a novel thread for velocity tracking                                            author: Rea \n
  * 25/05/12 : added min Cumulative measure  in the tracker                                          author: Rea \n
+ * 25/09/12 : introduced the periodic tracker thread                                                author: Rea \n
+ * 02/10/12 : made the period tracker thread really work into the gazeArbiter system                author: Rea \n
  */
-
-
 
 #include <iostream>
 #include <string>

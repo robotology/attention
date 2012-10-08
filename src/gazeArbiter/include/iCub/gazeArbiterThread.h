@@ -51,6 +51,7 @@
 
 //within project includes
 #include <iCub/trackerThread.h>
+#include <iCub/periodicTrackerThread.h>
 #include <iCub/observer.h>
 #include <iCub/observable.h>
 #include <iCub/velocityController.h>
@@ -154,8 +155,10 @@ private:
     yarp::dev::IEncoders *encTorso, *encHead;       // measure of the encoder  (head and torso)
     
     
-    velocityController* velControl;                 // velocity controller for tracking
-    trackerThread* tracker;                         // reference to the object in charge of tracking a tamplete surrounding a point
+    velocityController    *velControl;               // velocity controller for tracking
+    trackerThread         *tracker;                  // reference to the object in charge of tracking a tamplete surrounding a point
+    periodicTrackerThread *ptracker;                 // tracker that updates its own knowledge only when requested
+    
 public:
     /**
     * default constructor
