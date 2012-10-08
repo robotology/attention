@@ -58,6 +58,8 @@ private:
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inImagePort;     //port where all the low level commands are sent
     yarp::os::Semaphore mutex;    // semaphore for the variable of the prediction accomplished
+    yarp::os::Semaphore mutexP0;  // semaphore for resource p0
+    yarp::os::Semaphore mutexN;   // semaphore for resource n
     
     bool predictionAccompl;       // flag that indicates when the prediction was carried on correctly
     yarp::os::ResourceFinder* rf; // resource finder for initialisation of the tracker
@@ -77,6 +79,8 @@ private:
     
     yarp::sig::Matrix zMeasure;                     // vector of measurements
     yarp::sig::Matrix uMeasure;                     // vector of the input values
+    yarp::sig::Vector n;                            // vector normal to the plane
+    yarp::sig::Vector p0;                           // point belonging to the plane
 
 public:
     /**
@@ -169,9 +173,22 @@ public:
      * @param distance of the stimulus from the fovea      (return)
      */
     bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time, double& distance);
+
+    
+    /**
+     * @brief project on plane (a, b, c, d) the point (u, v) belonging to the image plan
+     * @param a plane param
+     * @param b plane param
+     * @param c plane param
+     * @param d plane param
+     * @param u coordinate on the image plane
+     * @param v coordinate on the image plane
+     */
+    void projectOnPlane(int a, int b, int c , int d, int u, int v);
 };
 
 #endif  //_TRAJECTORY_PREDICTOR_H_
 
-//----- end-of-file --- ( next line intentionally left blank ) ------------------
+//----- end-of-file --- ( next line intentionally left blank ) --make// -
+// ---------------
 

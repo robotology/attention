@@ -166,8 +166,8 @@
  * 07/06/12 : added wait action and additional states                                                       author: Rea  \n 
  * 12/06/12 : added the typology of waiting: anticipatory or in fixatioon                                   author: Rea  \n
  * 21/06/12 : added the control in the expected response                                                    author: Rea  \n
- * 11/7/12  : added the collection of predictor thread                                                      author: Rea
-
+ * 11/07/12 : added the collection of predictor thread                                                      author: Rea  \n
+ * 08/10/12 : introduced the reduction in dimensionality to the motion plane                                author: Rea  \n   
 */
 
 

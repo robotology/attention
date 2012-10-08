@@ -149,6 +149,53 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
     y = 10.0;
 }
 
+void trajectoryPredictor::projectOnPlane(int a, int b, int c , int d, int u, int v) {
+     Vector plane(4);        // specify the plane in the root reference frame as ax+by+cz+d=0; z=-0.12 in this case
+     plane[0]=a;   // a
+     plane[1]=b;   // b
+     plane[2]=c;   // c
+     plane[3]=d;   // d
+     
+     //printf("using tableHeight %f \n", tableHeight);
+     
+     //Vector x;
+     if (plane.length() < 4) {
+         fprintf(stdout,"Not enough values given for the projection plane!\n");
+     }
+     
+     //printf("defining the point p0 belonging to the plane \n");
+     mutexP0.wait();
+     p0(3);
+     p0.zero();
+     
+     if (plane[0]!=0.0)
+         p0[0]=-plane[3]/plane[0];
+     else if (plane[1]!=0.0)
+         p0[1]=-plane[3]/plane[1];
+     else if (plane[2]!=0.0)
+         p0[2]=-plane[3]/plane[2];
+     else  {
+         fprintf(stdout,"Error while specifying projection plane!\n");
+     }
+     mutexP0.post();
+        
+     
+     // take a vector orthogonal to the plane
+     
+     //Vector n(3);
+     mutexN.wait();
+     n[0]=plane[0];
+     n[1]=plane[1];
+     n[2]=plane[2];
+     mutexN.post();
+     
+     //printf("p0 = %s ; n = %s \n", p0.toString().c_str(), n.toString().c_str());
+     
+     Time::delay(0.1);
+}
+
+
+
 bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time, double& distance) {
     printf(" trajectoryPredictor::estimateVelocity in pos.%d,%d  \n", Vx, Vy);
     
@@ -157,17 +204,29 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     double timeStart = Time::now();
     double timeStop, timeDiff;
     double dist, vel, acc;
-    double velX, velY, velX_prev, velY_prev;
+    double velX = 0, velY = 0 , velX_prev = 0, velY_prev = 0 ;
     double accX, accY, maxAccX = 0, maxAccY = 0;
     double meanVelX, meanVelY;
     int distX, distY;
     
-    int nIter = 10;
+    // int nIter = 10;
     
-    //for n times records the position of the object and extract an estimate
-    // extracting the velocity of the stimulus; saving it into a vector 
-    Matrix zMeasurements(nIter,2.0);
+    // //for n times records the position of the object and extract an estimate
+    // // extracting the velocity of the stimulus; saving it into a vector 
+    // Matrix zMeasurements2D(nIter,2);
+    Matrix zMeasurements3D(nIter,3);
     Matrix uMeasurements(2.0, nIter);
+    for (int i = 0; i < 2; i++) {
+        for (int j =0 ; j < nIter; j++) {
+            uMeasurements(i, j) = 1.0;
+        }
+    }
+    
+    //passing from the 2D image plane to the 3D real location using homography
+    
+    projectOnPlane(0,0,0,1,0,0);
+
+    // filling the zMeasure matrix with position on the plane of homography
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
         p_prev =  p_curr;
@@ -180,19 +239,21 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             distX = p_curr.x - p_prev.x;
             distY = p_curr.y - p_prev.y;
             dist  = sqrt((double)distX * distX + distY * distY);
-            zMeasurements(n - 1, 0) = dist;
+            zMeasurements2D(n - 1, 0) = dist;
+            zMeasurements3D(n - 1, 0) = dist;
 
             velX_prev = velX;
             velY_prev = velY;
             velX = distX / timeDiff;
             velY = distY / timeDiff;
             vel = sqrt( velX * velX + velY * velY);
-            zMeasurements(n - 1, 1) = vel;
+            zMeasurements2D(n - 1, 1) = vel;
+            zMeasurements3D(n - 1, 1) = vel;
 
             accX = (velX - velX_prev) / timeDiff;
             accY = (velY - velY_prev) / timeDiff;
             acc = sqrt( accX * accX + accY * accY);
-            //zMeasurements(n - 1, 2) = acc;
+            zMeasurements3D(n - 1, 2) = acc;
 
             if(accY > maxAccY) { 
                 maxAccY = accY;
@@ -266,7 +327,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         it = eQueue->begin();
     }
     printf("eval evaluation %d >= %d \n",finished, eQueue->size() );
-    printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
+    //printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
 
     
     tracker->getPoint(p_curr);
