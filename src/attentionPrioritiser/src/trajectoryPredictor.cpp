@@ -209,11 +209,11 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     double meanVelX, meanVelY;
     int distX, distY;
     
-    // int nIter = 10;
+     int nIter = 10;
     
     // //for n times records the position of the object and extract an estimate
     // // extracting the velocity of the stimulus; saving it into a vector 
-    // Matrix zMeasurements2D(nIter,2);
+    Matrix zMeasurements2D(nIter,2);
     Matrix zMeasurements3D(nIter,3);
     Matrix uMeasurements(2.0, nIter);
     for (int i = 0; i < 2; i++) {
@@ -271,8 +271,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     meanVelX /= nIter;
     meanVelY /= nIter;
 
-    uMeasurements(1,0) = 2.0; uMeasurements(0,0) = 4.0;
-    zMeasurements(0,0) = 3.0; zMeasurements(1,1) = 1.0;
+    //uMeasurements(1,0) = 2.0; uMeasurements(0,0) = 4.0;
+    //Measurements(0,0) = 3.0; zMeasurements(1,1) = 1.0;
     
     //estimate the predictor model that best fits the velocity measured
     //printf("setting measurements \n z = \n %s \n", zMeasurements.toString().c_str());
@@ -299,7 +299,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         printf("____________________________________________________________________________________________________\n");
         tmp = *it;  // pointer to the thread
         printf("reading evalThread reference from the queue it = %08X \n", tmp);
-        tmp->setMeasurements(uMeasurements,zMeasurements);
+        tmp->setMeasurements(uMeasurements,zMeasurements2D);
         printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
         printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
         it++;   
