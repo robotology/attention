@@ -49,9 +49,10 @@ trajectoryPredictor::~trajectoryPredictor() {
 bool trajectoryPredictor::threadInit() {
     printf("-------------------------------trajectoryPredictor::threadInit:starting the thread.... \n");
     
-    
+    // open files
+    fout = fopen("./attPrioritiser.trajectoryPredictor.3Dtraj.txt","w+");
 
-    /* open ports */
+    // open ports 
     string rootName("");
     rootName.append(getName("/blobImage:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
@@ -240,9 +241,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     double velX = 0, velY = 0 , velX_prev = 0, velY_prev = 0 ;
     double accX, accY, maxAccX = 0, maxAccY = 0;
     double meanVelX, meanVelY;
-    int distX, distY;
+    double distX, distY;
     
-     int nIter = 10;
+    int nIter = 20;
     
     // //for n times records the position of the object and extract an estimate
     // // extracting the velocity of the stimulus; saving it into a vector 
@@ -272,19 +273,47 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     printf("3dposition on the plane extract by gazeController %s \n ", x3D.toString().c_str());
         
 
+    double x0, y0, z0;
+    double z = 0.35;
+    double theta;
+
     // filling the zMeasure matrix with position on the plane of homography
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
-        p_prev =  p_curr;
+        
         tracker->getPoint(p_curr);
         timeStop = Time::now();
-        
-        if (n > 0) {
+        if (n == 0) {
+            // initialisation of the starting point of the traj.
+            p_prev =  p_curr; 
+            Vector px(2);
+            px(0) = p_curr.x; 
+            px(1) = p_curr.y;
+            igaze->get3DPointOnPlane(camSel,px,plane,x3D);
+            //igaze->get3DPoint(camSel,px,z, x3D);
+            x0 = x3D(0);
+            y0 = x3D(1);
+            z0 = x3D(2);
+        }
+        else {
             timeDiff = timeStop - timeStart;
             //printf("----------------- \n timeDiff %f \n", timeDiff );
             distX = p_curr.x - p_prev.x;
             distY = p_curr.y - p_prev.y;
+            Vector px(2);
+            px(0) = p_curr.x; 
+            px(1) = p_curr.y;
+            igaze->get3DPointOnPlane(camSel,px,plane,x3D);
+            igaze->get3DPoint(camSel,px,z,x3D);
+            printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
+            fprintf(fout,"%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
+
+            distX =  x3D(1) - y0;
+            distY =  x3D(2) - z0;
             dist  = sqrt((double)distX * distX + distY * distY);
+            theta = atan2(distY, distX);
+            printf("travelled distance %f angle %f \n", dist, theta);
+            
             zMeasurements2D(n - 1, 0) = dist;
             zMeasurements3D(n - 1, 0) = dist;
 
@@ -351,8 +380,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         it++;   
         printf("____________________________________________________________________________________________________\n \n \n");
     }
-
-    printf("out of the loop \n");
+    printf("out of the loop that starts the predicotrs \n");
 
 
     // waiting for the evaluation already started
@@ -361,18 +389,18 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     it = eQueue->begin();
     int finished = 0 ;
     while(finished < eQueue->size()) {
-        printf("eval evaluation %d < %d \n",finished, eQueue->size() );
+        // printf("eval evaluation %d < %d \n",finished, eQueue->size() );
         Time::delay(0.1);
         while(it != eQueue->end() ) {
             if((*it)->getEvalFinished()){
                 finished++;
-                printf("state %s \n", (*it)->getX().toString().c_str());
+                printf(" predictor ends estimation.state %s \n", (*it)->getX().toString().c_str());
             }
             it++;
         }
         it = eQueue->begin();
     }
-    printf("eval evaluation %d >= %d \n",finished, eQueue->size() );
+    printf("eval evaluatio ended. fineshed=%d >= size=%d \n",finished, eQueue->size() );
     //printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
 
     
