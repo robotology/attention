@@ -66,16 +66,19 @@ protected:
     bool running;                                // flag tha indicates when the main cycle has to be performed
     bool init_success;                           // flag that check whether initialisation was successful
     bool check;                                  // flag that allows external user to enable updating in the class
+    bool update;                                 // flag that allows for updating the template image
 
     ImageOf<PixelMono> imgMonoIn;                // input image for the comparison
     ImageOf<PixelMono> imgMonoPrev;              // updated image result of the previous steps
     
-    BufferedPort<ImageOf<PixelBgr> > inPort;     // current image 
-    BufferedPort<ImageOf<PixelBgr> > outPort;    // output image extracted from the current
-    BufferedPort<ImageOf<PixelMono> > tmplPort;  // template image where the template is extracted
+    BufferedPort<ImageOf<PixelBgr> >  inPort;     // current image 
+    BufferedPort<ImageOf<PixelBgr> >  outPort;    // output image extracted from the current
+    BufferedPort<ImageOf<PixelMono> > tmplPort;   // image where the template is extracted
+    BufferedPort<ImageOf<PixelMono> > masterPort; // template
 
     yarp::os::Semaphore mutex;                   // semaphore for the min cumulative value
     yarp::os::Semaphore mutexCheck;              // semaphore for the mutexCheck
+    yarp::os::Semaphore mutexUpdate;             // semaphore for the mutexUpdate
 
 public:
     /************************************************************************/
@@ -88,16 +91,17 @@ public:
     virtual bool threadInit()
     {
         //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
-        template_size = 20; //rf.check("template_size",Value(20)).asInt();
-        search_size = 50; //rf.check("search_size",Value(100)).asInt();
+        template_size = 50; //rf.check("template_size",Value(20)).asInt();
+        search_size = 200;  //rf.check("search_size",Value(100)).asInt();
 
         //inPort.open(("/"+name+"/img:i").c_str());
         //outPort.open(("/"+name+"/img:o").c_str());
         //tmplPort.open(("/"+name+"/tmpl:o").c_str());
 
-        inPort.open  ((name+"/img:i").c_str());
-        outPort.open ((name+"/img:o").c_str());
-        tmplPort.open((name+"/tmpl:o").c_str());
+        inPort.open    ((name+"/img:i")   .c_str());
+        outPort.open   ((name+"/img:o")   .c_str());
+        tmplPort.open  ((name+"/tmpl:o")  .c_str());
+        masterPort.open((name+"/master:0").c_str());
 
         firstConsistencyCheck = true;
         running = false;
@@ -125,6 +129,16 @@ public:
         mutexCheck.wait();
         check = value;
         mutexCheck.post();
+    }
+
+    /************************************************************************/
+    /**
+     * @brief function that set the flage that forces for an update of the template image right before tracker init.
+     */
+    void setUpdate(bool value) {
+        mutexUpdate.wait();
+        update = value;
+        mutexUpdate.post();
     }
 
     /************************************************************************/
@@ -192,6 +206,10 @@ public:
             // copy input-image into output-image
             ImageOf<PixelBgr>  &imgBgrOut   = outPort.prepare();
             ImageOf<PixelMono> &imgTemplate = tmplPort.prepare();
+            ImageOf<PixelMono> &master      = masterPort.prepare();
+            master.resize(template_roi.width, template_roi.height);
+            master.zero();
+            int padding = master.getPadding();
             imgBgrOut   = *pImgBgrIn;
             imgTemplate = imgMonoPrev;
             
@@ -202,7 +220,7 @@ public:
             
             // ****************************************************************************************
             if (running) {
-                printf("in the running \n");
+                
                 // the episodic tracker thread performs a comparison only when the check flag is set
                 // the check flag is set to false immidiately
                 
@@ -218,44 +236,63 @@ public:
                 template_roi.x = (std::max) (0, (std::min) (tmp.width()  - template_roi.width,  point.x - (template_roi.width  >> 1)));
                 template_roi.y = (std::max) (0, (std::min) (tmp.height() - template_roi.height, point.y - (template_roi.height >> 1)));
                 
+                // updating the template image right after the selected position
+                bool update_tmp;
+                mutexUpdate.wait();
+                update_tmp = update;
+                mutexUpdate.post();                
+                if (update_tmp) {
+                     imgMonoPrev = imgMonoIn; 
+                }
+
+                // representing the template in the master image
+                for (int y1 = 0; y1 < template_roi.height; y1++) {
+                    for (int x1 = 0; x1 < template_roi.width; x1++) {
+                        unsigned int value  = tmp( template_roi.x        + x1, template_roi.y        + y1);
+                        master(x1,y1) = value;
+                    }
+                }                       
+                
                 // perform tracking with template matching
                 float ftmp;
-                printf("running the sqDiff \n");
-                CvPoint minLoc=sqDiff(img,search_roi,tmp,template_roi, ftmp);
-                printf("found min location \n");
-                // updating the correlation measure 
-                mutex.wait();
-                lastMinCumul = ftmp;
-                mutex.post();
-                
+                CvPoint minLoc;
                 if (check_copy) {
+                    
+                    minLoc=sqDiff(img,search_roi,tmp,template_roi, ftmp);
+                    printf("minima %f \n", ftmp);
+               
+                    // updating the correlation measure 
+                    mutex.wait();
+                    lastMinCumul = ftmp;
+                    mutex.post();
+
                     // update point coordinates (ONLY IF REQUIRED BY SUPERUSER)
                     point.x = search_roi.x + minLoc.x + (template_roi.width  >> 1);
                     point.y = search_roi.y + minLoc.y + (template_roi.height >> 1);
                 }
                 
-                if(count % 1 == 0) {
-                    printf("drawins going on \n");
-                    // draw results on the output-image
-                    CvPoint p0, p1;
-                    p0.x=point.x-(template_roi.width>>1);
-                    p0.y=point.y-(template_roi.height>>1);
-                    p1.x=p0.x+template_roi.width;
-                    p1.y=p0.y+template_roi.height;
-                    cvRectangle(imgBgrOut.getIplImage(),p0,p1,cvScalar(0,0,255),1);
+                
                     
-                    cvRectangle(imgBgrOut.getIplImage(),cvPoint(search_roi.x,search_roi.y),
-                                cvPoint(search_roi.x+search_roi.width,search_roi.y+search_roi.height),
-                                cvScalar(255,0,0),2);
-                    
-                    cvRectangle(imgBgrOut.getIplImage(),cvPoint(point.x - 1 ,point.y - 1),
-                                cvPoint(point.x + 1, point.y + 1),
-                                cvScalar(0,0,255),2);
-                    
-                    cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
-                                cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
-                                cvScalar(0,255,0),2);
-                }
+                // draw results on the output-image
+                CvPoint p0, p1;
+                p0.x=point.x-(template_roi.width>>1);
+                p0.y=point.y-(template_roi.height>>1);
+                p1.x=p0.x+template_roi.width;
+                p1.y=p0.y+template_roi.height;
+                cvRectangle(imgBgrOut.getIplImage(),p0,p1,cvScalar(0,0,255),1);
+                
+                cvRectangle(imgBgrOut.getIplImage(),cvPoint(search_roi.x,search_roi.y),
+                            cvPoint(search_roi.x+search_roi.width,search_roi.y+search_roi.height),
+                            cvScalar(255,0,0),2);
+                
+                cvRectangle(imgBgrOut.getIplImage(),cvPoint(point.x - 1 ,point.y - 1),
+                            cvPoint(point.x + 1, point.y + 1),
+                            cvScalar(0,0,255),2);
+                
+                cvRectangle(imgBgrOut.getIplImage(),cvPoint((img.width()>>1)-1,(img.height()>>1)-1),
+                            cvPoint((img.width()>>1)+1,(img.height()>>1)+1),
+                            cvScalar(0,255,0),2);
+                
                 
                 init_success = true; // considering init success at the end of the first loop
                 count++;
@@ -263,14 +300,18 @@ public:
             
             // *****************************************************
             // send out output-image
-            outPort.write();
-            tmplPort.write();
+            outPort   .write();
+            tmplPort  .write();
+            if (init_success) {
+                masterPort.write();
+            }
             if (check_copy) {
                 // save data for next cycle
                 imgMonoPrev = imgMonoIn;            
                 mutexCheck.wait();
                 check = false;
                 mutexCheck.post();
+                
             }
             
         } //end of the while
@@ -279,15 +320,19 @@ public:
     /************************************************************************/
     virtual void onStop()
     {
-        inPort.interrupt();
-        outPort.interrupt();
+        inPort    .interrupt();
+        outPort   .interrupt();
+        tmplPort  .interrupt();
+        masterPort.interrupt();
     }
 
     /************************************************************************/
     virtual void threadRelease()
     {
-        inPort.close();
-        outPort.close();
+        inPort    .close();
+        outPort   .close();
+        tmplPort  .close();
+        masterPort.close();
     }
 
     /************************************************************************/
@@ -398,7 +443,7 @@ public:
                         curCumul += diff * diff;
                     }
                 }
-                
+               
                 if ((curCumul<minCumul) || firstCheck)
                 {
                     minLoc.x   = x;

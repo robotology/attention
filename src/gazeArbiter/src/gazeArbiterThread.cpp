@@ -417,6 +417,9 @@ bool gazeArbiterThread::threadInit() {
     ptracker->setName(getName("/periodicTracker").c_str());
     ptracker->start();
     printf("periodic tracker successfully started \n");
+    ptracker->setUpdate(true);
+    ptracker->init(160,120);
+    ptracker->setUpdate(false);
 
     // active agent for velocity control
     printf("starting the velocity controller \n");
@@ -883,6 +886,9 @@ void gazeArbiterThread::run() {
                                 printf("starting visual correction \n");
                                 //tracker->init(u,v);
                                 //tracker->waitInitTracker();
+                                ptracker->setUpdate(true);
+                                Time::delay(0.5);
+                                ptracker->setUpdate(false);
                                 ptracker->init(u,v);
                                 printf("just run into the init \n");
                                 ptracker->waitInitTracker();                                
@@ -1055,7 +1061,9 @@ void gazeArbiterThread::run() {
                     printf("checkMotionDone %d \n", done);
                 }
             }
-            printf("\n \n ");           
+            printf("\n \n ");                  
+            printf("preparing visual correction \n");
+            
             // *********************************************************************************************
             // sending the command to the episodic tracker
             ptracker->setCheck(true);
@@ -1071,7 +1079,7 @@ void gazeArbiterThread::run() {
                 Time::delay(5.0);
                 double errorVC        = 100.0;
                 double errorVC_pre    = 100.0;
-                int countReach        = 0;
+                int countReach        = 0;       // counter of the success in reaching
                 int countDecrement    = 0;
                 double travelDistance = 0.0;     // distance travel by the tracked point
                 float minCumul        = 0;
@@ -1082,11 +1090,14 @@ void gazeArbiterThread::run() {
                 Vector px(2);
                 timeout = 0;
                 point_prev = point;
-                //tracker->getPoint(point);  
+                // introducing the fast tracker in the system, initialising the fast with the output of slow  
                 ptracker->getPoint(point);
+                tracker->init(point.x, point.y);
+                tracker->waitInitTracker();
+                printf("just returned the point %d %d \n", point.x , point.y);
                 
                 while((countDecrement < 1000) && (countReach < 3) 
-                      && (timeout < TIMEOUT_CONST) && (tracker->getInputCount()) /*&& (travelDistance <= 1000.0)*/  ) 
+                      && (timeout < 8.0) && (ptracker->getInputCount()) /*&& (travelDistance <= 1000.0)*/  ) 
                 {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
@@ -1101,14 +1112,14 @@ void gazeArbiterThread::run() {
                     errory = 120 - point.y;
                     px(0)  = (double) (cxl - errorx);
                     px(1)  = (double) (cyl - errory);
-                    //printf("cxl %d cyl %d point = (%d,%d) px = (%f,%f) \n",cxl,cyl,point.x, point.y, px(0), px(1));
+                    printf("c = (%d,%d) point = (%d,%d) error= (%d, %d) px = (%f,%f) \n",cxl,cyl,point.x, point.y,errorx, errory, px(0), px(1));
 #endif
 
                     
                     errorVC_pre = errorVC;
                     errorVC = sqrt((double) (errorx * errorx + errory * errory));
-                    //printf("time passed in correcting  %f (%3f, %3f : %3f) \n", timeout, errorx, errory, errorVC);
-                    if(errorVC <= 1) {
+                    printf("time passed in correcting  %f (%d, %d : %3f) \n", timeout, errorx, errory, errorVC);
+                    if(errorVC <= 3) {
                         countReach++;
                     }
                     if ((errorVC > 4 ) ) {
@@ -1157,8 +1168,8 @@ void gazeArbiterThread::run() {
                     
                     //igaze->waitMotionDone();
                     point_prev = point;        // changing the position of the tracked point in the previous step
-                    //tracker->getPoint(point);  // have the get point as far as possible from look@mono
-                    ptracker->getPoint(point);
+                    tracker->getPoint(point);  // have the get point as far as possible from look@mono
+                    //ptracker->getPoint(point);
                     travelDistance = sqrt( (double)
                                          (point.x - point_prev.x) * (point.x - point_prev.x) + 
                                          (point.y - point_prev.y) * (point.y - point_prev.y)
@@ -1167,7 +1178,7 @@ void gazeArbiterThread::run() {
                     //minCumul = tracker->getLastMinCumul();
                     minCumul = ptracker->getLastMinCumul();
                     //printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
-                                        
+                  
                 }
             
 
@@ -1175,7 +1186,7 @@ void gazeArbiterThread::run() {
                 if (minCumul > 5000000) {
                     printf("Error: out of correlation limits \n");
                 }
-                else if((timeout >= TIMEOUT_CONST) || (countDecrement >= 10)) {
+                else if((timeout >= 8.0) || (countDecrement >= 10)) {
                     Vector px(3);
                     printf("Error in reaching with visualFeedback \n");
                     printf("Error in reaching with visualFeedback \n");

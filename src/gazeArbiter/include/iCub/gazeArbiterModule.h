@@ -211,6 +211,7 @@
  * 25/05/12 : added min Cumulative measure  in the tracker                                          author: Rea \n
  * 25/09/12 : introduced the periodic tracker thread                                                author: Rea \n
  * 02/10/12 : made the period tracker thread really work into the gazeArbiter system                author: Rea \n
+ * 10/10/12 : made the periodTracker work with the matchTracker                                     author: Rea \n
  */
 
 #include <iostream>
