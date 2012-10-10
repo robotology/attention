@@ -168,6 +168,7 @@
  * 21/06/12 : added the control in the expected response                                                    author: Rea  \n
  * 11/07/12 : added the collection of predictor thread                                                      author: Rea  \n
  * 08/10/12 : introduced the reduction in dimensionality to the motion plane                                author: Rea  \n   
+ * 11/10/12 : added the conversion of the image plane position on the 3d coronnall plane                    author: Rea  \n
 */
 
 

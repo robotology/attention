@@ -883,6 +883,7 @@ void oculomotorController::run() {
     if(!idle) {        
         iter++;   // main temporal counter for visualisation and active learning
          
+        printf("cycle %d \n", iter);
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
             // sets all flag that allow action to false
@@ -899,6 +900,7 @@ void oculomotorController::run() {
         } 
 
         // calculating the entropy
+        printf("calculating the entropy \n");
         ImageOf<PixelBgr> *entImg = entImgPort.read(false);
         if(entImg!=NULL) {
             if(firstImage) {

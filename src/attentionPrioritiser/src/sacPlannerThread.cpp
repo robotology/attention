@@ -178,6 +178,9 @@ void sacPlannerThread::run() {
             
             // check whether it must be sleeping
             if((!sleep)&&(corrPort.getOutputCount())&&(inputImage!=NULL)) {
+
+                
+
                 //printf("performing correlation measures \n");
                 //here it comes if only if it is not sleeping
                 ImageOf<PixelRgb>& outputImage        = corrPort.prepare();               
@@ -192,6 +195,9 @@ void sacPlannerThread::run() {
                 if((!sleep)&&(!compare)) {                    
                     mutex.post();
                     //printf("in the sleep and compare branch \n");
+
+
+                    // resetting the correctionFlag that will be enable when correctiondirection is ready
                     
                     intermImage->resize(320,240);
                     intermImage2->resize(320,240);                                        

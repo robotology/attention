@@ -320,6 +320,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     
     printf("starting the collector... \n");
     collector->start();
+    
     printf("starting the controller... \n");
     controller->start();
     

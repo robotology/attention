@@ -36,6 +36,7 @@
 #include <yarp/os/Semaphore.h>
 
 #include <yarp/sig/all.h>
+#include <yarp/dev/all.h>
 #include <iostream>
 #include <string>
 
@@ -53,17 +54,21 @@ private:
     static const int numEvalMj  = 1;  // number of evaluator based on minimum jerk
     static const int numIter    = 10; // number of iteractions
 
-    double Vx, Vy;                // components of velocity
-    std::string name;             // rootname of all the ports opened by this thread
+    int originalContext;              // original context for the gaze Controller
+    double Vx, Vy;                    // components of velocity
+    double blockNeckPitchValue;       // value for blocking the pitch of the neck
+    std::string name;                 // rootname of all the ports opened by this thread
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inImagePort;     //port where all the low level commands are sent
-    yarp::os::Semaphore mutex;    // semaphore for the variable of the prediction accomplished
-    yarp::os::Semaphore mutexP0;  // semaphore for resource p0
-    yarp::os::Semaphore mutexN;   // semaphore for resource n
+    yarp::os::Semaphore mutex;       // semaphore for the variable of the prediction accomplished
+    yarp::os::Semaphore mutexP0;     // semaphore for resource p0
+    yarp::os::Semaphore mutexN;      // semaphore for resource n
     
-    bool predictionAccompl;       // flag that indicates when the prediction was carried on correctly
-    yarp::os::ResourceFinder* rf; // resource finder for initialisation of the tracker
-    trackerThread*    tracker;    // reference to the object in charge of tracking a tamplete surrounding a point
+    bool predictionAccompl;                         // flag that indicates when the prediction was carried on correctly
+    yarp::os::ResourceFinder* rf;                   // resource finder for initialisation of the tracker
+    trackerThread*    tracker;                      // reference to the object in charge of tracking a tamplete surrounding a point
+    yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
+    yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
     
     //attention::evaluator::evalThread evalVel1;      // evaluation thread velocity 1
     //attention::evaluator::evalThread evalVel2;      // evaluation thread velocity 2
@@ -157,7 +162,7 @@ public:
      * function that adds the evaluation thread to the list
      */
     void addEvalThread(attention::evaluator::evalThread* et){ 
-        printf(">>>>>>>>>>>>>>>>>>>>>trajectoryPredictor::addEvalThread %08X \n", et);
+        printf("trajectoryPredictor::addEvalThread %08X \n", et);
         Vector x = et->getX();
         printf("trajectoryPredictor::addEvalThread: x = \n %s \n", x.toString().c_str());
         eQueue->push_back(et); 
@@ -183,8 +188,9 @@ public:
      * @param d plane param
      * @param u coordinate on the image plane
      * @param v coordinate on the image plane
+     * @return Vector of the cordinate of the plane
      */
-    void projectOnPlane(int a, int b, int c , int d, int u, int v);
+    yarp::sig::Vector projectOnPlane(int a, int b, int c , int d, int u, int v);
 };
 
 #endif  //_TRAJECTORY_PREDICTOR_H_

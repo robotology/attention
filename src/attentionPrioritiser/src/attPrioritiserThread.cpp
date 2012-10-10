@@ -281,6 +281,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     else {
         printf("tracker not started because visualFeedback disable by user \n");
     }
+    
 
     
     printf("attPrioritiserThread initialization ended correctly \n");

@@ -29,6 +29,7 @@
 
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace yarp::dev;
 using namespace attention::predictor;
 using namespace attention::evaluator;
 using namespace std;
@@ -37,6 +38,7 @@ using namespace std;
 
 trajectoryPredictor::trajectoryPredictor() {
     tracker = 0;
+    blockNeckPitchValue = -1;
     eQueue = new evalQueue();
 }
 
@@ -54,6 +56,37 @@ bool trajectoryPredictor::threadInit() {
     rootName.append(getName("/blobImage:i"));
     printf("opening ports with rootname %s .... \n", rootName.c_str());
     inImagePort.open(rootName.c_str()); 
+
+    // --------------------------------------------------------------------------------------
+    //initializing gazecontrollerclient
+    printf("initialising gazeControllerClient \n");
+    Property option;
+    option.put("device","gazecontrollerclient");
+    option.put("remote","/iKinGazeCtrl");
+    string localCon("/client/gaze");
+    localCon.append("testWings");
+    option.put("local",localCon.c_str());
+
+    clientGazeCtrl=new PolyDriver();
+    clientGazeCtrl->open(option);
+    igaze=NULL;
+
+    if (clientGazeCtrl->isValid()) {
+       clientGazeCtrl->view(igaze);
+    }
+    else
+        return false;
+   
+    igaze->storeContext(&originalContext);
+  
+    blockNeckPitchValue = -1;
+    if(blockNeckPitchValue != -1) {
+        igaze->blockNeckPitch(blockNeckPitchValue);
+        printf("pitch fixed at %f \n",blockNeckPitchValue);
+    }
+    else {
+        printf("pitch free to change\n");
+    }
     
     
     printf(" \n \n ----------------- trajectoryPredictor::threadInit --------------------- \n");
@@ -149,7 +182,7 @@ void trajectoryPredictor::extractCentroid(yarp::sig::ImageOf<yarp::sig::PixelMon
     y = 10.0;
 }
 
-void trajectoryPredictor::projectOnPlane(int a, int b, int c , int d, int u, int v) {
+Vector trajectoryPredictor::projectOnPlane(int a, int b, int c , int d, int u, int v) {
      Vector plane(4);        // specify the plane in the root reference frame as ax+by+cz+d=0; z=-0.12 in this case
      plane[0]=a;   // a
      plane[1]=b;   // b
@@ -223,8 +256,21 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     }
     
     //passing from the 2D image plane to the 3D real location using homography
-    
-    projectOnPlane(0,0,0,1,0,0);
+    //projectOnPlane(0,0,0,1,0,0);
+    //get3DPointOnPlane (const int camSel, const yarp::sig::Vector &px, const yarp::sig::Vector &plane, yarp::sig::Vector &x)=0
+    int camSel = 1; //left camera
+    Vector px(2);
+    px(0) = 160; 
+    px(1) = 120;
+    Vector plane(4);
+    plane(0) = 1;
+    plane(1) = 0;
+    plane(2) = 0;
+    plane(3) = 0.35;
+    Vector x3D(3);
+    igaze->get3DPointOnPlane(camSel,px,plane,x3D);
+    printf("3dposition on the plane extract by gazeController %s \n ", x3D.toString().c_str());
+        
 
     // filling the zMeasure matrix with position on the plane of homography
     printf("entering the loop for necessary to perform high level tracking \n");
