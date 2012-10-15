@@ -350,6 +350,7 @@ bool attPrioritiserThread::threadInit() {
     emoPort.open(nameEmo.c_str());
     string nameEnergy("");nameEnergy.append(                 getName("/energy:i"));
     energyPort.open(nameEnergy.c_str());
+    printf("correctly opened the collection of ports \n");
 
     inLeftPort.open(getName("/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
@@ -392,16 +393,21 @@ bool attPrioritiserThread::threadInit() {
     string name = getName("");
     timeoutResponseStart = Time::now();
     
+    
     printf("attPrioritiserThread::threadInit: starting the saccade planner \n");
     sacPlanner = new sacPlannerThread(name);       
     sacPlanner->referenceRetina(imgLeftIn);
     sacPlanner->start();
+    
 
+    
     printf("attPrioritiserThread::threadInit: starting the tracker \n");
     ResourceFinder* rf = new ResourceFinder();
     tracker = new trackerThread(*rf);
     tracker->setName(getName("/matchTracker").c_str());
     tracker->start();
+    
+    
     
     printf("attPrioritiserThread::threadInit:starting the trajectoryPredictor \n");
     trajPredictor = new trajectoryPredictor();
@@ -410,6 +416,7 @@ bool attPrioritiserThread::threadInit() {
     addCollectionEvalThread();
     trajPredictor->start();
     printf("--------------------------------attPrioritiser::threadInit:end of the threadInit \n");
+    
 
     
     // eQueue = new evalQueue(false);

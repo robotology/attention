@@ -100,7 +100,7 @@ bool trajectoryPredictor::threadInit() {
     //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
     printf("---------------------------------------------------------------------------------\n");
     
-    /*
+    /* _old
     minJerkModel* modelC = new minJerkModel();
     modelC->init(1, 1);
     printf("modelC\n %s \n %s \n", modelC->getA().toString().c_str(), modelC->getB().toString().c_str());
@@ -112,8 +112,9 @@ bool trajectoryPredictor::threadInit() {
     */
 
     // ---------------------------------------------------------------------------
+    
     linAccModel* modelB = new linAccModel();
-    modelB->init(1.0);
+    
     int rowA = modelB->getA().rows();
     int colA = modelB->getA().cols();
     Vector z0(rowA);
@@ -129,9 +130,12 @@ bool trajectoryPredictor::threadInit() {
     }
     printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
     printf("P0\n %s \n", P0.toString().c_str());    
-    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
-   
+
+    //---------------------------------------------------------------------------
+    
     printf(" creating eval thread \n");
+    modelB->init(1.0);
+    genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
     eval = new evalThread(*mB);
     eval->init(z0,x0,P0);
     printf("genPred model A \n %s \n",mB    ->getA().toString().c_str());
@@ -140,8 +144,10 @@ bool trajectoryPredictor::threadInit() {
     eval->start();
     eQueue->push_back(eval); 
     
+    
 
     //------------------------------------------------------------------------------
+    
     printf("moving to the next predictor \n");
     modelB = new linAccModel();
     modelB->init(2.0);
@@ -150,6 +156,7 @@ bool trajectoryPredictor::threadInit() {
     eval->init(z0,x0,P0);
     eval->start();
     eQueue->push_back(eval); 
+    
     
     printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
         
@@ -237,11 +244,26 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 
     double timeStart = Time::now();
     double timeStop, timeDiff;
-    double dist, vel, acc;
-    double velX = 0, velY = 0 , velX_prev = 0, velY_prev = 0 ;
-    double accX, accY, maxAccX = 0, maxAccY = 0;
-    double meanVelX, meanVelY;
-    double distX, distY;
+    double dist_prev;
+    double dist;
+    double vel_prev;
+    double vel ;
+    double acc ;
+    double velX      = 0;
+    double velY      = 0;
+    double velX_prev = 0;
+    double velY_prev = 0;
+    double accX      = 0;
+    double accY      = 0;
+    double maxAccX   = 0;
+    double maxAccY   = 0;
+    double maxAcc    = 0;
+    double meanVelX;
+    double meanVelY;
+    double distX;
+    double distY;
+    double distX_prev;
+    double distY_prev;
     
     int nIter = 20;
     
@@ -304,12 +326,14 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             px(0) = p_curr.x; 
             px(1) = p_curr.y;
             igaze->get3DPointOnPlane(camSel,px,plane,x3D);
-            igaze->get3DPoint(camSel,px,z,x3D);
+            //igaze->get3DPoint(camSel,px,z,x3D);
             printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
             fprintf(fout,"%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
 
+
             distX =  x3D(1) - y0;
             distY =  x3D(2) - z0;
+            dist_prev = dist;
             dist  = sqrt((double)distX * distX + distY * distY);
             theta = atan2(distY, distX);
             printf("travelled distance %f angle %f \n", dist, theta);
@@ -317,27 +341,37 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             zMeasurements2D(n - 1, 0) = dist;
             zMeasurements3D(n - 1, 0) = dist;
 
-            velX_prev = velX;
-            velY_prev = velY;
-            velX = distX / timeDiff;
-            velY = distY / timeDiff;
-            vel = sqrt( velX * velX + velY * velY);
+            //velX_prev = velX;
+            //velY_prev = velY;
+            //velX = (distX - distX_prev) / timeDiff;
+            //velY = (distY - distY_prev) / timeDiff;
+            //vel = sqrt( velX * velX + velY * velY);
+
+            vel_prev = vel;
+            vel = (dist - dist_prev) / timeDiff;
             zMeasurements2D(n - 1, 1) = vel;
             zMeasurements3D(n - 1, 1) = vel;
 
-            accX = (velX - velX_prev) / timeDiff;
-            accY = (velY - velY_prev) / timeDiff;
-            acc = sqrt( accX * accX + accY * accY);
+            //accX = (velX - velX_prev) / timeDiff;
+            //accY = (velY - velY_prev) / timeDiff;
+            //acc  = sqrt( accX * accX + accY * accY);
+             
+            acc  = (vel - vel_prev) / timeDiff;
             zMeasurements3D(n - 1, 2) = acc;
 
-            if(accY > maxAccY) { 
-                maxAccY = accY;
+            //if(accY > maxAccY) { 
+            //    maxAccY = accY;
+            //}
+            //if(accX > maxAccX) {
+            //    maxAccX = accX;
+            //}
+            
+            if(acc > maxAcc) {
+                maxAcc = acc;
             }
-            if(accX > maxAccX) {
-                maxAccX = accX;
-            }
-            meanVelX += velX;
-            meanVelY += velY;
+            
+            //meanVelX += velX;
+            //meanVelY += velY;
         }
         timeStart = Time::now();
         Time::delay(0.05);
@@ -413,7 +447,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     xPos = -1;
     yPos = -1;
    
-    double maxAcc = maxAccX > maxAccY?maxAccX:maxAccY;
+    double maxAccCart = maxAccX > maxAccY?maxAccX:maxAccY;
     //time = maxAcc / 5000; 
     time = 0.18;
     return predictionAccompl;

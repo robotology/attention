@@ -111,7 +111,7 @@ bool oculomotorController::threadInit() {
     string cmdName = rootName; cmdName.append(getName("/cmd:i"));
     inCommandPort.open(cmdName.c_str());
     string entName = rootName; entName.append(getName("/entImage:i"));
-    entImgPort.open(entName.c_str());
+    //entImgPort.open(entName.c_str());
     
 
     // interacting with the attPrioritiserThread 
@@ -900,6 +900,7 @@ void oculomotorController::run() {
         } 
 
         // calculating the entropy
+        /*
         printf("calculating the entropy \n");
         ImageOf<PixelBgr> *entImg = entImgPort.read(false);
         if(entImg!=NULL) {
@@ -913,6 +914,8 @@ void oculomotorController::run() {
             //fprintf(logFile,"entropy: %f \n", entropy);
             //fprintf(logState, "%f ", entropy);            
         }
+        */
+
         
         if((countSucc < 20) && (iter % 20 == 0) && (ap->readyForActions())) {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
@@ -1374,7 +1377,7 @@ void oculomotorController::waitForActuator() {
 
 void oculomotorController::interrupt(){
     inCommandPort.interrupt();
-    entImgPort.interrupt();
+    //entImgPort.interrupt();
 }
 
 
@@ -1382,7 +1385,7 @@ void oculomotorController::threadRelease() {
     double t;
     idle = true;
     //closing ports
-    //inCommandPort.close();
+    inCommandPort.close();
     //entImgPort.close();
     
     printf("------------------------------- oculomotorController::threadRelease() : stopping threads \n");
