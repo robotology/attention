@@ -220,74 +220,36 @@ class evalThread : public yarp::os::Thread {
         printf("in the run of evalThread \n");
         bool dataR = false;
 
-        printf("pre mutex %d \n", dataR);
-
-        dataR = getDataReady();
-        printf("afterGetDataReady %d \n", dataR);
-
-        printf("after mutex %d \n", dataR);
+        dataR = getDataReady(); // no need for semaphore interaction because already embedded in the function
         
-        while (!isStopping()) {
-            
+        while (!isStopping()) {           
             
             printf("evalThread cycle \n");
-            //Time::delay(1.0);
-            
-            
-
-            //printf(". \n");        
-            //printf("inside the while %d \n", numIter);
-            //printf("x = \n %s \n", x->toString().c_str());
-            
-            
-            printf("pre mutex %d \n", dataR);
-            
+            printf("pre mutex %d \n", dataR);            
             dataR = getDataReady();
-            printf("afterGetDataReady %d \n", dataR);
- 
+            printf("afterGetDataReady %d \n", dataR); 
             printf("after mutex %d \n", dataR);
-            
-           
-             
+                        
             while(!dataR) {
-                Time::delay(0.5);
-                //printf(". ");
-                
-                dataR = getDataReady();                
-                //printf("dataR %d %d \n", dataR, dataReady);
-                
+                Time::delay(0.5);       
+                dataR = getDataReady();                    
             }
-            
 
-            //printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>out of while %08X %d  \n",this, dataReady);
-            
-            
-            
             // running the filter for the number of measurements
             mutexR.wait();
             dataReady = false;
             mutexR.post();
             
-
             double sumError = 0;
             for(int i = 0; i < numIter ; i++) {
-                printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
+                //printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
                 //printf("%08X  %d \n", this, id);
                 double s = Random::uniform() + 0.5 ; 
-                // z = new Vector(3);
-                //z->resize(3);
-                //printf("%08X %08X z size  \n",this,z );
-                //printf("zMeasure \n %s \n", zMeasure->toString().c_str());
-                //printf("uMeasure \n %s \n", uMeasure->toString().c_str());
-                //printf("z %s \n", z->toString().c_str());
                 Vector zTmp = zMeasure->getRow(i);
-                //printf("just extracted zTmp = \n %s \n", zTmp.toString().c_str());
-
 
                 Vector uTmp = uMeasure->getCol(i); //extracted u from the ith column 
                 uTmp.resize(1,0);  // gives the vector the correct shape
                 uTmp(0) = 1.5;
-                //printf("just extracted u = \n %s \n", uTmp.toString().c_str());
 
                 //printf("kSolver %08X \n", kSolver);
                 Vector xTmp  = kSolver->filt(uTmp,zTmp);
@@ -302,23 +264,22 @@ class evalThread : public yarp::os::Thread {
                 sumError   += (diffS * diffS) + (diffS * diffS) + (diffS * diffS);
                
             }
+
+            mutexMSE.wait();
             meanSquareError = sumError / numIter;
+            mutexMSE.post();
             
-            Time::delay(5.0);
+            //Time::delay(5.0);
             
             //setting the result out
             printf("setting the result out \n");
             mutexF.wait();
             evalFinished = true;
-            mutexF.post();
+            mutexF.post();    
             
-            
-            
-            Time::delay(1.5);           
+            //Time::delay(1.5);           
             
         }
-        
-        
     }
 
 
@@ -387,38 +348,35 @@ class evalThread : public yarp::os::Thread {
     /////////////////////////////////////////////////////////////////
 
     void setMeasurements(Matrix _u, Matrix _z) {
-        printf(">>>>>>>>>this %08X >>>>>>>>>>>>>>>>>>>> %08x z  %d \n",this, z , z->length());
-        
-
-        printf("setMeasurements: preparing measures \n");
-        printf("_u \n %s \n", _u.toString().c_str());
-        printf("%d %d \n", _u.rows(), _u.cols() );
+        //printf(">>>>>>>>>this %08X >>>>>>>>>>>>>>>>>>>> %08x z  %d \n",this, z , z->length());
+       
+        //printf("setMeasurements: preparing measures \n");
+        //printf("_u \n %s \n", _u.toString().c_str());
+        //printf("%d %d \n", _u.rows(), _u.cols() );
         
         //delete uMeasure;
         uMeasure = new Matrix( _u.rows(), _u.cols());
         zMeasure = new Matrix( _z.rows(), _z.cols());
-        printf("%d %d \n", uMeasure->rows(), uMeasure->cols() );
+        //printf("%d %d \n", uMeasure->rows(), uMeasure->cols() );
         //uMeasure(2, 10);
         //resize(2,10);
         
         uMeasure->operator =(_u);
         zMeasure->operator =(_z);
-        printf("this %08x %d %d \n",this, uMeasure->rows(), zMeasure->cols());
+        //printf("this %08x %d %d \n",this, uMeasure->rows(), zMeasure->cols());
 
-        printf(" uMeasure \n %s  \n",  uMeasure->toString().c_str());
-        printf("_u \n %s  \n", _u.toString().c_str());
-        printf("_z \n %s \n zMeasure %s \n", _z.toString().c_str(), zMeasure->toString().c_str());
+        //printf(" uMeasure \n %s  \n",  uMeasure->toString().c_str());
+        //printf("_u \n %s  \n", _u.toString().c_str());
+        //printf("_z \n %s \n zMeasure %s \n", _z.toString().c_str(), zMeasure->toString().c_str());
 
         mutexR.wait();
         dataReady = true;
         mutexR.post();
-        printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. just set the dataReady %d \n");
-
+        //printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. just set the dataReady %d \n");
 
         mutexF.wait();
         evalFinished = false;
         mutexF.post();
-     
     }
 
     ////////////////////////////////////////////////////////////////
