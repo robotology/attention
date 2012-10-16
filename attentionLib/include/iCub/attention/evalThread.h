@@ -55,6 +55,7 @@ class evalThread : public yarp::os::Thread {
     yarp::os::Semaphore mutexR;
     yarp::os::Semaphore mutexF; 
     yarp::os::Semaphore mutexData;
+    yarp::os::Semaphore mutexMSE;
     Vector* u;
     Vector* x;
     Vector* z;
@@ -66,6 +67,8 @@ class evalThread : public yarp::os::Thread {
     int rowA;
     int colA;
     int id;
+
+    double meanSquareError;
     
  public:
     evalThread(){
@@ -248,15 +251,15 @@ class evalThread : public yarp::os::Thread {
              
             while(!dataR) {
                 Time::delay(0.5);
-                printf(". ");
+                //printf(". ");
                 
                 dataR = getDataReady();                
-                printf("dataR %d %d \n", dataR, dataReady);
+                //printf("dataR %d %d \n", dataR, dataReady);
                 
             }
             
 
-            printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>out of while %08X %d  \n",this, dataReady);
+            //printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>out of while %08X %d  \n",this, dataReady);
             
             
             
@@ -265,6 +268,8 @@ class evalThread : public yarp::os::Thread {
             dataReady = false;
             mutexR.post();
             
+
+            double sumError = 0;
             for(int i = 0; i < numIter ; i++) {
                 printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
                 //printf("%08X  %d \n", this, id);
@@ -290,8 +295,14 @@ class evalThread : public yarp::os::Thread {
                 printf("estim.state %s \n", xTmp.toString().c_str()); 
                 //printf("estim.error covariance P:\n %s \n",kSolver->get_P().toString().c_str());
                 
+                Vector diff  = zTmp - xTmp;
+                double diffS = diff(0);
+                double diffV = diff(1);
+                double diffA = diff(2);
+                sumError   += (diffS * diffS) + (diffS * diffS) + (diffS * diffS);
+               
             }
-            
+            meanSquareError = sumError / numIter;
             
             Time::delay(5.0);
             
@@ -462,6 +473,15 @@ class evalThread : public yarp::os::Thread {
          return dr;
     }
 
+    ///////////////////////////////////////////////////////////////
+
+    double getMSE() {
+         mutexMSE.wait();
+         double dr = meanSquareError;
+         mutexMSE.post();
+
+         return dr;
+    }
 
 };
 
