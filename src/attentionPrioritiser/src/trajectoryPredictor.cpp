@@ -421,7 +421,10 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     printf("entering the loop with eval \n");
     printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
     it = eQueue->begin();
-    int finished = 0 ;
+    int finished  = 0 ;
+    double minMSE = 1000000;
+    evalThread* minPredictor = null;
+    
     while(finished < eQueue->size()) {
         // printf("eval evaluation %d < %d \n",finished, eQueue->size() );
         Time::delay(0.1);
@@ -429,6 +432,13 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             if((*it)->getEvalFinished()){
                 finished++;
                 printf(" predictor ends estimation.state %s \n", (*it)->getX().toString().c_str());
+                double currentMSE = (*it)->getMSE();
+                printf(" predictor ends with error %f       \n", currentMSE);
+                
+                if( currentMSE <  minMSE) {
+                    minMSE = currentMSE;
+                    minPredictor = (*it);
+                }
             }
             it++;
         }
@@ -436,6 +446,13 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     }
     printf("eval evaluatio ended. fineshed=%d >= size=%d \n",finished, eQueue->size() );
     //printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
+    
+    if(minPredictor == 0) {
+        printf("no predictor found \n");
+    }
+    else {
+        printf("found the predictor %08X that minimises the MSE \n", minPredictor);
+    }
 
     
     tracker->getPoint(p_curr);
