@@ -350,14 +350,17 @@ if(ap->isLearning())
 
     
     printf("initialisation of the P matrix %d %d \n", NUMSTATE, NUMACTION);
-    P = new Matrix(NUMSTATE,NUMACTION);
+    //Matrix* tP = new Matrix(NUMSTATE,NUMACTION);
+    Matrix* tP = new Matrix(5,5);
+    P = tP;
     P->zero();
 
     // max-reward action vector
     // vector populated with the action that maximise reward in a particular state
     // the column of the vector reference to the state
     printf("initialisation of the A matrix %d \n", NUMSTATE);
-    A = new Matrix(1,NUMSTATE);
+    Matrix* tA = new Matrix(1,NUMSTATE);
+    A = tA;
     A->zero();
     
     //printf(" init of the trajectoryPredictor \n");

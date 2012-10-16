@@ -1189,6 +1189,7 @@ void attPrioritiserThread::run() {
                     // correction or second saccade??
                     double corr = sacPlanner->getCorrValue();
                     printf("received the response from the planner %f \n", corr);
+                    /*
                     if(corr < THCORR) {
                         //getDirection and calculating the pixel dimension of the correction
                         double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
@@ -1203,7 +1204,7 @@ void attPrioritiserThread::run() {
                         commandBottle.addDouble(zDistance);
                         outputPort.write();
                     } 
-                    
+                    */
                     
                     Time::delay(0.05);
                     
