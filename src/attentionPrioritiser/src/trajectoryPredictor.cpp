@@ -423,7 +423,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     it = eQueue->begin();
     int finished  = 0 ;
     double minMSE = 1000000;
-    evalThread* minPredictor = null;
+    evalThread* minPredictor = 0;
     
     while(finished < eQueue->size()) {
         // printf("eval evaluation %d < %d \n",finished, eQueue->size() );
