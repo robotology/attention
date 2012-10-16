@@ -883,12 +883,12 @@ void gazeArbiterThread::run() {
                             timeout = timeoutStop - timeoutStart;
                             // initialisation of the visual correction 
                             if(visualCorrection){
-                                printf("starting visual correction \n");
+                                printf("starting visual correction %d %d \n", u, v);
                                 //tracker->init(u,v);
                                 //tracker->waitInitTracker();
                                 ptracker->setUpdate(true);
-                                Time::delay(0.5);
-                                ptracker->setUpdate(false);
+                                //Time::delay(0.5);
+                                //ptracker->setUpdate(false);
                                 ptracker->init(u,v);
                                 printf("just run into the init \n");
                                 ptracker->waitInitTracker();                                
@@ -1061,7 +1061,7 @@ void gazeArbiterThread::run() {
                     printf("checkMotionDone %d \n", done);
                 }
             }
-            printf("\n \n ");                  
+                  
             printf("preparing visual correction \n");
             
             // *********************************************************************************************
@@ -1092,12 +1092,19 @@ void gazeArbiterThread::run() {
                 point_prev = point;
                 // introducing the fast tracker in the system, initialising the fast with the output of slow  
                 ptracker->getPoint(point);
-                tracker->init(point.x, point.y);
-                tracker->waitInitTracker();
                 printf("just returned the point %d %d \n", point.x , point.y);
+                tracker->init(point.x, point.y);
+                errorx = 160 - point.x;
+                errory = 120 - point.y;
+                px(0)  = (double) (cxl - errorx);
+                px(1)  = (double) (cyl - errory);
+                tracker->waitInitTracker();
+                igaze->lookAtMonoPixel(camSel,px,0.5);
+                printf("just initilisation with the point %d %d \n", point.x , point.y);
+                
                 
                 while((countDecrement < 1000) && (countReach < 3) 
-                      && (timeout < 8.0) && (ptracker->getInputCount()) /*&& (travelDistance <= 1000.0)*/  ) 
+                       && (timeout < 8.0) && (ptracker->getInputCount())  ) 
                 {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
@@ -1118,7 +1125,7 @@ void gazeArbiterThread::run() {
                     
                     errorVC_pre = errorVC;
                     errorVC = sqrt((double) (errorx * errorx + errory * errory));
-                    printf("time passed in correcting  %f (%d, %d : %3f) \n", timeout, errorx, errory, errorVC);
+                    //printf("time passed in correcting  %f (%d, %d : %3f) \n", timeout, errorx, errory, errorVC);
                     if(errorVC <= 3) {
                         countReach++;
                     }
@@ -1180,8 +1187,7 @@ void gazeArbiterThread::run() {
                     //printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
                   
                 }
-            
-
+                 
                 Time::delay(0.01);
                 if (minCumul > 5000000) {
                     printf("Error: out of correlation limits \n");
@@ -1226,6 +1232,7 @@ void gazeArbiterThread::run() {
                 else {
  
                     printf("saccade accomplished \n");
+                    printf("\n \n "); 
            
                     // saccade accomplished
                     //----------------------------------
@@ -1765,7 +1772,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"WAIT")) {
             // monocular saccades with visualFeedback
-            printf("MONO SACCADE request \n");
+            printf("WAIT request \n");
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
             zDistance = 0.5;

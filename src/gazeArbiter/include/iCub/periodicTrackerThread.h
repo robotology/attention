@@ -243,6 +243,9 @@ public:
                 mutexUpdate.post();                
                 if (update_tmp) {
                      imgMonoPrev = imgMonoIn; 
+                     mutexUpdate.wait();
+                     update = false;
+                     mutexUpdate.post(); 
                 }
 
                 // representing the template in the master image
