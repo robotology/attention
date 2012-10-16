@@ -380,14 +380,11 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     meanVelX /= nIter;
     meanVelY /= nIter;
 
-    //uMeasurements(1,0) = 2.0; uMeasurements(0,0) = 4.0;
-    //Measurements(0,0) = 3.0; zMeasurements(1,1) = 1.0;
+    fprintf(fMeasure, "%s \n", zMeasurements3D.toString().c_str());
     
     //estimate the predictor model that best fits the velocity measured
     //printf("setting measurements \n z = \n %s \n", zMeasurements.toString().c_str());
     //printf("u = \n %s \n", uMeasurements.toString().c_str());
-    
-    //eval->setMeasurements(uMeasurements,zMeasurements);     // alternative for debug
 
     // pointer to the beginning of the evalQueue
     evalQueue::iterator it;
@@ -397,12 +394,10 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     //Vector xCheck = (*it)->getX();
     //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
     
-    
     //tmp = *it;  // copy using pointer to the thread
     //tmp->setMeasurements(uMeasurements,zMeasurements);
     //printf("entering the loop for %08X with getdatReady %d \n",tmp, tmp->getDataReady());
 
-    
     //starting different evalution threads
     while(it != eQueue->end() ) { 
         printf("____________________________________________________________________________________________________\n");

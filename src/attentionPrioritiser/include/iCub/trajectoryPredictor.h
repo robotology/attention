@@ -87,9 +87,9 @@ private:
     yarp::sig::Vector n;                            // vector normal to the plane
     yarp::sig::Vector p0;                           // point belonging to the plane
     
-     FILE* fout;                                    // file for temporarely savings of events
-
-public:
+    FILE* fout;                                     // file for temporarely savings of events
+    FILE* fMeasure;                                 // file that collects the list of measurements
+ public:
     /**
     * default constructor
     */
