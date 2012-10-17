@@ -16,7 +16,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
- */
+ *
 
 /**
  * @file trackerThread.h
@@ -241,6 +241,7 @@ public:
     {
         inPort.interrupt();
         outPort.interrupt();
+        tmplPort.interrupt();
     }
 
     /************************************************************************/
@@ -248,6 +249,7 @@ public:
     {
         inPort.close();
         outPort.close();
+        tmplPort.close();
     }
 
     /************************************************************************/

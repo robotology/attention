@@ -127,17 +127,18 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(7,true);
     ap->setAllowStateRequest(8,true);
 
-if(ap->isLearning())
+    if(ap->isLearning()) {}
     // ------------- opening the logfile ----------------------
     //logFilePath = "logFile.txt";
     printf("printing the visited state and performance in a log files .... %s  %s \n", logStatePath.c_str(), logFilePath.c_str());
     logFile  = fopen(logFilePath.c_str(),"w+");
-    if (logFile == NULL)
+    if (logFile == NULL) {
         return false;
+    }
     fprintf(logFile, "beginning of the logFile \n");
     
     logState = fopen(logStatePath.c_str(),"w+");
-      
+    
     
     // --------- Reading Transition Matrix -------------------
     printf("initialisation of probability transition \n");
@@ -147,8 +148,8 @@ if(ap->isLearning())
     PsaFile = fopen(psaFilePath.c_str(),"r+");
     int n = 0; // number of bytes in the file
     double* valPsa = Psa->data();
-
-    
+        
+        
     printf("opening psa file \n");
     if (NULL == PsaFile) { 
         printf ("Error opening psa file \n"); 
@@ -167,7 +168,7 @@ if(ap->isLearning())
     
     rewind(PsaFile);
     n = n - 1;
-
+    
     if(n == 0) {
         fclose(PsaFile);
         // creating new Psa values                
@@ -204,7 +205,7 @@ if(ap->isLearning())
     }
     
     
-
+    
     // ------ Reading Reward State Action ------------------
     printf("reading reward Matrix from the file.... %s \n",rewardFilePath.c_str());
     
@@ -213,7 +214,7 @@ if(ap->isLearning())
     //rewardFilePath = "rewardFile.txt";
     rewardFile = fopen(rewardFilePath ,"r+");
     n = 0; // number of bytes in the file
-
+    
     
     if (NULL == rewardFile) { 
         perror ("Error opening reward file");
@@ -263,16 +264,16 @@ if(ap->isLearning())
         printf("saved %d \n", countVal);        
         //fclose(rewardFile);    //TODO : check this istruction
     }
-
-   
+    
+    
     printf("initialisation of the learning machines \n");
-     
+    
     // --------- Reading Quality Function -------------------         
     //qualityFilePath = "qualityFile.txt";
     printf("Quality Function : reading values from the file %s.... \n",qualityFilePath.c_str());
     qualityFile = fopen(qualityFilePath.c_str(),"r+");
     n = 0; // number of bytes in the file
-
+    
     
     if (NULL == qualityFile) { 
         perror ("Error opening Quality file");
@@ -288,8 +289,7 @@ if(ap->isLearning())
     }
     n = n - 1;
     rewind(qualityFile);
-    //V = new Matrix(NUMSTATE,NUMSTATE);
-    
+    //V = new Matrix(NUMSTATE,NUMSTATE);   
     
     val = Q->data();
     
@@ -325,7 +325,7 @@ if(ap->isLearning())
             numRead = fscanf(qualityFile, "%f", &x);
             Q->operator()(row,col) = (double) x;
             //printf("quality : numRead %d (%d,%d) > %f \n",numRead,row,col,numRead,(double)x);
-
+            
             col++;
             if(col == NUMACTION) {
                 row++;
@@ -337,21 +337,17 @@ if(ap->isLearning())
         }
         printf("saved %d \n", countVal);
         fclose(qualityFile);
-    }
-
-
+    }        
+   
     printf("init quality measure and action state \n");
 
-    
     // other needed matrices
     V = new Matrix(1,NUMSTATE);
     V->zero();
     //V[0,GOALSTATE] = 100; //a-priori value of the state because never visited
-
     
     printf("initialisation of the P matrix %d %d \n", NUMSTATE, NUMACTION);
-    //Matrix* tP = new Matrix(NUMSTATE,NUMACTION);
-    Matrix* tP = new Matrix(5,5);
+    Matrix* tP = new Matrix(NUMSTATE,NUMACTION);
     P = tP;
     P->zero();
 
@@ -359,7 +355,7 @@ if(ap->isLearning())
     // vector populated with the action that maximise reward in a particular state
     // the column of the vector reference to the state
     printf("initialisation of the A matrix %d \n", NUMSTATE);
-    Matrix* tA = new Matrix(1,NUMSTATE);
+    Matrix* tA = new Matrix(2,NUMSTATE);
     A = tA;
     A->zero();
     
@@ -369,12 +365,11 @@ if(ap->isLearning())
     //tp->setName(getName("").c_str()); 
     //tp->start();
 
-    printf(" init of the outing thread \n");
+    //printf(" init of the outing thread \n");
     //ot = new outingThread();
     //ot->setName(getName("").c_str()); 
     //ot->start();
-    
-    
+        
     printf("\n ------------------------oculomotorController::threadInit:initialisation correctly ended \n");
     
     return true;
@@ -1385,13 +1380,14 @@ void oculomotorController::interrupt(){
 
 
 void oculomotorController::threadRelease() {
+    printf("------------------------------- oculomotorController::threadRelease() : stopping threads \n");
+    
     double t;
     idle = true;
     //closing ports
-    inCommandPort.close();
-    //entImgPort.close();
     
-    printf("------------------------------- oculomotorController::threadRelease() : stopping threads \n");
+    //inCommandPort.close();
+    //entImgPort.close();
     
     //stopping thread
     //if(0 != tp) {

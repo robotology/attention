@@ -51,6 +51,7 @@ bool trajectoryPredictor::threadInit() {
     
     // open files
     fout = fopen("./attPrioritiser.trajectoryPredictor.3Dtraj.txt","w+");
+    fMeasure = fopen("./attPrioritiser.trajectoryPredictor.measure.txt","w+");
 
     // open ports 
     string rootName("");
@@ -379,11 +380,12 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     meanVelX /= nIter;
     meanVelY /= nIter;
-
-    fprintf(fMeasure, "%s \n", zMeasurements3D.toString().c_str());
+    
+    printf("ready to save the measure matrix \n");
+    fprintf(fMeasure, " \n",zMeasurements3D.toString().c_str());
     
     //estimate the predictor model that best fits the velocity measured
-    //printf("setting measurements \n z = \n %s \n", zMeasurements.toString().c_str());
+    //printf("setting measurements \n ");
     //printf("u = \n %s \n", uMeasurements.toString().c_str());
 
     // pointer to the beginning of the evalQueue
@@ -532,6 +534,8 @@ void trajectoryPredictor::run() {
 }
 
 void trajectoryPredictor::onStop() {
+    fclose(fout);
+    fclose(fMeasure);
     printf("trajectoryPredictor::onStop() : closing ports \n");
     inImagePort.interrupt();
     inImagePort.close();

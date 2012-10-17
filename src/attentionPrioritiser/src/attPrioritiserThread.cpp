@@ -298,21 +298,26 @@ bool attPrioritiserThread::threadInit() {
 
     printf(" \n ---------------------------- attPrioritiserThread::threadInit:starting the thread.... \n");
     
-    eyeL = new iCubEye("left");
-    eyeR = new iCubEye("right");    
-
-    // get camera projection matrix from the configFile
-    if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
-        Matrix &Prj = *PrjL;
-        //cxl=Prj(0,2);
-        //cyl=Prj(1,2);
-        invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
-    }
-     
     template_size = 20;
     search_size = 100;
     point.x = 320;
     point.y = 240;
+ 
+
+    printf("just got camera information \n");
+
+    eyeL = new iCubEye("left");
+    eyeR = new iCubEye("right");    
+    
+    // get camera projection matrix from the configFile
+    if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
+        Matrix &Prj = *PrjL;
+        //_old cxl=Prj(0,2);
+        //_old cyl=Prj(1,2);
+        invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
+    }
+     
+ 
 
     template_roi.width = template_roi.height = template_size;
     search_roi.width   = search_roi.height   = search_size;
@@ -399,15 +404,12 @@ bool attPrioritiserThread::threadInit() {
     sacPlanner->referenceRetina(imgLeftIn);
     sacPlanner->start();
     
-
     
     printf("attPrioritiserThread::threadInit: starting the tracker \n");
     ResourceFinder* rf = new ResourceFinder();
     tracker = new trackerThread(*rf);
     tracker->setName(getName("/matchTracker").c_str());
     tracker->start();
-    
-    
     
     printf("attPrioritiserThread::threadInit:starting the trajectoryPredictor \n");
     trajPredictor = new trajectoryPredictor();
@@ -570,7 +572,7 @@ void attPrioritiserThread::threadRelease() {
     delete eyeL;
     delete eyeR;
     printf("attPrioritiserThread::threadRelease:successfully deleted eyes references \n");
- 
+    */
     
     if(0!=sacPlanner) {
         printf("attPrioritiserThread::threadRelease:deleting the clientPlanner \n");
@@ -589,9 +591,7 @@ void attPrioritiserThread::threadRelease() {
     }
     printf("attPrioritiserThread::threadRelease:corretly stopped the trajPredictor \n");
     
-    */
-
-    evalVel1.stop();
+     evalVel1.stop();
 
     //delete sacPlanner;
     printf("----------------------------------- attPrioritiserThread::threadRelease:success in releasing all the components \n");
