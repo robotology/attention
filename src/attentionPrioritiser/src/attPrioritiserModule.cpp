@@ -115,6 +115,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     prioritiser->setRobotName(robotName);
 
     printf("running the controller \n");
+    
     controller = new oculomotorController(prioritiser);
     string str = (string) getName();
     str.append("/controller");
@@ -126,6 +127,8 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     controller->setRewardFile(rf.findFile("rewardFile.txt"));
     controller->setQualityFile(rf.findFile("qualityFile.txt"));
     printf("controller correctly initialised \n");
+    
+    
     
 
     //controller->setResourceFinder(rf);
@@ -236,7 +239,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
 
     // setting observer and observable interactions    
     collector->addObserver(*prioritiser);
-    prioritiser->addObserver(*controller);
+    //prioritiser->addObserver(*controller);  //17/10/12
 
     
     /**
@@ -259,12 +262,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     if(rf.check("learningController")) {
         printf("The Q-learning controller takes responsabilities for any selected action \n");
         prioritiser->setLearning(true);
-        controller->setIdle(false);
+        //controller->setIdle(false); //17/10/12
     }
     else {
         printf("Q learning controller is not involved in the action selection decisions \n");
         prioritiser->setLearning(false);
-        controller->setIdle(true);
+        //controller->setIdle(true); //17/10/12
     }
 
     /*
@@ -320,13 +323,10 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     
     printf("starting the collector... \n");
     collector->start();
-    
      
     printf("starting the controller... \n");
     controller->start();
     
-    
-
     printf("starting the prioritiser... \n");
     if(!prioritiser->start()){
         printf("Att.prioritiser thread did not start. \n");
@@ -349,6 +349,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
 
 bool attPrioritiserModule::interruptModule() {
     handlerPort.interrupt();
+    //controller->interrupt();
     return true;
 }
 

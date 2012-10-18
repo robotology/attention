@@ -302,7 +302,6 @@ bool attPrioritiserThread::threadInit() {
     search_size = 100;
     point.x = 320;
     point.y = 240;
- 
 
     printf("just got camera information \n");
 

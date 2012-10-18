@@ -97,6 +97,9 @@ oculomotorController::~oculomotorController() {
 
 bool oculomotorController::threadInit() {
     printf(" ------------------ oculomotorController::threadInit:starting the thread.... \n");
+    
+   
+    
     // initialisation of relevant matrices
     Q                 = new Matrix(NUMSTATE,  NUMACTION);
     Psa               = new Matrix(NUMSTATE * NUMACTION, NUMSTATE);
@@ -128,7 +131,11 @@ bool oculomotorController::threadInit() {
     ap->setAllowStateRequest(8,true);
 
     if(ap->isLearning()) {}
+
+     
+    
     // ------------- opening the logfile ----------------------
+   
     //logFilePath = "logFile.txt";
     printf("printing the visited state and performance in a log files .... %s  %s \n", logStatePath.c_str(), logFilePath.c_str());
     logFile  = fopen(logFilePath.c_str(),"w+");
@@ -140,7 +147,9 @@ bool oculomotorController::threadInit() {
     logState = fopen(logStatePath.c_str(),"w+");
     
     
+    
     // --------- Reading Transition Matrix -------------------
+    
     printf("initialisation of probability transition \n");
     
     //psaFilePath = "psaFile.txt";
@@ -196,17 +205,20 @@ bool oculomotorController::threadInit() {
         double* py = &y[0];
         while((numRead != -1) && (countVal < NUMSTATE * NUMACTION * NUMSTATE)){
             numRead = fscanf(PsaFile, "%f", &x);
-            //printf("psa : numRead %d > %f \n",numRead,x);
-            *valPsa = (double) x;
-            valPsa++; countVal++;
+            if(numRead != -1) {
+                //printf("psa : numRead %d > %f \n",numRead,x);
+                *valPsa = (double) x;
+                valPsa++; countVal++;
+            }
         }
-        //printf("saved %d \n", countVal);        
+        printf("saved %d \n", countVal);        
         fclose(PsaFile);
     }
     
     
     
     // ------ Reading Reward State Action ------------------
+    
     printf("reading reward Matrix from the file.... %s \n",rewardFilePath.c_str());
     
     double* val = rewardStateAction->data();
@@ -230,6 +242,7 @@ bool oculomotorController::threadInit() {
     }
     n = n - 1;
     rewind(rewardFile);
+    
     
     if(n == 0) {
         fclose(rewardFile);
@@ -257,18 +270,24 @@ bool oculomotorController::threadInit() {
         //double* py = &y[0];
         while(numRead != -1){
             numRead = fscanf(rewardFile, "%f", &x);
-            //printf("reward : numRead %d > %f \n",numRead,x);
-            *val = (double) x;
-            val++; countVal++;
+            if(numRead != -1) {
+                //printf("reward : numRead %d > %f \n",numRead,x);
+                *val = (double) x;
+                val++; countVal++;
+            }
         }
+        
         printf("saved %d \n", countVal);        
         //fclose(rewardFile);    //TODO : check this istruction
     }
-    
+     
     
     printf("initialisation of the learning machines \n");
     
+    
+    
     // --------- Reading Quality Function -------------------         
+    
     //qualityFilePath = "qualityFile.txt";
     printf("Quality Function : reading values from the file %s.... \n",qualityFilePath.c_str());
     qualityFile = fopen(qualityFilePath.c_str(),"r+");
@@ -323,22 +342,24 @@ bool oculomotorController::threadInit() {
         countVal =0;
         while((numRead != -1)&&(countVal < NUMACTION * NUMSTATE)){
             numRead = fscanf(qualityFile, "%f", &x);
-            Q->operator()(row,col) = (double) x;
-            //printf("quality : numRead %d (%d,%d) > %f \n",numRead,row,col,numRead,(double)x);
-            
-            col++;
-            if(col == NUMACTION) {
-                row++;
-                col = 0;
+            if(numRead != -1) {
+                Q->operator()(row,col) = (double) x;
+                //printf("quality : numRead %d (%d,%d) > %f \n",numRead,row,col,numRead,(double)x);
+                
+                col++;
+                if(col == NUMACTION) {
+                    row++;
+                    col = 0;
+                }
+                countVal++;
+                //*val = (double) x;
+                //val++; coun                tVal++;
             }
-            countVal++;
-            //*val = (double) x;
-            //val++; countVal++;
         }
         printf("saved %d \n", countVal);
         fclose(qualityFile);
-    }        
-   
+    }
+        
     printf("init quality measure and action state \n");
 
     // other needed matrices
@@ -371,6 +392,8 @@ bool oculomotorController::threadInit() {
     //ot->start();
         
     printf("\n ------------------------oculomotorController::threadInit:initialisation correctly ended \n");
+    
+    
     
     return true;
 }
@@ -881,7 +904,7 @@ void oculomotorController::run() {
     if(!idle) {        
         iter++;   // main temporal counter for visualisation and active learning
          
-        printf("cycle %d \n", iter);
+        //printf("cycle %d \n", iter);
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
             // sets all flag that allow action to false
@@ -1374,8 +1397,10 @@ void oculomotorController::waitForActuator() {
 
 
 void oculomotorController::interrupt(){
+    printf("------------------------------- oculomotorController::threadRelease() : interrupt threads \n");
     inCommandPort.interrupt();
     //entImgPort.interrupt();
+    printf("------------------------------- oculomotorController::threadRelease() : interrupt threads \n");
 }
 
 
@@ -1386,7 +1411,8 @@ void oculomotorController::threadRelease() {
     idle = true;
     //closing ports
     
-    //inCommandPort.close();
+    //inCommandPort.interrupt();
+    inCommandPort.close();
     //entImgPort.close();
     
     //stopping thread
