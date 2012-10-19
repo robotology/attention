@@ -212,6 +212,7 @@
  * 25/09/12 : introduced the periodic tracker thread                                                author: Rea \n
  * 02/10/12 : made the period tracker thread really work into the gazeArbiter system                author: Rea \n
  * 10/10/12 : made the periodTracker work with the matchTracker                                     author: Rea \n
+ * 19/10/12 : made the center of the camera a double value rather than an integer                   author: Rea \n
  */
 
 #include <iostream>

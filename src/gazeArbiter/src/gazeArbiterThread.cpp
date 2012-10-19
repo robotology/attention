@@ -183,8 +183,6 @@ bool gazeArbiterThread::threadInit() {
     executing = false;
     printf("starting the thread.... \n");
 
-
-    
     //initializing gazecontrollerclient
     printf("initialising gazeControllerClient \n");
     Property option;
