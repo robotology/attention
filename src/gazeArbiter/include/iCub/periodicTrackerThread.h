@@ -67,6 +67,7 @@ protected:
     bool init_success;                           // flag that check whether initialisation was successful
     bool check;                                  // flag that allows external user to enable updating in the class
     bool update;                                 // flag that allows for updating the template image
+    bool computation_done;                       // flag that indicates when the computation has been performed
 
     ImageOf<PixelMono> imgMonoIn;                // input image for the comparison
     ImageOf<PixelMono> imgMonoPrev;              // updated image result of the previous steps
@@ -79,6 +80,7 @@ protected:
     yarp::os::Semaphore mutex;                   // semaphore for the min cumulative value
     yarp::os::Semaphore mutexCheck;              // semaphore for the mutexCheck
     yarp::os::Semaphore mutexUpdate;             // semaphore for the mutexUpdate
+    yarp::os::Semaphore mutexComput;             // semaphore for the computation done
 
 public:
     /************************************************************************/
@@ -103,9 +105,12 @@ public:
         tmplPort.open  ((name+"/tmpl:o")  .c_str());
         masterPort.open((name+"/master:0").c_str());
 
+        // setting flags
         firstConsistencyCheck = true;
-        running = false;
-        init_success = false;
+        running               = false;
+        init_success          = false;
+        computation_done      = false;
+        
         point.x = 0;
         point.y = 0;
 
@@ -262,6 +267,7 @@ public:
                 if (check_copy) {
                     
                     minLoc=sqDiff(img,search_roi,tmp,template_roi, ftmp);
+                    computation_done = true;
                     printf("minima %f \n", ftmp);
                
                     // updating the correlation measure 
@@ -371,6 +377,26 @@ public:
         }
     }
 
+    /*****************************************************************************/
+    /**
+     * @brief waiting for the success in the initialisation of the tracker
+     */
+    void waitCorrComputation() {
+        mutexComput.wait();
+        bool comp_done = computation_done;
+        mutexComput.post();
+        while (!comp_done) {
+            Time::delay(0.005);
+            mutexComput.wait();
+            comp_done = computation_done;
+            mutexComput.post();
+        }
+        mutexComput.wait();
+        computation_done = false;
+        mutexComput.post();
+    }
+
+    
 
     /*****************************************************************************/
     /**

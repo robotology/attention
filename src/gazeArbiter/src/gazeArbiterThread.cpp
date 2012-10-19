@@ -890,7 +890,7 @@ void gazeArbiterThread::run() {
                                 ptracker->init(u,v);
                                 printf("just run into the init \n");
                                 ptracker->waitInitTracker();                                
-                                Time::delay(0.5); // TODO : check this delay interval trying to make it shorter
+                                //Time::delay(0.1); // TODO : check this delay interval trying to make it shorter
                             }
                             
                             printf("visual correction mechanism correctly initialised \n");
@@ -899,7 +899,7 @@ void gazeArbiterThread::run() {
                             px(1) = v;
                             int camSel = 0;
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            Time::delay(0.2);    // TODO : check this delay interval trying to make it shorter
+                            //Time::delay(0.2);    // TODO : check this delay interval trying to make it shorter
                             igaze->checkMotionDone(&done);
                             printf("first check motion done %d \n", done);
                             dist = 10;
@@ -1065,24 +1065,31 @@ void gazeArbiterThread::run() {
             // *********************************************************************************************
             // sending the command to the episodic tracker
             ptracker->setCheck(true);
+            // the actual visiting of the whole portion of the image is time-demanding
+            // the bigger the area controlled the longer the time interval
+            // ALLOW necessary time or waitComputation 
+            printf("waiting for completion in the periodicTracking.... \n");
+            ptracker->waitCorrComputation();
+            printf("computation completed \n");
             
+
             // *********************************************************************************************
             // correcting the macrosaccade using the visual feedback (only if required)
             // saccade correction based of visual feedback (tracker implementation)
             timeoutStart = Time::now();
             timeout = 0;
-            
+
             if (visualCorrection) {
                 printf("Using visual correction \n");
-                Time::delay(5.0);
+               
                 double errorVC        = 100.0;
                 double errorVC_pre    = 100.0;
                 int countReach        = 0;       // counter of the success in reaching
                 int countDecrement    = 0;
                 double travelDistance = 0.0;     // distance travel by the tracked point
                 float minCumul        = 0;
-                int errorx;                      // = (width  >> 1) - point.x;
-                int errory;                      // = (height >> 1) - point.y;  
+                double errorx;                      // = (width  >> 1) - point.x;
+                double errory;                      // = (height >> 1) - point.y;  
                 
                 
                 Vector px(2);
@@ -1090,15 +1097,21 @@ void gazeArbiterThread::run() {
                 point_prev = point;
                 // introducing the fast tracker in the system, initialising the fast with the output of slow  
                 ptracker->getPoint(point);
-                printf("just returned the point %d %d \n", point.x , point.y);
-                tracker->init(point.x, point.y);
-                errorx = 160 - point.x;
-                errory = 120 - point.y;
-                px(0)  = (double) (cxl - errorx);
-                px(1)  = (double) (cyl - errory);
-                tracker->waitInitTracker();
-                igaze->lookAtMonoPixel(camSel,px,0.5);
-                printf("just initilisation with the point %d %d \n", point.x , point.y);
+                printf("just waiting for initialisation point %d %d... \n", point.x , point.y);
+                
+                
+                CvPoint testPoint; testPoint.x = -1; testPoint.y = -1;
+                while ((testPoint.x != point.x) && (testPoint.y != point.y)) {
+                    tracker->init(point.x, point.y);
+                    tracker->waitInitTracker();
+                    tracker->getPoint(testPoint);
+                    printf("tracking %d %d \n",testPoint.x, testPoint.y );
+                }
+                
+                printf("just initilisated  with the point %d %d \n", point.x , point.y);
+
+                //Time::delay(1.0); //extra time                
+                //igaze->lookAtMonoPixel(camSel,px,0.5);
                 
                 
                 while((countDecrement < 1000) && (countReach < 3) 
@@ -1113,18 +1126,18 @@ void gazeArbiterThread::run() {
                     px(0)  = (width  >> 1) - 1 - errorx;    // subtracting 1 for the center of image
                     px(1)  = (height >> 1) - 1 - errory;    // subtracting 1 for the center of image
 #else
-                    errorx = 160 - point.x;
-                    errory = 120 - point.y;
-                    px(0)  = (double) (cxl - errorx);
-                    px(1)  = (double) (cyl - errory);
-                    printf("c = (%d,%d) point = (%d,%d) error= (%d, %d) px = (%f,%f) \n",cxl,cyl,point.x, point.y,errorx, errory, px(0), px(1));
+                    errorx = 160.0 - point.x;
+                    errory = 120.0 - point.y;
+                    px(0)  = cxl - errorx;
+                    px(1)  = cyl - errory;
+                    //printf("c = (%d,%d) point = (%f,%f) error= (%f, %f) px = (%f,%f) \n",cxl,cyl,point.x, point.y,errorx, errory, px(0), px(1));
 #endif
 
                     
                     errorVC_pre = errorVC;
                     errorVC = sqrt((double) (errorx * errorx + errory * errory));
                     //printf("time passed in correcting  %f (%d, %d : %3f) \n", timeout, errorx, errory, errorVC);
-                    if(errorVC <= 3) {
+                    if(errorVC <= 2) {
                         countReach++;
                     }
                     if ((errorVC > 4 ) ) {
