@@ -46,28 +46,33 @@ protected:
     yarp::sig::Matrix H;        // trasformation matrix from state to measure
     int inputId;                // reference to the input value
     int rowA,colA;              // dimension of the matrix A
+    double paramA;              // paramA 
+    double paramB;              // paramB  
+
 public:
     predModel() : valid(false), type("") { }
     bool isValid() const        { return valid; }
     std::string getType() const { return type;  }
 
-    yarp::sig::Matrix getA() const    {return A;    };
-    yarp::sig::Matrix getB() const    {return B;    };
-    yarp::sig::Matrix getH() const    {return H;    };
-    int               getRowA() const {return rowA; };
-    int               getColA() const {return colA; };
+    yarp::sig::Matrix getA()      const    {return A;      };
+    yarp::sig::Matrix getB()      const    {return B;      };
+    yarp::sig::Matrix getH()      const    {return H;      };
+    int               getRowA()   const    {return rowA;   };
+    int               getColA()   const    {return colA;   };
+    double            getParamA() const    {return paramA; };
+    double            getParamB() const    {return paramB; };
     void setA(const yarp::sig::Matrix mat) {A = mat;};
     void setB(const yarp::sig::Matrix mat) {B = mat;};
     void setH(const yarp::sig::Matrix mat) {H = mat;};
     
     /**
      * @brief function for the initialisation of the kalman filter
-     * @param  param1 first parameter ( only one in 1-Dimension space) 
+     * @param param1 first parameter ( only one in 1-Dimension space) 
      * @param param2 second paramter (eventually NULL in 1-Dimension space)
      */
     virtual void init(double param1, double param2 = 0) = 0;
 
-    virtual bool operator ==(const predModel &pModel) = 0;
+    virtual bool operator ==  (const predModel &pModel) = 0;
 
 };
 

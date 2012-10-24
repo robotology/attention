@@ -47,7 +47,7 @@ class evalThread : public yarp::os::Thread {
     iCub::ctrl::Kalman* kSolver;
     genPredModel* gPredModel;
 
-    static const int numIter    = 3;
+    static const int numIter    = 39;
     
     bool dataReady;
     bool evalFinished;
@@ -224,11 +224,11 @@ class evalThread : public yarp::os::Thread {
         
         while (!isStopping()) {           
             
-            printf("evalThread cycle \n");
-            printf("pre mutex %d \n", dataR);            
+            //printf("evalThread cycle \n");
+            //printf("pre mutex %d \n", dataR);            
             dataR = getDataReady();
-            printf("afterGetDataReady %d \n", dataR); 
-            printf("after mutex %d \n", dataR);
+            //printf("afterGetDataReady %d \n", dataR); 
+            //printf("after mutex %d \n", dataR);
                         
             while(!dataR) {
                 Time::delay(0.5);       
@@ -240,6 +240,9 @@ class evalThread : public yarp::os::Thread {
             dataReady = false;
             mutexR.post();
             
+            printf("\n -------- the general model associated uses %f \n",gPredModel->getParamB());
+            printf("zMeasure %s \n", zMeasure->toString().c_str());
+
             double sumError = 0;
             for(int i = 0; i < numIter ; i++) {
                 //printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
@@ -250,8 +253,9 @@ class evalThread : public yarp::os::Thread {
                 Vector uTmp = uMeasure->getCol(i); //extracted u from the ith column 
                 uTmp.resize(1,0);  // gives the vector the correct shape
                 uTmp(0) = 1.5;
+                
 
-                //printf("kSolver %08X \n", kSolver);
+                printf("zTmp %s \n", zTmp.toString().c_str());
                 Vector xTmp  = kSolver->filt(uTmp,zTmp);
 
                 printf("estim.state %s \n", xTmp.toString().c_str()); 
@@ -272,7 +276,7 @@ class evalThread : public yarp::os::Thread {
             //Time::delay(5.0);
             
             //setting the result out
-            printf("setting the result out \n");
+            printf("-------- setting the result out \n \n");
             mutexF.wait();
             evalFinished = true;
             mutexF.post();    
@@ -355,6 +359,7 @@ class evalThread : public yarp::os::Thread {
         //printf("%d %d \n", _u.rows(), _u.cols() );
         
         //delete uMeasure;
+        // TODO : check possible memory leak
         uMeasure = new Matrix( _u.rows(), _u.cols());
         zMeasure = new Matrix( _z.rows(), _z.cols());
         //printf("%d %d \n", uMeasure->rows(), uMeasure->cols() );
@@ -367,7 +372,7 @@ class evalThread : public yarp::os::Thread {
 
         //printf(" uMeasure \n %s  \n",  uMeasure->toString().c_str());
         //printf("_u \n %s  \n", _u.toString().c_str());
-        //printf("_z \n %s \n zMeasure %s \n", _z.toString().c_str(), zMeasure->toString().c_str());
+        printf("_z \n %s \n zMeasure %s \n", _z.toString().c_str(), zMeasure->toString().c_str());
 
         mutexR.wait();
         dataReady = true;
@@ -439,6 +444,12 @@ class evalThread : public yarp::os::Thread {
          mutexMSE.post();
 
          return dr;
+    }
+
+    ///////////////////////////////////////////////////////////////
+
+    int getRowA() {
+         return rowA;
     }
 
 };

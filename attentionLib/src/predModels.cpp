@@ -95,7 +95,10 @@ bool linVelModel::operator ==(const linVelModel &model) {
             (A == model.A) && (B == model.B) && (H == model.H)); 
 }
 
-void linVelModel::init(double paramA, double paramB) {
+void linVelModel::init(double _paramA, double _paramB) {
+    paramA = _paramA;
+    paramB = _paramB;
+
     rowA = 2;
     colA = 2;
     printf("initialisation matrix A,B,H with main dimension %d \n", rowA, colA);
@@ -141,7 +144,10 @@ bool linAccModel::operator ==(const linAccModel &model) {
     return ((valid == model.valid) && (type == model.type) && (A == model.A) && (B == model.B)); 
 }
     
-    void linAccModel::init(double paramA, double paramB) {
+    void linAccModel::init(double _paramA, double _paramB) {
+        paramA = _paramA;
+        paramB = _paramB;
+
         printf("linAccModel::init:start \n");
         rowA = 2;
         colA = 2;
@@ -195,9 +201,13 @@ bool minJerkModel::operator ==(const minJerkModel &model) {
             && (A == model.A)&&(B == model.B)); 
 }
 
-    void minJerkModel::init(double paramT, double paramU) {
-    T = paramT;
-    u = paramU;
+void minJerkModel::init(double _paramA, double _paramB) {
+    paramA = _paramA;
+    paramB = _paramB;
+
+    T = _paramB;
+    u = _paramA;
+
     double T2 = T * T;
     double T3 = T2 * T;
 
