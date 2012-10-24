@@ -119,7 +119,6 @@ bool oculomotorController::threadInit() {
 
     // interacting with the attPrioritiserThread 
     firstCycle = true;
-
     ap->setAllowStateRequest(0,true);
     ap->setAllowStateRequest(1,true);
     ap->setAllowStateRequest(2,true);
@@ -391,6 +390,9 @@ bool oculomotorController::threadInit() {
     //ot->setName(getName("").c_str()); 
     //ot->start();
         
+    idle = true; // TODO: removed this hard coded initialisation. Possible memory leak. 18/10/12
+    printf("idleState %d \n", idle);
+
     printf("\n ------------------------oculomotorController::threadInit:initialisation correctly ended \n");
     
     
@@ -901,10 +903,12 @@ double oculomotorController::calculateEntropy(yarp::sig::ImageOf<yarp::sig::Pixe
 }
 
 void oculomotorController::run() {
+    
     if(!idle) {        
         iter++;   // main temporal counter for visualisation and active learning
          
-        //printf("cycle %d \n", iter);
+        printf(".............................................................cycle %d \n", iter);
+        Time::delay(10.0);
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
             // sets all flag that allow action to false
@@ -951,6 +955,7 @@ void oculomotorController::run() {
         //scopeBottle.addDouble(totalPayoff);
         //scopePort.write();
     }
+    
 }
 
 void oculomotorController::logAction(int a) {

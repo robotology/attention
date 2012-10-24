@@ -112,7 +112,8 @@ bool trajectoryPredictor::threadInit() {
     eQueue->push_back(&evalMJ1_T1);  
     */
 
-    // ---------------------------------------------------------------------------
+    // _______________________ LINEAR ACCELERATION MODELS _______________________________________
+    // ------------------------------------------------------------------------------------------
     
     linAccModel* modelB = new linAccModel();
     
@@ -157,6 +158,43 @@ bool trajectoryPredictor::threadInit() {
     eval->init(z0,x0,P0);
     eval->start();
     eQueue->push_back(eval); 
+
+    // _______________________ MINIMUM JERK MODELS  _______________________________________
+    // ------------------------------------------------------------------------------------
+    
+    minJerkModel* modelC = new minJerkModel();
+    int rowC = modelC->getA().rows();
+    int colC = modelC->getA().cols();
+    Vector z0c(rowC);
+    Vector x0c(rowC);
+    x0c.zero();z0c.zero();
+    x0c(0) = 1.0; 
+    Matrix P0c(rowA,colA);
+    printf("initialisation of P0 %d %d \n", rowA, colA);
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colA; j++) { 
+            P0(i,j) += 0.01;
+        }      
+    }
+
+    modelB->init(1.0, 1.0);
+    mB = dynamic_cast<genPredModel*>(modelB);
+    eval = new evalThread(*mB);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
+    
+    //------------------------------------------------------------------------------
+    
+    printf("moving to the next predictor \n");
+    modelC = new minJerkModel();
+    modelC->init(1.0,2.0);
+    mB = dynamic_cast<genPredModel*>(modelB);
+    eval = new evalThread(*mB);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
+   
     
     
     printf("------------------- trajectoryPredictor::threadInit: success in the initialisation \n");
@@ -243,7 +281,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     CvPoint p_curr, p_prev;
 
-    double timeStart = Time::now();
+    double timeStart   = Time::now();
+    double timeInitial = timeStart;
+    double timeMeas;
     double timeStop, timeDiff;
     double dist_prev;
     double dist;
@@ -266,7 +306,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     double distX_prev;
     double distY_prev;
     
-    int nIter = 20;
+    int nIter = 40;
     
     // //for n times records the position of the object and extract an estimate
     // // extracting the velocity of the stimulus; saving it into a vector 
@@ -309,7 +349,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         if (n == 0) {
             // initialisation of the starting point of the traj.
             p_prev =  p_curr; 
-            Vector px(2);
+            
             px(0) = p_curr.x; 
             px(1) = p_curr.y;
             igaze->get3DPointOnPlane(camSel,px,plane,x3D);
@@ -320,16 +360,17 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         }
         else {
             timeDiff = timeStop - timeStart;
+            timeMeas = Time::now() - timeInitial;
             //printf("----------------- \n timeDiff %f \n", timeDiff );
-            distX = p_curr.x - p_prev.x;
-            distY = p_curr.y - p_prev.y;
-            Vector px(2);
+            //distX = p_curr.x - p_prev.x;
+            //distY = p_curr.y - p_prev.y;
+            
             px(0) = p_curr.x; 
             px(1) = p_curr.y;
             igaze->get3DPointOnPlane(camSel,px,plane,x3D);
             //igaze->get3DPoint(camSel,px,z,x3D);
-            printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
-            fprintf(fout,"%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
+            //printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
+            //fprintf(fout,"%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
 
 
             distX =  x3D(1) - y0;
@@ -337,7 +378,11 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             dist_prev = dist;
             dist  = sqrt((double)distX * distX + distY * distY);
             theta = atan2(distY, distX);
-            printf("travelled distance %f angle %f \n", dist, theta);
+            //printf("travelled distance %f angle %f \n", dist, theta);
+            
+            fprintf(fMeasure,"%f ",timeMeas); 
+            fprintf(fMeasure,"%f ",dist);
+            
             
             zMeasurements2D(n - 1, 0) = dist;
             zMeasurements3D(n - 1, 0) = dist;
@@ -349,9 +394,12 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             //vel = sqrt( velX * velX + velY * velY);
 
             vel_prev = vel;
-            vel = (dist - dist_prev) / timeDiff;
+            vel = (dist - dist_prev) / 0.033;
             zMeasurements2D(n - 1, 1) = vel;
             zMeasurements3D(n - 1, 1) = vel;
+            
+            fprintf(fMeasure,"%f ",timeDiff);
+            fprintf(fMeasure,"%f ",vel);
 
             //accX = (velX - velX_prev) / timeDiff;
             //accY = (velY - velY_prev) / timeDiff;
@@ -359,6 +407,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
              
             acc  = (vel - vel_prev) / timeDiff;
             zMeasurements3D(n - 1, 2) = acc;
+            
+            fprintf(fMeasure,"%f \n",acc);
 
             //if(accY > maxAccY) { 
             //    maxAccY = accY;
@@ -373,16 +423,17 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             
             //meanVelX += velX;
             //meanVelY += velY;
+            
         }
         timeStart = Time::now();
-        Time::delay(0.05);
+        Time::delay(0.033);
     }
     
     meanVelX /= nIter;
     meanVelY /= nIter;
     
-    printf("ready to save the measure matrix \n");
-    fprintf(fMeasure, " \n",zMeasurements3D.toString().c_str());
+    printf("ready to save the measure matrix %s \n",zMeasurements3D.toString().c_str() );
+    //fprintf(fMeasure, "%s\n",zMeasurements3D.toString().c_str());
     
     //estimate the predictor model that best fits the velocity measured
     //printf("setting measurements \n ");
@@ -411,7 +462,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         it++;   
         printf("____________________________________________________________________________________________________\n \n \n");
     }
-    printf("out of the loop that starts the predicotrs \n");
+    printf("out of the loop that starts the predictors \n");
 
 
     // waiting for the evaluation already started

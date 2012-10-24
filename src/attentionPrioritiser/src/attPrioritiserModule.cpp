@@ -239,7 +239,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
 
     // setting observer and observable interactions    
     collector->addObserver(*prioritiser);
-    //prioritiser->addObserver(*controller);  //17/10/12
+    prioritiser->addObserver(*controller);  
 
     
     /**
@@ -262,12 +262,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     if(rf.check("learningController")) {
         printf("The Q-learning controller takes responsabilities for any selected action \n");
         prioritiser->setLearning(true);
-        //controller->setIdle(false); //17/10/12
+        controller->setIdle(false); 
     }
     else {
         printf("Q learning controller is not involved in the action selection decisions \n");
         prioritiser->setLearning(false);
-        //controller->setIdle(true); //17/10/12
+        controller->setIdle(true); 
     }
 
     /*

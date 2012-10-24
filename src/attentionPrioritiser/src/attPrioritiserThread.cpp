@@ -403,7 +403,6 @@ bool attPrioritiserThread::threadInit() {
     sacPlanner->referenceRetina(imgLeftIn);
     sacPlanner->start();
     
-    
     printf("attPrioritiserThread::threadInit: starting the tracker \n");
     ResourceFinder* rf = new ResourceFinder();
     tracker = new trackerThread(*rf);
@@ -418,10 +417,7 @@ bool attPrioritiserThread::threadInit() {
     trajPredictor->start();
     printf("--------------------------------attPrioritiser::threadInit:end of the threadInit \n");
     
-
-    
     // eQueue = new evalQueue(false);
-
 
     //-----------------------------------------------------------------------------------
     /*
@@ -686,6 +682,7 @@ void attPrioritiserThread::run() {
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
+    //printf("allowStateRequest %d \n", allowStateRequest[6]);
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
     
@@ -1970,9 +1967,9 @@ void attPrioritiserThread::reinforceFootprint() {
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     cUpdate++;
-    //printf("ACK. Aware of observable asking for attention \n");
+    printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
-        //printf("bottle: %s ", arg->toString().c_str());
+        printf("bottle: %s \n", arg->toString().c_str());
         int size = arg->size();
         ConstString name = arg->get(0).asString();
         
@@ -2263,7 +2260,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
               
         }
         else if(!strcmp(name.c_str(),"PRED")) {
-            
+            printf("received a PRED command \n");
             // saving bottle in the buffer
             bufCommand[6] = *arg;
 
@@ -2272,6 +2269,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             // prediction attemp after triggering stimulus
             mutex.wait();
+            printf("checking the allowStateRequest[6] \n");
             if(allowStateRequest[6]) {
                 printf("setting stateRequest[6] \n");
                 reinfFootprint = true;
