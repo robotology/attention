@@ -261,7 +261,7 @@ class evalThread : public yarp::os::Thread {
                 double diffS = diff(0);
                 double diffV = diff(1);
                 double diffA = diff(2);
-                sumError   += (diffS * diffS) + (diffS * diffS) + (diffS * diffS);
+                sumError   += (diffS * diffS) + (diffV * diffV) + (diffA * diffA);
                
             }
 
