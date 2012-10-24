@@ -50,8 +50,9 @@ bool trajectoryPredictor::threadInit() {
     printf("-------------------------------trajectoryPredictor::threadInit:starting the thread.... \n");
     
     // open files
-    fout = fopen("./attPrioritiser.trajectoryPredictor.3Dtraj.txt","w+");
-    fMeasure = fopen("./attPrioritiser.trajectoryPredictor.measure.txt","w+");
+    fout      = fopen("./attPrioritiser.trajectoryPredictor.3Dtraj.txt","w+");
+    fMeasure  = fopen("./attPrioritiser.trajectoryPredictor.measure.txt","w+");
+    fEstimate = fopen("./attPrioritiser.trajectoryPredictor.estimate.txt","w+");
 
     // open ports 
     string rootName("");
@@ -143,8 +144,8 @@ bool trajectoryPredictor::threadInit() {
     printf("genPred model A \n %s \n",mB    ->getA().toString().c_str());
     printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
     printf("just initialised genPredModel %08X \n",&eval);
-    eval->start();
-    eQueue->push_back(eval); 
+    //eval->start();
+    //eQueue->push_back(eval); 
     
     
 
@@ -156,8 +157,8 @@ bool trajectoryPredictor::threadInit() {
     mB = dynamic_cast<genPredModel*>(modelB);
     eval = new evalThread(*mB);
     eval->init(z0,x0,P0);
-    eval->start();
-    eQueue->push_back(eval); 
+    //eval->start();
+    //eQueue->push_back(eval); 
 
     // _______________________ MINIMUM JERK MODELS  _______________________________________
     // ------------------------------------------------------------------------------------
@@ -177,9 +178,9 @@ bool trajectoryPredictor::threadInit() {
         }      
     }
 
-    modelB->init(1.0, 1.0);
-    mB = dynamic_cast<genPredModel*>(modelB);
-    eval = new evalThread(*mB);
+    modelC->init(1.0, 1.0);
+    genPredModel* mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
     eval->start();
     eQueue->push_back(eval); 
@@ -189,11 +190,11 @@ bool trajectoryPredictor::threadInit() {
     printf("moving to the next predictor \n");
     modelC = new minJerkModel();
     modelC->init(1.0,2.0);
-    mB = dynamic_cast<genPredModel*>(modelB);
-    eval = new evalThread(*mB);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
-    eval->start();
-    eQueue->push_back(eval); 
+    //eval->start();
+    //eQueue->push_back(eval); 
    
     
     
@@ -432,7 +433,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     meanVelX /= nIter;
     meanVelY /= nIter;
     
-    printf("ready to save the measure matrix %s \n",zMeasurements3D.toString().c_str() );
+    printf("ready to save the measure matrix\n %s \n",zMeasurements3D.toString().c_str() );
     //fprintf(fMeasure, "%s\n",zMeasurements3D.toString().c_str());
     
     //estimate the predictor model that best fits the velocity measured
@@ -456,7 +457,14 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         printf("____________________________________________________________________________________________________\n");
         tmp = *it;  // pointer to the thread
         printf("reading evalThread reference from the queue it = %08X \n", tmp);
-        tmp->setMeasurements(uMeasurements,zMeasurements2D);
+        if(tmp->getRowA() == 2) {
+            printf("dimension of the measure %d \n",tmp->getRowA() );
+            tmp->setMeasurements(uMeasurements,zMeasurements2D);
+        }
+        else {
+            printf("dimension of the measure %d \n",tmp->getRowA() );
+            tmp->setMeasurements(uMeasurements,zMeasurements3D);
+        }
         printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
         printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
         it++;   
@@ -480,6 +488,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             if((*it)->getEvalFinished()){
                 finished++;
                 printf(" predictor ends estimation.state %s \n", (*it)->getX().toString().c_str());
+                fprintf(fEstimate,"%s\n",(*it)->getX().toString().c_str());
                 double currentMSE = (*it)->getMSE();
                 printf(" predictor ends with error %f       \n", currentMSE);
                 
@@ -587,6 +596,7 @@ void trajectoryPredictor::run() {
 void trajectoryPredictor::onStop() {
     fclose(fout);
     fclose(fMeasure);
+    fclose(fEstimate);
     printf("trajectoryPredictor::onStop() : closing ports \n");
     inImagePort.interrupt();
     inImagePort.close();

@@ -82,8 +82,8 @@ public:
     virtual bool threadInit()
     {
         //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
-        template_size = 20; //rf.check("template_size",Value(20)).asInt();
-        search_size = 50; //rf.check("search_size",Value(100)).asInt();
+        template_size = 10; //rf.check("template_size",Value(20)).asInt();
+        search_size = 30; //rf.check("search_size",Value(100)).asInt();
 
         //inPort.open(("/"+name+"/img:i").c_str());
         //outPort.open(("/"+name+"/img:o").c_str());
@@ -179,9 +179,11 @@ public:
                 // perform tracking with template matching
                 float ftmp;
                 CvPoint minLoc=sqDiff(img,search_roi,tmp,template_roi, ftmp);
+                /* 18/10/12 
                 mutex.wait();
                 lastMinCumul = ftmp;
                 mutex.post();
+                */
 
                 // update point coordinates
                 point.x=search_roi.x+minLoc.x+(template_roi.width>>1);
@@ -210,9 +212,11 @@ public:
                     
                     cvCircle( imgBgrOut.getIplImage(), cvPoint(160,120), 30 , cvScalar(0,255,0), 1 );
                 }
+                
 
                 //-------------------------------------------------------------------------------------------
                 // updating the proximity measure
+                /* 18/10/12
                 double distance = std::sqrt((double)(point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
                 if((distance>0) && (distance <= 20)) {
                     proxMeasure += 20.0 / distance;
@@ -223,6 +227,7 @@ public:
                 else {
                     proxMeasure = 0;
                 }
+                */
                 //--------------------------------------------------------------------------------------------
                 
                 init_success = true; // considering init success at the end of the first loop

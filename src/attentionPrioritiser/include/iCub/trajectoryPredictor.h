@@ -89,6 +89,7 @@ private:
     
     FILE* fout;                                     // file for temporarely savings of events
     FILE* fMeasure;                                 // file that collects the list of measurements
+    FILE* fEstimate;                                // file that stores the estimated positions
  public:
     /**
     * default constructor

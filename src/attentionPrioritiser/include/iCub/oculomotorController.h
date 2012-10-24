@@ -319,7 +319,7 @@ public:
     * function that change the idle flage
     * @param value true/false idle/!idle the active method of the class
     */
-    void setIdle(bool value) {idle = value;};
+    void setIdle(bool value) {printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> setting idle in oculomotor \n"); idle = value;};
   
     /**
      * @brief function that passes the resource finder to the class for further use of files
