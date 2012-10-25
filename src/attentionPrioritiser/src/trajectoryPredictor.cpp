@@ -52,7 +52,7 @@ bool trajectoryPredictor::threadInit() {
     // open files
     fout      = fopen("./attPrioritiser.trajectoryPredictor.3Dtraj.txt","w+");
     fMeasure  = fopen("./attPrioritiser.trajectoryPredictor.measure.txt","w+");
-    fEstimate = fopen("./attPrioritiser.trajectoryPredictor.estimate.txt","w+");
+    
 
     // open ports 
     string rootName("");
@@ -131,11 +131,11 @@ bool trajectoryPredictor::threadInit() {
             P0(i,j) += 0.01;
         }      
     }
-    printf("modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
+    printf("lin.accModel : modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
     printf("P0\n %s \n", P0.toString().c_str());    
 
     //---------------------------------------------------------------------------
-    
+    /*
     printf(" creating eval thread \n");
     modelB->init(1.0);
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
@@ -146,11 +146,11 @@ bool trajectoryPredictor::threadInit() {
     printf("just initialised genPredModel %08X \n",&eval);
     //eval->start();
     //eQueue->push_back(eval); 
-    
+    */
     
 
     //------------------------------------------------------------------------------
-    
+    /*
     printf("moving to the next predictor \n");
     modelB = new linAccModel();
     modelB->init(2.0);
@@ -159,26 +159,30 @@ bool trajectoryPredictor::threadInit() {
     eval->init(z0,x0,P0);
     //eval->start();
     //eQueue->push_back(eval); 
+    */
 
     // _______________________ MINIMUM JERK MODELS  _______________________________________
     // ------------------------------------------------------------------------------------
     
     minJerkModel* modelC = new minJerkModel();
+    modelC->init(1.0, 1.0);
+    
     int rowC = modelC->getA().rows();
     int colC = modelC->getA().cols();
     Vector z0c(rowC);
     Vector x0c(rowC);
-    x0c.zero();z0c.zero();
-    x0c(0) = 1.0; 
-    Matrix P0c(rowA,colA);
-    printf("initialisation of P0 %d %d \n", rowA, colA);
-    for (int i = 0; i < rowA; i++) {
-        for (int j = 0; j < colA; j++) { 
-            P0(i,j) += 0.01;
+    x0c.zero();
+    z0c.zero();
+    //x0c(0) = 1.0; 
+    Matrix P0c(rowC,colC);
+    printf("MinJerk Model : initialisation of P0 %d %d \n", rowC, colC);
+    for (int i = 0; i < rowC; i++) {
+        for (int j = 0; j < colC; j++) { 
+            P0c(i,j) += 0.01;
         }      
     }
 
-    modelC->init(1.0, 1.0);
+    
     genPredModel* mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -186,15 +190,16 @@ bool trajectoryPredictor::threadInit() {
     eQueue->push_back(eval); 
     
     //------------------------------------------------------------------------------
-    
+    /*
     printf("moving to the next predictor \n");
     modelC = new minJerkModel();
     modelC->init(1.0,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
-    //eval->start();
-    //eQueue->push_back(eval); 
+    eval->start();
+    eQueue->push_back(eval); 
+    */
    
     
     
@@ -488,7 +493,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             if((*it)->getEvalFinished()){
                 finished++;
                 printf(" predictor ends estimation.state %s \n", (*it)->getX().toString().c_str());
-                fprintf(fEstimate,"%s\n",(*it)->getX().toString().c_str());
+                
                 double currentMSE = (*it)->getMSE();
                 printf(" predictor ends with error %f       \n", currentMSE);
                 
@@ -596,7 +601,7 @@ void trajectoryPredictor::run() {
 void trajectoryPredictor::onStop() {
     fclose(fout);
     fclose(fMeasure);
-    fclose(fEstimate);
+   
     printf("trajectoryPredictor::onStop() : closing ports \n");
     inImagePort.interrupt();
     inImagePort.close();
