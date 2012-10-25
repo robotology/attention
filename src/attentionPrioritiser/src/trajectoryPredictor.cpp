@@ -125,14 +125,14 @@ bool trajectoryPredictor::threadInit() {
     x0.zero();z0.zero();
     x0(0) = 1.0; 
     Matrix P0(rowA,colA);
-    printf("initialisation of P0 %d %d \n", rowA, colA);
+    //printf("initialisation of P0 %d %d \n", rowA, colA);
     for (int i = 0; i < rowA; i++) {
         for (int j = 0; j < colA; j++) { 
             P0(i,j) += 0.01;
         }      
     }
-    printf("lin.accModel : modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
-    printf("P0\n %s \n", P0.toString().c_str());    
+    //printf("lin.accModel : modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
+    //printf("P0\n %s \n", P0.toString().c_str());    
 
     //---------------------------------------------------------------------------
     /*
@@ -175,14 +175,13 @@ bool trajectoryPredictor::threadInit() {
     z0c.zero();
     //x0c(0) = 1.0; 
     Matrix P0c(rowC,colC);
-    printf("MinJerk Model : initialisation of P0 %d %d \n", rowC, colC);
     for (int i = 0; i < rowC; i++) {
         for (int j = 0; j < colC; j++) { 
             P0c(i,j) += 0.01;
         }      
     }
 
-    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     genPredModel* mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -190,8 +189,8 @@ bool trajectoryPredictor::threadInit() {
     eQueue->push_back(eval); 
     
     //------------------------------------------------------------------------------
-    /*
-    printf("moving to the next predictor \n");
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
     modelC->init(1.0,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -199,7 +198,50 @@ bool trajectoryPredictor::threadInit() {
     eval->init(z0c,x0c,P0c);
     eval->start();
     eQueue->push_back(eval); 
-    */
+    
+    //------------------------------------------------------------------------------
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    modelC = new minJerkModel();
+    modelC->init(1.0,0.5);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
+
+    //------------------------------------------------------------------------------
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    modelC = new minJerkModel();
+    modelC->init(0.5,0.5);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
+
+    //------------------------------------------------------------------------------
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    modelC = new minJerkModel();
+    modelC->init(0.5,1.0);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
+
+    //------------------------------------------------------------------------------
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    modelC = new minJerkModel();
+    modelC->init(0.5,2.0);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
    
     
     
@@ -490,9 +532,10 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         // printf("eval evaluation %d < %d \n",finished, eQueue->size() );
         Time::delay(0.1);
         while(it != eQueue->end() ) {
-            if((*it)->getEvalFinished()){
+            if( (*it)->getEvalFinished()) {
+                (*it)->setEvalFinished(false);    // setting back to false the variable otherwise multiple detection can happen 
                 finished++;
-                printf(" predictor ends estimation.state %s \n", (*it)->getX().toString().c_str());
+                printf(" predictor %s %f %f ends estimation.state %s \n", (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str());
                 
                 double currentMSE = (*it)->getMSE();
                 printf(" predictor ends with error %f       \n", currentMSE);
