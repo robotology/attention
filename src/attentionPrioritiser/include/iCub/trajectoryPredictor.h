@@ -89,7 +89,7 @@ private:
     
     FILE* fout;                                     // file for temporarely savings of events
     FILE* fMeasure;                                 // file that collects the list of measurements
-    FILE* fEstimate;                                // file that stores the estimated positions
+    
  public:
     /**
     * default constructor
@@ -176,11 +176,12 @@ private:
      * @param Vx estimated velocity along x axis
      * @param Vy estimated velocity along y axis
      * @param xPos estimated landing location along x axis (return)
-     * @param yPos estimated landing location along x axis (return)
+     * @param yPos estimated landing location along y axis (return)
+     * @param zPos estimated landing location along z axis (return)
      * @param time estimated time length of movement       (return)
      * @param distance of the stimulus from the fovea      (return)
      */
-    bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time, double& distance);
+    bool estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& zPos, double& time, double& distance);
 
     
     /**

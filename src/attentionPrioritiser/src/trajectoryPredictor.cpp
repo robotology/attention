@@ -324,7 +324,7 @@ Vector trajectoryPredictor::projectOnPlane(int a, int b, int c , int d, int u, i
 
 
 
-bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& time, double& distance) {
+bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& zPos, double& time, double& distance) {
     printf(" trajectoryPredictor::estimateVelocity in pos.%d,%d  \n", Vx, Vy);
     
     CvPoint p_curr, p_prev;
@@ -529,7 +529,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     evalThread* minPredictor = 0;
     
     while(finished < eQueue->size()) {
-        // printf("eval evaluation %d < %d \n",finished, eQueue->size() );
+        printf("eval evaluation %d < %d \n",finished, eQueue->size() );
         Time::delay(0.1);
         while(it != eQueue->end() ) {
             if( (*it)->getEvalFinished()) {
@@ -556,22 +556,30 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         printf("no predictor found \n");
     }
     else {
-        printf("found the predictor %08X that minimises the MSE \n", minPredictor);
+        printf("found the predictor %s %f %f  that minimises the MSE %f \n",(*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(), minMSE);
     }
 
-    
-    tracker->getPoint(p_curr);
-    distance = std::sqrt((double)(p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
+    if(false) {
+        tracker->getPoint(p_curr);
+        distance = std::sqrt((double)(p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
+        bool predictionAccompl = true;
+        Vx = meanVelX;
+        Vy = meanVelY;
+        xPos = -1;
+        yPos = -1;
+        double maxAccCart = maxAccX > maxAccY?maxAccX:maxAccY;
+        //time = maxAcc / 5000; 
+        time = 0.18;
+    }
+    else {
+        double distance = (*it)->getParamA();
+        Vx = -1;
+        Vy = -1;
+        xPos = x0;
+        yPos = y0 + distance * cos(theta);
+        zPos = z0 + distance * sin(theta);
+    }
 
-    bool predictionAccompl = true;
-    Vx = meanVelX;
-    Vy = meanVelY;
-    xPos = -1;
-    yPos = -1;
-   
-    double maxAccCart = maxAccX > maxAccY?maxAccX:maxAccY;
-    //time = maxAcc / 5000; 
-    time = 0.18;
     return predictionAccompl;
 }
 
@@ -637,8 +645,6 @@ void trajectoryPredictor::run() {
     
     }
 
-    
-    
 }
 
 void trajectoryPredictor::onStop() {

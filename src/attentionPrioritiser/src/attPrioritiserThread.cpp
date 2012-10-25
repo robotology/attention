@@ -825,7 +825,7 @@ void attPrioritiserThread::run() {
         tracker->waitInitTracker();
 
         printf("estimating velocity ... \n");
-        bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predTime, predDistance);
+        bool predictionSuccess = trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predZpos, predTime, predDistance);
         amplitude = 0; // null amplitude in prediction )no action involved)
         
         printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);

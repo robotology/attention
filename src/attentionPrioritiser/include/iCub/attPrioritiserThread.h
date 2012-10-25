@@ -172,8 +172,8 @@ private:
     double ymax, ymin;                      // limits in fixation point
     double zmax, zmin;                      // limits in fixation point
     double Vx, Vy;                          // velocity profile for the smooth pursuit
-    double predVx, predVy;                  // last predicted velocity profile
-    double predXpos, predYpos;              // predicted X and Y position
+    double predVx, predVy;                  // last predicted velocity profil
+    double predXpos, predYpos, predZpos;    // predicted X, Y, Z position of the stimulus after minJerk action completation
     double predTime;                        // predicted time necessary to accomplished the tracking action
     double waitTime;                        // time to allow in the wait action
     double timeoutResponseStart;            // starting time measure for the wait response
