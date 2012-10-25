@@ -325,7 +325,7 @@ class evalThread : public yarp::os::Thread {
         printf("P0 \n %s \n", P0.toString().c_str());
         _x0.zero();
         kSolver->init(_x0, _P0);
-        Time::delay(10);
+        
         
     }
     
