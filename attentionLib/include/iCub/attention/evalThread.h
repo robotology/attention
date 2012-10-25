@@ -33,6 +33,7 @@ using namespace iCub::ctrl;
 using namespace yarp::math;
 using namespace attention::predictor;
 
+#define VERBOSE
 
 namespace attention
 {
@@ -69,6 +70,8 @@ class evalThread : public yarp::os::Thread {
     int id;
 
     double meanSquareError;
+
+    FILE* fEstimate;                                // file that stores the estimated positions
     
  public:
     evalThread(){
@@ -158,9 +161,9 @@ class evalThread : public yarp::os::Thread {
         
         for (int i = 0; i < rowA; i++) {
             for (int j = 0; j < colA; j++) { 
-                Q (i, j) += 0.01; 
-                R (i, j) += 0.001;
-                P0(i, j) += 0.01;
+                Q (i, j) = 1; 
+                R (i, j) = 0.01;
+                P0(i, j) = 0.1;
             }      
         }
 
@@ -195,6 +198,9 @@ class evalThread : public yarp::os::Thread {
     ////////////////////////////////////////////////////////////////////
 
     virtual bool threadInit(){
+#ifdef VERBOSE
+        fEstimate = fopen("./attPrioritiser.trajectoryPredictor.estimate.txt","w+");
+#endif
         
         printf("\n \n evalThread::threadInit:thread init \n");
         printf("thread threadinit pre mutex  \n");
@@ -249,16 +255,20 @@ class evalThread : public yarp::os::Thread {
                 //printf("%08X  %d \n", this, id);
                 double s = Random::uniform() + 0.5 ; 
                 Vector zTmp = zMeasure->getRow(i);
+                
 
                 Vector uTmp = uMeasure->getCol(i); //extracted u from the ith column 
                 uTmp.resize(1,0);  // gives the vector the correct shape
-                uTmp(0) = 1.5;
-                
+                uTmp(0) = 1.0;
+                printf("input scalar : %f \n",gPredModel->getParamA());
 
                 printf("zTmp %s \n", zTmp.toString().c_str());
                 Vector xTmp  = kSolver->filt(uTmp,zTmp);
 
                 printf("estim.state %s \n", xTmp.toString().c_str()); 
+#ifdef VERBOSE
+                fprintf(fEstimate,"%s\n",xTmp.toString().c_str());
+#endif
                 //printf("estim.error covariance P:\n %s \n",kSolver->get_P().toString().c_str());
                 
                 Vector diff  = zTmp - xTmp;
@@ -292,6 +302,7 @@ class evalThread : public yarp::os::Thread {
 
     virtual void onStop() {
         dataReady = true;
+        fclose(fEstimate);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -305,6 +316,7 @@ class evalThread : public yarp::os::Thread {
     void init(Vector _z0, Vector _x0, Matrix _P0) {
         
         printf("evalThread::init %08X \n", kSolver);
+        
         z0 = _z0;
         x0 = _x0;
         
@@ -313,6 +325,7 @@ class evalThread : public yarp::os::Thread {
         printf("P0 \n %s \n", P0.toString().c_str());
         _x0.zero();
         kSolver->init(_x0, _P0);
+        Time::delay(10);
         
     }
     
@@ -415,6 +428,24 @@ class evalThread : public yarp::os::Thread {
         return temp;
     }
 
+    ////////////////////////////////////////////////////////////////
+
+    std::string getType() {
+        return gPredModel->getType();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    
+    double getParamA() {
+        return gPredModel->getParamA();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    
+    double getParamB() {
+        return gPredModel->getParamB();
+    }
+
     ///////////////////////////////////////////////////////////////
 
     bool getEvalFinished() {
@@ -424,6 +455,14 @@ class evalThread : public yarp::os::Thread {
          //kSolver->init(z0, x0, P0); // reinitialisation of the filter after the evaluation of the state
 
          return ef;
+    }
+
+        ///////////////////////////////////////////////////////////////
+
+    void setEvalFinished(bool value) {
+         mutexF.wait();
+         evalFinished = value;
+         mutexF.post();
     }
 
      ///////////////////////////////////////////////////////////////
