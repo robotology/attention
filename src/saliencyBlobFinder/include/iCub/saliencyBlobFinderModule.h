@@ -75,27 +75,25 @@
  * - /visualFilter/edges:o : edges extracted from the input image\n
  *
  * \section portsc_sec Ports Created
- * - <name>/cmd
- * - <name>/image:i
- * - <name>/rg:i
- * - <name>/gr:i
- * - <name>/by:i
- * - <name>/image:o
- * - <name>/centroid:o
  *
  * Output ports:
- * - <name>/image:o: image output
- * - <name>/centroid:o : position of the cog of the most salient blob
- * - <name>/gazeControl:o : position of the cog of the most salient blob
+ * - <name>/imageC3:o: image output (color)
+ * - <name>/saliencyMap:o : saliency map of the blobs
+ * - <name>/rg:o : color opponency (debug)
+ * - <name>/gr:o : color opponency (debug)
+ * - <name>/by:o : color opponency (debug)
+ * - <name>/foveaBlob:o : fovea blob
+ * - <name>/foveaRgbBlob:o : fovea blob (color)
  *
  * Input ports:
  * - <name>/image:i: input ports which takes as input a yarp::sig::ImageOf<PixelRgb>\n
  * - <name>/rg:i: acquires the input stream of the R+G- opponency map\n
  * - <name>/gr:i: acquires the input stream of the G+R- opponency map\n
  * - <name>/by:i: acquires the input stream of th B+Y- opponency map\n
+ * - <name>/by:i: edges for watershed \n
  * 
  * InOut ports:
- * - <name>/cmd : port for the input rpc commands (for further command send Help command)
+ * - <name> : port for the input rpc commands (for further command send Help command)
  * 
  * This module is able to respond to the following set of commands:
  * - set mea: select the output which represents all the blobs in mean colour\n

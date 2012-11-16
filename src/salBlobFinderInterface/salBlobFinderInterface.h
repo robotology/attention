@@ -44,19 +44,6 @@ In the GUI there are some sliding controls on the left hand side which are in se
     <li>controls for the selection of the colour which the system has to look for</li>
 </ul>
 
-On the right side of the GUI there is a series of checkbox which select the typology of the output sent on the /image:o port.
-The last checkbox that toggle from OFF to ON selects the output. It can be choosen between this possible alternatives:
-<ul>
-<li> tagged: the image composed by all the blobs filled with a gray scale equal to their list position</li>
-<li> watershed: the result of the watershed operation</li>
-<li> foveaBlob: the representation of the blob foveated in that moment</li>
-<li> colourVQ: image composed by all the blobs filled with quantization colour</li>
-<li> meanColour: the composition of all the colour filled with the mean colour of all the pixel which belong to the blob</li>
-<li> maxSaliencyBlob: the representation of the max saliency blob</li>
-</ul>
-
-
-
 \section lib_sec Libraries
 YARP
 GTK
