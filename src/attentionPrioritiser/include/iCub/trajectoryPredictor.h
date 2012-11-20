@@ -26,24 +26,25 @@
 #ifndef _TRAJECTORY_PREDICTOR_H_
 #define _TRAJECTORY_PREDICTOR_H_
 
-
+#include <yarp/os/Semaphore.h>
+//within project includes
+#include <iCub/trackerThread.h>
+#include <iCub/observer.h>
+#include <iCub/observable.h>
 #include <iCub/attention/predModels.h>
 #include <iCub/attention/evalThread.h>
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/Bottle.h>
-#include <yarp/os/Semaphore.h>
+
 
 #include <yarp/sig/all.h>
 #include <yarp/dev/all.h>
 #include <iostream>
 #include <string>
 
-//within project includes
-#include <iCub/trackerThread.h>
-#include <iCub/observer.h>
-#include <iCub/observable.h>
+
 
 
 
