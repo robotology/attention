@@ -64,6 +64,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > yellowPort;       // port where the yellow plane of the image is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > foveaPort;        // port where the grayscale image of the fovea is streamed
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>  > foveaRgbPort;     // port where the colour image of the fovea  is streamed
+    yarp::os::BufferedPort<yarp::os::Bottle>   blobListPort;     // port streams the list of blobs with their features
+
 
     yarp::os::Port blobDatabasePort;                               // port where all the blobs as bottles are sent to the objectPropertiesCollector
 

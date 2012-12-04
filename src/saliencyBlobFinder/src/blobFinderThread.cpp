@@ -37,7 +37,7 @@ using namespace yarp::math;
 using namespace iCub::iKin;
 
 const int DEFAULT_THREAD_RATE = 100;
-#define thresholdDB 250
+#define thresholdDB 50
 #define MAXMEMORY 100
 
 #define OPPONENCYBYCONVOLUTION
@@ -353,6 +353,11 @@ bool blobFinderThread::threadInit() {
         cout <<": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
+
+    if (!blobListPort.open(getName("/blobList:o").c_str())) {
+        cout <<": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    } 
     
     //initializing gazecontrollerclient
     Property option;
@@ -454,6 +459,7 @@ void blobFinderThread::interrupt() {
     byOut       .interrupt();
     foveaPort   .interrupt();
     foveaRgbPort.interrupt();
+    blobListPort.interrupt();
 }
 
 /**
@@ -473,6 +479,7 @@ void blobFinderThread::threadRelease() {
     byOut        .close();
     foveaPort    .close();
     foveaRgbPort .close();
+    blobListPort .close();
 }
 
 
@@ -547,7 +554,41 @@ void blobFinderThread::run() {
             saliencePort.write();
         }
 
-        if(blobDatabasePort.getOutputCount()) {
+        if(blobListPort.getOutputCount()) {
+             
+            YARPBox* pBlob = salience->getBlobList();
+            Bottle& streamBottle = blobListPort.prepare();
+            streamBottle.clear();
+            printf("number of blobs %d \n", nBlobs);
+ 
+            for (int i = 1; i < nBlobs; i++) {
+                if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
+                    printf("%d \n", i);
+                    //printf("areaLP: %d \n", pBlob[i].areaLP);
+                    //streaming out the list of blobs
+                        
+                    Bottle& blob = streamBottle.addList();
+                    //blob.clear();
+              
+                    blob.addInt(pBlob[i].centroid_x);
+                    blob.addInt(pBlob[i].centroid_y);
+                    blob.addInt(pBlob[i].meanRG);
+                    blob.addInt(pBlob[i].meanGR);
+                    blob.addInt(pBlob[i].meanBY);
+                    blob.addInt(pBlob[i].xmax - pBlob[i].xmin);
+                    blob.addInt(pBlob[i].ymax - pBlob[i].ymin);                                                        
+                    
+                } //if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB))
+            } //for (int i = 1; i < nBlobs; i++)
+            
+
+
+            //sending the list of blobs            
+            blobListPort.write();
+        }
+        
+                
+        if(blobDatabasePort.getOutputCount() ) {
             
             
             Vector fp;
@@ -615,13 +656,28 @@ void blobFinderThread::run() {
                 printf("object %f,%f,%f \n",fp[0],fp[1],fp[2]);
             }
             
-            
+            Bottle streamBottle;
             for (int i = 1; i < nBlobs; i++) {
                 if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB)) {
                     printf("areaLP: %d \n", pBlob[i].areaLP);
+
+                    if(blobListPort.getOutputCount()) {
+                        //streaming out the list of blobs
+                        streamBottle = blobListPort.prepare();
+                        Bottle blob;
+                        streamBottle.addList() = blob;
+                        
+                        blob.addInt(pBlob[i].centroid_x);
+                        blob.addInt(pBlob[i].centroid_y);
+                        blob.addInt(pBlob[i].meanRG);
+                        blob.addInt(pBlob[i].meanGR);
+                        blob.addInt(pBlob[i].meanBY);
+                        blob.addInt(pBlob[i].xmax - pBlob[i].xmin);
+                        blob.addInt(pBlob[i].ymax - pBlob[i].ymin);                        
+
+                    }
                     
-                    /*
-                        char* pointer = memory;
+                    /*  char* pointer = memory;
                         if ((memoryPos != 0)&&(memoryPos < MAXMEMORY)) {
                             //checking the distance with the previously memorised 3D locations
                             int j;
@@ -749,6 +805,12 @@ void blobFinderThread::run() {
                     */
                 } //if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB))
             } //for (int i = 1; i < nBlobs; i++)
+            //sending the list of blobs
+            if(blobListPort.getOutputCount()) {
+                blobListPort.write();
+            }
+
+
         } //if(blobDatabasePort.getOutputCount())
     } // if (0 != img)
 }
