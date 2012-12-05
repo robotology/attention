@@ -1,5 +1,5 @@
 # Copyright: (C) 2010 RobotCub Consortium
-# Authors: Giorgio Metta
+# Authors: Francesco Rea, Giorgio Metta
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(KEYWORD "saliencyBlobFinder")
@@ -31,11 +31,11 @@ IF (folder_source)
       		${YARP_LIBRARIES}
 		${IPP_LIBRARIES}
 		logpolar
-		icubmod
-		iKin
+		#icubmod
+		#iKin
     )
     
-	INSTALL_TARGETS(/bin ${KEYWORD})
+  INSTALL_TARGETS(/bin ${KEYWORD})
 
 ELSE (folder_source)
     MESSAGE( "No source code files found. Please add something")

@@ -164,6 +164,7 @@
  * 03/01/12 : adding top-down parameter search                                                                               author:Rea \n  
  * 15/02/12 : added respond function for command fovea RGB                                                                   author:Rea \n
  * 18/02/12 : added commands to get fovea blob color (red, blue, green)                                                      author:Rea \n         
+ * 05/12/12 : removed all the references to the motor control                                                                author : Rea \n
  */
 
 #include <iostream>

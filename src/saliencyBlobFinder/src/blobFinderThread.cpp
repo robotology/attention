@@ -359,6 +359,7 @@ bool blobFinderThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     } 
     
+    /* 5/12/12 removed because to separate vision from the motor library
     //initializing gazecontrollerclient
     Property option;
     option.put("device","gazecontrollerclient");
@@ -377,10 +378,12 @@ bool blobFinderThread::threadInit() {
     }
     else
         return false;
+    */
 
 
     string robot("icub"); //TODO: hard coded here remove asap
 
+    /* 5/12/12 removed because to separate vision from the motor library
     //initialising the head polydriver
     printf("starting the polydrive for the head.... \n");
     Property optHead("(device remote_controlboard)");
@@ -396,7 +399,9 @@ bool blobFinderThread::threadInit() {
         return false;
     }
     drvHead->view(encHead);
+    */
 
+    /* 5/12/12 removed because to separate vision from the motor library
     //initialising the torso polydriver
     printf("starting the polydrive for the torso.... \n");
     Property optPolyTorso("(device remote_controlboard)");
@@ -408,12 +413,12 @@ bool blobFinderThread::threadInit() {
         return false;
     }
     polyTorso->view(encTorso);
+    */
 
-
+    /* 5/12/12 removed because to separate vision from the motor library
     //extracting the kinematic chain of the two eyes
     eyeL=new iCubEye("left");
     eyeR=new iCubEye("right");
-
     // remove constraints on the links
     // we use the chains for logging purpose
     //eyeL->setAllConstraints(false);
@@ -426,7 +431,9 @@ bool blobFinderThread::threadInit() {
     eyeR->releaseLink(1);
     eyeL->releaseLink(2);
     eyeR->releaseLink(2);
+    */
 
+    /* 5/12/12 removed because to separate vision from the motor library
     printf("trying to CAMERA projection from %s.......... ", configFile.c_str());
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
@@ -437,6 +444,7 @@ bool blobFinderThread::threadInit() {
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
         printf("found the matrix of projection of left %f %f %f", Prj(0,0),Prj(1,1),Prj(2,2));
     }
+    */
 
     return true;
 }
@@ -587,7 +595,7 @@ void blobFinderThread::run() {
             blobListPort.write();
         }
         
-                
+        /* 5/12/12 removed because to separate vision from the motor library     
         if(blobDatabasePort.getOutputCount() ) {
             
             
@@ -677,7 +685,7 @@ void blobFinderThread::run() {
 
                     }
                     
-                    /*  char* pointer = memory;
+                     char* pointer = memory;
                         if ((memoryPos != 0)&&(memoryPos < MAXMEMORY)) {
                             //checking the distance with the previously memorised 3D locations
                             int j;
@@ -802,7 +810,7 @@ void blobFinderThread::run() {
                             memoryPos++;
                         }
                     }
-                    */
+                    
                 } //if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB))
             } //for (int i = 1; i < nBlobs; i++)
             //sending the list of blobs
@@ -812,6 +820,8 @@ void blobFinderThread::run() {
 
 
         } //if(blobDatabasePort.getOutputCount())
+        */ 
+
     } // if (0 != img)
 }
 
