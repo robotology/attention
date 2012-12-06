@@ -313,10 +313,10 @@ class convolve {
                 shiftSqKernel = kernelWidth/2;
             }
             for(int i=shiftSqKernel;i<resImg->height()-shiftSqKernel;++i){
-                int eff_ht = min(img->height(),i+kernelHeight/2)-_max(0,i-kernelHeight/2)+1;
+                int eff_ht = std::min(img->height(),i+kernelHeight/2)-_max(0,i-kernelHeight/2)+1;
                 for(int j=shiftSqKernel;j<resImg->width()-shiftSqKernel;++j){
                     // current pixel point is anchor
-                    int eff_wd = min(img->width(), j + kernelWidth/2)- _max(0,j-kernelWidth/2)+1;
+                    int eff_wd = std::min(img->width(), j + kernelWidth/2)- _max(0,j-kernelWidth/2)+1;
                     currPtrImage = mat + rowSize*_max(0,i-kernelHeight/2)+_max(0,j-kernelWidth/2);
                     kerStartPt = kernel + _max(0,kernelHeight/2 -i)*kernelWidth + _max(0,kernelWidth/2-j);
                     float sum = 0;
