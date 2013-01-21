@@ -421,22 +421,22 @@ bool oculomotorController::policyWalk(double policyProb){
     ap->setFacialExpression("R04");
     ap->setFacialExpression("L04");
 
-    printf("oculomotorController::policyWalk: just set facial expressions \n");
+    printf("---------------------- oculomotorController::policyWalk: just set facial expressions \n");
     
     bool ret = false;
-    printf("state_now : %d \n", A->operator()(0,state_now));
+    printf("---------------------- state_now : %d \n", A->operator()(0,state_now));
     action_now = A->operator()(0,state_now);
     yarp::sig::Vector a = A->getRow(0);
-    printf("selected action %d %s \n",action_now,stateList[action_now].c_str());
-    printf("a = %s \n", a.toString().c_str());
+    printf("---------------------- selected action %d %s \n",action_now,stateList[action_now].c_str());
+    printf("---------------------- a = %s \n", a.toString().c_str());
     
     
     //looking at the Psa for this state and the selected action
     int pos = state_now; // * NUMACTION + action_now;
-    printf("looking for position %d  ; %d %d\n", pos, state_now, action_now);
+    //printf("looking for position %d  ; %d %d\n", pos, state_now, action_now);
     yarp::sig::Vector v = Q->getRow(pos);
     
-    printf("v = %s \n", v.toString().c_str());
+    //printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
     yarp::sig::Vector c(v.size());
     double sum = 0;
@@ -459,11 +459,12 @@ bool oculomotorController::policyWalk(double policyProb){
         for (j = 0 ; j < c.size(); j++) {
             if (c[j] > randAction) break;
         }
-        printf("in policy selection randomAction %f . action selected %d \n", randAction, j);
+        printf("in policy selection - randomAction %f . action selected %d \n", randAction, j);
     }
     else {
         // performing the action with greater quality measure
         j = posInVector; //best choice given previous run
+        printf("in policy selection - policy selection \n");
     }
    
     /*
@@ -491,7 +492,6 @@ bool oculomotorController::policyWalk(double policyProb){
 
     return ret;
 
-    
 }
 
 
@@ -505,19 +505,18 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     
     double a = Random::uniform() * NUMACTION;
     if((int) a == 2) {
-
-        printf("Counting vergence 3 \n");
+        //printf("Counting vergence 3 \n");
         countVergence = 3;
     }
     
-    printf(" a =%f, countVergence=%d \n", a, countVergence);
-    printf("if random, selects action number %d: %s \n",(int)a,actionList[(int)a].c_str());
+    //printf(" a =%f, countVergence=%d \n", a, countVergence);
+    //printf("if random, selects action number %d: %s \n",(int)a,actionList[(int)a].c_str());
 
     //looking at the Psa for this state and the selected action
     int pos = state_now; // * NUMACTION + action_now;
-    printf("looking for position %d; State:%d,Action:%d\n", pos, state_now,(int) a);
+    printf("------------------- looking for position %d; State:%d,Action:%d\n", pos, state_now,(int) a);
     yarp::sig::Vector  v = Q->getRow(pos);
-    printf("v = %s \n", v.toString().c_str());
+    //printf("v = %s \n", v.toString().c_str());
     
     // given the vector of transition and considering the transition probability
     // select the action and build the cumulative vector
@@ -534,8 +533,8 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
         c[j] = sum;
     }
 
-    printf("c = %s \n", c.toString().c_str());
-    printf("max value found in position %d  of vector : %f  \n", posInVector, maxInVector);
+    //printf("c = %s \n", c.toString().c_str());
+    //printf("max value found in position %d  of vector : %f  \n", posInVector, maxInVector);
 
     
     // selecting using probability density function for the state/action
@@ -550,7 +549,7 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
         for (j = 0 ; j < c.size(); j++) {
             if (c[j] > randAction) break;
         }
-        printf("randomAction %f . action selected %d \n", randAction, j);
+        printf("------------------- randomAction %f . action selected %d \n", randAction, j);
         if(countVergence > 0) {
             action_now = 2;
             countVergence--;
@@ -561,7 +560,7 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
  
     }
     else {
-        printf("performing policy selection in randomWalk \n");
+        printf("------------------- performing policy selection in randomWalk \n");
         // performing the action with greater quality measure
         j = posInVector; //best choice given previous run
         action_now = j;
@@ -672,7 +671,7 @@ bool oculomotorController::allowStateRequest(int action) {
    
     //setting flags at the end of the function
     
-    printf("setting valid action to false (action %d) \n", action);
+    //printf("setting valid action to false (action %d) \n", action);
     ap->setValidAction(false);
     ap->setAllowStateRequest(action, false);
 
@@ -730,7 +729,7 @@ void oculomotorController::learningStep() {
     // this flag is set true when an action is performed 
     // this flag is set false when the action is accomplished
     if(!_stateTransition) {
-        printf("!stateTransition branch \n");
+        //printf("!stateTransition branch \n");
         
         // 2 .action selection and observation of the next state
         bool actionPerformed;
@@ -761,16 +760,16 @@ void oculomotorController::learningStep() {
         
         printf("s %f \n ", s);
         if(s >= k) {
-            printf("policyWalk action selection \n");
+            printf("------------------- policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
-            printf("policyWalk > \n");
+            //printf("policyWalk > \n");
             // the probability as parameter introduces the probability
             // of a random action within the policy walk
             actionPerformed = policyWalk(0.75);
-            printf("success in policy action performed \n");
+            //printf("success in policy action performed \n");
         }
         else {
-            printf("randomWalk action selection \n");
+            printf("------------------- randomWalk action selection \n");
             fprintf(logFile,"randomWalk > ");
             actionPerformed = randomWalk(state_next,0.1);
         }
@@ -1129,12 +1128,12 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                          - Q->operator()(state_now,action_now)) ;
             
             // // 4. calculating the total Payoff
-            printf("calculating accuracy \n");
-            printf("adding the reward %f  Q(%d,%d): %f \n", r * jiter,state_now, action_now, Q->operator()(state_now,action_now));
+            //printf("calculating accuracy \n");
+            //printf("adding the reward %f  Q(%d,%d): %f \n", r * jiter,state_now, action_now, Q->operator()(state_now,action_now));
             
 
             totalPayoff = totalPayoff + r * jiter;
-            printf("final totalPayoff %f \n", totalPayoff);
+            //printf("final totalPayoff %f \n", totalPayoff);
             jiter  = jiter * j;        
             
             // // 5. moving to next state
@@ -1163,7 +1162,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 }
                 
             }            
-            printf("checking if the row sums one \n");
+            //printf("checking if the row sums one \n");
             if(sum > 1.0) {
                 printf("!!!!the probability does not sum to 1!!!! \n");
             }
@@ -1201,16 +1200,16 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
 
             
-            printf("check after reset state; state_now %d action_now %d \n", state_now, action_now);
+            //printf("check after reset state; state_now %d action_now %d \n", state_now, action_now);
             
 
 
             // awaking action selection
-            printf("enabling back again the action selection \n");
+            //printf("enabling back again the action selection \n");
             mutexStateTransition.wait();
             stateTransition = false;
             mutexStateTransition.post();
-            printf("enabled back again the action selection \n");
+            //printf("enabled back again the action selection \n");
             
                         
         } break;
@@ -1236,7 +1235,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 i++;
             }
             
-            printf("apLearning %d \n", i);
+            printf("Learning: command action %d \n", i);
             if (ap->isLearning() == false) {
                 
                 logAction(i);
