@@ -1115,7 +1115,7 @@ void gazeArbiterThread::run() {
                 
                 
                 while((countDecrement < 1000) && (countReach < 3) 
-                       && (timeout < 8.0) && (ptracker->getInputCount())  ) 
+                       && (timeout < 30.0) && (ptracker->getInputCount())  ) 
                 {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
@@ -1136,7 +1136,7 @@ void gazeArbiterThread::run() {
                     
                     errorVC_pre = errorVC;
                     errorVC = sqrt((double) (errorx * errorx + errory * errory));
-                    //printf("time passed in correcting  %f (%d, %d : %3f) \n", timeout, errorx, errory, errorVC);
+                    printf("time passed in correcting center =[%f, %f]  %f (%f, %f : %3f) \n",cxl,cyl, timeout, px(0), px(1), errorVC);
                     if(errorVC <= 2) {
                         countReach++;
                     }
@@ -1150,8 +1150,9 @@ void gazeArbiterThread::run() {
                     //}
                     //printf("norm error %f \n", errorVC);
                     
+                    Time::delay(3.0);
 
-                    int camSel = 0; 
+                    int camSel = 1; 
                     igaze->lookAtMonoPixel(camSel,px,0.5);
                     
                     //Vector xo;
@@ -1183,7 +1184,6 @@ void gazeArbiterThread::run() {
                     //}
                       
                     
-                    
                     //igaze->waitMotionDone();
                     point_prev = point;        // changing the position of the tracked point in the previous step
                     tracker->getPoint(point);  // have the get point as far as possible from look@mono
@@ -1203,7 +1203,7 @@ void gazeArbiterThread::run() {
                 if (minCumul > 5000000) {
                     printf("Error: out of correlation limits \n");
                 }
-                else if((timeout >= 8.0) || (countDecrement >= 10)) {
+                else if((timeout >= 30.0) || (countDecrement >= 10)) {
                     Vector px(3);
                     printf("Error in reaching with visualFeedback \n");
                     printf("Error in reaching with visualFeedback \n");

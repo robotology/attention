@@ -41,17 +41,19 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     if(rf.check("help")) {
         printf("HELP \n");
         printf("====== \n");
-        printf("--name      : changes the rootname of the module ports \n");
-        printf("--robot     : changes the name of the robot where the module interfaces to  \n");
+        printf("--name           : changes the rootname of the module ports \n");
+        printf("--robot          : changes the name of the robot where the module interfaces to  \n");
         printf("--visualFeedback : indicates whether the visual feedback is active \n");
-        printf("--name      : rootname for all the connection of the module \n");
-        printf("--config    : camera parameters");
-        printf("--blockPitch: blocking the head during motions \n");
+        printf("--name           : rootname for all the connection of the module \n");
+        printf("--camerasContext : context where camera parameters are stored \n");
+        printf("--camerasFile    : file of parameters of the camera in the context \n");
+        printf("--config         : camera parameters");
+        printf("--blockPitch     : blocking the head during motions \n");
         printf("--xmax, xmin, ymax, ymin, zmax, zmin : outOfReach limits \n");
-        printf("--onWings   : if the camera is mounted on the wings\n ");
-        printf("--onDvs     : if the camera is DVS camera \n");
+        printf("--onWings        : if the camera is mounted on the wings\n ");
+        printf("--onDvs          : if the camera is DVS camera \n");
         printf(" \n");
-        printf("press CTRL-C to continue.. \n");
+        printf("press CTRL-C to stop... \n");
         return true;
     }
     
@@ -78,11 +80,9 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     robotPortName         = "/" + robotName + "/head";
     printf("robotName: %s \n", robotName.c_str());
     
-    configName             = rf.check("config", 
+    /*configName             = rf.check("camerasFile", 
                            Value("icubEyes.ini"), 
                            "Config file for intrinsic parameters (string)").asString();
-    printf("configFile: %s \n", configName.c_str());
-
     if (strcmp(configName.c_str(),"")) {
         printf("looking for the config file \n");
         configFile=rf.findFile(configName.c_str());
@@ -95,6 +95,23 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     else {
         configFile.clear();
     }
+    */
+
+    if (rf.check("camerasFile")) {
+        if (rf.check("camerasContext"))
+            rf.setDefaultContext(rf.find("camerasContext").asString().c_str());
+        
+        camerasFile=rf.findFile(rf.find("camerasFile").asString().c_str());
+        if (camerasFile=="")
+            return false;
+    }
+    else {
+        camerasFile.clear();
+    }
+
+    printf("configFile: %s \n", configName.c_str());
+
+    
 
     collector=new gazeCollectorThread();
     collector->setName(getName().c_str());

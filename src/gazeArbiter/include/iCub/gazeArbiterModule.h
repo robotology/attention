@@ -214,6 +214,7 @@
  * 10/10/12 : made the periodTracker work with the matchTracker                                     author: Rea \n
  * 19/10/12 : made the center of the camera a double value rather than an integer                   author: Rea \n
  * 19/10/12 : added check for the initialisation position of the fine tracker                       author: Rea \n
+ * 24/01/13 : added the complete path as context for the cameraFile                                 author: Rea \n
  */
 
 #include <iostream>
@@ -237,6 +238,7 @@ class gazeArbiterModule:public yarp::os::RFModule {
     std::string configFile;                     // configuration file of cameras
     std::string mode;                           // string that indicates the modality of the mapping (if any)
     std::string configName;                     // name of the config file for camera that is going to be search
+    std::string camerasFile;                    // name of the config file for camera associated with the camerasContext
     int ratethread;                             // time constant for ratethread
     double xoffset;                             // offset for the 3D point along x
     double yoffset;                             // offset for the 3D point along y
