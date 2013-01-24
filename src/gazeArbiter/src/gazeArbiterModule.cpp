@@ -98,8 +98,11 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     */
 
     if (rf.check("camerasFile")) {
-        if (rf.check("camerasContext"))
-            rf.setDefaultContext(rf.find("camerasContext").asString().c_str());
+        if (rf.check("camerasContext")) {
+            printf("found a new context %s \n", rf.find("camerasContext").asString().c_str());
+            // rf.find("camerasContext").asString().c_str()
+            rf.setDefaultContext("cameraCalibration/conf");
+        }
         
         camerasFile=rf.findFile(rf.find("camerasFile").asString().c_str());
         if (camerasFile=="")
