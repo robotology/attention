@@ -142,11 +142,14 @@ private:
     bool firstVergence;                     // flag that allows the inhibition for train of vergence commands 
     bool ver_accomplished;                  // flag that enables again visual feature extraction inhibition off
     bool sp_accomplished;                   // flag that indicates that the smooth pursuit is successfully working
+    bool pred_accomplished;                 // flag for prediction accomplished
+    bool accomplished_flag;                 // flag for the accomplished vergence
+    bool sac_accomplished;                  // flag for accomplished saccades
+
     bool postSaccCorrection;                // flag that allows post saccadic corrections
     bool mono;                              // flag that indicates whether the saccade is mono or not
     bool firstVer;                          // flag check during the vergence that indicates whether eye correction comes after a monoSaccadic event
-    bool pred_accomplished;                 // flag for prediction accomplished
-    bool accomplished_flag;                 // flag for the accomplished vergence
+
     bool correcting;                        // flag that allows the test for correction to take place
     bool reinfFootprint;                    // flag that allows the reinforcement of the features of the desired object
     bool idleReinf;                         // flag that enable the reinforcFootprint mechanism 

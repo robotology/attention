@@ -49,10 +49,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         printf("--name : changes the rootname of the module ports \n");
         printf("--robot : changes the name of the robot where the module interfaces to  \n");
         printf("--learningController : learning process for the controller activated \n");
+        printf("--camerasContext : context where camera parameters are stored \n");
+        printf("--camerasFile    : file of parameters of the camera in the context \n");
         printf("--visualFeedback : indicates whether the tracker can be initialised \n");
         printf("--name : rootname for all the connection of the module \n");
         printf("====== \n");
-        printf("press CTRL-C to continue.. \n");
+        printf("press CTRL-C to stop.. \n");
         return true;
     }
 
@@ -80,11 +82,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     robotPortName         = "/" + robotName + "/head";
     printf("robotName: %s \n", robotName.c_str());
     
+
+    /*
     configName             = rf.check("config", 
                            Value("icubEyes.ini"), 
                            "Config file for intrinsic parameters (string)").asString();
     printf("configFile: %s \n", configName.c_str());
-
     if (strcmp(configName.c_str(),"")) {
         printf("looking for the config file \n");
         configFile=rf.findFile(configName.c_str());
@@ -97,6 +100,24 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     else {
         configFile.clear();
     }
+    */
+
+    if (rf.check("camerasFile")) {
+        if (rf.check("camerasContext")) {
+            printf("found a new context %s \n", rf.find("camerasContext").asString().c_str());
+            // rf.find("camerasContext").asString().c_str()
+            rf.setDefaultContext("cameraCalibration/conf");
+        }
+        
+        camerasFile=rf.findFile(rf.find("camerasFile").asString().c_str());
+        if (camerasFile=="")
+            return false;
+    }
+    else {
+        camerasFile.clear();
+    }
+
+
 
     robotName             = rf.check("visualFeedback", 
                                      Value("icub"), 
@@ -121,14 +142,12 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     str.append("/controller");
     controller->setName(str.c_str());
     controller->setResourceFinder(&rf);
-    controller->setLogFile(rf.findFile("logFile.txt"));
-    controller->setLogState(rf.findFile("logState.txt"));
-    controller->setPsaFile(rf.findFile("psaFile.txt"));
-    controller->setRewardFile(rf.findFile("rewardFile.txt"));
-    controller->setQualityFile(rf.findFile("qualityFile.txt"));
-    printf("controller correctly initialised \n");
-    
-    
+    controller->setLogFile     (rf.findFile("logFile.txt"));
+    controller->setLogState    (rf.findFile("logState.txt"));
+    controller->setPsaFile     (rf.findFile("psaFile.txt"));
+    controller->setRewardFile  (rf.findFile("rewardFile.txt"));
+    controller->setQualityFile (rf.findFile("qualityFile.txt"));
+    printf("controller correctly initialised \n");   
     
 
     //controller->setResourceFinder(rf);

@@ -169,7 +169,8 @@
  * 11/07/12 : added the collection of predictor thread                                                      author: Rea  \n
  * 08/10/12 : introduced the reduction in dimensionality to the motion plane                                author: Rea  \n   
  * 11/10/12 : added the conversion of the image plane position on the 3d coronnall plane                    author: Rea  \n
- * 21/01/13 : changed  the name of the response from SAC_ACC_HIGH to SAC_COMP
+ * 21/01/13 : added sac_accomplished used in order to distinguish success                                   author: Rea  \n
+ * 24/01/13 : added the context for cameraFile                                                              author: Rea  \n
 */
 
 

@@ -172,6 +172,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     executing          = false;
     correcting         = false;
     pred_accomplished  = false;
+    sac_accomplished   = false;
     stopVergence       = true;
 
     // initialisation of integer values
@@ -941,6 +942,7 @@ void attPrioritiserThread::run() {
             // notifyObservers(&notif);
 
             // immediate accomplish command for express saccade
+            sac_accomplished = true;
             pendingCommand->clear();
             pendingCommand->addString("SAC_ACC_HIGH");
             isPendingCommand = true; 
@@ -1162,11 +1164,19 @@ void attPrioritiserThread::run() {
                         //printf("stopping vergence \n");
                         //stopVergence = false;
                         
-                        
-                        // accomplished
-                        pendingCommand->clear();
-                        pendingCommand->addString("SAC_ACC_HIGH");
-                        isPendingCommand = true; 
+                        if(sac_accomplished) {
+
+                            // accomplished
+                            pendingCommand->clear();
+                            pendingCommand->addString("SAC_ACC_HIGH");
+                            isPendingCommand = true; 
+                        }
+                        else{
+                            //failed 
+                            pendingCommand->clear();
+                            pendingCommand->addString("SAC_FAIL_HIGH");
+                            isPendingCommand = true;
+                        }
                         
                     }
 
@@ -2408,12 +2418,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 //**** this section regulates the state transition indicating state of agent after action ****************//
         else if(!strcmp(name.c_str(),"SAC_FAIL")) {
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            //printf("resetting response timer saccade fail \n");
+            printf("resetting response timer saccade fail \n");
             //printf("reset the correcting flag \n");
             // saccade accomplished flag reset           
             mutex.wait();
-            correcting = true;  // flag that indicates the end of the saccade action
-            sac_fail  = true;   // flag indicates that insuccess of the saccade
+            correcting        = true;  // flag that indicates the end of the saccade action
+            sac_accomplished  = false; // flag indicates that insuccess of the saccade
             //executing = false;
             mutex.post();
         }
@@ -2597,15 +2607,28 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 double amplitude = 1.0;
                 double frequency = frequencyRule[4];
 
-                if(sac_fail) {
-                    //  changing the accomplished flag
-                    mutexAcc.wait();
-                    accomplFlag[4] = true;               // action number accomplished
-                    mutexAcc.post();
-                    
-                    
+                // preparing happy face
+                if(facePort.getOutputCount()) {
+                    Bottle& value = facePort.prepare();
+                    value.clear();
+                    value.addString("M0B");
+                    facePort.write();
+                }
+                
+                //  changing the accomplished flag
+                mutexAcc.wait();
+                accomplFlag[4] = true;               // action number accomplished
+                mutexAcc.post();
+                
+                
+                
+                CvPoint t; tracker->getPoint(t);               
+                double distance = std::sqrt((double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                
+                if(distance < FOVEACONFID) {
                     
                     // nofiying state transition to fixStable ok           
+                    
                     Bottle notif;
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
@@ -2619,60 +2642,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     
                 }
                 else {
-
-                    // preparing happy face
-                    if(facePort.getOutputCount()) {
-                        Bottle& value = facePort.prepare();
-                        value.clear();
-                        value.addString("M0B");
-                        facePort.write();
-                    }
-            
-                    //  changing the accomplished flag
-                    mutexAcc.wait();
-                    accomplFlag[4] = true;               // action number accomplished
-                    mutexAcc.post();
-                    
-                
-                
-                    CvPoint t; tracker->getPoint(t);
-                    
-                    double distance = std::sqrt((double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
-                    
-                    if(distance < FOVEACONFID) {
-                        
-                        // nofiying state transition to fixStable ok           
-                        
-                        Bottle notif;
-                        notif.clear();
-                        notif.addVocab(COMMAND_VOCAB_STAT);
-                        notif.addDouble(6);                  // code for fixStableOK accomplished 
-                        notif.addDouble(timing);
-                        notif.addDouble(accuracy);
-                        notif.addDouble(amplitude);
-                        notif.addDouble(frequency);
-                        setChanged();
-                        notifyObservers(&notif);
-                        
-                    }
-                    else {
-                        // nofiying state transition to fixStable no           
-                        // this is caused by a correct saccade 
-                        // but ended up far from the target
-                        Bottle notif;
-                        notif.clear();
-                        notif.addVocab(COMMAND_VOCAB_STAT);
-                        notif.addDouble(7);                  // code for fixStableNO 
-                        notif.addDouble(timing);
-                        notif.addDouble(accuracy);
-                        notif.addDouble(amplitude);
-                        notif.addDouble(frequency);
-                        setChanged();
-                        notifyObservers(&notif);
-                    }
-
-                }// end of if sac_fail
-                    
+                    // nofiying state transition to fixStable no           
+                    // this is caused by a correct saccade 
+                    // but ended up far from the target
+                    Bottle notif;
+                    notif.clear();
+                    notif.addVocab(COMMAND_VOCAB_STAT);
+                    notif.addDouble(7);                  // code for fixStableNO 
+                    notif.addDouble(timing);
+                    notif.addDouble(accuracy);
+                    notif.addDouble(amplitude);
+                    notif.addDouble(frequency);
+                    setChanged();
+                    notifyObservers(&notif);
+                }
+                                             
 
                 /*
                 // reset action
@@ -2777,6 +2761,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // saccade accomplished flag set 
             mutex.wait();
             correcting = true;
+            sac_accomplished = true;
             //executing = false;
             mutex.post();
         }

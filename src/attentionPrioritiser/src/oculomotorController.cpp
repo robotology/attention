@@ -390,8 +390,13 @@ bool oculomotorController::threadInit() {
     //ot->setName(getName("").c_str()); 
     //ot->start();
         
-    idle = true; // TODO: removed this hard coded initialisation. Possible memory leak. 18/10/12
-    printf("idleState %d \n", idle);
+    //idle = true; // TODO: removed this hard coded initialisation. Possible memory leak. 18/10/12
+
+    if(idle)
+        printf("oculomotorController : idleState = true \n");
+    else
+        printf("oculomotorController : idleState = false \n");
+        
 
     printf("\n ------------------------oculomotorController::threadInit:initialisation correctly ended \n");
     
@@ -907,7 +912,7 @@ void oculomotorController::run() {
         iter++;   // main temporal counter for visualisation and active learning
          
         printf(".............................................................cycle %d \n", iter);
-        Time::delay(10.0);
+        Time::delay(2.0);
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
             // sets all flag that allow action to false
@@ -940,7 +945,7 @@ void oculomotorController::run() {
         }
         */
 
-        
+        printf("countSucc %d iter %d readyforAction %d \n",countSucc, iter, ap->readyForActions() );
         if((countSucc < 20) && (iter % 20 == 0) && (ap->readyForActions())) {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
