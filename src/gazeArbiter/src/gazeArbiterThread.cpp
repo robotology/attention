@@ -1200,7 +1200,7 @@ void gazeArbiterThread::run() {
                     //   return;
                     //}
                       
-                    Time::delay(2);
+                    Time::delay(2.0);
 
                     
                     //igaze->waitMotionDone();
@@ -1272,8 +1272,21 @@ void gazeArbiterThread::run() {
                 Time::delay(0.01);
                 if (minCumul > 5000000) {
                     printf("Error: out of correlation limits \n");
+
+                    // sending error message for saccade SAC_FAIL
+                    Bottle& status = statusPort.prepare();
+                    status.clear();
+                    status.addString("SAC_FAIL");
+                    statusPort.write();
+                    
+                    px[0] = 0; 
+                    px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
+                    px[2] = 0;    
+                    igaze->lookAtAbsAngles(px);
                 }
-                else if((timeout >= 8.0) || (countDecrement >= 10) || error_control >= 5.0 ) {
+                else if((timeout >= 8.0) || (countDecrement >= 10) || error_control >= 10.0 ) {
+                    Time::delay(5.0);
+
                     Vector px(3);
                     printf("Error in reaching with visualFeedback \n");
                     printf("Error in reaching with visualFeedback \n");

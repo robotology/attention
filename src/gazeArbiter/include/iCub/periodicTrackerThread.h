@@ -256,7 +256,7 @@ public:
                 // representing the template in the master image
                 for (int y1 = 0; y1 < template_roi.height; y1++) {
                     for (int x1 = 0; x1 < template_roi.width; x1++) {
-                        unsigned int value  = tmp( template_roi.x        + x1, template_roi.y        + y1);
+                        unsigned int value  = tmp( template_roi.x+ x1, template_roi.y+ y1);
                         master(x1,y1) = value;
                     }
                 }                       
@@ -267,17 +267,22 @@ public:
                 if (check_copy) {
                     
                     minLoc=sqDiff(img,search_roi,tmp,template_roi, ftmp);
+
+                    // update point coordinates (ONLY IF REQUIRED BY SUPERUSER)
+                    point.x = search_roi.x + minLoc.x + (template_roi.width  >> 1);
+                    point.y = search_roi.y + minLoc.y + (template_roi.height >> 1);
+                    
+                    mutexComput.wait();
                     computation_done = true;
-                    printf("minima %f \n", ftmp);
+                    mutexComput.post();
+                    printf("minima %f in point(%d,%d) \n", ftmp, point.x, point.y);
                
                     // updating the correlation measure 
                     mutex.wait();
                     lastMinCumul = ftmp;
                     mutex.post();
 
-                    // update point coordinates (ONLY IF REQUIRED BY SUPERUSER)
-                    point.x = search_roi.x + minLoc.x + (template_roi.width  >> 1);
-                    point.y = search_roi.y + minLoc.y + (template_roi.height >> 1);
+                    
                 }
                 
                 
