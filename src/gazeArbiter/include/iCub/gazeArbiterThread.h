@@ -262,6 +262,10 @@ public:
     */
     void setYLimits(double max,double  min) { ymax = max; ymin = min; };
 
+    /**
+     * function that sets the camSel indicating the drive eye 0 - left, 1 - right
+     */
+    void setDrive(int value) { camSel = value; };
 
     /**
     * function that sets the value of the parameter onWings

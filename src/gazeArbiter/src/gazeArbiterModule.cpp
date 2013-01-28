@@ -47,6 +47,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
         printf("--name           : rootname for all the connection of the module \n");
         printf("--camerasContext : context where camera parameters are stored \n");
         printf("--camerasFile    : file of parameters of the camera in the context \n");
+        printf("--drive          : left/right indicates the drive eye");
         printf("--config         : camera parameters");
         printf("--blockPitch     : blocking the head during motions \n");
         printf("--xmax, xmin, ymax, ymin, zmax, zmin : outOfReach limits \n");
@@ -111,15 +112,16 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     else {
         camerasFile.clear();
     }
+    printf("configFile: %s \n", camerasFile.c_str());
 
-    printf("configFile: %s \n", configName.c_str());
 
+    
     
 
     collector=new gazeCollectorThread();
     collector->setName(getName().c_str());
     
-    arbiter=new gazeArbiterThread(configFile);
+    arbiter=new gazeArbiterThread(camerasFile);
     arbiter->setName(getName().c_str());
     arbiter->setRobotName(robotName);
     
@@ -143,6 +145,18 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
 
     printf("\n width: %d  height:%d \n", width, height);
     arbiter->setDimension(width,height);
+
+    /*extract the information about the drive eye*/
+    drive                  = rf.check("drive", 
+                           Value("left"), 
+                           "indicates drive eye (left/right)").asString();
+    if(!strcmp(drive.c_str(), "left")) {
+        arbiter->setDrive(0); 
+    }
+    else {
+        arbiter->setDrive(1);
+    }
+    
 
     /* offset for 3d position along x axis */
     this->xoffset       = rf.check("xoffset", 

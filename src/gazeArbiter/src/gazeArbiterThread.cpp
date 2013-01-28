@@ -747,6 +747,7 @@ void gazeArbiterThread::run() {
                 
                 Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
                 iCubEye *eye = (isLeft?eyeL:eyeR);
+                
 
                 //function that calculates the 3DPoint where to redirect saccade and add the offset
                 Vector torso(3);
@@ -764,12 +765,15 @@ void gazeArbiterThread::run() {
                 x[0] = zDistance * u;
                 x[1] = zDistance * v;
                 x[2] = zDistance;
+
+                //printf("got the vector x %d %d %d \n",x(0), x(1), x(2));
                 
                 // find the 3D position from the 2D projection,
                 // knowing the distance z from the camera
+                //printf( "%s \n", invPrj->toString().c_str());
                 Vector xe = yarp::math::operator *(*invPrj, x);
                 xe[3] = 1.0;  // impose homogeneous coordinates 
-                printf("imposing homogeneous coordinates \n");
+                //printf("imposing homogeneous coordinates \n");
                 
                 Vector xo;
                 if(isOnWings) {
@@ -897,7 +901,7 @@ void gazeArbiterThread::run() {
                             Vector px(2);
                             px(0) = u;
                             px(1) = v;
-                            int camSel = 0;
+                            //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
                             //Time::delay(0.2);    // TODO : check this delay interval trying to make it shorter
                             igaze->checkMotionDone(&done);
@@ -905,7 +909,7 @@ void gazeArbiterThread::run() {
                             dist = 10;
                             Time::delay(0.5);
                             
-                            /*      *** tracking reinforcement only needed for fast saccades ***
+                            /**** tracking reinforcement only needed for fast saccades ***
                             if(visualCorrection){
                                 printf("starting visual correction with tracker refresh\n");
                                 // second init of the tracker to remove postsaccadic error
@@ -1061,6 +1065,8 @@ void gazeArbiterThread::run() {
             }
                   
             printf("preparing visual correction \n");
+            Time::delay(10.0);
+            
             
             // *********************************************************************************************
             // sending the command to the episodic tracker
@@ -1097,7 +1103,7 @@ void gazeArbiterThread::run() {
                 point_prev = point;
                 // introducing the fast tracker in the system, initialising the fast with the output of slow  
                 ptracker->getPoint(point);
-                printf("just waiting for initialisation point %d %d... \n", point.x , point.y);
+                
                 
                 
                 CvPoint testPoint; testPoint.x = -1; testPoint.y = -1;
@@ -1106,53 +1112,64 @@ void gazeArbiterThread::run() {
                     tracker->waitInitTracker();
                     tracker->getPoint(testPoint);
                     printf("tracking %d %d \n",testPoint.x, testPoint.y );
-                }
-                
-                printf("just initilisated  with the point %d %d \n", point.x , point.y);
+                }                
+                printf("-1.just initilisated  with the point %d %d \n", point.x , point.y);
 
-                //Time::delay(1.0); //extra time                
+                
+
+                Time::delay(5.0); //extra time                
                 //igaze->lookAtMonoPixel(camSel,px,0.5);
                 
-                
-                while((countDecrement < 1000) && (countReach < 3) 
-                       && (timeout < 30.0) && (ptracker->getInputCount())  ) 
+                //initialisation of the loop
+                double error_control;
+
+                //Rea : 28/1/13 removed while cycle because it converges in one loop
+                //              if the first loop does not suffice increment the number of loops
+                //while((countDecrement < 1000) && (countReach < 3)  && (timeout < 1.0) && (ptracker->getInputCount())  ) 
+                for(int i = 0 ; i< 1; i++)
                 {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
                    
+                    
+                    if(i == 0) {
 #ifndef CONFIGFOVEA
-                    errorx = (width  >> 1) - point.x;
-                    errory = (height >> 1) - point.y;
-                    px(0)  = (width  >> 1) - 1 - errorx;    // subtracting 1 for the center of image
-                    px(1)  = (height >> 1) - 1 - errory;    // subtracting 1 for the center of image
+                        errorx = (width  >> 1) - point.x;
+                        errory = (height >> 1) - point.y;
+                        px(0)  = (width  >> 1) - 1 - errorx;    // subtracting 1 for the center of image
+                        px(1)  = (height >> 1) - 1 - errory;    // subtracting 1 for the center of image
 #else
-                    errorx = 160.0 - point.x;
-                    errory = 120.0 - point.y;
-                    px(0)  = cxl - errorx;
-                    px(1)  = cyl - errory;
-                    //printf("c = (%d,%d) point = (%f,%f) error= (%f, %f) px = (%f,%f) \n",cxl,cyl,point.x, point.y,errorx, errory, px(0), px(1));
+                        errorx = 160.0 - point.x;
+                        errory = 120.0 - point.y;
+                        px(0)  = cxl - errorx ;
+                        px(1)  = cyl - errory ;
+                        //printf("c = (%d,%d) point = (%f,%f) error= (%f, %f) px = (%f,%f) \n",cxl,cyl,point.x, point.y,errorx, errory, px(0), px(1));
 #endif
 
                     
-                    errorVC_pre = errorVC;
-                    errorVC = sqrt((double) (errorx * errorx + errory * errory));
-                    printf("time passed in correcting center =[%f, %f]  %f (%f, %f : %3f) \n",cxl,cyl, timeout, px(0), px(1), errorVC);
-                    if(errorVC <= 2) {
-                        countReach++;
+                        errorVC_pre = errorVC;
+                        errorVC = sqrt((double) (errorx * errorx + errory * errory));
+                        printf("time passed in correcting center =[%f, %f]  %f (%f, %f : %3f) \n",cxl,cyl, timeout, px(0), px(1), errorVC);
+                        if(errorVC <= 2) {
+                            countReach++;
+                        }
+                        if ((errorVC > 4 ) ) {
+                            //countDecrement++;
+                            if(countReach > 0)
+                                countReach--;
+                        }
+                        //else {
+                        //    countDecrement = 0;
+                        //}
+                        printf("norm error %f \n", errorVC);
                     }
-                    if ((errorVC > 4 ) ) {
-                        //countDecrement++;
-                        if(countReach > 0)
-                            countReach--;
-                    }
-                    //else {
-                    //    countDecrement = 0;
-                    //}
-                    //printf("norm error %f \n", errorVC);
                     
-                    Time::delay(3.0);
-
-                    int camSel = 1; 
+                                       
+                    //int camSel = 0; 
+                    //if(camSel == 0) {
+                    //    px(0) = cxl;
+                    //    px(1) = cyl;
+                    //}
                     igaze->lookAtMonoPixel(camSel,px,0.5);
                     
                     //Vector xo;
@@ -1183,6 +1200,8 @@ void gazeArbiterThread::run() {
                     //   return;
                     //}
                       
+                    Time::delay(2);
+
                     
                     //igaze->waitMotionDone();
                     point_prev = point;        // changing the position of the tracked point in the previous step
@@ -1197,13 +1216,64 @@ void gazeArbiterThread::run() {
                     minCumul = ptracker->getLastMinCumul();
                     //printf("countReach:%d> the point ended up in (%d,%d) with minCumul %f travelDistance %f \n",countReach,point.x, point.y, minCumul, travelDistance);
                   
+
+                    // *********************************************************************************************
+                    // sending the command to the episodic tracker
+                    ptracker->setCheck(true);
+                    // the actual visiting of the whole portion of the image is time-demanding
+                    // the bigger the area controlled the longer the time interval
+                    // ALLOW necessary time or waitComputation 
+                    printf("waiting for completion in the periodicTracking.... \n");
+                    ptracker->waitCorrComputation();
+                    printf("computation completed \n");
+                    // ******************************************************************************
+                    ptracker->getPoint(point);
+                    printf("%d.just waiting for initialisation point %d %d... \n",i, point.x , point.y);
+                    double errorx_control = 160 - point.x;
+                    double errory_control = 120 - point.y;
+                    
+                    error_control  = sqrt( (double)
+                                                  errorx_control * errorx_control + 
+                                                  errory_control * errory_control
+                                           );
+
+                   
+                    px(0)  = cxl - (errorx_control / 10.0) ;
+                    px(1)  = cyl - (errory_control / 10.0) ;
+                    
+                    
+                    //if(errorx_control > 0)
+                    //    px(0)  = cxl - 1;
+                    //else
+                    //    px(0)  = cxl + 1;
+                    
+                    //if (errorx_control > 0)
+                    //    px(1)  = cyl - 1;
+                    //else
+                    //    px(1)  = cyl + 1;
+                   
+                    //px(0) = cxl;
+                    //px(1) = cyl;
+                    
+                    printf("error = %f preparing saccade:%f %f \n", error_control,px(0),px(1));
+
+                    //Time::delay(2);
+                    //igaze->lookAtMonoPixel(camSel,px,0.5);
+                    
+                  
+                    
                 }
+             
+
+                timeoutStop = Time::now();
+                timeout = timeoutStop - timeoutStart;
+                printf("Timeout in saccade execution  %f \n", timeout);
                  
                 Time::delay(0.01);
                 if (minCumul > 5000000) {
                     printf("Error: out of correlation limits \n");
                 }
-                else if((timeout >= 30.0) || (countDecrement >= 10)) {
+                else if((timeout >= 8.0) || (countDecrement >= 10) || error_control >= 5.0 ) {
                     Vector px(3);
                     printf("Error in reaching with visualFeedback \n");
                     printf("Error in reaching with visualFeedback \n");
@@ -1615,7 +1685,7 @@ void gazeArbiterThread::vergenceInAngle() {
             px(1) = 113;
             
             printf("norm error in mean %f \n", error);
-            int camSel = 0;
+            //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
             igaze->lookAtMonoPixelWithVergence(camSel,px,meanRegVerg);
             //tracker->getPoint(point);
             Time::delay(1.5);
@@ -1659,7 +1729,7 @@ void gazeArbiterThread::vergenceInAngle() {
             }
 
             //Time::delay(0.1);
-            int camSel = 0;
+            //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
             //igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
             //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
             //printf("varDistance %f \n", varDistance);
@@ -1713,7 +1783,7 @@ void gazeArbiterThread::vergenceInDepth(){
     //corrected the error
     tracker->getPoint(point);
     Vector px(2);
-    int camSel = 0;
+    //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
     
     if(!visualCorrection){
         px(0) = 183;
