@@ -475,11 +475,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     Matrix zMeasurements2D(nIter,2);
     Matrix zMeasurements3D(nIter,3);
     Matrix uMeasurements(2.0, nIter);
-    for (int i = 0; i < 2; i++) {
-        for (int j =0 ; j < nIter; j++) {
-            uMeasurements(i, j) = 1.0;
-        }
-    }
+    
     
     //passing from the 2D image plane to the 3D real location using homography
     //projectOnPlane(0,0,0,1,0,0);
@@ -630,6 +626,16 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         printf("____________________________________________________________________________________________________\n");
         tmp = *it;  // pointer to the thread
         printf("reading evalThread reference from the queue it = %08X \n", tmp);
+
+        
+        //creating the uMeasurement vector
+        double paramA = tmp->getParamA();
+        for (int i = 0; i < 2; i++) {
+            for (int j =0 ; j < nIter; j++) {
+                uMeasurements(i, j) = paramA;
+            }
+        }
+
         if(tmp->getRowA() == 2) {
             printf("dimension of the measure %d \n",tmp->getRowA() );
             tmp->setMeasurements(uMeasurements,zMeasurements2D);
