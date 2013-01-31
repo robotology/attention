@@ -136,6 +136,7 @@ bool trajectoryPredictor::threadInit() {
 
     //---------------------------------------------------------------------------
     
+    /*
     printf(" creating eval thread \n");
     modelB->init(9.8);
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
@@ -146,7 +147,7 @@ bool trajectoryPredictor::threadInit() {
     printf("just initialised genPredModel %08X \n",&eval);
     eval->start();
     eQueue->push_back(eval); 
-    
+    */
     
 
     //------------------------------------------------------------------------------
@@ -165,7 +166,7 @@ bool trajectoryPredictor::threadInit() {
     // ------------------------------------------------------------------------------------
     
     minJerkModel* modelC = new minJerkModel();
-    modelC->init(1.0, 1.0);
+    modelC->init(0.5, 1.0);
     
     int rowC = modelC->getA().rows();
     int colC = modelC->getA().cols();
@@ -192,36 +193,13 @@ bool trajectoryPredictor::threadInit() {
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(1.0,2.0);
+    modelC->init(0.5,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
     eval->start();
     eQueue->push_back(eval); 
     
-    //------------------------------------------------------------------------------
-    
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
-    modelC = new minJerkModel();
-    modelC->init(1.0,0.5);
-    mC = dynamic_cast<genPredModel*>(modelC);
-    eval = new evalThread(*mC);
-    eval->init(z0c,x0c,P0c);
-    eval->start();
-    eQueue->push_back(eval);
-
-    //------------------------------------------------------------------------------
-    
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
-    modelC = new minJerkModel();
-    modelC->init(1.0,1.5);
-    mC = dynamic_cast<genPredModel*>(modelC);
-    eval = new evalThread(*mC);
-    eval->init(z0c,x0c,P0c);
-    eval->start();
-    eQueue->push_back(eval);
-
-    //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
@@ -231,18 +209,7 @@ bool trajectoryPredictor::threadInit() {
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
     eval->start();
-    eQueue->push_back(eval); 
-
-    //------------------------------------------------------------------------------
-    
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
-    modelC = new minJerkModel();
-    modelC->init(0.5,1.0);
-    mC = dynamic_cast<genPredModel*>(modelC);
-    eval = new evalThread(*mC);
-    eval->init(z0c,x0c,P0c);
-    eval->start();
-    eQueue->push_back(eval); 
+    eQueue->push_back(eval);
 
     //------------------------------------------------------------------------------
     
@@ -253,13 +220,47 @@ bool trajectoryPredictor::threadInit() {
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
     eval->start();
+    eQueue->push_back(eval);
+
+    //------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    modelC = new minJerkModel();
+    modelC->init(0.4,0.5);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
     eQueue->push_back(eval); 
 
     //------------------------------------------------------------------------------
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(0.5,2.0);
+    modelC->init(0.4,1.0);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
+
+    //------------------------------------------------------------------------------
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    modelC = new minJerkModel();
+    modelC->init(0.4,1.5);
+    mC = dynamic_cast<genPredModel*>(modelC);
+    eval = new evalThread(*mC);
+    eval->init(z0c,x0c,P0c);
+    eval->start();
+    eQueue->push_back(eval); 
+
+    //------------------------------------------------------------------------------
+    
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    modelC = new minJerkModel();
+    modelC->init(0.4,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -271,7 +272,7 @@ bool trajectoryPredictor::threadInit() {
 
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(1.5,0.5);
+    modelC->init(0.3,0.5);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -282,7 +283,7 @@ bool trajectoryPredictor::threadInit() {
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(1.5,1.0);
+    modelC->init(0.3,1.0);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -293,7 +294,7 @@ bool trajectoryPredictor::threadInit() {
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(1.5,1.5);
+    modelC->init(0.3,1.5);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -304,7 +305,7 @@ bool trajectoryPredictor::threadInit() {
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(1.5,2.0);
+    modelC->init(0.3,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -316,7 +317,7 @@ bool trajectoryPredictor::threadInit() {
 
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(2.0,0.5);
+    modelC->init(0.2,0.5);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -327,7 +328,7 @@ bool trajectoryPredictor::threadInit() {
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(2.0,1.0);
+    modelC->init(0.2,1.0);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -338,7 +339,7 @@ bool trajectoryPredictor::threadInit() {
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(2.0,1.5);
+    modelC->init(0.2,1.5);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -349,7 +350,7 @@ bool trajectoryPredictor::threadInit() {
     
     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
     modelC = new minJerkModel();
-    modelC->init(2.0,2.0);
+    modelC->init(0.2,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -483,15 +484,18 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     //passing from the 2D image plane to the 3D real location using homography
     //projectOnPlane(0,0,0,1,0,0);
     //get3DPointOnPlane (const int camSel, const yarp::sig::Vector &px, const yarp::sig::Vector &plane, yarp::sig::Vector &x)=0
-    int camSel = 1; //left camera
+    int camSel = 0; //left camera 0-left 1-right
     Vector px(2);
     px(0) = 160; 
     px(1) = 120;
+    //representing on the plane 1x + 0y + 0z = -0.5
     Vector plane(4);
     plane(0) = 1;
     plane(1) = 0;
     plane(2) = 0;
-    plane(3) = 0.35;
+    plane(3) = 0.5;
+
+    
     Vector x3D(3);
     igaze->get3DPointOnPlane(camSel,px,plane,x3D);
     printf("3dposition on the plane extract by gazeController %s \n ", x3D.toString().c_str());
@@ -501,11 +505,15 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     double z = 0.35;
     double theta;
 
+
+    fprintf(fMeasure,"pCurr.x pCurr.y timeMeas dist theta timeDiff vel acc \n");
+
     // filling the zMeasure matrix with position on the plane of homography
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
         
         tracker->getPoint(p_curr);
+        
         timeStop = Time::now();
         if (n == 0) {
             // initialisation of the starting point of the traj.
@@ -520,6 +528,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             z0 = x3D(2);
         }
         else {
+            fprintf(fMeasure,"%d %d ",p_curr.x, p_curr.y); 
+
             timeDiff = timeStop - timeStart;
             timeMeas = Time::now() - timeInitial;
             //printf("----------------- \n timeDiff %f \n", timeDiff );
@@ -531,7 +541,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             igaze->get3DPointOnPlane(camSel,px,plane,x3D);
             //igaze->get3DPoint(camSel,px,z,x3D);
             //printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
-            //fprintf(fout,"%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
+            fprintf(fout,"%f %f %f\n", x3D(0) , x3D(1) , x3D(2));
 
 
             distX =  x3D(1) - y0;
@@ -654,9 +664,10 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
                 finished++;
                 printf(" predictor %s %f %f ends estimation.state %s \n",
  (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str());
-                fprintf(fMeasure," predictor %s %f %f ends estimation.state %s \n",
- (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str());
+                
                 double currentMSE = (*it)->getMSE();
+                fprintf(fMeasure," predictor %s %f %f ends; estimation.state:%s MSE:%f \n",
+                        (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str(), currentMSE);
                 printf(" predictor ends with error %f       \n", currentMSE);
                 
                 if( currentMSE <  minMSE) {
@@ -675,7 +686,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         printf("no predictor found \n");
     }
     else {
-        printf("found the predictor %s %f %f  that minimises the MSE %f \n",(*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(), minMSE);
+        printf("found the predictor %s %f %f  that minimises the MSE %f \n",minPredictor->getType().c_str(), minPredictor->getParamA(), minPredictor->getParamB(), minMSE);
     }
 
     if(false) {
@@ -691,13 +702,13 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         time = 0.18;
     }
     else {
-        double distance = (*it)->getParamA();
+        double distance = minPredictor->getParamA();
         Vx = -1;
         Vy = -1;
         xPos = x0;
         yPos = y0 + distance * cos(theta);
         zPos = z0 + distance * sin(theta);
-        fprintf(fMeasure,"target : %f %f %f \n", xPos, yPos, zPos);
+        fprintf(fMeasure,"target %f %f : %f %f %f \n",distance, theta, xPos, yPos, zPos);
     }
 
     return predictionAccompl;
