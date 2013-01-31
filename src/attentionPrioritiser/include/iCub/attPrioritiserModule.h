@@ -216,6 +216,7 @@ class attPrioritiserModule:public yarp::os::RFModule {
     std::string configFile;                     // configuration file of cameras
     std::string mode;                           // string that indicates the modality of the mapping (if any)
     std::string configName;                     // name of the config file for camera that is going to be search
+    std::string camerasFile;                    // name of the config file for camera associated with the camerasContext
     int ratethread;                             // time constant for ratethread
     double xoffset;                             // offset for the 3D point along x
     double yoffset;                             // offset for the 3D point along y

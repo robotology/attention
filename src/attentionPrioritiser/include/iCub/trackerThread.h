@@ -55,12 +55,13 @@ private:
     string name;
     int template_size;
     int search_size;
-    float lastMinCumul;                         // last min cumulative value extracted by template matching    
-    double proxMeasure;                             // proximity measure of the stimulus with respect to the center of fovea              
+    float lastMinCumul;                          // last min cumulative value extracted by template matching    
+    double proxMeasure;                          // proximity measure of the stimulus with respect to the center of fovea              
  
     CvRect  search_roi;
     CvRect  template_roi;
     CvPoint point;
+    CvPoint predTarget;                          // target position of the prediction
 
     bool firstConsistencyCheck;
     bool running;
@@ -101,6 +102,9 @@ public:
         init_success = false;
         point.x = 0;
         point.y = 0;
+
+        predTarget.x = 0;
+        predTarget.y = 0;
 
         return true;
     }
@@ -214,6 +218,11 @@ public:
                                 cvScalar(0,255,0),2);
                     
                     cvCircle( imgBgrOut.getIplImage(), cvPoint(160,120), 30 , cvScalar(0,255,0), 1 );
+                    
+                    if((predTarget.x != 0) && (predTarget.y!=0)) {
+                       cvCircle( imgBgrOut.getIplImage(), predTarget, 30 , cvScalar(255,0,0), 1 ); 
+                    }
+                    
                 }
                 
 

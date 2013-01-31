@@ -116,7 +116,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     else {
         camerasFile.clear();
     }
-
+    printf("configFile: %s \n", camerasFile.c_str());
 
 
     robotName             = rf.check("visualFeedback", 
@@ -131,7 +131,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     collector->setName(getName().c_str());
     
     printf("\n running the prioritiser \n");
-    prioritiser=new attPrioritiserThread(configFile);
+    prioritiser=new attPrioritiserThread(camerasFile);
     prioritiser->setName(getName().c_str());
     prioritiser->setRobotName(robotName);
 
