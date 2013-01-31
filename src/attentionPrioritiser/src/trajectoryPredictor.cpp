@@ -637,11 +637,11 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         }
 
         if(tmp->getRowA() == 2) {
-            printf("dimension of the measure %d \n",tmp->getRowA() );
+            printf("dimension of the measure %d %f \n",tmp->getRowA(), paramA );
             tmp->setMeasurements(uMeasurements,zMeasurements2D);
         }
         else {
-            printf("dimension of the measure %d \n",tmp->getRowA() );
+            printf("dimension of the measure %d %f \n",tmp->getRowA(), paramA );
             tmp->setMeasurements(uMeasurements,zMeasurements3D);
         }
         printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
