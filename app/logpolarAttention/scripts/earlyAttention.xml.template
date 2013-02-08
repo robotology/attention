@@ -136,19 +136,22 @@
 	<to>/selectiveAttentionEngine/icub/left_cam/blobs:i</to>
 	<protocol>tcp</protocol>
    </connection>
-   
-   <connection>
-	<from>/icub/camcalib/left/out</from>
-	<to>/gazeArbiter/icub/matchTracker/img:i</to>
-	<protocol>tcp</protocol>
-   </connection>
 
    <connection>
 	<from>/icub/camcalib/left/out</from>
 	<to>/attPrioritiser/icub/matchTracker/img:i</to>
 	<protocol>tcp</protocol>
    </connection>
-   
+   <connection>
+	<from>/icub/camcalib/left/out</from>
+	<to>/gazeArbiter/icub/periodicTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+   <connection>
+	<from>/icub/camcalib/left/out</from>
+	<to>/gazeArbiter/icub/matchTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
    <connection>
 	<from>/selectiveAttentionEngine/icub/left_cam/cmd:o</from>
 	<to>/attPrioritiser/icub/cmd:i</to>
@@ -254,6 +257,18 @@
    <connection>
      <from>/attPrioritiser/icub/direct:o</from>
      <to>/iKinGazeCtrl/head/mono:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/face:o</from>
+     <to>/icub/face/raw/in</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/logPolarTransform/icub/left_cam/image:o</from>
+     <to>/attPrioritiser/icub/controller/entImage:i</to>
      <protocol>tcp</protocol>
    </connection>
 

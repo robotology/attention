@@ -53,7 +53,12 @@
       <node>icub14</node>
       <tag>matchTrackerView</tag>
 </module>
-
+<module>
+      <name>yarpview</name>
+      <parameters>--name /matchEpisodic --x 150 --y 660 --RefreshTime 33</parameters>
+      <node>icub14</node>
+      <tag>matchEpisodicView</tag>
+</module>
 <module>
       <name>yarpview</name>
       <parameters>--name /matchPredictor --x 340 --y 660 --RefreshTime 33</parameters>
@@ -77,14 +82,14 @@
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /view/Seg --x 180 --y 960 --RefreshTime 33</parameters>
+  <parameters>--name /view/Seg --x 1320 --y 660 --RefreshTime 33</parameters>
   <node>icub14</node>
   <tag>view Seg</tag>
 </module>
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /mosaicView --x 180 --y 960 --RefreshTime 33</parameters>
+  <parameters>--name /mosaicView --x 1320 --y 960 --RefreshTime 33</parameters>
   <node>icub14</node>
   <tag>mosaicViewer</tag>
 </module>
@@ -130,6 +135,11 @@
 <connection>
   <from>/gazeArbiter/icub/matchTracker/img:o</from>
   <to>/matchViewer</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/gazeArbiter/icub/periodicTracker/img:o</from>
+  <to>/matchEpisodic</to>
   <protocol>udp</protocol>
 </connection>
 <connection>
