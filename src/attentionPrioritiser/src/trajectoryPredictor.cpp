@@ -693,8 +693,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
     it = eQueue->begin();
     int finished  = 0 ;
-    minMSE = 1000000;
-    evalThread* minPredictor = 0;
+    minMSE = 1;                      // minMSE = 1 is the lower limit beyond the which any predictor is not considered successful
+    evalThread* minPredictor = 0;    // if any predictor fails the pointer to the predictor remains null
     
     while(finished < eQueue->size()) {
         printf("eval evaluation %d < %d \n",finished, eQueue->size() );
@@ -725,17 +725,29 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     if(minPredictor == 0) {
         printf("no predictor found \n");
+        predictionAccompl = false;
+        return predictionAccompl;
     }
     else {
         printf("found the predictor %s %f %f  that minimises the MSE %f \n",minPredictor->getType().c_str(), minPredictor->getParamA(), minPredictor->getParamB(), minMSE);
     }
 
-    if(false) {
+
+    // preparing the output of the method : either presumed 3d position or velocity profile
+
+    if(!strcmp(minPredictor->getType().c_str(), "constVelocity")) {
         tracker->getPoint(p_curr);
         distance = std::sqrt((double)(p_curr.x - 160) * (p_curr.x - 160) + (p_curr.y - 120) * (p_curr.y - 120));
         bool predictionAccompl = true;
         Vx = meanVelX;
         Vy = meanVelY;
+
+        double vel = minPredictor->getParamA();
+        Vx = vel * cos(theta);
+        Vy = vel * sin(theta);
+
+        printf("comparison estimated velocity: Vx = %f (mean: %f)  Vy = %f (mean: %f)", Vx, meanVelX, Vy, meanVelY );
+        
         xPos = -1;
         yPos = -1;
         double maxAccCart = maxAccX > maxAccY?maxAccX:maxAccY;

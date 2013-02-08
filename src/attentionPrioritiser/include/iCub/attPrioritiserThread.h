@@ -117,6 +117,7 @@ private:
     static const int numIter    = 10;       // number of iteractions
     
     int cUpdate;                            // counter of updates
+    int camSel;                             // reference to drive eye
     std::string name;                       // rootname of all the ports opened by this thread
     std::string robot;                      // name of the robot read by the ResourceFinder
     std::string configFile;                 // configuration file of cameras (LEFT RIGHT)

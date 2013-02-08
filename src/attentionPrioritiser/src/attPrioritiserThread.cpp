@@ -150,6 +150,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
 
     printf("attPrioritiserThread::attPrioritiserThread \n");
     cUpdate = 0;
+    camSel  = 0; //TODO : remove hardcoded reference to the drive eye
     collectionLocation = new int[4*2];
     numberState = 6; //null, vergence, smooth pursuit, saccade
     configFile = _configFile;
@@ -831,10 +832,7 @@ void attPrioritiserThread::run() {
         bool predictionSuccess = 
             trajPredictor->estimateVelocity(u, v, predVx, predVy, predXpos, predYpos, predZpos, predTime, predDistance);
 
-
-
-        amplitude = 0; // null amplitude in prediction )no action involved)
-        
+        amplitude = 0; // null amplitude in prediction )no action involved)        
         printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);
         
 
@@ -2285,7 +2283,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Vector px(2);
                 px(0) = u;
                 px(1) = v;
-                int camSel = 0;
                 igaze->lookAtMonoPixel(camSel,px,0.5);          
                 
                 //Time::delay(0.05);
@@ -2947,7 +2944,17 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure() + 50;
+            double minMSE    = trajPredictor->getMSE();
+            double accuracy;
+            if(minMSE < 0.005) {
+                accuracy = 100;
+            }
+            else {
+                accuracy = 0;
+            }
+            
+            //double accuracy  = tracker->getProxMeasure() + 50;
+            
             double frequency = frequencyRule[6];
             double amplitude = 1.0;
 
@@ -2967,13 +2974,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // d. move  -> movSaccade
             // e. ant   -> antSaccade
             
+
+            // TRIGGERING CORRECT ACTION in relation to PREDICTION
+            
             //stable stimulus
             if((predVx == 0) || (predVy == 0)) {
 
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(1);                  // code for prediction accomplished (fixed position)
+                notif.addDouble(1);                  // code for prediction accomplished in fixed position (fixPredict)
                 notif.addDouble(timing);
                 notif.addDouble(accuracy);
                 notif.addDouble(amplitude);
@@ -3026,48 +3036,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 */
             }
             else { //not stable object
-                if ((predXpos != -1) && (predYpos != 1)) {
-                    // move -> anticipatoryPredictor
+                if((predVx != -1) || (predVy != -1)) {
+                    //move  -> movSmoothPursuit                   
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(5);                  // code for prediction accomplished in anticipatory state
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
-                    notif.addDouble(frequency);
-                    setChanged();
-                    notifyObservers(&notif);                    
-
-                    /*
-                    Bottle& sentPred     = highLevelLoopPort.prepare();
-                    Bottle* receivedPred = new Bottle();    
-                    sentPred.clear();
-                    sentPred.addString("SAC_MONO");
-                    sentPred.addInt(predXpos);
-                    sentPred.addInt(predYpos);
-                    highLevelLoopPort.write();                    
-                    delete receivedPred;
-                    */
-                    
-                    pendingCommand->clear();
-                    pendingCommand->addString("WAIT");
-                    pendingCommand->addInt(predVx);
-                    pendingCommand->addInt(predVy);
-                    pendingCommand->addString("ant");
-                    pendingCommand->addDouble(0.5);
-                    isPendingCommand = true;
-                    
-                }
-                // b. smooth pursuit
-                else { 
-                    //move  -> movSaccade                   
-                    // nofiying state transition            
-                    Bottle notif;
-                    notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(4);                  // code for prediction accomplished in motion state
+                    notif.addDouble(4);                  // code for prediction accomplished in motion state (motPredict)
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
                     notif.addDouble(amplitude);
@@ -3090,11 +3065,58 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     pendingCommand->addInt(predVx);
                     pendingCommand->addInt(predVy);
                     pendingCommand->addDouble(predTime);
-                    isPendingCommand = true;                    
-                    
+                    isPendingCommand = true; 
                 }
-            }
+                else { 
+                    // no predicted const velocity
+                    if ((predXpos != -1) && (predYpos != 1)) {
+                        // move -> anticipatoryPredictor
+                        // nofiying state transition            
+                        Bottle notif;
+                        notif.clear();
+                        notif.addVocab(COMMAND_VOCAB_STAT);
+                        notif.addDouble(5);                  // code for prediction accomplished in anticipatory state (antPredict)
+                        notif.addDouble(timing);
+                        notif.addDouble(accuracy);
+                        notif.addDouble(amplitude);
+                        notif.addDouble(frequency);
+                        setChanged();
+                        notifyObservers(&notif);                    
+                        
+                        /*
+                          Bottle& sentPred     = highLevelLoopPort.prepare();
+                          Bottle* receivedPred = new Bottle();    
+                          sentPred.clear();
+                          sentPred.addString("SAC_MONO");
+                          sentPred.addInt(predXpos);
+                          sentPred.addInt(predYpos);
+                          highLevelLoopPort.write();                    
+                          delete receivedPred;
+                        */
 
+                        // returns the predicted 3dposition on the image plane drive eye
+                        Vector px(2);
+                        Vector pos(3);
+                        pos(0) = predXpos;
+                        pos(1) = predYpos;
+                        pos(2) = predZpos;                       
+                        igaze->get2DPixel(camSel, pos, px); 
+                        
+                        //commanding the waiting in a predefined location on the image plane
+                        pendingCommand->clear();
+                        pendingCommand->addString("WAIT");
+                        pendingCommand->addInt(px(0));
+                        pendingCommand->addInt(px(1));
+                        pendingCommand->addString("ant");
+                        pendingCommand->addDouble(0.5);
+                        isPendingCommand = true;
+                    
+                    } //end if (predXpos != -1) && (predYpos != 1)
+                }//else (predVx != -1) || (predVy != -1)               
+            }//else (predVx == 0) || (predVy == 0)
+
+            
+            //----------------------------------------------------------------------------------------
             /*
             // a. predictive saccade
             if ((predXpos != -1) && (predYpos != 1)) {
@@ -3133,6 +3155,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
             } 
             */
+            //----------------------------------------------------------------------------------------
+            
         }
 //=================================================================================        
         else if((!strcmp(name.c_str(),"WAIT_ACC")) && (waitResponse[1])) {
