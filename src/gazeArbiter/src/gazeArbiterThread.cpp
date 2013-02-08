@@ -835,8 +835,8 @@ void gazeArbiterThread::run() {
                     
                     Time::delay(0.05);
                     printf("waiting for motion done \n");
-                    u = width  / 2;
-                    v = height / 2;
+                    u = width  / 2;  //TO DO: check the division! it would be rather better to use shift
+                    v = height / 2;  //TO DO: check the division! it would be rather better to use shift
                     //waitMotionDone();
                     printf("resetting the position: success! \n");
 
@@ -903,11 +903,10 @@ void gazeArbiterThread::run() {
                             px(1) = v;
                             //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
-                            //Time::delay(0.2);    // TODO : check this delay interval trying to make it shorter
                             igaze->checkMotionDone(&done);
                             printf("first check motion done %d \n", done);
                             dist = 10;
-                            Time::delay(0.5);
+                            Time::delay(0.05);
                             
                             /**** tracking reinforcement only needed for fast saccades ***
                             if(visualCorrection){
@@ -945,7 +944,7 @@ void gazeArbiterThread::run() {
                                 px[2] = 0;    
                                 igaze->lookAtAbsAngles(px);
                                 
-                                Time::delay(0.5);
+                                Time::delay(0.1);
                                 waitMotionDone();
                                 
                                 printf("waiting for motion done \n");
@@ -996,7 +995,7 @@ void gazeArbiterThread::run() {
                 igaze->lookAtFixationPoint(px);
                 //igaze->waitMotionDone();
                 
-                Time::delay(0.5);
+                Time::delay(0.1);
                 if(visualCorrection){
                     printf("starting visual correction within the stereo saccade\n");
                     tracker->init(160,120);
@@ -1065,7 +1064,7 @@ void gazeArbiterThread::run() {
             }
                   
             printf("preparing visual correction \n");
-            Time::delay(10.0);
+            Time::delay(0.5);  // allowing time for preparation
             
             
             // *********************************************************************************************
@@ -1117,7 +1116,7 @@ void gazeArbiterThread::run() {
 
                 
 
-                Time::delay(5.0); //extra time                
+                Time::delay(0.1); //extra time necessary for the system to reach steady state
                 //igaze->lookAtMonoPixel(camSel,px,0.5);
                 
                 //initialisation of the loop
@@ -1200,7 +1199,7 @@ void gazeArbiterThread::run() {
                     //   return;
                     //}
                       
-                    Time::delay(2.0);
+                    Time::delay(0.5); //allow time to reach steady state
 
                     
                     //igaze->waitMotionDone();
@@ -1257,14 +1256,12 @@ void gazeArbiterThread::run() {
                     
                     printf("error = %f preparing saccade:%f %f \n", error_control,px(0),px(1));
 
-                    //Time::delay(2);
-                    //igaze->lookAtMonoPixel(camSel,px,0.5);
-                    
-                  
+                    // ending the cycle
+                    // Time::delay(2);
+                    // igaze->lookAtMonoPixel(camSel,px,0.5);
                     
                 }
              
-
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
                 printf("Timeout in saccade execution  %f \n", timeout);
@@ -1285,7 +1282,7 @@ void gazeArbiterThread::run() {
                     igaze->lookAtAbsAngles(px);
                 }
                 else if((timeout >= 8.0) || (countDecrement >= 10) || error_control >= 10.0 ) {
-                    Time::delay(5.0);
+                    Time::delay(0.5);
 
                     Vector px(3);
                     printf("Error in reaching with visualFeedback \n");
@@ -1340,7 +1337,7 @@ void gazeArbiterThread::run() {
             
             //-----------------
             //accomplished_flag = true;
-            Time::delay(0.1);
+            Time::delay(0.05);
         }
     }
     else if(allowedTransitions(3)>0) {
