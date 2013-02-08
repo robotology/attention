@@ -58,6 +58,7 @@ private:
     int originalContext;              // original context for the gaze Controller
     double Vx, Vy;                    // components of velocity
     double blockNeckPitchValue;       // value for blocking the pitch of the neck
+    double minMSE;                    // the min value among the MSE of predictors
     std::string name;                 // rootname of all the ports opened by this thread
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > inImagePort;     //port where all the low level commands are sent
@@ -156,6 +157,11 @@ private:
     * @return rootname 
     */
     std::string getName(const char* p);
+
+    /**
+     * function the returns the min value among MSE calculated by predictors
+     */
+    double getMSE() {return minMSE; };
 
     /**
      * function that extract the centroid coordinates of the blob in the image

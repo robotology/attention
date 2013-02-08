@@ -118,16 +118,16 @@ bool trajectoryPredictor::threadInit() {
     
     linAccModel* modelB = new linAccModel();
     
-    int rowA = modelB->getA().rows();
-    int colA = modelB->getA().cols();
-    Vector z0(rowA);
-    Vector x0(rowA);
+    int rowB = modelB->getA().rows();
+    int colB = modelB->getA().cols();
+    Vector z0(rowB);
+    Vector x0(rowB);
     x0.zero();z0.zero();
     x0(0) = 1.0; 
-    Matrix P0(rowA,colA);
+    Matrix P0(rowB,colB);
     //printf("initialisation of P0 %d %d \n", rowA, colA);
-    for (int i = 0; i < rowA; i++) {
-        for (int j = 0; j < colA; j++) { 
+    for (int i = 0; i < rowB; i++) {
+        for (int j = 0; j < colB; j++) { 
             P0(i,j) += 0.01;
         }      
     }
@@ -136,7 +136,7 @@ bool trajectoryPredictor::threadInit() {
 
     //---------------------------------------------------------------------------
     
-    /*
+    
     printf(" creating eval thread \n");
     modelB->init(9.8);
     genPredModel* mB = dynamic_cast<genPredModel*>(modelB);
@@ -147,7 +147,42 @@ bool trajectoryPredictor::threadInit() {
     printf("just initialised genPredModel %08X \n",&eval);
     eval->start();
     eQueue->push_back(eval); 
-    */
+
+
+    // _______________________ LINEAR VELOCITY MODELS _______________________________________
+    // ------------------------------------------------------------------------------------------
+    
+    linVelModel* modelA = new linVelModel();
+    
+    int rowA = modelA->getA().rows();
+    int colA = modelA->getA().cols();
+    Vector z0a(rowA);
+    Vector x0a(rowA);
+    x0a.zero();z0a.zero();
+    x0a(0) = 1.0; 
+    Matrix P0a(rowA,colA);
+    //printf("initialisation of P0 %d %d \n", rowA, colA);
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colA; j++) { 
+            P0a(i,j) += 0.01;
+        }      
+    }
+   
+
+    //---------------------------------------------------------------------------
+    
+    
+    printf(" creating evalThread constant velocity \n");
+    modelA->init(0.1);
+    genPredModel* mA = dynamic_cast<genPredModel*>(modelA);
+    eval = new evalThread(*mA);
+    eval->init(z0a,x0a,P0a);
+    printf("genPred model A \n %s \n",mA    ->getA().toString().c_str());
+    printf("lin acc model A \n %s \n",modelA->getA().toString().c_str());
+    printf("just initialised genPredModel %08X \n",&eval);
+    eval->start();
+    eQueue->push_back(eval); 
+    
     
 
     //------------------------------------------------------------------------------
@@ -658,7 +693,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
     it = eQueue->begin();
     int finished  = 0 ;
-    double minMSE = 1000000;
+    minMSE = 1000000;
     evalThread* minPredictor = 0;
     
     while(finished < eQueue->size()) {
@@ -672,9 +707,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
  (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str());
                 
                 double currentMSE = (*it)->getMSE();
-                fprintf(fMeasure," predictor %s %f %f ends; estimation.state:%s MSE:%f \n",
+                fprintf(fMeasure," predictor %s distance:%f period:%f ends; estimation.state:%s MSE:%f ",
                         (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str(), currentMSE);
-                printf(" predictor ends with error %f       \n", currentMSE);
+                printf("  error: %f       \n", currentMSE);
                 
                 if( currentMSE <  minMSE) {
                     minMSE = currentMSE;
