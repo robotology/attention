@@ -1016,9 +1016,9 @@ void oculomotorController::logAction(int a) {
             
         }
     }// end idle
-    
-
-    //action(a) = 1.0;
+    else {
+        action(a)= 1;
+    }
    
     
     if(action(0)) {
