@@ -504,6 +504,14 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     double distY_prev;
     
     int nIter = 40;
+
+
+    // hard coded prediction
+    Vx = Vy = 0;
+    xPos = yPos = zPos = -1;
+    return true;
+    
+
     
     // //for n times records the position of the object and extract an estimate
     // // extracting the velocity of the stimulus; saving it into a vector 

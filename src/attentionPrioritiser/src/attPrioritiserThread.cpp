@@ -2977,6 +2977,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             // TRIGGERING CORRECT ACTION in relation to PREDICTION
             
+            
+            accuracy = 100;
+
             //stable stimulus
             if((predVx == 0) || (predVy == 0)) {
 

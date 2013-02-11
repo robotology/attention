@@ -141,7 +141,7 @@ bool oculomotorController::threadInit() {
     if (logFile == NULL) {
         return false;
     }
-    fprintf(logFile, "beginning of the logFile \n");
+    fprintf(logFile, "\n ");
     
     logState = fopen(logStatePath.c_str(),"w+");
     
@@ -946,9 +946,10 @@ void oculomotorController::run() {
         */
 
         printf("countSucc %d iter %d readyforAction %d \n",countSucc, iter, ap->readyForActions() );
-        if((countSucc < 20) && (iter % 20 == 0) && (ap->readyForActions())) {
+        if((countSucc < 20) && (iter % 5 == 0) && (ap->readyForActions())) {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
+            fprintf(logFile,"%d ",iter);
             learningStep();    
         }
         
@@ -968,49 +969,49 @@ void oculomotorController::logAction(int a) {
     // mapping from action in prioritiser to action in controller
     // mapping from dimension 6 to dimension 8
     int amplitudeId = 2;
-    printf("action %d --> ", a);
+    printf("######## Action %d --> ", a);
 
     
     // this must be  active only when it is not learning
     switch(a) {
     case 0 : {
         action(0) = 1;
-        printf("action 0  \n");
+        printf("log-action 0  \n");  //reset
     }
         break;
     case 1 : {
         action(1) = 1;
-        printf("action 1  \n");
+        printf("log-action 1  \n");  //wait
     }
         break;
     case 2 :{
         action(2) = 1;
-        printf("action 2  \n");
+        printf("log-action 2  \n");  //vergence
     }
         break;
     case 3 :
-        if(amplitudeId == 2) {
-            action(3) = 0;
-            action(4) = 0;
-            action(5) = 1;
+        action(3) = 1;
+        printf("log-action 3  \n");  //SMP
+        break;
+    case 4 :
+        if(amplitudeId == 2) {       //saccade->
+            action(4) = 0;           //micro  saccade
+            action(5) = 0;           //medium saccade
+            action(6) = 1;           //large  saccade
         }
-        printf("action 5  \n");
+        printf("log-action 6  \n");
         break;
-    case 4 : {
-        action(6) = 1;
-        printf("action 6  \n");
-    }
-        break;
-    case 5 :{
+    case 5 : {
         action(7) = 1;
-        printf("action 7  \n");
+        printf("log-action 7  \n");  //express Saccade
     }
         break;
-    case 6 :{
+    case 6  :{
         action(8) = 1;
-        printf("action 8  \n");
+        printf("log-action 8  \n");  //prediction
     }
         break;
+   
     }
     
 
@@ -1103,7 +1104,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             // update for evaluation of pSA without learning
             state_next = statevalueparam;           // the update comes from the attPrioritiser with default state.
             
-            printf("state now  = %d \n", state_now);
+            printf("state  now = %d \n", state_now);
             printf("action now = %d \n", action_now);
 
             // --------------------------  updating the entire state of the learner -----------------------------
@@ -1119,7 +1120,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf("calculated the accuracy for state, action %d,%d \n", state_now,action_now);
 
             if (statevalueparam == GOALSTATE) {
-                r += 500;
+                r += 1000;
             }
             
             
@@ -1181,8 +1182,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf( "state_prev:%d -> state_now:%d \n", state_prev, state_now);
             fprintf(logFile, "state_prev:%s state_now:%s ", stateList[state_prev].c_str(), stateList[state_now].c_str());
             fprintf(logFile, " totalPayoff:%f / 10 - %f -%f => %f         \n ",accuracy,timing  *  costAmplitude[action_now] * amplitude * frequency,timing  * frequency * costEvent[action_now],totalPayoff);
-
-            fprintf(logFile, "entropy : %f \n", meanEntropy);
+            //fprintf(logFile, " entropy : %f \n", meanEntropy);
             fprintf(logState,"%d %f %f\n", state_now, totalPayoff, meanEntropy);
 
             
