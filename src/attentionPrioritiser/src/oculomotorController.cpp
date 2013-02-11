@@ -973,46 +973,49 @@ void oculomotorController::logAction(int a) {
 
     
     // this must be  active only when it is not learning
-    switch(a) {
-    case 0 : {
-        action(0) = 1;
-        printf("log-action 0  \n");  //reset
-    }
-        break;
-    case 1 : {
-        action(1) = 1;
-        printf("log-action 1  \n");  //wait
-    }
-        break;
-    case 2 :{
-        action(2) = 1;
-        printf("log-action 2  \n");  //vergence
-    }
-        break;
-    case 3 :
-        action(3) = 1;
-        printf("log-action 3  \n");  //SMP
-        break;
-    case 4 :
-        if(amplitudeId == 2) {       //saccade->
-            action(4) = 0;           //micro  saccade
-            action(5) = 0;           //medium saccade
-            action(6) = 1;           //large  saccade
+    // when it is not learning idle is true
+    if(idle){
+        switch(a) {
+        case 0 : {
+            action(0) = 1;
+            printf("log-action 0  \n");  //reset
         }
-        printf("log-action 6  \n");
-        break;
-    case 5 : {
-        action(7) = 1;
-        printf("log-action 7  \n");  //express Saccade
-    }
-        break;
-    case 6  :{
-        action(8) = 1;
-        printf("log-action 8  \n");  //prediction
-    }
-        break;
-   
-    }
+            break;
+        case 1 : {
+            action(1) = 1;
+            printf("log-action 1  \n");  //wait
+        }
+            break;
+        case 2 :{
+            action(2) = 1;
+            printf("log-action 2  \n");  //vergence
+        }
+            break;
+        case 3 :
+            action(3) = 1;
+            printf("log-action 3  \n");  //SMP
+            break;
+        case 4 :
+            if(amplitudeId == 2) {       //saccade->
+                action(4) = 0;           //micro  saccade
+                action(5) = 0;           //medium saccade
+                action(6) = 1;           //large  saccade
+            }
+            printf("log-action 6  \n");
+            break;
+        case 5 : {
+            action(7) = 1;
+            printf("log-action 7  \n");  //express Saccade
+        }
+            break;
+        case 6  :{
+            action(8) = 1;
+            printf("log-action 8  \n");  //prediction
+        }
+            break;
+            
+        }
+    }// end idle
     
 
     //action(a) = 1.0;
@@ -1062,7 +1065,7 @@ void oculomotorController::logAction(int a) {
         printf("                                                                  Action predict        \n");
         action_now = 8;        
         fprintf(logFile, "action_now: %s ", actionList[action_now].c_str());
-        fprintf(logFile, "action_now: \n ");
+        //fprintf(logFile, "action_now: \n ");
     }
     printf("ultimated the logAction method \n");
 }
