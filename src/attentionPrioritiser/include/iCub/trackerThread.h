@@ -228,7 +228,7 @@ public:
 
                 //-------------------------------------------------------------------------------------------
                 // updating the proximity measure
-                /* 18/10/12
+                // 18/10/12
                 double distance = std::sqrt((double)(point.x - 160) * (point.x - 160) + (point.y - 120) * (point.y - 120));
                 if((distance>0) && (distance <= 20)) {
                     proxMeasure += 20.0 / distance;
@@ -239,7 +239,7 @@ public:
                 else {
                     proxMeasure = 0;
                 }
-                */
+                
                 //--------------------------------------------------------------------------------------------
                 
                 init_success = true; // considering init success at the end of the first loop

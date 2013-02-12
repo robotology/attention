@@ -51,8 +51,8 @@ double Log2( double n )
 
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
-    j            = 0.9999;
-    alfa         = 0.1;
+    j            = 0.9999;    // discount factor  
+    alfa         = 0.5;       // learning rate : how fast learns
     countSucc    = 0;
     countStep    = 0;
     countVergence= 0;
@@ -511,7 +511,7 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     double a = Random::uniform() * NUMACTION;
     if((int) a == 2) {
         //printf("Counting vergence 3 \n");
-        countVergence = 3;
+        countVergence = 5;
     }
     
     //printf(" a =%f, countVergence=%d \n", a, countVergence);
@@ -912,7 +912,7 @@ void oculomotorController::run() {
         iter++;   // main temporal counter for visualisation and active learning
          
         printf(".............................................................cycle %d \n", iter);
-        Time::delay(2.0);
+        Time::delay(1.0);
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
             // sets all flag that allow action to false
@@ -946,7 +946,7 @@ void oculomotorController::run() {
         */
 
         printf("countSucc %d iter %d readyforAction %d \n",countSucc, iter, ap->readyForActions() );
-        if((countSucc < 20) && (iter % 5 == 0) && (ap->readyForActions())) {
+        if((countSucc < 20) && (iter % 1 == 0) && (ap->readyForActions())) {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
             fprintf(logFile,"%d ",iter);

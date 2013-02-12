@@ -238,8 +238,8 @@ private:
     yarp::sig::Matrix* A;                  // action that generates max value of quality measure with reference to one state dim NUMACTION x 1
     yarp::sig::Matrix* P;                  // copy quality measure of a particular state across different actions dim: NUMSTATE x NUMACTION
 
-    double j;//    = 0.9999;   // discount factor ( the closer to 1 the slower to learn)
-    double alfa;// = 0.1;        // learning rate      
+    double j;//    = 0.9999;   // discount factor: The discount factor determines the importance of future rewards. A factor of 0 will make the agent "opportunistic" (or short-sighted) by only considering current rewards, while a factor approaching 1 will make it strive for a long-term high reward. If the discount factor meets or exceeds 1, the values may diverge
+    double alfa;// = 0.1;      // learning rate      
     
     double totalPayoff;                    // total payoff of the learning process
     double jiter;                          // cumulative j ^ iter 

@@ -44,7 +44,7 @@ using namespace attention::evaluator;
 #define TIMEOUT_CONST   5          // time constant after which the motion is considered not-performed    
 #define THCORR          0.99
 #define corrStep        10
-#define FOVEACONFID     20
+#define FOVEACONFID     50
 
 //defining the frequency [event/sec] as relation between time and event
 // smp has frequent corrections whereas the other perform action only once
@@ -174,7 +174,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     correcting         = false;
     pred_accomplished  = false;
     sac_accomplished   = false;
-    stopVergence       = true;
+    stopVergence       = false;
 
     // initialisation of integer values
     phiTOT = 0;
@@ -1163,8 +1163,9 @@ void attPrioritiserThread::run() {
                         //notif.addDouble(2);                  // code for fixStableKO
                         //setChanged();
                         //notifyObservers(&notif);
-                        //printf("stopping vergence \n");
-                        //stopVergence = false;
+                        
+                        printf("enabling vergence \n");
+                        stopVergence = false;
                         
                         if(sac_accomplished) {
 
@@ -2000,9 +2001,9 @@ void attPrioritiserThread::reinforceFootprint() {
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
     cUpdate++;
-    printf("ACK. Aware of observable asking for attention \n");
+    //printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
-        printf("bottle: %s \n", arg->toString().c_str());
+        //printf("bottle: %s \n", arg->toString().c_str());
         int size = arg->size();
         ConstString name = arg->get(0).asString();
 
@@ -2604,7 +2605,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
                 //extracting reward measures
                 double timing    = Time::now() - startAction;
-                double accuracy  = tracker->getProxMeasure() + 300;            
+                double accuracy;
                 double amplitude = 1.0;
                 double frequency = frequencyRule[4];
 
@@ -2626,10 +2627,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 CvPoint t; tracker->getPoint(t);               
                 double distance = std::sqrt((double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
                 
-                if(distance < FOVEACONFID) {
+                if(true /*distance < FOVEACONFID*/ ) {
+
+                    accuracy  = tracker->getProxMeasure() + 300;
                     
-                    // nofiying state transition to fixStable ok           
-                    
+                    // nofiying state transition to fixStable ok                               
                     Bottle notif;
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
@@ -2646,6 +2648,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition to fixStable no           
                     // this is caused by a correct saccade 
                     // but ended up far from the target
+
+                    printf("ATTENTION: correct saccade ended up far from the target %f > %d proximity:%f\n", distance, FOVEACONFID, tracker->getProxMeasure() );
+
+                    accuracy  = 0; //tracker->getProxMeasure();            
+                    
+                    
                     Bottle notif;
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
@@ -2947,7 +2955,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             double minMSE    = trajPredictor->getMSE();
             double accuracy;
             if(minMSE < 0.005) {
-                accuracy = 100;
+                accuracy = 5;
             }
             else {
                 accuracy = 0;
