@@ -282,7 +282,7 @@ bool gazeArbiterThread::threadInit() {
         Matrix &Prj = *PrjL;
         cxl=Prj(0,2);
         cyl=Prj(1,2);
-        printf("pixel fovea in the config file %d %d \n", cxl,cyl);
+        printf("pixel fovea in the config file %f %f \n", cxl,cyl);
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
     }
 
@@ -709,13 +709,13 @@ void gazeArbiterThread::run() {
     //mutex.wait();
     //Vector-vector element-wise product operator between stateRequest possible transitions
     if((stateRequest(0) != 0)||(stateRequest(1)!= 0)||(stateRequest(2) != 0)||(stateRequest(3) != 0)||(stateRequest(4) != 0)) {
-        printf("stateRequest: %s \n", stateRequest.toString().c_str());
+        //printf("stateRequest: %s \n", stateRequest.toString().c_str());
         Vector c(5);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c );
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0;
-        printf("state: %s \n", state.toString().c_str());
-        printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
+        //printf("state: %s \n", state.toString().c_str());
+        //printf("allowedTransitions: %s \n", allowedTransitions.toString().c_str());
     }
 
     if(inLeftPort.getInputCount()){
@@ -862,13 +862,13 @@ void gazeArbiterThread::run() {
                     }
                 }
                 
-                printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
-                printf("visualCorrection %d \n", visualCorrection);
+                //printf("offset: %f, %f,%f \n", xOffset, yOffset, zOffset );
+                //printf("visualCorrection %d \n", visualCorrection);
                 if (!isOnWings) {
-                    printf("starting mono saccade with NO offset \n");
+                    //printf("starting mono saccade with NO offset \n");
                     //if((tracker->getInputCount()) || (!visualCorrection)) {
                     if((ptracker->getInputCount()) || (!visualCorrection)) {
-                        printf("tracker input image ready \n");
+                        //printf("tracker input image ready \n");
                         double dx = 100.0 , dy = 100;
                         double dist = sqrt(dx * dx + dy * dy);
                         if (onDvs) {
@@ -892,19 +892,19 @@ void gazeArbiterThread::run() {
                                 //Time::delay(0.5);
                                 //ptracker->setUpdate(false);
                                 ptracker->init(u,v);
-                                printf("just run into the init \n");
+                                //printf("just run into the init \n");
                                 ptracker->waitInitTracker();                                
                                 //Time::delay(0.1); // TODO : check this delay interval trying to make it shorter
                             }
                             
-                            printf("visual correction mechanism correctly initialised \n");
+                            //printf("visual correction mechanism correctly initialised \n");
                             Vector px(2);
                             px(0) = u;
                             px(1) = v;
                             //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
                             igaze->lookAtMonoPixel(camSel,px,zDistance);
                             igaze->checkMotionDone(&done);
-                            printf("first check motion done %d \n", done);
+                            //printf("first check motion done %d \n", done);
                             dist = 10;
                             Time::delay(0.05);
                             
@@ -947,11 +947,11 @@ void gazeArbiterThread::run() {
                                 Time::delay(0.1);
                                 waitMotionDone();
                                 
-                                printf("waiting for motion done \n");
+                                //printf("waiting for motion done \n");
                                 u = width  / 2;
                                 v = height / 2;
                                 
-                                printf("resetting the position: success! \n");
+                                //printf("resetting the position: success! \n");
                                 return;
                             }
                             
@@ -968,16 +968,16 @@ void gazeArbiterThread::run() {
                             */
                             dist = 0;
                             
-                            printf("correcting distance %f \n", dist);
+                            //printf("correcting distance %f \n", dist);
                         } //end while
-                        printf("saccadic event : started %d %d %f \n",u,v,zDistance);
+                        //printf("saccadic event : started %d %d %f \n",u,v,zDistance);
                         
                     }//end if
                 }
                 else {
                     // monocular with stereo offsets 
                     Vector fp;
-                    printf("monocular with stereo offsets \n");
+                    //printf("monocular with stereo offsets \n");
                     fp.resize(3,0.0);
                     fp[0] = xo[0];
                     fp[1] = xo[1];
@@ -988,7 +988,7 @@ void gazeArbiterThread::run() {
             }
             else {   // for non-mono saccades
                 Vector px(3);
-                printf("saccadic event to the absolute 3d point with offset %f, %f, %f \n",xOffset, yOffset, zOffset );
+                //printf("saccadic event to the absolute 3d point with offset %f, %f, %f \n",xOffset, yOffset, zOffset );
                 px[0] = xObject;
                 px[1] = yObject;
                 px[2] = zObject;
@@ -997,7 +997,7 @@ void gazeArbiterThread::run() {
                 
                 Time::delay(0.1);
                 if(visualCorrection){
-                    printf("starting visual correction within the stereo saccade\n");
+                    //printf("starting visual correction within the stereo saccade\n");
                     tracker->init(160,120);
                     tracker->waitInitTracker();
                     
@@ -1019,7 +1019,7 @@ void gazeArbiterThread::run() {
             //igaze->lookAtMonoPixel(1,px,0.5);
             //igaze->waitMotionDone();
             timeout = timeoutStop - timeoutStart;
-            printf ("checkMotionDone %d \n", done);
+            //printf ("checkMotionDone %d \n", done);
             
             
             //***********************************************************************************
@@ -1040,7 +1040,7 @@ void gazeArbiterThread::run() {
                     Vector v(3);                    
                     timetotStop = Time::now();
                     timetot = timetotStop - timetotStart;
-                    printf("TIMEOUT in reaching with a saccade %f <---- \n", timetot);
+                    //printf("TIMEOUT in reaching with a saccade %f <---- \n", timetot);
                     timing = timingPort.prepare();
                     timing.clear();
                     timing.addDouble(-1);
@@ -1063,7 +1063,7 @@ void gazeArbiterThread::run() {
                 }
             }
                   
-            printf("preparing visual correction \n");
+            //printf("preparing visual correction \n");
             Time::delay(0.5);  // allowing time for preparation
             
             
@@ -1073,9 +1073,9 @@ void gazeArbiterThread::run() {
             // the actual visiting of the whole portion of the image is time-demanding
             // the bigger the area controlled the longer the time interval
             // ALLOW necessary time or waitComputation 
-            printf("waiting for completion in the periodicTracking.... \n");
+            //printf("waiting for completion in the periodicTracking.... \n");
             ptracker->waitCorrComputation();
-            printf("computation completed \n");
+            //printf("computation completed \n");
             
 
             // *********************************************************************************************
@@ -1110,9 +1110,9 @@ void gazeArbiterThread::run() {
                     tracker->init(point.x, point.y);
                     tracker->waitInitTracker();
                     tracker->getPoint(testPoint);
-                    printf("tracking %d %d \n",testPoint.x, testPoint.y );
+                    //printf("tracking %d %d \n",testPoint.x, testPoint.y );
                 }                
-                printf("-1.just initilisated  with the point %d %d \n", point.x , point.y);
+                //printf("-1.just initilisated  with the point %d %d \n", point.x , point.y);
 
                 
 
@@ -1148,7 +1148,7 @@ void gazeArbiterThread::run() {
                     
                         errorVC_pre = errorVC;
                         errorVC = sqrt((double) (errorx * errorx + errory * errory));
-                        printf("time passed in correcting center =[%f, %f]  %f (%f, %f : %3f) \n",cxl,cyl, timeout, px(0), px(1), errorVC);
+                        //printf("time passed in correcting center =[%f, %f]  %f (%f, %f : %3f) \n",cxl,cyl, timeout, px(0), px(1), errorVC);
                         if(errorVC <= 2) {
                             countReach++;
                         }
@@ -1227,7 +1227,7 @@ void gazeArbiterThread::run() {
                     printf("computation completed \n");
                     // ******************************************************************************
                     ptracker->getPoint(point);
-                    printf("%d.just waiting for initialisation point %d %d... \n",i, point.x , point.y);
+                    //printf("%d.just waiting for initialisation point %d %d... \n",i, point.x , point.y);
                     double errorx_control = 160 - point.x;
                     double errory_control = 120 - point.y;
                     
@@ -1254,7 +1254,7 @@ void gazeArbiterThread::run() {
                     //px(0) = cxl;
                     //px(1) = cyl;
                     
-                    printf("error = %f preparing saccade:%f %f \n", error_control,px(0),px(1));
+                    //printf("error = %f preparing saccade:%f %f \n", error_control,px(0),px(1));
 
                     // ending the cycle
                     // Time::delay(2);
@@ -1264,11 +1264,11 @@ void gazeArbiterThread::run() {
              
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
-                printf("Timeout in saccade execution  %f \n", timeout);
+                //printf("Timeout in saccade execution  %f \n", timeout);
                  
                 Time::delay(0.01);
                 if (minCumul > 5000000) {
-                    printf("Error: out of correlation limits \n");
+                    //printf("Error: out of correlation limits \n");
 
                     // sending error message for saccade SAC_FAIL
                     Bottle& status = statusPort.prepare();
@@ -1322,8 +1322,8 @@ void gazeArbiterThread::run() {
                 }
                 else {
  
-                    printf("saccade accomplished \n");
-                    printf("\n \n "); 
+                    //printf("saccade accomplished \n");
+                    //printf("\n \n "); 
            
                     // saccade accomplished
                     //----------------------------------
@@ -1343,8 +1343,8 @@ void gazeArbiterThread::run() {
     else if(allowedTransitions(3)>0) {
         // ----------------  SMOOTH PURSUIT -----------------------  
         state(4) = 0; state(3) = 1 ; state(2) = 0 ; state(1) = 0 ; state(0) = 0;
-        printf(" in RUN of gazeArbiter threadSmooth Pursuit %f %f \n", uVel, vVel);
-        printf("velocity profile %f %f \n", uVel, vVel);
+        //printf(" in RUN of gazeArbiter threadSmooth Pursuit %f %f \n", uVel, vVel);
+        //printf("velocity profile %f %f \n", uVel, vVel);
         // sending the egoMotion velocity as Feedback
         if(egoMotionFeedback.getOutputCount()) {
             Bottle query;
@@ -1364,7 +1364,7 @@ void gazeArbiterThread::run() {
         px[0] = (double) cxl + uVel;
         px[1] = (double) cyl + vVel;        
         double z=1.0;   // distance [m] of the object from the image plane (extended to infinity): yes, you probably need to guess, but it works pretty robustly
-        printf("velocity on the retina (%d %d)->(%f %f) \n",cxl,cyl,px[0], px[1]);
+        //printf("velocity on the retina (%d %d)->(%f %f) \n",cxl,cyl,px[0], px[1]);
 
         
         //cycle
@@ -1414,7 +1414,7 @@ void gazeArbiterThread::run() {
             printf("timeout occurred, ");
         }
         
-        printf("position reached in %f \n \n \n", timeout);
+        //printf("position reached in %f \n \n \n", timeout);
         printf("SM_PUR ACCOMPLISHED \n");
         printf("SM_PUR ACCOMPLISHED \n");
         printf("SM_PUR ACCOMPLISHED \n");
@@ -1453,11 +1453,11 @@ void gazeArbiterThread::run() {
             double theta = 0;
                                    
             if((mono)) { 
-                printf("phi: %f phi2: %f phi3 : %f  \n", phi, phi2, phi3);
+                printf("phi: %f phi2: %f phi3 : %f abs(phi) %f \n", phi, phi2, phi3, abs(phi));
                 if((abs(phi) < 0.15) &&(!accomplished_flag) && (!firstVergence))  {                    
                     //if(abs(phi2) < 0.15) {
                         countVerNull += 3;
-                        printf("CountVerNull %d \n", countVerNull);
+                        //printf("CountVerNull %d \n", countVerNull);
                         //}
                         //else {
                         phi = phi2;
@@ -1477,7 +1477,7 @@ void gazeArbiterThread::run() {
                     //delete &status2;                    
                     interfaceIOR(timing);
                     firstVergence = true;
-                    Time::delay(5.0);
+                    Time::delay(1.0);
 
                     goto exiting;
                 }
@@ -1507,7 +1507,7 @@ void gazeArbiterThread::run() {
                   double c = cos(theta);
                   double t = 1 - c;
                   //  if axis is not already normalised then uncomment this
-                  double magnitude = Math.sqrt(x*x + y*y + z*z);
+                 double magnitude = Math.sqrt(x*x + y*y + z*z);
                   // if (magnitude==0) throw error;
                   // x /= magnitude;
                   // y /= magnitude;
@@ -1537,7 +1537,7 @@ void gazeArbiterThread::run() {
                 */
 
                 // in the status port, notification of vergence refinement in action
-                printf("Vergence Refinement \n \n");
+                //printf("Vergence Refinement \n \n");
                 Bottle& status2 = statusPort.prepare();
                 status2.clear();
                 status2.addString("VER_REF");
@@ -1575,7 +1575,7 @@ void gazeArbiterThread::run() {
         if((160 != u) && (120 != v)) {
             // performing saccade
             Vector px(2);
-            printf("saccadic event before the waiting %d %d \n", u,v );
+            //printf("saccadic event before the waiting %d %d \n", u,v );
             px[0] = u;
             px[1] = v;
             
@@ -1595,7 +1595,7 @@ void gazeArbiterThread::run() {
             printf("timeout occurred \n");
         }
         
-        printf("position reached in %f \n \n \n", timeout);
+        //printf("position reached in %f \n \n \n", timeout);
         printf("WAIT ACCOMPLISHED \n");
         
         printf("\n");
@@ -1691,14 +1691,14 @@ void gazeArbiterThread::vergenceInAngle() {
             
             errorx = 160 - point.x;
             errory = 120 - point.y;
-            px(0) = 182;
-            px(1) = 113;
+            px(0) = cxl;
+            px(1) = cyl;
             
             printf("norm error in mean %f \n", error);
             //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
             igaze->lookAtMonoPixelWithVergence(camSel,px,meanRegVerg);
             //tracker->getPoint(point);
-            Time::delay(1.5);
+            Time::delay(0.5);
 
             countRegVerg = 0;
             sumRegVerg = 0;
@@ -1729,8 +1729,8 @@ void gazeArbiterThread::vergenceInAngle() {
             double Ke = 2.0;
             errorx = 160 - point.x;
             errory = 120 - point.y;
-            px(0)  = 182 - Ke * errorx;
-            px(1)  = 113 - Ke * errory;
+            px(0)  = cxl - Ke * errorx;
+            px(1)  = cyl - Ke * errory;
             
             error = sqrt(errorx * errorx + errory * errory);
             printf("norm error %f vergence %f \n", error, phiRel);
@@ -1796,8 +1796,8 @@ void gazeArbiterThread::vergenceInDepth(){
     //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
     
     if(!visualCorrection){
-        px(0) = 183;
-        px(1) = 113; 
+        px(0) = cxl;
+        px(1) = cyl; 
         printf("no visual correction initialised %f %f \n", px(0), px(1));
         igaze->lookAtMonoPixel(camSel,px,varDistance);                       
     }
@@ -1813,8 +1813,8 @@ void gazeArbiterThread::vergenceInDepth(){
         
         //px(0) = (width>>1)  - 1 - errorx;   //159 - errorx
         //px(1) = (height>>1) - 1 - errory;   //119 - errory
-        px(0) = 182 - errorx;   //159 - errorx
-        px(1) = 113 - errory;   //119 - errory
+        px(0) = cxl - errorx;   //159 - errorx
+        px(1) = cyl - errory;   //119 - errory
         
         igaze->lookAtMonoPixel(camSel,px,varDistance);
     }
