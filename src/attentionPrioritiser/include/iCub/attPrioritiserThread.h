@@ -159,7 +159,9 @@ private:
     bool isPendingCommand;                  // flag that indicates that an action command must be sent in the highlevel loop
     bool visualFeedback;                    // indicates when input signal for visual feedback is present
 
-    int u,v;                                // values passed for saccades
+    int u, v;                               // retinal coordinates passed for saccades
+    int uPred, vPred;                       // retinal coordinates passed for prediction command
+    int uWait, vWait;                       // retinal coordinates passed for wait action
     int* collectionLocation;                // collection of location for the center of gravity saccade
     int  originalContext;                   // original context for the gaze Controller
     int  width, height;                     // dimension of the image

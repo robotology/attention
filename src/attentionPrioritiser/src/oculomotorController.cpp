@@ -32,7 +32,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 1000.0  // #iteration after which the policy is only quality-based
+#define MAXCOUNTRAND 500.0  // #iteration after which the policy is only quality-based
 #define GOALSTATE     14     // goal state success in episodic learning
 
 
@@ -51,7 +51,7 @@ double Log2( double n )
 
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
-    j            = 0.9999;    // discount factor  
+    j            = 0.9;    // discount factor  
     alfa         = 0.5;       // learning rate : how fast learns
     countSucc    = 0;
     countStep    = 0;
@@ -70,8 +70,8 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
-    j            = 0.9999;
-    alfa         = 0.1;
+    j            = 0.9;
+    alfa         = 0.5;
     ap           = apt;
     countSucc    = 0;
     countStep    = 0; 
@@ -438,10 +438,10 @@ bool oculomotorController::policyWalk(double policyProb){
     
     //looking at the Psa for this state and the selected action
     int pos = state_now; // * NUMACTION + action_now;
-    //printf("looking for position %d  ; %d %d\n", pos, state_now, action_now);
+    printf("looking for position %d  ; %d %d\n", pos, state_now, action_now);
     yarp::sig::Vector v = Q->getRow(pos);
     
-    //printf("v = %s \n", v.toString().c_str());
+    printf("v = %s \n", v.toString().c_str());
     double maxInVector = 0.0;
     yarp::sig::Vector c(v.size());
     double sum = 0;
@@ -455,15 +455,18 @@ bool oculomotorController::policyWalk(double policyProb){
         c[j] = sum;
     }
 
-    double ifPolicyAction = Random::uniform();
+    printf("c : %s \n", c.toString().c_str());
+
+    double ifPolicyAction = Random::uniform() ;
     int j;
     if(ifPolicyAction > policyProb) {
         // performing completely random action
-        double randAction   = Random::uniform();
+        double randAction   = Random::uniform() * c[c.size() - 1]; //random value time the last entry cumulative
         //double randAction = (rand() / 1000000000.0);        
         for (j = 0 ; j < c.size(); j++) {
             if (c[j] > randAction) break;
         }
+        if (j>=NUMACTION) j = NUMACTION - 1;
         printf("in policy selection - randomAction %f . action selected %d \n", randAction, j);
     }
     else {
@@ -471,6 +474,21 @@ bool oculomotorController::policyWalk(double policyProb){
         j = posInVector; //best choice given previous run
         printf("in policy selection - policy selection \n");
     }
+
+    
+    // multiple vergence commands
+    if ((j == 2)&&(countVergence == 0)) {
+        countVergence = 5;
+    }
+    if(countVergence > 0) {
+        action_now = 2;
+        printf("force action vergence; decrement %d \n", countVergence);
+        countVergence--;
+    }
+    else {
+        action_now = j;
+    }
+
    
     /*
     printf("max value found in vector %f \n", maxInVector);
@@ -485,7 +503,7 @@ bool oculomotorController::policyWalk(double policyProb){
     
     // trying to execute the selected action 
     // if successful the system moves to the next state
-    action_now = j;
+    //action_now = j;
     if(allowStateRequest(action_now)) {
         //count++;
         //statenext = state_next;
@@ -740,7 +758,7 @@ void oculomotorController::learningStep() {
         bool actionPerformed;
         int state_next;
 
-        double k = 1.0 - double (countStep / MAXCOUNTRAND);
+        double k = 1.0 -  ((double)countStep / MAXCOUNTRAND );
         if(k < 0) {
             k = 0;
         }

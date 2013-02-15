@@ -508,9 +508,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 
     // hard coded prediction
     Vx = Vy = 0;
-    xPos = yPos = zPos = -1;
-    return true;
-    
+    xPos = yPos = zPos = -1;   
 
     
     // //for n times records the position of the object and extract an estimate
@@ -738,6 +736,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     }
     else {
         printf("found the predictor %s %f %f  that minimises the MSE %f \n",minPredictor->getType().c_str(), minPredictor->getParamA(), minPredictor->getParamB(), minMSE);
+        predictionAccompl = true;
     }
 
 
@@ -769,6 +768,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         xPos = x0;
         yPos = y0 + distance * cos(theta);
         zPos = z0 + distance * sin(theta);
+        printf("target %f %f : %f %f %f \n",distance, theta, xPos, yPos, zPos);
         fprintf(fMeasure,"target %f %f : %f %f %f \n",distance, theta, xPos, yPos, zPos);
     }
 
