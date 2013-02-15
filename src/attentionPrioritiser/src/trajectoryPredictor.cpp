@@ -146,7 +146,7 @@ bool trajectoryPredictor::threadInit() {
     printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
     printf("just initialised genPredModel %08X \n",&eval);
     eval->start();
-    eQueue->push_back(eval); 
+    eQueue->push_back(eval);
 
 
     // _______________________ LINEAR VELOCITY MODELS _______________________________________
@@ -759,10 +759,12 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         yPos = -1;
         double maxAccCart = maxAccX > maxAccY?maxAccX:maxAccY;
         //time = maxAcc / 5000; 
-        time = 0.18;
+        time = 0.5;
     }
-    else {
-        double distance = minPredictor->getParamA();
+    else if(!strcmp(minPredictor->getType().c_str(), "minimumJerk")){
+        //extracted parameters of the minJerk predictor
+        double distance = minPredictor->getParamA(); 
+        time            = minPredictor->getParamB();
         Vx = -1;
         Vy = -1;
         xPos = x0;
@@ -770,6 +772,13 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         zPos = z0 + distance * sin(theta);
         printf("target %f %f : %f %f %f \n",distance, theta, xPos, yPos, zPos);
         fprintf(fMeasure,"target %f %f : %f %f %f \n",distance, theta, xPos, yPos, zPos);
+    }
+    else if(!strcmp(minPredictor->getType().c_str(), "constAcceleration")){
+        printf("predictor at constant acceleration %f \n", minPredictor->getParamA());
+    }
+    else {
+        printf("predictor type not recognigned \n");
+        predictionAccompl = false;
     }
 
     return predictionAccompl;

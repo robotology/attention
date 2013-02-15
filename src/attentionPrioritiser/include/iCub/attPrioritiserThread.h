@@ -278,7 +278,7 @@ private:
     yarp::sig::Matrix zMeasure;                     // vector of measurements
     yarp::sig::Matrix uMeasure;                     // vector of the input values
     
-    trackerThread*    tracker;                      // reference to the object in charge of tracking a tamplete surrounding a point
+    trackerThread       *tracker;                      // reference to the object in charge of tracking a tamplete surrounding a point
     sacPlannerThread    *sacPlanner;                // planner of saccadic movements (todo: make it a list of planners
     trajectoryPredictor *trajPredictor;             // predictor of the trajectory of a given stimulus
     yarp::os::ResourceFinder* rf;                   // resourceFinder for the pathfinder of other files

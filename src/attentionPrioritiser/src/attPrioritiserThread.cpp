@@ -1396,7 +1396,7 @@ void attPrioritiserThread::run() {
         commandBottle.addString("WAIT");
         commandBottle.addDouble(uWait);
         commandBottle.addDouble(vWait);
-        commandBottle.addDouble(0.5);
+        commandBottle.addDouble(waitTime);
         outputPort.write();
         
         
@@ -2189,7 +2189,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             bufCommand[1] = *arg;
             uWait         = arg->get(1).asInt();
             vWait         = arg->get(2).asInt();
-            //waitType      = arg->get(3).asString(); // reading the typology of waiting: ant (anticipatory), fix (fixation)
+            // reading the typology of waiting: ant (anticipatory), fix (fixation)
+            //waitType      = arg->get(3).asString();  //deprecated: the type is automatically assigned
             waitTime      = arg->get(3).asDouble();
             
             // reseting the state action history
@@ -2830,7 +2831,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             pendingCommand->addString("WAIT");
             pendingCommand->addInt(160);
             pendingCommand->addInt(140);
-            pendingCommand->addString("fix");
+            //pendingCommand->addString("fix");
             pendingCommand->addDouble(0.5);
             isPendingCommand = true;      
             
@@ -3050,17 +3051,17 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 */
 
 
-                //sending a command of saccade to the original location
+                //sending a command of saccade to the original location (no motion)
                 pendingCommand->clear();
                 pendingCommand->addString("SAC_MONO");
-                pendingCommand->addInt(predVx);
-                pendingCommand->addInt(predVy);
+                pendingCommand->addInt(uPred);
+                pendingCommand->addInt(vPred);
                 pendingCommand->addDouble(0.5);
                 pendingCommand->addDouble(1.0);
                 isPendingCommand = true;
 
             }
-            else { //not stable object
+            else { //moving visual target
                 if((predVx != -1) || (predVy != -1)) {
                     //move  -> movSmoothPursuit                   
                     // nofiying state transition            
@@ -3132,7 +3133,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         pendingCommand->addString("WAIT");
                         pendingCommand->addInt(px(0));
                         pendingCommand->addInt(px(1));
-                        pendingCommand->addString("ant");
+                        //pendingCommand->addString("ant");
                         pendingCommand->addDouble(0.5);
                         isPendingCommand = true;
                     
