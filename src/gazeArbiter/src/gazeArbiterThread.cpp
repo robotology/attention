@@ -1285,9 +1285,9 @@ void gazeArbiterThread::run() {
                     Time::delay(0.5);
 
                     Vector px(3);
-                    printf("Error in reaching with visualFeedback \n");
-                    printf("Error in reaching with visualFeedback \n");
-                    printf("Error in reaching with visualFeedback \n");
+                    printf("Error in reaching with visualFeedback timeout %f error_control %f \n",timeout,error_control);
+                    printf("Error in reaching with visualFeedback timeout %f error_control %f \n",timeout,error_control);
+                    printf("Error in reaching with visualFeedback timeout %f error_control %f \n",timeout,error_control);
 
                     // sending error message for saccade SAC_FAIL
                     Bottle& status = statusPort.prepare();

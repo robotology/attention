@@ -94,7 +94,7 @@ public:
     {
         //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
         template_size = 50; //rf.check("template_size",Value(20)).asInt();
-        search_size = 200;  //rf.check("search_size",Value(100)).asInt();
+        search_size = 220;  //rf.check("search_size",Value(100)).asInt();
 
         //inPort.open(("/"+name+"/img:i").c_str());
         //outPort.open(("/"+name+"/img:o").c_str());
