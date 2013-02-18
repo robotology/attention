@@ -805,6 +805,8 @@ void attPrioritiserThread::run() {
         
         
         printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
+
+        
         
         /*
         // nofiying action            
@@ -827,6 +829,13 @@ void attPrioritiserThread::run() {
         amplitude = 0;
         tracker->init(uPred,vPred);
         tracker->waitInitTracker();
+
+        printf("\n  \n \n \n Preparing for prediction .... \n");
+        for (int i = 0; i < 5; i++) {
+            printf(" Go in %d seconds \n", 5 - i);
+            Time::delay(1);
+        }
+        printf("GO GO GO GO GO GO GO \n");
 
         //printf("estimating velocity ... \n");
         bool predictionSuccess = 
@@ -1035,6 +1044,8 @@ void attPrioritiserThread::run() {
             delete received;
         }
         Time::delay(0.01);
+        printf("_____________________express saccade______________\n\n");
+        
     }    
 
 //============================================================================================
@@ -1047,12 +1058,12 @@ void attPrioritiserThread::run() {
         amplitude = std::sqrt((double) (u - 160) * (u - 160) + (v - 120) * (v - 120));
         //initialising the tracker
         if(visualFeedback) {
-            //printf("tracker enable for planned saccade \n");
+            printf("tracker enable for planned saccade \n");
             tracker->init(u,v);
             tracker->waitInitTracker();
         }
         else {
-            //printf("tracker disabled due user`s request \n");
+            printf("tracker disabled due user`s request \n");
         }
         
         //forcing in idle early processes during oculomotor actions
@@ -1081,6 +1092,7 @@ void attPrioritiserThread::run() {
                 commandBottle.addDouble(yObject);
                 commandBottle.addDouble(zObject);
                 outputPort.write();
+                printf("______________Stereo Planned Saccade______________\n\n");
                 
             }
             else {
@@ -1231,7 +1243,7 @@ void attPrioritiserThread::run() {
                     
                 } //end of postsaccadic correction                
             }
-            printf("-------------------------------------------------- \n");
+            printf("_____________Monocular Planned Saccade_________________ \n \n");
         }
         
         //resume early processes
@@ -1275,7 +1287,7 @@ void attPrioritiserThread::run() {
                 outputPort.write();
             }
             
-            printf("--------------------------------------------------\n");
+            printf("_______________ Smooth Pursuit________________\n\n");
         }
     }
 //===================================================================================================
@@ -1284,7 +1296,9 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
         waitResponse[2] = true;
         timeoutResponseStart = Time::now();
-        printf("resetting response timer in vergence \n");
+        
+         printf(" __________________ Vergence ______________________\n");
+
         // initialising the tracker not necessary because it started before
         // the risk is that it redefines tracking for every vergence command
         //tracker->init(160,120);
@@ -1292,7 +1306,7 @@ void attPrioritiserThread::run() {
         amplitude = 1;
         
 
-        printf(" __________________ Vergence __________________ \n");
+       
         /*    
         if((feedbackPort.getOutputCount())&&(firstVergence)) {
             printf("vergence: sending suspend command \n");
@@ -1377,12 +1391,23 @@ void attPrioritiserThread::run() {
                 
             }                        
         }
+         printf(" __________________ Vergence __________________ \n\n");
     
     }
 //================================================================================================================
     else if(allowedTransitions(1)>0) {
         //--------------- wait --------------------------------
         printf("--------------------- Wait -------------------- \n");
+
+
+        if(visualFeedback) {
+            printf("tracker enable for planned saccade \n");
+            tracker->init(uWait,vWait);
+            tracker->waitInitTracker();
+        }
+        else {
+            printf("tracker disabled due user`s request \n");
+        }
 
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
         waitResponse[1] = true;
@@ -1394,13 +1419,13 @@ void attPrioritiserThread::run() {
         Bottle& commandBottle = outputPort.prepare();
         commandBottle.clear();
         commandBottle.addString("WAIT");
-        commandBottle.addDouble(uWait);
-        commandBottle.addDouble(vWait);
+        commandBottle.addInt(uWait);
+        commandBottle.addInt(vWait);
         commandBottle.addDouble(waitTime);
         outputPort.write();
         
         
-        //printf("Standby in Wait ....%s \n", waitType.c_str());
+        printf("Sent Wait %d %d %f in mode %s  \n",uWait,vWait, waitTime, waitType.c_str());
         /*
         double tstart = Time::now();
         double tdiff = 0;
@@ -1414,7 +1439,7 @@ void attPrioritiserThread::run() {
         isPendingCommand = true;    
         */
         
-        printf("____________________   Wait ____________________ \n");
+        printf("____________________   Wait ____________________ \n\n");
         
     }
 //==============================================================================================
@@ -2016,7 +2041,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
-
+            waitType = "ant";          // for any saccade the anticpation is not longer wait
+            // removing the previous line guarantess better WAIT fix actions
             
             //--------------------------------------------------------------------------
             // prediction attempt after triggering stimulus
@@ -2162,6 +2188,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================        
         else if(!strcmp(name.c_str(),"RESET")) {
+            // for any reset the wait is not longer fixation
+            waitType = "ant";
 
             // saving bottle in the buffer
             bufCommand[0] = *arg;
@@ -2302,6 +2330,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================        
         else if(!strcmp(name.c_str(),"PRED")) {
+            // for any prediction the wait is not longer fixation
+            //waitType = "ant";
+
             printf("received a PRED command \n");
             // saving bottle in the buffer
             bufCommand[6] = *arg;
@@ -2328,6 +2359,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================        
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
+            // for any SAC_ABS the wait is not longer in fixation
+            waitType = "ant";
+
             xObject = arg->get(1).asDouble();
             yObject = arg->get(2).asDouble();
             zObject = arg->get(3).asDouble();
@@ -2792,7 +2826,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             // vergence accomplished        
             waitType = "fix";
-            //printf("waitAccomplished set waitType=fix \n");
+            printf("waitAccomplished set waitType=fix \n");
             //printf("Vergence accomplished \n");
             mutex.wait();
             if(allowStateRequest[1]) {
@@ -2959,7 +2993,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             double minMSE    = trajPredictor->getMSE();
             double accuracy;
             if(minMSE < 0.005) {
-                accuracy = 5;
+                accuracy = 50;
             }
             else {
                 accuracy = 0;
@@ -3000,7 +3034,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(1);                  // code for prediction accomplished in fixed position (fixPredict)
                 notif.addDouble(timing);
-                notif.addDouble(accuracy);
+                notif.addDouble(0);
                 notif.addDouble(amplitude);
                 notif.addDouble(frequency);
                 setChanged();
@@ -3092,6 +3126,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     pendingCommand->addInt(predVy);
                     pendingCommand->addDouble(predTime);
                     isPendingCommand = true; 
+                    
                 }
                 else { 
                     // no predicted const velocity
@@ -3109,7 +3144,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         setChanged();
                         notifyObservers(&notif);                    
                         
-                        /*
+                        /************ OLD *****************
                           Bottle& sentPred     = highLevelLoopPort.prepare();
                           Bottle* receivedPred = new Bottle();    
                           sentPred.clear();
@@ -3118,7 +3153,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                           sentPred.addInt(predYpos);
                           highLevelLoopPort.write();                    
                           delete receivedPred;
-                        */
+                        ************ OLD ******************/
 
                         // returns the predicted 3dposition on the image plane drive eye
                         Vector px(2);
@@ -3128,14 +3163,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         pos(2) = predZpos;                       
                         igaze->get2DPixel(camSel, pos, px); 
                         
+                        
                         //commanding the waiting in a predefined location on the image plane
                         pendingCommand->clear();
                         pendingCommand->addString("WAIT");
                         pendingCommand->addInt(px(0));
                         pendingCommand->addInt(px(1));
                         //pendingCommand->addString("ant");
-                        pendingCommand->addDouble(0.5);
+                        pendingCommand->addDouble(predTime + 1.0);
                         isPendingCommand = true;
+                        
                     
                     } //end if (predXpos != -1) && (predYpos != 1)
                 }//else (predVx != -1) || (predVy != -1)               
@@ -3188,7 +3225,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if((!strcmp(name.c_str(),"WAIT_ACC")) && (waitResponse[1])) {
             waitResponse[1] = false;
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            //printf("resetting response timer in wait accomplished \n");
+            printf("resetting tracker timer in wait accomplished \n");
+            
+            
 
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -3220,19 +3259,32 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             double amplitude = 1.0;
 
             if(!strcmp(waitType.c_str(),"ant")) {
+
+                tracker->init(160,120);
+                tracker->waitInitTracker();
+
+                printf("WAIT ANT (160,120) WAIT ANT  (160,120)  WAIT ANT (160,120)\n");
+                for(int i=0 ; i < 10 ; i++){
+                    printf("..............waiting for init tracker in WAIT_ACC \n");
+                    Time::delay(0.3);              
+                }
+
                 CvPoint t; tracker->getPoint(t);
                 double distance = std::sqrt( (double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
                 
+                
+                // TODO :remove hard coded because the reward must check the distance of stimulus from fovea
                 if(distance < FOVEACONFID){
-                    
+
                     // nofiying state transition into successful tracking
                     Bottle notif;
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(10);                  // code for anticip OK
                     notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);notif.addDouble(frequency);
+                    notif.addDouble(accuracy + 50);
+                    notif.addDouble(amplitude);
+                    notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);
                     
@@ -3245,8 +3297,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(11);                  // code for anticipKO
                     notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);notif.addDouble(frequency);
+                    notif.addDouble(0);
+                    notif.addDouble(amplitude);
+                    notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);
                 

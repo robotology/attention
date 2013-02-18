@@ -533,7 +533,7 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     }
     
     //printf(" a =%f, countVergence=%d \n", a, countVergence);
-    //printf("if random, selects action number %d: %s \n",(int)a,actionList[(int)a].c_str());
+    printf("if random, selects action number %d: %s \n",(int)a,actionList[(int)a].c_str());
 
     //looking at the Psa for this state and the selected action
     int pos = state_now; // * NUMACTION + action_now;

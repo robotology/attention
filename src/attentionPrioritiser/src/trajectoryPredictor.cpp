@@ -173,7 +173,7 @@ bool trajectoryPredictor::threadInit() {
     
     
     printf(" creating evalThread constant velocity \n");
-    modelA->init(0.1);
+    modelA->init(0.0);
     genPredModel* mA = dynamic_cast<genPredModel*>(modelA);
     eval = new evalThread(*mA);
     eval->init(z0a,x0a,P0a);
@@ -545,6 +545,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 
     fprintf(fMeasure,"pCurr.x pCurr.y timeMeas dist theta timeDiff vel acc \n");
 
+    bool nullVel = true;
+
     // filling the zMeasure matrix with position on the plane of homography
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
@@ -607,6 +609,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             vel = (dist - dist_prev) / 0.033;
             zMeasurements2D(n - 1, 1) = vel;
             zMeasurements3D(n - 1, 1) = vel;
+
+            if(vel > 0.1)
+                nullVel = false;
             
             fprintf(fMeasure,"%f ",timeDiff);
             fprintf(fMeasure,"%f ",vel);
@@ -642,8 +647,24 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     
     meanVelX /= nIter;
     meanVelY /= nIter;
+
+
+    if(nullVel) {
+        // stable object
+
+        bool predictionAccompl = true;
+        Vx = 0;
+        Vy = 0;
+        xPos = -1;
+        yPos = -1;
+        
+        time = 0.5;
+        
+        return predictionAccompl;
+
+    }
     
-    printf("ready to save the measure matrix\n %s \n",zMeasurements3D.toString().c_str() );
+    //printf("ready to save the measure matrix\n %s \n",zMeasurements3D.toString().c_str() );
     //fprintf(fMeasure, "%s\n",zMeasurements3D.toString().c_str());
     
     //estimate the predictor model that best fits the velocity measured
@@ -664,9 +685,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
 
     //starting different evalution threads
     while(it != eQueue->end() ) { 
-        printf("____________________________________________________________________________________________________\n");
+        //printf("____________________________________________________________________________________________________\n");
         tmp = *it;  // pointer to the thread
-        printf("reading evalThread reference from the queue it = %08X \n", tmp);
+        //printf("reading evalThread reference from the queue it = %08X \n", tmp);
 
         
         //creating the uMeasurement vector
@@ -678,25 +699,25 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         }
 
         if(tmp->getRowA() == 2) {
-            printf("dimension of the measure %d %f \n",tmp->getRowA(), paramA );
+            //printf("dimension of the measure %d %f \n",tmp->getRowA(), paramA );
             tmp->setMeasurements(uMeasurements,zMeasurements2D);
         }
         else {
-            printf("dimension of the measure %d %f \n",tmp->getRowA(), paramA );
+            //printf("dimension of the measure %d %f \n",tmp->getRowA(), paramA );
             tmp->setMeasurements(uMeasurements,zMeasurements3D);
         }
-        printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
-        printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
+        //printf("entering the loop with getdatReady %d \n", tmp->getDataReady());
+        //printf("getEvalFineshed value %d \n", tmp->getEvalFinished());
         it++;   
-        printf("____________________________________________________________________________________________________\n \n \n");
+        //printf("____________________________________________________________________________________________________\n \n \n");
     }
     printf("out of the loop that starts the predictors \n");
     fprintf(fMeasure,"--------\n "); 
 
 
     // waiting for the evaluation already started
-    printf("entering the loop with eval \n");
-    printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
+    //printf("entering the loop with eval \n");
+    //printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
     it = eQueue->begin();
     int finished  = 0 ;
     minMSE = 1;                      // minMSE = 1 is the lower limit beyond the which any predictor is not considered successful
@@ -770,7 +791,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         xPos = x0;
         yPos = y0 + distance * cos(theta);
         zPos = z0 + distance * sin(theta);
-        printf("target %f %f : %f %f %f \n",distance, theta, xPos, yPos, zPos);
+        printf("target distance:%f time:%f theta:%f | %f %f %f \n",distance,time, theta, xPos, yPos, zPos);
         fprintf(fMeasure,"target %f %f : %f %f %f \n",distance, theta, xPos, yPos, zPos);
     }
     else if(!strcmp(minPredictor->getType().c_str(), "constAcceleration")){
