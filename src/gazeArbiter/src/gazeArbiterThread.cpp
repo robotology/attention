@@ -277,13 +277,29 @@ bool gazeArbiterThread::threadInit() {
     }
 
     // get camera projection matrix from the configFile
-    printf("get Camera configuration \n");
+    printf("get Camera configuration Left \n");
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
         Matrix &Prj = *PrjL;
         cxl=Prj(0,2);
         cyl=Prj(1,2);
-        printf("pixel fovea in the config file %f %f \n", cxl,cyl);
+        printf("pixel fovea in the config file left %f %f \n", cxl,cyl);
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
+    }
+    else {
+        printf("ERROR : CAMERA CALIBRARION LEFT was not found \n");
+        return false;
+    }
+    printf("get Camera configuration Right \n");
+    if (getCamPrj(configFile,"CAMERA_CALIBRATION_RIGHT",&PrjR)) {
+        Matrix &Prj = *PrjR;
+        cxr = Prj(0,2);
+        cyr = Prj(1,2);
+        printf("pixel fovea in the config file right %f %f \n", cxr,cyr);
+        invPrjR=new Matrix(pinv(Prj.transposed()).transposed());
+    }
+    else {
+        printf("ERROR : CAMERA CALIBRARION RIGHT was not found \n");
+        return false;
     }
 
     //--------------------------------------------------------------------
@@ -748,6 +764,8 @@ void gazeArbiterThread::run() {
                 Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
                 iCubEye *eye = (isLeft?eyeL:eyeR);
                 
+                
+
 
                 //function that calculates the 3DPoint where to redirect saccade and add the offset
                 Vector torso(3);

@@ -83,7 +83,8 @@ private:
     int camSel;                             // value of selected drive eye (0-left, 1 -right)
     int u,v;                                // values passed for saccades
     int originalContext;                    // original context for the gaze Controller
-    double cxl,cyl;                         // center of the eye in the configfile
+    double cxl,cyl;                         // center of the left eye in the configfile
+    double cxr,cyr;                         // center of the right eye in the configfile 
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
     double varDistance;                     // calculated distance of the object from the eye 

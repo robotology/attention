@@ -114,14 +114,11 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     }
     printf("configFile: %s \n", camerasFile.c_str());
 
-
-    
-    
-
     collector=new gazeCollectorThread();
     collector->setName(getName().c_str());
     
-    arbiter=new gazeArbiterThread(camerasFile);
+    arbiter = new gazeArbiterThread(camerasFile);
+    
     arbiter->setName(getName().c_str());
     arbiter->setRobotName(robotName);
     
@@ -244,7 +241,11 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
     arbiter->setBlockPitch(pitch);
 
     collector->addObserver(*arbiter);
-    arbiter->start();
+    bool startArbiter = arbiter->start();
+    if(!startArbiter) {
+        return false;
+    }
+    
     collector->start();
 
     /*
