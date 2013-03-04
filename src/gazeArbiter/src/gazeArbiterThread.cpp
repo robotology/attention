@@ -277,7 +277,7 @@ bool gazeArbiterThread::threadInit() {
     }
 
     // get camera projection matrix from the configFile
-    printf("get Camera configuration Left \n");
+    printf("get Camera configuration Left %s \n", configFile.c_str());
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
         Matrix &Prj = *PrjL;
         cxl=Prj(0,2);
@@ -447,14 +447,14 @@ bool gazeArbiterThread::threadInit() {
 
 void gazeArbiterThread::interrupt() {
     //inCommandPort
-    inLeftPort.interrupt();
-    inRightPort.interrupt();
-    statusPort.interrupt();
-    templatePort.interrupt();
-    inhibitionPort.interrupt();
+    inLeftPort      .interrupt();
+    inRightPort     .interrupt();
+    statusPort      .interrupt();
+    templatePort    .interrupt();
+    inhibitionPort  .interrupt();
     blobDatabasePort.interrupt();
-    templatePort.interrupt();
-    timingPort.interrupt();
+    templatePort    .interrupt();
+    timingPort      .interrupt();
 }
 
 void gazeArbiterThread::setDimension(int w, int h) {
@@ -1844,13 +1844,14 @@ void gazeArbiterThread::vergenceInDepth(){
 }
 
 void gazeArbiterThread::threadRelease() {
-    inLeftPort.close();
-    inRightPort.close();
-    statusPort.close();
-    templatePort.close();
-    blobDatabasePort.close();
-    inhibitionPort.close();
-    timingPort.close();
+    inLeftPort       .close();
+    inRightPort      .close();
+    statusPort       .close();
+    templatePort     .close();
+    blobDatabasePort .close();
+    inhibitionPort   .close();
+    timingPort       .close();
+
     if(tracker!=0) {
         tracker->stop();
     }
