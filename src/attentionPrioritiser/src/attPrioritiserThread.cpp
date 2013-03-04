@@ -688,6 +688,9 @@ int attPrioritiserThread::waitCorrection() {
 }
 
 void attPrioritiserThread::run() {
+
+    
+
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
@@ -815,21 +818,21 @@ void attPrioritiserThread::run() {
 
         
         
-        /*
-        // nofiying action            
-        Bottle notif;
-        notif.clear();
-        notif.addVocab(COMMAND_VOCAB_ACT);
+        
+        // nofiying action _old            
+        //Bottle notif;
+        //notif.clear();
+        //notif.addVocab(COMMAND_VOCAB_ACT);
         // code for prediction accomplished
-        notif.addDouble(states(0));  // null
-        notif.addDouble(states(1));  // vergence 
-        notif.addDouble(states(2));  // smooth pursuit
-        notif.addDouble(states(3));  // planned saccade
-        notif.addDouble(states(4));  // express saccade
-        notif.addDouble(states(5));  // trajectory prediction
-        setChanged();
-        notifyObservers(&notif);
-        */
+        //notif.addDouble(states(0));  // null
+        //notif.addDouble(states(1));  // vergence 
+        //notif.addDouble(states(2));  // smooth pursuit
+        //notif.addDouble(states(3));  // planned saccade
+        //notif.addDouble(states(4));  // express saccade
+        //notif.addDouble(states(5));  // trajectory prediction
+        //setChanged();
+        //notifyObservers(&notif);
+        
         
         //double predVx = 0.0, predVy = 0.0;
         //bool predictionSuccess = false;
@@ -886,49 +889,7 @@ void attPrioritiserThread::run() {
             isPendingCommand = true;
             
             
-        ptracker->init(uPred,vPred);
-        ptracker->waitInitTracker();
-        printf("All the trackers correctly initialized \n");                        
-
-
-        printf("\n  \n \n \n Preparing for prediction .... \n");
-        for (int i = 0; i < 5; i++) {
-            printf(" Go in %d seconds \n", 5 - i);
-            Time::delay(1);
-        }
-        printf("GO GO GO GO GO GO GO \n");
-
-        //printf("estimating velocity ... \n");
-        bool predictionSuccess = 
-            trajPredictor->estimateVelocity(uPred, vPred, predVx, predVy, predXpos, predYpos, predZpos, predTime, predDistance);
-
-        amplitude = 0; // null amplitude in prediction )no action involved)        
-        //printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);
         
-
-        // nofiying state transition            
-        //Bottle notif;
-        //notif.clear();
-        //notif.addVocab(COMMAND_VOCAB_STAT);
-        //notif.addDouble(1);                  // code for prediction accomplished
-        //setChanged();
-        //notifyObservers(&notif); 
-
-        //printf("just notified observers \n");
-
-        //predictionSuccess = false; // forcing the prediction failed
-        if(predictionSuccess) {
-            printf("prediction success: velocity(%f, %f) time( %f) \n", predVx, predVy, predTime);
-            
-            // action after prediction 
-            //Bottle& sent     = highLevelLoopPort.prepare();            
-            //sent.clear();
-            //sent.addString("PRED_ACC");
-            //highLevelLoopPort.write();                        
-
-            pendingCommand->clear();
-            pendingCommand->addString("PRED_ACC");
-            isPendingCommand = true;
             
             
 
@@ -1160,31 +1121,31 @@ void attPrioritiserThread::run() {
             else {
 
                 printf(" \n ------- Monocular Planned Saccade -------------  \n");
-                /*
+                
                 // nofiying state transition            
-                Bottle notif;
-                notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(3);                  // code for fixStableKO
-                setChanged();
-                notifyObservers(&notif);
-                */                
+                //Bottle notif;
+                //notif.clear();
+                //notif.addVocab(COMMAND_VOCAB_STAT);
+                //notif.addDouble(3);                  // code for fixStableKO
+                //setChanged();
+                //notifyObservers(&notif);
+                                
 
                 //printf("initialising the planner thread %f \n", time);
                 
-                /*
-                sacPlanner->setSaccadicTarget(u,v);
-                timeoutStart = Time::now();
-                executing = true;       
-                timeoutStop = Time::now();
-                timeout = timeoutStop - timeoutStart;
-                printf("waiting for planned saccade \n");
-                while(timeout < time) {
-                    timeoutStop = Time::now();
-                    timeout = timeoutStop - timeoutStart;
-                    //printf("ps \n");
-                }
-                */
+                
+                //sacPlanner->setSaccadicTarget(u,v);
+                //timeoutStart = Time::now();
+                //executing = true;       
+                //timeoutStop = Time::now();
+                //timeout = timeoutStop - timeoutStart;
+                //printf("waiting for planned saccade \n");
+                //while(timeout < time) {
+                //    timeoutStop = Time::now();
+                //    timeout = timeoutStop - timeoutStart;
+                //    //printf("ps \n");
+                //}
+                
 
                 // activating the sacPlanner
                 sacPlanner->setSaccadicTarget(u,v);
@@ -1264,43 +1225,42 @@ void attPrioritiserThread::run() {
                     sacPlanner->wakeup();
                     Time::delay(0.05);
 
-                    /* code generated the 25/09/2012
-                    int resultC = waitCorrection();
-                    int uCorr, vCorr;
-                    if( resultC != -1) {
-                        //further corrections needed
-                        uCorr = cos(resultC) * 5;
-                        vCorr = sin(resultC) * 5;
-                        commandBottle.clear();
-                        commandBottle.addString("SAC_MONO");
-                        commandBottle.addInt(u);
-                        commandBottle.addInt(v);
-                        commandBottle.addDouble(zDistance);
-                        outputPort.write();
-                    }
-                    */
+                    // code generated the 25/09/2012
+                    //int resultC = waitCorrection();
+                    //int uCorr, vCorr;
+                    //if( resultC != -1) {
+                    //    //further corrections needed
+                    //    uCorr = cos(resultC) * 5;
+                    //    vCorr = sin(resultC) * 5;
+                    //    commandBottle.clear();
+                    //   commandBottle.addString("SAC_MONO");
+                    //    commandBottle.addInt(u);
+                    //    commandBottle.addInt(v);
+                    //    commandBottle.addDouble(zDistance);
+                    //    outputPort.write();
+                    //}
+                    
                     
                     
                     // correction or second saccade??
                     //double corr = sacPlanner->getCorrValue();
                     //printf("received the response from the planner %f \n", corr);
-                    /*
-                    if(corr < THCORR) {
-                        //getDirection and calculating the pixel dimension of the correction
-                        double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
-                        printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
-                        int xVar = (int) floor(cos(dirRad) * corrStep);
-                        int yVar = (int) floor(sin(dirRad) * corrStep);
-                        Bottle& commandBottle = outputPort.prepare();
-                        commandBottle.clear();
-                        commandBottle.addString("SAC_MONO");
-                        commandBottle.addInt(160 + xVar);
-                        commandBottle.addInt(120 + yVar);
-                        commandBottle.addDouble(zDistance);
-                        outputPort.write();
-                    } 
-                    */
                     
+                    //if(corr < THCORR) {
+                    //    //getDirection and calculating the pixel dimension of the correction
+                    //    double dirRad = (sacPlanner->getDirection() * PI) / 180.0;
+                    //    printf("direction of the correction in degrees %f \n",sacPlanner->getDirection() );
+                    //    int xVar = (int) floor(cos(dirRad) * corrStep);
+                    //    int yVar = (int) floor(sin(dirRad) * corrStep);
+                    //    Bottle& commandBottle = outputPort.prepare();
+                    //    commandBottle.clear();
+                    //    commandBottle.addString("SAC_MONO");
+                    //    commandBottle.addInt(160 + xVar);
+                    //    commandBottle.addInt(120 + yVar);
+                    //    commandBottle.addDouble(zDistance);
+                    //    outputPort.write();
+                    //} 
+                                        
                     Time::delay(0.05);
                     
                 } //end of postsaccadic correction                
@@ -2090,6 +2050,7 @@ void attPrioritiserThread::reinforceFootprint() {
 }
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
+    
     cUpdate++;
     //printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
@@ -3352,8 +3313,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 double errory_prediction = 120 - point.y;
                 
                 distance  = sqrt( (double)
-                                          errorx_control * errorx_control + 
-                                          errory_control * errory_control
+                                          errorx_prediction * errorx_prediction + 
+                                          errory_prediction * errory_prediction
                                           );
                 
             
