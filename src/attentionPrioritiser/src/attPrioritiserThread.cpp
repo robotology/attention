@@ -284,7 +284,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
         printf("tracker not started because visualFeedback disable by user \n");
     }
     
-
+    
     
     printf("attPrioritiserThread initialization ended correctly \n");
 }
@@ -481,9 +481,15 @@ bool attPrioritiserThread::threadInit() {
     
     evalVel1.init(z0, x0, P0);
     */
-    
-    //evalVel1.start();
-    //eQueue->push_back(evalVel1);
+
+    //active agent for periodic tracking
+    ptracker = new periodicTrackerThread(*rf);
+    ptracker->setName(getName("/periodicTracker").c_str());
+    ptracker->start();
+    printf("periodic tracker successfully started \n");
+    ptracker->setUpdate(true);
+    ptracker->init(160,120);
+    ptracker->setUpdate(false);
     
     return true;
 }
@@ -501,31 +507,30 @@ void attPrioritiserThread::addCollectionEvalThread() {
         it++;
     }
     printf("attPrioritiserThread::addCollectionEvalThread:saved %d eventPredictors \n", eQueue->size());
-   
 }
 
 void attPrioritiserThread::interrupt() {
     //interrupting ports
-    inLeftPort.interrupt();
-    inRightPort.interrupt();
+    inLeftPort  .interrupt();
+    inRightPort .interrupt();
 
-    feedbackPort.interrupt();
-    templatePort.interrupt();
-    inhibitionPort.interrupt();
-    blobDatabasePort.interrupt();
+    feedbackPort     .interrupt();
+    templatePort     .interrupt();
+    inhibitionPort   .interrupt();
+    blobDatabasePort .interrupt();
    
-    timingPort.interrupt();
-    feedbackEarlyVision.interrupt();
-    feedbackSelective.interrupt();
-    feedbackProtoObject.interrupt();
+    timingPort          .interrupt();
+    feedbackEarlyVision .interrupt();
+    feedbackSelective   .interrupt();
+    feedbackProtoObject .interrupt();
 
-    highLevelLoopPort.interrupt();
-    desiredTrackPort.interrupt();
-    trackPositionPort.interrupt();
-    directPort.interrupt();
-    facePort.interrupt();
-    emoPort.interrupt();
-    energyPort.interrupt();
+    highLevelLoopPort .interrupt();
+    desiredTrackPort  .interrupt();
+    trackPositionPort .interrupt();
+    directPort        .interrupt();
+    facePort          .interrupt();
+    emoPort           .interrupt();
+    energyPort        .interrupt();
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -575,12 +580,13 @@ void attPrioritiserThread::threadRelease() {
         printf("attPrioritiserThread::threadRelease:deleting the clientPlanner \n");
         sacPlanner->stop();
     }
-
     if(0 != tracker) {
         printf("attPrioritiserThread::threadRelease:stopping the tracker \n");
         tracker->stop();
     }
-    
+    if(0 != ptracker) {
+        ptracker->stop();
+    }    
     if(0!=trajPredictor) {
         printf("attPrioritiserThread::threadRelease:stopping the traject.Predictor \n");
         //trajPredictor->stop();
@@ -588,7 +594,7 @@ void attPrioritiserThread::threadRelease() {
     }
     printf("attPrioritiserThread::threadRelease:corretly stopped the trajPredictor \n");
     
-     evalVel1.stop();
+    evalVel1.stop();
 
     //delete sacPlanner;
     printf("----------------------------------- attPrioritiserThread::threadRelease:success in releasing all the components \n");
