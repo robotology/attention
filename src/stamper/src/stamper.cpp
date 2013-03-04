@@ -62,49 +62,50 @@ int main(int argc, char *argv[]) {
 	Stamp vStamp;
 	Stamp iStamp;
 
-    // get incoming bottles
-    cout << "waiting for input" << endl;
-    Bottle *in = inPort.read();
-    
-    Bottle *iKinIn = iKinInPort.read();
-    Bottle &out	= outPort.prepare();
-    
-    if (in!=NULL && iKinIn!=NULL) {
-		
-			if (count==0) {
-			Bottle &refOut	= refPort.prepare();
-			refOut.clear();
-
-			refOut.addDouble(refX);
-			refOut.addDouble(refY);
-			refOut.addDouble(refZ);
-			refPort.writeStrict();
-	}	
+	// get incoming bottles
+	cout << "waiting for input" << endl;
+	Bottle *in = inPort.read();
 	
-	// get sequence and timestamps
-    inPort.getEnvelope(vStamp);
-    frameSeq = vStamp.getCount();
-    vTime = vStamp.getTime();
-    
-    iKinInPort.getEnvelope(iStamp);
-    iSeq = iStamp.getCount();
-    iTime = iStamp.getTime();
-    
-    
-   //get the iKin input
-   
- // double x = iKinIn->get(0).asDouble();
- // double y = iKinIn->get(1).asDouble();
-  //double z = iKinIn->get(2).asDouble(); 
-   
-
-	cout << "receiving input" << endl;
-	out.clear();
-		
-	//copy the iKinGazeCtrl input
-	out.copy(*iKinIn,0,-1);
-		
-}
+	Bottle *iKinIn = iKinInPort.read();
+	Bottle &out	= outPort.prepare();
+	
+	if (in!=NULL && iKinIn!=NULL) {
+	  
+	  if (count==0) {
+	    Bottle &refOut	= refPort.prepare();
+	    refOut.clear();
+	    
+	    refOut.addDouble(refX);
+	    refOut.addDouble(refY);
+	    refOut.addDouble(refZ);
+	    refPort.writeStrict();
+	  }	
+	  
+	  // get sequence and timestamps
+	  // get information from the image
+	  inPort.getEnvelope(vStamp);
+	  frameSeq = vStamp.getCount();
+	  vTime = vStamp.getTime();
+	  // get information from iKin
+	  iKinInPort.getEnvelope(iStamp);
+	  iSeq = iStamp.getCount();
+	  iTime = iStamp.getTime();
+	  
+	  
+	  //get the iKin input
+	  
+	  // double x = iKinIn->get(0).asDouble();
+	  // double y = iKinIn->get(1).asDouble();
+	  // double z = iKinIn->get(2).asDouble(); 
+	  
+	  
+	  cout << "receiving input" << endl;
+	  out.clear();
+	  
+	  //copy the iKinGazeCtrl input
+	  out.copy(*iKinIn,0,-1);
+	  
+	}
 	
 	//	out.addDouble(x);
 	//	out.addDouble(y);
@@ -117,6 +118,6 @@ int main(int argc, char *argv[]) {
 	out.addDouble(iTime);
 	outPort.writeStrict();
 	count++;
-		
-	}
-    }
+	
+  }
+}

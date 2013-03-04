@@ -21,7 +21,7 @@ find_package(GtkPlus REQUIRED)
 find_package(GSL)
 find_package(IPOPT)
 
-include(iCubOptions)
+include(iCubOptions) #removed because not longer necessary @Rea 20/11/12
 include(iCubHelpers)
 
 SET(CUDAVISION_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
