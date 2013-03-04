@@ -94,6 +94,7 @@
 #include <iCub/observable.h>
 #include <iCub/sacPlannerThread.h>
 #include <iCub/trajectoryPredictor.h>
+#include <iCub/periodicTrackerThread.h>
 #include <iCub/attention/predModels.h>
 #include <iCub/attention/evalThread.h>
 
@@ -278,10 +279,11 @@ private:
     yarp::sig::Matrix zMeasure;                     // vector of measurements
     yarp::sig::Matrix uMeasure;                     // vector of the input values
     
-    trackerThread       *tracker;                      // reference to the object in charge of tracking a tamplete surrounding a point
-    sacPlannerThread    *sacPlanner;                // planner of saccadic movements (todo: make it a list of planners
-    trajectoryPredictor *trajPredictor;             // predictor of the trajectory of a given stimulus
-    yarp::os::ResourceFinder* rf;                   // resourceFinder for the pathfinder of other files
+    periodicTrackerThread    *ptracker;             // episodic tracker for the post-prediction
+    trackerThread            *tracker;              // reference to the object in charge of tracking a tamplete surrounding a point
+    sacPlannerThread         *sacPlanner;           // planner of saccadic movements (todo: make it a list of planners
+    trajectoryPredictor      *trajPredictor;        // predictor of the trajectory of a given stimulus
+    yarp::os::ResourceFinder *rf;                   // resourceFinder for the pathfinder of other files
     FILE* PsaFile;                                  // file that contains the Probability of Transitions
     
 public:

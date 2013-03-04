@@ -173,8 +173,8 @@
  * 24/01/13 : added the context for cameraFile                                                              author: Rea  \n
  * 13/02/13 : corrected some errors in the oculomotorController                                             author: Rea  \n
  * 15/02/13 : distinguished the parameter of saccade, wait and predict actions                              author: Rea  \n
+ * 04/03/13 : added the periodicTrackerThread to evaluate post-prediction performance                       author: Rea  \n
 */
-
 
 #include <iostream>
 #include <string>
