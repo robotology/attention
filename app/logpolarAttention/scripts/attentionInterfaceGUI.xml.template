@@ -49,7 +49,7 @@
 
 <module>
       <name>yarpview</name>
-      <parameters>--name /matchViewer --x 000 --y 660 --RefreshTime 33</parameters>
+      <parameters>--name /matchViewer --out /matchViewer/out --x 000 --y 660 --RefreshTime 33</parameters>
       <node>icub14</node>
       <tag>matchTrackerView</tag>
 </module>
@@ -143,7 +143,7 @@
   <protocol>udp</protocol>
 </connection>
 <connection>
-  <from>/attPrioritiser/icub/matchTracker/img:o</from>
+  <from>/attPrioritiser/icub/periodicTracker/img:o</from>
   <to>/matchPredictor</to>
   <protocol>udp</protocol>
 </connection>

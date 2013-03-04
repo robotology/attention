@@ -139,7 +139,7 @@
 
    <connection>
 	<from>/icub/camcalib/left/out</from>
-	<to>/attPrioritiser/icub/matchTracker/img:i</to>
+	<to>/attPrioritiser/icub/periodicTracker/img:i</to>
 	<protocol>tcp</protocol>
    </connection>
    <connection>
