@@ -185,6 +185,7 @@ private:
     double waitTime;                        // time to allow in the wait action
     double timeoutResponseStart;            // starting time measure for the wait response
     double predDistance;                    // predicted distance of the stimulus from the fovea
+    double error_prediction;                // measured error of the prediction : distance visual target from the expected position
     
     double phi;                             // value passed for relative vergence from the maximum shift
     double phi2;                            // value passed for relative vergence from the second maximum shift

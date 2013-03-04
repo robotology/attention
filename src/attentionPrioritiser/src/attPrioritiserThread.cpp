@@ -586,6 +586,7 @@ void attPrioritiserThread::threadRelease() {
     }
     if(0 != ptracker) {
         ptracker->stop();
+        printf("periodic tracker correctly deallocated \n");
     }    
     if(0!=trajPredictor) {
         printf("attPrioritiserThread::threadRelease:stopping the traject.Predictor \n");
@@ -833,8 +834,17 @@ void attPrioritiserThread::run() {
         //double predVx = 0.0, predVy = 0.0;
         //bool predictionSuccess = false;
         amplitude = 0;
+        
+        //starting the tracker
+        printf("Starting the tracker \n");
         tracker->init(uPred,vPred);
         tracker->waitInitTracker();
+        
+        ptracker->setUpdate(true);
+        ptracker->init(uPred,vPred);
+        ptracker->waitInitTracker();
+        printf("All the trackers correctly initialized \n");                        
+
 
         printf("\n  \n \n \n Preparing for prediction .... \n");
         for (int i = 0; i < 5; i++) {
@@ -876,6 +886,52 @@ void attPrioritiserThread::run() {
             isPendingCommand = true;
             
             
+        ptracker->init(uPred,vPred);
+        ptracker->waitInitTracker();
+        printf("All the trackers correctly initialized \n");                        
+
+
+        printf("\n  \n \n \n Preparing for prediction .... \n");
+        for (int i = 0; i < 5; i++) {
+            printf(" Go in %d seconds \n", 5 - i);
+            Time::delay(1);
+        }
+        printf("GO GO GO GO GO GO GO \n");
+
+        //printf("estimating velocity ... \n");
+        bool predictionSuccess = 
+            trajPredictor->estimateVelocity(uPred, vPred, predVx, predVy, predXpos, predYpos, predZpos, predTime, predDistance);
+
+        amplitude = 0; // null amplitude in prediction )no action involved)        
+        //printf("after trajectory prediction %f %f (land: %f, %f) in %f \n", predVx, predVy, predXpos, predYpos, predTime);
+        
+
+        // nofiying state transition            
+        //Bottle notif;
+        //notif.clear();
+        //notif.addVocab(COMMAND_VOCAB_STAT);
+        //notif.addDouble(1);                  // code for prediction accomplished
+        //setChanged();
+        //notifyObservers(&notif); 
+
+        //printf("just notified observers \n");
+
+        //predictionSuccess = false; // forcing the prediction failed
+        if(predictionSuccess) {
+            printf("prediction success: velocity(%f, %f) time( %f) \n", predVx, predVy, predTime);
+            
+            // action after prediction 
+            //Bottle& sent     = highLevelLoopPort.prepare();            
+            //sent.clear();
+            //sent.addString("PRED_ACC");
+            //highLevelLoopPort.write();                        
+
+            pendingCommand->clear();
+            pendingCommand->addString("PRED_ACC");
+            isPendingCommand = true;
+            
+            
+
         }
         else {
             printf("prediction failed \n");
@@ -3266,9 +3322,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             if(!strcmp(waitType.c_str(),"ant")) {
 
+                double distance;
+                
+                //******************************************************************************
+                // initialisation of the tracker discrete
                 tracker->init(160,120);
                 tracker->waitInitTracker();
-
                 printf("WAIT ANT (160,120) WAIT ANT  (160,120)  WAIT ANT (160,120)\n");
                 for(int i=0 ; i < 10 ; i++){
                     printf("..............waiting for init tracker in WAIT_ACC \n");
@@ -3276,10 +3335,28 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
 
                 CvPoint t; tracker->getPoint(t);
-                double distance = std::sqrt( (double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                distance = std::sqrt( (double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+
+                // *****************************************************************************
+                // sending the command to the episodic tracker
+                ptracker->setCheck(true);
+                // the actual visiting of the whole portion of the image is time-demanding
+                // the bigger the area controlled the longer the time interval
+                // ALLOW necessary time or waitComputation 
+                printf("waiting for completion in the periodicTracking.... \n");
+                ptracker->waitCorrComputation();
+                printf("computation completed \n");
+                // ******************************************************************************
+                ptracker->getPoint(point);
+                double errorx_prediction = 160 - point.x;
+                double errory_prediction = 120 - point.y;
                 
+                distance  = sqrt( (double)
+                                          errorx_control * errorx_control + 
+                                          errory_control * errory_control
+                                          );
                 
-                // TODO :remove hard coded because the reward must check the distance of stimulus from fovea
+            
                 if(distance < FOVEACONFID){
 
                     // nofiying state transition into successful tracking
