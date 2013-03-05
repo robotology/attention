@@ -44,7 +44,7 @@ using namespace attention::evaluator;
 #define TIMEOUT_CONST   5          // time constant after which the motion is considered not-performed    
 #define THCORR          0.99
 #define corrStep        10
-#define FOVEACONFID     50
+#define FOVEACONFID     30
 
 //defining the frequency [event/sec] as relation between time and event
 // smp has frequent corrections whereas the other perform action only once
@@ -715,14 +715,14 @@ void attPrioritiserThread::run() {
              (stateRequest(3) != 0) || (stateRequest(4) != 0) || (stateRequest(5) != 0) ||
              (stateRequest(6) != 0)) {
         //printf("time of inactivity %f \n",Time::now() - timeoutResponseStart );
-        //printf("#### stateRequest      : %s \n", stateRequest.toString().c_str());
-        //printf("#### state             : %s \n", state.toString().c_str());
+        printf("#### stateRequest      : %s \n", stateRequest.toString().c_str());
+        printf("#### state             : %s \n", state.toString().c_str());
         Vector c(6);
         c = stateRequest * (state * stateTransition);
         allowedTransitions = orVector(allowedTransitions ,c);
         // resetting the requests
         stateRequest(0) = 0; stateRequest(1) = 0; stateRequest(2) = 0; stateRequest(3) = 0; stateRequest(4) = 0; stateRequest(5) = 0; stateRequest(6) = 0;
-        //printf("#### allowedTransitions: %s \n", allowedTransitions.toString().c_str());
+        printf("#### allowedTransitions: %s \n", allowedTransitions.toString().c_str());
         
         // notify observer concerning the state in which the prioritiser sets in
         Bottle notif;
@@ -886,12 +886,7 @@ void attPrioritiserThread::run() {
 
             pendingCommand->clear();
             pendingCommand->addString("PRED_ACC");
-            isPendingCommand = true;
-            
-            
-        
-            
-            
+            isPendingCommand = true;  
 
         }
         else {
@@ -1547,7 +1542,8 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
         executing = false;
-        //printf ("Transition request 1 reset \n");
+        printf ("Transition request 1 reset \n");
+        
         mutex.post();
     }
     else if(allowedTransitions(0)>0) { //reset action
@@ -1555,7 +1551,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(0) = 0;
         executing = false;
-        //printf ("Transition request 1 reset \n");
+        //printf ("Transition request 0 reset \n");
         mutex.post();
     }
     
@@ -2855,7 +2851,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(allowStateRequest[1]) {
                 printf("setting stateRequest[1] \n");
                 ver_accomplished = true;
-                //stateRequest[1]  = 1;
+                //stateRequest[1]  = 1;   //removed forced stateRequest
                 //executing = false;
             }
             //  changing the accomplished flag
@@ -2920,7 +2916,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             if(allowStateRequest[2]) {
                 //printf("setting stateRequest[2] \n");
                 sp_accomplished = true;
-                //stateRequest[2]  = 1;
+                //stateRequest[2]  = 1;  //removed forced stateRequest
                 //executing = false;
             }
             //  changing the accomplished flag
@@ -2999,9 +2995,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //printf("Prediction Accomplished %f %f  \n", predVx, predVy);
             mutex.wait();
             if(allowStateRequest[6]) {
-                printf("setting stateRequest[6] \n");
                 pred_accomplished = true;
-                //stateRequest[5] = 1;
+                //stateRequest[5] = 1;     //removed forced stateRequest
                 //executing = false;
             }
             //  changing the accomplished flag
@@ -3248,9 +3243,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if((!strcmp(name.c_str(),"WAIT_ACC")) && (waitResponse[1])) {
             waitResponse[1] = false;
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
-            printf("resetting tracker timer in wait accomplished \n");
+            printf("WAIT_ACC.Resetting tracker timer in wait accomplished \n");
             
-            
+            Time::delay(5.0);
 
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -3260,12 +3255,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
 
             // smooth pursuit accomplished           
-            //printf("Wait Accomplished with waitType %s \n", waitType.c_str());
+            printf("Wait Accomplished with waitType %s \n", waitType.c_str());
             mutex.wait();
             if(allowStateRequest[1]) {
-                //printf("setting stateRequest[0] \n");
+                
                 //sp_accomplished = true;
-                stateRequest[1] = 1;
+                //stateRequest[1] = 1;                    //printf("setting stateRequest[6] \n");
                 //executing = false;
             }
             //  changing the accomplished flag
@@ -3287,16 +3282,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
                 //******************************************************************************
                 // initialisation of the tracker discrete
-                tracker->init(160,120);
-                tracker->waitInitTracker();
-                printf("WAIT ANT (160,120) WAIT ANT  (160,120)  WAIT ANT (160,120)\n");
-                for(int i=0 ; i < 10 ; i++){
-                    printf("..............waiting for init tracker in WAIT_ACC \n");
-                    Time::delay(0.3);              
-                }
+                //tracker->init(160,120);
+                //tracker->waitInitTracker();
+                //printf("WAIT ANT (160,120) WAIT ANT  (160,120)  WAIT ANT (160,120)\n");
+                //for(int i=0 ; i < 10 ; i++){
+                //    printf("..............waiting for init tracker in WAIT_ACC \n");
+                //    Time::delay(0.3);              
+                //}
 
-                CvPoint t; tracker->getPoint(t);
-                distance = std::sqrt( (double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
+                //CvPoint t; tracker->getPoint(t);
+                //distance = std::sqrt( (double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
 
                 // *****************************************************************************
                 // sending the command to the episodic tracker
@@ -3316,9 +3311,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                                           errorx_prediction * errorx_prediction + 
                                           errory_prediction * errory_prediction
                                           );
+
+                printf("distance measure from prediction to real object position %f \n", distance);
                 
             
                 if(distance < FOVEACONFID){
+                    
+                    accuracy = (FOVEACONFID * 10) / distance;
+                    accuracy = accuracy * 10;
 
                     // nofiying state transition into successful tracking
                     Bottle notif;
@@ -3326,7 +3326,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(10);                  // code for anticip OK
                     notif.addDouble(timing);
-                    notif.addDouble(accuracy + 50);
+                    notif.addDouble(accuracy);
                     notif.addDouble(amplitude);
                     notif.addDouble(frequency);
                     setChanged();
@@ -3334,6 +3334,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     
                 }
                 else {
+                    accuracy  = 0;
                     
                     // nofiying state transition into unsuccessful tracking
                     Bottle notif;
@@ -3341,7 +3342,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addVocab(COMMAND_VOCAB_STAT);
                     notif.addDouble(11);                  // code for anticipKO
                     notif.addDouble(timing);
-                    notif.addDouble(0);
+                    notif.addDouble(accuracy);
                     notif.addDouble(amplitude);
                     notif.addDouble(frequency);
                     setChanged();
@@ -3358,7 +3359,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(14);                  // code for smooth-pursuit not accomplished
                 notif.addDouble(timing);
-                notif.addDouble(accuracy + 500);
+                notif.addDouble(500);
                 notif.addDouble(amplitude);
                 notif.addDouble(frequency);
                 setChanged();

@@ -67,7 +67,7 @@ bool trajectoryPredictor::threadInit() {
     option.put("device","gazecontrollerclient");
     option.put("remote","/iKinGazeCtrl");
     string localCon("/client/gaze");
-    localCon.append("testWings");
+    localCon.append("trajPred");
     option.put("local",localCon.c_str());
 
     clientGazeCtrl=new PolyDriver();
@@ -550,8 +550,10 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     // filling the zMeasure matrix with position on the plane of homography
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
-        
+        printf("cycle %d in the generation of trajectory for prediction \n", n);
         tracker->getPoint(p_curr);
+        printf("received correct tracker response \n");
+        
         
         timeStop = Time::now();
         if (n == 0) {
@@ -579,7 +581,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             px(1) = p_curr.y;
             igaze->get3DPointOnPlane(camSel,px,plane,x3D);
             //igaze->get3DPoint(camSel,px,z,x3D);
-            //printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
+            printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
             fprintf(fout,"%f %f %f\n", x3D(0) , x3D(1) , x3D(2));
 
 
@@ -641,6 +643,8 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             //meanVelY += velY;
             
         }
+        
+        
         timeStart = Time::now();
         Time::delay(0.033);
     }
