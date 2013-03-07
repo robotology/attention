@@ -8,49 +8,49 @@
 		<name>earlyVision</name>
 		<parameters>--name /earlyVision/icub/left_cam</parameters>
 		<tag>earlyvis</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b14</node>
 	</module>
 		<module>
 		<name>earlyMotion</name>
 		<parameters>--name /earlyMotion/icub/left_cam</parameters>
 		<tag>earlymot</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b14</node>
 	</module>
 	<module>
 		<name>saliencyBlobFinder</name>
 		<parameters>--from saliencyBlobFinder.ini --context logpolarAttention/conf --config icubEyes.ini</parameters>
 		<tag>blobFinderModule</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b14</node>
 	</module>
 	<module>
 		<name>selectiveAttentionEngine</name>
 		<parameters>--from selectiveAttentionLeft.ini --context logpolarAttention/conf </parameters>
 		<tag>earlySelectiveAtt</tag>
-		<node>/icub-b17</node>
+		<node>/icub-b14</node>
 	</module>
     <module>
 		<name>mosaic</name>
 		<parameters>--name /inhiMosaic  --config icubEyes.ini</parameters>
 		<tag>inhibitionMosaic</tag>
-		<node>/icub-b18</node>
+		<node>/icub-b15</node>
 	</module>
     <module>
 		<name>mosaic</name>
 		<parameters>--name /facilMosaic --config icubEyes.ini </parameters>
 		<tag>facilitationMosaic</tag>
-		<node>/icub-b18</node>
+		<node>/icub-b15</node>
 	</module>
 	<module>
 		<name>attentionPrioritiser</name>
         <parameters>--name /attPrioritiser/icub </parameters>
         <tag>prioritiser</tag>
-        <node>/icub-b17</node>
+        <node>/icub-b14</node>
     </module>    
     <module>
 		<name>gazeArbiter</name>
         <parameters>--name /gazeArbiter/icub --visualFeedback</parameters>
         <tag>gArbiter</tag>
-        <node>/icub-b17</node>
+        <node>/icub-b14</node>
     </module>
 	
    <connection>
@@ -144,6 +144,11 @@
    </connection>
    <connection>
 	<from>/icub/camcalib/left/out</from>
+	<to>/attPrioritiser/icub/matchTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+   <connection>
+	<from>/icub/camcalib/left/out</from>
 	<to>/gazeArbiter/icub/periodicTracker/img:i</to>
 	<protocol>tcp</protocol>
    </connection>
@@ -165,22 +170,22 @@
    </connection>
 
    <connection>
-        <from>/gazeArbiter/icub/left_cam/inhibition:o</from>
-		<to>/mosaic/icub/left_cam/leftMono:i</to>
-		<protocol>udp</protocol>
-	</connection>
+    <from>/gazeArbiter/icub/left_cam/inhibition:o</from>
+	<to>/mosaic/icub/left_cam/leftMono:i</to>
+	<protocol>udp</protocol>
+   </connection>
 
-	<connection>
-	        <from>/mosaic/icub/left_cam/portion:o</from>
-		<to>/selectiveAttentionEngine/icub/left_cam/inhiCart:i</to>
-		<protocol>udp</protocol>
-	</connection>
+   <connection>
+	<from>/mosaic/icub/left_cam/portion:o</from>
+	<to>/selectiveAttentionEngine/icub/left_cam/inhiCart:i</to>
+	<protocol>udp</protocol>
+   </connection>
 
-	<connection>
-	    <from>/selectiveAttentionEngine/icub/left_cam/portionRequest:o</from>
-		<to>/mosaic/icub/left_cam</to>
-		<protocol>udp</protocol>
-	</connection>
+   <connection>
+	<from>/selectiveAttentionEngine/icub/left_cam/portionRequest:o</from>
+	<to>/mosaic/icub/left_cam</to>
+	<protocol>udp</protocol>
+   </connection>
 
    <connection>
 	<from>/attPrioritiser/icub/cmd:o</from>
