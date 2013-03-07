@@ -689,8 +689,6 @@ int attPrioritiserThread::waitCorrection() {
 
 void attPrioritiserThread::run() {
 
-    
-
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now();
@@ -1708,7 +1706,9 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
             }break;    
             }
         }
+        printf("\n\n\n");
         printCommandBuffer();
+        printf("\n\n\n");
         return false;
     }   
     else {        
@@ -1716,6 +1716,9 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
         stateRequest[pos] = 1.0;
         bufCommand[pos] = NULL;
+        printf("\n\n\n");
+        printCommandBuffer();
+        printf("\n\n\n");
         return true;
     }
     
@@ -2082,7 +2085,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 mutex.post();     
             
                 
-            
+                /* OLD OLD OLD
                 // activating the predictor if learning is active  if(learning)          
                 if(false && (highLevelLoopPort.getOutputCount())) {
                     Bottle& sent     = highLevelLoopPort.prepare();
@@ -2092,6 +2095,17 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     sent.addInt(v);
                     highLevelLoopPort.write();
                 }
+                */
+
+                if(learning) {
+                    pendingCommand->clear();
+                    pendingCommand->addString("PRED");
+                    pendingCommand->addInt(u);
+                    pendingCommand->addInt(v);
+                    isPendingCommand = true;
+                }
+                
+
             }
             
             
@@ -2101,10 +2115,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("saccade mono time: %f with allowed %d  \n", time,allowStateRequest[3]);
             //mutex.wait();
             if(time <= 0.5) {
-                // =============================
+                //==============================
                 // saving bottle in the buffer
                 bufCommand[5] = *arg;           
-                //==============================
+                //===============================
                 
                 // express saccade 
                 mutex.wait();
@@ -2216,9 +2230,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // for any reset the wait is not longer fixation
             waitType = "ant";
 
+            //=============================
             // saving bottle in the buffer
             bufCommand[0] = *arg;
-            
+            //=============================
+
             // reseting the state action history
             mutex.wait();
             if(allowStateRequest[0]) {
@@ -2237,9 +2253,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================        
         else if(!strcmp(name.c_str(),"WAIT")) {
-
+            //===================================
             // saving bottle in the buffer
             bufCommand[1] = *arg;
+            //===================================
+
             uWait         = arg->get(1).asInt();
             vWait         = arg->get(2).asInt();
             // reading the typology of waiting: ant (anticipatory), fix (fixation)
@@ -2359,8 +2377,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //waitType = "ant";
 
             printf("received a PRED command \n");
+            
+            //==============================
             // saving bottle in the buffer
             bufCommand[6] = *arg;
+            //==============================
 
             uPred = arg->get(1).asInt();
             vPred = arg->get(2).asInt();
@@ -2407,9 +2428,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================        
         else if(!strcmp(name.c_str(),"SM_PUR")) {
-
+            //=================================
             // saving bottle in the buffer
             bufCommand[3] = *arg;
+            //=================================
+            
             Vx   = arg->get(1).asDouble();
             Vy   = arg->get(2).asDouble();
             time = arg->get(3).asDouble();
@@ -2433,9 +2456,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================        
         else if(!strcmp(name.c_str(),"VER_REL")) {
-
+            //===============================
             // saving bottle in the buffer
             bufCommand[2] = *arg;
+            //===============================
             
             phi  = arg->get(1).asDouble();
             phi2 = arg->get(2).asDouble();
