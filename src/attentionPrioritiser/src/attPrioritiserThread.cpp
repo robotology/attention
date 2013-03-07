@@ -1418,12 +1418,12 @@ void attPrioritiserThread::run() {
 
 
         if(visualFeedback) {
-            printf("tracker enable for planned saccade \n");
+            printf("tracker enable for planned saccade in %d %d \n", uWait,vWait);
             tracker->init(uWait,vWait);
             tracker->waitInitTracker();
         }
         else {
-            printf("tracker disabled due user`s request \n");
+            printf("tracker disabled due user`s request in %d %d \n", uWait, vWait);
         }
 
         state(6) = 0 ; state(5) = 0; state(4) = 0 ; state(3) = 0 ; state(2) = 0 ; state(1) = 1 ; state(0) = 0;
@@ -2058,6 +2058,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
  //============================================================================        
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
+            printf("SAC_MONO command received \n");
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
             waitType = "ant";          // for any saccade the anticpation is not longer wait
@@ -2070,7 +2071,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if(allowStateRequest[6]) {
                     printf("setting stateRequest[6] \n");
                     reinfFootprint = true;
-                    stateRequest[6] = 1;
+                    stateRequest[6] = 1;     //traj.Prediction
                     timeoutStart = Time::now();
                     //  changing the accomplished flag
                     mutexAcc.wait();
@@ -2082,8 +2083,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
                 
             
-                // activating the predictor if learning is active            
-                if((learning) && (highLevelLoopPort.getOutputCount())) {
+                // activating the predictor if learning is active  if(learning)          
+                if(false && (highLevelLoopPort.getOutputCount())) {
                     Bottle& sent     = highLevelLoopPort.prepare();
                     sent.clear();
                     sent.addString("PRED");
@@ -2100,15 +2101,18 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("saccade mono time: %f with allowed %d  \n", time,allowStateRequest[3]);
             //mutex.wait();
             if(time <= 0.5) {
-
+                // =============================
                 // saving bottle in the buffer
-                bufCommand[5] = *arg;                
-                // express saccade
+                bufCommand[5] = *arg;           
+                //==============================
+                
+                // express saccade 
                 mutex.wait();
                 if(allowStateRequest[5]) {
+                    // this is executed only in the non-learning system
                     printf("setting stateRequest[5] \n");
                     reinfFootprint = true;
-                    stateRequest[5] = 1;
+                    stateRequest[5] = 1;    //express saccade
                     timeoutStart = Time::now();
                     //  changing the accomplished flag
                     mutexAcc.wait();
@@ -2120,8 +2124,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             } 
             else {
+                //====================================
                 // saving bottle in the buffer
                 bufCommand[4] = *arg;
+                //====================================
                 
                 // feedback saccade
                 // checking first for reinfFootPrint
@@ -2164,7 +2170,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         mutex.wait();
                         if(allowStateRequest[4]) {
                             //printf("setting stateRequest[4] \n");
-                            stateRequest[4] = 1;
+                            stateRequest[4] = 1;  //planned saccade
                             mutexAcc.wait();
                             accomplFlag[4] = false;
                             validAction = true;
@@ -2179,7 +2185,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     mutex.wait();
                     if(allowStateRequest[4]) {
                         printf("setting stateRequest[4], reinforceFootprint has not happened \n");
-                        stateRequest[4] = 1;
+                        stateRequest[4] = 1;    //planned saccade
                         mutexAcc.wait();
                         accomplFlag[4] = false;
                         validAction = true;
@@ -3318,7 +3324,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if(distance < FOVEACONFID){
                     
                     accuracy = (FOVEACONFID * 10) / distance;
-                    accuracy = accuracy * 10;
+                    accuracy = accuracy * 10 + 300;
 
                     // nofiying state transition into successful tracking
                     Bottle notif;
@@ -3334,7 +3340,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     
                 }
                 else {
-                    accuracy  = 0;
+                    accuracy  = 0;  //accuracy null because out of the fovea area
                     
                     // nofiying state transition into unsuccessful tracking
                     Bottle notif;

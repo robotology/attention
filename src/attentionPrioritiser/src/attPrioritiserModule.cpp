@@ -341,10 +341,22 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     
     
     printf("starting the collector... \n");
-    collector->start();
+    if(!collector->start()) {
+        printf("collector did not start correcly \n");
+        return false;
+    }
+    else {
+        printf("collector started corretly \n");
+    }
      
     printf("starting the controller... \n");
-    controller->start();
+    if(!controller->start()) {
+        printf("Controller did not start correctly \n");
+        return false;
+    }
+    else {
+        printf("Controller started correcly \n");
+    }
     
     printf("starting the prioritiser... \n");
     if(!prioritiser->start()){
