@@ -1653,6 +1653,11 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     
     
     printf("executing a command saved in the buffer pos %d translated in position %d \n",_pos,pos);
+
+    printf("\n\n\n");
+    printCommandBuffer();
+    printf("\n\n\n");
+    
     if (bufCommand[pos] == NULL) {
         printf("no action in the buffer for pos:%d \n", pos);        
         if(isLearning()) {
@@ -1706,9 +1711,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
             }break;    
             }
         }
-        printf("\n\n\n");
-        printCommandBuffer();
-        printf("\n\n\n");
+       
         return false;
     }   
     else {        
@@ -1716,9 +1719,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
         stateRequest[pos] = 1.0;
         bufCommand[pos] = NULL;
-        printf("\n\n\n");
-        printCommandBuffer();
-        printf("\n\n\n");
+
         return true;
     }
     
@@ -2061,7 +2062,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
  //============================================================================        
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
-            printf("SAC_MONO command received \n");
+            //printf("SAC_MONO command received \n");
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
             waitType = "ant";          // for any saccade the anticpation is not longer wait
@@ -2097,7 +2098,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
                 */
 
-                if(learning) {
+                if(true) {
                     pendingCommand->clear();
                     pendingCommand->addString("PRED");
                     pendingCommand->addInt(u);
@@ -2107,6 +2108,15 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
 
             }
+            
+            if(true) {
+                pendingCommand->clear();
+                pendingCommand->addString("PRED");
+                pendingCommand->addInt(u);
+                pendingCommand->addInt(v);
+                isPendingCommand = true;
+            }
+            
             
             
             //---------------------------------------------------------------------------
