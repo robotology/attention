@@ -67,6 +67,7 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
     firstCount      = false;
     stateTransition = false;
     firstImage      = true;
+    forceWait       = false;
 }
 
 oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
@@ -89,6 +90,7 @@ oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThre
     firstCount      = false;
     stateTransition = false;
     firstImage      = true;
+    forceWait       = false;
 };
 
 oculomotorController::~oculomotorController() {
@@ -429,7 +431,7 @@ bool oculomotorController::policyWalk(double policyProb){
     printf("---------------------- oculomotorController::policyWalk: just set facial expressions \n");
     
     bool ret = false;
-    printf("---------------------- state_now : %d \n", A->operator()(0,state_now));
+    printf("---------------------- state_now : %d %f \n",state_now, A->operator()(0,state_now));
     action_now = A->operator()(0,state_now);
     yarp::sig::Vector a = A->getRow(0);
     printf("---------------------- selected action %d %s \n",action_now,stateList[action_now].c_str());
@@ -588,6 +590,12 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
         j = posInVector; //best choice given previous run
         action_now = j;
     }
+
+    //if(forceWait) {
+    //    forceWait  = false;
+    //    action_now = 1;      //forcing wait action 
+    //}
+    
 
     // trying to execute the selected action 
     // if successful the system moves to the next state
@@ -780,6 +788,9 @@ void oculomotorController::learningStep() {
            actionPerformed = randomWalk(state_next,0.1); 
         }
         else */
+
+       
+        
         
         printf("s %f \n ", s);
         if(s >= k) {
@@ -796,6 +807,8 @@ void oculomotorController::learningStep() {
             fprintf(logFile,"randomWalk > ");
             actionPerformed = randomWalk(state_next,0.1);
         }
+
+
         
     
         if(actionPerformed) {
@@ -967,7 +980,7 @@ void oculomotorController::run() {
         if((countSucc < 20) && (iter % 1 == 0) && (ap->readyForActions())) {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
-            fprintf(logFile,"%d ",iter);
+            //fprintf(logFile,"%d ",iter);
             learningStep();    
         }
         
@@ -1143,6 +1156,9 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             if (statevalueparam == GOALSTATE) {
                 r += 1000;
             }
+            if(statevalueparam == 12){
+                forceWait = true;
+            }
             
             
             //Q->operator()(state_next,action_now) = 
@@ -1153,6 +1169,19 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 Q->operator()(state_now,action_now) + 
                 alfa * ( r + j * V->operator()(0,state_next) 
                          - Q->operator()(state_now,action_now)) ;
+
+            // std::isinf( value ) and std::isNan( value )
+            
+            if(Q->operator()(state_now,action_now) != Q->operator()(state_now,action_now)) {
+                printf("UPDATING THE QUALITY with NAN!!!!!\n");
+                printf("state_now %d \n action_now %d \n state_next = %d \n r=%f \n j=%f \n V=%f \n ",
+                       state_now, action_now, state_next, r, j,V->operator()(0,state_next) );                
+            }
+            if(std::isinf(Q->operator()(state_now,action_now) )){
+                printf("UPDATING THE QUALITY with INF!!!!!\n");
+                printf("state_now %d \n action_now %d \n state_next = %d \n r=%f \n j=%f \n V=%f \n ",
+                       state_now, action_now, state_next, r, j,V->operator()(0,state_next) );                 
+            }
             
             // // 4. calculating the total Payoff
             //printf("calculating accuracy \n");
@@ -1213,7 +1242,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
                 printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
                 printf("SUCCESS IN FIXATING!!!!!!!!!!!! \n");
-                fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! ");
+                fprintf(logFile,"SUCCESS IN FIXATING!!!!!!!!!!!! \n");
                 countSucc++;
                 
                 state_now    = 0; //move to null state right after the success in fixating

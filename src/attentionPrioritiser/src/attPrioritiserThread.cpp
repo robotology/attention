@@ -670,6 +670,11 @@ void attPrioritiserThread::sendPendingCommand() {
     update(this, pendingCommand);
 }
 
+void attPrioritiserThread::sendPendingCommand2() {
+    printf("sending pending %s \n", pendingCommand2->toString().c_str());
+    update(this, pendingCommand2);
+}
+
 int attPrioritiserThread::waitCorrection() {
     int ready = -1;
     while ((ready == -1) && (sacPlanner->getCorrValue() > THCORR )) {
@@ -702,12 +707,21 @@ void attPrioritiserThread::run() {
 
     // checking for pending communication
     if(isPendingCommand) {
-        //printf ("!!!!!!!!!!!! PENDING COMMAND !!!!!!! \n");
+        printf ("!!!!!!!!!!!! PENDING COMMAND !!!!!!! %s \n", pendingCommand->toString().c_str());
         sendPendingCommand();
         isPendingCommand = false;
-        printf("!!!!!!!!!!!!! sent PENDING COMMAND !!!!!!!! \n");
+        printf("!!!!!!!!!!!!! sent PENDING COMMAND !!!!!!!! %s \n",pendingCommand->toString().c_str() );
+        
+        
+        if(isPendingCommand2) {
+            printf ("!!!!!!!!!!!! PENDING SECONDARY COMMAND !!!!!!! %s \n", pendingCommand2->toString().c_str());
+            sendPendingCommand2();
+            isPendingCommand2 = false;
+            printf("!!!!!!!!!!!!! sent PENDING SECONDARY COMMAND !!!!!!!! %s \n",pendingCommand2->toString().c_str() );
+        }
+        
         return;
-    }
+    }    
     //Vector-vector element-wise product operator between stateRequest possible transitions
     else if ((stateRequest(0) != 0) || (stateRequest(1) != 0) || (stateRequest(2) != 0) ||
              (stateRequest(3) != 0) || (stateRequest(4) != 0) || (stateRequest(5) != 0) ||
@@ -1540,7 +1554,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
         executing = false;
-        printf ("Transition request 1 reset \n");
+        printf ("Transition request 1 revert \n");
         
         mutex.post();
     }
@@ -2062,10 +2076,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
  //============================================================================        
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
-            //printf("SAC_MONO command received \n");
+            printf("SAC_MONO command received \n");
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
-            waitType = "ant";          // for any saccade the anticpation is not longer wait
+            //waitType = "ant";          // must  be moved to accomplishment not initialization otherwise changes state even no executed
             // removing the previous line guarantess better WAIT fix actions
             
             //--------------------------------------------------------------------------
@@ -2110,11 +2124,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             }
             
             if(true) {
-                pendingCommand->clear();
-                pendingCommand->addString("PRED");
-                pendingCommand->addInt(u);
-                pendingCommand->addInt(v);
-                isPendingCommand = true;
+                pendingCommand2->clear();
+                pendingCommand2->addString("PRED");
+                pendingCommand2->addInt(u);
+                pendingCommand2->addInt(v);
+                isPendingCommand2 = true;
             }
             
             
@@ -2238,7 +2252,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 //=================================================================================        
         else if(!strcmp(name.c_str(),"RESET")) {
             // for any reset the wait is not longer fixation
-            waitType = "ant";
+            //waitType = "ant";
 
             //=============================
             // saving bottle in the buffer
@@ -2268,6 +2282,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             bufCommand[1] = *arg;
             //===================================
 
+            printf("Received WAIT COMMAND with parameters %d %d \n", uWait,vWait);
             uWait         = arg->get(1).asInt();
             vWait         = arg->get(2).asInt();
             // reading the typology of waiting: ant (anticipatory), fix (fixation)
@@ -2384,7 +2399,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 //=================================================================================        
         else if(!strcmp(name.c_str(),"PRED")) {
             // for any prediction the wait is not longer fixation
-            //waitType = "ant";
+            //waitType = "ant"; //cannot be implemented in initial but only in accomplish
 
             printf("received a PRED command \n");
             
@@ -2416,7 +2431,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 //=================================================================================        
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
             // for any SAC_ABS the wait is not longer in fixation
-            waitType = "ant";
+            //waitType = "ant";
 
             xObject = arg->get(1).asDouble();
             yObject = arg->get(2).asDouble();
@@ -2644,9 +2659,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notifyObservers(&notif); 
 
         }
-//****************************** ACTION RESPONSES (SUCCESS)  ************************************************//
+//****************************** ACTION RESPONSS (SUCCESS)  ************************************************//
 //**** this section regulates the state transition indicating state of agent after action ****************//
         else if(!strcmp(name.c_str(),"SAC_ACC_HIGH"))   {
+            waitType = "ant"; //in the accomplishment is ok because the action has been exec.
+            
             printf("received a SAC_ACC_HIGH command \n");
     
             if(waitResponse[5]) {
@@ -2864,7 +2881,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 //=================================================================================        
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
             // printf("changing the correcting status \n");
-            // saccade accomplished flag set 
+            // saccade accomplished flag set             
+            
             mutex.wait();
             correcting = true;
             sac_accomplished = true;
@@ -2903,7 +2921,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             //extracting reward measures
             double timing    = Time::now() - startAction;
-            double accuracy  = tracker->getProxMeasure() + 50;            
+            double accuracy  = tracker->getProxMeasure() + 100;            
             double frequency = frequencyRule[2];
             double amplitude = 1.0;
 
@@ -2920,18 +2938,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             notifyObservers(&notif); 
 
             // waiting fix command added
-            pendingCommand->clear();
-            pendingCommand->addString("WAIT");
-            pendingCommand->addInt(160);
-            pendingCommand->addInt(140);
+            pendingCommand2->clear();
+            pendingCommand2->addString("WAIT");
+            pendingCommand2->addInt(160);
+            pendingCommand2->addInt(140);
             //pendingCommand->addString("fix");
-            pendingCommand->addDouble(0.5);
-            isPendingCommand = true;      
-            
+            pendingCommand2->addDouble(0.5);
+            isPendingCommand2 = true; 
 
+            printf("WAITING for WAIT in FIXATION!!!!!!!! \n");
+            
         }
 //=================================================================================        
         else if((!strcmp(name.c_str(),"SM_ACC")) ) {
+            waitType = "ant";
+            
             //printf("smooth pursuit accomplished \n");
             if(!waitResponse[3]){
                 printf("it was not waiting for response \n");
@@ -3019,6 +3040,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================                
         else if((!strcmp(name.c_str(),"PRED_ACC")) && (waitResponse[6])) {
+            printf("just received command PRED_ACC \n");
             waitResponse[6] = false;
             timeoutResponseStart = Time::now();
             //printf("resetting response timer in prediction accomplished \n");
@@ -3092,7 +3114,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(1);                  // code for prediction accomplished in fixed position (fixPredict)
                 notif.addDouble(timing);
-                notif.addDouble(0);
+                notif.addDouble(50);
                 notif.addDouble(amplitude);
                 notif.addDouble(frequency);
                 setChanged();
@@ -3144,13 +3166,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
 
                 //sending a command of saccade to the original location (no motion)
-                pendingCommand->clear();
-                pendingCommand->addString("SAC_MONO");
-                pendingCommand->addInt(uPred);
-                pendingCommand->addInt(vPred);
-                pendingCommand->addDouble(0.5);
-                pendingCommand->addDouble(1.0);
-                isPendingCommand = true;
+                pendingCommand2->clear();
+                pendingCommand2->addString("SAC_MONO");
+                pendingCommand2->addInt(uPred);
+                pendingCommand2->addInt(vPred);
+                pendingCommand2->addDouble(0.5);
+                pendingCommand2->addDouble(1.0);
+                isPendingCommand2 = true;
 
             }
             else { //moving visual target
@@ -3178,17 +3200,20 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                       highLevelLoopPort.write();
                     */
                     
-                    pendingCommand->clear();
-                    pendingCommand->addString("SM_PUR");
-                    pendingCommand->addInt(predVx);
-                    pendingCommand->addInt(predVy);
-                    pendingCommand->addDouble(predTime);
-                    isPendingCommand = true; 
+                    pendingCommand2->clear();
+                    pendingCommand2->addString("SM_PUR");
+                    pendingCommand2->addInt(predVx);
+                    pendingCommand2->addInt(predVy);
+                    pendingCommand2->addDouble(predTime);
+                    isPendingCommand2 = true; 
                     
                 }
                 else { 
                     // no predicted const velocity
                     if ((predXpos != -1) && (predYpos != 1)) {
+                        
+                        printf("anticipatory prediction \n");
+                        
                         // move -> anticipatoryPredictor
                         // nofiying state transition            
                         Bottle notif;
@@ -3196,7 +3221,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         notif.addVocab(COMMAND_VOCAB_STAT);
                         notif.addDouble(5);                  // code for prediction accomplished in anticipatory state (antPredict)
                         notif.addDouble(timing);
-                        notif.addDouble(accuracy);
+                        notif.addDouble(accuracy * 2);
                         notif.addDouble(amplitude);
                         notif.addDouble(frequency);
                         setChanged();
@@ -3223,13 +3248,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         
                         
                         //commanding the waiting in a predefined location on the image plane
-                        pendingCommand->clear();
-                        pendingCommand->addString("WAIT");
-                        pendingCommand->addInt(px(0));
-                        pendingCommand->addInt(px(1));
+                        pendingCommand2->clear();
+                        pendingCommand2->addString("WAIT");
+                        pendingCommand2->addInt(px(0));
+                        pendingCommand2->addInt(px(1));
                         //pendingCommand->addString("ant");
-                        pendingCommand->addDouble(predTime + 1.0);
-                        isPendingCommand = true;
+                        pendingCommand2->addDouble(predTime + 1.0);
+                        isPendingCommand2 = true;
                         
                     
                     } //end if (predXpos != -1) && (predYpos != 1)
@@ -3380,7 +3405,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     Bottle notif;
                     notif.clear();
                     notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(11);                  // code for anticipKO
+                    notif.addDouble(11);                  // code for anticipKO, anticipWait
                     notif.addDouble(timing);
                     notif.addDouble(accuracy);
                     notif.addDouble(amplitude);

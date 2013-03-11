@@ -158,6 +158,7 @@ private:
     bool learning;                          // flag that allows the Q-learning controller to take decisions
     bool validAction;                       // flag that indicates when the action is valid
     bool isPendingCommand;                  // flag that indicates that an action command must be sent in the highlevel loop
+    bool isPendingCommand2;                 // flag that indicates that an action command must be sent in the highlevel loop
     bool visualFeedback;                    // indicates when input signal for visual feedback is present
 
     int u, v;                               // retinal coordinates passed for saccades
@@ -221,6 +222,7 @@ private:
     double kColOri[7];                      // kValue for selection in color 'n' orientation state 
     yarp::os::Bottle bufCommand[NUMSTATES]; // buffer for the last actions arranged divided by type
     yarp::os::Bottle *pendingCommand;       // control command to send
+    yarp::os::Bottle *pendingCommand2;      // secondary pending command
 
     iCub::iKin::iCubEye *eyeL;
     iCub::iKin::iCubEye *eyeR;
@@ -491,9 +493,14 @@ public:
 
 
     /**
-     * @brief function that send a action command that has to be performed via highLevelLoop
+     * @brief function that sends an action command that has to be performed via highLevelLoop
      */
     void sendPendingCommand();
+
+     /**
+     * @brief function that sends an action command that has to be performed via highLevelLoop (secondary)
+     */
+    void sendPendingCommand2();
 
     /**
      * @brief function that activates a seeking action

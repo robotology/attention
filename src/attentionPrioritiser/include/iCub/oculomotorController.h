@@ -202,6 +202,7 @@ private:
     bool firstCount;           // first count of the starting state
     bool stateTransition;      // synchronisation betweee actionSelection and stateTransition
     bool firstImage;
+    bool forceWait;            // forcing action of wait
     
     int countStep;             // counter of learning step
     int countSucc;             // counter of successful learning episodes
