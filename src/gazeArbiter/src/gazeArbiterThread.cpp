@@ -1276,9 +1276,11 @@ void gazeArbiterThread::run() {
 
                     // ending the cycle
                     // Time::delay(2);
-                    // igaze->lookAtMonoPixel(camSel,px,0.5);
+                     igaze->lookAtMonoPixel(camSel,px,0.5);
                     
                 }
+
+                error_control = 0;
              
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
