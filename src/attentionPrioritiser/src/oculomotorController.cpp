@@ -99,8 +99,7 @@ oculomotorController::~oculomotorController() {
 
 bool oculomotorController::threadInit() {
     printf(" ------------------ oculomotorController::threadInit:starting the thread.... \n");
-    
-   
+
     
     // initialisation of relevant matrices
     Q                 = new Matrix(NUMSTATE,  NUMACTION);

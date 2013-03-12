@@ -282,9 +282,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     }
     else {
         printf("tracker not started because visualFeedback disable by user \n");
-    }
-    
-    
+    }  
     
     printf("attPrioritiserThread initialization ended correctly \n");
 }
@@ -492,6 +490,9 @@ bool attPrioritiserThread::threadInit() {
     ptracker->setUpdate(true);
     ptracker->init(160,120);
     ptracker->setUpdate(false);
+
+    
+    controlFile = fopen("attPrioritiserThread.controlFile","r+");
     
     return true;
 }
@@ -601,6 +602,9 @@ void attPrioritiserThread::threadRelease() {
 
     //delete sacPlanner;
     printf("----------------------------------- attPrioritiserThread::threadRelease:success in releasing all the components \n");
+    
+    fclose(controlFile);
+    
 }
 
 void attPrioritiserThread::setDimension(int w, int h) {
@@ -3381,7 +3385,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                                           );
 
                 printf("distance measure from prediction to real object position %f \n", distance);
-                
+                fprintf(controlFile, "%f", distance );
             
                 if(distance < FOVEACONFID){
                     

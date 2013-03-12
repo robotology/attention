@@ -288,6 +288,7 @@ private:
     trajectoryPredictor      *trajPredictor;        // predictor of the trajectory of a given stimulus
     yarp::os::ResourceFinder *rf;                   // resourceFinder for the pathfinder of other files
     FILE* PsaFile;                                  // file that contains the Probability of Transitions
+    FILE* controlFile;                              // file dedicated to the analysis of the performance
     
 public:
     /**
