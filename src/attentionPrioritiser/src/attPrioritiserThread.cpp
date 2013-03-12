@@ -387,6 +387,8 @@ bool attPrioritiserThread::threadInit() {
     }
     
     pendingCommand   = new Bottle();
+    pendingCommand2  = new Bottle();
+    isPendingCommand = false;
     isPendingCommand = false;
 
     inhibitionImage = new ImageOf<PixelMono>;
@@ -2756,6 +2758,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     notif.addDouble(frequency);
                     setChanged();
                     notifyObservers(&notif);
+
+                    //wait in fovea //pendingCommand2
+                    
                     
                 }
                 else {
@@ -3114,7 +3119,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(1);                  // code for prediction accomplished in fixed position (fixPredict)
                 notif.addDouble(timing);
-                notif.addDouble(50);
+                notif.addDouble(1);
                 notif.addDouble(amplitude);
                 notif.addDouble(frequency);
                 setChanged();
@@ -3310,8 +3315,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             timeoutResponseStart = Time::now(); //starting the timer for a control on responses
             printf("WAIT_ACC.Resetting tracker timer in wait accomplished \n");
             
-            Time::delay(5.0);
-
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();
@@ -3383,7 +3386,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if(distance < FOVEACONFID){
                     
                     accuracy = (FOVEACONFID * 10) / distance;
-                    accuracy = accuracy * 10 + 300;
+                    accuracy = accuracy * 10 + 500;
 
                     // nofiying state transition into successful tracking
                     Bottle notif;
@@ -3399,7 +3402,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     
                 }
                 else {
-                    accuracy  = 0;  //accuracy null because out of the fovea area
+                    accuracy  = 50;  //accuracy null because out of the fovea area
                     
                     // nofiying state transition into unsuccessful tracking
                     Bottle notif;
