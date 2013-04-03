@@ -1,0 +1,104 @@
+<application>
+<name>dump Attention  Application</name>
+<dependencies>
+  <port>/icub/cam/left</port>
+</dependencies>
+
+
+<module>
+  <name>dataDumper</name>
+  <parameters>--name /dump/leftLogPolarImage --type image</parameters>
+  <node>icub14</node>
+  <tag>dumpLeftLogPolar</tag>
+</module>
+
+<module>
+  <name>dataDumper</name>
+  <parameters>--name /dump/attentionCartesian --type image</parameters>
+  <node>icub14</node>
+  <tag>dumpAttentionCartesian</tag>
+</module>
+
+<module>
+  <name>dataDumper</name>
+  <parameters>--name /dump/combinationView --type image</parameters>
+  <node>icub14</node>
+  <tag>dumpCombinationView</tag>
+</module>
+
+<module>
+  <name>dataDumper</name>
+  <parameters>--name /dump/matchViewer --type image</parameters>
+  <node>icub14</node>
+  <tag>dumpMatchViewer</tag>
+</module>
+
+<module>
+  <name>dataDumper</name>
+  <parameters>--name /dump/matchEpisodic --type image</parameters>
+  <node>icub14</node>
+  <tag>dumpMatchViewer</tag>
+</module>
+
+<module>
+  <name>dataDumper</name>
+  <parameters>--name /dump/matchPredictor --type image</parameters>
+  <node>icub14</node>
+  <tag>dumpMatchPredictor</tag>
+</module>
+
+<module>
+  <name>dataDumper</name>
+  <parameters>--name /dump/episodicPredictor --type image</parameters>
+  <node>icub14</node>
+  <tag>dumpEpisodicPredictor</tag>
+</module>
+
+
+<!---------------- connections --------------->
+<connection>
+  <from>/logPolarTransform/icub/left_cam/image:o</from>
+  <to>/dump/leftLogPolarImage</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+  <from>/selectiveAttentionEngine/icub/left_cam/cartesian:o</from>
+  <to>/dump/attentionCartesian</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+  <from>/selectiveAttentionEngine/icub/left_cam/combination:o</from>
+  <to>/dump/combinationView</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+  <from>/gazeArbiter/icub/matchTracker/img:o</from>
+  <to>/dump/matchViewer</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+  <from>/gazeArbiter/icub/periodicTracker/img:o</from>
+  <to>/dump/matchEpisodic</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/attPrioritiser/icub/matchTracker/img:o</from>
+  <to>/dump/matchPredictor</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/attPrioritiser/icub/periodicTracker/img:o</from>
+  <to>/dump/episodicPredictor</to>
+  <protocol>udp</protocol>
+</connection>
+
+
+<!--------------------------------------------->
+
+
+
+</application>
