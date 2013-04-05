@@ -492,7 +492,7 @@ bool attPrioritiserThread::threadInit() {
     ptracker->setUpdate(false);
 
     
-    controlFile = fopen("attPrioritiserThread.controlFile","r+");
+    controlFile = fopen("attPrioritiserThread.controlFile.txt","w+");
     
     return true;
 }
