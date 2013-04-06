@@ -834,8 +834,7 @@ void attPrioritiserThread::run() {
         
         printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
 
-        
-        
+        /**** commented out as a test of performance in pure priority mode 6/4/2013
         
         // nofiying action _old            
         //Bottle notif;
@@ -896,31 +895,19 @@ void attPrioritiserThread::run() {
         if(predictionSuccess) {
             printf("prediction success: velocity(%f, %f) time( %f) \n", predVx, predVy, predTime);
             
-            // action after prediction 
-            //Bottle& sent     = highLevelLoopPort.prepare();            
-            //sent.clear();
-            //sent.addString("PRED_ACC");
-            //highLevelLoopPort.write();                        
-
             pendingCommand->clear();
             pendingCommand->addString("PRED_ACC");
             isPendingCommand = true;  
 
         }
         else {
-            printf("prediction failed \n");
-            
-            // nofiying state transition            
-            //notif.clear();
-            //notif.addVocab(COMMAND_VOCAB_STAT);
-            //notif.addDouble(3);                  // code for prediction accomplished
-            //setChanged();
-            //notifyObservers(&notif);            
+            printf("prediction failed \n");          
 
             pendingCommand->clear();
             pendingCommand->addString("PRED_FAIL");
             isPendingCommand = true;  
         }
+        */
         printf("_________________ Trajectory prediction  _____________________\n\n");
     }
 
@@ -1451,6 +1438,9 @@ void attPrioritiserThread::run() {
         amplitude = 0;
         //tracker->init(u,v);
         //tracker->waitInitTracker();
+
+        // *** commented out as a test of the performance in priority mode  06/04/2013 ******///
+        /*
         Bottle& commandBottle = outputPort.prepare();
         commandBottle.clear();
         commandBottle.addString("WAIT");
@@ -1458,6 +1448,7 @@ void attPrioritiserThread::run() {
         commandBottle.addInt(vWait);
         commandBottle.addDouble(waitTime);
         outputPort.write();
+        */
         
         
         printf("Sent Wait %d %d %f in mode %s  \n",uWait,vWait, waitTime, waitType.c_str());
