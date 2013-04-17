@@ -833,8 +833,6 @@ void attPrioritiserThread::run() {
         
         
         printf("\n \n ---------------- Trajectory prediction --------------------- \n \n");
-
-        /**** commented out as a test of performance in pure priority mode 6/4/2013
         
         // nofiying action _old            
         //Bottle notif;
@@ -907,7 +905,7 @@ void attPrioritiserThread::run() {
             pendingCommand->addString("PRED_FAIL");
             isPendingCommand = true;  
         }
-        */
+        
         printf("_________________ Trajectory prediction  _____________________\n\n");
     }
 
