@@ -909,7 +909,7 @@ void attPrioritiserThread::run() {
         printf("_________________ Trajectory prediction  _____________________\n\n");
     }
 
-//=====================================================================================================================
+//====================================================================================================================
 
     else if(allowedTransitions(5)>0) {
         // ----------------  Express Saccade  -----------------------
@@ -3372,7 +3372,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                                           errorx_prediction * errorx_prediction + 
                                           errory_prediction * errory_prediction
                                           );
-
+                
+                printf("ERROR PREDICTION X: %f Y: %f \n", errorx_prediction, errory_prediction);
                 printf("distance measure from prediction to real object position %f \n", distance);
                 fprintf(controlFile, "%f", distance );
             
