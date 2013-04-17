@@ -1437,8 +1437,7 @@ void attPrioritiserThread::run() {
         //tracker->init(u,v);
         //tracker->waitInitTracker();
 
-        // *** commented out as a test of the performance in priority mode  06/04/2013 ******///
-        /*
+        
         Bottle& commandBottle = outputPort.prepare();
         commandBottle.clear();
         commandBottle.addString("WAIT");
@@ -1446,8 +1445,6 @@ void attPrioritiserThread::run() {
         commandBottle.addInt(vWait);
         commandBottle.addDouble(waitTime);
         outputPort.write();
-        */
-        
         
         printf("Sent Wait %d %d %f in mode %s  \n",uWait,vWait, waitTime, waitType.c_str());
         /*
@@ -3251,7 +3248,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         pendingCommand2->addInt(px(0));
                         pendingCommand2->addInt(px(1));
                         //pendingCommand->addString("ant");
-                        pendingCommand2->addDouble(predTime + 1.0);
+                        pendingCommand2->addDouble(predTime);
                         isPendingCommand2 = true;
                         
                     
