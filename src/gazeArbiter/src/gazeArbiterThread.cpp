@@ -1476,7 +1476,7 @@ void gazeArbiterThread::run() {
                 printf("phi: %f phi2: %f phi3 : %f abs(phi) %f \n", phi, phi2, phi3, abs(phi));
                 if((abs(phi) < 0.15) &&(!accomplished_flag) && (!firstVergence))  {                    
                     //if(abs(phi2) < 0.15) {
-                        countVerNull += 3;
+                    countVerNull += 1;  //countVerNull += 3
                         //printf("CountVerNull %d \n", countVerNull);
                         //}
                         //else {
