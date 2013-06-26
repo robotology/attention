@@ -2104,7 +2104,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 }
                 */
 
+                /**
+                 *  forcing the prediction in the visualfeedback condition
+                */
                 if(true) {
+                    printf("sending pending command PRED in Saccade \n");
                     pendingCommand->clear();
                     pendingCommand->addString("PRED");
                     pendingCommand->addInt(u);
@@ -2114,8 +2118,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
 
             }
-            
+            /**
+             *  forcing the prediction even if it is not in visual feedback mode
+             */
             if(true) {
+                printf("sending pending command2 PRED in Saccade \n");
                 pendingCommand2->clear();
                 pendingCommand2->addString("PRED");
                 pendingCommand2->addInt(u);
@@ -2733,6 +2740,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 CvPoint t; tracker->getPoint(t);               
                 double distance = std::sqrt((double)(t.x - 160) * (t.x - 160) + (t.y - 120) * (t.y - 120));
                 
+                /**
+                 * forced the success of the saccade - measure of the accuracy.
+                 */
                 if(true /*distance < FOVEACONFID*/ ) {
 
                     accuracy  = tracker->getProxMeasure() + 300;
@@ -2877,7 +2887,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"SAC_ACC")) {
             // printf("changing the correcting status \n");
             // saccade accomplished flag set             
-            
             mutex.wait();
             correcting = true;
             sac_accomplished = true;
