@@ -41,7 +41,7 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068      // distance in meters between eyes
-#define TIMEOUT_CONST 3    // time constant after which the motion is considered not-performed    
+#define TIMEOUT_CONST 3     // time constant after which the motion is considered not-performed    
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
 
@@ -1612,7 +1612,7 @@ void gazeArbiterThread::run() {
         }
         
         if(timeout >= time) {
-            printf("timeout occurred \n");
+            printf("timeout occurred in WAIT \n");
         }
         
         //printf("position reached in %f \n \n \n", timeout);
@@ -1704,6 +1704,9 @@ void gazeArbiterThread::vergenceInAngle() {
     Vector px(2);
 
     if (visualCorrection) {
+
+        printf("Using visual correction for the vergence \n");
+
 #ifdef MEANVERGENCE        
         if (countRegVerg == 1){
             
@@ -1728,14 +1731,19 @@ void gazeArbiterThread::vergenceInAngle() {
             countRegVerg++;
         }
 #else  
+        printf("else in the define \n");
         timeoutStart = Time::now();
         error = 2000;
         timeout = 0;
         // the vergence cannot be initialised if the feedback point hasn`t been defined
+        // the vergence with visual feedback must be initialized by a saccade command!
         if((0 == point.x) && (0 == point.y)) {
             timeout = TIMEOUT_CONST;
         }
         while((error > 5.0)&&(timeout < TIMEOUT_CONST)) {
+            
+            printf("vergence in the while \n");
+            
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
             
@@ -1890,7 +1898,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             zDistance = 0.5;
             time = arg->get(3).asDouble();
             mutex.wait();
-            //setVisualFeedback(true); <<-------- TODO: remove because does not make any sense
+            
             stateRequest[1] = 1;
             mutex.post();
             timetotStart = Time::now();
@@ -1905,7 +1913,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             v = arg->get(2).asInt();
             zDistance = arg->get(3).asDouble();
             mutex.wait();
-            //setVisualFeedback(true); <<-------- TODO: remove because does not make any sense
+            
             stateRequest[4] = 1;
             mutex.post();
             timetotStart = Time::now();
