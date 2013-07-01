@@ -41,7 +41,8 @@ using namespace iCub::iKin;
 #define THRATE 10
 #define PI  3.14159265
 #define BASELINE 0.068      // distance in meters between eyes
-#define TIMEOUT_CONST 3     // time constant after which the motion is considered not-performed    
+#define TIMEOUT_CONST 8     // time constant after which the motion is considered not-performed    
+#define ERROR_THRESH  20    // threshold in the spatial error of the saccade
 #define INHIB_WIDTH 320
 #define INHIB_HEIGHT 240
 
@@ -495,7 +496,7 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 
 
 void gazeArbiterThread::interfaceIOR(Bottle& timing) {
-    Time::delay(3.0);
+    //Time::delay(3.0);
     
     //code for accomplished vergence
     timetotStop = Time::now();
@@ -753,10 +754,11 @@ void gazeArbiterThread::run() {
         if(!executing) {                       
             // starting saccade toward the direction of the required position
             // needed timeout because controller kept stucking whenever a difficult position could not be reached
-            
+           
             timeoutStart = Time::now();
             if(mono){
                 printf("mono saccade activated \n");
+                //Time::delay(5.0);
                 //calculating where the fixation point would end up
                 executing = true;
                 bool isLeft = true;  // TODO : the left drive is hardcoded but in the future might be either left or right
@@ -1143,7 +1145,7 @@ void gazeArbiterThread::run() {
                 //Rea : 28/1/13 removed while cycle because it converges in one loop
                 //              if the first loop does not suffice increment the number of loops
                 //while((countDecrement < 1000) && (countReach < 3)  && (timeout < 1.0) && (ptracker->getInputCount())  ) 
-                for(int i = 0 ; i< 1; i++)
+                for(int i = 0 ; i< 2; i++)
                 {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
@@ -1242,7 +1244,7 @@ void gazeArbiterThread::run() {
                     // ALLOW necessary time or waitComputation 
                     printf("waiting for completion in the periodicTracking.... \n");
                     ptracker->waitCorrComputation();
-                    printf("computation completed \n");
+                    printf("computation completed for episodic tracker of SAC \n");
                     // ******************************************************************************
                     ptracker->getPoint(point);
                     //printf("%d.just waiting for initialisation point %d %d... \n",i, point.x , point.y);
@@ -1280,7 +1282,7 @@ void gazeArbiterThread::run() {
                     
                 }
 
-                error_control = 0;
+                //error_control = 0; // reseting control error to remove component of the insuccess
              
                 timeoutStop = Time::now();
                 timeout = timeoutStop - timeoutStart;
@@ -1301,9 +1303,8 @@ void gazeArbiterThread::run() {
                     px[2] = 0;    
                     igaze->lookAtAbsAngles(px);
                 }
-                else if((timeout >= 8.0) || (countDecrement >= 10) || error_control >= 10.0 ) {
-                    Time::delay(0.5);
-
+                else if((timeout >= 8.0) || (countDecrement >= TIMEOUT_CONST) || error_control >= ERROR_THRESH ) {
+                    
                     Vector px(3);
                     printf("Error in reaching with visualFeedback timeout %f error_control %f \n",timeout,error_control);
                     printf("Error in reaching with visualFeedback timeout %f error_control %f \n",timeout,error_control);
@@ -1342,7 +1343,7 @@ void gazeArbiterThread::run() {
                 }
                 else {
  
-                    //printf("saccade accomplished \n");
+                    printf("saccade accomplished. sending command \n");
                     //printf("\n \n "); 
            
                     // saccade accomplished
@@ -1671,7 +1672,9 @@ void gazeArbiterThread::vergenceInAngle() {
     timeout = 0;
     Vector anglesVect(3);
     //calculating the magnitude of the 3d vector
-    igaze->getAngles(anglesVect);
+    //igaze->getAngles(anglesVect);
+    
+    //firstVergence = false;
 
     if (firstVergence) {
         printf("firstVergence \n             ");
@@ -1679,12 +1682,16 @@ void gazeArbiterThread::vergenceInAngle() {
         // the first train of vergence command is critical.
         // it has to move the system from an eventual local minima
         // the choosen relative angle is derived from the maximum of the collection shifts
-        if((abs(phi) > abs(phi2)) && (abs(phi)>abs(phi3)))
-            phiRel = phi;
-        else if((abs(phi2) > abs(phi)) && (abs(phi2)>abs(phi3)))
-            phiRel = phi2;
-        else if((abs(phi3) > abs(phi)) && (abs(phi3)>abs(phi2)))
-            phiRel = phi3;
+        
+        //if((abs(phi) > abs(phi2)) && (abs(phi)>abs(phi3)))
+        //    phiRel = phi;
+        //else if((abs(phi2) > abs(phi)) && (abs(phi2)>abs(phi3)))
+        //    phiRel = phi2;
+        //else if((abs(phi3) > abs(phi)) && (abs(phi3)>abs(phi2)))
+        //    phiRel = phi3;
+
+        phiRel = phi;
+
         firstVergence =  false;
     }
     else {
@@ -1696,8 +1703,26 @@ void gazeArbiterThread::vergenceInAngle() {
 
     //phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
     phiTOT = anglesVect[2] + phiRel  ; //phiTOT must be in grads
-    printf("phiTOT %f \n", phiTOT);    
-    tracker->getPoint(point);
+    //printf("phiTOT %f \n", phiTOT);    
+
+    
+    if (firstVergence) {
+        // ******************************************************************************
+        // sending the command to the episodic tracker
+        ptracker->setCheck(true);
+        // the actual visiting of the whole portion of the image is time-demanding
+        // the bigger the area controlled the longer the time interval
+        // ALLOW necessary time or waitComputation 
+        printf("waiting for completion in the periodicTracking.... \n");
+        ptracker->waitCorrComputation();
+        printf("computation completed for episodic tracker of SAC \n");
+        // ******************************************************************************
+        ptracker->getPoint(point);                
+        tracker->init(point.x, point.y);
+        tracker->waitInitTracker();
+        tracker->getPoint(point);
+    }
+
     double errorx; // = (width  >> 1) - point.x;
     double errory; // = (height >> 1) - point.y;                    
     double error;
@@ -1740,6 +1765,8 @@ void gazeArbiterThread::vergenceInAngle() {
         if((0 == point.x) && (0 == point.y)) {
             timeout = TIMEOUT_CONST;
         }
+        
+        // this is only executed once! To Fix: remove the while
         while((error > 5.0)&&(timeout < TIMEOUT_CONST)) {
             
             printf("vergence in the while \n");
@@ -1751,32 +1778,35 @@ void gazeArbiterThread::vergenceInAngle() {
             pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
             igaze->lookAtRelAngles(pa);
             
-            igaze->getAngles(anglesVect);
-            printf("                     phiReached %f \n", anglesVect[2]);
+            //igaze->getAngles(anglesVect);
+            //printf("                     phiReached %f \n", anglesVect[2]);
             
-            double Ke = 2.0;
-            errorx = 160 - point.x;
-            errory = 120 - point.y;
-            px(0)  = cxl - Ke * errorx;
-            px(1)  = cyl - Ke * errory;
-            
-            error = sqrt(errorx * errorx + errory * errory);
-            printf("norm error %f vergence %f \n", error, phiRel);
-            if(error >30.0) {
-                timeout = TIMEOUT_CONST;
+            if(phiRel!=0) {
+                double Ke = 1.0;
+                printf("got the point %d %d \n", point.x, point.y);
+                errorx = 160 - point.x;
+                errory = 120 - point.y;
+                px(0)  = cxl - Ke * errorx;
+                px(1)  = cyl - Ke * errory;
+                
+                error = sqrt(errorx * errorx + errory * errory);
+                printf("errox %f errory %f norm error %f from cxl,cyl %f %f vergence %f \n",errorx, errory, error,cxl,cyl, phiRel);
+                if(error >30.0) {
+                    timeout = TIMEOUT_CONST;
+                }
+                
+                //Time::delay(0.1);
+                //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
+                //igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
+                //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
+                //printf("varDistance %f \n", varDistance);
+                //igaze->getAngles(anglesVect);
+                igaze->lookAtMonoPixel(camSel, px);
+                //igaze->waitMotionDone();
+                //Time::delay(0.1);
             }
 
-            //Time::delay(0.1);
-            //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
-            //igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
-            //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
-            //printf("varDistance %f \n", varDistance);
-            //igaze->getAngles(anglesVect);
-            igaze->lookAtMonoPixelWithVergence(camSel, px, phiTOT);
-            //igaze->waitMotionDone();
-            //Time::delay(0.1);
             tracker->getPoint(point);            
-
             error = 5.0;
             
         } // while
