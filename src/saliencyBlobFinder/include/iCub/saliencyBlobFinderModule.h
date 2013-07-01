@@ -216,6 +216,7 @@ private:
     Bottle* command;            // bottle where the command received is saved ready for the respond
     Bottle* reply;              // bottle where the reply will be stored for further purpose
     std::string configFile;     // file representing characteristic of the camera
+    std::string camerasFile;    // file representing characteristic of the camera
     std::string moduleName;     // name of the module read from configuration 
 
 public:

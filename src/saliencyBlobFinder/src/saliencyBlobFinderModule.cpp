@@ -36,6 +36,20 @@ saliencyBlobFinderModule::saliencyBlobFinderModule() {
 }
 
 bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
+    /* Process all parameters from both command-line and .ini file */
+    if(rf.check("help")) {
+        printf("HELP \n");
+        printf("====== \n");
+        printf("--name           : changes the rootname of the module ports \n");
+        printf("--robot          : changes the name of the robot where the module interfaces to  \n");
+        printf("--name           : rootname for all the connection of the module \n");
+        printf("--camerasContext : context where camera parameters are stored \n");
+        printf("--camerasFile    : file of parameters of the camera in the context \n");
+        printf(" \n");
+        printf("press CTRL-C to stop... \n");
+        return true;
+    }
+
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
                            Value("/blobFinder/icub/left_cam"), 
@@ -69,6 +83,7 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
     }
     attach(cmdPort);                  // attach to port
 
+    /*
     if (rf.check("config")) {
         configFile=rf.findFile(rf.find("config").asString().c_str());
         if (configFile=="") {
@@ -78,9 +93,34 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
     else {
         configFile.clear();
     }
+    */
+
+    if (rf.check("camerasFile")) {
+        if (rf.check("camerasContext")) {
+            printf("found a new context %s \n", rf.find("camerasContext").asString().c_str());
+            // rf.find("camerasContext").asString().c_str()
+            rf.setDefaultContext("cameraCalibration/conf");
+        }
+        
+        printf("got the cameraContext %s \n", rf.getContext().c_str());
+        
+        camerasFile=rf.findFile(rf.find("camerasFile").asString().c_str());
+        
+        if (camerasFile==""){
+            return false;
+        }
+        else {
+            printf("found the camerasFile %s \n", camerasFile.c_str());
+        }
+    }
+    else {
+        camerasFile.clear();
+    }
+    printf("configFile: %s \n", camerasFile.c_str());
+
 
     //initialization of the main thread
-    blobFinder = new blobFinderThread(threadRate,configFile);
+    blobFinder = new blobFinderThread(threadRate,camerasFile);
     blobFinder->setName(this->getName().c_str());
     blobFinder->setMinBoundingArea(minBoundingArea);
     blobFinder->start();
