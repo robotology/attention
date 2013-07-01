@@ -174,7 +174,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     correcting         = false;
     pred_accomplished  = false;
     sac_accomplished   = false;
-    stopVergence       = false;
+    stopVergence       = true;
 
     // initialisation of integer values
     phiTOT = 0;
@@ -1202,7 +1202,6 @@ void attPrioritiserThread::run() {
                         stopVergence = false;
                         
                         if(sac_accomplished) {
-
                             // accomplished
                             pendingCommand->clear();
                             pendingCommand->addString("SAC_ACC_HIGH");
@@ -2069,6 +2068,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
             printf("SAC_MONO command received \n");
+
+            stopVergence = false;
+
+            //Time::delay(5.0);
+            
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
             //waitType = "ant";          // must  be moved to accomplishment not initialization otherwise changes state even no executed
@@ -2107,7 +2111,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 /**
                  *  forcing the prediction in the visualfeedback condition
                 */
-                if(true) {
+                if(isLearning()) {
                     printf("sending pending command PRED in Saccade \n");
                     pendingCommand->clear();
                     pendingCommand->addString("PRED");
@@ -2121,7 +2125,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             /**
              *  forcing the prediction even if it is not in visual feedback mode
              */
-            if(true) {
+            if(isLearning()) {
                 printf("sending pending command2 PRED in Saccade \n");
                 pendingCommand2->clear();
                 pendingCommand2->addString("PRED");
@@ -2897,6 +2901,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if((!strcmp(name.c_str(),"VER_ACC")) && (waitResponse[2])) {
             waitResponse[2] = false;
             timeoutResponseStart = Time::now();
+            
+            stopVergence = true;
       
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
@@ -3368,7 +3374,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // ALLOW necessary time or waitComputation 
                 printf("waiting for completion in the periodicTracking.... \n");
                 ptracker->waitCorrComputation();
-                printf("computation completed \n");
+                printf("computation completed in WAIT_ACC \n");
                 // ******************************************************************************
                 ptracker->getPoint(point);
                 double errorx_prediction = 160 - point.x;
