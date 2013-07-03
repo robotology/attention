@@ -1105,7 +1105,7 @@ void gazeArbiterThread::run() {
             timeout = 0;
 
             if (visualCorrection) {
-                printf("Using visual correction \n");
+                printf("Using visual correction for saccade \n");
                
                 double errorVC        = 100.0;
                 double errorVC_pre    = 100.0;
@@ -1219,7 +1219,7 @@ void gazeArbiterThread::run() {
                     //   return;
                     //}
                       
-                    Time::delay(0.5); //allow time to reach steady state
+                    Time::delay(0.1); //allow time to reach steady state
 
                     
                     //igaze->waitMotionDone();
@@ -1290,7 +1290,7 @@ void gazeArbiterThread::run() {
                  
                 Time::delay(0.01);
                 if (minCumul > 5000000) {
-                    //printf("Error: out of correlation limits \n");
+                    printf("Error: out of correlation limits \n");
 
                     // sending error message for saccade SAC_FAIL
                     Bottle& status = statusPort.prepare();
@@ -1323,9 +1323,9 @@ void gazeArbiterThread::run() {
                     timing.addDouble(-1);
                     timingPort.write();
 
-                    px[0] = -0.5 + xOffset;
-                    px[1] = 0.0 + yOffset;
-                    px[2] = 0.0 + zOffset;
+                    //px[0] = -0.5 + xOffset;
+                    //px[1] =  0.0 + yOffset;
+                    //px[2] =  0.0 + zOffset;
                     //igaze->lookAtFixationPoint(px);
 
                     px[0] = 0; 
@@ -1498,7 +1498,7 @@ void gazeArbiterThread::run() {
                     //delete &status2;                    
                     interfaceIOR(timing);
                     firstVergence = true;
-                    Time::delay(1.0);
+                    //Time::delay(1.0);
 
                     goto exiting;
                 }
@@ -1765,49 +1765,74 @@ void gazeArbiterThread::vergenceInAngle() {
         if((0 == point.x) && (0 == point.y)) {
             timeout = TIMEOUT_CONST;
         }
+
+
+        Vector pa(3);
+        pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
+        igaze->lookAtRelAngles(pa);
+        
         
         // this is only executed once! To Fix: remove the while
-        while((error > 5.0)&&(timeout < TIMEOUT_CONST)) {
+        while((error > 1.0)&&(timeout < TIMEOUT_CONST)) {
             
             printf("vergence in the while \n");
             
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
             
-            Vector pa(3);
-            pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
-            igaze->lookAtRelAngles(pa);
+
             
             //igaze->getAngles(anglesVect);
-            //printf("                     phiReached %f \n", anglesVect[2]);
+            //printf("                   %f  %f %f \n",anglesVect[0],anglesVect[1],anglesVect[2]);
+
+
+            robotHead->view(encHead);
+            //Vector head(6);
+            //encHead->getEncoder(0,&head[0]);
+            //encHead->getEncoder(1,&head[1]);
+            //encHead->getEncoder(2,&head[2]);
+            //encHead->getEncoder(3,&head[3]);
+            //encHead->getEncoder(4,&head[4]);
+
+            double vg;
+            encHead->getEncoder(5,&vg);
+            //printf("%f %f %f %f %f %f \n", head[0],head[1],head[2],head[3],head[4], head[5]);
             
-            if(phiRel!=0) {
-                double Ke = 1.0;
-                printf("got the point %d %d \n", point.x, point.y);
-                errorx = 160 - point.x;
-                errory = 120 - point.y;
-                px(0)  = cxl - Ke * errorx;
-                px(1)  = cyl - Ke * errory;
-                
-                error = sqrt(errorx * errorx + errory * errory);
-                printf("errox %f errory %f norm error %f from cxl,cyl %f %f vergence %f \n",errorx, errory, error,cxl,cyl, phiRel);
-                if(error >30.0) {
-                    timeout = TIMEOUT_CONST;
-                }
-                
-                //Time::delay(0.1);
-                //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
-                //igaze->lookAtMonoPixelWithVergence(camSel,px,phiTOT);
-                //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
-                //printf("varDistance %f \n", varDistance);
-                //igaze->getAngles(anglesVect);
-                igaze->lookAtMonoPixel(camSel, px);
-                //igaze->waitMotionDone();
-                //Time::delay(0.1);
+            
+            double vgrad = vg / 180.0 * 3.1415;
+            double tg    = tan(vgrad/2.0);
+            double eyesHalfBaseline = BASELINE / 2.0; 
+            double z     = eyesHalfBaseline * sqrt(1.0+1.0/(tg*tg));
+            
+            printf("computed distance angle %f  \n",z);
+
+            
+            
+            double Ke = 1.0;
+            printf("got the point %d %d \n", point.x, point.y);
+            errorx = 160 - point.x;
+            errory = 120 - point.y;
+            px(0)  = cxl - Ke * errorx;
+            px(1)  = cyl - Ke * errory;
+            
+            error = sqrt(errorx * errorx + errory * errory);
+            printf("errox %f errory %f norm error %f from cxl,cyl %f %f vergence %f \n",errorx, errory, error,cxl,cyl, phiRel);
+            if(error >30.0) {
+                timeout = TIMEOUT_CONST;
             }
+            
+            //Time::delay(0.1);
+            //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
+            igaze->lookAtMonoPixel(camSel,px,z);
+            //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
+            //printf("varDistance %f \n", varDistance);
+            //igaze->getAngles(anglesVect);
+            //igaze->lookAtMonoPixel(camSel, px);
+            //igaze->waitMotionDone();
+            //Time::delay(0.1);
 
             tracker->getPoint(point);            
-            error = 5.0;
+            //error = 5.0;
             
         } // while
 #endif
