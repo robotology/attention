@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     px(1)  = 129.139;
     
     while(true){
-        igaze->lookAtMonoPixelWithVergence(0,px,4);    // look!
+        igaze->lookAtMonoPixel(0,px,0.5);    // look!
     }
 
 
