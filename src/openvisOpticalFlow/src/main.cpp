@@ -19,10 +19,10 @@
   
 /**
  * @file main.cpp
- * @brief main code for the tutorial module.
+ * @brief main code for the opticalFlow module.
  */
 
-#include "iCub/tutorialModule.h" 
+#include "iCub/opticalFlowModule.h" 
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -32,12 +32,12 @@ int main(int argc, char * argv[])
 {
     
     Network yarp;
-    tutorialModule module; 
+    opticalFlowModule module; 
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("cameraTest.ini");    //overridden by --from parameter
-    rf.setDefaultContext("morphoGenApp/conf");    //overridden by --context parameter
+    rf.setDefaultConfigFile("opticalFlow.ini");    //overridden by --from parameter
+    rf.setDefaultContext("logpolarAttention/conf");    //overridden by --context parameter
     rf.configure("ICUB_ROOT", argc, argv);  
  
     module.runModule(rf);
