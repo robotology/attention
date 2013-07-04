@@ -1671,6 +1671,17 @@ void gazeArbiterThread::vergenceInAngle() {
     timeoutStart = Time::now();
     timeout = 0;
     Vector anglesVect(3);
+
+
+    //*********************************************************************************
+    robotHead->view(encHead); 
+    double vg;
+    encHead->getEncoder(5,&vg);
+    //printf("%f %f %f %f %f %f \n", head[0],head[1],head[2],head[3],head[4], head[5]);
+
+    //*********************************************************************************
+
+
     //calculating the magnitude of the 3d vector
     //igaze->getAngles(anglesVect);
     
@@ -1692,7 +1703,7 @@ void gazeArbiterThread::vergenceInAngle() {
 
         phiRel = phi;
 
-        firstVergence =  false;
+        //firstVergence =  false;
     }
     else {
         // the standard descent the angle is the best choice of vergence model.
@@ -1702,7 +1713,8 @@ void gazeArbiterThread::vergenceInAngle() {
 
 
     //phiTOT = ((anglesVect[2] + phi)  * PI) / 180;
-    phiTOT = anglesVect[2] + phiRel  ; //phiTOT must be in grads
+    //phiTOT = anglesVect[2] + phiRel  ; //phiTOT must be in grads
+    phiTOT = vg + phiRel;
     //printf("phiTOT %f \n", phiTOT);    
 
     
@@ -1721,6 +1733,8 @@ void gazeArbiterThread::vergenceInAngle() {
         tracker->init(point.x, point.y);
         tracker->waitInitTracker();
         tracker->getPoint(point);
+
+        firstVergence = false;
     }
 
     double errorx; // = (width  >> 1) - point.x;
@@ -1767,46 +1781,32 @@ void gazeArbiterThread::vergenceInAngle() {
         }
 
 
-        Vector pa(3);
-        pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
-        igaze->lookAtRelAngles(pa);
+        //Vector pa(3);
+        //pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
+        //igaze->lookAtRelAngles(pa);
         
+        //********************************************************
+                       
+        double vgrad = phiTOT / 180.0 * 3.1415;
+        double tg    = tan(vgrad/2.0);
+        double eyesHalfBaseline = BASELINE / 2.0; 
+        double z     = eyesHalfBaseline * sqrt(1.0+1.0/(tg*tg));        
+        printf("computed distance angle %f  \n",z);
+        
+        //***********************************************************    
         
         // this is only executed once! To Fix: remove the while
-        while((error > 1.0)&&(timeout < TIMEOUT_CONST)) {
+        while((error > 5.0)&&(timeout < TIMEOUT_CONST)) {
             
             printf("vergence in the while \n");
             
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
             
-
             
             //igaze->getAngles(anglesVect);
             //printf("                   %f  %f %f \n",anglesVect[0],anglesVect[1],anglesVect[2]);
-
-
-            robotHead->view(encHead);
-            //Vector head(6);
-            //encHead->getEncoder(0,&head[0]);
-            //encHead->getEncoder(1,&head[1]);
-            //encHead->getEncoder(2,&head[2]);
-            //encHead->getEncoder(3,&head[3]);
-            //encHead->getEncoder(4,&head[4]);
-
-            double vg;
-            encHead->getEncoder(5,&vg);
-            //printf("%f %f %f %f %f %f \n", head[0],head[1],head[2],head[3],head[4], head[5]);
-            
-            
-            double vgrad = vg / 180.0 * 3.1415;
-            double tg    = tan(vgrad/2.0);
-            double eyesHalfBaseline = BASELINE / 2.0; 
-            double z     = eyesHalfBaseline * sqrt(1.0+1.0/(tg*tg));
-            
-            printf("computed distance angle %f  \n",z);
-
-            
+  
             
             double Ke = 1.0;
             printf("got the point %d %d \n", point.x, point.y);
@@ -1821,8 +1821,7 @@ void gazeArbiterThread::vergenceInAngle() {
                 timeout = TIMEOUT_CONST;
             }
             
-            //Time::delay(0.1);
-            //int camSel = 0; //Rea: removed the hardcoded eye drive @ 28/1/13
+            //Time::delay(3);
             igaze->lookAtMonoPixel(camSel,px,z);
             //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
             //printf("varDistance %f \n", varDistance);
@@ -1832,7 +1831,7 @@ void gazeArbiterThread::vergenceInAngle() {
             //Time::delay(0.1);
 
             tracker->getPoint(point);            
-            //error = 5.0;
+            //error = 1.0;
             
         } // while
 #endif
