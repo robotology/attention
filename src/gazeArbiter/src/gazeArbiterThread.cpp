@@ -348,6 +348,8 @@ bool gazeArbiterThread::threadInit() {
     egoMotionFeedback.open(rootNameEgoMotion.c_str());
     string rootNameTiming("");rootNameTiming.append(getName("/timing:o"));
     timingPort.open(rootNameTiming.c_str());
+    string rootNameError("");rootNameError.append(getName("/error:o"));
+    errorPort.open(rootNameError.c_str());
     string rootNameTemplate("");rootNameTemplate.append(getName("/template:o"));
     templatePort.open(rootNameTemplate.c_str());
     string rootNameDatabase("");rootNameDatabase.append(getName("/database:o"));
@@ -456,6 +458,7 @@ void gazeArbiterThread::interrupt() {
     blobDatabasePort.interrupt();
     templatePort    .interrupt();
     timingPort      .interrupt();
+    errorPort       .interrupt();
 }
 
 void gazeArbiterThread::setDimension(int w, int h) {
@@ -1256,6 +1259,13 @@ void gazeArbiterThread::run() {
                                                   errory_control * errory_control
                                            );
 
+                    if( errorPort.getOutputCount()) {                        
+                        Bottle& b = errorPort.prepare();
+                        b.clear();
+                        b.addDouble(error_control);
+                        errorPort.write();
+                    }
+                    
                    
                     px(0)  = cxl - (errorx_control / 10.0) ;
                     px(1)  = cyl - (errory_control / 10.0) ;
@@ -1733,6 +1743,14 @@ void gazeArbiterThread::vergenceInAngle() {
         tracker->init(point.x, point.y);
         tracker->waitInitTracker();
         tracker->getPoint(point);
+        //********************************************************
+                       
+        double vgrad = phiTOT / 180.0 * 3.1415;
+        double tg    = tan(vgrad/2.0);
+        double eyesHalfBaseline = BASELINE / 2.0; 
+        z     = eyesHalfBaseline * sqrt(1.0+1.0/(tg*tg));        
+        
+        //***********************************************************   
 
         firstVergence = false;
     }
@@ -1781,24 +1799,17 @@ void gazeArbiterThread::vergenceInAngle() {
         }
 
 
-        //Vector pa(3);
-        //pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
-        //igaze->lookAtRelAngles(pa);
+        Vector pa(3);
+        pa[0] = 0; pa[1] = 0; pa[2] = phiRel;
+        igaze->lookAtRelAngles(pa);
         
-        //********************************************************
-                       
-        double vgrad = phiTOT / 180.0 * 3.1415;
-        double tg    = tan(vgrad/2.0);
-        double eyesHalfBaseline = BASELINE / 2.0; 
-        double z     = eyesHalfBaseline * sqrt(1.0+1.0/(tg*tg));        
-        printf("computed distance angle %f  \n",z);
-        
-        //***********************************************************    
+         
         
         // this is only executed once! To Fix: remove the while
         while((error > 5.0)&&(timeout < TIMEOUT_CONST)) {
             
             printf("vergence in the while \n");
+            printf("computed distance %f from angle %f  \n",z, phiTOT);
             
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
@@ -1817,12 +1828,21 @@ void gazeArbiterThread::vergenceInAngle() {
             
             error = sqrt(errorx * errorx + errory * errory);
             printf("errox %f errory %f norm error %f from cxl,cyl %f %f vergence %f \n",errorx, errory, error,cxl,cyl, phiRel);
+
+            if( errorPort.getOutputCount()) {
+                printf("errorPort write \n");
+                Bottle& b = errorPort.prepare();
+                b.clear();
+                b.addDouble(error);
+                errorPort.write();
+            }
+
             if(error >30.0) {
                 timeout = TIMEOUT_CONST;
             }
             
             //Time::delay(3);
-            igaze->lookAtMonoPixel(camSel,px,z);
+            igaze->lookAtMonoPixel(camSel,px,0.5);
             //double varDistance = BASELINE / (2 * sin (phiTOT / 2)); 
             //printf("varDistance %f \n", varDistance);
             //igaze->getAngles(anglesVect);
@@ -1915,6 +1935,7 @@ void gazeArbiterThread::threadRelease() {
     blobDatabasePort .close();
     inhibitionPort   .close();
     timingPort       .close();
+    errorPort        .close();
 
     if(tracker!=0) {
         tracker->stop();
