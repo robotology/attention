@@ -22,7 +22,7 @@
  * @brief Implementation of the opticalFlowModule (see header file).
  */
 
-#include "iCub/opticalFlowModule.h"
+#include "opticalFlowModule.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;

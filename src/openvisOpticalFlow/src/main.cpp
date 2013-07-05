@@ -22,7 +22,7 @@
  * @brief main code for the opticalFlow module.
  */
 
-#include "iCub/opticalFlowModule.h" 
+#include "opticalFlowModule.h" 
 
 using namespace yarp::os;
 using namespace yarp::sig;
