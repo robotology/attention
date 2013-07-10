@@ -24,28 +24,6 @@
 
 #include "opticalFlowThread.h"
 
-
-//#include "OvStereoGlobalMatcherT.h"
-//#include "OvDisparityPostprocessor.h"
-
-//#include "OvImageAdapter.h"
-//#include "OvImageT.h"
-
-//#include "OvImagePairPreprocessorT.h"
-//#include "OvLocalMatcherT.h"
-
-//#include "OvFlowGlobalMatcherT.h"
-//#include "OvFlowPostprocessor.h"
-
-//#include "OvStereoT.h"
-//#include "OvFlowT.h"
-
-//#include "BTLocalMatcherT.h"
-//#include "OvStereoDiffuseMatcherT.h"
-//#include "OvFlowDiffuseMatcherT.h"
-
-
-
 using namespace yarp::dev;
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -128,7 +106,7 @@ void opticalFlowThread::run() {
                 imgO2 = cvCreateImage(sz,IPL_DEPTH_64F,1);
             }
             else{
-                /*
+                
                 IplImage *imgCurrent  = (IplImage*) inputImage->getIplImage();
                 IplImage *imgPrevious = (IplImage*) inputImagePrev->getIplImage();
                 //wrap all the input and output images in OpenCVImageAdapter, so that they can be
@@ -158,7 +136,7 @@ void opticalFlowThread::run() {
                 
                 //EXECUTE optical flow estimation
                 flowManager.doOpticalFlow(*ovaImg1, *ovaImg2, minshiftX, maxshiftX, minshiftY, maxshiftY, *ovaImgU1, *ovaImgV1, *ovaImgO1, *ovaImgU2, *ovaImgV2, *ovaImgO2);
-                */
+                
                 
             }
             // copying content into previous image
@@ -167,20 +145,18 @@ void opticalFlowThread::run() {
             endTime   = Time::now();
             intervalTime = endTime - startTime;
             std::cout.precision(8);
-            std::cout<<"1 measured interval time "<<std::fixed<<intervalTime<<std::endl;
-            
-            
+            std::cout<<"1 measured interval time "<<std::fixed<<intervalTime<<std::endl;   
 
             if (outputPort.getOutputCount()) {
                 outputImage = &outputPort.prepare();
                 outputImage->resize(width, height);
               
                 startTime = Time::now();
-                outputImage->copy((const ImageOf<PixelRgb>)*inputImagePrev);
+                //outputImage->copy((const ImageOf<PixelRgb>)*inputImagePrev);
+                memcpy(outputImage->getRawImage(), imgU2->imageData, sizeof(unsigned char) * rowsize * height); 
                 endTime   = Time::now();
                 intervalTime = endTime - startTime;
-                std::cout<<"2 measured interval time "<<std::fixed<<intervalTime<<std::endl;
-                
+                std::cout<<"2 measured interval time "<<std::fixed<<intervalTime<<std::endl;             
                 outputPort.write();  
             }
             
