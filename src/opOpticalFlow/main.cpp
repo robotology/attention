@@ -22,6 +22,7 @@
  * @brief main code for the opticalFlow module.
  */
 
+
 #include "opticalFlowModule.h" 
 
 using namespace yarp::os;

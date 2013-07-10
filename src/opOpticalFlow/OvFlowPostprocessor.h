@@ -16,9 +16,9 @@ class OvFlowPostprocessor
 {
 public:
 
-  OvFlowPostprocessor(); /**< Default constructor with no parameters */
+  OvFlowPostprocessor(){}; /**< Default constructor with no parameters */
 
-  virtual ~OvFlowPostprocessor(); /**< Destructor */
+  virtual ~OvFlowPostprocessor(){}; /**< Destructor */
 
   /**
   * Main method for postprocessing flow results.
@@ -42,12 +42,14 @@ public:
   virtual bool setParams(int nparams, double*params) = 0;
 };
 
+/*
 OvFlowPostprocessor::OvFlowPostprocessor()
 {
 }
-
+*/
+/*
 OvFlowPostprocessor::~OvFlowPostprocessor()
 {
 }
-
+*/
 #endif //__OVFLOWPOSTPROCESSOR_H

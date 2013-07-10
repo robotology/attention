@@ -21,11 +21,16 @@ INCLUDE_DIRECTORIES(
 FILE(GLOB folder_source  
   main.cpp
   opticalFlowModule.cpp
-  opticalFlowThread.cpp)
+  opticalFlowThread.cpp
+  OpenCVImageAdapter.cpp
+  OvImageAdapter.cpp
+  OvImageT.cpp
+  OvStereoDiffuseMatcherT.cpp
+  )
 FILE(GLOB folder_header  
   opticalFlowModule.h
   opticalFlowThread.h
-  OpenCVImageAdapter.h
+  OpenCVImageAdapter.h 
   OvImageAdapter.h
   Openvis3d.h
   OvStereoGlobalMatcherT.h

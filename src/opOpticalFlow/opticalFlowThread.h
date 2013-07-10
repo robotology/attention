@@ -32,7 +32,7 @@
 #include <yarp/dev/all.h>
 #include <yarp/os/RateThread.h>
 
-//#include "Openvis3d.h"
+#include "Openvis3d.h"
 #include "OpenCVImageAdapter.h"
 
 #include <cv.h>

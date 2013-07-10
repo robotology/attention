@@ -145,7 +145,7 @@
 #include <string>
  
 //within project includes  
-//#include <opticalFlowThread.h>
+#include "opticalFlowThread.h"
 
 class opticalFlowModule:public yarp::os::RFModule {
 
@@ -160,7 +160,7 @@ class opticalFlowModule:public yarp::os::RFModule {
     
     yarp::os::Port handlerPort;              // a port to handle messages 
     /*  */
-    //opticalFlowThread *rThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
+    opticalFlowThread *rThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
 
 public:
     /**

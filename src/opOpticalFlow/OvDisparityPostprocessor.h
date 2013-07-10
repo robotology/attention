@@ -16,9 +16,9 @@ class OvDisparityPostprocessor
 {
 public:
 
-  OvDisparityPostprocessor(); /**< Default constructor with no parameters */
+  OvDisparityPostprocessor(){}; /**< Default constructor with no parameters */
 
-  virtual ~OvDisparityPostprocessor(); /**< Destructor */
+  virtual ~OvDisparityPostprocessor(){}; /**< Destructor */
 
   /**
   * Main method for postprocessing stereo disparity results.
@@ -39,13 +39,14 @@ public:
   */
   virtual bool setParams(int nparams, double*params) = 0;
 };
-
+/*
 OvDisparityPostprocessor::OvDisparityPostprocessor()
 {
 }
-
+*/
+ /*
 OvDisparityPostprocessor::~OvDisparityPostprocessor()
 {
 }
-
+ */
 #endif //__OVDISPARITYPOSTPROCESSOR_H

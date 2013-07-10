@@ -87,12 +87,12 @@ bool opticalFlowModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* create the thread and pass pointers to the module parameters */
-    //rThread = new opticalFlowThread(robotName, configFile);
-    //rThread->setName(getName().c_str());
-    //rThread->setInputPortName(inputPortName.c_str());
+    rThread = new opticalFlowThread(robotName, configFile);
+    rThread->setName(getName().c_str());
+    rThread->setInputPortName(inputPortName.c_str());
     
     /* now start the thread to do the work */
-    //rThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    rThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
