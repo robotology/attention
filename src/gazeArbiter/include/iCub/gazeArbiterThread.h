@@ -87,6 +87,7 @@ private:
     double cxr,cyr;                         // center of the right eye in the configfile 
     double xObject,yObject,zObject;         // coordinates of the object 
     double zDistance;                       // estimated distance of the object from the eye
+    double z;                               // estimated distance of the object computed by the vergence
     double varDistance;                     // calculated distance of the object from the eye 
     double blockNeckPitchValue;             // value for blocking the pitch of the neck
     double xOffset;                         // offset for the 3D point along x
@@ -143,7 +144,8 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono>* templateImage;                            // image for the segmented object of the zdf
     yarp::os::BufferedPort<yarp::os::Bottle> statusPort;                                // port necessary to communicate the status of the system
     yarp::os::BufferedPort<yarp::os::Bottle> timingPort;                                // port where the timing of the fixation point redeployment is sent
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                            // image for the inhibition of return
+    yarp::os::BufferedPort<yarp::os::Bottle> errorPort;                                 // port streaming the error of controller
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* inhibitionImage;                          // image for the inhibition of return
 
     yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
     yarp::os::Property optionsHead;

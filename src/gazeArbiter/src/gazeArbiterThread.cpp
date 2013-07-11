@@ -1148,7 +1148,7 @@ void gazeArbiterThread::run() {
                 //Rea : 28/1/13 removed while cycle because it converges in one loop
                 //              if the first loop does not suffice increment the number of loops
                 //while((countDecrement < 1000) && (countReach < 3)  && (timeout < 1.0) && (ptracker->getInputCount())  ) 
-                for(int i = 0 ; i< 2; i++)
+                for(int i = 0 ; i< 4; i++)                
                 {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
@@ -1284,7 +1284,7 @@ void gazeArbiterThread::run() {
                     //px(0) = cxl;
                     //px(1) = cyl;
                     
-                    //printf("error = %f preparing saccade:%f %f \n", error_control,px(0),px(1));
+                    printf("error = %f preparing saccade:%f %f \n", error_control,px(0),px(1));
 
                     // ending the cycle
                     // Time::delay(2);
@@ -1851,7 +1851,7 @@ void gazeArbiterThread::vergenceInAngle() {
             //Time::delay(0.1);
 
             tracker->getPoint(point);            
-            //error = 1.0;
+            error = 1.0;
             
         } // while
 #endif

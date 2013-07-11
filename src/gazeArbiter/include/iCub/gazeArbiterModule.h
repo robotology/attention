@@ -216,6 +216,8 @@
  * 19/10/12 : added check for the initialisation position of the fine tracker                       author: Rea \n
  * 24/01/13 : added the complete path as context for the cameraFile                                 author: Rea \n
  * 28/01/13 : added information about the drive eye                                                 author: Rea \n
+ * 05/05/12 : improved the vergence correction                                                      author: Rea \n
+ * 06/07/12 : introduced the errorPort                                                              author: Rea \n
  */
 
 #include <iostream>
