@@ -19,7 +19,7 @@
 
 /**
  * @file main.cpp
- * @brief Implementation of the kalmanTest
+ * @brief Implementation of the testGaze
  */
 
 
@@ -46,15 +46,19 @@ int main(int argc, char *argv[]) {
     
     YARP_REGISTER_DEVICES(icubmod)
         
-        // Open the network
-        Network yarp;
+    // Open the network
+    Network yarp;
     
     
     yarp::os::Network::init();   
     Time::turboBoost();
+
+    yarp::os::BufferedPort<Bottle> bottlePort;
+    bottlePort.open("/testGaze/bottle:o");
     
     
     //initializing gazecontrollerclient
+    bool noGazeController = true;
     printf("initialising gazeControllerClient \n");
     Property option;
     option.put("device","gazecontrollerclient");
@@ -67,26 +71,42 @@ int main(int argc, char *argv[]) {
     clientGazeCtrl->open(option);
     
     
-    printf("starting igaze \n");
+    
     yarp::dev::IGazeControl* igaze = NULL;
 
     if (clientGazeCtrl->isValid()) {
        clientGazeCtrl->view(igaze);
+       noGazeController = false;
     }
     else{
-        return false;
+        noGazeController = true;
+        
+        //return false;
     }
         
-    printf("storing original context \n");
-    int originalContext = 0;
-    igaze->storeContext(&originalContext);
+
+    if(!noGazeController) {
+        printf("storing original context \n");
+        int originalContext = 0;
+        igaze->storeContext(&originalContext);
+    }
     
     Vector px(2);
     px(0)  = 176.079;
     px(1)  = 129.139;
+
     
+    printf("starting testGaze \n");
     while(true){
-        igaze->lookAtMonoPixel(0,px,0.5);    // look!
+        if(!noGazeController){
+            igaze->lookAtMonoPixel(0,px,0.5);    // look!
+        }
+        Time::delay(1.0);
+        Bottle& b = bottlePort.prepare();
+        b.clear();
+        double dTime = Time::now();
+        b.addDouble(dTime);
+        bottlePort.write();
     }
 
 
