@@ -1148,7 +1148,7 @@ void gazeArbiterThread::run() {
                 //Rea : 28/1/13 removed while cycle because it converges in one loop
                 //              if the first loop does not suffice increment the number of loops
                 //while((countDecrement < 1000) && (countReach < 3)  && (timeout < 1.0) && (ptracker->getInputCount())  ) 
-                for(int i = 0 ; i< 4; i++)                
+                for(int i = 0 ; i< 5; i++)                
                 {
                     timeoutStop = Time::now();
                     timeout = timeoutStop - timeoutStart;
@@ -1358,11 +1358,17 @@ void gazeArbiterThread::run() {
            
                     // saccade accomplished
                     //----------------------------------
-                    //sending the acknowledgement vergence_accomplished
+                    //sending the acknowledgement saccade_accomplished
+                    
                     status = statusPort.prepare();
+                    printf("read from the port %s \n", status.toString().c_str());
                     status.clear();
+                    printf("read from the port %s \n", status.toString().c_str());
                     status.addString("SAC_ACC");
+                    printf("read from the port %s \n", status.toString().c_str());
+                    Time::delay(3.0);
                     statusPort.write();
+                    
                 }
             }
             
