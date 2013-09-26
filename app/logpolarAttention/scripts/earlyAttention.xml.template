@@ -243,7 +243,7 @@
    </connection>
    <connection>
      <from>/attPrioritiser/icub/direct:o</from>
-     <to>/iKinGazeCtrl/head/mono:i</to>
+     <to>/iKinGazeCtrl/mono:i</to>
      <protocol>tcp</protocol>
    </connection>
    <connection>

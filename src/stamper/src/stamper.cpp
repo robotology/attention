@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
   
   // connect ports
   yarp.connect("/icub/camcalib/left/out",inPort.getName());
-  yarp.connect("/iKinGazeCtrl/head/x:o",iKinInPort.getName());
-  yarp.connect("/stamper/ref","/iKinGazeCtrl/head/xd:i");
+  yarp.connect("/iKinGazeCtrl/x:o",iKinInPort.getName());
+  yarp.connect("/stamper/ref","/iKinGazeCtrl/xd:i");
   yarp.connect("/stamper/out","/logger");
   
   // check if logger port is connected
