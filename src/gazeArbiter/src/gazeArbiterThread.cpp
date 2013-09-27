@@ -218,11 +218,11 @@ bool gazeArbiterThread::threadInit() {
     Bottle info;
     igaze->getInfo(info);
     printf("just got the info \n");    
-    int head_version = info.check("head_version", Value(1)).asInt();
+    double head_version = info.check("head_version", Value(1.0)).asDouble();
     
     printf("head_version extracted from gazeArbiter \n");
 
-    if(head_version == 1) {
+    if(head_version == 1.0) {
         eyeL = new iCubEye("left");
         eyeR = new iCubEye("right");
     }
