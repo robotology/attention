@@ -186,16 +186,16 @@ void populatorThread::run() {
                         obj.addInt(g);
                         obj.addInt(b);
                         // trasparency of the object (0.0=invisible 1.0=solid) 
-                            //if(lifeTimer == 0)
-                            obj.addDouble(1.0);
-                            //else
-                            //obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
+                        //if(lifeTimer == 0)
+                        obj.addDouble(1.0);
+                        //else
+                        //obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
                         guiPort.writeStrict();
                         
                         //Time::delay(3);
                         
                         Bottle& texture = list->findGroup("texture");                    
-                        if ((texture!= NULL)&&(texPort.getOutputCount())) {
+                        if (/*(texture!= NULL)&&*/(texPort.getOutputCount())) {
                             Bottle* templateBottle = texture.get(1).asList();
                             printf("dimension of the template %d \n", templateBottle->size());
                             int dimTemplate = templateBottle->size();
