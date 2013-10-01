@@ -224,7 +224,7 @@ bool oculomotorController::threadInit() {
     double* val = rewardStateAction->data();
     
     //rewardFilePath = "rewardFile.txt";
-    rewardFile = fopen(rewardFilePath ,"r+");
+    rewardFile = fopen(rewardFilePath.c_str() ,"r+");
     n = 0; // number of bytes in the file
     
     
