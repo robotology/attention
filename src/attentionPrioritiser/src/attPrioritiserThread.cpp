@@ -269,7 +269,7 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     for (int k = 0; k < NUMSTATES; k++) {
         allowStateRequest[k] = true;
         waitResponse[k]      = false;
-        bufCommand[k]        = NULL;
+        bufCommand[k]        = Bottle::getNullBottle();
     }
 
     printf("starting the tracker.... \n");
@@ -1562,7 +1562,7 @@ void attPrioritiserThread::run() {
 
 void attPrioritiserThread::printCommandBuffer() {
     for (int i = 0; i < NUMSTATES; i++) {
-        if(bufCommand[i]!=NULL)
+        if(bufCommand[i]!= Bottle::getNullBottle())
             printf("%d >>>>> %s \n",i,bufCommand[i].toString().c_str());
         else
             printf("%d >>>>> NULL \n",i);
@@ -1663,7 +1663,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
     printCommandBuffer();
     printf("\n\n\n");
     
-    if (bufCommand[pos] == NULL) {
+    if (bufCommand[pos] == Bottle::getNullBottle() ) {
         printf("no action in the buffer for pos:%d \n", pos);        
         if(isLearning()) {
             printf("using default value when in Learning \n");
@@ -1723,7 +1723,7 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
         printf("found action \n");
         printf("Bottle: %s \n", bufCommand[pos].toString().c_str());
         stateRequest[pos] = 1.0;
-        bufCommand[pos] = NULL;
+        bufCommand[pos] =  Bottle::getNullBottle();
 
         return true;
     }
@@ -3473,7 +3473,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"SIM")) {
             // vergence accomplished           
             printf("Simulate \n");
-            if(!strcmp(arg->get(1).asString(),"ACT") ){
+            if(!strcmp(arg->get(1).asString().c_str(),"ACT") ){
                 // notify observer concerning the state in which the prioritiser sets in
                 printf("action request \n");
                 
@@ -3505,7 +3505,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 notifyObservers(&notif);
             }
 //=================================================================================        
-            else if(!strcmp(arg->get(1).asString(),"STAT") ) {
+            else if(!strcmp(arg->get(1).asString().c_str(),"STAT") ) {
                 printf("state request \n");
                 
                 Vector stateId(5);
