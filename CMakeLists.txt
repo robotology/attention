@@ -11,9 +11,20 @@ project (logpolarAttention)
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
+find_package(ICUBcontrib REQUIRED)
 
-set(CMAKE_MODULE_PATH ${YARP_MODULE_PATH} ${ICUB_MODULE_PATH} ${CMAKE_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf) 
+set(CMAKE_MODULE_PATH 
+  ${CMAKE_MODULE_PATH} 
+  ${YARP_MODULE_PATH} 
+  ${ICUB_MODULE_PATH} 
+  ${ICUBCONTRIB_MODULE_PATH} # note 10/10/13 aligned to the standard Rea
+  ) 
+
+
+include(ICUBcontribHelpers)
+set_contrib_default_prefix() #set CMAKE_INSTALL_PREFIX to the ICUBcontrib one; print warning if user modifies it
+
+include(YarpInstallationHelpers)
 
 #find_package(IPP REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -21,7 +32,6 @@ find_package(GtkPlus REQUIRED)
 find_package(GSL)
 find_package(IPOPT)
 
-#include(iCubOptions) #removed because not longer necessary @Rea 20/11/12
 INCLUDE(iCubOptions)
 include(iCubHelpers)
 
@@ -40,7 +50,7 @@ if (ENABLE_CUDA)
     add_subdirectory(cudaVision)
 endif (ENABLE_CUDA)
 
-ADD_SUBDIRECTORY(attentionLib)
+add_subdirectory(attentionLib)
 add_subdirectory(app)
 add_subdirectory(src)
 

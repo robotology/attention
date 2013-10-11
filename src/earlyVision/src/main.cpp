@@ -35,8 +35,9 @@ int main(int argc, char * argv[]) {
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("earlyVisionModule.ini"); //overridden by --from parameter
-    rf.setDefaultContext("logpolarAttention/conf");   //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);
+    rf.setDefaultContext("logpolarAttention");        //overridden by --context parameter
+    //rf.configure("ICUB_ROOT", argc, argv);
+    rf.configure(argc, argv);     // aligned the 10/10/13 REA
  
     module.runModule(rf);
     return 0;

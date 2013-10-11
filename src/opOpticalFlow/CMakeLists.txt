@@ -2,7 +2,7 @@
 # Authors: Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-SET(KEYWORD "openvisOpticalFlow")
+SET(KEYWORD "opOpticalFlow")
 PROJECT(${KEYWORD})
 cmake_minimum_required(VERSION 2.6)
 
