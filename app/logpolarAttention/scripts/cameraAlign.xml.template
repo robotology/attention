@@ -1,0 +1,75 @@
+<application>
+<name>Right Camera Calibration</name>
+
+<dependencies>
+   <port>/icub/cam/right</port>
+</dependencies>
+
+
+<module>
+   <name>cameraAlign</name>
+   <parameters>--name cameraAlignLeft</parameters>
+   <node>icub14</node>
+   <tag>camAlignLeft</tag>
+</module>
+
+<module>
+   <name>cameraAlign</name>
+   <parameters>--name cameraAlignRight</parameters>
+   <node>icub14</node>
+   <tag>camAlignRight</tag>
+</module>
+ 
+<module>
+   <name>yarpview</name>
+   <parameters>--name /alignLeftOut --out /alignLeftOut/click:o --x 0 --y 0 --synch</parameters>
+   <node>icub16</node>
+   <tag>viewLeftAlign</tag>
+</module>
+
+<module>
+   <name>yarpview</name>
+   <parameters>--name /alignRightOut --out /alignRightOut/click:o --x 300 --y 0 --synch</parameters>
+   <node>icub16</node>
+   <tag>viewRightAlign</tag>
+</module>
+
+<connection>
+  <from>/icub/camcalib/left/out</from>
+  <to>/cameraAlignLeft/image:i</to>
+  <protocol>tcp</protocol>
+</connection>
+
+<connection>
+  <from>/icub/camcalib/right/out</from>
+  <to>/cameraAlignRight/image:i</to>
+  <protocol>tcp</protocol>
+</connection>
+ 
+
+<connection>
+  <from>/cameraAlignLeft/image:o</from>
+  <to>/alignLeftOut</to>
+  <protocol>tcp</protocol>
+</connection>
+
+<connection>
+  <from>/cameraAlignRight/image:o</from>
+  <to>/alignRightOut</to>
+  <protocol>tcp</protocol>
+</connection>
+    
+<connection>
+  <from>/alignLeftOut/click:o</from>
+  <to>/cameraAlignLeft/coord:i</to>
+  <protocol>tcp</protocol>
+</connection>
+    
+<connection>
+  <from>/alignRightOut/click:o</from>
+  <to>/cameraAlignRight/coord:i</to>
+  <protocol>tcp</protocol>
+</connection>
+
+
+</application>
