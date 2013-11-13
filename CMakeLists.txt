@@ -22,7 +22,7 @@ set(CMAKE_MODULE_PATH
 
 
 include(ICUBcontribHelpers)
-set_contrib_default_prefix() #set CMAKE_INSTALL_PREFIX to the ICUBcontrib one; print warning if user modifies it
+icubcontrib_set_default_prefix() #set CMAKE_INSTALL_PREFIX to the ICUBcontrib one; print warning if user modifies it
 
 include(YarpInstallationHelpers)
 
