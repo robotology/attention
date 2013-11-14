@@ -32,8 +32,10 @@ find_package(GtkPlus REQUIRED)
 find_package(GSL)
 find_package(IPOPT)
 
-INCLUDE(iCubOptions)
-include(iCubHelpers)
+#INCLUDE(iCubOptions)
+#include(iCubHelpers) # removed 13/11/2013 
+include(ICUBcontribOptions)
+
 
 SET(CUDAVISION_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
 SET(ATTENTIONLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/attentionLib/include)
@@ -54,3 +56,5 @@ add_subdirectory(attentionLib)
 add_subdirectory(app)
 add_subdirectory(src)
 
+icubcontrib_finalize_export(attentionLib) #macro added 13/11/2013
+icubcontrib_add_uninstall_target()        #macro added 13/11/2013
