@@ -32,7 +32,6 @@ message ("PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}")
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 	${YARP_INCLUDE_DIRS}
         ${ICUB_INCLUDE_DIRS}
-        ${ICUB_CONTRIB}/include
 )
 
 # Create everything needed to build our library
@@ -46,3 +45,7 @@ ENDIF(MSVC)
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES})
 
 
+icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
+                                          EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS}
+                                          DESTINATION include/iCub/attention
+                                          FILES  ${folder_header})
