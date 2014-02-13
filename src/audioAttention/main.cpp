@@ -31,6 +31,10 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Port.h>
 
+#include <iostream>
+#include <fstream>
+using namespace std;
+
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
@@ -39,6 +43,19 @@ using namespace yarp::dev;
 
      // Open the network
      Network yarp;
+
+     ofstream myfile;
+     myfile.open ("./example.bin", ios::out | ios::app | ios::binary);
+     if (myfile.is_open()) { 
+         cout<<"file correctly opened"<<endl;
+        
+     }
+     else{
+         cout<<"file is not opened"<<endl;
+         return 0;
+     }
+
+
      BufferedPort<Sound> pReceiver;
      pReceiver.open("/receiver");
      //Network::connect("/sender", "/receiver");
@@ -73,7 +90,7 @@ using namespace yarp::dev;
     IAudioGrabberSound *get;
 
     
-    /*
+    
     // Make sure we can write sound
     polyRender.view(put);
     if (put==NULL) {
@@ -81,20 +98,17 @@ using namespace yarp::dev;
         return 1;
     }
     //Receive and render
-    Sound *s;
-    while (true)
-      {
-        s = p.read(false);
-        if (s!=NULL)
-            put->renderSound(*s);
-      }
-    return 0;
-    */
-
- 
-
-    
+    Sound *sRead;
     /*
+      while (true)
+      {
+        sRead = pReceiver.read(false);
+        if (sRead!=NULL)
+            put->renderSound(*sRead);
+      }
+    return 0; 
+    */
+    
     // Make sure we can read sound
     polyGrabber.view(get);
     if (get==NULL) {
@@ -103,22 +117,87 @@ using namespace yarp::dev;
     }
 
     //Grab and send
-    Sound s;
-    while (true)
+    Sound *sWrite;
+    /*
+      while (true)
       {
-        get->getSound(s);
-        p.write(s);
+        get->getSound(*sWrite);
+        //pSender.write(sWrite);
       }
     return 0;
     */
+    
+    float sample = 3.325e37;
+    int sample_conv = (int) sample;
+    
 
+    printf("sample %f sample_conv %d \n",sample, sample_conv);
+
+    unsigned char s_a; 
+    unsigned char s_b; 
+    unsigned char s_c; 
+    unsigned char s_d; 
+
+    //01000000 10100110 01100110 01100110
+    s_a = 0x66;
+    s_b = 0x66;
+    s_c = 0xA6;
+    s_d = 0x40;
+
+
+    //s_a = (unsigned char)(sample_conv & 0x000000FF);          //LS
+    //s_b = (unsigned char)(sample_conv >> 8) & 0x000000FF;
+    //s_c = (unsigned char)(sample_conv >> 16) & 0x000000FF;
+    //s_d = (unsigned char)((int)sample >> 24) & 0x000000FF;    //MS
+
+    printf("%02x %02x %02x %02x \n",s_a, s_b, s_c, s_d);
+
+    int check_int = 0;
+    //check = s_a | (s_b << 8) | (s_b << 16) | (s_b << 24);
+    check_int = s_a | (s_b << 8) | (s_c << 16) | (s_d << 24);
+    printf("check_int %08x \n", check_int);
+    
+    //check = check + 0.25;
+    float check = (float) check_int;
+
+    printf("check %f \n", check);
+
+    int j = 1024;
+    float j_float = 1.0;
+    int i = 0;
+    
+    for (int k =0; k< 1024; k++){ 
+        myfile<<j;
+        myfile<<i;
+        j -= 1;
+        i += 1;
+        Time::delay(1.0);
+        printf("*\n");
+    }
+
+
+
+    /*
+    while(i<1){
+        //cout<<i<<" "<<j<<endl;
+        
+        myfile<<i;
+        //myfile<<j;
+        
+        j += 1;
+        i += 1;
+        
+    }
+    */
+    
+
+    /*
     // echo from microphone to headphones, superimposing an annoying tone   
-
     double vv=0;
     while(true){   
         Sound s;   
-        get->getSound(s);   
-        for (int i=0; i<s.getSamples(); i++) {   
+        get->getSound(*sRead);   
+        for (int i=0; i<sRead->getSamples(); i++) {   
             double now = Time::now();   
             static double first = now;   
             now -= first;   
@@ -128,17 +207,23 @@ using namespace yarp::dev;
                 vv += 0.04;   
             }   
             double dv = 500*sin(vv);   
-            for (int j=0; j<s.getChannels(); j++) {   
-                int v =s.get(i,j);   
+            for (int j=0; j<sRead->getChannels(); j++) {   
+                int v =sRead->get(i,j);  
                 s.set((int)(v+dv+0.5),i,j);   
             }   
         }   
         put->renderSound(s);   
-    }   
+    }
+    */
     
+    myfile.close();
+    cout<<"myFile correctly closed"<<endl;
+    pReceiver.close();
+    pSender.close();
+
+    cout<<"closing the network"<<endl;
     Network::fini();
-
-
     
+    return 1;
 
 }
