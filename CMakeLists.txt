@@ -35,7 +35,7 @@ find_package(IPOPT)
 
 #INCLUDE(iCubOptions)
 #include(iCubHelpers) # removed 13/11/2013 
-include(ICUBcontribOptions)
+#include(ICUBcontribOptions)
 
 
 SET(CUDAVISION_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
