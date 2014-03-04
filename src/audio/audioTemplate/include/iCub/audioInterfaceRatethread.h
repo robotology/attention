@@ -29,13 +29,14 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+
+#include <yarp/os/Thread.h>
 #include <iostream>
 #include <fstream>
 #include <time.h>
 
 
-class audioInterfaceRatethread : public yarp::os::RateThread {
+class audioInterfaceRatethread : public yarp::os::Thread {
 private:
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
