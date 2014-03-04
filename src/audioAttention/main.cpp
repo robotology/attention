@@ -44,6 +44,9 @@ using namespace yarp::dev;
      // Open the network
      Network yarp;
 
+     BufferedPort<Bottle> outputPort;
+     outputPort.open("/audioGrabber/audio:o");
+
      ofstream myfile;
      myfile.open ("./example.bin", ios::out | ios::app | ios::binary);
      if (myfile.is_open()) { 
@@ -191,10 +194,14 @@ using namespace yarp::dev;
     */
     
 
-    /*
+    
     // echo from microphone to headphones, superimposing an annoying tone   
     double vv=0;
+    int left = 0;
+    int right = 0;
+    int timestamp = 0;
     while(true){   
+        /*
         Sound s;   
         get->getSound(*sRead);   
         for (int i=0; i<sRead->getSamples(); i++) {   
@@ -213,14 +220,23 @@ using namespace yarp::dev;
             }   
         }   
         put->renderSound(s);   
+        */
+        
+        Bottle& toSend = outputPort.prepare();
+        toSend.addInt(left++);
+        toSend.addInt(right++);
+        toSend.addInt(timestamp++);
+        outputPort.write();
+
     }
-    */
+    
     
     myfile.close();
     cout<<"myFile correctly closed"<<endl;
     pReceiver.close();
     pSender.close();
-
+    outputPort.close();
+    
     cout<<"closing the network"<<endl;
     Network::fini();
     
