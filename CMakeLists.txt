@@ -22,8 +22,8 @@ set(CMAKE_MODULE_PATH
 
 
 include(ICUBcontribHelpers)
-#icubcontrib_set_default_prefix() #set CMAKE_INSTALL_PREFIX to the ICUBcontrib one; print warning if user modifies it
-set_contrib_default_prefix()
+icubcontrib_set_default_prefix() #set CMAKE_INSTALL_PREFIX to the ICUBcontrib one; print warning if user modifies it
+#set_contrib_default_prefix()
 
 include(YarpInstallationHelpers)
 
@@ -35,7 +35,7 @@ find_package(IPOPT)
 
 #INCLUDE(iCubOptions)
 #include(iCubHelpers) # removed 13/11/2013 
-#include(ICUBcontribOptions)
+include(ICUBcontribOptions)
 
 
 SET(CUDAVISION_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
