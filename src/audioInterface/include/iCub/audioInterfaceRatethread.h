@@ -35,7 +35,7 @@
 #include <time.h>
 
 
-class audioInterfaceRatethread : public yarp::os::RateThread {
+class audioInterfaceRatethread : public yarp::os::Thread {
 private:
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
@@ -44,6 +44,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
+    yarp::os::BufferedPort<yarp::os::Bottle>                          inputPort;     // output port to plot event
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;     // output port to plot event
     std::string name;                                                                // rootname of all the ports opened by this thread
     

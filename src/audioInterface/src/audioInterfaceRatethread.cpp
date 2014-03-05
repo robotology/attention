@@ -32,11 +32,11 @@ using namespace std;
 
 #define THRATE 100 //ms
 
-audioInterfaceRatethread::audioInterfaceRatethread():RateThread(THRATE) {
+audioInterfaceRatethread::audioInterfaceRatethread() {
     robot = "icub";        
 }
 
-audioInterfaceRatethread::audioInterfaceRatethread(string _robot, string _configFile):RateThread(THRATE){
+audioInterfaceRatethread::audioInterfaceRatethread(string _robot, string _configFile){
     robot = _robot;
     configFile = _configFile;
 }
@@ -46,10 +46,12 @@ audioInterfaceRatethread::~audioInterfaceRatethread() {
 }
 
 bool audioInterfaceRatethread::threadInit() {
-
-    
+    if (!inputPort.open(getName("/audio:i").c_str())) {
+        cout << ": unable to open port to send unmasked events "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
    
-    if (!outputPort.open(getName("/img:o").c_str())) {
+    if (!outputPort.open(getName("/audio:o").c_str())) {
         cout << ": unable to open port to send unmasked events "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }    
@@ -76,21 +78,34 @@ void audioInterfaceRatethread::setInputPortName(string InpPort) {
 }
 
 void audioInterfaceRatethread::run() {    
-   
+    while(!isStopping()){
 
-        //code here .....
-        
-
+        //code here ....
+        if(inputPort.getInputCount()){
+            Bottle* read = inputPort.read();
+            printf(" bottle received %s \n", read->toString().c_str());
+        }
+        /*
         if (outputPort.getOutputCount()) {
             outputPort.prepare() = *inputImage;
             outputPort.write();  
         }
+        */
+    }
                   
 }
 
+void tutorialThread::onStop() {
+    printf("closing the ports \n");
+    outputPort.interrupt();   
+    inputPort.interrupt();
+    outputPort.close();
+    inputPort.close();
+}
+
 void audioInterfaceRatethread::threadRelease() {
-    // nothing
-     
+    inputPort.close();
+    outputPort.close();
 }
 
 
