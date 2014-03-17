@@ -44,8 +44,10 @@ using namespace yarp::dev;
      // Open the network
      Network yarp;
 
-     BufferedPort<Bottle> outputPort;
-     outputPort.open("/audioGrabber/audio:o");
+     BufferedPort<Bottle> outputPort1;
+     BufferedPort<Bottle> outputPort2;   
+     outputPort1.open("/audioGrabber/audio1:o");
+     outputPort2.open("/audioGrabber/audio2:o");
 
      ofstream myfile;
      myfile.open ("./example.bin", ios::out | ios::app | ios::binary);
@@ -57,7 +59,7 @@ using namespace yarp::dev;
          cout<<"file is not opened"<<endl;
          return 0;
      }
-
+    
 
      BufferedPort<Sound> pReceiver;
      pReceiver.open("/receiver");
@@ -73,26 +75,25 @@ using namespace yarp::dev;
     conf.put("write", "1");
     PolyDriver polyRender(conf);
     if(!polyRender.isValid()) {
-        printf("cannot open interface \n");
+        printf("cannot open write-interface \n");
         return 1;
     }
     IAudioRender *put;
 
 
     // Get a portaudio read device.
-    //Property conf;
-    conf.put("device","portaudio");
-    conf.put("read", "");
-    //conf.put("samples", 4096);
-    //conf.put("rate", 16000);
-    PolyDriver polyGrabber(conf);
+    Property conf2;
+    conf2.put("device","portaudio");
+    conf2.put("read", "1");
+    conf2.put("samples", 4096);
+    conf2.put("rate", 16000);
+    PolyDriver polyGrabber(conf2);
     if(!polyRender.isValid()) {
-        printf("cannot open interface \n");
+        printf("cannot open read-interface \n");
         return 1;
     }
     IAudioGrabberSound *get;
 
-    
     
     // Make sure we can write sound
     polyRender.view(put);
@@ -101,16 +102,15 @@ using namespace yarp::dev;
         return 1;
     }
     //Receive and render
-    Sound *sRead;
-    /*
-      while (true)
-      {
-        sRead = pReceiver.read(false);
-        if (sRead!=NULL)
-            put->renderSound(*sRead);
-      }
-    return 0; 
-    */
+    Sound *sRead = new Sound();
+    
+    //while (true){
+    //    sRead = pReceiver.read(false);
+    //    if (sRead!=NULL)
+    //        put->renderSound(*sRead);
+    //  }
+    //return 0; 
+    
     
     // Make sure we can read sound
     polyGrabber.view(get);
@@ -118,9 +118,12 @@ using namespace yarp::dev;
         printf("cannot open interface\n");
         return 1;
     }
+    else{
+        printf("able to open interface \n");
+    }
 
     //Grab and send
-    Sound *sWrite;
+    //Sound *sWrite;
     /*
       while (true)
       {
@@ -130,6 +133,11 @@ using namespace yarp::dev;
     return 0;
     */
     
+
+    //*************************************************************************************//
+
+    printf("data dumping \n");
+
     float sample = 3.325e37;
     int sample_conv = (int) sample;
     
@@ -169,13 +177,12 @@ using namespace yarp::dev;
     float j_float = 1.0;
     int i = 0;
     
-    for (int k =0; k< 1024; k++){ 
+    for (int k =0; k< 10; k++){ 
         myfile<<j;
         myfile<<i;
         j -= 1;
         i += 1;
-        Time::delay(1.0);
-        printf("*\n");
+        Time::delay(0.1);
     }
 
 
@@ -193,6 +200,8 @@ using namespace yarp::dev;
     }
     */
     
+    //*****************************************************************//
+    
 
     
     // echo from microphone to headphones, superimposing an annoying tone   
@@ -201,33 +210,63 @@ using namespace yarp::dev;
     int right = 0;
     int timestamp = 0;
     while(true){   
-        /*
-        Sound s;   
-        get->getSound(*sRead);   
-        for (int i=0; i<sRead->getSamples(); i++) {   
-            double now = Time::now();   
-            static double first = now;   
-            now -= first;   
-            if ((long int) (now*2) % 2 == 0) {   
-                vv += 0.08;   
-            } else {   
-                vv += 0.04;   
-            }   
-            double dv = 500*sin(vv);   
-            for (int j=0; j<sRead->getChannels(); j++) {   
-                int v =sRead->get(i,j);  
-                s.set((int)(v+dv+0.5),i,j);   
-            }   
-        }   
-        put->renderSound(s);   
-        */
         
-        Bottle& toSend = outputPort.prepare();
-        toSend.addInt(left++);
-        toSend.addInt(right++);
-        toSend.addInt(timestamp++);
-        outputPort.write();
-
+        
+        
+        if(get->getSound(*sRead)) {
+        for (int i=0; i<sRead->getSamples(); i++) {   
+            //double now = Time::now();   
+            //static double first = now;   
+            //now -= first;   
+            //if ((long int) (now*2) % 2 == 0) {   
+            //    vv += 0.08;   
+            //} else {   
+            //    vv += 0.04;   
+            //}   
+            //double dv = 500*sin(vv);   
+            //for (int j=0; j<sRead->getChannels(); j++) {   
+                //int v =sRead->get(i,j);  
+                //s.set((int)(v+dv+0.5),i,j);   
+            //}   
+            
+            
+            
+            if(sRead->getChannels() == 2) {
+                left = sRead->get(i,0);
+                right = sRead->get(i,1);    
+                timestamp++; // = Stamp::getTime();
+            }
+    
+            
+    
+            if ((outputPort1.getOutputCount()) && (true) ){
+                if (true) {            
+                    Bottle& toSend = outputPort1.prepare();
+                    toSend.clear();
+                    toSend.addInt(left);
+                    toSend.addInt(right);
+                    toSend.addInt(timestamp);
+                    outputPort1.write(); 
+                }
+                else {
+                    Bottle& toSend = outputPort2.prepare();
+                    toSend.clear();
+                    toSend.addInt(left++);
+                    toSend.addInt(right++);
+                    toSend.addInt(timestamp++);
+                    outputPort2.write();
+                }
+            }
+        
+    
+        }   
+       // put->renderSound(s);   
+       
+        }
+        else {
+            printf("getSound error \n");
+        }
+        
     }
     
     
@@ -235,7 +274,8 @@ using namespace yarp::dev;
     cout<<"myFile correctly closed"<<endl;
     pReceiver.close();
     pSender.close();
-    outputPort.close();
+    outputPort1.close();
+    outputPort2.close();
     
     cout<<"closing the network"<<endl;
     Network::fini();
