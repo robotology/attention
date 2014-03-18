@@ -32,6 +32,7 @@
 #include <yarp/os/RateThread.h>
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include <time.h>
 
 
@@ -47,6 +48,8 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle>                          inputPort;     // output port to plot event
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;     // output port to plot event
     std::string name;                                                                // rootname of all the ports opened by this thread
+
+    FILE* dumpFile;
     
 public:
     /**
@@ -79,6 +82,11 @@ public:
     *  active part of the thread
     */
     void run(); 
+
+    /**
+    * onStop function implementation
+    */    
+    void onStop();
 
     /*
     * function that sets the rootname of all the ports that are going to be created by the thread

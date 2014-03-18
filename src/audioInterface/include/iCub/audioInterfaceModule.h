@@ -159,7 +159,8 @@ class audioInterfaceModule:public yarp::os::RFModule {
     
     yarp::os::Port handlerPort;              // a port to handle messages 
     /*  */
-    audioInterfaceRatethread *rThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
+    audioInterfaceRatethread *rThread1;      // pointer to a new thread to be created and started in configure() and stopped in close()
+    audioInterfaceRatethread *rThread2;
 
 public:
     /**

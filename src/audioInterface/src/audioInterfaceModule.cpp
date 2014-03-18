@@ -40,7 +40,7 @@ bool audioInterfaceModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
-                           Value("/tutorial"), 
+                           Value("/attentionInterface"), 
                            "module name (string)").asString();
     /*
     * before continuing, set the module name before getting any other parameters, 
@@ -87,12 +87,15 @@ bool audioInterfaceModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* create the thread and pass pointers to the module parameters */
-    rThread = new audioInterfaceRatethread(robotName, configFile);
-    rThread->setName(getName().c_str());
+    rThread1 = new audioInterfaceRatethread(robotName, configFile);
+    rThread1->setName(getName("/consumer1").c_str());
+    rThread2 = new audioInterfaceRatethread(robotName, configFile);
+    rThread2->setName(getName("/consumer2").c_str());
     //rThread->setInputPortName(inputPortName.c_str());
     
     /* now start the thread to do the work */
-    rThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    rThread1->start(); // this calls threadInit() and it if returns true, it then calls run()
+    rThread2->start();    
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
@@ -107,7 +110,8 @@ bool audioInterfaceModule::close() {
     handlerPort.close();
     /* stop the thread */
     printf("stopping the thread \n");
-    rThread->stop();
+    rThread1->stop();
+    rThread2->stop();    
     return true;
 }
 
