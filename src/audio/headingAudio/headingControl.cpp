@@ -221,10 +221,12 @@ int main(int argc, char *argv[])
             Bottle* b = _pInPort->read(true);
             value = b->get(0).asDouble();
             //printf("got the double %f \n", value);
-            //encs->getEncoder(2, &startPos2);
+            encs->getEncoder(2, &startPos2);
             //printf("getEncoder3 position %f \n", startPos2);
-            command[2]=value;
-            moveJoints(pos, command);
+            if ((value+startPos2 < 50) && (value+startPos2 > -50)){
+                command[2]=value + startPos2 ;
+                moveJoints(pos, command);
+            }
         }
         
     }
