@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     pos->setRefAccelerations(tmp.data());
 
     for (i = 0; i < nj; i++) {
-        tmp[i] = 100.0;
+        tmp[i] = 30.0;
         pos->setRefSpeed(i, tmp[i]);
     }
 

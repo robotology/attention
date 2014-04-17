@@ -37,7 +37,7 @@ int main(int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("audioInterface.ini");        //overridden by --from parameter
-    rf.setDefaultContext("logpolarAttentionApp/conf");    //overridden by --context parameter
+    rf.setDefaultContext("logpolarAttentionApp");    //overridden by --context parameter
     rf.configure(argc, argv);  
  
     module.runModule(rf);

@@ -50,6 +50,8 @@ private:
     std::string name;                                                                // rootname of all the ports opened by this thread
 
     FILE* dumpFile;
+    std::ofstream myfile;
+    std::fstream myInputFile;
     
 public:
     /**
@@ -83,6 +85,10 @@ public:
     */
     void run(); 
 
+
+
+
+
     /**
     * onStop function implementation
     */    
@@ -106,7 +112,7 @@ public:
     */
     void setInputPortName(std::string inpPrtName);
 
-
+    
 
 };
 

@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-
+add_subdirectory( audio                     )
 add_subdirectory( audioAttention            )
 add_subdirectory( audioInterface            )
 add_subdirectory( eyePathFinder             )
@@ -21,7 +21,7 @@ add_subdirectory( selectiveAttentionEngine  )
 add_subdirectory( selAttentionInterface     )
 add_subdirectory( salBlobFinderInterface    )
 add_subdirectory( vergence                  )
-add_subdirectory( visualFeatureExtractor    )
+#add_subdirectory( visualFeatureExtractor    )
 add_subdirectory( zdfControl                )
 add_subdirectory( stereoAttentiveSelector   )
 add_subdirectory( stamper                   )
