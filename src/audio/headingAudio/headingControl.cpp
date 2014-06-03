@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "%s --robot robotName --loop numberOfLoop", argv[0]);
     }
-    
+    /*    
     if (!params.check("robot"))
     {
         fprintf(stderr, "Please specify the name of the robot\n");
@@ -58,7 +58,12 @@ int main(int argc, char *argv[])
         fprintf(stderr, "--loop number\n");
         return -1;
     }
-    std::string robotName=params.find("robot").asString().c_str();
+    */
+
+    
+    std::string robotName = params.check("robot", 
+                                       Value("icub"), 
+                                       "robotname").asString();
     std::string remotePorts="/";
     remotePorts+=robotName;
     remotePorts+="/head"; //"/right_arm"
