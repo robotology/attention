@@ -43,7 +43,16 @@ int main(int argc, char * argv[])
     rf.setVerbose(true);
     rf.setDefaultConfigFile("gazeArbiter.ini");      //overridden by --from parameter
     rf.setDefaultContext("logpolarAttention");     //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);
+    //rf.configure("ICUB_ROOT", argc, argv);
+    rf.configure(argc,argv);
+
+    //Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        printf("YARP server not available!\n");
+        return -1;
+    }
+
  
     module.runModule(rf);
     return 0;
