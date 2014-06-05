@@ -3,10 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <yarp/os/Network.h>
+#include <yarp/os/all.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/dev/PolyDriver.h>
+#include <yarp/dev/GazeControl.h>
 
 #include <string>
 
@@ -21,6 +24,8 @@ using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace yarp::os;
 
+YARP_DECLARE_DEVICES(icubmod)
+
 void moveJoints(IPositionControl *_pos, Vector& _command)
 {
     _pos->positionMove(_command.data());
@@ -30,6 +35,34 @@ void moveJoints(IPositionControl *_pos, Vector& _command)
 int main(int argc, char *argv[]) 
 {
     Network yarp;
+    YARP_REGISTER_DEVICES(icubmod)
+
+    //-----------------------------------------------------------------------
+
+    //initializing gazecontrollerclient
+    printf("initialising gazeControllerClient \n");
+    Property option;
+    option.put("device","gazecontrollerclient");
+    option.put("remote","/iKinGazeCtrl");
+    std::string localCon("/client/gaze");
+    localCon.append("simpleSaccade");
+    option.put("local",localCon.c_str());
+
+    yarp::dev::PolyDriver* clientGazeCtrl=new PolyDriver();
+    clientGazeCtrl->open(option);
+    yarp::dev::IGazeControl* igaze=NULL;
+
+    int originalContext;
+
+    if (clientGazeCtrl->isValid()) {
+       clientGazeCtrl->view(igaze);
+    }
+    else {
+        return false;
+    }
+    igaze->storeContext(&originalContext);
+    
+    //------------------------------------------------------------------------
     
     BufferedPort<Bottle>* _pInPort  = new BufferedPort<Bottle>;
     Port* _pOutPort = new Port;
@@ -71,7 +104,7 @@ int main(int argc, char *argv[])
     //int nOl=atoi(params.find("loop").asString().c_str());
     int nOl=params.find("loop").asInt();
 
-    Network::connect(portName.c_str(), "/aexGrabber");
+    //Network::connect(portName.c_str(), "/aexGrabber");
 
     std::string localPorts="/test/client";
 
@@ -111,12 +144,12 @@ int main(int argc, char *argv[])
     
     int i;
     for (i = 0; i < nj; i++) {
-         tmp[i] = 50.0;
+         tmp[i] = 90.0;
     }
     pos->setRefAccelerations(tmp.data());
 
     for (i = 0; i < nj; i++) {
-        tmp[i] = 30.0;
+        tmp[i] = 50.0;
         pos->setRefSpeed(i, tmp[i]);
     }
 
@@ -220,20 +253,35 @@ int main(int argc, char *argv[])
     */
     
     double value = 0;
+    Vector angles(3);
+    angles(0) =  0.0;
+    angles(1) =  0.0;
+    angles(2) =  0.0;
 
     while(true){
         if (_pInPort->getInputCount()) {
             Bottle* b = _pInPort->read(true);
             value = b->get(0).asDouble();
-            //printf("got the double %f \n", value);
+            printf("got the double %f \n", value);
             encs->getEncoder(2, &startPos2);
             //printf("getEncoder3 position %f \n", startPos2);
             if ((value+startPos2 < 50) && (value+startPos2 > -50)){
                 command[2]=value + startPos2 ;
                 moveJoints(pos, command);
+                angles(0) = value;
+                //igaze->lookAtRelAngles(angles);
             }
-        }
-        
+            else{
+                if (value+startPos2 > 50) {
+                    command[2] = 50;
+                    moveJoints(pos, command);
+                }
+                else {
+                    command[2] = -50;
+                    moveJoints(pos, command);   
+                }
+            }
+        }  
     }
 
 	Time::delay(0.1);
@@ -254,6 +302,11 @@ int main(int argc, char *argv[])
 
     _pOutPort->close();
     robotDevice.close();
+    //-------------------------------------------
+
+    igaze->restoreContext(originalContext);
+    delete igaze;
+    
     
     return 0;
 }
