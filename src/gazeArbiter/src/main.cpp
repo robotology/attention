@@ -26,8 +26,8 @@
 #include "iCub/gazeArbiterModule.h" 
 #include <yarp/os/all.h>
 
-using namespace yarp::os;
-using namespace yarp::sig;
+// using namespace yarp::os;
+// using namespace yarp::sig;
 
 YARP_DECLARE_DEVICES(icubmod)
 
