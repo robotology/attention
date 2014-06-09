@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
     Vector position(3);
     position(0) = -0.5;
     position(1) =  0.0;
-    position(2) =  0.3;
+    position(2) =  0.4;
 
     while(true){
         if (_pInPort->getInputCount()) {
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
                 command[2] = endPos2;
                 //moveJoints(pos, command);
 
-                
+                // iKinGazeCtrl convention: positive angles toward robot right hand side
                 position(0) = -1 * (cos(deg2rad * endPos2) * r);
                 position(1) = -1 * (sin(deg2rad * endPos2) * r);
                 printf("sending vector %s \n", position.toString().c_str());
