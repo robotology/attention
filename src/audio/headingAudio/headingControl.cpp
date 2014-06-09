@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h> 
 #include <yarp/os/Network.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
@@ -19,6 +20,7 @@
 #define COMMAND_VOCAB_SYNC  VOCAB4('s','y','n','c')
 
 #define DELTAENC 0.0000001
+#define deg2rad  3.1415/180
 
 using namespace yarp::dev;
 using namespace yarp::sig;
@@ -61,6 +63,8 @@ int main(int argc, char *argv[])
         return false;
     }
     igaze->storeContext(&originalContext);
+    igaze->blockNeckPitch(0);
+    igaze->blockNeckRoll();
     
     //------------------------------------------------------------------------
     
@@ -253,10 +257,16 @@ int main(int argc, char *argv[])
     */
     
     double value = 0;
+    double endPos2;
+    double r = 0.5;  //meters
     Vector angles(3);
     angles(0) =  0.0;
     angles(1) =  0.0;
     angles(2) =  0.0;
+    Vector position(3);
+    position(0) = -0.5;
+    position(1) =  0.0;
+    position(2) =  0.3;
 
     while(true){
         if (_pInPort->getInputCount()) {
@@ -265,22 +275,34 @@ int main(int argc, char *argv[])
             printf("got the double %f \n", value);
             encs->getEncoder(2, &startPos2);
             //printf("getEncoder3 position %f \n", startPos2);
-            if ((value+startPos2 < 50) && (value+startPos2 > -50)){
-                command[2]=value + startPos2 ;
-                moveJoints(pos, command);
-                angles(0) = value;
+            //if ((value+startPos2 < 50) && (value+startPos2 > -50)){
+                endPos2 = startPos2 - value ;
+
+                command[2] = endPos2;
+                //moveJoints(pos, command);
+
+                
+                position(0) = -1 * (cos(deg2rad * endPos2) * r);
+                position(1) = -1 * (sin(deg2rad * endPos2) * r);
+                printf("sending vector %s \n", position.toString().c_str());
+                igaze->lookAtFixationPoint(position);
+
+                
+                //angles(0) = value;
+                //printf("sending vector %s \n", angles.toString().c_str());
                 //igaze->lookAtRelAngles(angles);
-            }
-            else{
-                if (value+startPos2 > 50) {
-                    command[2] = 50;
-                    moveJoints(pos, command);
-                }
-                else {
-                    command[2] = -50;
-                    moveJoints(pos, command);   
-                }
-            }
+                //}
+                //else{
+                //if (value+startPos2 > 50) {
+                //    command[2] = 50;
+                    //moveJoints(pos, command);
+                    
+                //}
+                //else {
+                //    command[2] = -50;
+                    //moveJoints(pos, command);   
+                //}
+                //}
         }  
     }
 
