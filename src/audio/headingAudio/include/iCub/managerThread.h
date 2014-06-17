@@ -186,7 +186,7 @@ Windows, Linux
 #include <yarp/math/Math.h>
 #include <iCub/ctrl/neuralNetworks.h>
 
-#define deg2rad  3.1415/18
+#define deg2rad  3.1415/180
 
 
 #define DEFAULT_THR_PER     20
@@ -594,19 +594,21 @@ protected:
         {
             if (azimuthNew->size()>0)
             {
-              
-              printf("Content of the bufferedPort not null \n");
-              double r = 0.5;
+              double r = 0.45;
               double value = azimuthNew->get(0).asDouble();
-              printf("got the double %f \n", value);
+              
+             
               double endPos2, startPos2;
               encHead->getEncoder(2, &startPos2);
-              endPos2 = startPos2 - value ; 
+              endPos2 = startPos2 - value ;
+              printf("got %f subtracted from %f \n", value, startPos2);
+              
               Vector fp(4);
-              fp(0) = -0.40; //-1 * (cos(deg2rad * endPos2) * r); 
-              fp(1) = -0.1;// * (sin(deg2rad * endPos2) * r);
+              fp(0) = -1 * (cos(endPos2 * deg2rad) * r); 
+              fp(1) = -1 * (sin(endPos2 * deg2rad) * r);
               fp(2) = 0.3;
               fp(3) = 1.0;
+              printf("angle %f reaching for %s \n", endPos2, fp.toString().c_str());
 
               if (!gsl_isnan(fp[0]) && !gsl_isnan(fp[1]) && !gsl_isnan(fp[2]))
                 {
@@ -622,44 +624,9 @@ protected:
                   T(2,3)=x[2];
                   
                   targetPos=fp;
-                  printf("generated new target %f %f %f \n", targetPos(0), targetPos(1), targetPos(2));
                   targetPos.pop_back();
                   newTarget=true;
                 }
-              
-              //targetPos(3) = 1.0;
-              //intf("produced a new target %f %f %f \n", targetPos(0),targetPos(1),targetPos(2));
-              //rgetPos.pop_back();
-              //wTarget=true;
-              
-              /*if (targetPosNew->get(6).asDouble()==1.0)
-                {
-                    Vector fp(4);
-                    fp[0]=targetPosNew->get(0).asDouble();
-                    fp[1]=targetPosNew->get(1).asDouble();
-                    fp[2]=targetPosNew->get(2).asDouble();
-                    fp[3]=1.0;
-
-                    if (!gsl_isnan(fp[0]) && !gsl_isnan(fp[1]) && !gsl_isnan(fp[2]))
-                    {
-                        Vector x,o;
-                        if (eyeUsed=="left")
-                            gazeCtrl->getLeftEyePose(x,o);
-                        else
-                            gazeCtrl->getRightEyePose(x,o);
-
-                        Matrix T=axis2dcm(o);
-                        T(0,3)=x[0];
-                        T(1,3)=x[1];
-                        T(2,3)=x[2];
-
-                        targetPos=T*fp;
-                        targetPos.pop_back();
-                        newTarget=true;
-                    }
-                }
-
-              */
             }
         }
         else if (Bottle *targetPosNew=inportTrackTarget.read(false))
@@ -736,7 +703,6 @@ protected:
         
       if (state!=STATE_IDLE)
         {
-          printf("heading \n");
           gazeCtrl->lookAtFixationPoint(targetPos);
             
             if (outportGui.getOutputCount()>0)
@@ -941,7 +907,6 @@ protected:
 
     void moveHand(const int action, const int sel=USEDARM)
     {
-      printf("movingHand \n");
       IPositionControl *ipos=posArm;
         Vector *poss=NULL;
         string actionStr, type;
