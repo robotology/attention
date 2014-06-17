@@ -54,6 +54,7 @@ private:
     PolyDriver poly;
     IAudioRender *put;
     BufferedPort<Sound> port;
+    BufferedPort<Bottle> outport;
     Semaphore mutex;
     bool muted;
     bool saving;
@@ -67,7 +68,7 @@ public:
         port.useCallback(*this);
         port.setStrict();
         muted = false;
-        saving = false;
+        saving = true;
         samples = 0;
         channels = 0;
         put = NULL;
@@ -77,6 +78,7 @@ public:
         bool dev = true;
         if (p.check("nodevice")) {
             dev = false;
+            printf("no device! \n");
         }
         if (dev) {
             poly.open(p);
@@ -96,7 +98,14 @@ public:
         }
             
         port.setStrict(true);
-        if (!port.open(p.check("name",Value("/yarphear")).asString())) {
+        if (!port.open(p.check("name",Value("/audioAttention/yarphear")).asString())) {
+            printf("Communication problem\n");
+            return false;
+        }
+        else{
+            printf("success in opening yarphear \n");
+        }        
+        if (!outport.open(p.check("outportname",Value("/audioAttention/left:o")).asString())) {
             printf("Communication problem\n");
             return false;
         }
@@ -107,6 +116,7 @@ public:
         if (p.check("remote")) {
             Network::connect(p.check("remote",Value("/grabber")).asString(),
                              port.getName());
+            printf("successfully connected to the /grabber \n");
         }
         else {
             printf("success in connecting no remote \n");
@@ -125,7 +135,7 @@ public:
         printf("onread %f\n", t2-t1);
         t2 = yarp::os::Time::now();
         #endif
-        printf("onread %f\n");
+        printf("onread \n");
         int ct = port.getPendingReads();
         //printf("pending reads %d\n", ct);
         while (ct>padding) {
@@ -148,7 +158,7 @@ public:
                 put->renderSound(sound);
             }
         }
-        if (saving) {
+        if (true) {
             saveFrame(sound);
         }
 
@@ -169,17 +179,26 @@ public:
     }
 
     void saveFrame(Sound& sound) {
+        if(sounds.size() < 10){
+        printf("saving the frame \n");
         sounds.push_back(sound);
         samples += sound.getSamples();
         channels = sound.getChannels();
         printf("  %ld sound frames buffered in memory (%ld samples)\n", 
                (long int) sounds.size(),
                (long int) samples);
+        }
+        else {
+            printf("saving limit reached \n");
+        }
     }
 
     bool saveFile(const char *name) {
+
+        
+
         mutex.wait();
-        saving = false;
+        //saving = false;
 
         Sound total;
         total.resize(samples,channels);
@@ -206,9 +225,12 @@ public:
     }
 
      bool sendFrame() {
-        printf("sending the frame %d %d \n", samples, channels);
+         //printf("sending the frame %d %d \n", samples, channels);
+        bool ok = true;
+
+        //-------------------------------------------------------
         mutex.wait();
-        saving = false;
+        //saving = false;
 
         Sound total;
         total.resize(samples,channels);
@@ -218,7 +240,7 @@ public:
             for (int i=0; i<channels; i++) {
                 for (int j=0; j<tmp.getSamples(); j++) {
                     total.set(tmp.get(j,i),at+j,i);
-                    printf("%f", tmp.get(j,i));
+                    //printf("%f", tmp.get(j,i));
                 }
             }
             total.setFrequency(tmp.getFrequency());
@@ -226,10 +248,51 @@ public:
             sounds.pop_front();
         }
         mutex.post();
+        //------------------------------------------------------
         
         
-
-        bool ok = true;
+        at = 0;
+        if (outport.getOutputCount()) {
+            //Sound& sport =  outport.prepare();
+            //sport.resize(samples, channels);
+           
+            //for (int i=0; i<channels; i++) {
+            int i = 0;
+            unsigned int result = 0;
+            string str;
+            unsigned char *pSound = total.getRawData();
+            int bytesPerSample = total.getBytesPerSample();
+            int rawDataSize    = total.getRawDataSize();
+            
+            //printf("bytesPerSample %d rawDataSize %d \n",bytesPerSample,rawDataSize  );
+            
+            for (int j=0; j<total.getSamples(); j++) {
+                //sport.set(total.get(j,i),at+j,i);
+                
+                result = 0;
+                Bottle& data = outport.prepare();
+                data.clear();
+                result = *pSound;
+                //printf(" %d ", *pSound);
+                pSound++;
+                if(*pSound != 255) {
+                    //printf(" %d ", *pSound);
+                    result += *pSound << 8;
+                    //printf(" %d", result);
+                    //int t = total.get(j,i);
+                    //str.append((const char *) pSound);
+                    data.addInt(result);
+                    outport.writeStrict();
+                }
+                //printf("\n");
+                pSound++;
+            }
+            //} 
+            //sport.setFrequency(total.getFrequency());
+            //outport.write();
+        }
+        
+        
         //bool ok = write(total,name);
         //if (ok) {
         //    printf("Wrote audio to %s\n", name);
@@ -320,6 +383,7 @@ public:
     // otherwise default device is "portaudio"
     if (!p.check("device")) {
         p.put("nodevice",1);
+        p.put("remote", "/grabber");
         //p.put("device","portaudio");
         //p.put("write",1);
         //p.put("delay",1);
@@ -376,6 +440,7 @@ public:
     //printf("starting the send Frame mechanism \n");
     while(true) {
         echo.sendFrame();
+        //Time::delay(0.9);
     }
     
 

@@ -17,7 +17,7 @@ INCLUDE_DIRECTORIES(
 )
 
 # Search for source code.
-FILE(GLOB folder_source *.cpp *.cc *.c)
+FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
 FILE(GLOB folder_header include/iCub/*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
