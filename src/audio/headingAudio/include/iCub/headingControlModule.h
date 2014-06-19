@@ -199,6 +199,32 @@ Windows, Linux
 #define DELTAENC 0.0000001
 #define deg2rad  3.1415/180
 
+// general command vocab's
+#define COMMAND_VOCAB_IS     VOCAB2('i','s')
+#define COMMAND_VOCAB_OK     VOCAB2('o','k')
+
+#define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
+#define COMMAND_VOCAB_POINT  VOCAB4('p','o','i','n')
+#define COMMAND_VOCAB_LOOK   VOCAB4('l','o','o','k')
+#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+#define COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
+#define COMMAND_VOCAB_TGRE   VOCAB4('t','g','r','e')
+#define COMMAND_VOCAB_TBLU   VOCAB4('t','b','l','u')
+#define COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
+#define COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
+#define COMMAND_VOCAB_FGRE   VOCAB4('f','g','r','e')       // request of fovea blob color (red)
+#define COMMAND_VOCAB_FRGB   VOCAB4('f','r','g','b')       // request of fovea blob color (rgb)
+
+
+#define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
+#define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
+#define COMMAND_VOCAB_MBA    VOCAB3('m','B','A')           // minimum dimension of the bounding area
+#define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
+#define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
+#define COMMAND_VOCAB_WTD    VOCAB3('w','t','d')
+#define COMMAND_VOCAB_WBU    VOCAB3('w','b','u')
+
+
 using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace yarp::os;
@@ -530,6 +556,7 @@ class managerModule: public RFModule
 protected:
     managerThread *thr;    
     Port           rpcPort;
+    Semaphore      mutex;
 
 public:
     managerModule() { }
@@ -562,6 +589,175 @@ public:
         return true;
     }
 
+    bool respond(const Bottle &command, Bottle &reply) {
+        // 
+        bool ok = false;
+        bool rec = false; // is the command recognized?
+        
+        mutex.wait();
+        
+        switch (command.get(0).asVocab()) {
+        case COMMAND_VOCAB_HELP:
+            rec = true;
+            {
+                reply.addVocab(Vocab::encode("many"));
+                reply.addString("help");
+                
+                //reply.addString("\n");
+                reply.addString("point n \t: general point command");
+                //reply.addString("\n");
+                reply.addString("look  \t: general look command ");
+                //reply.addString("\n");
+                reply.addString("NOTE: capitalization of command name is mandatory");
+                reply.addString("set Mdb : set maximum dimension allowed for blobs");
+                reply.addString("set mdb : set minimum dimension allowed for blobs");
+                reply.addString("set mBA : set the minimum bounding area");
+                //reply.addString("\n");
+                reply.addString("get Mdb : get maximum dimension allowed for blobs");
+                reply.addString("get mdb : get minimum dimension allowed for blobs");
+                reply.addString("get mBA : get the minimum bounding area\n");
+                ok = true;
+            }
+            break;
+            
+        case COMMAND_VOCAB_LOOK:
+            rec = true;
+            {
+                printf("*** LOOK command received \n");                
+                thr->setAction("look");
+                /*
+                switch(command.get(1).asVocab()) {
+                case COMMAND_VOCAB_MBA:
+                    {
+                        double w = command.get(2).asDouble();
+                        cout << "set mBA: " << w << endl;
+ 
+                        ok=true;
+                    }
+                    break;
+                case COMMAND_VOCAB_MAXDB:
+                    {
+                        int w = command.get(2).asInt();
+                        
+                        ok=true;
+                    }
+                    break;
+                case COMMAND_VOCAB_MINDB:
+                    {
+                        int w = command.get(2).asInt();
+     
+                        ok=true;
+                    }
+                    break;
+                case COMMAND_VOCAB_WTD:
+                    {
+                        int w = command.get(2).asDouble();
+    
+                        ok=true;
+                    }
+                    break;
+                case COMMAND_VOCAB_WBU:
+                    {
+                        int w = command.get(2).asDouble();
+                       
+                        ok=true;
+                    }
+                    break;
+                case COMMAND_VOCAB_TRED:
+                    {
+                        int t = command.get(2).asInt();
+                        
+                        ok=true;
+                    }
+                    break;
+                case COMMAND_VOCAB_TGRE:
+                    {
+                        int t = command.get(2).asInt();
+                        
+                        ok=true;
+                    }
+                    break;
+                case COMMAND_VOCAB_TBLU:
+                    {
+                        int t = command.get(2).asInt();
+                        
+                        ok=true;
+                    }
+                    break;
+                default:
+                    cout << "received an unknown request after a SALIENCE_VOCAB_SET" << endl;
+                    break;
+                    }*/
+
+                 ok = true;
+
+            }
+            break;
+            
+        case COMMAND_VOCAB_POINT:
+            rec = true;
+            {
+                printf("*** POINT command received \n");
+                thr->setAction("point");
+                
+                //reply.addVocab(COMMAND_VOCAB_IS);
+                //reply.add(command.get(1));
+                /*switch(command.get(1).asVocab()) {
+                    
+                case COMMAND_VOCAB_MAXDB:
+                    {
+                        
+                        //reply.addInt(nb);
+                        ok = true;
+                    }
+                    break;
+                case COMMAND_VOCAB_MINDB:
+                    {
+                        
+                        //reply.addInt(nb);
+                        ok = true;
+                    }
+                    break;
+                case COMMAND_VOCAB_FRGB:
+                    {
+                        int redValue,greenValue, blueValue;
+                        
+                        reply.addInt(redValue);
+                        reply.addInt(greenValue);
+                        reply.addInt(blueValue);
+                        ok = true;
+                    }
+                    break;
+                    
+            
+                   
+                    
+                default:
+                    cout << "received an unknown request after a SALIENCE_VOCAB_GET" << endl;
+                    break;
+                    }*/
+
+                ok = true;
+                
+            }
+            break;
+            
+        }
+        mutex.post();
+        
+        if (!rec)
+            ok = RFModule::respond(command,reply);
+        
+        if (!ok) {
+            reply.clear();
+            reply.addVocab(COMMAND_VOCAB_FAILED);
+        }
+        else
+            reply.addVocab(COMMAND_VOCAB_OK);
+        
+        return ok;
+    } 	
+    
     double getPeriod()    { return 1.0;  }
     bool   updateModule() { return true; }
 };

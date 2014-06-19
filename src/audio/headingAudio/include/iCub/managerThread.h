@@ -222,6 +222,9 @@ using namespace yarp::dev;
 using namespace yarp::math;
 using namespace iCub::ctrl;
 
+
+
+
 class Predictor
 {
 protected:
@@ -266,6 +269,7 @@ protected:
     string name;
     string robot;
     string eyeUsed;
+    string action;
 
     bool useLeftArm;
     bool useRightArm;
@@ -340,6 +344,7 @@ protected:
     int startup_context_id_left;
     int startup_context_id_right;
     int startup_context_id_gaze;
+
 
     void getTorsoOptions(Bottle &b, const char *type, const int i, Vector &sw, Matrix &lim)
     {
@@ -701,9 +706,9 @@ protected:
     void commandHead()
     {
         
-      if (state!=STATE_IDLE)
+        if((state!=STATE_IDLE) && (action=="look"))
         {
-          gazeCtrl->lookAtFixationPoint(targetPos);
+            gazeCtrl->lookAtFixationPoint(targetPos);
             
             if (outportGui.getOutputCount()>0)
             {
@@ -1032,7 +1037,7 @@ protected:
     {
       if (useLeftArm || useRightArm)
         {
-            if (state==STATE_REACH)
+            if ((state==STATE_REACH) && (action=="point"))
             {
                 Vector x=R.transposed()*(targetPos+*armReachOffs);
                 limitRange(x);
@@ -1047,7 +1052,7 @@ protected:
     {
       if (useLeftArm || useRightArm)
         {
-            if (state==STATE_REACH)
+            if ((state==STATE_REACH) && (action=="point"))
             {
                 if (checkTargetForGrasp() && checkArmForGrasp())
                 {    
@@ -1077,7 +1082,7 @@ protected:
     {
       if (useLeftArm || useRightArm)
         {
-            if (state==STATE_RELEASE)
+            if ((state==STATE_RELEASE) && (action=="point"))
             {
                 if ((Time::now()-latchTimer)>releaseTmo)
                 {
@@ -1284,7 +1289,8 @@ public:
     {        
         drvTorso=drvHead=drvLeftArm=drvRightArm=NULL;
         drvCartLeftArm=drvCartRightArm=NULL;
-        drvGazeCtrl=NULL;        
+        drvGazeCtrl=NULL; 
+        action = "look";
     }
 
     bool threadInit()
@@ -1656,5 +1662,10 @@ public:
         gazeCtrl->restoreContext(startup_context_id_gaze);
 
         close();
+    }
+
+    void setAction(string str) {
+        action = str;
+        printf("setting action reference: %s \n", str.c_str());
     }
 };
