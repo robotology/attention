@@ -2,9 +2,9 @@
 
 
 /*
-  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Shashank Pathak
-  * email: shashank.pathak@iit.it
+  * Copyright (C)2014  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Francesco Rea
+  * email: francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -19,11 +19,11 @@
 */
 
 /**
- * @file repeaterThread.cpp
- * @brief Implementation of the eventDriven thread (see repeaterThread.h).
+ * @file eyeInterpreterThread.cpp
+ * @brief Implementation of the eventDriven thread (see eyeInterpreterThread.h).
  */
 
-#include <iCub/repeaterThread.h>
+#include <iCub/eyeInterpreterThread.h>
 #include <cstring>
 
 using namespace yarp::dev;
@@ -31,20 +31,20 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-repeaterThread::repeaterThread():inputCbPort() {
+eyeInterpreterThread::eyeInterpreterThread():inputCbPort() {
     robot = "icub";        
 }
 
-repeaterThread::repeaterThread(string _robot, string _configFile):inputCbPort(){
+eyeInterpreterThread::eyeInterpreterThread(string _robot, string _configFile):inputCbPort(){
     robot = _robot;
     configFile = _configFile;
 }
 
-repeaterThread::~repeaterThread() {
+eyeInterpreterThread::~eyeInterpreterThread() {
     // do nothing
 }
 
-bool repeaterThread::threadInit() {
+bool eyeInterpreterThread::threadInit() {
 
     
     /* open ports */ 
@@ -65,23 +65,23 @@ bool repeaterThread::threadInit() {
 
 }
 
-void repeaterThread::setName(string str) {
+void eyeInterpreterThread::setName(string str) {
     this->name=str;
     printf("name: %s", name.c_str());
 }
 
 
-std::string repeaterThread::getName(const char* p) {
+std::string eyeInterpreterThread::getName(const char* p) {
     string str(name);
     str.append(p);
     return str;
 }
 
-void repeaterThread::setInputPortName(string InpPort) {
+void eyeInterpreterThread::setInputPortName(string InpPort) {
     this->inputPortName = InpPort;
 }
 
-void repeaterThread::run() {    
+void eyeInterpreterThread::run() {    
     while (isStopping() != true) {
         if (inputCbPort.getInputCount()) {
             inputImage = inputCbPort.read(true);
@@ -91,12 +91,12 @@ void repeaterThread::run() {
     }               
 }
 
-void repeaterThread::threadRelease() {
+void eyeInterpreterThread::threadRelease() {
     // nothing
      
 }
 
-void repeaterThread::onStop() {
+void eyeInterpreterThread::onStop() {
     inputCallbackPort.interrupt();
     outputPort.interrupt();
 

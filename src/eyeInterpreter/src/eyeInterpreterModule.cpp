@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
-  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Shashank Pathak
-  * email: shashank.pathak@iit.it
+  * Copyright (C)2014  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Francesco Rea
+  * email: francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -18,11 +18,11 @@
 */
 
 /**
- * @file repeaterModule.cpp
- * @brief Implementation of the repeaterModule (see header file).
+ * @file eyeInterpreterModule.cpp
+ * @brief Implementation of the eyeInterpreterModule (see header file).
  */
 
-#include "iCub/repeaterModule.h"
+#include "iCub/eyeInterpreterModule.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -35,12 +35,12 @@ using namespace std;
  *  equivalent of the "open" method.
  */
 
-bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
+bool eyeInterpreterModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
 
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
-                           Value("/repeater"), 
+                           Value("/eyeInterpreter"), 
                            "module name (string)").asString();
     /*
     * before continuing, set the module name before getting any other parameters, 
@@ -87,7 +87,7 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* create the thread and pass pointers to the module parameters */
-    rThread = new repeaterThread(robotName, configFile);
+    rThread = new eyeInterpreterThread(robotName, configFile);
     rThread->setName(getName().c_str());
     //rThread->setInputPortName(inputPortName.c_str());
     
@@ -98,12 +98,12 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
                         // so that it will then run the module
 }
 
-bool repeaterModule::interruptModule() {
+bool eyeInterpreterModule::interruptModule() {
     handlerPort.interrupt();
     return true;
 }
 
-bool repeaterModule::close() {
+bool eyeInterpreterModule::close() {
     handlerPort.close();
     /* stop the thread */
     printf("stopping the thread \n");
@@ -111,7 +111,7 @@ bool repeaterModule::close() {
     return true;
 }
 
-bool repeaterModule::respond(const Bottle& command, Bottle& reply) 
+bool eyeInterpreterModule::respond(const Bottle& command, Bottle& reply) 
 {
     string helpMessage =  string(getName().c_str()) + 
                 " commands are: \n" +  
@@ -132,14 +132,14 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
 }
 
 /* Called periodically every getPeriod() seconds */
-bool repeaterModule::updateModule()
+bool eyeInterpreterModule::updateModule()
 {
     return true;
 }
 
-//double repeaterModule::getPeriod()
-//{
-    /* module periodicity (seconds), called implicitly by myModule */
-//    return 0.1;
-//}
+double eyeInterpreterModule::getPeriod()
+{
+    /* module periodicity (seconds), called implicitly */
+    return 1;
+}
 

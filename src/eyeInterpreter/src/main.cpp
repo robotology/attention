@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
-  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Shashank Pathak
-  * email: shashank.pathak@iit.it
+  * Copyright (C)2014  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Francesco Rea
+  * email: francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -19,10 +19,10 @@
   
 /**
  * @file main.cpp
- * @brief main code for the eventDriven module.
+ * @brief main code for the eyeInterpreter module.
  */
 
-#include "iCub/repeaterModule.h" 
+#include "iCub/eyeInterpreterModule.h" 
 
 
 using namespace yarp::os;
@@ -33,13 +33,13 @@ int main(int argc, char * argv[])
 {
     
     Network yarp;
-    repeaterModule module; 
+    eyeInterpreterModule module; 
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("repeater.ini");      //overridden by --from parameter
-    rf.setDefaultContext("eMorph/conf");    //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);  
+    rf.setDefaultConfigFile("eyeInterpreter.ini");      //overridden by --from parameter
+    rf.setDefaultContext("logpolarAttention");          //overridden by --context parameter
+    rf.configure( argc, argv);  
  
     module.runModule(rf);
     return 0;

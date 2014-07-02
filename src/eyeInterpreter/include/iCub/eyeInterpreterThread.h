@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
-  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Shashank Pathak
-  * email: shashank.pathak@iit.it
+  * Copyright (C)2014  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Francesco Rea
+  * email: francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -23,8 +23,8 @@
  */
 
 
-#ifndef _REPEATER_THREAD_H_
-#define _REPEATER_THREAD_H_
+#ifndef _EYE_INTERPRETER_H_
+#define _EYE_INTERPRETER_H_
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -58,7 +58,7 @@ public:
 };
 
 
-class repeaterThread : public yarp::os::Thread {
+class eyeInterpreterThread : public yarp::os::Thread {
 private:
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
@@ -75,18 +75,18 @@ public:
     /**
     * constructor default
     */
-    repeaterThread();
+    eyeInterpreterThread();
 
     /**
     * constructor 
     * @param robotname name of the robot
     */
-    repeaterThread(std::string robotname,std::string configFile);
+    eyeInterpreterThread(std::string robotname,std::string configFile);
 
     /**
      * destructor
      */
-    ~repeaterThread();
+    ~eyeInterpreterThread();
 
     /**
     *  initialises the thread
@@ -130,7 +130,7 @@ public:
 
 };
 
-#endif  //_REPEATER_THREAD_H_
+#endif  //_EYE_INTERPRETER_THREAD_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 
