@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     //rf.setMonitor(&rep);
-    rf.setDefaultContext("demoGrasp_IIT_ISR");
+    rf.setDefaultContext("audioAttention");
     rf.setDefaultConfigFile("config.ini");
     rf.configure(argc,argv);
 

@@ -608,30 +608,38 @@ protected:
               endPos2 = startPos2 - value ;
               printf("got %f subtracted from %f \n", value, startPos2);
               
+              if((endPos2 < -62) ) {
+                  endPos2 = -62;
+              }
+              if(endPos2 > 62){
+                  endPos2 = 62;
+              }
+
               Vector fp(4);
               fp(0) = -1 * (cos(endPos2 * deg2rad) * r); 
               fp(1) = -1 * (sin(endPos2 * deg2rad) * r);
-              fp(2) = 0.3;
+              fp(2) = 0.4;
               fp(3) = 1.0;
               printf("angle %f reaching for %s \n", endPos2, fp.toString().c_str());
-
+              
               if (!gsl_isnan(fp[0]) && !gsl_isnan(fp[1]) && !gsl_isnan(fp[2]))
-                {
-                  Vector x,o;
-                  if (eyeUsed=="left")
-                    gazeCtrl->getLeftEyePose(x,o);
-                  else
-                    gazeCtrl->getRightEyePose(x,o);
-                  
-                  Matrix T=axis2dcm(o);
-                  T(0,3)=x[0];
-                  T(1,3)=x[1];
-                  T(2,3)=x[2];
-                  
-                  targetPos=fp;
-                  targetPos.pop_back();
-                  newTarget=true;
-                }
+                  {
+                      Vector x,o;
+                      if (eyeUsed=="left")
+                          gazeCtrl->getLeftEyePose(x,o);
+                      else
+                          gazeCtrl->getRightEyePose(x,o);
+                      
+                      Matrix T=axis2dcm(o);
+                      T(0,3)=x[0];
+                      T(1,3)=x[1];
+                      T(2,3)=x[2];
+                      
+                      targetPos=fp;
+                      targetPos.pop_back();
+                      newTarget=true;
+                  }
+              
             }
         }
         else if (Bottle *targetPosNew=inportTrackTarget.read(false))
