@@ -1,5 +1,5 @@
 # Copyright: (C) 2010 RobotCub Consortium
-# Authors: Giorgio Metta, Francesco Rea
+# Authors: Francesco Rea, Giorgio Metta
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.6)
@@ -13,6 +13,7 @@ add_subdirectory( earlyVision               )
 add_subdirectory( earlyVisionInterface      )
 add_subdirectory( faceDetector              )
 add_subdirectory( iCubGuiPopulator          )
+add_subdirectory( iKartFollower             )
 add_subdirectory( eyeInterpreter            )
 add_subdirectory( mosaic                    )
 add_subdirectory( logOpticFlow              )
