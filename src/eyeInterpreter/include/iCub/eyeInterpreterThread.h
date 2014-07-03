@@ -67,7 +67,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
 
     inputCBPort inputCbPort;  // buffered port listening to images through callback
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;     // output port to plot event
     std::string name;                                                                // rootname of all the ports opened by this thread
     

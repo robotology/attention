@@ -85,8 +85,10 @@ void eyeInterpreterThread::run() {
     while (isStopping() != true) {
         if (inputCbPort.getInputCount()) {
             inputImage = inputCbPort.read(true);
-            outputPort.prepare() = *inputImage;
-            outputPort.write();  
+		 if (outputPort.getOutputCount()) {
+            		outputPort.prepare() = *inputImage;
+            		outputPort.write();
+		 }  
         }
     }               
 }
