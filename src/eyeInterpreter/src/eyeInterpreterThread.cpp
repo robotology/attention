@@ -99,10 +99,10 @@ void eyeInterpreterThread::threadRelease() {
 }
 
 void eyeInterpreterThread::onStop() {
-    inputCallbackPort.interrupt();
+    //inputCallbackPort.interrupt();
     outputPort.interrupt();
 
-    inputCallbackPort.close();
+    //inputCallbackPort.close();
     outputPort.close();
 }
 
