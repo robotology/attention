@@ -45,10 +45,10 @@ add_definitions(${YARP_DEFINES})
 include(YarpInstallationHelpers)
 
 
-#find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED)
 #find_package(GtkPlus REQUIRED)
 #find_package(GSL)
-#find_package(IPOPT)
+find_package(IPOPT)
 
 
 SET(CUDAVISION_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)
