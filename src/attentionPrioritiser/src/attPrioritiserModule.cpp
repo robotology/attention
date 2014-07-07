@@ -106,7 +106,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         if (rf.check("camerasContext")) {
             printf("found a new context %s \n", rf.find("camerasContext").asString().c_str());
             // rf.find("camerasContext").asString().c_str()
-            rf.setDefaultContext("cameraCalibration/conf");
+            rf.setDefaultContext("cameraCalibration");
         }
         
         camerasFile=rf.findFile(rf.find("camerasFile").asString().c_str());
@@ -117,6 +117,8 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         camerasFile.clear();
     }
     printf("configFile: %s \n", camerasFile.c_str());
+
+    rf.setDefaultContext("logpolarAttention");
 
 
     robotName             = rf.check("visualFeedback", 
