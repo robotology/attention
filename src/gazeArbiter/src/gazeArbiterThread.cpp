@@ -1366,8 +1366,8 @@ void gazeArbiterThread::run() {
                     printf("read from the port %s \n", status.toString().c_str());
                     status.addString("SAC_ACC");
                     printf("read from the port %s \n", status.toString().c_str());
-                    Time::delay(3.0);
-                    statusPort.write();
+                    
+                    statusPort.writeStrict();
                     
                 }
             }

@@ -295,7 +295,8 @@ attPrioritiserThread::~attPrioritiserThread() {
 }
 
 bool attPrioritiserThread::threadInit() {
-
+    eyeL = new iCubEye("left");
+    eyeR = new iCubEye("right"); 
     printf(" \n ---------------------------- attPrioritiserThread::threadInit:starting the thread.... \n");
     
     template_size = 20;
@@ -303,23 +304,26 @@ bool attPrioritiserThread::threadInit() {
     point.x = 320;
     point.y = 240;
 
-    printf("just got camera information \n");
-
-    eyeL = new iCubEye("left");
-    eyeR = new iCubEye("right");    
+    printf("just got camera information left \n");
+       
+    printf("just got camera information right \n");
+   
     
+    
+    printf("getting camera projection \n");
     // get camera projection matrix from the configFile
     if (getCamPrj(configFile,"CAMERA_CALIBRATION_LEFT",&PrjL)) {
         Matrix &Prj = *PrjL;
         //_old cxl=Prj(0,2);
         //_old cyl=Prj(1,2);
+        printf("invert the matrix camera calibration matrix left \n");
         invPrjL=new Matrix(pinv(Prj.transposed()).transposed());
     }
-     
- 
 
     template_roi.width = template_roi.height = template_size;
     search_roi.width   = search_roi.height   = search_size;
+
+    printf("opening ports \n");
 
     //opening port section 
     string rootNameStatus("");rootNameStatus.append(         getName("/feedback:o"));
@@ -702,8 +706,8 @@ void attPrioritiserThread::run() {
 
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
-    //double start = Time::now();
-    //printf("allowStateRequest %d \n", allowStateRequest[6]);
+    //double start = Time::now(); 
+    //printf("allowStateRequest  %d          %d              %d               %d              %d               %d                %d \n", allowStateRequest[0], allowStateRequest[1], allowStateRequest[2], allowStateRequest[3],allowStateRequest[4], allowStateRequest[5], allowStateRequest[6]);
     //printf("stateRequest: %s \n", stateRequest.toString().c_str());
     //mutex.wait();
     
@@ -1316,7 +1320,7 @@ void attPrioritiserThread::run() {
         waitResponse[2] = true;
         timeoutResponseStart = Time::now();
         
-         printf(" __________________ Vergence ______________________\n");
+         printf(" ------------------- Vergence ---------------------- \n");
 
         // initialising the tracker not necessary because it started before
         // the risk is that it redefines tracking for every vergence command
@@ -1362,7 +1366,7 @@ void attPrioritiserThread::run() {
 
             if((ver_accomplished)/*||(timeout>5.0)*/) {
                 //resume early processes
-                //printf("vergence: accomplished sending resume command \n");
+                printf("vergence: accomplished sending resume command \n");
 
                 // nofiying state transition            
                 //Bottle notif;
@@ -1375,12 +1379,13 @@ void attPrioritiserThread::run() {
                 stopVergence = true;
 
                 if(feedbackPort.getOutputCount()) {
-                    //printf("feedback resetting \n");
+                    printf("feedback resetting \n");
                     Bottle* sent     = new Bottle();
                     Bottle* received = new Bottle();    
                     sent->clear();
                     sent->addVocab(COMMAND_VOCAB_RESUME);
-                    feedbackPort.write(*sent, *received);
+                    //feedbackPort.write(*sent, *received);             // Removed the 07/07/2014 because missing reply from selectiveAttention
+                    printf("received reply on feedback connection \n");
                     delete sent;
                     delete received;
                 }
@@ -1537,7 +1542,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(2) = 0;
         executing = false;
-        //printf ("Transition request 2 reset \n");
+        printf ("Transition request 2 reset \n");
         mutex.post();
     }
     else if(allowedTransitions(1)>0) { //wait
@@ -2067,7 +2072,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
  //============================================================================        
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
-            printf("SAC_MONO command received \n");
+            printf("SAC_MONO command received with waitingWaitCommand %d \n", waitResponse[1]);
 
             stopVergence = false;
 
@@ -2947,6 +2952,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             setChanged();
             notifyObservers(&notif); 
 
+            
             // waiting fix command added
             pendingCommand2->clear();
             pendingCommand2->addString("WAIT");
@@ -2955,6 +2961,18 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //pendingCommand->addString("fix");
             pendingCommand2->addDouble(0.5);
             isPendingCommand2 = true; 
+            
+            
+            /*
+            // waiting fix command added
+            pendingCommand->clear();
+            pendingCommand->addString("WAIT");
+            pendingCommand->addInt(160);
+            pendingCommand->addInt(140);
+            //pendingCommand->addString("fix");
+            pendingCommand->addDouble(0.5);
+            isPendingCommand = true; 
+            */
 
             printf("WAITING for WAIT in FIXATION!!!!!!!! \n");
             
