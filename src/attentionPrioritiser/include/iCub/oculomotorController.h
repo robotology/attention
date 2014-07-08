@@ -209,7 +209,8 @@ private:
     int countVergence;         // counter of vergence commands
     int countEntropy;          // counter of entropy measures
     int cUpdate;               // counter of observable updates
-    int iter;                  // counter of any iteration in learning
+    int iter;                  // counter of any iteration
+    
     int width, height;         // image dimension
     std::string name;          // rootname of all the ports opened by this thread
 

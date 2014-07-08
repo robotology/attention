@@ -32,9 +32,9 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-#define MAXCOUNTRAND 500.0  // #iteration after which the policy is only quality-based
-#define GOALSTATE     14     // goal state success in episodic learning
-
+#define MAXCOUNTRAND     500.0   // #iteration after which the policy is only quality-based
+#define GOALSTATE        14      // goal state success in episodic learning
+#define COUNTVERGENCEMAX 8       // counter of the successive vergence command desired
 
 
 inline bool isnan_fun(double x) {
@@ -51,18 +51,19 @@ double Log2( double n )
 
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
-    j            = 0.9;    // discount factor  
-    alfa         = 0.5;       // learning rate : how fast learns
-    countSucc    = 0;
-    countStep    = 0;
-    countVergence= 0;
-    countEntropy = 0;
-    iter         = 0;
-    jiter        = 1;
-    cUpdate      = 0;
-    state_next   = 0;
-    totalPayoff  = 0;
-    entropy      = 0;
+    j             = 0.9;    // discount factor  
+    alfa          = 0.5;       // learning rate : how fast learns
+    countSucc     = 0;
+    countStep     = 0;
+    countVergence = 0;
+    countEntropy  = 0;
+  
+    iter          = 0;
+    jiter         = 1;
+    cUpdate       = 0;
+    state_next    = 0;
+    totalPayoff   = 0;
+    entropy       = 0;
 
     firstCount      = false;
     stateTransition = false;
@@ -479,7 +480,7 @@ bool oculomotorController::policyWalk(double policyProb){
     
     // multiple vergence commands
     if ((j == 2)&&(countVergence == 0)) {
-        countVergence = 5;
+        countVergence = COUNTVERGENCEMAX;
     }
     if(countVergence > 0) {
         action_now = 2;
@@ -530,7 +531,8 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     double a = Random::uniform() * NUMACTION;
     if((int) a == 2) {
         //printf("Counting vergence 3 \n");
-        countVergence = 5;
+        // initializing the counter of successive vergence commands to default max number
+        countVergence = COUNTVERGENCEMAX;
     }
     
     //printf(" a =%f, countVergence=%d \n", a, countVergence);
@@ -575,6 +577,7 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
         }
         printf("------------------- randomAction %f . action selected %d \n", randAction, j);
         if(countVergence > 0) {
+            printf("countVergence %d \n", countVergence);
             action_now = 2;
             countVergence--;
         }
@@ -756,8 +759,12 @@ void oculomotorController::learningStep() {
     mutexStateTransition.post();
     
     // stateTransition branch is executed when the stateTransion = false
-    // this flag is set true when an action is performed 
+    // this flag is set true when an action is performing
     // this flag is set false when the action is accomplished
+    if(stateTransition) {
+        printf("state in transition! wait \n");
+    }
+
     if(!_stateTransition) {
         //printf("!stateTransition branch \n");
         
@@ -771,7 +778,7 @@ void oculomotorController::learningStep() {
         }
         double s = Random::uniform();
 
-        printf("_______________ countSucc %d countStep %d  state_now %d s %f k %f______________ \n \n", countSucc,countStep, state_now, s, k);
+        printf(" executing learning step:  countSucc %d countStep %d  state_now %d s %f k %f______________ \n \n", countSucc,countStep, state_now, s, k);
 
        
         //if(countSucc == MAXCOUNTRAND) {
@@ -791,7 +798,7 @@ void oculomotorController::learningStep() {
        
         
         
-        printf("s %f \n ", s);
+        printf("s=%f > k=%f? \n ", s, k);
         if(s >= k) {
             printf("------------------- policyWalk action selection \n");
             fprintf(logFile,"policyWalk > ");
@@ -849,7 +856,8 @@ void oculomotorController::learningStep() {
         } 
     } //end if(!_stateTransition)
 
-    //printf("oculomotorController::learningStep : step performed \n");
+    printf("=======oculomotorController::learningStep : step performed ============== \n");
+    
 }
 
 double oculomotorController::calculateEntropy(yarp::sig::ImageOf<yarp::sig::PixelBgr>* entImg,double& entropy, int& counter) {
@@ -980,7 +988,8 @@ void oculomotorController::run() {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
             //fprintf(logFile,"%d ",iter);
-            learningStep();    
+            learningStep();
+            
         }
         
         ot->setValue(totalPayoff);
@@ -1121,6 +1130,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
 
         switch(arg->get(0).asVocab()) {
         case COMMAND_VOCAB_STAT :{
+            // called from the observed class (attentioPrioritiser)
                      
             //int actionvalue = (int) arg->get(1).asDouble();  // action that is just finalized
             int actionvalue = 0;
@@ -1150,7 +1160,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             //double r = rewardStateAction->operator()(state_now,action_now) ;
             double   r = estimateReward(timing, accuracy, amplitude, frequency);
             //double r = accuracy / 10.0 - timing * cost[action_now] * amplitude;
-            printf("calculated the accuracy for state, action %d,%d \n", state_now,action_now);
+            printf("calculated the accuracy for state, action %d,%d r= %f \n", state_now,action_now, r);
 
             if (statevalueparam == GOALSTATE) {
                 r += 1000;
@@ -1175,11 +1185,13 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 printf("UPDATING THE QUALITY with NAN!!!!!\n");
                 printf("state_now %d \n action_now %d \n state_next = %d \n r=%f \n j=%f \n V=%f \n ",
                        state_now, action_now, state_next, r, j,V->operator()(0,state_next) );                
+                
             }
             if(std::isinf(Q->operator()(state_now,action_now) )){
                 printf("UPDATING THE QUALITY with INF!!!!!\n");
                 printf("state_now %d \n action_now %d \n state_next = %d \n r=%f \n j=%f \n V=%f \n ",
-                       state_now, action_now, state_next, r, j,V->operator()(0,state_next) );                 
+                       state_now, action_now, state_next, r, j,V->operator()(0,state_next) );    
+                
             }
             
             // // 4. calculating the total Payoff
@@ -1188,7 +1200,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             
 
             totalPayoff = totalPayoff + r * jiter;
-            //printf("final totalPayoff %f \n", totalPayoff);
+            printf("final totalPayoff %f with jiter %f \n", totalPayoff, jiter);
             jiter  = jiter * j;        
             
             // // 5. moving to next state

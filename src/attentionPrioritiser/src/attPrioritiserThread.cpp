@@ -1203,6 +1203,7 @@ void attPrioritiserThread::run() {
                         //notifyObservers(&notif);
                         
                         //printf("enabling vergence \n");
+                        // enabling vergence again after the VER_ACC
                         stopVergence = false;
                         
                         if(sac_accomplished) {
@@ -1364,17 +1365,17 @@ void attPrioritiserThread::run() {
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
 
-            if((ver_accomplished)/*||(timeout>5.0)*/) {
+            if(false/*(ver_accomplished)||(timeout>5.0)*/) {
                 //resume early processes
                 printf("vergence: accomplished sending resume command \n");
 
-                // nofiying state transition            
-                //Bottle notif;
-                //notif.clear();
-                //notif.addVocab(COMMAND_VOCAB_STAT);
-                //notif.addDouble(10);                  // code for vergence accomplished
-                //setChanged();
-                //notifyObservers(&notif);
+                // nofiying state transition  added back 8/7/2014 (double check this)          
+                Bottle notif;
+                notif.clear();
+                notif.addVocab(COMMAND_VOCAB_STAT);
+                notif.addDouble(10);                  // code for vergence accomplished
+                setChanged();
+                notifyObservers(&notif);
 
                 stopVergence = true;
 
@@ -1399,19 +1400,23 @@ void attPrioritiserThread::run() {
                 //notif.addDouble(8);                  // code for vergence angle under correction
                 //setChanged();
                 //notifyObservers(&notif);
+
                 
-                //printf("vergence: sending relative angle to the gazeArbiter \n");
-                bool port_is_writing;
-                Bottle& commandBottle = outputPort.prepare();
-                
-                printf("VER@%f %f %f \n", phi, phi2, phi3);
-                commandBottle.clear();
-                commandBottle.addString("VER_REL");
-                commandBottle.addDouble(phi);
-                commandBottle.addDouble(phi2);
-                commandBottle.addDouble(phi3);
-                outputPort.write();
-                Time::delay(0.1);
+                //avoid calling for vergence when in stopping mode after VER_ACC
+                if(!stopVergence) {
+                    //printf("vergence: sending relative angle to the gazeArbiter \n");
+                    bool port_is_writing;
+                    Bottle& commandBottle = outputPort.prepare();
+                    
+                    printf("VER@%f %f %f \n", phi, phi2, phi3);
+                    commandBottle.clear();
+                    commandBottle.addString("VER_REL");
+                    commandBottle.addDouble(phi);
+                    commandBottle.addDouble(phi2);
+                    commandBottle.addDouble(phi3);
+                    outputPort.write();
+                    Time::delay(0.1);
+                }
                 
             }                        
         }
@@ -1542,7 +1547,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(2) = 0;
         executing = false;
-        printf ("Transition request 2 reset \n");
+        //printf ("Transition request 2 reset \n");
         mutex.post();
     }
     else if(allowedTransitions(1)>0) { //wait
@@ -1550,7 +1555,7 @@ void attPrioritiserThread::run() {
         state(6) = 0; state(5) = 0; state(4) = 0; state(3) = 0 ; state(2) = 0 ; state(1) = 0 ; state(0) = 1;   
         allowedTransitions(1) = 0;
         executing = false;
-        printf ("Transition request 1 revert \n");
+        //printf ("Transition request 1 revert \n");
         
         mutex.post();
     }
@@ -2073,7 +2078,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
             printf("SAC_MONO command received with waitingWaitCommand %d \n", waitResponse[1]);
-
+            // the saccades enables the vergence back (stopVergence) after the ver_accomplished
             stopVergence = false;
 
             //Time::delay(5.0);
@@ -2499,6 +2504,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             phi3 = arg->get(3).asDouble();
             
             //printf("\r                                                      \r");
+            // stop vergence puts the commands on hold after the VER_ACC
             if(!stopVergence) {
                 
                 //printf("vergence command received %d \n", firstVergence);
@@ -2904,6 +2910,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================               
         else if((!strcmp(name.c_str(),"VER_ACC")) && (waitResponse[2])) {
+            printf("VERGENCE ACCOMPLISHED \n\n\n\n\n");
             waitResponse[2] = false;
             timeoutResponseStart = Time::now();
             
