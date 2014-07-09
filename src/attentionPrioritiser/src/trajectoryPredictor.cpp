@@ -581,7 +581,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
             px(1) = p_curr.y;
             igaze->get3DPointOnPlane(camSel,px,plane,x3D);
             //igaze->get3DPoint(camSel,px,z,x3D);
-            printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
+            //printf (     "%f %f %f\n", x3D(0) - x0, x3D(1) - y0, x3D(2) - z0);
             fprintf(fout,"%f %f %f\n", x3D(0) , x3D(1) , x3D(2));
 
 
@@ -728,19 +728,18 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     evalThread* minPredictor = 0;    // if any predictor fails the pointer to the predictor remains null
     
     while(finished < eQueue->size()) {
-        printf("eval evaluation %d < %d \n",finished, eQueue->size() );
+        //printf("eval evaluation %d < %d \n",finished, eQueue->size() );
         Time::delay(0.1);
         while(it != eQueue->end() ) {
             if( (*it)->getEvalFinished()) {
                 (*it)->setEvalFinished(false);    // setting back to false the variable otherwise multiple detection can happen 
                 finished++;
-                printf(" predictor %s %f %f ends estimation.state %s \n",
- (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str());
+                //printf(" predictor %s %f %f ends estimation.state %s \n", (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str());
                 
                 double currentMSE = (*it)->getMSE();
                 fprintf(fMeasure," predictor %s distance:%f period:%f ends; estimation.state:%s MSE:%f ",
                         (*it)->getType().c_str(), (*it)->getParamA(), (*it)->getParamB(),(*it)->getX().toString().c_str(), currentMSE);
-                printf("  error: %f       \n", currentMSE);
+                //printf("  error: %f       \n", currentMSE);
                 
                 if( currentMSE <  minMSE) {
                     minMSE = currentMSE;
@@ -751,7 +750,7 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
         }
         it = eQueue->begin();
     }
-    printf("eval evaluatio ended. fineshed=%d >= size=%d \n",finished, eQueue->size() );
+    //printf("eval evaluatio ended. fineshed=%d >= size=%d \n",finished, eQueue->size() );
     //printf("---------------------------- GETEVALFINISHED %d \n",eval->getEvalFinished() );
     
     if(minPredictor == 0) {

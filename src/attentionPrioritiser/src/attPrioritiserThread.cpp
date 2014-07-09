@@ -174,7 +174,8 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
     correcting         = false;
     pred_accomplished  = false;
     sac_accomplished   = false;
-    stopVergence       = true;
+    ver_accomplished   = false;
+    stopVergence       = false;
 
     // initialisation of integer values
     phiTOT = 0;
@@ -942,7 +943,9 @@ void attPrioritiserThread::run() {
         }
 
         if(!executing) {                       
-            
+            ver_accomplished = false; // IMPORTANT:sets the vergence value back to false
+            stopVergence = false;
+
             correcting = false;
             executing  = true;
             collectionLocation[0 + 0] = u;
@@ -1105,6 +1108,9 @@ void attPrioritiserThread::run() {
 
         if(!executing) {                       
             //printf("\n \n ____________________ Planned Saccade ___________________ \n");
+            ver_accomplished = false; // IMPORTANT:sets the vergence value back to false
+            stopVergence = false;
+            printf("setting ver_accomplished flag false \n");
             
             if((u==-1)||(v==-1)) {
                 printf(" \n ----------- Stereo Planned Saccade ------------  \n");
@@ -1298,6 +1304,9 @@ void attPrioritiserThread::run() {
 
         if(!executing) {                       
             printf("---------------- Smooth Pursuit --------------\n");
+            executing = true;
+            ver_accomplished = false; // IMPORTANT:sets the vergence value back to false
+            stopVergence = false;
             //printf("SM_PUR %f %f %f \n", Vx, Vy, time);
             
             // executing the saccade
@@ -1316,12 +1325,13 @@ void attPrioritiserThread::run() {
     }
 //===================================================================================================
     else if(allowedTransitions(2)>0) {
+        
         // ----------------  Vergence  -----------------------
         state(6) = 0; state(5) = 0 ; state(4) = 0 ; state(3) = 0 ; state(2) = 1; state(1) = 0 ; state(0) = 0;
         waitResponse[2] = true;
         timeoutResponseStart = Time::now();
         
-         printf(" ------------------- Vergence ---------------------- \n");
+        printf(" ------------------- Vergence ---------------------- \n");
 
         // initialising the tracker not necessary because it started before
         // the risk is that it redefines tracking for every vergence command
@@ -1348,7 +1358,9 @@ void attPrioritiserThread::run() {
         */
 
         if(!executing) {
- 
+            printf("vergence in executing with ver_accomplished = %d \n", ver_accomplished);
+            executing = true;
+            
             //correcting =  false;
             //collectionLocation[0 + 0] = u;
             //collectionLocation[0 * 2 + 1] = v;
@@ -1365,20 +1377,25 @@ void attPrioritiserThread::run() {
             timeoutStop = Time::now();
             timeout = timeoutStop - timeoutStart;
 
-            if(false/*(ver_accomplished)||(timeout>5.0)*/) {
-                //resume early processes
+            if((ver_accomplished)/*||(timeout>5.0)*/) {
+                //resume early processes. executed when the oculomotorController asks for vergence but in ver_accomplished
                 printf("vergence: accomplished sending resume command \n");
+                waitResponse[2] = false;            //automatically reset the waitResponse because in ver_acc
+                timeoutResponseStart = Time::now(); //starting the timer for a control on responses
 
-                // nofiying state transition  added back 8/7/2014 (double check this)          
+                
+                // nofiying state transition  added back 8/7/2014. Needed to set stateTransition=false in the oculomotorController         
                 Bottle notif;
                 notif.clear();
                 notif.addVocab(COMMAND_VOCAB_STAT);
                 notif.addDouble(10);                  // code for vergence accomplished
                 setChanged();
                 notifyObservers(&notif);
+                
 
-                stopVergence = true;
+                //stopVergence = true;
 
+                /*
                 if(feedbackPort.getOutputCount()) {
                     printf("feedback resetting \n");
                     Bottle* sent     = new Bottle();
@@ -1390,9 +1407,10 @@ void attPrioritiserThread::run() {
                     delete sent;
                     delete received;
                 }
+                */
                 firstVergence = true;
             }
-            else {
+            else {  // executed when ver_accomplished is false
                 // nofiying state transition            
                 //Bottle notif;
                 //notif.clear();
@@ -1401,6 +1419,7 @@ void attPrioritiserThread::run() {
                 //setChanged();
                 //notifyObservers(&notif);
 
+                printf("in vergence with !ver_accomplished and stopVergence = %d \n", stopVergence);
                 
                 //avoid calling for vergence when in stopping mode after VER_ACC
                 if(!stopVergence) {
@@ -1420,7 +1439,8 @@ void attPrioritiserThread::run() {
                 
             }                        
         }
-         printf(" __________________ Vergence __________________ \n\n");
+        printf(" __________________ Vergence __________________ \n\n");
+        
     
     }
 //================================================================================================================
@@ -1479,6 +1499,8 @@ void attPrioritiserThread::run() {
         waitResponse[0] = true;
         timeoutResponseStart = Time::now();
         amplitude = 0;
+        ver_accomplished = false; // IMPORTANT:sets the vergence value back to false
+        stopVergence = false;
         //tracker->init(u,v);
         //tracker->waitInitTracker();
 
@@ -2078,8 +2100,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
             printf("SAC_MONO command received with waitingWaitCommand %d \n", waitResponse[1]);
-            // the saccades enables the vergence back (stopVergence) after the ver_accomplished
-            stopVergence = false;
+            
 
             //Time::delay(5.0);
             
@@ -2235,6 +2256,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     //reinforceFootprint has not happened yet
                     mutex.wait();
                     if(allowStateRequest[4]) {
+                        // the saccades enables the vergence back (stopVergence) after the ver_accomplished
+                        stopVergence = false;
+                        ver_accomplished = false;
                         printf("setting stateRequest[4], reinforceFootprint has not happened \n");
                         stateRequest[4] = 1;    //planned saccade
                         mutexAcc.wait();
@@ -2634,7 +2658,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             Bottle notif;
             notif.clear();
             notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(13);                  // code for vergence accomplished
+            notif.addDouble(13);                  // code for vergence refinement
             notif.addDouble(timing);
             notif.addDouble(accuracy);
             notif.addDouble(amplitude);
@@ -2925,12 +2949,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             // vergence accomplished        
             waitType = "fix";
-            printf("waitAccomplished set waitType=fix \n");
-            //printf("Vergence accomplished \n");
+            printf("verg_accomplished set waitType=fix \n");
+            ver_accomplished = true;
+            
             mutex.wait();
             if(allowStateRequest[1]) {
                 printf("setting stateRequest[1] \n");
-                ver_accomplished = true;
+                
                 //stateRequest[1]  = 1;   //removed forced stateRequest
                 //executing = false;
             }

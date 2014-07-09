@@ -34,7 +34,7 @@ using namespace std;
 
 #define MAXCOUNTRAND     500.0   // #iteration after which the policy is only quality-based
 #define GOALSTATE        14      // goal state success in episodic learning
-#define COUNTVERGENCEMAX 8       // counter of the successive vergence command desired
+#define COUNTVERGENCEMAX 5       // counter of the successive vergence command desired
 
 
 inline bool isnan_fun(double x) {
@@ -51,8 +51,8 @@ double Log2( double n )
 
 
 oculomotorController::oculomotorController() : RateThread(THRATE) {
-    j             = 0.9;    // discount factor  
-    alfa          = 0.5;       // learning rate : how fast learns
+    j             = 0.99999;     // discount factor  default 0.9
+    alfa          = 0.6;      // learning rate : how fast learns default 0.5
     countSucc     = 0;
     countStep     = 0;
     countVergence = 0;
@@ -572,10 +572,12 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
         double randAction   = Random::uniform();
         
         //double randAction = (rand() / 1000000000.0);        
-        for (j = 0 ; j < c.size(); j++) {
-            if (c[j] > randAction) break;
-        }
-        printf("------------------- randomAction %f . action selected %d \n", randAction, j);
+        //for (j = 0 ; j < c.size(); j++) {
+        //    if (c[j] > randAction) break;
+        //}
+        //printf("------------------- randomAction %f . action selected %d \n", randAction, j);
+
+
         if(countVergence > 0) {
             printf("countVergence %d \n", countVergence);
             action_now = 2;
@@ -762,7 +764,7 @@ void oculomotorController::learningStep() {
     // this flag is set true when an action is performing
     // this flag is set false when the action is accomplished
     if(stateTransition) {
-        printf("state in transition! wait \n");
+        printf("state in transition! skip learning step \n");
     }
 
     if(!_stateTransition) {
@@ -856,7 +858,7 @@ void oculomotorController::learningStep() {
         } 
     } //end if(!_stateTransition)
 
-    printf("=======oculomotorController::learningStep : step performed ============== \n");
+    printf("========================oculomotorController::learningStep  performed ==================== \n\n\n");
     
 }
 
@@ -949,7 +951,7 @@ void oculomotorController::run() {
     if(!idle) {        
         iter++;   // main temporal counter for visualisation and active learning
          
-        printf(".............................................................cycle %d \n", iter);
+        //printf(".............................................................cycle %d \n", iter);
         Time::delay(1.0);
         if(firstCycle) {
             // interacting with the attPrioritiserThread 
@@ -983,8 +985,8 @@ void oculomotorController::run() {
         }
         */
 
-        printf("countSucc %d iter %d readyforAction %d \n",countSucc, iter, ap->readyForActions() );
-        if((countSucc < 20) && (iter % 1 == 0) && (ap->readyForActions())) {
+        //printf("countSucc %d iter %d readyforAction %d \n",countSucc, iter, ap->readyForActions() );
+        if((countSucc < 30) && (iter % 1 == 0) && (ap->readyForActions())) {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
             //fprintf(logFile,"%d ",iter);
@@ -1140,7 +1142,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             double amplitude       =       arg->get(4).asDouble();
             double frequency       =       arg->get(5).asDouble();
             
-            printf("\n timing:%f accuracy:%f amplitude:%f \n", timing, accuracy, amplitude);           
+            printf("\n timing:%f accuracy:%f amplitude:%f frequency:%f \n", timing, accuracy, amplitude, frequency);           
 
             
             //printf("new state update arrived action: %d state :%f  \n", actionvalue, arg->get(2).asDouble()); 
@@ -1173,7 +1175,7 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             //Q->operator()(state_next,action_now) = 
             // //    (1 - alfa) * Q->operator()(state_now,action_now) + 
             // //    alfa * ( rewardStateAction->operator()(state_now,action_now) + j * V->operator()(0,state_now)) ;
-            
+            double Q_prev = Q->operator()(state_now,action_now);
             Q->operator()(state_now,action_now) = 
                 Q->operator()(state_now,action_now) + 
                 alfa * ( r + j * V->operator()(0,state_next) 
@@ -1185,13 +1187,13 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                 printf("UPDATING THE QUALITY with NAN!!!!!\n");
                 printf("state_now %d \n action_now %d \n state_next = %d \n r=%f \n j=%f \n V=%f \n ",
                        state_now, action_now, state_next, r, j,V->operator()(0,state_next) );                
-                
+                Q->operator()(state_now,action_now) = Q_prev;
             }
             if(std::isinf(Q->operator()(state_now,action_now) )){
                 printf("UPDATING THE QUALITY with INF!!!!!\n");
                 printf("state_now %d \n action_now %d \n state_next = %d \n r=%f \n j=%f \n V=%f \n ",
                        state_now, action_now, state_next, r, j,V->operator()(0,state_next) );    
-                
+                Q->operator()(state_now,action_now) = Q_prev;
             }
             
             // // 4. calculating the total Payoff

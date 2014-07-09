@@ -1500,7 +1500,7 @@ void gazeArbiterThread::run() {
                         phi = phi2;
                         //}
                 }
-                if((countVerNull >= 3) && (!accomplished_flag)) {
+                if((countVerNull >= 2) && (!accomplished_flag)) {
                     printf("\n");
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
@@ -1578,7 +1578,7 @@ void gazeArbiterThread::run() {
                 Bottle& status2 = statusPort.prepare();
                 status2.clear();
                 status2.addString("VER_REF");
-                statusPort.write();
+                statusPort.writeStrict();
                 
             
             }
@@ -1640,7 +1640,7 @@ void gazeArbiterThread::run() {
         Bottle& status2 = statusPort.prepare();
         status2.clear();
         status2.addString("WAIT_ACC");
-        statusPort.write();
+        statusPort.writeStrict();
         //delete &status2;                           
     }
     else if(allowedTransitions(0)>0) {
