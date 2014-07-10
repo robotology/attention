@@ -986,7 +986,7 @@ void oculomotorController::run() {
         */
 
         //printf("countSucc %d iter %d readyforAction %d \n",countSucc, iter, ap->readyForActions() );
-        if((countSucc < 30) && (iter % 1 == 0) && (ap->readyForActions())) {
+        if((countSucc < 40) && (iter % 1 == 0) && (ap->readyForActions())) {
             printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
             //printf("learning step \n");
             //fprintf(logFile,"%d ",iter);

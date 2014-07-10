@@ -550,9 +550,9 @@ bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy,
     // filling the zMeasure matrix with position on the plane of homography
     printf("entering the loop for necessary to perform high level tracking \n");
     for (short n = 0; n < nIter; n++) {
-        printf("cycle %d in the generation of trajectory for prediction \n", n);
+        //printf("cycle %d in the generation of trajectory for prediction \n", n);
         tracker->getPoint(p_curr);
-        printf("received correct tracker response \n");
+        //printf("received correct tracker response \n");
         
         
         timeStop = Time::now();

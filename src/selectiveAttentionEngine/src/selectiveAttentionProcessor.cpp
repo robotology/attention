@@ -356,6 +356,8 @@ bool selectiveAttentionProcessor::threadInit(){
         return false;
     }
 
+    cout<<"||| initialization of the gazecontroller client done"<<endl;
+
     /*
     // set up the ARM MOTOR INTERFACE	
     name = getName("");
