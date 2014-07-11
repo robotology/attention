@@ -329,6 +329,8 @@ bool attPrioritiserThread::threadInit() {
     //opening port section 
     string rootNameStatus("");rootNameStatus.append(         getName("/feedback:o"));
     feedbackPort.open(rootNameStatus.c_str());
+    string rootNameSpeak("");rootNameSpeak.append(           getName("/speak:o"));
+    speakPort.open(rootNameSpeak.c_str());
     string rootNameOutput("");rootNameOutput.append(         getName("/cmd:o"));
     outputPort.open(rootNameOutput.c_str());
     string rootNameTiming("");rootNameTiming.append(         getName("/timing:o"));
@@ -522,6 +524,7 @@ void attPrioritiserThread::interrupt() {
     inLeftPort  .interrupt();
     inRightPort .interrupt();
 
+    speakPort        .interrupt();
     feedbackPort     .interrupt();
     templatePort     .interrupt();
     inhibitionPort   .interrupt();
@@ -559,6 +562,7 @@ void attPrioritiserThread::threadRelease() {
     printf("closing inhibition port \n");
     inhibitionPort.close();
     blobDatabasePort.close();
+    speakPort.close();
     
     timingPort.close();
     printf("closing feedback ports  \n");
@@ -872,9 +876,40 @@ void attPrioritiserThread::run() {
         printf("\n  \n \n \n Preparing for prediction .... \n");
         for (int i = 0; i < 5; i++) {
             printf(" Go in %d seconds \n", 5 - i);
+            if(speakPort.getOutputCount()){
+                Bottle& b = speakPort.prepare();
+                b.clear();
+                switch(5 - i) {
+                case 5: {
+                    b.addString("five");
+                }break;    
+                case 4: {
+                    b.addString("four");
+                }break;
+                case 3: {
+                    b.addString("three");
+                }break;   
+                case 2: {
+                    b.addString("two");
+                }break;
+                case 1: {
+                    b.addString("one");
+                }break;
+                case 0: {
+                    b.addString("go");
+                }break;
+                }
+                speakPort.writeStrict();
+            }
             Time::delay(1);
         }
         printf("GO GO GO GO GO GO GO \n");
+        if(speakPort.getOutputCount()){
+                Bottle& b = speakPort.prepare();
+                b.clear();
+                b.addString("go");
+                speakPort.writeStrict();
+        }
 
         //printf("estimating velocity ... \n");
         bool predictionSuccess = 
@@ -1110,7 +1145,10 @@ void attPrioritiserThread::run() {
             //printf("\n \n ____________________ Planned Saccade ___________________ \n");
             ver_accomplished = false; // IMPORTANT:sets the vergence value back to false
             stopVergence = false;
+            waitType = "ant";          // must  be moved to accomplishment not initialization otherwise changes state even no executed
+            // removing the previous line guarantess better WAIT fix actions
             printf("setting ver_accomplished flag false \n");
+            printf("making waittype ant \n");
             
             if((u==-1)||(v==-1)) {
                 printf(" \n ----------- Stereo Planned Saccade ------------  \n");
@@ -2100,14 +2138,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
                         
             printf("SAC_MONO command received with waitingWaitCommand %d \n", waitResponse[1]);
-            
-
             //Time::delay(5.0);
             
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();                      
-            //waitType = "ant";          // must  be moved to accomplishment not initialization otherwise changes state even no executed
-            // removing the previous line guarantess better WAIT fix actions
+
             
             //--------------------------------------------------------------------------
             // prediction attempt after triggering stimulus
@@ -2289,7 +2324,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 //=================================================================================        
         else if(!strcmp(name.c_str(),"RESET")) {
             // for any reset the wait is not longer fixation
-            //waitType = "ant";
+            waitType = "ant";
 
             //=============================
             // saving bottle in the buffer
@@ -2939,7 +2974,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             timeoutResponseStart = Time::now();
             
             stopVergence = true;
-      
+            
+            if(speakPort.getOutputCount()){
+                Bottle& value = speakPort.prepare();
+                value.clear();
+                value.addString("vergence accomplished");
+                speakPort.writeStrict();
+                    
+            }
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();
@@ -3272,6 +3314,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // no predicted const velocity
                     if ((predXpos != -1) && (predYpos != 1)) {
                         
+                        if(speakPort.getOutputCount()){
+                            Bottle& b = speakPort.prepare();
+                            b.clear();
+                            b.addString("you moved it");
+                            speakPort.writeStrict();
+                        }
+                        
                         printf("anticipatory prediction \n");
                         
                         // move -> anticipatoryPredictor
@@ -3281,7 +3330,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         notif.addVocab(COMMAND_VOCAB_STAT);
                         notif.addDouble(5);                  // code for prediction accomplished in anticipatory state (antPredict)
                         notif.addDouble(timing);
-                        notif.addDouble(accuracy * 2);
+                        notif.addDouble(accuracy + 1000);
                         notif.addDouble(amplitude);
                         notif.addDouble(frequency);
                         setChanged();
@@ -3477,6 +3526,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             else {
                 printf("IN FIXATING \n");
                 printf("IN FIXATING \n");
+                if(speakPort.getOutputCount()){
+                    Bottle& b = speakPort.prepare();
+                    b.clear();
+                    b.addString("fixating");
+                    speakPort.writeStrict();
+                }
                 // nofiying state transition into unsuccessful tracking
                 Bottle notif;
                 notif.clear();

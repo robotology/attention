@@ -567,7 +567,7 @@ bool oculomotorController::randomWalk(int& statenext, double randomProb) {
     // the probability that the selection comes from stochastic measure is given by ifRandAction
     double ifRandAction = Random::uniform();
     int j;
-    if(ifRandAction > randomProb) {
+    if(/*ifRandAction > randomProb*/true) {
         // performing completely random action
         double randAction   = Random::uniform();
         
@@ -1165,7 +1165,8 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             printf("calculated the accuracy for state, action %d,%d r= %f \n", state_now,action_now, r);
 
             if (statevalueparam == GOALSTATE) {
-                r += 1000;
+                r += 2000;
+                printf("ENDED in FINAL GOALSTATE! \n");
             }
             if(statevalueparam == 12){
                 forceWait = true;
