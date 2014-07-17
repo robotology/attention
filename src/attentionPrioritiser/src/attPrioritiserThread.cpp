@@ -874,33 +874,14 @@ void attPrioritiserThread::run() {
 
 
         printf("\n  \n \n \n Preparing for prediction .... \n");
-        for (int i = 0; i < 5; i++) {
-            printf(" Go in %d seconds \n", 5 - i);
-            if(speakPort.getOutputCount()){
+         if(speakPort.getOutputCount()){
                 Bottle& b = speakPort.prepare();
                 b.clear();
-                switch(5 - i) {
-                case 5: {
-                    b.addString("five");
-                }break;    
-                case 4: {
-                    b.addString("four");
-                }break;
-                case 3: {
-                    b.addString("three");
-                }break;   
-                case 2: {
-                    b.addString("two");
-                }break;
-                case 1: {
-                    b.addString("one");
-                }break;
-                case 0: {
-                    b.addString("go");
-                }break;
-                }
+                b.addString("ready for prediction");
                 speakPort.writeStrict();
             }
+        for (int i = 0; i < 5; i++) {
+            printf(" Go in %d seconds \n", 5 - i);
             Time::delay(1);
         }
         printf("GO GO GO GO GO GO GO \n");
@@ -2972,6 +2953,16 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("VERGENCE ACCOMPLISHED \n\n\n\n\n");
             waitResponse[2] = false;
             timeoutResponseStart = Time::now();
+
+            //TODO: overwrite the WAIT COMMAND with 160 120
+            printf("sending pending WAIT 160 120 in vergence accomplished \n");
+            pendingCommand->clear();
+            pendingCommand->addString("WAIT");
+            pendingCommand->addInt(160);
+            pendingCommand->addInt(120);
+            pendingCommand->addDouble(1.0);
+            isPendingCommand = true;
+
             
             stopVergence = true;
             
@@ -3204,8 +3195,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
 
             // TRIGGERING CORRECT ACTION in relation to PREDICTION
-            
-            
+                 
+            predVx = 0;predVy = 0;
             accuracy = 100;
 
             //stable stimulus
@@ -3330,7 +3321,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         notif.addVocab(COMMAND_VOCAB_STAT);
                         notif.addDouble(5);                  // code for prediction accomplished in anticipatory state (antPredict)
                         notif.addDouble(timing);
-                        notif.addDouble(accuracy + 1000);
+                        notif.addDouble(accuracy * 2);
                         notif.addDouble(amplitude);
                         notif.addDouble(frequency);
                         setChanged();
@@ -3362,7 +3353,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         pendingCommand2->addInt(px(0));
                         pendingCommand2->addInt(px(1));
                         //pendingCommand->addString("ant");
-                        pendingCommand2->addDouble(predTime);
                         isPendingCommand2 = true;
                         
                     

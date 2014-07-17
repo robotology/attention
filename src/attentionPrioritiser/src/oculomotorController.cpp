@@ -1485,7 +1485,9 @@ void oculomotorController::threadRelease() {
     //closing ports
     
     //inCommandPort.interrupt();
-    inCommandPort.close();
+
+    //   inCommandPort.close();
+    
     //entImgPort.close();
     
     //stopping thread
