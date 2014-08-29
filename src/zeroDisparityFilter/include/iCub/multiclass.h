@@ -1,14 +1,13 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
 /* 
- * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Andrew Dankers, maintainer Vadim Tikhanoff
- * email:   vadim.tikhanoff@iit.it
- * website: www.robotcub.org 
+ * Copyright (C) 2014 RBCS Robotics Brain and Cognitive Science
+ * Authors: Rea Francesco on Andrew Dankers ` code mainteined by Vadim Tikhanoff
+ * email:   francesco.rea@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
  *
- * A copy of the license can be found at
- * http://www.robotcub.org/icub/license/gpl.txt
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +18,14 @@
 #ifndef __MULTCL_H__
 #define __MULTCL_H__
 
-#include <ipp.h>
+//#include <ipp.h>
 #include <stdlib.h>
 #include "iCub/coord.h"
+#include "iCub/dog.h"
+
+#include <cv.h>
+#include <cvaux.h>
+#include <highgui.h>
 
 /** 
   * The neighbourhood structure.
@@ -33,14 +37,14 @@
   * A processing class that performs multi-class segmentation.
   */
 class MultiClass{
+  
+ public:
 
-public:
-
-/**
-  * A structure to accommodate input parameters.
-  */
-struct Parameters
-{
+  /**
+   * A structure to accommodate input parameters.
+   */
+  struct Parameters
+  {
     int iter_max;	
     int randomize_every_iteration;
       
@@ -57,55 +61,60 @@ struct Parameters
     double cog_snap;
     double bland_prob;
 
-};
+  };
 	
-    /** Constructor.
-     * @param imsize Input image width and height for memory allocation.
-     * @param psb_in Step in bytes through input images.
-     * @param numClasses Number of classes in output, and number of class probability maps provided.
-     * @param params Input parameters.
-     */
-    MultiClass(IppiSize imsize,int psb_in,int numClasses,Parameters *params);
-	
-/** Destructor.
-  */
-    ~MultiClass();
-
-/** Access to the classification output.
- * @return Pointer to the output classification image.
- */
-    Ipp8u* get_class(){return out;};
-
-/** Memory width return function.
- * @return Step in bytes through the output image.
- */
-    int get_psb(){return psb;};
-
-/** Processing initiator.
- * @param im_in Pointer to input image to be used for edge smoothness.
- * @param pMaps Reference to the array of pointers to the input class probability maps.
- */
-    void proc(Ipp8u* im_in, Ipp8u** pMaps);
-
-private:
-    int likelihood(Coord c, int d);
-    int prior_intensity_smoothness(Coord p, Coord np, int d, int nd);
-    void generate_permutation(int *buf, int n);
-    int compute_energy();
-    void clear();
-    void expand(int a);/* computes the minimum a-expansion configuration */
-
-    int nmaps;
-    int len_nv;
-    int psb_in,psb;
-    IppiSize im_size;
-    Coord im_sz;
-    Ipp8u *im, **prob; 
-    Ipp8u *out;  
-    Parameters *params;
-    int E;
-    void **ptr_im;
-
+  /** Constructor.
+   * @param imsize Input image width and height for memory allocation.
+   * @param psb_in Step in bytes through input images.
+   * @param numClasses Number of classes in output, and number of class probability maps provided.
+   * @param params Input parameters.
+   */
+  MultiClass(IppiSize imsize,int psb_in,int numClasses,Parameters *params);
+  
+  /** 
+   *Destructor.
+   */
+  ~MultiClass();
+  
+  /** Access to the classification output.
+   * @return Pointer to the output classification image.
+   */
+  //Ipp8u* get_class(){return out;};
+  unsigned char* get_class(){return out;};
+  
+  /** Memory width return function.
+   * @return Step in bytes through the output image.
+   */
+  int get_psb(){return psb;};
+  
+  /** 
+   * Processing initiator.
+   * @param im_in Pointer to input image to be used for edge smoothness.
+   * @param pMaps Reference to the array of pointers to the input class probability maps.
+   */
+  //void proc(Ipp8u* im_in, Ipp8u** pMaps);
+  void proc(unsigned char* im_in, unsigned char** pMaps);
+  
+ private:
+  int likelihood(Coord c, int d);
+  int prior_intensity_smoothness(Coord p, Coord np, int d, int nd);
+  void generate_permutation(int *buf, int n);
+  int compute_energy();
+  void clear();
+  void expand(int a);/* computes the minimum a-expansion configuration */
+  
+  int nmaps;
+  int len_nv;
+  int psb_in,psb;
+  IppiSize im_size;
+  IplImage* outImage;               //outputImage of the class
+  Coord im_sz;
+  unsigned char *im, **prob;        //Ipp8u
+  unsigned char *out;               //Ipp8u 
+  Parameters *params;
+  int E;
+  void **ptr_im;
+  
 };
 
 #endif 

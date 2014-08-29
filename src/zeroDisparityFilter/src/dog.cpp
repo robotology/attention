@@ -19,56 +19,81 @@
 #include <stdio.h>
 
 //set up DoG Kernel stuff:
-const int kern_sz = 7;
+const int kern_sz  = 7;
 const int kern_anc = 3;
 
-const Ipp32f kern1[] ={18.0,33.0,49.0,55.0,49.0,33.0,18.0};
-const Ipp32f kern2[] ={ 5.0,23.0,59.0,82.0,59.0,23.0,5.0 };
+//const Ipp32f kern1[] ={18.0,33.0,49.0,55.0,49.0,33.0,18.0};
+//const Ipp32f kern2[] ={ 5.0,23.0,59.0,82.0,59.0,23.0,5.0 };
+const float kern1[] = {18.0,33.0,49.0,55.0,49.0,33.0,18.0};
+const float kern2[] = { 5.0,23.0,59.0,82.0,59.0,23.0,5.0 };
+
 
 DoG::DoG(IppiSize srcsize_)
 {   
     width = 0, height = 0, psb_o = 0, psb_pad = 0, psb_pad_8u = 0;
     srcsize = srcsize_;
-    width=srcsize.width;
-    height=srcsize.height;
+    width   = srcsize.width;
+    height  = srcsize.height;
 
-    in_pad_8u = ippiMalloc_8u_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad_8u);
+    //in_pad_8u = ippiMalloc_8u_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad_8u);
+    in_pad_8u_image = cvCreateImage(cvSize(width, height),IPL_DEPTH_8U, 1);
 
-    in_pad    = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    tmp1      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    tmp2      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    tmp3      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog       = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog_on    = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog_off   = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog_onoff = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
 
-    out_dog_on    = ippiMalloc_8u_C1(width,height,&psb_o);
-    out_dog_off   = ippiMalloc_8u_C1(width,height,&psb_o);
-    out_dog_onoff = ippiMalloc_8u_C1(width,height,&psb_o);
+    //in_pad    = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    in_pad_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height+PAD_BORD*2), IPL_DEPTH_32F,1);
 
-    psize.width  = width+PAD_BORD*2;
-    psize.height = height+PAD_BORD*2;
+    //tmp1      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    tmp1_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1);
+
+    //tmp2      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    tmp2_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1); 
+
+    //tmp3      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    tmp3_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1); 
+
+    //dog       = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    dog_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1); 
+
+    //dog_on    = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    dog_on_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1);
+    
+    //dog_off   = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    dog_off_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1);
+
+    //dog_onoff = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
+    dog_onoff_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1);
+
+    //out_dog_on    = ippiMalloc_8u_C1(width,height,&psb_o);
+    out_dog_on_image =  cvCreateImage(cvSize(width, height), IPL_DEPTH_8U,1);
+
+    //out_dog_off   = ippiMalloc_8u_C1(width,height,&psb_o);
+    out_dog_off_image =  cvCreateImage(cvSize(width, height), IPL_DEPTH_8U,1);
+
+    //out_dog_onoff = ippiMalloc_8u_C1(width,height,&psb_o);
+    out_dog_onoff_image =  cvCreateImage(cvSize(width, height), IPL_DEPTH_8U,1);
+
+    psize.width  = width  + PAD_BORD * 2;
+    psize.height = height + PAD_BORD * 2;
 }
 
 
 DoG::~DoG()
 {
-    ippFree(in_pad_8u);
-    ippFree(in_pad);
-    ippFree(tmp1);
-    ippFree(tmp2);
-    ippFree(tmp3);
-    ippFree(dog);
-    ippFree(dog_on);
-    ippFree(dog_off);
-    ippFree(dog_onoff);
-    ippFree(out_dog_on);
-    ippFree(out_dog_off);
-    ippFree(out_dog_onoff);    
+  cvReleaseImage(&in_pad_8u_image);     // ippFree(in_pad_8u);
+  cvReleaseImage(&in_pad_image);        // ippFree(in_pad);
+  cvReleaseImage(&tmp1_image);          // ippFree(tmp1);
+  cvReleaseImage(&tmp2_image);          // ippFree(tmp2);
+  cvReleaseImage(&tmp3_image);          // ippFree(tmp3);
+  cvReleaseImage(&dog_image);           // ippFree(dog);
+  cvReleaseImage(&dog_on_image);        // ippFree(dog_on);
+  cvReleaseImage(&dog_off_image);       // ippFree(dog_off);
+  cvReleaseImage(&dog_onoff_image);     // ippFree(dog_onoff);
+  cvReleaseImage(&out_dog_on_image);    // ippFree(out_dog_on);
+  cvReleaseImage(&out_dog_off_image);   // ippFree(out_dog_off);
+  cvReleaseImage(&out_dog_onoff_image); // ippFree(out_dog_onoff);    
 }
 
-void DoG::conv_32f_to_8u( Ipp32f*im_i, int p4_, Ipp8u*im_o, int p1_, IppiSize srcsize_) {
+void DoG::conv_32f_to_8u( float *im_i, int p4_, unsigned char *im_o, int p1_, IppiSize srcsize_) {
 
     Ipp32f min = 0.0;
     Ipp32f max = 0.0;

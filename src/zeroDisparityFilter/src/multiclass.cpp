@@ -20,14 +20,12 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+
 #include "iCub/multiclass.h"
 #include "iCub/energy.h"
 
-
-
 MultiClass::MultiClass(IppiSize im_size_, int psb_in_, int n_, Parameters *_params)
 {
-
 
   params = _params;   
   nmaps=n_;
@@ -38,7 +36,9 @@ MultiClass::MultiClass(IppiSize im_size_, int psb_in_, int n_, Parameters *_para
   im_sz.x = im_size.width;
   im_sz.y = im_size.height;
 
-  out = ippiMalloc_8u_C1(im_size.width,im_size.height,&psb); 
+  //out = ippiMalloc_8u_C1(im_size.width,im_size.height,&psb); 
+  outImage = cvCreateImage(cvSize(im_size.width, im_size.height), IPL_DEPTH_8U, 1);
+  out = (unsigned char *) outImage->imageData;
 
   ptr_im = (void**) malloc(im_size.width*im_size.height*sizeof(void*));
   len_nv = im_size.width;
@@ -49,16 +49,27 @@ MultiClass::MultiClass(IppiSize im_size_, int psb_in_, int n_, Parameters *_para
 
 MultiClass::~MultiClass()
 {
-    ippFree (out);
+  //ippFree (out);
+  
     free (ptr_im);
 }
 
 
 void MultiClass::clear()
 {
+  // set all the pixels to zero
+  //ippiSet_8u_C1R(0,out,psb,im_size);
+  
+  int widthStep = outImage->widthStep;
+  int height    = outImage->height;
+  int width     = outImage->width;
 
-  ippiSet_8u_C1R(0,out,psb,im_size);
-
+  for( int y=0; y < height; y++ ) { 
+        uchar* ptr = (uchar*) ( outImage->imageData + y * widthStep ); 
+        for( int x=0; x < width; x++ ) { 
+            ptr[x] = 0; //Set red to max (BGR format)
+        }
+    }
 }
 
 
@@ -75,7 +86,7 @@ void MultiClass::generate_permutation(int *buf, int n)
 }
 
 
-void MultiClass::proc(Ipp8u* im_, Ipp8u** prob_)
+void MultiClass::proc(unsigned char* im_, unsigned char** prob_)
 {
 
   im=im_;
@@ -96,32 +107,31 @@ void MultiClass::proc(Ipp8u* im_, Ipp8u** prob_)
   //optimise:
   for (int i=0; i<nmaps; i++) buf[i] = false;
   buf_num = nmaps;
-  for (int iter=0; iter<params->iter_max && buf_num>0; iter++)
-    {
-      if (iter==0 || params->randomize_every_iteration)
-	generate_permutation(permutation, nmaps);
-
-      for (int index=0; index<nmaps; index++)
-	{
-	  label = permutation[index];
-	  if (buf[label]) continue;
-	  
-	  a = label;
-	  E_old = E;
-	  expand(a);
-	  
-	  if (E_old == E)
-	    {
-	      if (!buf[label]) { buf[label] = true; buf_num--; }
-	    }
-	  else
-	    {
-	      for (int i=0; i<nmaps; i++) buf[i] = false;
-	      buf[label] = true;
-	      buf_num = nmaps - 1;
-	    }
-	}
-    }
+  for (int iter=0; iter<params->iter_max && buf_num>0; iter++) {
+    if (iter==0 || params->randomize_every_iteration)
+      generate_permutation(permutation, nmaps);
+    
+    for (int index=0; index<nmaps; index++)
+      {
+        label = permutation[index];
+        if (buf[label]) continue;
+        
+        a = label;
+        E_old = E;
+        expand(a);
+        
+        if (E_old == E)
+          {
+            if (!buf[label]) { buf[label] = true; buf_num--; }
+          }
+        else
+          {
+            for (int i=0; i<nmaps; i++) buf[i] = false;
+            buf[label] = true;
+            buf_num = nmaps - 1;
+          }
+      }
+  }
   
   
   delete [] permutation;
