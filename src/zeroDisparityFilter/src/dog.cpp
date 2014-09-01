@@ -1,3 +1,5 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
 /* 
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Andrew Dankers, maintainer Vadim Tikhanoff
@@ -79,56 +81,110 @@ DoG::DoG(IppiSize srcsize_)
 
 DoG::~DoG()
 {
-  cvReleaseImage(&in_pad_8u_image);     // ippFree(in_pad_8u);
-  cvReleaseImage(&in_pad_image);        // ippFree(in_pad);
-  cvReleaseImage(&tmp1_image);          // ippFree(tmp1);
-  cvReleaseImage(&tmp2_image);          // ippFree(tmp2);
-  cvReleaseImage(&tmp3_image);          // ippFree(tmp3);
-  cvReleaseImage(&dog_image);           // ippFree(dog);
-  cvReleaseImage(&dog_on_image);        // ippFree(dog_on);
-  cvReleaseImage(&dog_off_image);       // ippFree(dog_off);
-  cvReleaseImage(&dog_onoff_image);     // ippFree(dog_onoff);
-  cvReleaseImage(&out_dog_on_image);    // ippFree(out_dog_on);
-  cvReleaseImage(&out_dog_off_image);   // ippFree(out_dog_off);
-  cvReleaseImage(&out_dog_onoff_image); // ippFree(out_dog_onoff);    
+    cvReleaseImage(&in_pad_8u_image);     // ippFree(in_pad_8u);
+    cvReleaseImage(&in_pad_image);        // ippFree(in_pad);
+    cvReleaseImage(&tmp1_image);          // ippFree(tmp1);
+    cvReleaseImage(&tmp2_image);          // ippFree(tmp2);
+    cvReleaseImage(&tmp3_image);          // ippFree(tmp3);
+    cvReleaseImage(&dog_image);           // ippFree(dog);
+    cvReleaseImage(&dog_on_image);        // ippFree(dog_on);
+    cvReleaseImage(&dog_off_image);       // ippFree(dog_off);
+    cvReleaseImage(&dog_onoff_image);     // ippFree(dog_onoff);
+    cvReleaseImage(&out_dog_on_image);    // ippFree(out_dog_on);
+    cvReleaseImage(&out_dog_off_image);   // ippFree(out_dog_off);
+    cvReleaseImage(&out_dog_onoff_image); // ippFree(out_dog_onoff);    
 }
 
 void DoG::conv_32f_to_8u( float *im_i, int p4_, unsigned char *im_o, int p1_, IppiSize srcsize_) {
 
-    Ipp32f min = 0.0;
-    Ipp32f max = 0.0;
-    ippiMinMax_32f_C1R( im_i, p4_,srcsize_, &min, &max);
+    float min = 0.0; //Ipp32f
+    float max = 0.0; //Ipp32f
+    //ippiMinMax_32f_C1R( im_i, p4_,srcsize_, &min, &max);
     //if (max == min){max=255.0; min=0.0;}
-    ippiScale_32f8u_C1R(im_i, p4_, im_o, p1_, srcsize_, min, max );
+    //ippiScale_32f8u_C1R(im_i, p4_, im_o, p1_, srcsize_, min, max );    
 } 
 
+void DoG::conv_32f_to_8u( IplImage *im_i, int p4_, IplImage *im_o, int p1_, IppiSize srcsize_) {
+    float min = 0.0; //Ipp32f
+    float max = 0.0; //Ipp32f
+    cv::Mat mat_i = cvCloneImage(im_i);
+    cv::Mat mat_o = cvCloneImage(im_o);
+    mat_i.convertTo(mat_o, CV_8U, max, min);
+}
 
-void DoG::proc(Ipp8u*in_, int psb_in_)
+
+void DoG::conv_8u_to_32f( IplImage *im_i, int p4_, IplImage *im_o, int p1_, IppiSize srcsize_) {
+    float min = 0.0; //Ipp32f
+    float max = 0.0; //Ipp32f
+    cv::Mat mat_i = cvCloneImage(im_i);
+    cv::Mat mat_o = cvCloneImage(im_o);
+    mat_i.convertTo(mat_o, CV_32F);
+}
+
+void DoG::proc(unsigned char *in_, int psb_in_)
 {
     //pad:
-    ippiCopyReplicateBorder_8u_C1R(in_,psb_in_,srcsize,in_pad_8u,psb_pad_8u,psize,PAD_BORD,PAD_BORD);
+    //ippiCopyReplicateBorder_8u_C1R(in_,psb_in_,srcsize,in_pad_8u,psb_pad_8u,psize,PAD_BORD,PAD_BORD);
 
     //convert to 32f: 
-    ippiConvert_8u32f_C1R(in_pad_8u,psb_pad_8u,in_pad,psb_pad,psize);
+    //ippiConvert_8u32f_C1R(in_pad_8u,psb_pad_8u,in_pad,psb_pad,psize);
 
     //DOG filtering:
-    ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
-    ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp2[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
-    ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
-    ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp3[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
+    //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
+    //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp2[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
+    //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
+    //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp3[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
 
-    ippiSub_32f_C1R(tmp2,psb_pad,tmp3,psb_pad,dog,psb_pad,psize);
+    //ippiSub_32f_C1R(tmp2,psb_pad,tmp3,psb_pad,dog,psb_pad,psize);
 
     //on-centre:
     //keep only results above zero:
-    ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_on,psb_pad,psize,0.0);
+    //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_on,psb_pad,psize,0.0);
     //off-centre:  
     //negate: 
-    ippiMulC_32f_C1IR(-1.0,dog,psb_pad,psize);
+    //ippiMulC_32f_C1IR(-1.0,dog,psb_pad,psize);
     //and keep only results above zero:
-    ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_off,psb_pad,psize,0.0);
+    //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_off,psb_pad,psize,0.0);
     //on+off:
-    ippiAdd_32f_C1R(dog_on,psb_pad,dog_off,psb_pad,dog_onoff,psb_pad,psize);
+    //ippiAdd_32f_C1R(dog_on,psb_pad,dog_off,psb_pad,dog_onoff,psb_pad,psize);
+
+    //convert to 8u and remove pad:
+    //conv_32f_to_8u(&dog_on[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_on,psb_o,srcsize);
+    //conv_32f_to_8u(&dog_off[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_off,psb_o,srcsize);
+    //conv_32f_to_8u(&dog_onoff[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_onoff,psb_o,srcsize);
+
+}
+
+void DoG::proc(IplImage *in_, int psb_in_)
+{
+    //pad:
+    cv::Mat mat_in = cvCloneImage(in_);
+    cv::Mat mat_out;
+    //ippiCopyReplicateBorder_8u_C1R(in_,psb_in_,srcsize,in_pad_8u,psb_pad_8u,psize,PAD_BORD,PAD_BORD);
+    cv::Scalar value = cv::Scalar( 0, 0, 0 );
+    copyMakeBorder(mat_in, mat_out,5, 5, 5, 5, cv::BORDER_REPLICATE, value); 
+
+    //convert to 32f: 
+    //ippiConvert_8u32f_C1R(in_pad_8u,psb_pad_8u,in_pad,psb_pad,psize);
+
+    //----------------  DOG filtering -----------------------------------------
+    //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
+    //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp2[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
+    //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
+    //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp3[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
+
+    //ippiSub_32f_C1R(tmp2,psb_pad,tmp3,psb_pad,dog,psb_pad,psize);
+
+    //---------------  on-centre -----------------------------------------------
+    //keep only results above zero:
+    //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_on,psb_pad,psize,0.0);
+    //---------------- off-centre ----------------------------------------------
+    //negate: 
+    //ippiMulC_32f_C1IR(-1.0,dog,psb_pad,psize);
+    //and keep only results above zero:
+    //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_off,psb_pad,psize,0.0);
+    //on+off:
+    //ippiAdd_32f_C1R(dog_on,psb_pad,dog_off,psb_pad,dog_onoff,psb_pad,psize);
 
     //convert to 8u and remove pad:
     conv_32f_to_8u(&dog_on[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_on,psb_o,srcsize);
@@ -136,3 +192,4 @@ void DoG::proc(Ipp8u*in_, int psb_in_)
     conv_32f_to_8u(&dog_onoff[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_onoff,psb_o,srcsize);
 
 }
+

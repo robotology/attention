@@ -1,3 +1,5 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
 /* 
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Vadim Tikhanoff Andrew Dankers
@@ -298,33 +300,33 @@ ZDFThread::~ZDFThread( )
     delete dl;
     delete dr;
     delete m;
-    ippiFree(copyImg);
-    ippiFree(l_orig);
-    ippiFree(r_orig);
-    ippiFree(yuva_orig_l);
-    ippiFree(yuva_orig_r);
-    ippiFree(tmp);
-    ippiFree(first_plane_l);
-    ippiFree(second_plane_l);
-    ippiFree(third_plane_l);
-    ippiFree(first_plane_r);
-    ippiFree(second_plane_r);
-    ippiFree(third_plane_r);
+    cvReleaseImage(&copyImg_ipl);        //ippiFree(copyImg);
+    cvReleaseImage(&l_orig_ipl);         //ippiFree(l_orig);
+    cvReleaseImage(&r_orig_ipl);         //ippiFree(r_orig);
+    cvReleaseImage(&yuva_orig_l_ipl);    //ippiFree(yuva_orig_l);
+    cvReleaseImage(&yuva_orig_r_ipl);    //ippiFree(yuva_orig_r);
+    cvReleaseImage(&tmp_ipl);            //ippiFree(tmp);
+    cvReleaseImage(&first_plane_l_ipl);  //ippiFree(first_plane_l);
+    cvReleaseImage(&second_plane_l_ipl); //ippiFree(second_plane_l);
+    cvReleaseImage(&third_plane_l_ipl);  //ippiFree(third_plane_l);
+    cvReleaseImage(&first_plane_r_ipl);  //ippiFree(first_plane_r);
+    cvReleaseImage(&second_plane_r_ipl); //ippiFree(second_plane_r);
+    cvReleaseImage(&third_plane_r_ipl);  //ippiFree(third_plane_r);
     free(pyuva_l);
     free(pyuva_r);
-    ippiFree(rec_im_ly);
-    ippiFree(rec_im_ry);
-    ippiFree(res_t);
-    ippiFree(out);
-    ippiFree(seg_im);
-    ippiFree(seg_dog);
-    ippiFree(fov_l);
-    ippiFree(fov_r);
-    ippiFree(zd_prob_8u);
-    ippiFree(o_prob_8u);
+    cvReleaseImage(&rec_im_ly_ipl);  //ippiFree(rec_im_ly);
+    cvReleaseImage(&rec_im_ry_ipl);  //ippiFree(rec_im_ry);
+    cvReleaseImage(&res_t_ipl);      //ippiFree(res_t);
+    cvReleaseImage(&out_ipl);        //ippiFree(out);
+    cvReleaseImage(&seg_im_ipl);     //ippiFree(seg_im);
+    cvReleaseImage(&seg_dog_ipl);    //ippiFree(seg_dog);
+    cvReleaseImage(&fov_l_ipl);      //ippiFree(fov_l);
+    cvReleaseImage(&fov_r_ipl);      //ippiFree(fov_r);
+    cvReleaseImage(&zd_prob_8u_ipl); //ippiFree(zd_prob_8u);
+    cvReleaseImage(&o_prob_8u_ipl); //ippiFree(o_prob_8u);
     free(p_prob);
-    ippiFree(temp_l);
-    ippiFree(temp_r);
+    cvReleaseImage(&temp_l_ipl);     //ippiFree(temp_l);
+    cvReleaseImage(&temp_r_ipl);     //ippiFree(temp_r);
     delete img_out_prob;
     delete img_out_seg;
     delete img_out_dog; 
@@ -395,81 +397,96 @@ void ZDFThread::run()
             
             if(startProcessing){            
 
+                IplImage *mask = cvCreateImage( cvSize(srcsize.width, srcsize.height),8,1) ; 
+
                 if( !allocated || img_in_left->width() != insize.width || img_in_left->height() != insize.height) {
                     deallocate();
                     allocate(img_in_left);
                 }
 		        //processing for zdf
 		        if (scale==1.0){ //resize the images if needed
-			        //copy yarp image to IPP
-			        ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
-			        //ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
-                    //test with YUV images instead of grayscale left
-                    ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
-                    //and right
-                    ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
+                  //copy yarp image to OPENCV
+                  int x = 50, y = 50;
+                 
+                  cvSetImageROI((IplImage*) img_in_left->getIplImage(),cvRect( x,y,srcsize.width,srcsize.height) );
+                  cvCopy((IplImage*) img_in_left->getIplImage(), copyImg_ipl, mask);
+                  //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
+                  
+                  ////ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
+                  
+                  //test with YUV images instead of grayscale left
+                  //ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
+                  cvCopy((IplImage*) img_in_left->getIplImage(), l_orig_ipl, mask);
+                  
+                  //and right
+                  //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
+                  cvCopy((IplImage*) img_in_right->getIplImage(), r_orig_ipl, mask);
               	}else{
-			        //scale to width,height:
-                    ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
-                    Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
-                    ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);   
-                    ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);     
-                    ippsFree(pBuffer);
-                    //the following is deprecated...use previous
-			        //ippiResize_8u_C3R( img_in_left->getRawImage(), insize, img_in_left->width() * 3, inroi, l_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
-			        //ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
+                  //scale to width,height:
+                  //ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
+                  //Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
+                  //ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);   
+                  //ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);     
+                  //ippsFree(pBuffer);
+                  ////the following is deprecated...use previous
+                  ////ippiResize_8u_C3R( img_in_left->getRawImage(), insize, img_in_left->width() * 3, inroi, l_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
+                  ////ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
 		        }
-
-                //extract yuv plane
-                ippiRGBToYUV_8u_AC4R( l_orig, psb4, yuva_orig_l, psb4, srcsize );
-                //extract planes
-                pyuva_l[0]= first_plane_l; //Y
-                pyuva_l[1]= second_plane_l;//U
-                pyuva_l[2]= third_plane_l; //V
-                pyuva_l[3]= tmp; 
-                ippiCopy_8u_C4P4R( yuva_orig_l, psb4, pyuva_l, psb, srcsize );
-
-                ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
-                pyuva_r[0]= first_plane_r; //Y
-                pyuva_r[1]= second_plane_r;//U
-                pyuva_r[2]= third_plane_r; //V
-                pyuva_r[3]= tmp; 
-                ippiCopy_8u_C4P4R( yuva_orig_r, psb4, pyuva_r, psb, srcsize );
                 
-                ippiCopy_8u_C1R( first_plane_l, f_psb,  rec_im_ly, psb_in, srcsize);
-                ippiCopy_8u_C1R( first_plane_r, f_psb,  rec_im_ry, psb_in, srcsize);
+                //extract yuv plane
+                //ippiRGBToYUV_8u_AC4R( l_orig, psb4, yuva_orig_l, psb4, srcsize );
+                pyuva_l[0]= first_plane_l;  //Y
+                pyuva_l[1]= second_plane_l; //U
+                pyuva_l[2]= third_plane_l;  //V
+                pyuva_l[3]= tmp; 
+                //ippiCopy_8u_C4P4R( yuva_orig_l, psb4, pyuva_l, psb, srcsize );
+                
+
+                //ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
+                pyuva_r[0]= first_plane_r;  //Y
+                pyuva_r[1]= second_plane_r; //U
+                pyuva_r[2]= third_plane_r;  //V
+                pyuva_r[3]= tmp; 
+                //ippiCopy_8u_C4P4R( yuva_orig_r, psb4, pyuva_r, psb, srcsize );
+                
+                //ippiCopy_8u_C1R( first_plane_l, f_psb,  rec_im_ly, psb_in, srcsize);
+                cvCopy(first_plane_l_ipl, rec_im_ly_ipl, mask);
+                //ippiCopy_8u_C1R( first_plane_r, f_psb,  rec_im_ry, psb_in, srcsize);
+                cvCopy(first_plane_r_ipl, rec_im_ry_ipl, mask);
 
 		        if (acquire){
-			        ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);			
-			        ippiCopy_8u_C1R(&rec_im_ry [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_r, psb_t, tsize);
+                  //ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);			
+                  //ippiCopy_8u_C1R(&rec_im_ry [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_r, psb_t, tsize);
 		        }
 
-		        //Create left fovea and find left template in left image
-		        ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ly[(( srcsize.height - tisize.height )/2)*psb_in + ( srcsize.width - tisize.width )/2],
-				               psb_in, tisize,
-				               temp_l,
-				               psb_t, tsize,
-				               res_t, psb_rest);
+		        //******************************************************************
+                //Create left fovea and find left template in left image
+		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ly[(( srcsize.height - tisize.height )/2)*psb_in + ( srcsize.width - tisize.width )/2],
+				//               psb_in, tisize,
+				//               temp_l,
+				//               psb_t, tsize,
+				//               res_t, psb_rest);
 
-		        ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
-		        ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
+                //ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
+                //ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
 
-		        //**************************
+		        //******************************************************************
 		        //Create right fovea and find right template in right image:
-		        ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ry[((srcsize.height-tisize.height)/2 + dpix_y )*psb_in + (srcsize.width-tisize.width)/2],
-					        psb_in,tisize,
-					        temp_r,
-					        psb_t,tsize,
-					        res_t, psb_rest);
+		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ry[((srcsize.height-tisize.height)/2 + dpix_y )*psb_in + (srcsize.width-tisize.width)/2],
+				//	        psb_in,tisize,
+				//	        temp_r,
+				//	        psb_t,tsize,
+				//	        res_t, psb_rest);
 
-		        ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
-		        ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
-
+		        //ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
+		        //ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
+                
+                //*****************************************************************
                 //Star diffence of gaussian on foveated images
 		        dl->proc( fov_l, psb_m );
 		        dr->proc( fov_r, psb_m );
 
-		        //**************************
+		        //*****************************************************************
 		        //SPATIAL ZD probability map from fov_l and fov_r:
 		        //perform RANK or NDT kernel comparison:	            	
 		        for (int j=koffsety;j<msize.height-koffsety;j++){
@@ -514,11 +531,15 @@ void ZDFThread::run()
 	          		}
 		        }
 
+                //*******************************************************************
 		        //Do MRF optimization:
 		        m->proc( fov_r, p_prob ); //provide edge map and probability map
 		        //cache for distribution:
-		        ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
+                IplImage *maskMsize = cvCreateImage( cvSize(msize.width, msize.height),8,1) ; 
+                cvCopy(m->get_class(), out_ipl, maskMsize);
+		        //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
 		
+                //*******************************************************************
 		        //evaluate result:
 		        getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
 	
@@ -540,6 +561,7 @@ void ZDFThread::run()
           			}
 		        }
 			
+                //********************************************************************
 		        //If nice segmentation:
 		        if (area >= params->min_area && area <= params->max_area && spread <= params->max_spread){ 
           			//don't update templates to image centre any more as we have a nice target
@@ -550,8 +572,8 @@ void ZDFThread::run()
           			cog_x*= params->cog_snap;
           			cog_y*= params->cog_snap;
 			        //floor(val + 0.5) instead of round
-			        ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
-			        ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
+			        //ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
+			        //ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
 
                     //We've updated, so reset waiting:
          			waiting=0;
@@ -563,13 +585,13 @@ void ZDFThread::run()
           			printf("area:%d spread:%f cogx:%f cogy:%f\n",area,spread,cog_x,cog_y);	
           			waiting++;
            			//report that we didn't update template:
-                                        //-----------------------------------------------extract just template
+                    //-----------------------------------------------extract just template
 
                     if (imageOutTemp.getOutputCount()>0){ 
                         cout << " sending template " << endl;
-                        int top = -1;
-                        int left = -1;
-                        int right = -1;
+                        int top    = -1;
+                        int left   = -1;
+                        int right  = -1;
                         int bottom = -1;
                      
                         for (int j=0;j<msize.height* psb_m;j++){
@@ -617,9 +639,12 @@ void ZDFThread::run()
                         int v = 0;
                         tempSize.width = right-left + 1;
                         tempSize.height = bottom-top + 1;
-                        tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
+                        //tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
+                        tempImg_ipl = cvCreateImage(cvSize(tempSize.width, tempSize.height),IPL_DEPTH_8U, 3);
+                        tempImg = (unsigned char*) tempImg_ipl->imageData;
                         img_out_temp = new ImageOf<PixelBgr>;
                         img_out_temp->resize(tempSize.width, tempSize.height);
+                        IplImage *maskTempSize =  cvCreateImage( cvSize(tempSize.width, tempSize.height),8,1) ; 
                          
                         for (int j = top; j < bottom +1;j++){
           			        for (int i = left; i < right + 1;i++){
@@ -639,15 +664,18 @@ void ZDFThread::run()
                             u = 0;
                             v ++;
                         }
-                        ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
+                        //ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
+                        cvCopy(tempImg_ipl, img_out_temp->getIplImage(), maskTempSize);
+                        
                         imageOutTemp.prepare() = *img_out_temp;	
                    	    imageOutTemp.write();
                         delete img_out_temp;
-                        ippiFree (tempImg);
+                        //ippiFree (tempImg);
+                        cvReleaseImage(&tempImg_ipl);
                     }
-
-
-                    //-----------------------------------------------finished extracting
+                    
+                    //*******************************************************************
+                    //finished extracting
           			update = false;
                     //retreive only the segmented object in order to send as template
 		        }
@@ -666,18 +694,18 @@ void ZDFThread::run()
 		
 		        //send it all when connections are established
 		        if (imageOutProb.getOutputCount()>0){ 
-                    ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
+                  //ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
 			        imageOutProb.prepare() = *img_out_prob;	
                    	imageOutProb.write();
                 }
 
 		        if (imageOutSeg.getOutputCount()>0){
-                    ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
+                  //ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
                    	imageOutSeg.prepare() = *img_out_seg;	
                    	imageOutSeg.write();
                 }
 		        if (imageOutDog.getOutputCount()>0){
-                    ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
+                  //ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
                    	imageOutDog.prepare() = *img_out_dog;	
                    	imageOutDog.write();
                 }
@@ -716,33 +744,34 @@ void ZDFThread::deallocate() {
     delete dl;
     delete dr;
     delete m;
-    ippiFree(copyImg);
-    ippiFree(l_orig);
-    ippiFree(r_orig);
-    ippiFree(yuva_orig_l);
-    ippiFree(yuva_orig_r);
-    ippiFree(tmp);
-    ippiFree(first_plane_l);
-    ippiFree(second_plane_l);
-    ippiFree(third_plane_l);
-    ippiFree(first_plane_r);
-    ippiFree(second_plane_r);
-    ippiFree(third_plane_r);
-    ippiFree(pyuva_l);
-    ippiFree(pyuva_r); 
-    ippiFree(rec_im_ly);
-    ippiFree(rec_im_ry);
-    ippiFree(res_t);
-    ippiFree(out);
-    ippiFree(seg_im);
-    ippiFree(seg_dog);
-    ippiFree(fov_l);
-    ippiFree(fov_r);
-    ippiFree(zd_prob_8u);
-    ippiFree(o_prob_8u);
+    
+    cvReleaseImage(&copyImg_ipl);
+    cvReleaseImage(&l_orig_ipl);
+    cvReleaseImage(&r_orig_ipl);
+    cvReleaseImage(&yuva_orig_l_ipl);
+    cvReleaseImage(&yuva_orig_r_ipl);
+    cvReleaseImage(&tmp_ipl);
+    cvReleaseImage(&first_plane_l_ipl);
+    cvReleaseImage(&second_plane_l_ipl);
+    cvReleaseImage(&third_plane_l_ipl);
+    cvReleaseImage(&first_plane_r_ipl);
+    cvReleaseImage(&second_plane_r_ipl);
+    cvReleaseImage(&third_plane_r_ipl);
+    free(pyuva_l);
+    free(pyuva_r); 
+    cvReleaseImage(&rec_im_ly_ipl);
+    cvReleaseImage(&rec_im_ry_ipl);
+    cvReleaseImage(&res_t_ipl);
+    cvReleaseImage(&out_ipl);
+    cvReleaseImage(&seg_im_ipl);
+    cvReleaseImage(&seg_dog_ipl);
+    cvReleaseImage(&fov_l_ipl);
+    cvReleaseImage(&fov_r_ipl);
+    cvReleaseImage(&zd_prob_8u_ipl);
+    cvReleaseImage(&o_prob_8u_ipl);
     free(p_prob);
-    ippiFree(temp_l);
-    ippiFree(temp_r);
+    cvReleaseImage(&temp_l_ipl);
+    cvReleaseImage(&temp_r_ipl);
     delete img_out_prob;
     delete img_out_seg;
     delete img_out_dog;
@@ -808,47 +837,78 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     nclasses = 2;
     dpix_y = 0;
 
-    copyImg     = ippiMalloc_8u_C3( srcsize.width, srcsize.height, &psbCopy);
-    l_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
-    r_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
+    //copyImg     = ippiMalloc_8u_C3( srcsize.width, srcsize.height, &psbCopy);
+    copyImg_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U, 3);
 
-    rec_im_ly   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
-    rec_im_ry   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
+    //l_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
+    l_orig_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,4);
+    //r_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
+    r_orig_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,4);
 
-    res_t      = ippiMalloc_32f_C1(trsize.width,trsize.height,&psb_rest);
-    out        = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    seg_im     = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    seg_dog    = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    //rec_im_ly   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
+    rec_im_ly_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //rec_im_ry   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
+    rec_im_ry_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
 
-    fov_l      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    fov_r      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    zd_prob_8u = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    o_prob_8u  = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    p_prob    = (Ipp8u**) malloc(sizeof(Ipp8u*)*nclasses);
+    //res_t      = ippiMalloc_32f_C1(trsize.width,trsize.height,&psb_rest);
+    res_t_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_32F,1);
+    //out        = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    out_ipl      = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //seg_im     = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    seg_im_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //seg_dog    = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    seg_dog_ipl      = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
 
-    yuva_orig_l = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
-    yuva_orig_r = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
+    //fov_l      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    fov_l_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //fov_r      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    fov_r_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //zd_prob_8u = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    zd_prob_8u_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+ 
+    // o_prob_8u  = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    o_prob_8u_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
 
-    tmp             = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb );
-    first_plane_l    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
-    second_plane_l    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
-    third_plane_l   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
+    //p_prob    = (Ipp8u**) malloc(sizeof(Ipp8u*)*nclasses);
+    p_prob    = (unsigned char**) malloc(sizeof(unsigned char*)*nclasses);
 
-    first_plane_r    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
-    second_plane_r    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
-    third_plane_r   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
-    pyuva_l = (Ipp8u**) malloc(4*sizeof(Ipp8u*));
-    pyuva_r = (Ipp8u**) malloc(4*sizeof(Ipp8u*));
+    //yuva_orig_l = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
+    yuva_orig_l_ipl = cvCreateImage(cvSize(srcsize.width * 4, srcsize.height),IPL_DEPTH_8U,1);
+    //yuva_orig_r = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
+    yuva_orig_r_ipl = cvCreateImage(cvSize(srcsize.width * 4, srcsize.height),IPL_DEPTH_8U,1);
 
-    ippiSet_8u_C1R( 0, zd_prob_8u, psb_m, msize );
-    ippiSet_8u_C1R( 0, o_prob_8u, psb_m, msize );
+    //tmp             = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb );
+    tmp_ipl             = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //first_plane_l   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
+    first_plane_l_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //second_plane_l  = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
+    second_plane_l_ipl  = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //third_plane_l   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
+    third_plane_l_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+
+    //first_plane_r    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
+    first_plane_r_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //second_plane_r    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
+    second_plane_r_ipl  = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //third_plane_r   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
+    third_plane_r_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+
+    pyuva_l = (unsigned char**) malloc(4*sizeof(unsigned char*));
+    pyuva_r = (unsigned char**) malloc(4*sizeof(unsigned char*));
+
+    //ippiSet_8u_C1R( 0, zd_prob_8u, psb_m, msize );
+    cvSet(zd_prob_8u_ipl,cv::Scalar(0,0,0));
+    //ippiSet_8u_C1R( 0, o_prob_8u, psb_m, msize );
+    cvSet(o_prob_8u_ipl, cv::Scalar(0,0,0));
 
     p_prob[0] = o_prob_8u;
     p_prob[1] = zd_prob_8u;
 
     //templates:
-    temp_l     = ippiMalloc_8u_C1(tsize.width,tsize.height, &psb_t);
-    temp_r     = ippiMalloc_8u_C1(tsize.width,tsize.height, &psb_t);
+    //temp_l     = ippiMalloc_8u_C1(tsize.width,tsize.height, &psb_t);
+    temp_l_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //temp_r     = ippiMalloc_8u_C1(tsize.width,tsize.height, &psb_t);
+    temp_r_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
 
     dl = new DoG(msize);
     dr = new DoG(msize);
@@ -881,7 +941,7 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
 }
 
 
-void ZDFThread::get_ndt(Coord c,Ipp8u * im, int w, int*list)
+void ZDFThread::get_ndt(Coord c, unsigned char * im, int w, int*list)
 {
 
     Coord n;
@@ -979,7 +1039,7 @@ double ZDFThread::cmp_ndt(int*ndt_l, int*ndt_r)
 }
 
 
-void ZDFThread::get_rank(Coord c,Ipp8u *im, int w, int*list)
+void ZDFThread::get_rank(Coord c,unsigned char *im, int w, int*list)
 {
     Coord n;
     int i = 0;
@@ -1035,7 +1095,7 @@ double ZDFThread::cmp_rank(int*l1, int*l2)
 
 
 
-void ZDFThread::getAreaCoGSpread(Ipp8u*im_,int psb_,IppiSize sz_,int*parea,double*pdx,double*pdy,double*spread){
+void ZDFThread::getAreaCoGSpread(unsigned char *im_, int psb_, IppiSize sz_, int *parea, double *pdx, double *pdy, double *spread){
 
     double naccum = 0.0, xaccum = 0.0, yaccum = 0.0;
     *spread = 0.0;

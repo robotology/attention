@@ -57,6 +57,8 @@ public:
      */
     //void proc(Ipp8u* im, int psb_8u);
     void proc(unsigned char* im, int psb_8u);
+    void proc(IplImage* im, int psb_8u);
+    
 
     /** Access to the on-centre output.
      * @return Pointer to the on-centre output image.
@@ -86,6 +88,16 @@ public:
      */
     //void conv_32f_to_8u( Ipp32f* im_i, int p4_, Ipp8u*im_o, int p1_, IppiSize srcsize_);
     void conv_32f_to_8u( float* im_i, int p4_, unsigned char *im_o, int p1_, IppiSize srcsize_);
+
+     /** 
+     * Convert from 32f precision back to 8u
+     */
+    void conv_32f_to_8u( IplImage* im_i, int p4_, IplImage *im_o, int p1_, IppiSize srcsize_);
+
+    /**
+     * Convert from 8u precision back to 32f
+     */
+    void conv_8u_to_32f( IplImage *im_i, int p4_, IplImage *im_o, int p1_, IppiSize srcsize_);
 
 private:
     float *dog;          //Ipp32f
