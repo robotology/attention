@@ -175,8 +175,8 @@ int main(int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose( true );
     rf.setDefaultConfigFile( "zdfMod.ini" ); //overridden by --from parameter
-    rf.setDefaultContext( "zdfMod/conf" );   //overridden by --context parameter
-    rf.configure( "ICUB_ROOT", argc, argv );
+    rf.setDefaultContext( "zdfMod" );   //overridden by --context parameter
+    rf.configure( argc, argv );
  
     /* run the module: runModule() calls configure first and, if successful, it then runs */
     module.runModule(rf);
