@@ -410,8 +410,8 @@ void ZDFThread::run()
                 IplImage *mask  = cvCreateImage( cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1) ; 
 
                 if( !allocated || img_in_left->width() != insize.width || img_in_left->height() != insize.height) {
-                    deallocate();
-                    allocate(img_in_left);
+                  deallocate();
+                  allocate(img_in_left);
                 }
 		        //processing for zdf
 		        if (scale==1.0){ //resize the images if needed
@@ -490,15 +490,21 @@ void ZDFThread::run()
                   printf("acquiring \n");
                   IplImage* tsizeMask = cvCreateImage( cvSize(tsize.width, tsize.height),IPL_DEPTH_8U,1) ; 
                   //ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);
-                  cvSetImageROI(rec_im_ly_ipl ,cvRect( ( srcsize.height - tsize.height ) / 2,
-                                                       (srcsize.width - tsize.width ) /2,
+                  cvSetImageROI(rec_im_ly_ipl ,cvRect( ( srcsize.width - tsize.width ) /2,
+                                                       (srcsize.height - tsize.height) /2,
                                                        tsize.width, tsize.height) );
                   cvCopy(rec_im_ly_ipl, temp_l_ipl,NULL);      
+
+                  cvResetImageROI(rec_im_ly_ipl);
+
                   //ippiCopy_8u_C1R(&rec_im_ry [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_r, psb_t, tsize);
-                  cvSetImageROI(rec_im_ry_ipl ,cvRect( ( srcsize.height - tsize.height ) / 2,
-                                                       (srcsize.width - tsize.width ) /2,
+                  cvSetImageROI(rec_im_ry_ipl ,cvRect( ( srcsize.width - tsize.width ) / 2,
+                                                       (srcsize.height - tsize.height) / 2,
                                                        tsize.width, tsize.height) );
                   cvCopy(rec_im_ry_ipl, temp_r_ipl,NULL);
+
+                  
+                  cvResetImageROI(rec_im_ry_ipl);
 		        }
 
 		        //******************************************************************
@@ -509,15 +515,29 @@ void ZDFThread::run()
 				//               temp_l,
 				//               psb_t, tsize,
 				//               res_t, psb_rest);
-                assert(1 == 0);
-                printf("result %d == %d \n",rec_im_ly_ipl->width - temp_l_ipl->width + 1, res_t_ipl->width);
+                cv::Mat rec_im_ly_mat(rec_im_ly_ipl);
+                cv::Mat temp_l_mat(temp_l_ipl);
+                cv::Mat res_t_mat(res_t_ipl);
+                printf("result width %d == %d \n",rec_im_ly_mat.cols - temp_l_mat.cols + 1, res_t_mat.cols);
+                printf("result height%d == %d \n",rec_im_ly_mat.rows - temp_l_mat.rows + 1, res_t_mat.rows);
+                
                 printf("ASSERT A: OK \n");
                 assert(cv::abs(rec_im_ly_ipl.rows - temp_l_ipl.rows) + 1 == res_t_ipl.rows);
                 printf("ASSERT B: OK \n");
                 cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
+                //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
 
                 //ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
                 //ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
+
+                double minVal_l; double maxVal_l;
+                cv::Point minLoc_l, maxLoc_l, matchLoc_l;
+                cv::minMaxLoc(res_t_mat, &minVal_l, &maxVal_l, &minLoc_l, &maxLoc_l, cv::Mat());
+
+                cvSetImageROI(rec_im_ly_ipl ,cvRect( mid_x, mid_y,msize.width, msize.height) );
+                cvCopy(rec_im_ly_ipl, fov_l_ipl,NULL);                      
+                cvResetImageROI(rec_im_ly_ipl);
+
 
 		        //******************************************************************
 		        //Create right fovea and find right template in right image:
@@ -529,9 +549,19 @@ void ZDFThread::run()
 				//	        res_t, psb_rest);
 
                 
+                cvMatchTemplate(rec_im_ry_ipl, temp_r_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
+               	//cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());  
 
 		        //ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
 		        //ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
+                double minVal_r; double maxVal_r;
+                cv::Point minLoc_r, maxLoc_r, matchLoc_r;
+                cv::minMaxLoc(res_t_mat, &minVal_r, &maxVal_r, &minLoc_r, &maxLoc_r, cv::Mat());
+
+                cvSetImageROI(rec_im_ry_ipl ,cvRect( mid_x, mid_y,msize.width, msize.height) );
+                cvCopy(rec_im_ry_ipl, fov_r_ipl,NULL);                      
+                cvResetImageROI(rec_im_ry_ipl);
+                
                 
                 //*****************************************************************
                 //Star diffence of gaussian on foveated images
@@ -545,56 +575,58 @@ void ZDFThread::run()
 		        for (int j=koffsety;j<msize.height-koffsety;j++){
           			c.y=j;
           			for (int i=koffsetx;i<msize.width-koffsetx;i++){
-	            			c.x=i;
-	            			//if either l or r textured at this retinal location: 
-	            		if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
-	              			if (RANK0_NDT1==0){
-						        //use RANK:
-						        get_rank(c,fov_l,psb_m,rank1);
-						        get_rank(c,fov_r,psb_m,rank2);
-						        cmp_res = cmp_rank(rank1,rank2);
-	              			}
-	            			else{ 
-						        //use NDT:
-						        get_ndt(c,fov_l,psb_m,ndt1);
-						        get_ndt(c,fov_r,psb_m,ndt2);
-						        cmp_res = cmp_ndt( ndt1, ndt2 );
-	              			}
-	              			zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
-	            		}
-	            		else{
-	              				//untextured in both l & r, so set to bland prob (ZD):
-	              			zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
-	            		} 
-
-	            		//RADIAL PENALTY:
-	            		//The further from the origin, less likely it's ZD, so reduce zd_prob radially:
-	            		//current radius:
-	            		r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
-	            		rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
-	            		max_rad_pen = zd_prob_8u[j*psb_m+i];
-	            		if(max_rad_pen < rad_pen) {
-	              			rad_pen=max_rad_pen;
-	            		}
-	            		//apply radial penalty
-	            		zd_prob_8u[j*psb_m+i]-= rad_pen;
-	            
-	            		//manufacture NZD prob (other):
-	            		o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
+                      c.x=i;
+                      //if either l or r textured at this retinal location: 
+                      if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
+                        if (RANK0_NDT1==0){
+                          //use RANK:
+                          get_rank(c,fov_l,psb_m,rank1);
+                          get_rank(c,fov_r,psb_m,rank2);
+                          cmp_res = cmp_rank(rank1,rank2);
+                        }
+                        else{ 
+                          //use NDT:
+                          get_ndt(c,fov_l,psb_m,ndt1);
+                          get_ndt(c,fov_r,psb_m,ndt2);
+                          cmp_res = cmp_ndt( ndt1, ndt2 );
+                        }
+                        zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
+                      }
+                      else{
+                        //untextured in both l & r, so set to bland prob (ZD):
+                        zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
+                      } 
+                      
+                      //RADIAL PENALTY:
+                      //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
+                      //current radius:
+                      r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
+                      rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
+                      max_rad_pen = zd_prob_8u[j*psb_m+i];
+                      if(max_rad_pen < rad_pen) {
+                        rad_pen=max_rad_pen;
+                      }
+                      //apply radial penalty
+                      zd_prob_8u[j*psb_m+i]-= rad_pen;
+                      
+                      //manufacture NZD prob (other):
+                      o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
 	          		}
 		        }
 
                 //*******************************************************************
+                /*
 		        //Do MRF optimization:
 		        m->proc( fov_r, p_prob ); //provide edge map and probability map
 		        //cache for distribution:
                 IplImage *maskMsize = cvCreateImage( cvSize(msize.width, msize.height),8,1) ; 
                 cvCopy(copyImg_ipl, out_ipl, maskMsize);
 		        //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
-		
+                */
                 //*******************************************************************
 		        //evaluate result:
-		        getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
+		        
+                getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
 	
 		        cog_x_send = cog_x;
 		        cog_y_send = cog_y;
@@ -613,7 +645,7 @@ void ZDFThread::run()
             			}
           			}
 		        }
-			
+                
                 //********************************************************************
 		        //If nice segmentation:
 		        if (area >= params->min_area && area <= params->max_area && spread <= params->max_spread){ 
@@ -690,7 +722,7 @@ void ZDFThread::run()
 
                         int u = 0;
                         int v = 0;
-                        tempSize.width = right-left + 1;
+                        tempSize.width  = right-left + 1;
                         tempSize.height = bottom-top + 1;
                         //tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
                         tempImg_ipl = cvCreateImage(cvSize(tempSize.width, tempSize.height),IPL_DEPTH_8U, 3);
@@ -875,8 +907,8 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
 
     tisize.width  = tsize.width  + 2 * t_lock_lr;
     tisize.height = tsize.height + 2 * t_lock_ud;
-    trsize.width  = tisize.width  - tsize.width  + 1;
-    trsize.height = tisize.height - tsize.height + 1;
+    trsize.width  = 289;//tisize.width  - tsize.width  + 1;
+    trsize.height = 209;//tisize.height - tsize.height + 1;
 
     mid_x = (srcsize.width  - msize.width)/2;
     mid_y = (srcsize.height - msize.height)/2;
