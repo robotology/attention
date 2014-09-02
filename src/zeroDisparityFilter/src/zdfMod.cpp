@@ -521,9 +521,6 @@ void ZDFThread::run()
                 printf("result width %d == %d \n",rec_im_ly_mat.cols - temp_l_mat.cols + 1, res_t_mat.cols);
                 printf("result height%d == %d \n",rec_im_ly_mat.rows - temp_l_mat.rows + 1, res_t_mat.rows);
                 
-                printf("ASSERT A: OK \n");
-                assert(cv::abs(rec_im_ly_ipl.rows - temp_l_ipl.rows) + 1 == res_t_ipl.rows);
-                printf("ASSERT B: OK \n");
                 cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
                 //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
 
@@ -566,57 +563,66 @@ void ZDFThread::run()
                 //*****************************************************************
                 //Star diffence of gaussian on foveated images
                 printf("difference of gaussian on foveated images \n");
-		        dl->proc( fov_l, psb_m );
-		        dr->proc( fov_r, psb_m );
+		        dl->proc( fov_l_ipl, psb_m );
+		        dr->proc( fov_r_ipl, psb_m );
 
 		        //*****************************************************************
 		        //SPATIAL ZD probability map from fov_l and fov_r:
-		        //perform RANK or NDT kernel comparison:	            	
-		        for (int j=koffsety;j<msize.height-koffsety;j++){
-          			c.y=j;
-          			for (int i=koffsetx;i<msize.width-koffsetx;i++){
-                      c.x=i;
-                      //if either l or r textured at this retinal location: 
-                      if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
-                        if (RANK0_NDT1==0){
-                          //use RANK:
-                          get_rank(c,fov_l,psb_m,rank1);
-                          get_rank(c,fov_r,psb_m,rank2);
-                          cmp_res = cmp_rank(rank1,rank2);
-                        }
-                        else{ 
-                          //use NDT:
-                          get_ndt(c,fov_l,psb_m,ndt1);
-                          get_ndt(c,fov_r,psb_m,ndt2);
-                          cmp_res = cmp_ndt( ndt1, ndt2 );
-                        }
-                        zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
+                printf("computing the spatial ZD probability map from fov_l and fov_r \n");
+		        //perform RANK or NDT kernel comparison:	
+                zd_prob_8u = (char*) zd_prob_8u_ipl->imageData;
+		        for (int j = koffsety; j < msize.height - koffsety; j++){
+                  c.y = j;
+                  for (int i = koffsetx; i < msize.width - koffsetx; i++){
+                    c.x = i;
+                    char* p_dogonoff = dl->get_dog_onoff();
+                    //if either l or r textured at this retinal location: 
+                    if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
+                      if (RANK0_NDT1==0){
+                        printf("using RANK \n");
+                        //use RANK:
+                        get_rank(c, (unsigned char*) fov_l_ipl->imageData, psb_m, rank1);   printf("got RANK from left\n");
+                        get_rank(c, (unsigned char*) fov_r_ipl->imageData, psb_m, rank2);   printf("got RANK from right\n");
+                        cmp_res = cmp_rank(rank1,rank2); printf("compared RANKS \n");
                       }
-                      else{
-                        //untextured in both l & r, so set to bland prob (ZD):
-                        zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
-                      } 
-                      
-                      //RADIAL PENALTY:
-                      //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
-                      //current radius:
-                      r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
-                      rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
-                      max_rad_pen = zd_prob_8u[j*psb_m+i];
-                      if(max_rad_pen < rad_pen) {
-                        rad_pen=max_rad_pen;
+                      else{ 
+                        printf("using NDT \n");
+                        //use NDT:
+                        get_ndt(c,fov_l,psb_m,ndt1);
+                        get_ndt(c,fov_r,psb_m,ndt2);
+                        cmp_res = cmp_ndt( ndt1, ndt2 );
                       }
-                      //apply radial penalty
-                      zd_prob_8u[j*psb_m+i]-= rad_pen;
-                      
-                      //manufacture NZD prob (other):
-                      o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
-	          		}
+                      printf("preparing zerodisparity probability mono channel \n");
+                      zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
+                    }
+                    else{
+                      printf("untextured in both l & r");
+                      //untextured in both l & r, so set to bland prob (ZD):
+                      zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
+                    } 
+                    
+                    //RADIAL PENALTY:
+                    //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
+                    printf("introducing RADIAL PENALITY \n");
+                    //current radius:
+                    r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
+                    rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
+                    max_rad_pen = zd_prob_8u[j*psb_m+i];
+                    if(max_rad_pen < rad_pen) {
+                      rad_pen=max_rad_pen;
+                    }
+                    //apply radial penalty
+                    zd_prob_8u[j*psb_m+i]-= rad_pen;
+                    
+                    //manufacture NZD prob (other):
+                    o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
+                  }
 		        }
 
-                //*******************************************************************
-                /*
+                //*******************************************************************          
 		        //Do MRF optimization:
+                printf("performing Markov Random Field optimization \n");
+                /*
 		        m->proc( fov_r, p_prob ); //provide edge map and probability map
 		        //cache for distribution:
                 IplImage *maskMsize = cvCreateImage( cvSize(msize.width, msize.height),8,1) ; 
@@ -954,17 +960,17 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     seg_dog_ipl      = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
 
     //fov_l      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    fov_l_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    fov_l_ipl    = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
     //fov_r      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    fov_r_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    fov_r_ipl    = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
     //zd_prob_8u = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    zd_prob_8u_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    zd_prob_8u_ipl = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
  
     // o_prob_8u  = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    o_prob_8u_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    o_prob_8u_ipl = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
 
     //p_prob    = (Ipp8u**) malloc(sizeof(Ipp8u*)*nclasses);
-    p_prob    = (unsigned char**) malloc(sizeof(unsigned char*)*nclasses);
+    p_prob    = (char**) malloc(sizeof(unsigned char*)*nclasses);
 
     //yuva_orig_l = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
     yuva_orig_l_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,3);

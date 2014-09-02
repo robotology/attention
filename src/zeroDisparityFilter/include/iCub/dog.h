@@ -64,19 +64,19 @@ public:
      * @return Pointer to the on-centre output image.
      */
     //Ipp8u* get_dog_on(){return out_dog_on;}          //on-centre
-    unsigned char* get_dog_on(){return out_dog_on;}    //on-centre
+    char* get_dog_on(){return out_dog_on;}    //on-centre
 
     /** Access to the off-centre output.
      * @return Pointer to the off-centre output image.
      */
     //Ipp8u* get_dog_off(){return out_dog_off;}        //off-centre
-    unsigned char* get_dog_off(){return out_dog_off;}  //off-centre
+    char* get_dog_off(){return out_dog_off;}  //off-centre
 
     /** Access to the magnitude output.
      * @return Pointer to the on/off-centre output image.
      */
     //Ipp8u* get_dog_onoff(){return out_dog_onoff;}        //absolute difference
-    unsigned char* get_dog_onoff(){return out_dog_onoff;}  //absolute difference
+    char* get_dog_onoff(){return out_dog_onoff;}           //absolute difference
 
     /** Memory width return function.
      * @return Step in bytes through the output image.
@@ -87,7 +87,7 @@ public:
      * Convert from 32f precision back to 8u
      */
     //void conv_32f_to_8u( Ipp32f* im_i, int p4_, Ipp8u*im_o, int p1_, IppiSize srcsize_);
-    void conv_32f_to_8u( float* im_i, int p4_, unsigned char *im_o, int p1_, IppiSize srcsize_);
+    void conv_32f_to_8u( float* im_i, int p4_, char *im_o, int p1_, IppiSize srcsize_);
 
      /** 
      * Convert from 32f precision back to 8u
@@ -98,6 +98,7 @@ public:
      * Convert from 8u precision back to 32f
      */
     void conv_8u_to_32f( IplImage *im_i, int p4_, IplImage *im_o, int p1_, IppiSize srcsize_);
+    void conv_8u_to_32f( cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, IppiSize srcsize_);
 
 private:
     float *dog;          //Ipp32f
@@ -117,11 +118,12 @@ private:
     IplImage *tmp2_image;         //Ipp32f
     IplImage *tmp3_image;         //Ipp32f
     IplImage *in_pad_image;       //Ipp32f
+    IplImage *invert_image;       
 
-    unsigned char *in_pad_8u;          //Ipp8u
-    unsigned char *out_dog_on;         //Ipp8u
-    unsigned char *out_dog_off;        //Ipp8u
-    unsigned char *out_dog_onoff;      //Ipp8u
+    unsigned char *in_pad_8u;     //Ipp8u
+    char *out_dog_on;             //Ipp8u
+    char *out_dog_off;            //Ipp8u
+    char *out_dog_onoff;          //Ipp8u
 
     IplImage *in_pad_8u_image;          //Ipp8u
     IplImage *out_dog_on_image;         //Ipp8u
@@ -132,6 +134,11 @@ private:
     int width,height;
     int psb_o,psb_pad,psb_pad_8u;
     IppiSize srcsize,psize;
+
+    CvMat* kern1_mat;
+    CvMat* kern2_mat;
+
+    cv::Mat tmp1_mat, tmp2_mat, tmp3_mat, dog_mat;
 	
 };
 #endif
