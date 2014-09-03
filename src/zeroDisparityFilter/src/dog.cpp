@@ -242,12 +242,16 @@ void DoG::proc(IplImage *in_, int psb_in_)
     cvAdd(dog_on_image, dog_off_image, dog_onoff_image);
 
     out_dog_onoff = dog_onoff_image->imageData;
+    
 
     //convert to 8u and remove pad:
     printf("converting back to 8u and removing padding \n");
-    conv_32f_to_8u(&dog_on[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_on,psb_o,srcsize);
-    conv_32f_to_8u(&dog_off[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_off,psb_o,srcsize);
-    conv_32f_to_8u(&dog_onoff[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,out_dog_onoff,psb_o,srcsize);
+    //conv_32f_to_8u(&dog_on   [PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_on,    psb_o, srcsize);
+    conv_32f_to_8u(dog_on_image, 0,out_dog_on_image, 0,srcsize);
+    //conv_32f_to_8u(&dog_off  [PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_off,   psb_o, srcsize);
+    conv_32f_to_8u(dog_off_image, 0, out_dog_off_image,0, srcsize);
+    //conv_32f_to_8u(&dog_onoff[PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_onoff, psb_o, srcsize);
+    conv_32f_to_8u(dog_onoff_image, 0, out_dog_onoff_image, 0, srcsize);
     printf("procedure concluded \n");
 
 }

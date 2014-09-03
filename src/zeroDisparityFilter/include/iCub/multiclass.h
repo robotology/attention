@@ -45,21 +45,21 @@ class MultiClass{
    */
   struct Parameters
   {
-    int iter_max;	
-    int randomize_every_iteration;
-      
-    int smoothness_penalty;
-    int smoothness_penalty_base;
-    int smoothness_3sigmaon2;
-    int data_penalty;
-    int bland_dog_thresh; 
-    int radial_penalty; 
-    int acquire_wait;
-    int min_area;
-    int max_area;
-    int max_spread;
-    double cog_snap;
-    double bland_prob;
+      int    iter_max;	
+      int    randomize_every_iteration;
+     
+      int    smoothness_penalty;
+      int    smoothness_penalty_base;
+      int    smoothness_3sigmaon2;
+      int    data_penalty;
+      int    bland_dog_thresh; 
+      int    radial_penalty; 
+      int    acquire_wait;
+      int    min_area;
+      int    max_area;
+      int    max_spread;
+      double cog_snap;
+      double bland_prob;
 
   };
 	
@@ -80,7 +80,12 @@ class MultiClass{
    * @return Pointer to the output classification image.
    */
   //Ipp8u* get_class(){return out;};
-  unsigned char* get_class(){return out;};
+  char* get_class(){return out;};
+
+  /** Access to the classification output.
+   * @return Pointer to the output classification image.
+   */  
+  IplImage* get_class_ipl(){return outImage;};
   
   /** Memory width return function.
    * @return Step in bytes through the output image.
@@ -93,15 +98,15 @@ class MultiClass{
    * @param pMaps Reference to the array of pointers to the input class probability maps.
    */
   //void proc(Ipp8u* im_in, Ipp8u** pMaps);
-  void proc(unsigned char* im_in, unsigned char** pMaps);
+  void proc(char* im_in, char** pMaps);
   
  private:
-  int likelihood(Coord c, int d);
-  int prior_intensity_smoothness(Coord p, Coord np, int d, int nd);
+  int  likelihood(Coord c, int d);
+  int  prior_intensity_smoothness(Coord p, Coord np, int d, int nd);
   void generate_permutation(int *buf, int n);
-  int compute_energy();
+  int  compute_energy();
   void clear();
-  void expand(int a);/* computes the minimum a-expansion configuration */
+  void expand(int a);  /* computes the minimum a-expansion configuration */
   
   int nmaps;
   int len_nv;
@@ -109,8 +114,8 @@ class MultiClass{
   IppiSize im_size;
   IplImage* outImage;               //outputImage of the class
   Coord im_sz;
-  unsigned char *im, **prob;        //Ipp8u
-  unsigned char *out;               //Ipp8u 
+  char *im, **prob;        //Ipp8u
+  char *out;               //Ipp8u 
   Parameters *params;
   int E;
   void **ptr_im;

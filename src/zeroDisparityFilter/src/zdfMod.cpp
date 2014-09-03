@@ -339,7 +339,8 @@ ZDFThread::~ZDFThread( )
     cvReleaseImage(&temp_r_ipl);     //ippiFree(temp_r);
     delete img_out_prob;
     delete img_out_seg;
-    delete img_out_dog; 
+    delete img_out_dog;
+   
 }
 
 void ZDFThread::setName(string module) 
@@ -416,35 +417,35 @@ void ZDFThread::run()
 		        //processing for zdf
 		        if (scale==1.0){ //resize the images if needed
                   //copy yarp image to OPENCV
-                  int x = 0, y = 0;
-                  printf("copying the input image left............");
-                  IplImage* inputdepth = (IplImage*) (img_in_left->getIplImage());
-                  printf("copying yarp image %d %d %d %d \n", img_in_left->width(), img_in_left->height(), inputdepth->depth, inputdepth->nChannels);
-                  printf("into IplImage %d %d %d %d \n", copyImg_ipl->width, copyImg_ipl->height, copyImg_ipl->depth, copyImg_ipl->nChannels);
-                  cvSetImageROI((IplImage*) img_in_left->getIplImage(),cvRect( x, y, srcsize.width, srcsize.height) );
-                  cvCopy((IplImage*) img_in_left->getIplImage(), copyImg_ipl, mask);
-                  printf("success! \n");
-                  //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
-                  
-                  ////ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
-                  
-                  //test with YUV images instead of grayscale left
-                  //ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
-                  cvCopy((IplImage*) img_in_left->getIplImage(), l_orig_ipl, mask);
-                  
-                  //and right
-                  //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
-                  cvCopy((IplImage*) img_in_right->getIplImage(), r_orig_ipl, mask);
+                    int x = 0, y = 0;
+                    printf("copying the input image left............");
+                    IplImage* inputdepth = (IplImage*) (img_in_left->getIplImage());
+                    printf("copying yarp image %d %d %d %d \n", img_in_left->width(), img_in_left->height(), inputdepth->depth, inputdepth->nChannels);
+                    printf("into IplImage %d %d %d %d \n", copyImg_ipl->width, copyImg_ipl->height, copyImg_ipl->depth, copyImg_ipl->nChannels);
+                    cvSetImageROI((IplImage*) img_in_left->getIplImage(),cvRect( x, y, srcsize.width, srcsize.height) );
+                    cvCopy((IplImage*) img_in_left->getIplImage(), copyImg_ipl, mask);
+                    printf("success! \n");
+                    //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
+                    
+                    ////ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
+                    
+                    //test with YUV images instead of grayscale left
+                    //ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
+                    cvCopy((IplImage*) img_in_left->getIplImage(), l_orig_ipl, mask);
+                    
+                    //and right
+                    //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
+                    cvCopy((IplImage*) img_in_right->getIplImage(), r_orig_ipl, mask);
               	}else{
-                  //scale to width,height:
-                  //ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
-                  //Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
-                  //ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);   
-                  //ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);     
-                  //ippsFree(pBuffer);
-                  ////the following is deprecated...use previous
-                  ////ippiResize_8u_C3R( img_in_left->getRawImage(), insize, img_in_left->width() * 3, inroi, l_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
-                  ////ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
+                    //scale to width,height:
+                    //ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
+                    //Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
+                    //ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);   
+                    //ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);     
+                    //ippsFree(pBuffer);
+                    ////the following is deprecated...use previous
+                    ////ippiResize_8u_C3R( img_in_left->getRawImage(), insize, img_in_left->width() * 3, inroi, l_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
+                    ////ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
 		        }
                 
                 printf("extracting YUV planes for the left ");
@@ -453,16 +454,14 @@ void ZDFThread::run()
                 cvCvtColor(l_orig_ipl, yuva_orig_l_ipl, CV_RGB2YCrCb);
                 //ippiCopy_8u_C4P4R( yuva_orig_l, psb4, pyuva_l, psb, srcsize );
                 cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, NULL);
-                first_plane_l  = (unsigned char *) first_plane_l_ipl->imageData;
+                first_plane_l  = (unsigned char *)  first_plane_l_ipl->imageData;
                 second_plane_l = (unsigned char *) second_plane_l_ipl->imageData;
-                third_plane_l  = (unsigned char *) third_plane_l_ipl->imageData;
+                third_plane_l  = (unsigned char *)  third_plane_l_ipl->imageData;
                 pyuva_l[0] = first_plane_l;  //Y
                 pyuva_l[1] = second_plane_l; //U
                 pyuva_l[2] = third_plane_l;  //V
                 pyuva_l[3] = tmp; 
                 printf("..............success \n");
-                
-
                
                 printf("extracting YUV planes for the right");
                 //ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
@@ -487,24 +486,24 @@ void ZDFThread::run()
                 printf("success \n");
 
 		        if (acquire){
-                  printf("acquiring \n");
-                  IplImage* tsizeMask = cvCreateImage( cvSize(tsize.width, tsize.height),IPL_DEPTH_8U,1) ; 
-                  //ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);
-                  cvSetImageROI(rec_im_ly_ipl ,cvRect( ( srcsize.width - tsize.width ) /2,
-                                                       (srcsize.height - tsize.height) /2,
-                                                       tsize.width, tsize.height) );
-                  cvCopy(rec_im_ly_ipl, temp_l_ipl,NULL);      
-
-                  cvResetImageROI(rec_im_ly_ipl);
-
-                  //ippiCopy_8u_C1R(&rec_im_ry [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_r, psb_t, tsize);
-                  cvSetImageROI(rec_im_ry_ipl ,cvRect( ( srcsize.width - tsize.width ) / 2,
-                                                       (srcsize.height - tsize.height) / 2,
-                                                       tsize.width, tsize.height) );
-                  cvCopy(rec_im_ry_ipl, temp_r_ipl,NULL);
-
-                  
-                  cvResetImageROI(rec_im_ry_ipl);
+                    printf("acquiring \n");
+                    IplImage* tsizeMask = cvCreateImage( cvSize(tsize.width, tsize.height),IPL_DEPTH_8U,1) ; 
+                    //ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);
+                    cvSetImageROI(rec_im_ly_ipl ,cvRect( ( srcsize.width - tsize.width ) /2,
+                                                         (srcsize.height - tsize.height) /2,
+                                                         tsize.width, tsize.height) );
+                    cvCopy(rec_im_ly_ipl, temp_l_ipl,NULL);      
+                    
+                    cvResetImageROI(rec_im_ly_ipl);
+                    
+                    //ippiCopy_8u_C1R(&rec_im_ry [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_r, psb_t, tsize);
+                    cvSetImageROI(rec_im_ry_ipl ,cvRect( ( srcsize.width - tsize.width ) / 2,
+                                                         (srcsize.height - tsize.height) / 2,
+                                                         tsize.width, tsize.height) );
+                    cvCopy(rec_im_ry_ipl, temp_r_ipl,NULL);
+                    
+                    
+                    cvResetImageROI(rec_im_ry_ipl);
 		        }
 
 		        //******************************************************************
@@ -570,73 +569,86 @@ void ZDFThread::run()
 		        //SPATIAL ZD probability map from fov_l and fov_r:
                 printf("computing the spatial ZD probability map from fov_l and fov_r \n");
 		        //perform RANK or NDT kernel comparison:	
-                zd_prob_8u = (char*) zd_prob_8u_ipl->imageData;
+                o_prob_8u  =  o_prob_8u_ipl->imageData;
+                zd_prob_8u = zd_prob_8u_ipl->imageData;
 		        for (int j = koffsety; j < msize.height - koffsety; j++){
-                  c.y = j;
-                  for (int i = koffsetx; i < msize.width - koffsetx; i++){
-                    c.x = i;
-                    char* p_dogonoff = dl->get_dog_onoff();
-                    //if either l or r textured at this retinal location: 
-                    if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
-                      if (RANK0_NDT1==0){
-                        printf("using RANK \n");
-                        //use RANK:
-                        get_rank(c, (unsigned char*) fov_l_ipl->imageData, psb_m, rank1);   printf("got RANK from left\n");
-                        get_rank(c, (unsigned char*) fov_r_ipl->imageData, psb_m, rank2);   printf("got RANK from right\n");
-                        cmp_res = cmp_rank(rank1,rank2); printf("compared RANKS \n");
-                      }
-                      else{ 
-                        printf("using NDT \n");
-                        //use NDT:
-                        get_ndt(c,fov_l,psb_m,ndt1);
-                        get_ndt(c,fov_r,psb_m,ndt2);
-                        cmp_res = cmp_ndt( ndt1, ndt2 );
-                      }
-                      printf("preparing zerodisparity probability mono channel \n");
-                      zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
+                    c.y = j;
+                    for (int i = koffsetx; i < msize.width - koffsetx; i++){
+                        c.x = i;
+                        char* p_dogonoff = dl->get_dog_onoff();
+                        //if either l or r textured at this retinal location: 
+                        if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
+                            if (RANK0_NDT1==0){
+                                printf("using RANK \n");
+                                //use RANK:
+                                get_rank(c, (unsigned char*) fov_l_ipl->imageData, psb_m, rank1);   printf("got RANK from left\n");
+                                get_rank(c, (unsigned char*) fov_r_ipl->imageData, psb_m, rank2);   printf("got RANK from right\n");
+                                cmp_res = cmp_rank(rank1,rank2); printf("compared RANKS \n");
+                            }
+                            else{ 
+                                printf("using NDT \n");
+                                //use NDT:
+                                get_ndt(c,fov_l,psb_m,ndt1);
+                                get_ndt(c,fov_r,psb_m,ndt2);
+                                cmp_res = cmp_ndt( ndt1, ndt2 );
+                            }
+                            printf("preparing zerodisparity probability mono channel \n");
+                            zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
+                        }
+                        else{
+                            //printf("untextured in both l & r \n");
+                            //untextured in both l & r, so set to bland prob (ZD):
+                            zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
+                        } 
+                        
+                        //RADIAL PENALTY:
+                        //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
+                        //printf("introducing RADIAL PENALITY \n");
+                        //current radius:
+                        r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
+                        rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
+                        max_rad_pen = zd_prob_8u[j*psb_m+i];
+                        if(max_rad_pen < rad_pen) {
+                            rad_pen=max_rad_pen;
+                        }
+                        //apply radial penalty
+                        //printf("applying radial penality...... ");
+                        zd_prob_8u[j*psb_m+i]-= rad_pen;
+                        //printf("success \n");
+                        
+                        //manufacture NZD prob (other):
+                        o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
                     }
-                    else{
-                      printf("untextured in both l & r");
-                      //untextured in both l & r, so set to bland prob (ZD):
-                      zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
-                    } 
-                    
-                    //RADIAL PENALTY:
-                    //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
-                    printf("introducing RADIAL PENALITY \n");
-                    //current radius:
-                    r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
-                    rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
-                    max_rad_pen = zd_prob_8u[j*psb_m+i];
-                    if(max_rad_pen < rad_pen) {
-                      rad_pen=max_rad_pen;
-                    }
-                    //apply radial penalty
-                    zd_prob_8u[j*psb_m+i]-= rad_pen;
-                    
-                    //manufacture NZD prob (other):
-                    o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
-                  }
 		        }
 
                 //*******************************************************************          
 		        //Do MRF optimization:
                 printf("performing Markov Random Field optimization \n");
-                /*
+                fov_r   =  fov_r_ipl->imageData;
+                
+                p_prob[0] = o_prob_8u;
+                p_prob[1] = zd_prob_8u;
 		        m->proc( fov_r, p_prob ); //provide edge map and probability map
 		        //cache for distribution:
-                IplImage *maskMsize = cvCreateImage( cvSize(msize.width, msize.height),8,1) ; 
-                cvCopy(copyImg_ipl, out_ipl, maskMsize);
+                printf("getting the class out \n");
+                IplImage* m_class_ipl = m->get_class_ipl(); 
+                cvCopy(m_class_ipl, out_ipl, maskMsize);
+                char* pm_get_class = m->get_class();
 		        //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
-                */
+                
                 //*******************************************************************
 		        //evaluate result:
-		        
+		        printf("evaluating result.... \n");
+                char* out =  out_ipl->imageData;
                 getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
+                printf("success \n");
 	
 		        cog_x_send = cog_x;
 		        cog_y_send = cog_y;
-		
+                
+                seg_im  =  seg_im_ipl->imageData;
+                seg_dog = seg_dog_ipl->imageData; 
+
 		        //we have mask and image  (out)   [0/255]
 		        //construct masked image  (fov_l) [0..255]
 		        for (int j = 0; j < msize.height; j++){
@@ -654,6 +666,7 @@ void ZDFThread::run()
                 
                 //********************************************************************
 		        //If nice segmentation:
+                printf("checking for nice segmentation \n");
 		        if (area >= params->min_area && area <= params->max_area && spread <= params->max_spread){ 
           			//don't update templates to image centre any more as we have a nice target
            			acquire = false;
@@ -684,9 +697,9 @@ void ZDFThread::run()
                         int left   = -1;
                         int right  = -1;
                         int bottom = -1;
-                     
-                        for (int j=0;j<msize.height* psb_m;j++){
-                            
+                        
+                        /*
+                        for (int j=0;j<msize.height* psb_m;j++){                            
                             if ( (int)seg_im[ j ] > 0){
                                 top = j/psb_m; 
                                 //cout << "top : " << top << endl;
@@ -756,15 +769,22 @@ void ZDFThread::run()
                             u = 0;
                             v ++;
                         }
+                        */
+
                         //ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
                         //cvCopy(tempImg_ipl, img_out_temp->getIplImage(), maskTempSize);
-                        cvCopy(out_ipl, img_out_temp->getIplImage(), maskTempSize);
+
+                        img_out_temp = &imageOutTemp.prepare();
+                        img_out_temp->resize(l_orig_ipl->width, l_orig_ipl->height);
+
+                        cvCopy(l_orig_ipl, img_out_temp->getIplImage(), NULL);
+                        printf("copied image success \n");
                         
-                        imageOutTemp.prepare() = *img_out_temp;	
                    	    imageOutTemp.write();
-                        delete img_out_temp;
+                        printf("sent image \n");
+                        //delete img_out_temp;
                         //ippiFree (tempImg);
-                        cvReleaseImage(&tempImg_ipl);
+                        //cvReleaseImage(&tempImg_ipl);
                     }
                     
                     //*******************************************************************
@@ -778,13 +798,14 @@ void ZDFThread::run()
           			acquire = true;
 		        }
 
+                printf("preparing the vector target for the COG \n");
                 Vector& target = cogPort.prepare();
 		        target.resize(2);
 		        target[0]=cog_x_send;
 		        target[1]=cog_y_send;
 		        cogPort.write();
 
-		
+                
 		        //send it all when connections are established
 		        if (imageOutProb.getOutputCount()>0){ 
                   //ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
@@ -877,10 +898,10 @@ void ZDFThread::deallocate() {
 
 void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     
-  printf("allocating process started............ \n");
-
-     assert (allocated == false);
-
+    printf("allocating process started............ \n");
+    
+    assert (allocated == false);
+    
     cout << "     Received left input image dimensions: " << img->width() << " " << img->height() << endl;
     cout <<      "Received right input image dimensions: " << img->width() << " " << img->height() << endl;
 
@@ -934,64 +955,88 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
         koffsety = NDTY;
     }
 
-    nclasses = 2;
-    dpix_y = 0;
+    nclasses = 2; // set the number of the classes in the classification
+    dpix_y   = 0;
+
 
     //copyImg     = ippiMalloc_8u_C3( srcsize.width, srcsize.height, &psbCopy);
     copyImg_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U, 3);
+    //
+    psbCopy       = copyImg_ipl->widthStep;
 
     //l_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
     l_orig_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,3);
     //r_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
     r_orig_ipl    = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,3);
+    //
+    psb4          = l_orig_ipl->widthStep;
 
     //rec_im_ly   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
     rec_im_ly_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
     //rec_im_ry   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
     rec_im_ry_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //
+    psb_in        = rec_im_ly_ipl->widthStep;
 
-    //res_t      = ippiMalloc_32f_C1(trsize.width,trsize.height,&psb_rest);
-    res_t_ipl    = cvCreateImage(cvSize(trsize.width, trsize.height),IPL_DEPTH_32F,1);
-    //out        = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    out_ipl      = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
-    //seg_im     = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    seg_im_ipl   = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
-    //seg_dog    = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    seg_dog_ipl      = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    //res_t       = ippiMalloc_32f_C1(trsize.width,trsize.height,&psb_rest);
+    res_t_ipl     = cvCreateImage(cvSize(trsize.width, trsize.height),IPL_DEPTH_32F,1);
+    //
+    psb_rest      = res_t_ipl->widthStep;
+    
 
-    //fov_l      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    fov_l_ipl    = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
-    //fov_r      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    fov_r_ipl    = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
-    //zd_prob_8u = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    //out          = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    out_ipl        = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    //seg_im       = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    seg_im_ipl     = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    //seg_dog      = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    seg_dog_ipl    = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    //fov_l        = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    fov_l_ipl      = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    //fov_r        = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    fov_r_ipl      = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    //zd_prob_8u   = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
     zd_prob_8u_ipl = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
- 
-    // o_prob_8u  = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
-    o_prob_8u_ipl = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    // o_prob_8u   = ippiMalloc_8u_C1(msize.width,msize.height, &psb_m);
+    o_prob_8u_ipl  = cvCreateImage(cvSize(msize.width, msize.height),IPL_DEPTH_8U,1);
+    //
+    psb_m          = o_prob_8u_ipl->widthStep;
 
     //p_prob    = (Ipp8u**) malloc(sizeof(Ipp8u*)*nclasses);
-    p_prob    = (char**) malloc(sizeof(unsigned char*)*nclasses);
+    p_prob      = (char**) malloc(sizeof(char*)*nclasses);
 
     //yuva_orig_l = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
     yuva_orig_l_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,3);
     //yuva_orig_r = ippiMalloc_8u_C1( srcsize.width *4, srcsize.height, &psb4);
     yuva_orig_r_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,3);
 
-    //tmp             = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb );
+    //tmp               = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb );
     tmp_ipl             = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
-    //first_plane_l   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
-    first_plane_l_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
-    //second_plane_l  = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
-    second_plane_l_ipl  = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
-    //third_plane_l   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
-    third_plane_l_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //
+    psb                 = tmp_ipl->widthStep;
 
-    //first_plane_r    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
+    //first_plane_l     = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
+    first_plane_l_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //
+    f_psb               = first_plane_l_ipl->widthStep;
+
+    //second_plane_l    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
+    second_plane_l_ipl  = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //
+    s_psb               = second_plane_l_ipl->widthStep;
+    
+    //third_plane_l     = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
+    third_plane_l_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+    //
+    t_psb               = third_plane_l_ipl->widthStep;
+
+    //first_plane_r     = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &f_psb);
     first_plane_r_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
     //second_plane_r    = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &s_psb);
     second_plane_r_ipl  = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
-    //third_plane_r   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
+    //third_plane_r     = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &t_psb);
     third_plane_r_ipl   = cvCreateImage(cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1);
+
+    maskMsize           = cvCreateImage(cvSize(msize.width, msize.height),8,1) ; 
 
     pyuva_l = (unsigned char**) malloc(4*sizeof(unsigned char*));
     pyuva_r = (unsigned char**) malloc(4*sizeof(unsigned char*));
@@ -1046,7 +1091,7 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
 }
 
 
-void ZDFThread::get_ndt(Coord c, unsigned char * im, int w, int*list)
+void ZDFThread::get_ndt(Coord c, char *im, int w, int*list)
 {
 
     Coord n;
@@ -1152,9 +1197,9 @@ void ZDFThread::get_rank(Coord c,unsigned char *im, int w, int*list)
     for (int x=-RANKX;x<=RANKX;x++){
         for (int y=-RANKY;y<=RANKY;y++){
 
-        n = c+Coord(x,y);
-        list[i] = im[n.y*w + n.x];
-        i++;
+            n = c+Coord(x,y);
+            list[i] = im[n.y*w + n.x];
+            i++;
 
         }
     }
@@ -1200,17 +1245,17 @@ double ZDFThread::cmp_rank(int*l1, int*l2)
 
 
 
-void ZDFThread::getAreaCoGSpread(unsigned char *im_, int psb_, IppiSize sz_, int *parea, double *pdx, double *pdy, double *spread){
+void ZDFThread::getAreaCoGSpread(char *im_, int psb_, IppiSize sz_, int *parea, double *pdx, double *pdy, double *spread){
 
     double naccum = 0.0, xaccum = 0.0, yaccum = 0.0;
     *spread = 0.0;
 
-    //cout << "GET AREA " << sz_.height << " " << sz_.width << endl;
+    cout << "GET AREA " << sz_.height << " " << sz_.width << endl;
 
     for (int j=0;j<sz_.height;j++){
         for (int i=0;i<sz_.width;i++){
             if (im_[j*psb_+i]!=0){
-            //cout << "GET AREA DOUBLE LOOP" <<endl;
+                //cout << "GET AREA DOUBLE LOOP" <<endl;
                 xaccum+=(double)i; 
                 yaccum+=(double)j; 
                 naccum+=1.0;
@@ -1219,22 +1264,22 @@ void ZDFThread::getAreaCoGSpread(unsigned char *im_, int psb_, IppiSize sz_, int
 }
 
     *parea = (int)naccum;
-    //cout << "naccum " << naccum << endl;
+    cout << "naccum " << naccum << endl;
     if (naccum > 0.0){
-    *pdx = -(sz_.width/2.0 - xaccum/naccum - 1.0);
-    *pdy = -(sz_.height/2.0 - yaccum/naccum - 1.0);  
-
+        *pdx = -(sz_.width/2.0 - xaccum/naccum - 1.0);
+        *pdy = -(sz_.height/2.0 - yaccum/naccum - 1.0);  
+        
         //get spread:
         for (int j=0;j<sz_.height;j++){
             for (int i=0;i<sz_.width;i++){
                 if (im_[j*psb_+i]!=0){  
                     *spread += sqrt( fabs((i-sz_.width/2.0 - 1.0) - (*pdx)) * fabs((i-sz_.width/2.0 - 1.0) - (*pdx)) 
-                    + fabs((j-sz_.height/2.0 - 1.0) -(*pdy)) * fabs((j-sz_.height/2.0 - 1.0) -(*pdy)) );
+                                     + fabs((j-sz_.height/2.0 - 1.0) -(*pdy)) * fabs((j-sz_.height/2.0 - 1.0) -(*pdy)) );
                 }
             }
         }
-
-    *spread/=naccum;
+        
+        *spread/=naccum;
     }
     else {
         *pdx = 0.0;
