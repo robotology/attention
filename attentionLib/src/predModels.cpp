@@ -73,12 +73,31 @@ void genPredModel::init(double paramA, double paramB) {
 linVelModel::linVelModel() {
     valid = true;
     type = "constVelocity";
-    
+    rowA = 2;
+    colA = 2;
+    printf("initialisation matrix A,B,H with main dimension %d \n", rowA, colA);
+    Matrix _A(2,2);
+    Matrix _B(2,1);
+    Matrix _H(2,2);
+    A = _A;
+    B = _B;
+    H = _H;   
+    A.zero();
+    B.zero();
+    H.zero();    
+       
+    A(0,0) = 1; 
+    A(1,1) = 1;
+    B(0,0) = 0.01;   
+    H(1,1) = 1;
 }
 
 linVelModel::linVelModel(const linVelModel &model) {
-    valid = true;
-    type = "constVelocity";
+    valid = model.valid;
+    type  = model.valid;
+    A = model.A;
+    B = model.B;
+    H = model.H;
 }
 
 linVelModel &linVelModel::operator =(const linVelModel &model) {
@@ -97,26 +116,7 @@ bool linVelModel::operator ==(const linVelModel &model) {
 
 void linVelModel::init(double _paramA, double _paramB) {
     paramA = _paramA;
-    paramB = _paramB;
-
-    rowA = 2;
-    colA = 2;
-    printf("initialisation matrix A,B,H with main dimension %d \n", rowA, colA);
-    Matrix _A(2,2);
-    Matrix _B(2,1);
-    Matrix _H(2,2);
-    A = _A;
-    B = _B;
-    H = _H;   
-    A.zero();
-    B.zero();
-    H.zero();    
-       
-    A(0,0) = 1; 
-    A(1,1) = 1;
-    B(0,0) = 0.01;   
-    H(1,1) = 1;
-    
+    paramB = _paramB;    
 }
  
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,11 +125,36 @@ void linVelModel::init(double _paramA, double _paramB) {
 linAccModel::linAccModel() {
     valid = true;
     type = "constAcceleration";
+
+    printf("linAccModel::init:start \n");
+    rowA = 2;
+    colA = 2;
+    Matrix _A(2,2);
+    Matrix _B(2,1);
+    Matrix _H(2,2);
+    A = _A;
+    B = _B;
+    H = _H;
+    A.zero();
+    B.zero();
+    H.zero();    
+    
+    //discratisation with sampling rate 0.01
+    A(0,0) = 1; A(0,1) = 0.01;
+    A(1,1) = 1;
+    B(0,1) = 5e-05;
+    B(1,0) = 0.01;
+    H(1,1) = 1;
+    
+    printf("linAccModel::init:stop \n");
+
 }
 
 linAccModel::linAccModel(const linAccModel &model) {
-    valid = true;
-    type = "constAcceleration";
+    valid = model.valid;
+    type  = model.valid;
+    A = model.A;
+    B = model.B;
 }
 
 linAccModel &linAccModel::operator =(const linAccModel &model) {
@@ -144,32 +169,10 @@ bool linAccModel::operator ==(const linAccModel &model) {
     return ((valid == model.valid) && (type == model.type) && (A == model.A) && (B == model.B)); 
 }
     
-    void linAccModel::init(double _paramA, double _paramB) {
+void linAccModel::init(double _paramA, double _paramB) {
         paramA = _paramA;
         paramB = _paramB;
-
-        printf("linAccModel::init:start \n");
-        rowA = 2;
-        colA = 2;
-        Matrix _A(2,2);
-        Matrix _B(2,1);
-        Matrix _H(2,2);
-        A = _A;
-        B = _B;
-        H = _H;
-        A.zero();
-        B.zero();
-        H.zero();    
-        
-        //discratisation with sampling rate 0.01
-        A(0,0) = 1; A(0,1) = 0.01;
-        A(1,1) = 1;
-        B(0,1) = 5e-05;
-        B(1,0) = 0.01;
-        H(1,1) = 1;
-
-        printf("linAccModel::init:stop \n");
-    }
+ }
     
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
