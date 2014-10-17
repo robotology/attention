@@ -115,17 +115,18 @@ bool trajectoryPredictor::threadInit() {
 
     // _______________________ LINEAR ACCELERATION MODELS _______________________________________
     // ------------------------------------------------------------------------------------------
-    
+    printf("preparing linear accelaration models \n");
     linAccModel* modelB = new linAccModel();
-    
     int rowB = modelB->getA().rows();
     int colB = modelB->getA().cols();
+    printf("initialisation of P0 %d %d \n", rowB, colB);
+
     Vector z0(rowB);
     Vector x0(rowB);
     x0.zero();z0.zero();
     x0(0) = 1.0; 
     Matrix P0(rowB,colB);
-    //printf("initialisation of P0 %d %d \n", rowA, colA);
+    
     for (int i = 0; i < rowB; i++) {
         for (int j = 0; j < colB; j++) { 
             P0(i,j) += 0.01;
@@ -133,7 +134,7 @@ bool trajectoryPredictor::threadInit() {
     }
     //printf("lin.accModel : modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
     //printf("P0\n %s \n", P0.toString().c_str());    
-
+    printf("---------------------------------------------------------------------------------\n");
     //---------------------------------------------------------------------------
     
     

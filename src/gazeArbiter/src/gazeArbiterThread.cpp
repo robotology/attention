@@ -359,6 +359,8 @@ bool gazeArbiterThread::threadInit() {
     inLeftPort.open(getName("/gazeArbiter/imgMono:i").c_str());
     //inRightPort.open(getName("/matchTracker/img:o").c_str());
     firstConsistencyCheck=true;
+    printf("success in opening all the ports \n");
+
 
     inhibitionImage = new ImageOf<PixelMono>;
     inhibitionImage->resize(INHIB_WIDTH,INHIB_HEIGHT);
@@ -1493,12 +1495,13 @@ void gazeArbiterThread::run() {
                 printf("phi: %f phi2: %f phi3 : %f abs(phi) %f \n", phi, phi2, phi3, abs(phi));
                 if((abs(phi) < 0.15) &&(!accomplished_flag) && (!firstVergence))  {                    
                     //if(abs(phi2) < 0.15) {
-                    countVerNull += 1;  //countVerNull += 3
-                        //printf("CountVerNull %d \n", countVerNull);
-                        //}
-                        //else {
-                        phi = phi2;
-                        //}
+                    //    countVerNull += 1;  //countVerNull += 3
+                    //    printf("CountVerNull %d \n", countVerNull);
+                    //}
+                    //else {
+                    //phi = phi2;
+                    //}
+                    countVerNull += 1;
                 }
                 if((countVerNull >= 2) && (!accomplished_flag)) {
                     printf("\n");
