@@ -135,67 +135,71 @@ void populatorThread::run() {
                     lifeTimer = list->find("lifeTimer").asDouble();
                     printf("lifeTimer %f \n",lifeTimer);   
                            
-                    Bottle& obj = guiPort.prepare();
-                    obj.clear();
-                    string name("");
-                    sprintf((char*)name.c_str(),"Object%d",id);
+                    if(guiPort.getOutputCount()) {
+
+                        Bottle& obj = guiPort.prepare();
+                        obj.clear();
+                        string name("");
+                        sprintf((char*)name.c_str(),"Object%d",id);
                     
-                    int len;
-                    if (id>1000) {
-                        len = 6 + 4 ;
-                    }
-                    else if( id > 100) {
-                        len = 6 + 3;
-                    }
-                    else if( id > 10) {
-                        len = 6 + 2;
-                    }
-                    else if( id < 10) {
-                        len = 6 + 1;
-                    }
+                        int len;
+                        if (id>1000) {
+                            len = 6 + 4 ;
+                        }
+                        else if( id > 100) {
+                            len = 6 + 3;
+                        }
+                        else if( id > 10) {
+                            len = 6 + 2;
+                        }
+                        else if( id < 10) {
+                            len = 6 + 1;
+                        }
                     
-                    bool found = checkNames(id);
-                    //bool found = false;
-                    if(!found) {                                            
-                        //adding the object to the GUI
-                        printf("!found numName=%d \n", numNames);
-                        printf("dimension :%d \n",len);
-                        obj.addString("object"); // comando
-                        obj.addString(name.c_str()); // nome dell'oggetto
-                        
-                        // object dimension in millimeters 
-                        // it draws an ellips with a the name close by
-                        // pay attention to the order!!!!!!!
-                        obj.addDouble(5.0); 
-                        obj.addDouble(155.0); 
-                        obj.addDouble(155.0);
-                        // position of the objects in millimeters!
-                        // (pay attention to the order!!!!!!)
-                        // frame of reference locate with the Z axis toward the ceiling, the X axis pointing into the heaps,
-                        // and the Y axis directed to the right hand side of the robot  
-                        obj.addDouble(posX);
-                        obj.addDouble(posY);
-                        obj.addDouble(posZ);
-                        // orientation of the object (roll, pitch,yaw) 
-                        // in gradi 
-                        obj.addDouble(0.0);
-                        obj.addDouble(0.0);
-                        obj.addDouble(0.0);
-                        // colour of the object (0-255)
-                        obj.addInt(r);
-                        obj.addInt(g);
-                        obj.addInt(b);
-                        // trasparency of the object (0.0=invisible 1.0=solid) 
-                        //if(lifeTimer == 0)
-                        obj.addDouble(1.0);
-                        //else
-                        //obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
-                        guiPort.writeStrict();
-                        
-                        //Time::delay(3);
+                        bool found = checkNames(id);
+                        //bool found = false;
+                        if(!found) {                                            
+                            //adding the object to the GUI
+                            printf("!found numName=%d \n", numNames);
+                            printf("dimension :%d \n",len);
+                            obj.addString("object"); // command
+                            obj.addString(name.c_str()); // object name
+                            
+                            // object dimension in millimeters 
+                            // it draws an ellips with a the name close by
+                            // pay attention to the order!!!!!!!
+                            obj.addDouble(5.0); 
+                            obj.addDouble(155.0); 
+                            obj.addDouble(155.0);
+                            // position of the objects in millimeters!
+                            // (pay attention to the order!!!!!!)
+                            // frame of reference locate with the Z axis toward the ceiling, the X axis pointing into the hip,
+                            // and the Y axis directed to the right hand side of the robot  
+                            obj.addDouble(posX);
+                            obj.addDouble(posY);
+                            obj.addDouble(posZ);
+                            // orientation of the object (roll, pitch,yaw) 
+                            // in gradi 
+                            obj.addDouble(0.0);
+                            obj.addDouble(0.0);
+                            obj.addDouble(0.0);
+                            // colour of the object (0-255)
+                            obj.addInt(r);
+                            obj.addInt(g);
+                            obj.addInt(b);
+                            // trasparency of the object (0.0=invisible 1.0=solid) 
+                            //if(lifeTimer == 0)
+                            obj.addDouble(1.0);
+                            //else
+                            //obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
+                            guiPort.writeStrict();
+                        }
+                        printf("object written on the guiPort \n");
+                        Time::delay(3);
                         
                         Bottle& texture = list->findGroup("texture");                    
-                        if (/*(texture!= NULL)&&*/(texPort.getOutputCount())) {
+                        if ((!texture.isNull()) && (texPort.getOutputCount())) {
+                            printf("looking for the texture \n");
                             Bottle* templateBottle = texture.get(1).asList();
                             printf("dimension of the template %d \n", templateBottle->size());
                             int dimTemplate = templateBottle->size();
@@ -253,6 +257,7 @@ void populatorThread::run() {
                         } //endif texture
 
                         //adding the object to the list                         
+                        printf("adding the object ot the list... \n");
                         listNames[numNames] =  id;
                         cName[numNames] += INCREMENT;
                         printf("added the new name : %d ", listNames[numNames]);

@@ -501,7 +501,7 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 
 
 void gazeArbiterThread::interfaceIOR(Bottle& timing) {
-    //Time::delay(3.0);
+    
     
     //code for accomplished vergence
     timetotStop = Time::now();
@@ -644,8 +644,12 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     Matrix eyeH = eyeL->getH(q);
     //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
     Vector xo = yarp::math::operator *(eyeH,xe);
+    Vector x1(3);
 
-    printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);    
+    printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);
+    igaze->getFixationPoint(x1);
+    printf("object %f,%f,%f \n",x1[0],x1[1],x1[2]);
+    
     
     //adding novel position to the 
     Bottle request, reply;
@@ -656,17 +660,17 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     Bottle& sublistX = listAttr.addList();
     
     sublistX.addString("x");
-    sublistX.addDouble(xo[0] * 1000);    
+    sublistX.addDouble(x1[0] * 1000);    
     listAttr.append(sublistX);
     
     Bottle& sublistY = listAttr.addList();
     sublistY.addString("y");
-    sublistY.addDouble(xo[1] * 1000);      
+    sublistY.addDouble(x1[1] * 1000);      
     listAttr.append(sublistY);
     
     Bottle& sublistZ = listAttr.addList();            
     sublistZ.addString("z");
-    sublistZ.addDouble(xo[2] * 1000);   
+    sublistZ.addDouble(x1[2] * 1000);   
     listAttr.append(sublistZ);
     
     Bottle& sublistR = listAttr.addList();
@@ -694,7 +698,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
         printf("attaching the blob to the item in the list");
         templateImage = templatePort.read(false);
         if(templateImage!=0) {
-            int width = templateImage->width();
+            int width  = templateImage->width();
             int height = templateImage->height();
             printf("template dim %d %d \n", width, height);
             unsigned char* pointerTemplate = templateImage->getRawImage();
@@ -714,7 +718,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
         }
     }
     
-    blobDatabasePort.write(request, reply);                     
+    blobDatabasePort.write(request, reply); 
     
     //delay after vergence accomplished ... needed to allow other module to call the control
     Time::delay(0.01);
