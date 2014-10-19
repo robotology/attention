@@ -195,7 +195,7 @@ void populatorThread::run() {
                             guiPort.writeStrict();
                         }
                         printf("object written on the guiPort \n");
-                        Time::delay(3);
+                      
                         
                         Bottle& texture = list->findGroup("texture");                    
                         if ((!texture.isNull()) && (texPort.getOutputCount())) {
