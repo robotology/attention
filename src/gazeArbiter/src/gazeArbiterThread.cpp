@@ -644,12 +644,16 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     Matrix eyeH = eyeL->getH(q);
     //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
     Vector xo = yarp::math::operator *(eyeH,xe);
-    Vector x1(3);
+    Vector x1(3), x2(3);
 
     printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);
     igaze->getFixationPoint(x1);
     printf("object %f,%f,%f \n",x1[0],x1[1],x1[2]);
-    
+    Vector pxl(2), pxr(2);
+    pxl[0] = 160; pxr[0] = 160;
+    pxl[1] = 120; pxr[1] = 120;
+    igaze->triangulate3DPoint(pxl, pxr,x2); 
+    printf("object %f,%f,%f \n",x2[0],x2[1],x2[2]);
     
     //adding novel position to the 
     Bottle request, reply;
