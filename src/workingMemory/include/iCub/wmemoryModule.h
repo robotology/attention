@@ -137,15 +137,19 @@
 #include <yarp/os/Thread.h>
 
 //within project includes
+#include <iCub/attention/commandDictionary.h>
 #include <iCub/wmemoryThread.h>
 
-class wmemoryModule:public yarp::os::RFModule {
-    std::string moduleName;                     //name of the module (rootname of ports)
-    std::string robotName;                      //name of the robot
-    std::string robotPortName;                  //reference to the head of the robot
-    std::string handlerPortName;                //name of the handler port (comunication with respond function)
-    int ratethread;                             //time constant for ratethread
+using namespace attention::dictionary;
 
+
+class wmemoryModule:public yarp::os::RFModule {
+    std::string moduleName;                     // name of the module (rootname of ports)
+    std::string robotName;                      // name of the robot
+    std::string robotPortName;                  // reference to the head of the robot
+    std::string handlerPortName;                // name of the handler port (comunication with respond function)
+    int ratethread;                             // time constant for ratethread
+    yarp::os::Semaphore mutex;                  // semaphore for the respond function
     yarp::os::Port handlerPort;                 // a port to handle messages 
     wmemoryThread* wmThread;                    //workingMemoryThread for processing of the information
 

@@ -22,7 +22,7 @@
  * @brief main code for the workingMemory
  */
 
-#include <iCub/populatorModule.h> 
+#include <iCub/wmemoryModule.h> 
 #include <yarp/os/all.h>
 
 using namespace yarp::os;

@@ -14,6 +14,7 @@ INCLUDE_DIRECTORIES(
     ${YARP_INCLUDE_DIRS} 	
     ${ICUB_INCLUDE_DIRS}	
     ${ICUB_CONTRIB_DIRS}
+    ${ATTENTIONLIB_INCLUDE_DIRS}
 )
 
 # Search for source code.

@@ -71,9 +71,9 @@ bool wmemoryModule::configure(yarp::os::ResourceFinder &rf) {
 
     attach(handlerPort);                  // attach to port
 
-    pThread=new populatorThread();
-    pThread->setName(getName().c_str());
-    pThread->start();
+    wmThread = new wmemoryThread();
+    wmThread->setName(getName().c_str());
+    wmThread->start();
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
@@ -87,12 +87,14 @@ bool wmemoryModule::interruptModule() {
 bool wmemoryModule::close() {
     handlerPort.close();
     /* stop the thread */
-    pThread->stop();
-    delete pThread;
+    wmThread->stop();
+    delete wmThread;
     return true;
 }
 
 bool wmemoryModule::respond(const Bottle& command, Bottle& reply) {
+    bool ok = false;
+    bool rec = false; // is the command recognized?
     string helpMessage =  string(getName().c_str()) + 
                         " commands are: \n" +  
                         "help \n" + 
@@ -108,8 +110,52 @@ bool wmemoryModule::respond(const Bottle& command, Bottle& reply) {
         cout << helpMessage;
         reply.addString("ok");
     }
+    mutex.wait();
+    switch (command.get(0).asVocab()) {
+    case COMMAND_VOCAB_HELP:
+        rec = true;
+        {
+            reply.addString("many");
+            reply.addString("help");
+
+            //reply.addString();
+            reply.addString("set fn \t: general set command ");
+            reply.addString("get fn \t: general get command ");
+            //reply.addString();
+
+            
+            //reply.addString();
+            reply.addString("seek red \t : looking for a red color object");
+            reply.addString("seek rgb \t : looking for a general color object");
+            reply.addString("sus  \t : suspending");
+            reply.addString("res  \t : resuming");
+            //reply.addString();
+
+
+            ok = true;
+        }
+        break;
+    default: {
+                
+    }
+        break;    
+    }
+    mutex.post();
+
+    if (!rec)
+        ok = RFModule::respond(command,reply);
     
-    return true;
+    if (!ok) {
+        reply.clear();
+        reply.addVocab(COMMAND_VOCAB_FAILED);
+    }
+    else{
+        reply.addVocab(COMMAND_VOCAB_OK);
+    }
+
+    RFModule::respond(command,reply); 
+
+    return ok;
 }
 
 /* Called periodically every getPeriod() seconds */
@@ -119,6 +165,6 @@ bool wmemoryModule::updateModule() {
 
 double wmemoryModule::getPeriod() {
     /* module periodicity (seconds), called implicitly by myModule */
-    return 0.0;
+    return 1.0;
 }
 
