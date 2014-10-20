@@ -31,6 +31,7 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Semaphore.h>
 #include <yarp/sig/all.h>
 #include <iostream>
 
@@ -46,6 +47,8 @@ private:
     yarp::os::Port databasePort;                                            // rpc the remote procedure call port used to send requests to the database and receive replies
     yarp::os::BufferedPort< yarp::os::Bottle> guiPort;                      // port of the gui that receives commands for the object populating process
     yarp::os::BufferedPort<yarp::sig::VectorOf<unsigned char> > texPort;    // port for sending the texture
+    yarp::os::Bottle target;                                                // target to memorize (eventually)
+    yarp::os::Semaphore targetMutex;                                        // semaphore protecting the access to the target
 public:
     /**
     * default constructor
@@ -106,6 +109,16 @@ public:
      * function that searches in the vector the presence of the name
      */
     void cleanNames();
+
+    /**
+     * function that sets the target to memorize eventually
+     */
+    const void setTarget(const yarp::os::Bottle& _target);
+
+    /**
+     * function that reads whether the target corresponds to a memory
+     */
+    bool checkTarget(const yarp::os::Bottle& target);
 };
 
 #endif  //WORKING_MEMORY_THREAD_H_

@@ -151,7 +151,8 @@ class wmemoryModule:public yarp::os::RFModule {
     int ratethread;                             // time constant for ratethread
     yarp::os::Semaphore mutex;                  // semaphore for the respond function
     yarp::os::Port handlerPort;                 // a port to handle messages 
-    wmemoryThread* wmThread;                    //workingMemoryThread for processing of the information
+    
+    wmemoryThread* wmThread;                    // workingMemoryThread for processing of the information
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
@@ -160,6 +161,9 @@ public:
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     double getPeriod(); 
     bool updateModule();
+    
+
+
 };
 
 

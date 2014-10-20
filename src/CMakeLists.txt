@@ -30,7 +30,8 @@ add_subdirectory( zdfControl                )
 add_subdirectory( stereoAttentiveSelector   )
 add_subdirectory( stamper                   )
 add_subdirectory( test                      )
-#add_subdirectory( visualFilter             )    
+#add_subdirectory( visualFilter             )
+add_subdirectory(workingMemory              )    
 add_subdirectory( zeroDisparityFilter       )
 
 

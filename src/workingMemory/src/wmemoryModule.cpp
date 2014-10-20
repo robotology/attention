@@ -40,7 +40,7 @@ bool wmemoryModule::configure(yarp::os::ResourceFinder &rf) {
 
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
-                           Value("/iCubGuiPopulator"), 
+                           Value("/workingMemory"), 
                            "module name (string)").asString();
     /*
     * before continuing, set the module name before getting any other parameters, 
@@ -135,6 +135,52 @@ bool wmemoryModule::respond(const Bottle& command, Bottle& reply) {
             ok = true;
         }
         break;
+    case COMMAND_VOCAB_ADD:
+        rec = true;
+        {
+            Bottle* listAttr = command.get(1).asList();
+            printf("got the list of attribute %s \n", listAttr->toString().c_str());
+            wmThread->setTarget(*listAttr);
+    
+            /*
+            Bottle& sublistX = listAttr.addList();
+    
+            sublistX.addString("x");
+            sublistX.addDouble(x1[0] * 1000);    
+            listAttr.append(sublistX);
+            
+            Bottle& sublistY = listAttr.addList();
+            sublistY.addString("y");
+            sublistY.addDouble(x1[1] * 1000);      
+            listAttr.append(sublistY);
+            
+            Bottle& sublistZ = listAttr.addList();            
+            sublistZ.addString("z");
+            sublistZ.addDouble(x1[2] * 1000);   
+            listAttr.append(sublistZ);
+            
+            Bottle& sublistR = listAttr.addList();
+            sublistR.addString("r");
+            sublistR.addDouble(255.0);
+            listAttr.append(sublistR);
+            
+            Bottle& sublistG = listAttr.addList();
+            sublistG.addString("g");
+            sublistG.addDouble(255.0);
+            listAttr.append(sublistG);
+            
+            Bottle& sublistB = listAttr.addList();
+            sublistB.addString("b");
+            sublistB.addDouble(255.0);
+            listAttr.append(sublistB);
+            
+            Bottle& sublistLife = listAttr.addList();
+            sublistLife.addString("lifeTimer");
+            sublistLife.addDouble(1.0);
+            listAttr.append(sublistLife)
+            */
+            ok = true;
+        }
     default: {
                 
     }

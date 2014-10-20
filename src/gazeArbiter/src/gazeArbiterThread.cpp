@@ -665,37 +665,37 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     
     sublistX.addString("x");
     sublistX.addDouble(x1[0] * 1000);    
-    listAttr.append(sublistX);
+    //listAttr.append(sublistX);
     
     Bottle& sublistY = listAttr.addList();
     sublistY.addString("y");
     sublistY.addDouble(x1[1] * 1000);      
-    listAttr.append(sublistY);
+    //listAttr.append(sublistY);
     
     Bottle& sublistZ = listAttr.addList();            
     sublistZ.addString("z");
     sublistZ.addDouble(x1[2] * 1000);   
-    listAttr.append(sublistZ);
+    //listAttr.append(sublistZ);
     
     Bottle& sublistR = listAttr.addList();
     sublistR.addString("r");
     sublistR.addDouble(255.0);
-    listAttr.append(sublistR);
+    //listAttr.append(sublistR);
                     
     Bottle& sublistG = listAttr.addList();
     sublistG.addString("g");
     sublistG.addDouble(255.0);
-    listAttr.append(sublistG);
+    //listAttr.append(sublistG);
                         
     Bottle& sublistB = listAttr.addList();
     sublistB.addString("b");
     sublistB.addDouble(255.0);
-    listAttr.append(sublistB);
+    //listAttr.append(sublistB);
     
     Bottle& sublistLife = listAttr.addList();
     sublistLife.addString("lifeTimer");
     sublistLife.addDouble(1.0);
-    listAttr.append(sublistLife);          
+    //listAttr.append(sublistLife);          
     
     if (templatePort.getInputCount()) {
         Bottle& templateList = listAttr.addList();

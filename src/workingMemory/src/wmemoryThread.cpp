@@ -49,7 +49,7 @@ wmemoryThread::~wmemoryThread() {
 }
 
 bool wmemoryThread::threadInit() {
-    databasePort.open(getName("/database").c_str());
+    databasePort.open(getName("/database:o").c_str());
     guiPort.open(getName("/gui:o").c_str());
     texPort.open(getName("/textures:o").c_str());    
     return true;
@@ -72,8 +72,30 @@ std::string wmemoryThread::getName(const char* p) {
     return str;
 }
 
+
+const void wmemoryThread::setTarget(const Bottle& _target){
+    targetMutex.wait();
+    target = _target;
+    targetMutex.post();
+}
+
+bool wmemoryThread::checkTarget(const yarp::os::Bottle& target){
+    return true;
+}
+
 void wmemoryThread::run() {
     count ++;
+    bool novel;
+
+    targetMutex.wait();
+    novel = checkTarget(target);
+    targetMutex.post();
+
+    if(novel){
+        
+
+    }
+
     
     if(guiPort.getOutputCount()) {
         Bottle writer, reader;
