@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     rf.setVerbose();
 	rf.setDefaultConfigFile("face_detector.ini");
     rf.setDefaultContext("faceDetector/conf");
-    rf.configure("ICUB_ROOT", argc, argv);
+    rf.configure(argc, argv);
    
     if (!module.configure(rf))
     {
