@@ -42,6 +42,7 @@ private:
     std::string name;                                                       // name of this module
     int numNames;
     int count;                                                              // counter of the cycle
+    bool targetReady;                                                       // flag checking the presence of target
     short listNames[MAXBUFFERDIMENSION];
     short cName[MAXBUFFERDIMENSION];
     yarp::os::Port databasePort;                                            // rpc the remote procedure call port used to send requests to the database and receive replies
@@ -49,6 +50,11 @@ private:
     yarp::os::BufferedPort<yarp::sig::VectorOf<unsigned char> > texPort;    // port for sending the texture
     yarp::os::Bottle target;                                                // target to memorize (eventually)
     yarp::os::Semaphore targetMutex;                                        // semaphore protecting the access to the target
+    
+    double posX, posY, posZ;                                                 // position of the target
+    double r, g, b;                                                         // feature: color of the target
+    double lifeTimer;                                                       // feature: lifeTimer
+
 public:
     /**
     * default constructor
@@ -119,6 +125,16 @@ public:
      * function that reads whether the target corresponds to a memory
      */
     bool checkTarget(const yarp::os::Bottle& target);
+
+     /**
+     * parsing the content of the target
+     */
+    const void parseTarget(yarp::os::Bottle& target);
+
+    /**
+     *
+     */
+    const void memorizeTarget();
 };
 
 #endif  //WORKING_MEMORY_THREAD_H_

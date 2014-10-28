@@ -37,7 +37,8 @@ using namespace std;
 #define DECREMENT 2
 
 wmemoryThread::wmemoryThread() : RateThread(THRATE) {
-    count = 0;
+    targetReady = false;
+    count    = 0; 
     numNames = 0;
     for (int i=0; i< MAXBUFFERDIMENSION; i++) {
         cName[i]=0;
@@ -72,31 +73,181 @@ std::string wmemoryThread::getName(const char* p) {
     return str;
 }
 
-
 const void wmemoryThread::setTarget(const Bottle& _target){
     targetMutex.wait();
     target = _target;
+    targetReady = true;
     targetMutex.post();
 }
 
+const void wmemoryThread::parseTarget(Bottle& list){
+    //Bottle* list = reader2.get(1).asList();
+    cout << "list:" << list.toString() << endl;
+    posX = list.find("x").asDouble();
+    posY = list.find("y").asDouble();
+    posZ = list.find("z").asDouble();
+    printf("position: %f,%f,%f \n", posX,posY,posZ);
+    
+    r = list.find("r").asDouble();
+    g = list.find("g").asDouble();
+    b = list.find("b").asDouble();
+    printf("colour: %f,%f,%f \n", r,g,b);
+    
+    lifeTimer = list.find("lifeTimer").asDouble();
+    printf("lifeTimer %f \n",lifeTimer);   
+}
+
 bool wmemoryThread::checkTarget(const yarp::os::Bottle& target){
+    printf("checking the target \n");
+    targetReady = false;
+    Bottle writer, reader;
+    Bottle writer2, reader2;
+    writer.clear(); reader.clear();
+    Bottle list;
+    list.clear();
+    
+    //asking for the list of all the object in the objectsPropertiesCollector
+    writer.addVocab(VOCAB3('a','s','k'));
+    Bottle& listAttr=writer.addList();
+    listAttr.addString("all");
+    //writer.append(listAttr);
+    databasePort.write(writer,reader);
+    //int v = reader.pop().asVocab();
+    cout<<"reader:"<<reader.toString()<<endl;
+    if(reader.get(0).asVocab()==VOCAB3('a','c','k')) {
+        cout<<"reader:"<<reader.toString()<<" size:"<<reader.size()<<endl;
+        if(reader.size()<=1) {
+            printf("No Objects Found \n");
+            return true;
+        }
+        Bottle* completeList = reader.get(1).asList();
+        Bottle* list = completeList->get(1).asList();
+        int size = list->size();
+        cout<<"list size:"<<size<<endl;
+        if (size == 0){
+            //empty list obvioulsly novel
+            return true;
+        }
+
+        // list of ids
+        int j = 0;
+        double posX, posY, posZ, lifeTimer;
+        int r, g, b;
+        //starting for the list of ids, extract properties of all the object
+        while( j < size) {
+            int id = list->get(j++).asInt();
+            cout<<id<<", ";
+            writer2.clear(); reader2.clear();
+            writer2.addVocab(VOCAB3('g','e','t'));
+            Bottle& listAttr=writer2.addList();
+            //listAttr.addList(listAttr);
+            Bottle& listId=listAttr.addList();
+            listId.addString("id");
+            listId.addInt(id);
+            cout<<writer2.toString()<<endl;
+            databasePort.write(writer2,reader2);
+            if(reader2.get(0).asVocab()==VOCAB3('a','c','k')) {
+                //cout << "reader:" << reader2.toString() << endl;
+                Bottle* list = reader2.get(1).asList();
+                //cout << "list:" << list->toString() << endl;
+                posX = list->find("x").asDouble();
+                posY = list->find("y").asDouble();
+                posZ = list->find("z").asDouble();
+                printf("position: %f,%f,%f \n", posX,posY,posZ);
+                
+                r = list->find("r").asDouble();
+                g = list->find("g").asDouble();
+                b = list->find("b").asDouble();
+                printf("colour: %f,%f,%f \n", r,g,b);
+                
+                lifeTimer = list->find("lifeTimer").asDouble();
+                printf("lifeTimer %f \n",lifeTimer);   
+                
+                
+            }
+        }
+    }
+    printf("checking the target \n \n");
     return true;
+}
+
+const void wmemoryThread::memorizeTarget(){
+    if(databasePort.getOutputCount()){
+        printf("updating the database \n");
+        //adding novel position to the 
+        Bottle request, reply;
+        request.clear(); reply.clear();
+        request.addVocab(VOCAB3('a','d','d'));
+        Bottle& listAttr=request.addList();
+        
+        Bottle& sublistX = listAttr.addList();
+        
+        sublistX.addString("x");
+        sublistX.addDouble(posX);    
+        listAttr.append(sublistX);
+        
+        Bottle& sublistY = listAttr.addList();
+        sublistY.addString("y");
+        sublistY.addDouble(posY);      
+        listAttr.append(sublistY);
+        
+        Bottle& sublistZ = listAttr.addList();            
+        sublistZ.addString("z");
+        sublistZ.addDouble(posZ);   
+        listAttr.append(sublistZ);
+        
+        Bottle& sublistR = listAttr.addList();
+        sublistR.addString("r");
+        sublistR.addDouble(r);
+        listAttr.append(sublistR);
+        
+        Bottle& sublistG = listAttr.addList();
+        sublistG.addString("g");
+        sublistG.addDouble(g);
+        listAttr.append(sublistG);
+        
+        Bottle& sublistB = listAttr.addList();
+        sublistB.addString("b");
+        sublistB.addDouble(b);
+        listAttr.append(sublistB);
+        
+        Bottle& sublistLife = listAttr.addList();
+        sublistLife.addString("lifeTimer");
+        sublistLife.addDouble(lifeTimer);
+        listAttr.append(sublistLife);        
+  
+        databasePort.write(request, reply);
+
+        printf("updating the database reply: %s \n", reply.toString().c_str());
+    }
 }
 
 void wmemoryThread::run() {
     count ++;
     bool novel;
+    bool readyTarget;
 
     targetMutex.wait();
-    novel = checkTarget(target);
+    readyTarget = targetReady;
     targetMutex.post();
+    
+    if(readyTarget){
+        targetMutex.wait();
+        novel = checkTarget(target);
+        targetMutex.post();
 
-    if(novel){
-        
-
+        if(novel){
+            // getting the data out of the target
+            parseTarget(target);
+            memorizeTarget();
+            
+        }
+        printf("----------------------------------------------------\n");
     }
 
     
+
+    /*
     if(guiPort.getOutputCount()) {
         Bottle writer, reader;
         Bottle writer2, reader2;
@@ -295,6 +446,7 @@ void wmemoryThread::run() {
             //guiPort.write();
         }
     }
+    */
 }
 
 void wmemoryThread::cleanNames() {

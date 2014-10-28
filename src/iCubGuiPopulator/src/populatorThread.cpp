@@ -34,7 +34,7 @@ using namespace std;
 
 #define THRATE 100
 #define OBLIVIONFACTOR 10
-#define INCREMENT 10
+#define INCREMENT 3
 #define DECREMENT 2
 
 populatorThread::populatorThread() : RateThread(THRATE) {
@@ -156,9 +156,10 @@ void populatorThread::run() {
                             len = 6 + 1;
                         }
                     
-                        bool found = checkNames(id);
+                        int foundPos = checkNames(id);
+                        printf("found object in position %d \n", foundPos);
                         //bool found = false;
-                        if(!found) {                                            
+                        if(foundPos == -1) {                                            
                             //adding the object to the GUI
                             printf("!found numName=%d \n", numNames);
                             printf("dimension :%d \n",len);
@@ -193,10 +194,27 @@ void populatorThread::run() {
                             //else
                             //obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
                             guiPort.writeStrict();
+                            printf("object written on the guiPort \n");
+
+
+                            //adding the object to the list                         
+                            printf("adding the object %d to the list in position %d \n", id, numNames);
+                            listNames[numNames] =  id;
+                            cName[numNames] += INCREMENT;
+                            printf("added the new name : %d ", listNames[numNames]);
+                            numNames++;
+                            
                         }
-                        printf("object written on the guiPort \n");
-                      
+                        else{
+                            printf("found the id \n");
+                            //adding the object to the list                         
+                            printf("incrementing the counter object of %d  in position %d \n", id, numNames);
+                            //listNames[foundPos] =  id;
+                            cName[foundPos] += INCREMENT;
+                            printf("incrementing the  %d ", listNames[foundPos]);
+                        }
                         
+                        /*                       
                         Bottle& texture = list->findGroup("texture");                    
                         if ((!texture.isNull()) && (texPort.getOutputCount())) {
                             printf("looking for the texture \n");
@@ -255,13 +273,9 @@ void populatorThread::run() {
                             }                 
                             texPort.write();
                         } //endif texture
+                        */
 
-                        //adding the object to the list                         
-                        printf("adding the object ot the list... \n");
-                        listNames[numNames] =  id;
-                        cName[numNames] += INCREMENT;
-                        printf("added the new name : %d ", listNames[numNames]);
-                        numNames++;
+                        
                     } // endif found                                      
                 }
             }
@@ -283,7 +297,7 @@ void populatorThread::cleanNames() {
     position =  numNames;
     for (int i = 0; i< numNames; i++) {
         cName[i] -= DECREMENT;
-        printf("cName[%d]=%d \n", i, cName[i]);
+        printf("cName[%d]=%d associated Object%d\n", i, cName[i], listNames[i]);
         if(cName[i] <= 0) {
             Bottle& obj = guiPort.prepare();
             obj.clear();
@@ -298,24 +312,30 @@ void populatorThread::cleanNames() {
         }        
     }
     if (removed) {
+        printf("removed object! Shifting up the list \n");
+        //shifting up all the list of names and counter of names
         for (int i= position; i < numNames - 1; i++) { 
             listNames[i] = listNames[i+1];
             cName[i] = cName[i+1];
         }
+        printf("success in shifting up. Reducing the number of objects \n");
+        // reducing the counter of stored names.
         numNames --;
     }
 }
 
-bool populatorThread::checkNames(short str) {
+int populatorThread::checkNames(short str) {
     printf("checking name %d in list dim %d \n", str, numNames);    
-    for (int i = 0; i< numNames; i++) {
+    for (int i = 0; i < numNames; i++) {
         printf("checking against %d \n",listNames[i]); 
         if(listNames[i] == str) {
-            cName[i] += INCREMENT; 
-            return true;
+            //cName[i] += INCREMENT; 
+            printf("found in position %d \n", i);
+            return i;
         }
     }
-    return false;
+    printf("not found \n");
+    return -1;
 }
 
 void populatorThread::threadRelease() {

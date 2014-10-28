@@ -694,7 +694,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     
     Bottle& sublistLife = listAttr.addList();
     sublistLife.addString("lifeTimer");
-    sublistLife.addDouble(1.0);
+    sublistLife.addDouble(10.0);
     //listAttr.append(sublistLife);          
     
     if (templatePort.getInputCount()) {

@@ -49,7 +49,8 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
         printf("--camerasFile    : file of parameters of the camera in the context \n");
         printf("--drive          : left/right indicates the drive eye");
         printf("--config         : camera parameters");
-        printf("--blockPitch     : blocking the head during motions \n");
+        printf("--blockPitch     : blocking the head during motions ON/OFF \n");
+        printf("--blockPitch     : pitch angle of  head during motions \n");
         printf("--xmax, xmin, ymax, ymin, zmax, zmin : outOfReach limits \n");
         printf("--onWings        : if the camera is mounted on the wings\n ");
         printf("--onDvs          : if the camera is DVS camera \n");
@@ -241,12 +242,27 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
    
 
     // fixating pitch
-    pitch       = rf.check("blockPitch", 
-                           Value(-1), 
+    ConstString blockPitch   = rf.check("blockPitch", 
+                           Value("ON"), 
+                           "fixing the pitch to a desired angle").asString();
+    bool pitchFlag;
+    if((!strcmp(blockPitch.c_str(),"ON")) || (!strcmp(blockPitch.c_str(),"on")) ){
+        printf("blockPitch ON \n");
+        pitchFlag = true;
+    }
+    else {
+        printf("blockPitch OFF \n");
+        pitchFlag = false;
+    }
+    
+    pitch       = rf.check("anglePitch", 
+                           Value(-39), 
                            "fixing the pitch to a desired angle").asDouble();
     printf("pitch:%f \n", pitch);
-    arbiter->setBlockPitch(pitch);
-
+    
+    if(pitchFlag){
+        arbiter->setBlockPitch(pitch);
+    }
     collector->addObserver(*arbiter);
     bool startArbiter = arbiter->start();
     if(!startArbiter) {
