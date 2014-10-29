@@ -317,12 +317,14 @@ public:
     void vergenceInAngle();
     
     /**
-     * @brief interface for inhibition of return
+     * @brief interface for inhibition of return. Return precious information on the object to inhibit
+     * @param timing timing of the inhibition
+     * @param fixCoord coordinate of the fixation point
      */
-    void interfaceIOR(Bottle& timing);
+    void interfaceIOR(Bottle& timing, Vector& fixCoord);
 
     /**
-     *
+     * compute the distance 
      *
     */
     void calculateDistance();

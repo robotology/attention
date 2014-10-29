@@ -169,9 +169,9 @@ void populatorThread::run() {
                             // object dimension in millimeters 
                             // it draws an ellips with a the name close by
                             // pay attention to the order!!!!!!!
-                            obj.addDouble(5.0); 
-                            obj.addDouble(155.0); 
-                            obj.addDouble(155.0);
+                            obj.addDouble(65.0); 
+                            obj.addDouble(65.0); 
+                            obj.addDouble(65.0);
                             // position of the objects in millimeters!
                             // (pay attention to the order!!!!!!)
                             // frame of reference locate with the Z axis toward the ceiling, the X axis pointing into the hip,

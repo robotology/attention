@@ -2950,11 +2950,107 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
         }
 //=================================================================================               
         else if((!strcmp(name.c_str(),"VER_ACC")) && (waitResponse[2])) {
-            printf("VERGENCE ACCOMPLISHED \n\n\n\n\n");
+            printf("VERGENCE ACCOMPLISHED \n\n\n");
             waitResponse[2] = false;
             timeoutResponseStart = Time::now();
 
-            //TODO: overwrite the WAIT COMMAND with 160 120
+            
+            //reading out the estimated fixation point
+            if((size > 1) && (blobDatabasePort.getOutputCount())) {
+                int r;
+                int g;
+                int b;
+                double x = arg->get(1).asDouble();
+                double y = arg->get(2).asDouble();
+                double z = arg->get(3).asDouble();
+                printf("estimated location of the fixation %f %f %f \n", x, y, z);
+                
+                //requesting other parameters
+                if (feedbackProtoObject.getOutputCount()){
+                   Bottle requestProto, replyProto;
+                   requestProto.clear(); replyProto.clear();
+                   requestProto.addVocab(VOCAB3('g','e','t')); 
+                   requestProto.addVocab(VOCAB4('f','r','g','b'));
+                   feedbackProtoObject.write(requestProto, replyProto); 
+                   printf("returned from proto %s \n", replyProto.toString().c_str());
+                   r = replyProto.get(0).asInt();
+                   g = replyProto.get(1).asInt();
+                   b = replyProto.get(2).asInt();
+                }
+
+                //adding novel position to the working memory
+                Bottle request, reply;
+                request.clear(); reply.clear();
+                request.addVocab(VOCAB3('a','d','d'));
+                Bottle& listAttr=request.addList();
+                
+                Bottle& sublistX = listAttr.addList();
+                
+                sublistX.addString("x");
+                sublistX.addDouble(x * 1000);    
+                //listAttr.append(sublistX);
+                
+                Bottle& sublistY = listAttr.addList();
+                sublistY.addString("y");
+                sublistY.addDouble(y * 1000);      
+                //listAttr.append(sublistY);
+                
+                Bottle& sublistZ = listAttr.addList();            
+                sublistZ.addString("z");
+                sublistZ.addDouble(z * 1000);   
+                //listAttr.append(sublistZ);
+                
+                Bottle& sublistR = listAttr.addList();
+                sublistR.addString("r");
+                sublistR.addDouble((double)r);
+                //listAttr.append(sublistR);
+                
+                Bottle& sublistG = listAttr.addList();
+                sublistG.addString("g");
+                sublistG.addDouble((double)g);
+                //listAttr.append(sublistG);
+                
+                Bottle& sublistB = listAttr.addList();
+                sublistB.addString("b");
+                sublistB.addDouble((double)b);
+                //listAttr.append(sublistB);
+                
+                Bottle& sublistLife = listAttr.addList();
+                sublistLife.addString("lifeTimer");
+                sublistLife.addDouble(10.0);
+                //listAttr.append(sublistLife);          
+                
+                /*
+                if (templatePort.getInputCount()) {
+                    Bottle& templateList = listAttr.addList();
+                    printf("attaching the blob to the item in the list");
+                    templateImage = templatePort.read(false);
+                    if(templateImage!=0) {
+                        int width  = templateImage->width();
+                        int height = templateImage->height();
+                        printf("template dim %d %d \n", width, height);
+                        unsigned char* pointerTemplate = templateImage->getRawImage();
+                        int padding = templateImage->getPadding();
+                        templateList.addString("texture");
+                        Bottle& pixelList = templateList.addList();
+                        pixelList.addInt(width);
+                        pixelList.addInt(height);
+                        
+                        for (int r = 0; r < height ; r++) {
+                            for (int c = 0; c < width; c++) {
+                                pixelList.addInt((unsigned char)*pointerTemplate++);
+                                //pixelList.addInt(r + c);
+                            }
+                            pointerTemplate += padding;
+                        }
+                    }
+                }
+                */
+                blobDatabasePort.write(request, reply); 
+            }
+
+            
+            // sending WAIT command in 160 120
             printf("sending pending WAIT 160 120 in vergence accomplished \n");
             pendingCommand->clear();
             pendingCommand->addString("WAIT");

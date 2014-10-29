@@ -500,7 +500,7 @@ void gazeArbiterThread::getPoint(CvPoint& p) {
 }
 
 
-void gazeArbiterThread::interfaceIOR(Bottle& timing) {
+void gazeArbiterThread::interfaceIOR(Bottle& timing, Vector& fixCoord) {
     
     
     //code for accomplished vergence
@@ -654,8 +654,13 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing) {
     pxl[1] = 120; pxr[1] = 120;
     igaze->triangulate3DPoint(pxl, pxr,x2); 
     printf("object %f,%f,%f \n",x2[0],x2[1],x2[2]);
+
+    //passing back the 3d estimation
+    fixCoord[0] = x1[0];
+    fixCoord[1] = x1[1];
+    fixCoord[2] = x1[2];
     
-    //adding novel position to the 
+    //adding novel position to the working memory
     Bottle request, reply;
     request.clear(); reply.clear();
     request.addVocab(VOCAB3('a','d','d'));
@@ -1517,13 +1522,23 @@ void gazeArbiterThread::run() {
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("VERGENCE ACCOMPLISHED \n");
                     printf("\n");
+
+                    //extracting the location of the fixation point
+                    Vector fixCoord(3);                    
+                    interfaceIOR(timing, fixCoord);
+                    printf("estimation of the fixation point %s \n", fixCoord.toString().c_str());
+
                     //sending the acknowledgement vergence_accomplished
                     Bottle& status2 = statusPort.prepare();
                     status2.clear();
                     status2.addString("VER_ACC");
+                    status2.addDouble(fixCoord[0]);
+                    status2.addDouble(fixCoord[1]);
+                    status2.addDouble(fixCoord[2]);
                     statusPort.write();
-                    //delete &status2;                    
-                    interfaceIOR(timing);
+                    //delete &status2;
+
+
                     firstVergence = true;
                     //Time::delay(1.0);
 
