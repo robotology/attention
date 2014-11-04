@@ -98,7 +98,32 @@ const void wmemoryThread::parseTarget(Bottle& list){
 }
 
 bool wmemoryThread::checkTarget(const yarp::os::Bottle& target){
-    printf("checking the target \n");
+    printf("checking the target %s\n", target.toString().c_str());
+    //extracting target characteristics
+    Bottle* xList    = target.get(0).asList();
+    Bottle* yList    = target.get(1).asList();
+    Bottle* zList    = target.get(2).asList();
+    Bottle* rList    = target.get(3).asList();
+    Bottle* gList    = target.get(4).asList();
+    Bottle* bList    = target.get(5).asList();
+    Bottle* lifeList = target.get(6).asList();
+
+    double targetX = xList->get(1).asDouble();
+    double targetY = yList->get(1).asDouble();
+    double targetZ = zList->get(1).asDouble();
+    double targetR = rList->get(1).asDouble();
+    double targetG = gList->get(1).asDouble();
+    double targetB = bList->get(1).asDouble();
+    double lifeTim = lifeList->get(1).asDouble();
+    
+    printf("targetX %f \n", targetX);
+    printf("targetY %f \n", targetY);
+    printf("targetZ %f \n", targetZ);
+    printf("targetR %f \n", targetR);
+    printf("targetG %f \n", targetG);
+    printf("targetB %f \n", targetB);
+    printf("lifeTim %f \n", lifeTim);
+
     targetReady = false;
     Bottle writer, reader;
     Bottle writer2, reader2;

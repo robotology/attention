@@ -660,6 +660,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing, Vector& fixCoord) {
     fixCoord[1] = x1[1];
     fixCoord[2] = x1[2];
     
+    /*
     //adding novel position to the working memory
     Bottle request, reply;
     request.clear(); reply.clear();
@@ -726,8 +727,8 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing, Vector& fixCoord) {
             }
         }
     }
-    
     blobDatabasePort.write(request, reply); 
+    */
     
     //delay after vergence accomplished ... needed to allow other module to call the control
     Time::delay(0.01);

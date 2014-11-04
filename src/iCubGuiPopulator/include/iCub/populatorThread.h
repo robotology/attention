@@ -100,10 +100,10 @@ public:
 
     /**
      * function that searches in the vector the presence of the name
-     * @param str id name to be found
+     * @param id id name to be found
      * @return position in the list if -1 the id is not in list
      */
-    int checkNames(short str);
+    int checkNames(short id);
 
     /**
      * function that searches in the vector the presence of the name

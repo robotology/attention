@@ -132,7 +132,7 @@ bool trajectoryPredictor::threadInit() {
             P0(i,j) += 0.01;
         }      
     }
-    //printf("lin.accModel : modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
+    printf("lin.accModel : modelB\n %s \n %s \n", modelB->getA().toString().c_str(),modelB->getB().toString().c_str());    
     //printf("P0\n %s \n", P0.toString().c_str());    
     printf("---------------------------------------------------------------------------------\n");
     //---------------------------------------------------------------------------

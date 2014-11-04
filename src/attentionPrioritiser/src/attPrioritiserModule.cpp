@@ -95,7 +95,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
         if (configFile=="") {
             printf("ERROR: file not found");
             return false;
-        }
+            }
     }
     else {
         configFile.clear();
