@@ -33,6 +33,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/sig/all.h>
+#include <yarp/os/RpcServer.h>
 #include <iostream>
 
 #define MAXBUFFERDIMENSION 10
@@ -45,7 +46,7 @@ private:
     bool targetReady;                                                       // flag checking the presence of target
     short listNames[MAXBUFFERDIMENSION];
     short cName[MAXBUFFERDIMENSION];
-    yarp::os::Port databasePort;                                            // rpc the remote procedure call port used to send requests to the database and receive replies
+    yarp::os::RpcServer databasePort;                                       // rpc the remote procedure call port used to send requests to the database and receive replies
     yarp::os::BufferedPort< yarp::os::Bottle> guiPort;                      // port of the gui that receives commands for the object populating process
     yarp::os::BufferedPort<yarp::sig::VectorOf<unsigned char> > texPort;    // port for sending the texture
     yarp::os::Bottle target;                                                // target to memorize (eventually)

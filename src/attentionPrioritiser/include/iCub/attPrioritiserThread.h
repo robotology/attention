@@ -259,7 +259,7 @@ private:
     yarp::os::Port feedbackProtoObject;             // port for feedback to proto-object feature extractor                              
 
     yarp::os::Port feedbackPort;                    // port necessary to communicate the status of the system
-    yarp::os::Port blobDatabasePort;                // port where the novel location in 3d space is sent
+    yarp::os::RpcClient blobDatabasePort;           // port where the novel location in 3d space is sent (to working Memory)
     yarp::os::Property optionsHead;
     yarp::os::Semaphore mutex;                      // semaphore on the resource stateRequest
     yarp::os::Semaphore mutexAcc;                   // semaphore on the accomplished flags
