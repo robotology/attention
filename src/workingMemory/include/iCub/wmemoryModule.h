@@ -135,6 +135,7 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>
+#include <yarp/os/RpcServer.h>
 
 //within project includes
 #include <iCub/attention/commandDictionary.h>
@@ -150,7 +151,7 @@ class wmemoryModule:public yarp::os::RFModule {
     std::string handlerPortName;                // name of the handler port (comunication with respond function)
     int ratethread;                             // time constant for ratethread
     yarp::os::Semaphore mutex;                  // semaphore for the respond function
-    yarp::os::Port handlerPort;                 // a port to handle messages 
+    yarp::os::RpcServer handlerPort;                 // a port to handle messages 
     
     wmemoryThread* wmThread;                    // workingMemoryThread for processing of the information
 

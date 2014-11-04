@@ -31,6 +31,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/RpcClient.h>
 #include <yarp/os/Time.h>
 #include <yarp/sig/all.h>
 #include <iostream>
@@ -44,7 +45,7 @@ private:
     int count;                                                              // counter of the cycle
     short listNames[MAXBUFFERDIMENSION];
     short cName[MAXBUFFERDIMENSION];
-    yarp::os::Port databasePort;                                            // rpc the remote procedure call port used to send requests to the database and receive replies
+    yarp::os::RpcClient databasePort;                                            // rpc the remote procedure call port used to send requests to the database and receive replies
     yarp::os::BufferedPort< yarp::os::Bottle> guiPort;                      // port of the gui that receives commands for the object populating process
     yarp::os::BufferedPort<yarp::sig::VectorOf<unsigned char> > texPort;    // port for sending the texture
 public:
