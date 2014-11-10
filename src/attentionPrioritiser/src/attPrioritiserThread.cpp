@@ -3062,6 +3062,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             
             stopVergence = true;
             
+            /** 4/11/2014 to Frequent Removed @Author:Rea
             if(speakPort.getOutputCount()){
                 Bottle& value = speakPort.prepare();
                 value.clear();
@@ -3069,6 +3070,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 speakPort.writeStrict();
                     
             }
+            */
             if(facePort.getOutputCount()) {
                 Bottle& value = facePort.prepare();
                 value.clear();
@@ -3615,7 +3617,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if(speakPort.getOutputCount()){
                     Bottle& b = speakPort.prepare();
                     b.clear();
-                    b.addString("fixating");
+                    b.addString("nice");
                     speakPort.writeStrict();
                 }
                 // nofiying state transition into unsuccessful tracking
