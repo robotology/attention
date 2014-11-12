@@ -46,22 +46,24 @@ tutorialRatethread::~tutorialRatethread() {
 }
 
 bool tutorialRatethread::threadInit() {
-
-    
-   
-    if (!outputPort.open(getName("/img:o").c_str())) {
-        cout << ": unable to open port to send unmasked events "  << endl;
+    // opening the port for direct input
+    if (!inputPort.open(getName("/image:i").c_str())) {
+        yError("unable to open port to receive input");
         return false;  // unable to open; let RFModule know so that it won't run
-    }    
+    }
+
+    if (!outputPort.open(getName("/img:o").c_str())) {
+        yError(": unable to open port to send unmasked events ");
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+
+    yInfo("Initialization of the processing thread correctly ended");
 
     return true;
-    
-
 }
 
 void tutorialRatethread::setName(string str) {
     this->name=str;
-    printf("name: %s", name.c_str());
 }
 
 
@@ -76,21 +78,35 @@ void tutorialRatethread::setInputPortName(string InpPort) {
 }
 
 void tutorialRatethread::run() {    
-   
+    //code here .....
+    if (inputPort.getInputCount()) {
+        inputImage = inputPort.read(true);   //blocking reading for synchr with the input
+        result = processing();
+    }
 
-        //code here .....
-        
+    if (outputPort.getOutputCount()) {
+        *outputImage = outputPort.prepare();
+        outputImage->resize(inputImage->width(), inputImage->height());
+        // changing the pointer of the prepared area for the outputPort.write()
+        outputPort.prepare() = *inputImage;
 
-        if (outputPort.getOutputCount()) {
-            outputPort.prepare() = *inputImage;
-            outputPort.write();  
-        }
-                  
+        outputPort.write();
+    }
+
 }
+
+bool tutorialRatethread::processing(){
+    // here goes the processing...
+    return true;
+}
+
 
 void tutorialRatethread::threadRelease() {
     // nothing
-     
+    inputPort.interrupt();
+    outputPort.interrupt();
+    inputPort.close();
+    outputPort.close();
 }
 
 

@@ -129,7 +129,7 @@
  *
  * Copyright (C) 2011 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ICUB_ROOT/contrib/src/morphoGen/src/tutorialRateThread/include/iCub/tutorialRateThread.h
+ * This file can be edited at \c $ATTENTION_ROOT/src/tutorial/tutorialRateThread/include/iCub/tutorialRateThread.h
  * 
  */
 
@@ -142,7 +142,9 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>
- 
+#include <yarp/os/Log.h>
+#include <iCub/attention/commandDictionary.h>
+
 //within project includes  
 #include <iCub/tutorialRatethread.h>
 

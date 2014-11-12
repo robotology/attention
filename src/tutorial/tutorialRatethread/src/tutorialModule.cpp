@@ -26,6 +26,7 @@
 
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace attention::dictionary;
 using namespace std;
 
 /* 
@@ -106,7 +107,7 @@ bool tutorialModule::interruptModule() {
 bool tutorialModule::close() {
     handlerPort.close();
     /* stop the thread */
-    printf("stopping the thread \n");
+    yDebug("stopping the thread \n");
     rThread->stop();
     return true;
 }

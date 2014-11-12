@@ -76,7 +76,6 @@ bool tutorialThread::threadInit() {
 
 void tutorialThread::setName(string str) {
     this->name=str;
-    printf("name: %s", name.c_str());
 }
 
 
