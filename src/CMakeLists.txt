@@ -30,6 +30,7 @@ add_subdirectory( zdfControl                )
 add_subdirectory( stereoAttentiveSelector   )
 add_subdirectory( stamper                   )
 add_subdirectory( test                      )
+add_subdirectory( tutorial                  )
 #add_subdirectory( visualFilter             )
 add_subdirectory(workingMemory              )    
 add_subdirectory( zeroDisparityFilter       )
@@ -50,8 +51,5 @@ if(IPOPT_FOUND)
 else(IPOPT_FOUND)
     message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
 endif(IPOPT_FOUND)
-
-# subsection of src
-add_subdirectory(    tutorial)
 
 

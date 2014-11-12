@@ -26,6 +26,7 @@
 
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace attention::dictionary;
 using namespace std;
 
 /* 

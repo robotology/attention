@@ -54,13 +54,13 @@ bool tutorialThread::threadInit() {
 
     // opening the port for direct input
     if (!inputPort.open(getName("/image:i").c_str())) {
-        cout << ": unable to open port to send unmasked events "  << endl;
+        yError("unable to open port to receive input");
         return false;  // unable to open; let RFModule know so that it won't run
     }  
 
     // opening the port for direct output
     if (!outputPort.open(getName("/result:o").c_str())) {
-        cout << ": unable to open port to send unmasked events "  << endl;
+        yError("unable to open port to send unmasked events ");
         return false;  // unable to open; let RFModule know so that it won't run
     }    
 
@@ -69,7 +69,7 @@ bool tutorialThread::threadInit() {
     pt->setName(getName("").c_str());
     pt->start();
 
-    printf("Initialization of the processing thread correctly ended\n");
+    yInfo("Initialization of the processing thread correctly ended");
 
     return true;
 }
@@ -132,9 +132,7 @@ void tutorialThread::run() {
             else {
                 result = 0;
             }
-            
-            
-            
+
             if (outputPort.getOutputCount()) {
                 Bottle b = outputPort.prepare();
                 b.addInt(result);
@@ -150,17 +148,18 @@ int tutorialThread::processing(){
 }
 
 void tutorialThread::threadRelease() {
-    // nothing
-     
+    // nothing    
 }
 
 void tutorialThread::onStop() {
     delete inputImage;
     if(pt!=NULL){
-        printf("stopping the plotter thread \n");
+        yDebug("stopping the plotter thread");
+        //printf("stopping the plotter thread \n");
         pt->stop();
     }
-    printf("closing the ports \n");
+    yInfo("closing the ports");
+    //printf("closing the ports \n");
     outputPort.interrupt();   
     outputPort.close();
 }
