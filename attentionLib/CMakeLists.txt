@@ -18,6 +18,7 @@ SET(folder_source
 SET(folder_header 
   ./include/iCub/attention/predModels.h
   ./include/iCub/attention/evalThread.h
+  ./include/iCub/attention/commandDictionary.h
 )
 
 MESSAGE("folder_header ${folder_header}")
