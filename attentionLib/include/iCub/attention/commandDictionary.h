@@ -34,6 +34,9 @@ namespace dictionary
 #define COMMAND_VOCAB_IS                 VOCAB2('i','s')
 #define COMMAND_VOCAB_OK                 VOCAB2('o','k')
 #define COMMAND_VOCAB_P0                 VOCAB2('p','0')
+#define COMMAND_VOCAB_FB                 VOCAB2('f','b')
+#define COMMAND_VOCAB_TV                 VOCAB2('t','v')
+#define COMMAND_VOCAB_LK                 VOCAB2('l','k')
 
 #define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
 #define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
@@ -62,6 +65,7 @@ namespace dictionary
 #define COMMAND_VOCAB_QUIT               VOCAB4('q','u','i','t')
 #define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
 #define COMMAND_VOCAB_TEST               VOCAB4('t','e','s','t')
+#define COMMAND_VOCAB_ALGO               VOCAB4('a','l','g','o')
 
 
 }
