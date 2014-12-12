@@ -36,7 +36,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-#define THRATE 5
+#define THRATE 66   //15 fps
 
 plotterThread::plotterThread() : RateThread(THRATE) {
     synchronised = false;
@@ -52,21 +52,18 @@ plotterThread::~plotterThread() {
 bool plotterThread::threadInit() {
     printf("\n starting the thread.... \n");
     // opening ports 
-    leftPort.open      (getName("/vis:o").c_str());
-    rightPort.open     (getName("/right:o").c_str());
-
-    // initialising images
-    imageLeft      = new ImageOf<PixelRgb>;
-    imageLeft->resize(width,height);
+    outputPort.open      (getName("/colorResult:o").c_str());
     
+    // initialising images
+    imageOutput      = new ImageOf<PixelRgb>;
+    imageOutput->resize(width,height);
     
     printf("initialization in plotter thread correctly ended \n");
     return true;
 }
 
 void plotterThread::interrupt() {
-    leftPort.interrupt();    
-    rightPort.interrupt();
+    outputPort.interrupt();    
 }
 
 void plotterThread::setName(string str) {
@@ -83,27 +80,21 @@ std::string plotterThread::getName(const char* p) {
 void plotterThread::resize(int widthp, int heightp) {
 }
 
-void plotterThread::copyLeft(ImageOf<PixelMono>* image) {
-    //printf("retinalSize in plotterThread %d \n",retinalSize);
-    int padding= image->getPadding();
-    unsigned char* pimage = image->getRawImage();
-    unsigned char* pleft  = imageLeft->getRawImage();
-    if(imageLeft != 0) {
-        for(int r = 0;r < height; r++) {
-            for(int c = 0; c < width; c++) {                
-                if(r%2 == 0){
-                    *pleft++ = 0;
-                }
-                else{
-                    *pleft++ = 255;
-                }
-            }
-            pleft  += padding;
-            pimage += padding;
-        }
-    }
+void plotterThread::copyImage(ImageOf<PixelMono>* image) {
+	sem.wait();
+	yDebug("copy the image of the module");
+	imageOutput->copy(*image);
+	sem.post();
 }
 
+void plotterThread::copyImage(ImageOf<PixelRgb>* image) {
+	sem.wait();
+	yDebug("copy the image of the module");
+	imageOutput->copy(*image);
+	sem.post();
+}
+
+/*
 void plotterThread::copyLeft(ImageOf<PixelRgb>* image) {
     int padding= imageLeft->getPadding();
     //printf("retinalSize in plotterThread %d %d %d \n",padding, width, height);
@@ -128,6 +119,7 @@ void plotterThread::copyLeft(ImageOf<PixelRgb>* image) {
         }
     }
 }
+*/
 
 bool plotterThread::test(){
     bool ret = true;
@@ -136,22 +128,21 @@ bool plotterThread::test(){
 }
 
 void plotterThread::run() {
-    count++;
-    imageLeft  = &leftPort.prepare();
-    imageLeft->resize(width, height);
-    imageRight = &rightPort.prepare();
-    imageRight->resize(width, height);
-    synchronised = true;
+    //count++;
+    if(outputPort.getOutputCount()) {
+		yDebug("plotting the image");
+		ImageOf<PixelRgb>& imagePrepare  = outputPort.prepare();
+		imagePrepare.resize(width, height);
 
+		sem.wait();
+		imagePrepare.copy(*imageOutput);
+		//copyImage(imageOutput, imagePrepare);
+		sem.post();
     
-    if(leftPort.getOutputCount()) {
-        leftPort.write();
-    }
-    if(rightPort.getOutputCount()) {
-        rightPort.write();
-    }
-
+		synchronised = true;
     
+        outputPort.write();
+    }
 }
 
 
@@ -159,11 +150,12 @@ void plotterThread::run() {
 
 void plotterThread::threadRelease() {
     printf("plotterThread: portClosing \n");  
-    leftPort.close();
-    rightPort.close();
+    outputPort.close();
 
     printf("freeing memory \n");
+
     // free allocated memory here please
+	delete imageOutput;
 
     printf("success in release the plotter thread \n");
 }

@@ -37,8 +37,10 @@
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
+#include <cstring>
 
 #include <iCub/plotterThread.h>
+#include <iCub/colorcode.h>
 
 #define WIDTH  320
 #define HEIGHT 240
@@ -52,17 +54,21 @@ private:
 	int ofAlgo;						// integer code to identify the optical flow algorithm
     bool idle;                      // flag that interrupts the processing 
 	bool firstProcessing;
+    bool throwAway;                 // flag that throws away one image out of two
+	double TH1_,TH2_, PTH_;         // prefixed level of threshold in segmentation
     yarp::os::Semaphore idleLock;   // semaphore that checks access to the resource
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
     std::string inputPortName;      // name of input port for incoming events, typically from aexGrabber
 
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;     // image generated in the processing
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;       // image generated in the processing
     yarp::sig::ImageOf<yarp::sig::PixelMono>* outputImage;     //
+	yarp::sig::ImageOf<yarp::sig::PixelRgb>* processingImage;  // image resulting from the processing step
 	cv::Mat currentMatrix;
 	cv::Mat previousMatrix;
 	cv::Mat outputMatrix;
+    cv::Mat MaskThresholding;
 	//IplImage ipl_currentMatrix;
 
     plotterThread* pt;                                       // rateThread responsible for the visualization of the generated images
@@ -127,10 +133,42 @@ public:
     */
     void setInputPortName(std::string inpPrtName);
 
+
+/**
+	*
+	*/
+	void setThreshold1Segmentation(double th1)  {
+		TH1_ = th1; yInfo("TH1: %f",TH1_);
+	}
+
+/**
+	*
+	*/
+	void setThreshold2Segmentation(double th2)  {
+		TH2_ = th2; yInfo("TH2: %f",TH2_);
+	}
+
+/**
+	*
+	*/
+	void setThreshold3Segmentation(double th3)  {
+		PTH_ = th3; yInfo("PTH: %f",PTH_);
+	}
+
     /**
      * @brief function of main processing in the thread
      */
     bool processing();
+
+	/**
+     * @brief function to  find a point (x,y) with an optical flow greater than a threshold
+     */
+	void thresholding(const cv::Mat U,const cv::Mat V, cv::Mat& maskThresholding);
+
+	/**
+     * @brief function to  find a point (x,y) with an optical flow greater than a threshold
+     */
+	bool opfExtractorThread::segmentation(cv::Mat U, cv::Mat V);
 
     /**
      * @brief suspend the processing of the module
@@ -157,6 +195,14 @@ public:
      * @return the result of the analysis true/false for success/unsuccess in the test
      */
     bool test();
+
+	/**
+	* @brief ...
+	* @param U	...
+	* @param V	...
+	* @param colorcodeMatrix ...
+	*/
+	void motionToColor(cv::Mat U,cv::Mat V,cv::Mat& colorcodeMatrix);
 
 	/**
 	* @brief function to set the algorithm to compute the  optical flow

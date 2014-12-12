@@ -61,6 +61,14 @@
  * - \c robot \c icub \n 
  *   specifies the name of the robot (used to form the root of robot port names)
  *
+ * - \c threshold1Level \c 0.5 \n 
+ *   specifies the threshold to find a point (x,y) around wich do the box for the segmentation
+  *
+ * - \c threshold2Level \c 0.5 \n 
+ *   specifies the threshold to count the number of points around the point (x,y) with an optical flow magnitude greater than this threshold
+ *
+ * - \c threshold3Level \c 0.5 \n 
+ *   specifies the threshold to take the boxes with a number of points with a high optical flow greater than this threshold
  *
  * <b>Configuration File Parameters</b>
  *

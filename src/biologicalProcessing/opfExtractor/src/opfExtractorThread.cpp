@@ -23,7 +23,6 @@
  */
 
 #include <iCub/opfExtractorThread.h>
-#include <cstring>
 
 using namespace yarp::dev;
 using namespace yarp::os;
@@ -48,14 +47,20 @@ bool opfExtractorThread::threadInit() {
     width  = WIDTH;
     height = HEIGHT;
     idle   = false;
-	firstProcessing=true;
-	setAlgorithm(ALGO_FB);
+    throwAway = false;
+    firstProcessing=true;
+    setAlgorithm(ALGO_FB);
 
     inputImage = new ImageOf<PixelRgb>();
     inputImage->resize(width, height);
 
-	outputImage = new ImageOf<PixelMono>();
-	outputImage->resize(width, height);
+    outputImage = new ImageOf<PixelMono>();
+    outputImage->resize(width, height);
+
+    processingImage = new ImageOf<PixelRgb>();
+    processingImage->resize(width, height);
+
+   
 
     // opening the port for direct input
     if (!inputPort.open(getName("/image:i").c_str())) {
@@ -123,24 +128,31 @@ void opfExtractorThread::run() {
         
         if(!idle){
             if(inputPort.getInputCount()) {
-                checkImage.wait();
                 inputImage = inputPort.read(true);   //blocking reading for synchr with the input
-                result = processing();
-                checkImage.post();
-                
-                //passing the image to the plotter
-                checkImage.wait();
-                pt->copyLeft(inputImage);
-                checkImage.post();            
 
-                if (outputPort.getOutputCount()) {
-                  //  yDebug("debug");
-                    ImageOf<PixelMono> &b = outputPort.prepare();
-                    b.resize(320,240);
-                    b.copy(*outputImage);
-                    outputPort.write();
-                   // yDebug("debug2");
-				}
+                if (throwAway){
+                    throwAway = false;
+                }
+                else {
+                    double timeStart = Time::now();
+                               
+                    result = processing();               // generates the outputImage which is what we want to plot                                
+                    pt->copyImage(processingImage); 
+                            
+                    if (outputPort.getOutputCount()) {
+                        yDebug("debug");
+                        ImageOf<PixelMono> &b = outputPort.prepare();
+                        b.resize(320,240);
+                        b.copy(*outputImage);
+                        outputPort.write();
+                        yDebug("debug2");
+                    }
+                    double timeStop = Time::now();
+                    double timeDiff =timeStop-timeStart;
+                    yDebug("timeDiff %f", timeDiff);
+
+                    throwAway = true;
+                }
             }
             else {
                 result = 0;
@@ -149,9 +161,126 @@ void opfExtractorThread::run() {
     }               
 }
 
+
+void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeMatrix){
+	double minval, maxval;	
+	cv::Point  minLoc, maxLoc;
+	cv::minMaxLoc(U,&minval, &maxval, &minLoc, &maxLoc);
+	std::cout  << minval << " " << maxval << std::endl;
+	cv::minMaxLoc(V,&minval, &maxval, &minLoc, &maxLoc);
+	std::cout  << minval << " " << maxval << std::endl;
+
+
+	uchar *ccMatrixPointer = colorcodeMatrix.data;					  //data is pointing to the Red of the 1st pixel
+
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			float fx = U.at<float>(y, x);//motim.Pixel(x, y, 0);
+			float fy = V.at<float>(y, x);//motim.Pixel(x, y, 1);
+			 //.Pixel(x, y, 0);		
+			computeColor(fx/maxval, fy/maxval, ccMatrixPointer);
+			ccMatrixPointer += 3;
+		}
+    }
+}
+
+
+
+  void opfExtractorThread::thresholding(const cv::Mat U,const cv::Mat V, cv::Mat& maskThresholding){
+    cv::Mat MAGt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1), THETAt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1), MAGt_1 = cv::Mat::zeros(U.rows, U.cols, CV_32FC1), THETAt_1 = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);  
+
+    // from u-v to Magnitude-Theta
+    cv::cartToPolar(U, V, MAGt, THETAt, false);
+  
+    cv::Mat Probt = cv::Mat::zeros(MAGt.rows, MAGt.cols, CV_32FC1);
+    int DELTA = 10;
+    int LATO = DELTA*2+1;
+    for(int i = DELTA; i < Probt.rows-DELTA; ++i) {
+        for(int j = DELTA; j < Probt.cols-DELTA; ++j) {
+            if(MAGt.at<float>(i,j)> TH1_) {
+                cv::Mat Q = MAGt(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1));
+                cv::Mat MQ = Q >= TH2_;	   //>= returns a map of 0 and 255 instead of 1
+                MQ = MQ/255.;
+                Probt.at<float>(i,j) = cv::sum(MQ).val[0]/((float)(LATO*LATO));		  // divide by lato*lato in such a way to have maximum 1
+    
+                // 	Probt.at<float>(i,j) = ((float)(cv::sum(MAGt(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1)) >= TH2_).val[0]))/((float)(LATO*LATO));
+        
+                Q.release();
+                MQ.release();
+            }
+        }
+    }
+
+    // double minValt, maxValt;
+    // cv::Point maxPost;
+    // cv::minMaxLoc(MAGt, &minValt, &maxValt, NULL, &maxPost);
+  
+    //   cv::Mat Maskt = MAGt >= TH_; // identificazione della roi
+
+    cv::Mat Maskt = (Probt >= PTH_)/255.;
+  
+  
+    bool COND = cv::sum(Maskt).val[0] >= 0.01*(/*255**/U.rows*U.cols);	//global statistics: we consider just what has a movement greater than the 1%  of  the total of the image
+ 
+    //   std::cout << cv::sum(Maskt).val[0] << " " << 0.1*(Ut.rows*Ut.cols) << " " << COND << std::endl;
+
+    if(!COND) {
+    
+        //if(DEBUG_) {
+        //  cv::Mat Im = cv::Mat::zeros(U.rows, U.cols, CV_8UC1);
+        //  cv::imshow("DEBUG", Im);
+        //  cv::waitKey(10);
+        //  Im.release();
+        //  
+        //}
+    
+        MAGt.release();
+        THETAt.release();
+        MAGt_1.release();
+        THETAt_1.release();
+        Maskt.release();
+        //computed = 0;
+        return;
+    }
+  
+    // identify the connected components and visualize them
+    std::vector<std::vector<cv::Point> > contours;
+    cv::Mat MaskClone = Maskt.clone();
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(MaskClone, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);	//MaskClone because findContours admit to write
+    MaskClone.release();
+  
+    for(std::vector<std::vector<cv::Point> >::iterator it = contours.begin(); it != contours.end(); ) {						 //contours.begin() é puntatore all elem iniziale
+        if(cv::contourArea(*it)/(Maskt.rows*Maskt.cols)>0.005)
+            ++it;																														//siamo a livello di ogni bounding box ,  quindi  la treshold é piu piccola
+        else
+            it = contours.erase(it);
+    }
+
+    //if(DEBUG_) {
+    //  cv::Mat Im = cv::Mat::zeros(Probt.rows, Probt.cols, CV_8UC1);
+    //  Probt_norm.convertTo(Im, CV_8UC1);
+    //  cv::Mat Im3 = cv::Mat::zeros(Probt.rows, Probt.cols, CV_8UC3);
+    //  cv::cvtColor(Im, Im3, CV_GRAY2RGB);
+    //  cv::drawContours(Im3, contours, -1, CV_RGB(255,255,0), -1);
+    //  cv::imshow("MAP", Im3);
+    //  cv::waitKey(10);
+    //  Im.release();
+    //  
+    //}
+  
+
+    cv::drawContours(maskThresholding, contours, -1, CV_RGB(255,255,255), -1);			 //-1 vuol   dire che  devo  colarle tutti  i bounding box. l'altro -1 che devo colarli  pieno (controlla)
+
+    yInfo("thresholding");
+
+}
+
+
 bool opfExtractorThread::processing(){
-//	yDebug("processing");
+	//	yDebug("processing");
 	cv::Mat Matrix((IplImage*) inputImage->getIplImage(), false);
+    
 	//cv::Mat outputMatrix((IplImage*) inputImage->getIplImage(), false);
 	//cv::Mat currentMatrix;
 	if(!firstProcessing) {
@@ -162,145 +291,125 @@ bool opfExtractorThread::processing(){
 	//--------------------------------------------------------------------------
 
 	if(!firstProcessing){
-		//cv::Mat M, MN;
+		
+		cv::Mat flow;
+		cv::Mat U =cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+        cv::Mat V=cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+        cv::Mat maskThresholding = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+		cv::Mat MV[2]={U,V};
+		switch (ofAlgo) {
+		case ALGO_FB:{
+				cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 5, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);		//fare quello che abbiamo fatto in fondo
+				cv::split(flow, MV);
+		}break;
+
+		case ALGO_LK:{
+				yDebug("just entered in  Lk");
+				std::vector<cv::Point2f> prevPts;
+				std::vector<cv::Point2f> currPts;
+				cv::Size winSize(5,5); 
+
+				int delta_=1;
+				vector<uchar> status;
+				vector<float> err;
+				yDebug("before the cycle for");
+				for(int x = 0; x < previousMatrix.cols; x=x+delta_)	{
+					for(int y = 0; y < previousMatrix.rows; y=y+delta_)	{
+						prevPts.push_back(cv::Point2f((float)x,(float)y));				//in prevPts ci sono le x e le y dell'immagine
+					}
+				}
+				cv::calcOpticalFlowPyrLK(previousMatrix, currentMatrix, prevPts, currPts, status, err, winSize, 3);
+				
+				for(int k = 0; k < prevPts.size(); k++)	{  //I é un vettore ogni elemento é un punto (quindi con 2 campi)
+					//std::cout  << currPts.at(k).x << " "  << currPts.at(k).y << std::endl;
+					if (status.at(k))	{
+						U.at<float>(prevPts.at(k).y, prevPts.at(k).x)	=  currPts.at(k).x - prevPts.at(k).x;
+						V.at<float>(prevPts.at(k).y, prevPts.at(k).x)	=  currPts.at(k).y - prevPts.at(k).y;
+					}
+				}
+				
+				//flow.create(previousMatrix.rows, previousMatrix.cols, CV_32FC2);			  //create(rows,cols,type)					   in teoria qui e nelle prox 2 righe ci  va I.rows,I.cols  (ma devi usare size)
+  
+      
+				//int P = 0;
+				//for(int k = 0; k < I.size(); k++)	  //I é un vettore ogni elemento é un punto (quindi con 2 campi=
+				//	if (status.at(k))	{
+				//		U.at<float>(prevPts.at(k).y, prevPts.at(k).x)	=  I.at(k).x;
+				//		V.at<float>(prevPts.at(k).y, prevPts.at(k).x)	=  I.at(k).y;
+				//	}
+				//  
+				// cv::Mat mv[2] = {U, V};
+				//cv::merge(mv, 2, flow);
+      
+				 prevPts.clear();
+	  			 currPts.clear();
+				 status.clear();
+				 err.clear();
+		}break;																							
+		}  // switch
+
+
+		/* computing colorcode */
+		cv::Mat colorcodeMatrix =  cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_8UC3);	
+		motionToColor(U, V, colorcodeMatrix);
+		//colorcodeMatrix.convertTo(outputMatrix,CV_8UC3);
+
+
+
+
+        /*step1  :  taking a point (x,y) with a flow magnitude more than a threshold and then 
+        computing the number of points around the point (x,y) with  the magnitude of the flow and taking the number of points with a flow magnitude more than a threshold*/
+        thresholding(U, V, maskThresholding);
+
+        /*step2 	:  segmentation	*/
+        //segmentation();
+	
+		
+		
+		/* computing min and max */	
+		/*
+		double minval, maxval;	
+		cv::Point  minLoc, maxLoc;
+		cv::minMaxLoc(U,&minval, &maxval, &minLoc, &maxLoc);
+		std::cout  << minval << " " << maxval << std::endl;
+		cv::minMaxLoc(V,&minval, &maxval, &minLoc, &maxLoc);
+		std::cout  << minval << " " << maxval << std::endl;
+		*/		
+				
+
+		/* of magnitude visualization */
+		/*
+		cv::Mat M, MN;
+		cv::sqrt(U.mul(U)+V.mul(V),M);
 		//double minval, maxval;
 		//cv::Point  minLoc, maxLoc;
-		//cv::minMaxLoc(M,&minval, &maxval, &minLoc, &maxLoc);
-		//cv::Mat flow;
-		//cv::Mat U =cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1),V=cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
-		//cv::Mat MV[2]={U,V};
-		//cv::split(flow, MV);
-		switch (ofAlgo) {
-			case ALGO_FB:
-				yDebug("inside the FB");
-				cv::Mat flow;
-				cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 5, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
-				cv::Mat U =cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1),V=cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
-				cv::Mat MV[2]={U,V};
-				cv::split(flow, MV);
+		cv::minMaxLoc(M,&minval, &maxval, &minLoc, &maxLoc);
+		std::cout  << minval << " " << maxval << std::endl;
+		if(maxval>0.0){
+			MN=255*(M-(float)minval)/((float)maxval-(float)minval);
+		}
+		else { 
+			MN=cv::Mat::zeros(U.rows,U.cols, CV_32FC1);
+		}
+		MN.convertTo(outputMatrix,CV_8UC1);
+		*/
 
-				/* of magnitude visualization */
-				cv::Mat M, MN;
-				cv::sqrt(U.mul(U)+V.mul(V),M);
-				double minval, maxval;
-				cv::Point  minLoc, maxLoc;
-				cv::minMaxLoc(M,&minval, &maxval, &minLoc, &maxLoc);
+		//IplImage Ipl=(IplImage)outputMatrix;
+		IplImage Ipl = (IplImage) colorcodeMatrix; 
+		processingImage-> wrapIplImage(&Ipl);
+        if (outputPort.getOutputCount()) {
+            maskThresholding.convertTo(outputMatrix,CV_8UC1);
+            outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));
+        }
 
-				if(maxval>0.)
-					MN=255*(M-(float)minval)/((float)maxval-(float)minval);
-				else 
-					MN=cv::Mat::zeros(U.rows,U.cols, CV_32FC1);
-				MN.convertTo(outputMatrix,CV_8UC1);
-
-				outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));		  
-
-				flow.release();
-				U.release();
-				V.release();
-				M.release();
-				MN.release();
-				break;
-
-			//case ALGO_TV:
-				//cv::Mat flow;
-				//cv::Ptr<cv::DenseOpticalFlow>  DOF=cv::createOptFlow_DualTVL1();
-			 //   DOF->calc(previousMatrix, currentMatrix, flow);
-				//cv::Mat U =cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1),V=cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
-				//cv::Mat MV[2]={U,V};
-				//cv::split(flow, MV);
-				//cv::Mat M/*=cv::Mat::zeros(U.rows,U.cols, CV_32FC1)*/, MN;
-				////std::cout <<  M.depth() <<std::endl;
-				//cv::sqrt(U.mul(U)+V.mul(V),M);
-				////std::cout <<  (cv::sum(cv::abs(M)>0.5).val[0])/255<<std::endl;
-				//double minval, maxval;
-				//cv::minMaxLoc(M,&minval, &maxval);
-				//if(maxval>0.)
-				//	MN=255*(M-(float)minval)/((float)maxval-(float)minval);
-				//else 
-				//	MN=cv::Mat::zeros(U.rows,U.cols, CV_32FC1);
-				////outputMatrix=cv::Mat::zeros(U.rows,U.cols, CV_8UC1);
-				////yDebug("beforeConversion");
-				//MN.convertTo(outputMatrix,CV_8UC1);
-				////yDebug("afterConversion");
-				//outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));
-				////cv::namedWindow("window");
-				////cv::imshow("window",  out8);
-				////cv::waitKey(5);
-				//flow.release();
-				//U.release();
-				//V.release();
-				//M.release();
-				//MN.release();
-				//break;
-
-	//		case ALGO_LK:
-	//			std::vector<cv::Point2f> prevPts;
-	//			std::vector<cv::Point2f> currPts;
-	//			cv::Size winSize(10,10); 
-	//			int delta_=1;
-	//			vector<uchar> status;
-	//			vector<float> err;
-	//			  for(int x = 0; x < previousMatrix.cols; x=x+delta_)
-	//				for(int y = 0; y < previousMatrix.rows; y=y+delta_)
-	//					prevPts.push_back(cv::Point2f((float)x,(float)y));				//in prevPts ci sono le x e le y dell'immagine
-	//			cv::calcOpticalFlowPyrLK(previousMatrix, currentMatrix, prevPts, currPts, status, err, winSize, 3);
-	//			prevPts.clear();
-
- //std::vector<cv::Point2f> I;
- // for (std::vector<cv::Point2f>::iterator it1 = prevPts.begin(), it2 = currPts.begin();
- //        it1 != prevPts.end() && it2 != currPts.end();
- //        ++it1,  ++it2 )
- // {
- //   I.push_back( *it1 - *it2 );
- // }
-
-	//			flow.create(previousMatrix.rows, previousMatrix.cols, CV_32FC2);			  //create(rows,cols,type)					   in teoria qui e nelle prox 2 righe ci  va I.rows,I.cols  (ma devi usare size)
- //     
-	//			cv::Mat F1 = cv::Mat::zeros(previousMatrix.rows, previousMatrix.cols, CV_32FC1);
-	//			cv::Mat F2 = cv::Mat::zeros(previousMatrix.rows, previousMatrix.cols, CV_32FC1);
- //     
-	//			//int P = 0;
-	//			//for(int x = 0; x < I1.cols; x=x+delta_) 
-	//			//	for(int y = 0; y < I1.rows; y=y+delta_, ++P) {
-	//			//		F1.at<float>(y,x) = status_.at<uchar>(y,x) ? -prevPts[P].x + currPts_[P].x : pow(10,10);
-	//			//		F2.at<float>(y,x) = status_.at<uchar>(y,x) ? -prevPts[P].y + currPts_[P].y : pow(10,10);
-	//			//		}
- //     
-	//			 cv::Mat mv[2] = {F1, F2};
-	//			 cv::merge(mv, 2, flow);
-
-
-
-	//	cv::split(flow, MV);
-
-	///* of magnitude visualization */
-	////cv::Mat M, MN;
-	//cv::sqrt(U.mul(U)+V.mul(V),M);
-	////double minval, maxval;
-	////cv::Point  minLoc, maxLoc;
-	//cv::minMaxLoc(M,&minval, &maxval, &minLoc, &maxLoc);
-
-	//if(maxval>0.)
-	//	MN=255*(M-(float)minval)/((float)maxval-(float)minval);
-	//else 
-	//	MN=cv::Mat::zeros(U.rows,U.cols, CV_32FC1);
-	//MN.convertTo(outputMatrix,CV_8UC1);
-
-	//outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));		  
-
-	//flow.release();
-	//U.release();
-	//V.release();
-	//M.release();
-	//MN.release();
- //     
-	//			 F1.release();
-	//			 F2.release();
-	//  
-
-	//			break;
-
-		}  // switch
+		flow.release();
+		U.release();
+		V.release();
+        maskThresholding.release();
+		colorcodeMatrix.release();
+		//M.release();			  //if the block /* of magnitude visualization */ is uncommented, then uncomment these 2 lines also
+		//MN.release();
+		
 	} // if(processing!= firstProcessing)
 	else {
 		firstProcessing=false;
@@ -318,6 +427,7 @@ void opfExtractorThread::threadRelease() {
 void opfExtractorThread::onStop() {
     delete inputImage;
 	delete outputImage;
+	delete processingImage;
     if(pt!=NULL){
         //yDebug("stopping the plotter thread");
         //printf("stopping the plotter thread \n");

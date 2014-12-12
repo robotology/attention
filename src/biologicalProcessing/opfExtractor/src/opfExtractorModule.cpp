@@ -76,6 +76,29 @@ bool opfExtractorModule::configure(yarp::os::ResourceFinder &rf) {
     }
 
     attach(handlerPort);                  // attach to port
+
+
+    /**
+	*  reading the threshold1 value
+	*/ 
+	double th1Level = rf.check("threshold1Level", 
+                           Value(0.5), 
+                           "threshold 1 level for the segmentation (float)").asDouble();
+
+        /**
+	*  reading the threshold2 value
+	*/ 
+	double th2Level = rf.check("threshold2Level", 
+                           Value(0.5), 
+                           "threshold 2 level for the segmentation (float)").asDouble();
+
+        /**
+	*  reading the threshold3 value
+	*/ 
+	double th3Level = rf.check("threshold3Level", 
+                           Value(0.5), 
+                           "threshold 3 level for the segmentation (float)").asDouble();
+
     if (rf.check("config")) {
         configFile=rf.findFile(rf.find("config").asString().c_str());
         if (configFile=="") {
@@ -90,6 +113,10 @@ bool opfExtractorModule::configure(yarp::os::ResourceFinder &rf) {
     /* create the thread and pass pointers to the module parameters */
     rThread = new opfExtractorThread(robotName, configFile);
     rThread->setName(getName().c_str());
+
+    rThread->setThreshold1Segmentation(th1Level);
+    rThread->setThreshold2Segmentation(th2Level);
+    rThread->setThreshold3Segmentation(th3Level);
     //rThread->setInputPortName(inputPortName.c_str());
     
     /* now start the thread to do the work */

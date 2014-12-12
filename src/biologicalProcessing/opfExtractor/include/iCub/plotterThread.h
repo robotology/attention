@@ -31,8 +31,11 @@
 #include <yarp/os/Bottle.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Network.h>
+#include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/sig/all.h>
 #include <iostream>
+#include <yarp/os/Semaphore.h>
 
 
 
@@ -41,14 +44,14 @@ class plotterThread : public yarp::os::RateThread {
 private:    
     int count;                            // loop counter of the thread
     int width, height;                    // dimension of the squared retina
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > leftPort;                 // port whre the output (left) is sent
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > rightPort;                // port whre the output (right) is sent
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;                 // port whre the output (left) is sent
     
 
     yarp::os::BufferedPort<yarp::sig::Vector > eventPort;
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageLeft;                                        //image representing the signal on the leftcamera
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageRight;                                       //image representing the signal on the right camera
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageOutput;                                        //image representing the signal on the leftcamera
     
+	yarp::os::Semaphore sem;
+
     std::string name;                           // rootname of all the ports opened by this thread
     bool synchronised;                          // flag to check whether the microsecond counter has been synchronised
     bool stereo;                                // flag indicating the stereo characteristic of the synchronization
@@ -113,25 +116,31 @@ public:
      * function that copies the image in the left output
      * @param img passed input of the image to be copied
      */
-    void copyLeft(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
+    void copyImage(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
+
+	 /**
+     * function that copies the image in the left output
+     * @param img passed input of the image to be copied
+     */
+    void copyImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
 
     /**
      * function that copies the RGB image in the left output 
      * @param img passed input of the image to be copied
      */
-    void copyLeft(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
+    //void copyLeft(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
 
     /**
      * function that copies the RGB image in the right output
      * @param img passed input of the image to be copied
      */
-    void copyRight(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
+    //void copyRight(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
 
     /**
      * function that copies the RGB image in the right output
      * @param img passed input of the image to be copied
      */
-    void copyRight(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
+    //void copyRight(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
 
     
     /**
