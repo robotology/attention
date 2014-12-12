@@ -82,14 +82,14 @@ void plotterThread::resize(int widthp, int heightp) {
 
 void plotterThread::copyImage(ImageOf<PixelMono>* image) {
 	sem.wait();
-	yDebug("copy the image of the module");
+	//yDebug("copy the image of the module");
 	imageOutput->copy(*image);
 	sem.post();
 }
 
 void plotterThread::copyImage(ImageOf<PixelRgb>* image) {
 	sem.wait();
-	yDebug("copy the image of the module");
+	//yDebug("copy the image of the module");
 	imageOutput->copy(*image);
 	sem.post();
 }
@@ -130,7 +130,7 @@ bool plotterThread::test(){
 void plotterThread::run() {
     //count++;
     if(outputPort.getOutputCount()) {
-		yDebug("plotting the image");
+		//yDebug("plotting the image");
 		ImageOf<PixelRgb>& imagePrepare  = outputPort.prepare();
 		imagePrepare.resize(width, height);
 

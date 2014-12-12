@@ -140,16 +140,16 @@ void opfExtractorThread::run() {
                     pt->copyImage(processingImage); 
                             
                     if (outputPort.getOutputCount()) {
-                        yDebug("debug");
+                        //yDebug("debug");
                         ImageOf<PixelMono> &b = outputPort.prepare();
                         b.resize(320,240);
                         b.copy(*outputImage);
                         outputPort.write();
-                        yDebug("debug2");
+                        //yDebug("debug2");
                     }
                     double timeStop = Time::now();
                     double timeDiff =timeStop-timeStart;
-                    yDebug("timeDiff %f", timeDiff);
+                    //yDebug("timeDiff %f", timeDiff);
 
                     throwAway = true;
                 }
@@ -166,9 +166,9 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
 	double minval, maxval;	
 	cv::Point  minLoc, maxLoc;
 	cv::minMaxLoc(U,&minval, &maxval, &minLoc, &maxLoc);
-	std::cout  << minval << " " << maxval << std::endl;
+	//std::cout  << minval << " " << maxval << std::endl;
 	cv::minMaxLoc(V,&minval, &maxval, &minLoc, &maxLoc);
-	std::cout  << minval << " " << maxval << std::endl;
+	//std::cout  << minval << " " << maxval << std::endl;
 
 
 	uchar *ccMatrixPointer = colorcodeMatrix.data;					  //data is pointing to the Red of the 1st pixel
@@ -185,8 +185,7 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
 }
 
 
-
-  void opfExtractorThread::thresholding(const cv::Mat U,const cv::Mat V, cv::Mat& maskThresholding){
+  void opfExtractorThread::thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThresholding){
     cv::Mat MAGt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1), THETAt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1), MAGt_1 = cv::Mat::zeros(U.rows, U.cols, CV_32FC1), THETAt_1 = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);  
 
     // from u-v to Magnitude-Theta
@@ -252,7 +251,7 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
   
     for(std::vector<std::vector<cv::Point> >::iterator it = contours.begin(); it != contours.end(); ) {						 //contours.begin() é puntatore all elem iniziale
         if(cv::contourArea(*it)/(Maskt.rows*Maskt.cols)>0.005)
-            ++it;																														//siamo a livello di ogni bounding box ,  quindi  la treshold é piu piccola
+            ++it; //siamo a livello di ogni bounding box ,  quindi  la treshold é piu piccola
         else
             it = contours.erase(it);
     }
@@ -268,9 +267,22 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
     //  Im.release();
     //  
     //}
-  
 
-    cv::drawContours(maskThresholding, contours, -1, CV_RGB(255,255,255), -1);			 //-1 vuol   dire che  devo  colarle tutti  i bounding box. l'altro -1 che devo colarli  pieno (controlla)
+
+    cv::drawContours(maskThresholding, contours, -1, CV_RGB(255,255,255), -1);			 //it puts zeros where the optical flow is low and 255 where the optical   flow is high             -1 vuol   dire che  devo  colarle tutti  i bounding box. l'altro -1 che devo colarli  pieno (controlla)
+    ////////
+    for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+            if (maskThresholding.at<float>(y, x)==0.0) {
+                U.at<float>(y, x)=0.0;
+                V.at<float>(y, x)=0.0;
+            }
+		}
+    }
+    ///////
+
+
+
 
     yInfo("thresholding");
 
@@ -351,8 +363,8 @@ bool opfExtractorThread::processing(){
 
 		/* computing colorcode */
 		cv::Mat colorcodeMatrix =  cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_8UC3);	
-		motionToColor(U, V, colorcodeMatrix);
-		//colorcodeMatrix.convertTo(outputMatrix,CV_8UC3);
+		//motionToColor(U, V, colorcodeMatrix);
+		////colorcodeMatrix.convertTo(outputMatrix,CV_8UC3);
 
 
 
@@ -360,7 +372,7 @@ bool opfExtractorThread::processing(){
         /*step1  :  taking a point (x,y) with a flow magnitude more than a threshold and then 
         computing the number of points around the point (x,y) with  the magnitude of the flow and taking the number of points with a flow magnitude more than a threshold*/
         thresholding(U, V, maskThresholding);
-
+        motionToColor(U, V, colorcodeMatrix);
         /*step2 	:  segmentation	*/
         //segmentation();
 	
@@ -398,7 +410,7 @@ bool opfExtractorThread::processing(){
 		IplImage Ipl = (IplImage) colorcodeMatrix; 
 		processingImage-> wrapIplImage(&Ipl);
         if (outputPort.getOutputCount()) {
-            maskThresholding.convertTo(outputMatrix,CV_8UC1);
+            V.convertTo(outputMatrix,CV_8UC1);
             IplImage tempIpl = (IplImage) outputMatrix;
             outputImage-> wrapIplImage(&tempIpl);
             //outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));

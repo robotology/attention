@@ -163,7 +163,7 @@ public:
 	/**
      * @brief function to  find a point (x,y) with an optical flow greater than a threshold
      */
-	void thresholding(const cv::Mat U,const cv::Mat V, cv::Mat& maskThresholding);
+	void thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThresholding);
 
 	/**
      * @brief function to  find a point (x,y) with an optical flow greater than a threshold
