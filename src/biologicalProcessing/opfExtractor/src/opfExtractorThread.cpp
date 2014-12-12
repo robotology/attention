@@ -399,7 +399,9 @@ bool opfExtractorThread::processing(){
 		processingImage-> wrapIplImage(&Ipl);
         if (outputPort.getOutputCount()) {
             maskThresholding.convertTo(outputMatrix,CV_8UC1);
-            outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));
+            IplImage tempIpl = (IplImage) outputMatrix;
+            outputImage-> wrapIplImage(&tempIpl);
+            //outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));
         }
 
 		flow.release();
