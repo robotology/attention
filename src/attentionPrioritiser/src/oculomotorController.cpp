@@ -1190,12 +1190,14 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                        state_now, action_now, state_next, r, j,V->operator()(0,state_next) );                
                 Q->operator()(state_now,action_now) = Q_prev;
             }
+			/*
             if(std::isinf(Q->operator()(state_now,action_now) )){
                 printf("UPDATING THE QUALITY with INF!!!!!\n");
                 printf("state_now %d \n action_now %d \n state_next = %d \n r=%f \n j=%f \n V=%f \n ",
                        state_now, action_now, state_next, r, j,V->operator()(0,state_next) );    
                 Q->operator()(state_now,action_now) = Q_prev;
             }
+			*/
             
             // // 4. calculating the total Payoff
             //printf("calculating accuracy \n");

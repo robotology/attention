@@ -470,6 +470,8 @@ Vector trajectoryPredictor::projectOnPlane(int a, int b, int c , int d, int u, i
      //printf("p0 = %s ; n = %s \n", p0.toString().c_str(), n.toString().c_str());
      
      Time::delay(0.1);
+
+	 return plane;
 }
 
 
