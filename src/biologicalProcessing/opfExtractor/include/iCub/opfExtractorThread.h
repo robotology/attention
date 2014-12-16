@@ -134,21 +134,21 @@ public:
     void setInputPortName(std::string inpPrtName);
 
 
-/**
+    /**
 	*
 	*/
 	void setThreshold1Segmentation(double th1)  {
 		TH1_ = th1; yInfo("TH1: %f",TH1_);
 	}
 
-/**
+    /**
 	*
 	*/
 	void setThreshold2Segmentation(double th2)  {
 		TH2_ = th2; yInfo("TH2: %f",TH2_);
 	}
 
-/**
+    /**
 	*
 	*/
 	void setThreshold3Segmentation(double th3)  {
@@ -164,11 +164,12 @@ public:
      * @brief function to  find a point (x,y) with an optical flow greater than a threshold
      */
 	void thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThresholding);
+	void fakethresholding(cv::Mat& U, cv::Mat& V);
 
 	/**
      * @brief function to  find a point (x,y) with an optical flow greater than a threshold
      */
-	bool opfExtractorThread::segmentation(cv::Mat U, cv::Mat V);
+	bool segmentation(cv::Mat U, cv::Mat V);
 
     /**
      * @brief suspend the processing of the module
