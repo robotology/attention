@@ -33,7 +33,7 @@ add_subdirectory( test                      )
 add_subdirectory( tutorial                  )
 #add_subdirectory( visualFilter             )
 add_subdirectory(workingMemory              )    
-add_subdirectory( zeroDisparityFilter       )
+#add_subdirectory( zeroDisparityFilter       )
 
 
 if(IPP_FOUND)
