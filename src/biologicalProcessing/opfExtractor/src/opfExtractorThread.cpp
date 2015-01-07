@@ -203,8 +203,8 @@ void opfExtractorThread::fakethresholding(cv::Mat& U, cv::Mat& V){
     V = cv::Mat::zeros(V.rows, V.cols, CV_32FC1);
     for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {         
-                U.at<float>(y, x)=10;
-                V.at<float>(y, x)=10;
+                U.at<float>(y, x)=0.00010;
+                V.at<float>(y, x)=-1.0;
         }
     }
     printf("faketh end \n");
@@ -402,8 +402,8 @@ bool opfExtractorThread::processing(){
 
         /*taking a point (x,y) with a flow magnitude more than a threshold (th1) and then 
         computing the number of points around the point (x,y) with  the magnitude of the flow more than a threshold (th2) and taking the number of points with a flow magnitude more than a threshold(th3)*/
-        //fakethresholding(U, V);
-        thresholding(U, V, maskThresholding);
+        fakethresholding(U, V);
+        //thresholding(U, V, maskThresholding);
         //U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         //V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         motionToColor(U, V, colorcodeMatrix);
