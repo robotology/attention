@@ -163,12 +163,12 @@ void opfExtractorThread::run() {
 
 
 void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeMatrix){
-	double minval, maxval;	
-	cv::Point  minLoc, maxLoc;
-	cv::minMaxLoc(U,&minval, &maxval, &minLoc, &maxLoc);
-	//std::cout  << minval << " " << maxval << std::endl;
-	cv::minMaxLoc(V,&minval, &maxval, &minLoc, &maxLoc);
-	//std::cout  << minval << " " << maxval << std::endl;
+	double minval_x, maxval_x, minval_y, maxval_y;
+	cv::Point  minLoc_x, maxLoc_x, minLoc_y, maxLoc_y;
+	cv::minMaxLoc(U,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
+	std::cout  << maxval_x << " " << maxval_x << std::endl;
+	cv::minMaxLoc(V,&minval_y, &maxval_y, &minLoc_y, &maxLoc_y);
+	std::cout  << maxval_y << " " << maxval_y << std::endl;
 
 
 	uchar *ccMatrixPointer = colorcodeMatrix.data;					  //data is pointing to the Red of the 1st pixel
@@ -177,8 +177,20 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
 		for (int x = 0; x < width; x++) {
 			float fx = U.at<float>(y, x);//motim.Pixel(x, y, 0);
 			float fy = V.at<float>(y, x);//motim.Pixel(x, y, 1);
-			 //.Pixel(x, y, 0);		
-			computeColor(fx/maxval, fy/maxval, ccMatrixPointer);
+			//.Pixel(x, y, 0);		
+            float fxnorm, fynorm;
+            if (maxval_x == minval_x)
+                fxnorm=0.00000001;
+            else
+                fxnorm = (fx-minval_x)/(maxval_x-minval_x);
+            if (maxval_y == minval_y)
+                fynorm=0.00000001;
+            else
+                fynorm = (fy-minval_y)/(maxval_y-minval_y);
+            assert(fxnorm >=0); assert(fxnorm <= 1.00);
+            assert(fynorm >= 0); assert(fynorm <= 1.00);
+			computeColor(fxnorm, fynorm, ccMatrixPointer);
+            //computeColor(fx, fy, ccMatrixPointer);
 			ccMatrixPointer += 3;
 		}
     }
@@ -191,15 +203,15 @@ void opfExtractorThread::fakethresholding(cv::Mat& U, cv::Mat& V){
     V = cv::Mat::zeros(V.rows, V.cols, CV_32FC1);
     for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {         
-                U.at<float>(y, x)=1.0;
-                V.at<float>(y, x)=2.0;            
-		}
+                U.at<float>(y, x)=10;
+                V.at<float>(y, x)=10;
+        }
     }
     printf("faketh end \n");
 }
 
 
-  void opfExtractorThread::thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThresholding){ 
+void opfExtractorThread::thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThresholding){ 
     cv::Mat MAGt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);
     cv::Mat THETAt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);
     cv::Mat MAGt_1 = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);
@@ -220,9 +232,9 @@ void opfExtractorThread::fakethresholding(cv::Mat& U, cv::Mat& V){
                 cv::Mat Q = MAGt(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1));
                 cv::Mat MQ = Q >= TH2_;	   //>= returns a map of 0 and 255 instead of 1
                 MQ = MQ/255.;
-                Probt.at<float>(i,j) = cv::sum(MQ).val[0]/((float)(LATO*LATO));		  // divide by lato*lato in such a way to have maximum 1
+                Probt.at<float>(i,j) = cv::sum(MQ).val[0]/((float)(LATO*LATO));		  // divide by lato*lato in such a way to have 1 as maximum
                 
-                // 	Probt.at<float>(i,j) = ((float)(cv::sum(MAGt(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1)) >= TH2_).val[0]))/((float)(LATO*LATO));
+                //Probt.at<float>(i,j) = ((float)(cv::sum(MAGt(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1)) >= TH2_).val[0]))/((float)(LATO*LATO));
         
                 Q.release();
                 MQ.release();
@@ -271,14 +283,14 @@ void opfExtractorThread::fakethresholding(cv::Mat& U, cv::Mat& V){
     std::vector<std::vector<cv::Point> > contours;
     cv::Mat MaskClone = Maskt.clone();
     std::vector<cv::Vec4i> hierarchy;
-    cv::findContours(MaskClone, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);	//MaskClone because findContours admit to write
+    cv::findContours(MaskClone, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);	//MaskClone because findContours admit to write on the input
     MaskClone.release();
   
     
     yInfo("iterating the pixels");
-    for(std::vector<std::vector<cv::Point> >::iterator it = contours.begin(); it != contours.end(); ) {						 //contours.begin() é puntatore all elem iniziale
-        if(cv::contourArea(*it)/(Maskt.rows*Maskt.cols)>0.005)
-            ++it; //siamo a livello di ogni bounding box ,  quindi  la treshold é piu piccola
+    for(std::vector<std::vector<cv::Point> >::iterator it = contours.begin(); it != contours.end(); ) {						 //contours.begin() is the pointer to the initial element
+        if(cv::contourArea(*it)/(Maskt.rows*Maskt.cols)>0.005)  //??? why 0.005
+            ++it; //we are at the level of each bounding box,then the threshold is less
         else
             it = contours.erase(it);
     }
@@ -302,7 +314,7 @@ void opfExtractorThread::fakethresholding(cv::Mat& U, cv::Mat& V){
     yInfo("removing the UV in the mask");
     for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
-            if (!maskThresholding.at<float>(y, x)==0.0) {
+            if (maskThresholding.at<float>(y, x)==0.0) {
                 U.at<float>(y, x) = 0.000001;
                 V.at<float>(y, x) = 0.000001;
             }             
@@ -333,7 +345,7 @@ bool opfExtractorThread::processing(){
 		cv::Mat MV[2]={U,V};
 		switch (ofAlgo) {
 		case ALGO_FB:{
-				cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 5, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);		//fare quello che abbiamo fatto in fondo
+				cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 5, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
 				cv::split(flow, MV);
 		}break;
 
@@ -349,12 +361,12 @@ bool opfExtractorThread::processing(){
 				yDebug("before the cycle for");
 				for(int x = 0; x < previousMatrix.cols; x=x+delta_)	{
 					for(int y = 0; y < previousMatrix.rows; y=y+delta_)	{
-						prevPts.push_back(cv::Point2f((float)x,(float)y));				//in prevPts ci sono le x e le y dell'immagine
+						prevPts.push_back(cv::Point2f((float)x,(float)y));				//in prevPts there are the xs and the ys of the image
 					}
 				}
 				cv::calcOpticalFlowPyrLK(previousMatrix, currentMatrix, prevPts, currPts, status, err, winSize, 3);
 				
-				for(int k = 0; k < prevPts.size(); k++)	{  //I é un vettore ogni elemento é un punto (quindi con 2 campi)
+				for(int k = 0; k < prevPts.size(); k++)	{  //I is a vector and each  element is a point (therefore with two fields)
 					//std::cout  << currPts.at(k).x << " "  << currPts.at(k).y << std::endl;
 					if (status.at(k))	{
 						U.at<float>(prevPts.at(k).y, prevPts.at(k).x)	=  currPts.at(k).x - prevPts.at(k).x;
@@ -366,7 +378,7 @@ bool opfExtractorThread::processing(){
   
       
 				//int P = 0;
-				//for(int k = 0; k < I.size(); k++)	  //I é un vettore ogni elemento é un punto (quindi con 2 campi=
+				//for(int k = 0; k < I.size(); k++)	  
 				//	if (status.at(k))	{
 				//		U.at<float>(prevPts.at(k).y, prevPts.at(k).x)	=  I.at(k).x;
 				//		V.at<float>(prevPts.at(k).y, prevPts.at(k).x)	=  I.at(k).y;
@@ -384,20 +396,18 @@ bool opfExtractorThread::processing(){
 
 
 		/* computing colorcode */
-		cv::Mat colorcodeMatrix =  cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_8UC3);	
+		cv::Mat colorcodeMatrix =  cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_8UC3);
 		//motionToColor(U, V, colorcodeMatrix);
 		////colorcodeMatrix.convertTo(outputMatrix,CV_8UC3);
 
-        /*step1  :  taking a point (x,y) with a flow magnitude more than a threshold and then 
-        computing the number of points around the point (x,y) with  the magnitude of the flow and taking the number of points with a flow magnitude more than a threshold*/
+        /*taking a point (x,y) with a flow magnitude more than a threshold (th1) and then 
+        computing the number of points around the point (x,y) with  the magnitude of the flow more than a threshold (th2) and taking the number of points with a flow magnitude more than a threshold(th3)*/
         //fakethresholding(U, V);
         thresholding(U, V, maskThresholding);
         //U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         //V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         motionToColor(U, V, colorcodeMatrix);
-        /*step2 	:  segmentation	*/
-        //segmentation();
-		
+
 		/* computing min and max */	
 		/*
 		double minval, maxval;	
@@ -430,7 +440,7 @@ bool opfExtractorThread::processing(){
 		IplImage Ipl = (IplImage) colorcodeMatrix; 
 		processingImage-> wrapIplImage(&Ipl);
         if (outputPort.getOutputCount()) {
-            V.convertTo(outputMatrix,CV_8UC1);
+            V.convertTo(outputMatrix,CV_8UC1);              //it is plotted just V
             IplImage tempIpl = (IplImage) outputMatrix;
             outputImage-> wrapIplImage(&tempIpl);
             //outputImage-> wrapIplImage(&((IplImage)(outputMatrix)));

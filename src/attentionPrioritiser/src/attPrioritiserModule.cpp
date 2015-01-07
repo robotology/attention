@@ -121,6 +121,9 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     rf.setDefaultContext("logpolarAttention");
 
 
+    // debug purpose TO BE REMOVED (TBR)
+    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
+
     robotName             = rf.check("visualFeedback", 
                                      Value("icub"), 
                                      "Robot name (string)").asString();
@@ -425,6 +428,9 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
                         "help \n" + 
                         "quit \n";
 
+    // debug purpose TO BE REMOVED (TBR)
+    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
+
     reply.clear(); 
 
     if (command.get(0).asString()=="quit") {
@@ -522,6 +528,9 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
     }
     mutex.post();
 
+    // debug purpose TO BE REMOVED (TBR)
+    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
+
     if (!rec)
         ok = RFModule::respond(command,reply);
     
@@ -538,6 +547,8 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool attPrioritiserModule::updateModule() {
+    // debug purpose TO BE REMOVED (TBR)
+    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
     return true;
 }
 

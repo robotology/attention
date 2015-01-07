@@ -20,6 +20,8 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
+
 typedef unsigned char uchar;
 
 #define MAXCOLS 60

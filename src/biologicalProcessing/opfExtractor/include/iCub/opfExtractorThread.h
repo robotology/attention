@@ -65,6 +65,8 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;       // image generated in the processing
     yarp::sig::ImageOf<yarp::sig::PixelMono>* outputImage;     //
 	yarp::sig::ImageOf<yarp::sig::PixelRgb>* processingImage;  // image resulting from the processing step
+	yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;  // image resulting from the processing step
+	
 	cv::Mat currentMatrix;
 	cv::Mat previousMatrix;
 	cv::Mat outputMatrix;

@@ -53,7 +53,7 @@ void computeColor(float fx, float fy, uchar *pix)
 {
     if (ncols == 0) {
 		bool ret = makecolorwheel();
-	}
+	}                                                                    
 
     float rad = sqrt(fx * fx + fy * fy);
     float a = atan2(-fy, -fx) / PI;

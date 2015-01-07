@@ -48,8 +48,12 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > outputMonoPort;                 // port whre the output (left) is sent    
 
     yarp::os::BufferedPort<yarp::sig::Vector > eventPort;
+<<<<<<< HEAD
     yarp::sig::ImageOf<yarp::sig::PixelRgb>*  imageColorOutput;                                        //image representing the signal on the leftcamera
     yarp::sig::ImageOf<yarp::sig::PixelMono>* imageMonoOutput;                                        //image representing the signal on the leftcamera
+=======
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;                                        //image representing the signal on the leftcamera
+>>>>>>> 55c82d8c9250c5f2cfee1916cd93b03f1f066752
     
 	yarp::os::Semaphore semColor;
 	yarp::os::Semaphore semMono;
