@@ -44,13 +44,15 @@ class plotterThread : public yarp::os::RateThread {
 private:    
     int count;                            // loop counter of the thread
     int width, height;                    // dimension of the squared retina
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;                 // port whre the output (left) is sent
-    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  outputColorPort;                 // port whre the output (left) is sent
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > outputMonoPort;                 // port whre the output (left) is sent    
 
     yarp::os::BufferedPort<yarp::sig::Vector > eventPort;
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageOutput;                                        //image representing the signal on the leftcamera
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>*  imageColorOutput;                                        //image representing the signal on the leftcamera
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* imageMonoOutput;                                        //image representing the signal on the leftcamera
     
-	yarp::os::Semaphore sem;
+	yarp::os::Semaphore semColor;
+	yarp::os::Semaphore semMono;
 
     std::string name;                           // rootname of all the ports opened by this thread
     bool synchronised;                          // flag to check whether the microsecond counter has been synchronised
