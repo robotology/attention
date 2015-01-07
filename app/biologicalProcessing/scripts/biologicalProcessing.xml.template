@@ -1,0 +1,29 @@
+<application>
+	<name>Optical Flow Processing</name>
+ 	<dependencies>
+		<port>/icub/cam/left</port>
+		<port>/icub/cam/right</port>
+	</dependencies>
+	<module>
+		<name>opfExtractor</name>
+		<parameters></parameters>
+		<node>/icub-b18</node>
+	</module>
+    <module>
+		<name>yarpview</name>
+		<parameters>--name /opfView --x 100 --y 100 --width 320 --height 240</parameters>
+		<node>/icub14</node>
+	</module>
+
+   <connection>
+        <from>/icub/cam/left</from>
+        <to>/opfExtractor/image:i</to>
+	    <protocol>tcp</protocol>
+   </connection>
+   <connection>
+        <from>/opfExtractor/result:o</from>
+        <to>opfView</to>
+	    <protocol>tcp</protocol>
+   </connection>
+
+</application>
