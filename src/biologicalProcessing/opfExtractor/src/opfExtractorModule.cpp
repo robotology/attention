@@ -3,7 +3,7 @@
 /*
   * Copyright (C)2013  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author:Francesco Rea
-  * email: francesco.reak@iit.it
+  * email: francesco.rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -85,14 +85,14 @@ bool opfExtractorModule::configure(yarp::os::ResourceFinder &rf) {
                            Value(0.5), 
                            "threshold 1 level for the segmentation (float)").asDouble();
 
-        /**
+    /**
 	*  reading the threshold2 value
 	*/ 
 	double th2Level = rf.check("threshold2Level", 
                            Value(0.5), 
                            "threshold 2 level for the segmentation (float)").asDouble();
 
-        /**
+    /**
 	*  reading the threshold3 value
 	*/ 
 	double th3Level = rf.check("threshold3Level", 

@@ -48,7 +48,7 @@ private:
     
 
     yarp::os::BufferedPort<yarp::sig::Vector > eventPort;
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageOutput;                                        //image representing the signal on the leftcamera
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;                                        //image representing the signal on the leftcamera
     
 	yarp::os::Semaphore sem;
 

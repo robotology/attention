@@ -55,8 +55,8 @@ bool plotterThread::threadInit() {
     outputPort.open      (getName("/colorResult:o").c_str());
     
     // initialising images
-    imageOutput      = new ImageOf<PixelRgb>;
-    imageOutput->resize(width,height);
+    outputImage      = new ImageOf<PixelRgb>;
+    outputImage->resize(width,height);
     
     printf("initialization in plotter thread correctly ended \n");
     return true;
@@ -83,14 +83,14 @@ void plotterThread::resize(int widthp, int heightp) {
 void plotterThread::copyImage(ImageOf<PixelMono>* image) {
 	sem.wait();
 	//yDebug("copy the image of the module");
-	imageOutput->copy(*image);
+	outputImage->copy(*image);
 	sem.post();
 }
 
 void plotterThread::copyImage(ImageOf<PixelRgb>* image) {
 	sem.wait();
 	//yDebug("copy the image of the module");
-	imageOutput->copy(*image);
+	outputImage->copy(*image);
 	sem.post();
 }
 
@@ -135,8 +135,8 @@ void plotterThread::run() {
 		imagePrepare.resize(width, height);
 
 		sem.wait();
-		imagePrepare.copy(*imageOutput);
-		//copyImage(imageOutput, imagePrepare);
+		imagePrepare.copy(*outputImage);
+		//copyImage(outputImage, imagePrepare);
 		sem.post();
     
 		synchronised = true;
@@ -155,7 +155,7 @@ void plotterThread::threadRelease() {
     printf("freeing memory \n");
 
     // free allocated memory here please
-	delete imageOutput;
+	delete outputImage;
 
     printf("success in release the plotter thread \n");
 }

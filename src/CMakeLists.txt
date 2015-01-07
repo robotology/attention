@@ -32,9 +32,10 @@ add_subdirectory( stamper                   )
 add_subdirectory( test                      )
 add_subdirectory( tutorial                  )
 #add_subdirectory( visualFilter             )
-add_subdirectory(workingMemory              )    
-add_subdirectory( zeroDisparityFilter       )
-
+add_subdirectory(workingMemory              )  
+add_subdirectory(biologicalProcessing       )  
+#add_subdirectory( zeroDisparityFilter      )
+add_subdirectory( producerConsumer          )
 
 if(IPP_FOUND)
   add_subdirectory(yuvProcessor)
