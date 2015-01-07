@@ -189,8 +189,8 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
                 fynorm = (fy-minval_y)/(maxval_y-minval_y);
             assert(fxnorm >=0); assert(fxnorm <= 1.00);
             assert(fynorm >= 0); assert(fynorm <= 1.00);
-			computeColor(fxnorm, fynorm, ccMatrixPointer);
-            //computeColor(fx, fy, ccMatrixPointer);
+			//computeColor(fxnorm, fynorm, ccMatrixPointer);
+            computeColor(fx, fy, ccMatrixPointer);
 			ccMatrixPointer += 3;
 		}
     }
