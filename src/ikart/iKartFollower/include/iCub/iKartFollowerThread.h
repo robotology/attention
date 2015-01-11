@@ -160,6 +160,12 @@ public:
 
     /**
      * control law based on the technique that avoids the jack knife effect
+     * @param position1
+     * @param position2
+     * @param velocityTarget
+     * @param omegaTarget
+     * @param velocityIKART
+     * @param omegaIKART
      */
     void jackKnifeControl(double position1, double position2, double velocityTarget, double omegaTarget, double& velocityIKART, double& omegaIKART);
 

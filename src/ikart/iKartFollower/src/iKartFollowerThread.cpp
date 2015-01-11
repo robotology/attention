@@ -72,6 +72,7 @@ bool iKartFollowerThread::threadInit() {
     string targetFilePath("./targetFile.txt");
     targetFile = fopen(targetFilePath.c_str() ,"r+");
     if (targetFile == NULL){
+        yInfo("targetFile not found! Module closing...");
         return false;
     }
     readTargetInfo(targetFile);
@@ -131,17 +132,13 @@ void iKartFollowerThread::run() {
 void iKartFollowerThread::acquireTarget() {
     printf("acquiring target \n");
 
-    
-    
-
     if (counter % 4 == 0){
         printf("Given countVal %d, we obtain %d and this is targetInfoPointer %d\n", countVal,countVal>>2, targetInfoPointer);
 
         for( int i = 0; i < 4 ; i++) {
             printf("%d: %f \n", i, val[targetInfoPointer * 4 + i]);
         }
-    
-        
+          
         Time::delay(5.0);
 
         targetInfoPointer++;
@@ -181,7 +178,7 @@ void iKartFollowerThread::computeControl() {
     else{
         linSpeed = -0.1;
     }
-    jackKnifeControl(positionX, positionY, velocityTarget,omegaTarget,linSpeed,angSpeed);
+    jackKnifeControl(positionX, positionY, velocityTarget, omegaTarget, linSpeed, angSpeed);
 }
 
 void iKartFollowerThread::jackKnifeControl(double position1, double position2, double velocityTarget, double omegaTarget, double& velocityIKART, double& omegaIKART ){
