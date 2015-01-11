@@ -138,10 +138,17 @@ public:
     */
     std::string getName(const char* p);
 
-    /*
+    /**
     * function that sets the inputPort name
     */
     void setInputPortName(std::string inpPrtName);
+
+    /**
+    * function that sets the targetFile path
+    */
+    void setTargetFilePath(std::string tf) {
+        targetFile = fopen(tf.c_str() ,"r+");
+    }
 
     /**
      * function that computes the control according to the desired law

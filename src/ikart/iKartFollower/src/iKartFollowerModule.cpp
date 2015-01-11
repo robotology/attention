@@ -103,21 +103,24 @@ bool iKartFollowerModule::configure(yarp::os::ResourceFinder &rf) {
     }
 
     attach(handlerPort);                  // attach to port
-    if (rf.check("config")) {
-        configFile=rf.findFile(rf.find("config").asString().c_str());
-        if (configFile=="") {
+
+    if (rf.check("targetFile")) {
+        targetFilePath=rf.findFile(rf.find("targetFile").asString().c_str());
+        if (targetFilePath=="") {
             return false;
         }
     }
     else {
-        configFile.clear();
+        targetFilePath.clear();
     }
-
+    yInfo("targetFilePath %s", targetFilePath.c_str());
 
     /* create the thread and pass pointers to the module parameters */
     rThread = new iKartFollowerThread(robotName, configFile);
     rThread->setName(getName().c_str());
+    rThread->setTargetFilePath(targetFilePath);
     //rThread->setInputPortName(inputPortName.c_str());
+
     
     /* now start the thread to do the work */
     rThread->start(); // this calls threadInit() and it if returns true, it then calls run()

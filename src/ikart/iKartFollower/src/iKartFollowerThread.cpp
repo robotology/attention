@@ -31,6 +31,8 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
+#define infoCycle 2
+
 iKartFollowerThread::iKartFollowerThread():inputCbPort() {
     robot = "icub";        
 }
@@ -50,11 +52,11 @@ bool iKartFollowerThread::threadInit() {
     heading  = 0;
     linSpeed = 0;
     angSpeed = 0;
+    counter  = 0;
     targetInfoPointer = 0;
 
     val = new double[100];
 
-    
     /* open ports */ 
     //inputCbPort.hasNewImage = false;
     //inputCbPort.useCallback();          // to enable the port listening to events via callback
@@ -66,16 +68,19 @@ bool iKartFollowerThread::threadInit() {
     if (!outputPort.open(getName("/control:o").c_str())) {
         cout << ": unable to open port to send unmasked events "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
-    }    
+    }
+    printf("\n");
 
     // opening file
-    string targetFilePath("./targetFile.txt");
-    targetFile = fopen(targetFilePath.c_str() ,"r+");
+    //string targetFilePath("./targetFile.txt");
+
     if (targetFile == NULL){
-        yInfo("targetFile not found! Module closing...");
-        return false;
+        yInfo("targetFile not found! Waiting target info from connection");
+        //return false;
     }
-    readTargetInfo(targetFile);
+    else {
+        readTargetInfo(targetFile);
+    }
 
     return true;
     
@@ -87,18 +92,20 @@ void iKartFollowerThread::readTargetInfo(FILE* targetFile) {
     int numRead = 0;
     countVal = 0;
     while ((numRead != -1) && (countVal < 100)){
-        numRead = fscanf(targetFile, "%f", &x);
-        if(numRead != -1) {
-            printf("scanned : numRead %d > %f \n",numRead,x);
-            val[countVal] = (double) x;
+        for (int i = 0; i < 4; i++) {
+            numRead = fscanf(targetFile, "%f", &x);
+            if(numRead != -1) {
+                printf("%f \n",numRead,x);
+                val[countVal] = (double) x;
+            }
+            else {
+                //printf("empty file! Please fill it with target info \n");
+            }
             countVal++;
         }
-        else {
-            printf("numRead = -1 \n");
-        }
+        printf("\n");
     }
     rewind(targetFile);
-    
 }
 
 void iKartFollowerThread::setName(string str) {
@@ -130,10 +137,10 @@ void iKartFollowerThread::run() {
 }
 
 void iKartFollowerThread::acquireTarget() {
-    printf("acquiring target \n");
+    //printf("acquiring target \n");
 
     if (counter % 4 == 0){
-        printf("Given countVal %d, we obtain %d and this is targetInfoPointer %d\n", countVal,countVal>>2, targetInfoPointer);
+        printf("targetInfoPointer %d\n", targetInfoPointer);
 
         for( int i = 0; i < 4 ; i++) {
             printf("%d: %f \n", i, val[targetInfoPointer * 4 + i]);
@@ -142,33 +149,23 @@ void iKartFollowerThread::acquireTarget() {
         Time::delay(5.0);
 
         targetInfoPointer++;
-        int countValratio4 = countVal>>2;
-        if(targetInfoPointer == 2){
-            printf("zeroing targetInfoPointer \n");
+        //int countValratio4 = countVal>>2;
+        if(targetInfoPointer == infoCycle){
+            //printf("zeroing targetInfoPointer \n");
             targetInfoPointer = 0;
-        }
-        
+        }        
     }
     
-    positionX = 0.1;       // m
-    positionY = 0.1;       // m
-    velocityTarget = 0.1;  // m/s
-    omegaTarget = 0.1;     // degrees/s
-}
-
-void iKartFollowerThread::commandControl() {
-    Bottle& b = outputPort.prepare();
-    b.clear();
-    b.addInt(2);
-    b.addDouble(heading);  //the commanded linear direction of the iKart, expressed in degrees.  
-    b.addDouble(linSpeed); //the commanded linear speed, expressed in m/s.
-    b.addDouble(angSpeed); //the commanded angular speed, expressed in deg/s.
-    outputPort.writeStrict();
+    //positionX      = 0.1;       // m
+    //positionY      = 0.1;       // m
+    //velocityTarget = 0.1;       // m/s
+    //omegaTarget    = 0.1;       // degrees/s
 }
 
 void iKartFollowerThread::computeControl() {
     counter++;
     //heading = counter % 360;
+    /*
     if(counter % 1000 == 0){
         forward = forward * -1;
     }
@@ -178,7 +175,9 @@ void iKartFollowerThread::computeControl() {
     else{
         linSpeed = -0.1;
     }
+    */
     jackKnifeControl(positionX, positionY, velocityTarget, omegaTarget, linSpeed, angSpeed);
+    yInfo("linSpeed %f angSpeed %f", linSpeed, angSpeed);
 }
 
 void iKartFollowerThread::jackKnifeControl(double position1, double position2, double velocityTarget, double omegaTarget, double& velocityIKART, double& omegaIKART ){
@@ -194,14 +193,28 @@ void iKartFollowerThread::jackKnifeControl(double position1, double position2, d
 
     double vp1power4 = vp1 * vp1 * vp1 * vp1;
 
-    omegaIKART = k3 * velocityIKART * velocityIKART * (vp2 * vp1 / (vp1power4 + epsilon)) - k2 * velocityIKART * velocityIKART * (position2 * vp1 / (vp1  * vp1 + epsilon));
+    omegaIKART    = k3 * velocityIKART * velocityIKART * (vp2 * vp1 / (vp1power4 + epsilon)) - k2 * velocityIKART * velocityIKART * (position2 * vp1 / (vp1  * vp1 + epsilon));
     velocityIKART = vp1 - k1 * position1 + d2 * omegaIKART;
-    
+
+    //omegaIKART    = 0.1;
+    //velocityIKART = 0.2;
+}
+
+void iKartFollowerThread::commandControl() {
+    Bottle& b = outputPort.prepare();
+    b.clear();
+    b.addInt(2);
+    b.addDouble(heading);  //the commanded linear direction of the iKart, expressed in degrees.
+    b.addDouble(linSpeed); //the commanded linear speed, expressed in m/s.
+    b.addDouble(angSpeed); //the commanded angular speed, expressed in deg/s.
+    outputPort.writeStrict();
 }
 
 void iKartFollowerThread::threadRelease() {
     //delete[] val;
-    fclose(targetFile);
+    if(targetFile!=NULL){
+        fclose(targetFile);
+    }
 }
 
 void iKartFollowerThread::onStop() {
