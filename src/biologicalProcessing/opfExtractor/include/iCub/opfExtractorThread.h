@@ -54,6 +54,7 @@ private:
 	int ofAlgo;						// integer code to identify the optical flow algorithm
     bool idle;                      // flag that interrupts the processing 
 	bool firstProcessing;
+    bool numberProcessing;
     bool throwAway;                 // flag that throws away one image out of two
 	double TH1_,TH2_, PTH_;         // prefixed level of threshold in segmentation
     yarp::os::Semaphore idleLock;   // semaphore that checks access to the resource
@@ -165,8 +166,14 @@ public:
 	/**
      * @brief function to  find a point (x,y) with an optical flow greater than a threshold
      */
-	void thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThresholding);
+	//void thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThresholding, cv::Mat& Maskt);
+    void thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThresholding, std::vector<float>& descr, int& computed); 
 	void fakethresholding(cv::Mat& U, cv::Mat& V);
+    
+    /**
+     * @brief function to  extract the features
+     */
+    //void computeFeatures(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat Ut, cv::Mat Vt, std::vector<float>& descr, int& computed);
 
 	/**
      * @brief function to  find a point (x,y) with an optical flow greater than a threshold

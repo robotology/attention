@@ -49,6 +49,7 @@ bool opfExtractorThread::threadInit() {
     idle   = false;
     throwAway = false;
     firstProcessing=true;
+    numberProcessing=0;
     setAlgorithm(ALGO_FB);
 
     inputImage = new ImageOf<PixelRgb>();
@@ -211,16 +212,16 @@ void opfExtractorThread::fakethresholding(cv::Mat& U, cv::Mat& V){
 }
 
 
-void opfExtractorThread::thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThresholding){ 
-    cv::Mat MAGt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);
-    cv::Mat THETAt = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);
-    cv::Mat MAGt_1 = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);
-    cv::Mat THETAt_1 = cv::Mat::zeros(U.rows, U.cols, CV_32FC1);  
+void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThresholding, std::vector<float>& descr, int& computed){ 
+    cv::Mat MAGt = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+    cv::Mat THETAt = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+    cv::Mat MAGt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+    cv::Mat THETAt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);  
 
     
 
     // from u-v to Magnitude-Theta
-    cv::cartToPolar(U, V, MAGt, THETAt, false);
+    cv::cartToPolar(Ut, Vt, MAGt, THETAt, false);
   
     cv::Mat Probt = cv::Mat::zeros(MAGt.rows, MAGt.cols, CV_32FC1);
     int DELTA = 10;
@@ -253,7 +254,7 @@ void opfExtractorThread::thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThres
     
     
     
-    bool COND = cv::sum(Maskt).val[0] >= 0.01*(U.rows*U.cols);	//global statistics: we consider just what has a movement greater than the 1%  of  the total of the image
+    bool COND = cv::sum(Maskt).val[0] >= 0.01*(Ut.rows*Ut.cols);	//global statistics: we consider just what has a movement greater than the 1%  of  the total of the image
     //bool COND = cv::sum(Maskt).val[0] >= 0.01*(255); 
     //   std::cout << cv::sum(Maskt).val[0] << " " << 0.1*(Ut.rows*Ut.cols) << " " << COND << std::endl;
 
@@ -261,7 +262,7 @@ void opfExtractorThread::thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThres
     /*
     if(!COND) {  
         //if(DEBUG_) {
-        //  cv::Mat Im = cv::Mat::zeros(U.rows, U.cols, CV_8UC1);
+        //  cv::Mat Im = cv::Mat::zeros(Ut.rows, Ut.cols, CV_8UC1);
         //  cv::imshow("DEBUG", Im);
         //  cv::waitKey(10);
         //  Im.release();
@@ -315,16 +316,162 @@ void opfExtractorThread::thresholding(cv::Mat& U, cv::Mat& V, cv::Mat& maskThres
     for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
             if (maskThresholding.at<float>(y, x)==0.0) {
-                U.at<float>(y, x) = 0.000001;
-                V.at<float>(y, x) = 0.000001;
+                Ut.at<float>(y, x) = 0.000001;
+                Vt.at<float>(y, x) = 0.000001;
             }             
 		}
     }
+//}
+
+
+//void opfExtractorThread::computeFeatures(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat Ut, cv::Mat Vt, std::vector<float>& descr, int& computed){   //I eliminated CUM
+
+    descr.clear();
+
+    cv::Mat MAGt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+    cv::Mat THETAt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);  
+
+  /*if(!COND) {
+    
+    if(DEBUG_) {
+      cv::Mat Im = cv::Mat::zeros(Ut.rows, Ut.cols, CV_8UC1);
+      cv::imshow("DEBUG", Im);
+      cv::waitKey(10);
+      Im.release();
+      
+    }
+    
+    MAGt.release();
+    THETAt.release();
+    MAGt_1.release();
+    THETAt_1.release();
+    Maskt.release();
+    computed = 0;
+    return;
+  }*/
+
+
+   /*for(int x = 0; x < NewMask.cols; ++x) {
+      for(int y = 0; y < NewMask.rows; ++y) {
+	if(NewMask.at<uchar>(y,x) > 0) {
+	  
+	  CUM.at<float>(y,x) += MAGt.at<float>(y,x);   //CUM is just to  visualize the evolution of the region (it is something like to put together the binary matrices)->it can be commented
+
+	  
+	    }
+      }
+   }*/
+
+
+  /*if(DEBUG_) {
+    
+
+    double minVal, maxVal;
+    cv::Point maxPos;
+    cv::minMaxLoc(CUM, &minVal, &maxVal, NULL, &maxPos, NewMask);
+    
+    cv::Mat Ig = cv::Mat::zeros(CUM.rows, CUM.cols, CV_8UC3);
+    cv::Mat C = 255*(CUM-((float)(minVal)))/(((float)(maxVal))-((float)(minVal)));     //Normalization of CUM
+    C.convertTo(Ig, CV_8UC3);
+    
+    cv::circle(Ig, maxPos, 3, CV_RGB(255,0,0));
+    
+    cv::imshow("DEBUG", NewMask);
+//     cv::imshow("DEBUG", NewMask3);
+    cv::waitKey(10);
+//     If.release();
+//     Im.release();
+//     Imrgb.release();
+    
+  }*/
+
+  cv::Mat VEL = cv::Mat::zeros(1,3,CV_32FC1), ACC = cv::Mat::zeros(1,3,CV_32FC1);
+  cv::Moments MOMt;
+  double minValt_1, maxValt_1;
+  cv::Point maxPost_1;
+  cv::Mat Probt_1;
+  cv::Mat Maskt_1;
+  cv::Mat mean, std;
+  cv::Mat MatV = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+  cv::Mat MatC = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+  cv::Mat MatR = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+  cv::Mat MatA = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
+   int delta = 3;
+
+//AAA togliere commenti e decidere dove settare il case, per ora c'e' solo quella del centroide
+  //switch(flag_) {     //dove lo setto
+    //case 0: // analisi del centroide  
+
+// devo trovare il centroide della roi         //roi=region of interest
+      MOMt = cv::moments(Maskt, true);    //moments(Calculates all of the moments up to the third order of a polygon or rasterized shape.)
+      maxPost.x = MOMt.m10/MOMt.m00;
+      maxPost.y = MOMt.m01/MOMt.m00;
+    // spatial moments
+    //double  m00, m10, m01, m20, m11, m02, m30, m21, m12, m03;
+    // central moments
+    //double  mu20, mu11, mu02, mu30, mu21, mu12, mu03;
+    // central normalized moments
+    //double  nu20, nu11, nu02, nu30, nu21, nu12, nu03;
+
+
+      cv::cartToPolar(Ut_1, Vt_1, MAGt_1, THETAt_1, false);
+
+      Probt_1 = cv::Mat::zeros(MAGt_1.rows, MAGt_1.cols, CV_32FC1);
+
+      for(int i = DELTA; i < Probt_1.rows-DELTA; ++i) {        //as  before  during segmentation -> Probt_1 will be a matrix of values of probabilities between 0 and 1 
+	    for(int j = DELTA; j < Probt_1.cols-DELTA; ++j) {
+	        if(MAGt_1.at<float>(i,j)> TH1_)
+	            Probt_1.at<float>(i,j) = ((float)(cv::sum(MAGt_1(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1)) >= TH2_).val[0]))/((float)(LATO*LATO));
+        }
+      }
+      
+      Maskt_1 = Probt_1 >= PTH_;
+
+      COND = cv::sum(Maskt_1).val[0] >= 0.05*(255*Ut.rows*Ut.cols);
+      
+      if(COND) {
+	
+	//    devo trovare il centroide della roi
+	cv::Moments MOMt_1 = cv::moments(Maskt_1, true);
+	maxPost_1.x = MOMt_1.m10/MOMt_1.m00;      //??
+	maxPost_1.y = MOMt_1.m01/MOMt_1.m00;
+
+	// DESCRITTORE: Vt Ct Rt At
+	descr.push_back(sqrt(MAGt.at<float>(maxPost.y, maxPost.x)*MAGt.at<float>(maxPost.y, maxPost.x)+1));         //V  is the norm of
+	
+	VEL.at<float>(0,0) = cv::mean(Ut, Maskt).val[0]; 
+	VEL.at<float>(0,1) = cv::mean(Vt, Maskt).val[0]; 
+	VEL.at<float>(0,2) = 1.;
+	
+	ACC.at<float>(0,0) =  cv::mean(Ut, Maskt).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
+	ACC.at<float>(0,1) = cv::mean(Vt, Maskt).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
+	ACC.at<float>(0,2) = 0.;
+	
+	descr.push_back(cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3));
+	descr.push_back(1/descr[1]);
+	descr.push_back(descr[0]/descr[2]);
+	
+	descr.push_back(maxPost.x);
+	descr.push_back(maxPost.y);
+	
+    std::cout <<  descr[0] << " " << descr[1] << " " << descr[2] << " " << descr[3]  << std::endl;  
+
+	computed = 1;
+      
+            
+      } else {
+	computed = 0;
+      }
+
+
+
 }
+
 
 
 bool opfExtractorThread::processing(){
 	//	yDebug("processing");
+    numberProcessing++;
 	cv::Mat Matrix((IplImage*) inputImage->getIplImage(), false);
     
 	//cv::Mat outputMatrix((IplImage*) inputImage->getIplImage(), false);
@@ -332,17 +479,28 @@ bool opfExtractorThread::processing(){
 	if(!firstProcessing) {
 		previousMatrix=currentMatrix.clone();
 	}
+
 	cv::cvtColor(Matrix, currentMatrix, CV_RGB2GRAY);
 	
 	//--------------------------------------------------------------------------
 
 	if(!firstProcessing){
-		
+		cv::Mat U_1 = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+        cv::Mat V_1 = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+
+		if(numberProcessing>=3){
+            U_1=U.clone();
+            V_1=V.clone();                
+        {
+    
 		cv::Mat flow;
-		cv::Mat U =cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
-        cv::Mat V=cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+		cv::Mat U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);  //I have already use U and V to put them in U_1 and V_1  //?or is it better to initialize U, V, U_1, V_1 in the threadInit?
+        cv::Mat V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         cv::Mat maskThresholding = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
 		cv::Mat MV[2]={U,V};
+        descr=std::vector<float> vector2(4, 0.0);   //length=4
+        bool computed=0;
+
 		switch (ofAlgo) {
 		case ALGO_FB:{
 				cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 7, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
@@ -404,10 +562,18 @@ bool opfExtractorThread::processing(){
         /*taking a point (x,y) with a flow magnitude more than a threshold (th1) and then 
         computing the number of points around the point (x,y) with  the magnitude of the flow more than a threshold (th2) and taking the number of points with a flow magnitude more than a threshold(th3)*/
         //fakethresholding(U, V);
-        thresholding(U, V, maskThresholding);
+
+
+	    //?metto qui?
+        if(numberProcessing>=3) {        //you can compute the acceleration when you have 3 frames
+        thresholding(U_1, V_1, U, V, maskThresholding, descr, computed);
         //U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         //V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
-        motionToColor(U, V, colorcodeMatrix);
+
+        motionToColor(U, V, colorcodeMatrix);            
+        //computeFeatures(U_1, V_1, U, V, descr, computed);          //U_1 is the U at time t-1, U is the U at the time t  (sicuri??)
+        }
+
 
 		/* computing min and max */	
 		/*
