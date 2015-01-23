@@ -34,7 +34,6 @@ add_subdirectory( tutorial                  )
 #add_subdirectory( visualFilter             )
 add_subdirectory(workingMemory              )  
 add_subdirectory(biologicalProcessing       ) 
-add_subdirectory(moveBall		    ) 
 #add_subdirectory( zeroDisparityFilter      )
 
 
