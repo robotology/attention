@@ -54,7 +54,7 @@ private:
 	int ofAlgo;						// integer code to identify the optical flow algorithm
     bool idle;                      // flag that interrupts the processing 
 	bool firstProcessing;
-    bool numberProcessing;
+    int numberProcessing;
     bool throwAway;                 // flag that throws away one image out of two
 	double TH1_,TH2_, PTH_;         // prefixed level of threshold in segmentation
     yarp::os::Semaphore idleLock;   // semaphore that checks access to the resource
@@ -72,6 +72,8 @@ private:
 	cv::Mat previousMatrix;
 	cv::Mat outputMatrix;
     cv::Mat MaskThresholding;
+    cv::Mat U;
+    cv::Mat V;
 	//IplImage ipl_currentMatrix;
 
     plotterThread* pt;                                       // rateThread responsible for the visualization of the generated images

@@ -167,9 +167,9 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
 	double minval_x, maxval_x, minval_y, maxval_y;
 	cv::Point  minLoc_x, maxLoc_x, minLoc_y, maxLoc_y;
 	cv::minMaxLoc(U,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
-	std::cout  << maxval_x << " " << maxval_x << std::endl;
+	//std::cout  << "maxval U     "<< maxval_x << std::endl;
 	cv::minMaxLoc(V,&minval_y, &maxval_y, &minLoc_y, &maxLoc_y);
-	std::cout  << maxval_y << " " << maxval_y << std::endl;
+	//std::cout  << "maxval V     "<< maxval_y << std::endl;
 
 
 	uchar *ccMatrixPointer = colorcodeMatrix.data;					  //data is pointing to the Red of the 1st pixel
@@ -280,7 +280,7 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
     
     
     // identify the connected components and visualize them
-    yInfo("identifying the connect components");
+    //yInfo("identifying the connect components");
     std::vector<std::vector<cv::Point> > contours;
     cv::Mat MaskClone = Maskt.clone();
     std::vector<cv::Vec4i> hierarchy;
@@ -288,7 +288,7 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
     MaskClone.release();
   
     
-    yInfo("iterating the pixels");
+    //yInfo("iterating the pixels");
     for(std::vector<std::vector<cv::Point> >::iterator it = contours.begin(); it != contours.end(); ) {						 //contours.begin() is the pointer to the initial element
         if(cv::contourArea(*it)/(Maskt.rows*Maskt.cols)>0.005)  //??? why 0.005
             ++it; //we are at the level of each bounding box,then the threshold is less
@@ -309,10 +309,10 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
     //  
     //}
 
-    yInfo("drawing contours");
+    //yInfo("drawing contours");
     cv::drawContours(maskThresholding, contours, -1, CV_RGB(255,255,255), -1);			 //it puts zeros where the optical flow is low and 255 where the optical   flow is high             -1 vuol   dire che  devo  colarle tutti  i bounding box. l'altro -1 che devo colarli  pieno (controlla)    
-    
-    yInfo("removing the UV in the mask");
+
+    //yInfo("removing the UV in the mask");
     for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
             if (maskThresholding.at<float>(y, x)==0.0) {
@@ -325,11 +325,7 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
 
 
 //void opfExtractorThread::computeFeatures(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat Ut, cv::Mat Vt, std::vector<float>& descr, int& computed){   //I eliminated CUM
-
     descr.clear();
-
-    cv::Mat MAGt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
-    cv::Mat THETAt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);  
 
   /*if(!COND) {
     
@@ -404,6 +400,9 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
 
 // devo trovare il centroide della roi         //roi=region of interest
       MOMt = cv::moments(Maskt, true);    //moments(Calculates all of the moments up to the third order of a polygon or rasterized shape.)
+      cv::Point maxPost;
+      if (MOMt.m00 == 0)
+        MOMt.m00 = 0.000001;
       maxPost.x = MOMt.m10/MOMt.m00;
       maxPost.y = MOMt.m01/MOMt.m00;
     // spatial moments
@@ -427,22 +426,26 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
       
       Maskt_1 = Probt_1 >= PTH_;
 
-      COND = cv::sum(Maskt_1).val[0] >= 0.05*(255*Ut.rows*Ut.cols);
-      
-      if(COND) {
-	
+      COND = cv::sum(Maskt_1).val[0] >= 0.05*(255*Ut.rows*Ut.cols);   //?rimane sempre a 0, quindi  ho  tolto l'if successivo  
+    //if(COND) {
+	//  yInfo("interno del  cond");
 	//    devo trovare il centroide della roi
 	cv::Moments MOMt_1 = cv::moments(Maskt_1, true);
+    if (MOMt_1.m00 == 0)
+        MOMt_1.m00 = 0.000001;
 	maxPost_1.x = MOMt_1.m10/MOMt_1.m00;      //??
 	maxPost_1.y = MOMt_1.m01/MOMt_1.m00;
 
 	// DESCRITTORE: Vt Ct Rt At
-	descr.push_back(sqrt(MAGt.at<float>(maxPost.y, maxPost.x)*MAGt.at<float>(maxPost.y, maxPost.x)+1));         //V  is the norm of
+
 	
 	VEL.at<float>(0,0) = cv::mean(Ut, Maskt).val[0]; 
 	VEL.at<float>(0,1) = cv::mean(Vt, Maskt).val[0]; 
-	VEL.at<float>(0,2) = 1.;
+	VEL.at<float>(0,2) = 0.1;  //10 fps
 	
+    float roba =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
+	descr.push_back(roba);         //V  is the norm of
+
 	ACC.at<float>(0,0) =  cv::mean(Ut, Maskt).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
 	ACC.at<float>(0,1) = cv::mean(Vt, Maskt).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
 	ACC.at<float>(0,2) = 0.;
@@ -453,15 +456,18 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
 	
 	descr.push_back(maxPost.x);
 	descr.push_back(maxPost.y);
-	
-    std::cout <<  descr[0] << " " << descr[1] << " " << descr[2] << " " << descr[3]  << std::endl;  
+
+
+    std::cout  << "  Ut Vt  " <<  cv::mean(Ut, Maskt).val[0] << " " <<  cv::mean(Vt, Maskt).val[0] << " "  << std::endl;  
+
+    std::cout  << "Descriptor    " <<  descr[0] << " " << descr[1] << " " << descr[2] << " " << descr[3]  << std::endl;  
 
 	computed = 1;
       
             
-      } else {
-	computed = 0;
-      }
+    //  } else {
+	//computed = 0;
+    //  }
 
 
 
@@ -470,8 +476,9 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
 
 
 bool opfExtractorThread::processing(){
-	//	yDebug("processing");
+	//yDebug("processing");
     numberProcessing++;
+    //std::cout  << "numberProcessing    " << numberProcessing << " " << std::endl;
 	cv::Mat Matrix((IplImage*) inputImage->getIplImage(), false);
     
 	//cv::Mat outputMatrix((IplImage*) inputImage->getIplImage(), false);
@@ -488,18 +495,18 @@ bool opfExtractorThread::processing(){
 		cv::Mat U_1 = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         cv::Mat V_1 = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
 
-		if(numberProcessing>=3){
-            U_1=U.clone();
-            V_1=V.clone();                
-        {
-    
 		cv::Mat flow;
-		cv::Mat U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);  //I have already use U and V to put them in U_1 and V_1  //?or is it better to initialize U, V, U_1, V_1 in the threadInit?
-        cv::Mat V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+		U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);  //I have already use U and V to put them in U_1 and V_1  //?or is it better to initialize U, V, U_1, V_1 in the threadInit?
+        V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
         cv::Mat maskThresholding = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
 		cv::Mat MV[2]={U,V};
-        descr=std::vector<float> vector2(4, 0.0);   //length=4
-        bool computed=0;
+        std::vector<float> descr;   //length=4
+        int computed=0;
+
+        if(numberProcessing>=3){
+            U_1=U.clone();
+            V_1=V.clone();                
+        }
 
 		switch (ofAlgo) {
 		case ALGO_FB:{
@@ -551,7 +558,7 @@ bool opfExtractorThread::processing(){
 				 status.clear();
 				 err.clear();
 		}break;																							
-		}  // switch
+		}  // switch optical  flow
 
 
 		/* computing colorcode */
@@ -566,14 +573,12 @@ bool opfExtractorThread::processing(){
 
 	    //?metto qui?
         if(numberProcessing>=3) {        //you can compute the acceleration when you have 3 frames
-        thresholding(U_1, V_1, U, V, maskThresholding, descr, computed);
-        //U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
-        //V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
-
-        motionToColor(U, V, colorcodeMatrix);            
-        //computeFeatures(U_1, V_1, U, V, descr, computed);          //U_1 is the U at time t-1, U is the U at the time t  (sicuri??)
+            thresholding(U_1, V_1, U, V, maskThresholding, descr, computed);
+            //U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+            //V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
+            motionToColor(U, V, colorcodeMatrix);            
+            //computeFeatures(U_1, V_1, U, V, descr, computed);          //U_1 is the U at time t-1, U is the U at the time t  (sicuri??)
         }
-
 
 		/* computing min and max */	
 		/*
@@ -618,6 +623,8 @@ bool opfExtractorThread::processing(){
 		V.release();
         maskThresholding.release();
 		colorcodeMatrix.release();
+        U_1.release();
+		V_1.release();
 		//M.release();			  //if the block /* of magnitude visualization */ is uncommented, then uncomment these 2 lines also
 		//MN.release();
 		
@@ -653,4 +660,3 @@ void opfExtractorThread::onStop() {
     outputPort.interrupt();   
     outputPort.close();
 }
-
