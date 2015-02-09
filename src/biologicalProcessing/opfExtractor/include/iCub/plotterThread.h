@@ -36,8 +36,15 @@
 #include <yarp/sig/all.h>
 #include <iostream>
 #include <yarp/os/Semaphore.h>
+#include <yarp/os/all.h>
 
 
+#include <fstream>
+#include <time.h>
+#include <cv.h>
+#include <cvaux.h>
+#include <highgui.h>
+#include <cstring>
 
 
 class plotterThread : public yarp::os::RateThread {
@@ -48,14 +55,22 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > outputMonoPort;                 // port whre the output (left) is sent    
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >  outputPort;
-
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  outputPortu;       //Mono means that values are unsigned integer between 0 and 255
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  outputPortv;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  outputPortm;
     yarp::os::BufferedPort<yarp::sig::Vector > eventPort;
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>*  imageColorOutput;                                        //image representing the signal on the leftcamera
     yarp::sig::ImageOf<yarp::sig::PixelMono>* imageMonoOutput;                                        //image representing the signal on the leftcamera
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>*  outputImage;
- 
+    yarp::sig::ImageOf<yarp::sig::PixelMono>*  vImage;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>*  uImage;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>*  mImage;
+
+    cv::Mat vMatrix;
+    cv::Mat V;
+
 	yarp::os::Semaphore semColor;
 	yarp::os::Semaphore semMono;
     
@@ -69,7 +84,7 @@ public:
     * default constructor
     */
     plotterThread();
-
+                                                                  
     /**
      * destructor
      */
@@ -132,6 +147,11 @@ public:
      * @param img passed input of the image to be copied
      */
     void copyImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
+    void plotterThread::convertMat2ImageOf(cv::Mat a,yarp::sig::ImageOf<yarp::sig::PixelMono>* image);
+    void plotterThread::copyU(cv::Mat U);
+    void plotterThread::copyV(cv::Mat V);
+    void plotterThread::copyM(cv::Mat Mask);
+    void plotterThread::convertMat2ImageOf(cv::Mat a);
 
     /**
      * function that copies the RGB image in the left output 

@@ -53,18 +53,36 @@ bool plotterThread::threadInit() {
     printf("\n starting the thread.... \n");
     // opening ports 
     outputPort.open      (getName("/colorResult:o").c_str());
+    outputPortu.open      (getName("/uResult:o").c_str());
+    outputPortv.open      (getName("/vResult:o").c_str());
+    outputPortm.open      (getName("/mResult:o").c_str());
+
     
     // initialising images
     outputImage      = new ImageOf<PixelRgb>;
     outputImage->resize(width,height);
-    
+
+    uImage      = new ImageOf<PixelMono>;
+    uImage->resize(width,height);
+
+    vImage      = new ImageOf<PixelMono>;
+    vImage->resize(width,height);
+
+    mImage      = new ImageOf<PixelMono>;
+    mImage->resize(width,height);
+
     printf("initialization in plotter thread correctly ended \n");
     return true;
 }
 
 void plotterThread::interrupt() {
-    outputPort.interrupt();    
+    outputPort.interrupt();   
+    outputPortu.interrupt();
+    outputPortv.interrupt();
+    outputPortm.interrupt();
 }
+
+
 
 void plotterThread::setName(string str) {
     this->name=str;
@@ -93,6 +111,46 @@ void plotterThread::copyImage(ImageOf<PixelRgb>* image) {
 	outputImage->copy(*image);
 	sem.post();
 }
+
+
+void plotterThread::copyU(cv::Mat U) {
+    sem.wait();
+    ImageOf<PixelMono>* imageu = new ImageOf<PixelMono>();    //here we are just putting the pointer image at the beginning of the memory , but we have to allocate memory with new
+    imageu->resize(width, height);
+    convertMat2ImageOf(U, imageu);      //oppure fare le 3 sopra,in  modo che sia riutilizzabile anche nel caso uImage e U siano di tipo diverso
+    uImage->copy(*imageu);
+    sem.post();
+    delete imageu;
+}
+
+void plotterThread::copyV(cv::Mat V) {        
+    sem.wait();
+    ImageOf<PixelMono>* imagev = new ImageOf<PixelMono>();    //here we are just putting the pointer image at the beginning of the memory , but we have to allocate memory with new
+    imagev->resize(width, height);
+    convertMat2ImageOf(V, imagev);      //oppure fare le 3 sopra,in  modo che sia riutilizzabile anche nel caso uImage e U siano di tipo diverso
+    vImage->copy(*imagev);
+    sem.post();
+    delete imagev;
+}
+
+
+void plotterThread::copyM(cv::Mat Mask) {        
+    sem.wait();
+    ImageOf<PixelMono>* imagem = new ImageOf<PixelMono>();    //here we are just putting the pointer image at the beginning of the memory , but we have to allocate memory with new
+    imagem->resize(width, height);
+    convertMat2ImageOf(Mask, imagem);      //oppure fare le 3 sopra,in  modo che sia riutilizzabile anche nel caso uImage e U siano di tipo diverso
+    mImage->copy(*imagem);
+    sem.post();
+    delete imagem;
+}
+
+
+void plotterThread::convertMat2ImageOf(cv::Mat a, ImageOf<PixelMono>* image) {
+    IplImage tempIpla = (IplImage) a;
+    //printf("%08x \n", image);
+    image-> wrapIplImage(&tempIpla);
+}
+
 
 /*
 void plotterThread::copyLeft(ImageOf<PixelRgb>* image) {
@@ -130,32 +188,78 @@ bool plotterThread::test(){
 void plotterThread::run() {
     //count++;
     if(outputPort.getOutputCount()) {
-		//yDebug("plotting the image");
-		ImageOf<PixelRgb>& imagePrepare  = outputPort.prepare();
-		imagePrepare.resize(width, height);
+        //yDebug("plotting the image");
+        ImageOf<PixelRgb>& imagePrepare  = outputPort.prepare();
+        imagePrepare.resize(width, height);
 
-		sem.wait();
-		imagePrepare.copy(*outputImage);
-		//copyImage(outputImage, imagePrepare);
-		sem.post();
+        sem.wait();
+        imagePrepare.copy(*outputImage);
+        //copyImage(outputImage, imagePrepare);
+        sem.post();
     
-		synchronised = true;
+        synchronised = true;
     
         outputPort.write();
     }
+
+    if (outputPortu.getOutputCount()) {
+        //yDebug("plotting the image");
+        ImageOf<PixelMono>& imagePrepareu  = outputPortu.prepare();
+        imagePrepareu.resize(width, height);
+
+        sem.wait();
+        imagePrepareu.copy(*uImage);
+        //copyImage(outputImage, imagePrepare);
+        sem.post();
+    
+        synchronised = true;
+    
+        outputPortu.write();
+    }
+
+    if (outputPortv.getOutputCount()) {
+        //yDebug("plotting the image");
+        ImageOf<PixelMono>& imagePreparev  = outputPortv.prepare();
+        imagePreparev.resize(width, height);
+
+        sem.wait();
+        imagePreparev.copy(*vImage);
+        //copyImage(outputImage, imagePrepare);
+        sem.post();
+    
+        synchronised = true;
+    
+        outputPortv.write();
+    }
+
+    if (outputPortm.getOutputCount()) {
+        //yDebug("plotting the image");
+        ImageOf<PixelMono>& imagePreparem  = outputPortm.prepare();
+        imagePreparem.resize(width, height);
+
+        sem.wait();
+        imagePreparem.copy(*mImage);
+        //copyImage(outputImage, imagePrepare);
+        sem.post();
+    
+        synchronised = true;
+    
+        outputPortm.write();
+    }
 }
-
-
 
 
 void plotterThread::threadRelease() {
     printf("plotterThread: portClosing \n");  
     outputPort.close();
+    outputPortu.close();
+    outputPortv.close();
+    outputPortm.close();
 
     printf("freeing memory \n");
 
     // free allocated memory here please
-	delete outputImage;
+    delete outputImage;
 
     printf("success in release the plotter thread \n");
 }

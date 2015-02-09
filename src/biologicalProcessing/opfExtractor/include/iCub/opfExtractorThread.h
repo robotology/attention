@@ -40,6 +40,7 @@
 #include <cstring>
 
 #include <iCub/plotterThread.h>
+#include <iCub/featExtractorThread.h>
 #include <iCub/colorcode.h>
 
 #define WIDTH  320
@@ -65,6 +66,7 @@ private:
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;       // image generated in the processing
     yarp::sig::ImageOf<yarp::sig::PixelMono>* outputImage;     //
+
 	yarp::sig::ImageOf<yarp::sig::PixelRgb>* processingImage;  // image resulting from the processing step
 	yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;  // image resulting from the processing step
 	
@@ -74,15 +76,21 @@ private:
     cv::Mat MaskThresholding;
     cv::Mat U;
     cv::Mat V;
+    cv::Mat Maskt;
 	//IplImage ipl_currentMatrix;
+    bool dataready;                  //shared flag for saying to the featExtractorThread that U,V,Maskt are ready //it is initialized to 0
 
     plotterThread* pt;                                       // rateThread responsible for the visualization of the generated images
+    featExtractorThread* fet;                                       // rateThread responsible for the visualization of the generated images
+
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputPort;  //inputport for processing
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > outputPort;     // output port , result of the processing
     yarp::os::Semaphore checkImage;                          // semaphore responsible for the access to the inputImage     
     std::string name;                                                                // rootname of all the ports opened by this thread
-    
+
+
+
 public:
     /**
     * constructor default
@@ -168,7 +176,7 @@ public:
 	/**
      * @brief function to  find a point (x,y) with an optical flow greater than a threshold
      */
-	//void thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThresholding, cv::Mat& Maskt);
+	void thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThresholding);
     void thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThresholding, std::vector<float>& descr, int& computed); 
 	void fakethresholding(cv::Mat& U, cv::Mat& V);
     
