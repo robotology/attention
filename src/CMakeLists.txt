@@ -35,6 +35,8 @@ add_subdirectory( tutorial                  )
 add_subdirectory(workingMemory              )  
 add_subdirectory(biologicalProcessing       ) 
 #add_subdirectory( zeroDisparityFilter      )
+add_subdirectory( moveBall     )
+add_subdirectory( farnebackTest)
 
 
 

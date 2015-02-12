@@ -77,6 +77,11 @@ private:
     cv::Mat U;
     cv::Mat V;
     cv::Mat Maskt;
+    cv::Mat MAGt;
+    //cv::Mat THETAt;
+    //cv::Mat Probt;
+    //int DELTA;
+    //int LATO;
 	//IplImage ipl_currentMatrix;
     bool dataready;                  //shared flag for saying to the featExtractorThread that U,V,Maskt are ready //it is initialized to 0
 

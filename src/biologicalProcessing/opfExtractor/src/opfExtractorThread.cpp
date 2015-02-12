@@ -77,11 +77,9 @@ bool opfExtractorThread::threadInit() {
     pt->start();
 
     //starting the featExtractorThread        aaa
-    //if(numberProcessing>=3){
-        fet = new featExtractorThread();
-        fet->setName(getName("").c_str());
-        fet->start();
-    //}
+    fet = new featExtractorThread();
+    fet->setName(getName("").c_str());
+    fet->start();
 
     yInfo("Initialization of the processing thread correctly ended");
 
@@ -139,28 +137,17 @@ void opfExtractorThread::run() {
                 }
                 else {
                     double timeStart = Time::now();
-                               
+
                     result = processing();               // generates the outputImage which is what we want to plot                                
                     //bbb
                     pt->copyImage(processingImage);
                     pt->copyU(U);           //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
                     pt->copyV(V);
-                    float ss= Maskt.depth();
                     pt->copyM(Maskt);
-
-                    float s= Maskt.depth();
 
                     fet->copyAll(U,V,Maskt);    //aaa
                     fet->setFlag();             //aaa
 
-                    //namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-                    //imshow( "Display window", Maskt ); 
-                    //waitKey(0);
-
-                    double minvall, maxvall;	
-                    cv::Point  minLocl, maxLocl;
-                    cv::minMaxLoc(Maskt,&minvall, &maxvall, &minLocl, &maxLocl);
-                            
                     /*
                     if (outputPort.getOutputCount()) {
                         //yDebug("debug");
@@ -182,7 +169,7 @@ void opfExtractorThread::run() {
                 result = 0;
             }
         }
-    }               
+    }
 }
 
 
@@ -190,11 +177,11 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
     double minval_x, maxval_x, minval_y, maxval_y;
     cv::Point  minLoc_x, maxLoc_x, minLoc_y, maxLoc_y;
     cv::minMaxLoc(U,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
-    //std::cout  << "maxval U     "<< maxval_x << std::endl;
+    std::cout  << "maxval U     "<< maxval_x << std::endl;
     cv::minMaxLoc(V,&minval_y, &maxval_y, &minLoc_y, &maxLoc_y);
-    //std::cout  << "maxval V     "<< maxval_y << std::endl;
+    std::cout  << "maxval V     "<< maxval_y << std::endl;
 
-    uchar *ccMatrixPointer = colorcodeMatrix.data;					  //data is pointing to the Red of the 1st pixel
+    uchar *ccMatrixPointer = colorcodeMatrix.data;                  //data is pointing to the Red of the 1st pixel
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -202,6 +189,7 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
             float fy = V.at<float>(y, x);//motim.Pixel(x, y, 1);
             //.Pixel(x, y, 0);
             float fxnorm, fynorm;
+
             if (maxval_x == minval_x)
                 fxnorm=0.00000001;
             else
@@ -209,11 +197,14 @@ void opfExtractorThread::motionToColor(cv::Mat U, cv::Mat V, cv::Mat& colorcodeM
             if (maxval_y == minval_y)
                 fynorm=0.00000001;
             else
-                fynorm = (fy-minval_y)/(maxval_y-minval_y);
+                fynorm = (fy-minval_y)/(maxval_y-minval_y); 
+
             assert(fxnorm >=0); assert(fxnorm <= 1.00);
             assert(fynorm >= 0); assert(fynorm <= 1.00);
+            
             //computeColor(fxnorm, fynorm, ccMatrixPointer);
-            computeColor(fx, fy, ccMatrixPointer);
+
+            computeColor(fx, fy, ccMatrixPointer);   //fx and fy are not normalized, therefore they are not between 0 and 1
             ccMatrixPointer += 3;
         }
     }
@@ -637,10 +628,15 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
     std::cout  << "  Ut Vt  " <<  cv::mean(Ut, Maskt).val[0] << " " <<  cv::mean(Vt, Maskt).val[0] << " "  << std::endl;  
 
     std::cout  << "Descriptor    " <<  descr[0] << " " << descr[1] << " " << descr[2] << " " << descr[3]  << std::endl;  
-
 	computed = 1;
-      
-            
+
+    Bottle b;
+    b.add(descr[0]);           
+    b.add(descr[1]);           
+    b.add(descr[2]);           
+    b.add(descr[3]);           
+
+
     //  } else {
 	//computed = 0;
     //  }
@@ -687,6 +683,8 @@ bool opfExtractorThread::processing(){
 		switch (ofAlgo) {
 		case ALGO_FB:{
 				cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 7, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
+               // int  deppp=previousMatrix.depth();
+                
                 //cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 5, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
 				cv::split(flow, MV);
 		}break;
