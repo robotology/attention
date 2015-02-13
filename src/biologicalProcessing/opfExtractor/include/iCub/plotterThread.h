@@ -147,11 +147,11 @@ public:
      * @param img passed input of the image to be copied
      */
     void copyImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
-    void plotterThread::convertMat2ImageOf(cv::Mat a,yarp::sig::ImageOf<yarp::sig::PixelMono>* image);
-    void plotterThread::copyU(cv::Mat U);
-    void plotterThread::copyV(cv::Mat V);
-    void plotterThread::copyM(cv::Mat Mask);
-    void plotterThread::convertMat2ImageOf(cv::Mat a);
+    void convertMat2ImageOf(cv::Mat a,yarp::sig::ImageOf<yarp::sig::PixelMono>* image);
+    void copyU(cv::Mat U);
+    void copyV(cv::Mat V);
+    void copyM(cv::Mat Mask);
+    void convertMat2ImageOf(cv::Mat a);
 
     /**
      * function that copies the RGB image in the left output 

@@ -3710,7 +3710,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if(speakPort.getOutputCount()){
                     Bottle& b = speakPort.prepare();
                     b.clear();
-                    b.addString("nice");
+                    b.addString("hu");
                     speakPort.writeStrict();
                 }
                 // nofiying state transition into unsuccessful tracking

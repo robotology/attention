@@ -155,11 +155,11 @@ public:
      * @param img passed input of the image to be copied
      */
     void copyImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
-    void featExtractorThread::convertMat2ImageOf(cv::Mat a,yarp::sig::ImageOf<yarp::sig::PixelMono>* image);
-    void featExtractorThread::copyAll(cv::Mat U, cv::Mat V, cv::Mat M)  ;
-    void featExtractorThread::convertMat2ImageOf(cv::Mat a);
-    void featExtractorThread::setFlag();
-    void featExtractorThread::setFlagPointer(bool* flagPointer);
+    void convertMat2ImageOf(cv::Mat a,yarp::sig::ImageOf<yarp::sig::PixelMono>* image);
+    void copyAll(cv::Mat U, cv::Mat V, cv::Mat M)  ;
+    void convertMat2ImageOf(cv::Mat a);
+    void setFlag();
+    void setFlagPointer(bool* flagPointer);
     /**
      * function that copies the RGB image in the left output 
      * @param img passed input of the image to be copied
