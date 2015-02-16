@@ -58,7 +58,7 @@ bool featExtractorThread::threadInit() {
     //initialisig flag
     featDataready      = false;
 
-        // initialising images
+    // initialising images
 
     //uImage      = new ImageOf<PixelMono>;
     //uImage->resize(width,height);
@@ -267,12 +267,12 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
 
         Probt_1 = cv::Mat::zeros(MAGt_1.rows, MAGt_1.cols, CV_32FC1);
 
-            for(int i = DELTA; i < Probt_1.rows-DELTA; ++i) {        //as  before  during segmentation -> Probt_1 will be a matrix of values of probabilities between 0 and 1 
+        for(int i = DELTA; i < Probt_1.rows-DELTA; ++i) {        //as  before  during segmentation -> Probt_1 will be a matrix of values of probabilities between 0 and 1 
             for(int j = DELTA; j < Probt_1.cols-DELTA; ++j) {
                 if(MAGt_1.at<float>(i,j)> TH1__)
                     Probt_1.at<float>(i,j) = ((float)(cv::sum(MAGt_1(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1)) >= TH2__).val[0]))/((float)(LATO*LATO));
             }
-            }
+        }
       
             Maskt_1 = Probt_1 >= PTH__;
 
@@ -297,15 +297,15 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         VEL.at<float>(0,2) = 0.1;  //10 fps
 	
         float roba =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
-        descr.push_back(roba);         //V  is the norm of
+        descr.push_back(roba);                                              //V=is the norm of the velocity (mean of optical flow)
 
         ACC.at<float>(0,0) =  cv::mean(Ut, Maskt8U).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
         ACC.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
         ACC.at<float>(0,2) = 0.;
 	
-        descr.push_back(cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3));
-        descr.push_back(1/descr[1]);
-        descr.push_back(descr[0]/descr[2]);
+        descr.push_back(cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3));   //C=Curvature
+        descr.push_back(1/descr[1]);                                      //R=Radius of curvature
+        descr.push_back(descr[0]/descr[2]);                               //A=V/R
 	
         descr.push_back(maxPost.x);
         descr.push_back(maxPost.y);

@@ -160,10 +160,8 @@
 //within project includes  
 #include <iCub/opfExtractorThread.h>
 
-
 class opfExtractorModule:public yarp::os::RFModule {
 
-    
     std::string moduleName;                  // name of the module
     std::string robotName;                   // name of the robot 
     std::string robotPortName;               // name of robot port
@@ -174,7 +172,7 @@ class opfExtractorModule:public yarp::os::RFModule {
     
     yarp::os::Port handlerPort;              // a port to handle messages 
     /*  */
-    opfExtractorThread *rThread;                 // pointer to a new thread to be created and started in configure() and stopped in close()
+    opfExtractorThread *rThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
 
     yarp::os::Semaphore respondLock;         // check in the case of the respond function
 

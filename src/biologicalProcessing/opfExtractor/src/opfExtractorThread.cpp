@@ -127,10 +127,10 @@ bool opfExtractorThread::test(){
 void opfExtractorThread::run() {    
     while (isStopping() != true) {
         bool result;
-        
+
         if(!idle){
             if(inputPort.getInputCount()) {
-                inputImage = inputPort.read(true);   //blocking reading for synchr with the input           //crasha
+                inputImage = inputPort.read(true);   //blocking reading for synchr with the input
 
                 if (throwAway){
                     throwAway = false;
@@ -138,10 +138,10 @@ void opfExtractorThread::run() {
                 else {
                     double timeStart = Time::now();
 
-                    result = processing();               // generates the outputImage which is what we want to plot                                
+                    result = processing();               //generates the outputImage which is what we want to plot
                     //bbb
                     pt->copyImage(processingImage);
-                    pt->copyU(U);           //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
+                    pt->copyU(U);                       //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
                     pt->copyV(V);
                     pt->copyM(Maskt);
 
@@ -230,7 +230,7 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
     cv::Mat THETAt = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
 
     // from u-v to Magnitude-Theta
-    double minval, maxval;	
+    double minval, maxval;
     cv::Point  minLoc, maxLoc;
     cv::minMaxLoc(Ut,&minval, &maxval, &minLoc, &maxLoc);
     //std::cout  << minval << "Ut " << maxval << std::endl;
@@ -269,7 +269,6 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
             }
         }
     }
-    
 
 
     //double minValt, maxValt;
@@ -283,7 +282,7 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
     //bool COND = cv::sum(Maskt).val[0] >= 0.01*(255); 
     //   std::cout << cv::sum(Maskt).val[0] << " " << 0.1*(Ut.rows*Ut.cols) << " " << COND << std::endl;
 
-    
+
     /*
     if(!COND) {  
         //if(DEBUG_) {

@@ -56,16 +56,13 @@ private:
     int count;                            // loop counter of the thread
     int width, height;                    // dimension of the squared retina
 
-    yarp::os::BufferedPort<yarp::os::Bottle>  outputPortDescr;
-    yarp::os::Bottle descrBottle;
-    yarp::os::Bottle contentBottle;
-    //yarp::sig::ImageOf<yarp::sig::PixelMono>*  vImage;
-    //yarp::sig::ImageOf<yarp::sig::PixelMono>*  uImage;
-    //yarp::sig::ImageOf<yarp::sig::PixelMono>*  mImage;
+    yarp::os::BufferedPort<yarp::os::Bottle>  outputPortDescr;      // name of output port for the descriptor vector
+    yarp::os::Bottle descrBottle;                                   // name of the boottle with float
+    yarp::os::Bottle contentBottle;                                 // name of the bottle with list of float
+
     cv::Mat Ut;
     cv::Mat Vt;
     cv::Mat Maskt;
-
 
     bool featDataready;
 
@@ -144,7 +141,7 @@ public:
     */
     void resize(int width, int height);
 
-    /**
+     /**
      * function that copies the image in the left output
      * @param img passed input of the image to be copied
      */
@@ -155,10 +152,30 @@ public:
      * @param img passed input of the image to be copied
      */
     void copyImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
+
+     /**
+     * function that convert a Mat into a ImageOf
+     * @param a passed input of the image to be converted
+     * @return image which is of type ImageOf
+     */
     void convertMat2ImageOf(cv::Mat a,yarp::sig::ImageOf<yarp::sig::PixelMono>* image);
+
+     /**
+     * function that copies the images
+     * @param U, V, M passed input of the images to be copied
+     */
     void copyAll(cv::Mat U, cv::Mat V, cv::Mat M)  ;
-    void convertMat2ImageOf(cv::Mat a);
+
+     /**
+     * function that copies the image in the left output
+     * @param img passed input of the image to be copied
+     */
     void setFlag();
+
+     /**
+     * function that copies the image in the left output
+     * @param img passed input of the image to be copied
+     */
     void setFlagPointer(bool* flagPointer);
     /**
      * function that copies the RGB image in the left output 
