@@ -137,8 +137,13 @@ void opfExtractorThread::run() {
                 }
                 else {
                     double timeStart = Time::now();
-
+                    //processing
                     result = processing();               //generates the outputImage which is what we want to plot
+                    double timeStopProcessing = Time::now();
+                    double timeDiffProcessing =timeStopProcessing-timeStart;
+                    yDebug("timeDiff %f", timeDiffProcessing);
+
+
                     //bbb
                     pt->copyImage(processingImage);
                     pt->copyU(U);                       //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
@@ -681,9 +686,12 @@ bool opfExtractorThread::processing(){
 
 		switch (ofAlgo) {
 		case ALGO_FB:{
+                double timeStartOF = Time::now();
 				cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 7, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
                // int  deppp=previousMatrix.depth();
-                
+                double timeStopOF = Time::now();
+                double timeDiffOF =timeStopOF-timeStartOF;
+                yDebug("timeDiffOF %f", timeDiffOF);
                 //cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 5, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
 				cv::split(flow, MV);
 		}break;
@@ -746,7 +754,14 @@ bool opfExtractorThread::processing(){
 
 	    //?metto qui?
         if(numberProcessing>=3) {        //you can compute the acceleration when you have 3 frames
+            double timeStartThresholding =Time::now();
+
             thresholding(U, V, maskThresholding);
+
+            double timeStopThresholdind =Time::now();
+            double timeDiffThresholding =timeStopThresholdind-timeStartThresholding;
+            yDebug("timeDiffThresholding %f", timeDiffThresholding);
+
             //thresholding(U_1, V_1, U, V, maskThresholding, descr, computed);
             //U = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
             //V = cv::Mat::zeros(previousMatrix.rows,previousMatrix.cols, CV_32FC1);
