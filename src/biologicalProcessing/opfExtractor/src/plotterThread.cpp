@@ -191,6 +191,7 @@ void plotterThread::run() {
         //yDebug("plotting the image");
         ImageOf<PixelRgb>& imagePrepare  = outputPort.prepare();
         imagePrepare.resize(width, height);
+        imagePrepare.zero();
 
         sem.wait();
         imagePrepare.copy(*outputImage);

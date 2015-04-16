@@ -53,6 +53,8 @@ bool opfExtractorThread::threadInit() {
     numberProcessing=0;
     setAlgorithm(ALGO_FB);
 
+    countDescr=0;
+
     inputImage = new ImageOf<PixelRgb>();
     inputImage->resize(width, height);
 
@@ -615,7 +617,12 @@ void opfExtractorThread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut, c
 	VEL.at<float>(0,2) = 0.1;  //10 fps
 	
     float roba =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
-	descr.push_back(roba);         //V  is the norm of
+	
+    countDescr++;
+    descr.push_back(countDescr);   
+    descr.push_back(1);
+    
+    descr.push_back(roba);         //V  is the norm of
 
 	ACC.at<float>(0,0) =  cv::mean(Ut, Maskt).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
 	ACC.at<float>(0,1) = cv::mean(Vt, Maskt).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
