@@ -84,6 +84,7 @@ private:
     cv::Mat MAGt_1;
     cv::Mat THETAt_1;
     bool computed;
+    float counter;
 public:
     /**
     * default constructor

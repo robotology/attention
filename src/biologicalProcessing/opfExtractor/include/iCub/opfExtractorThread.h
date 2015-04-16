@@ -94,7 +94,7 @@ private:
     yarp::os::Semaphore checkImage;                          // semaphore responsible for the access to the inputImage     
     std::string name;                                                                // rootname of all the ports opened by this thread
 
-
+    int countDescr;
 
 public:
     /**

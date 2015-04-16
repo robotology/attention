@@ -72,6 +72,7 @@ bool featExtractorThread::threadInit() {
     Ut_1 = cv::Mat::zeros(height, width, CV_32FC1);  //I have already use U and V to put them in U_1 and V_1  //?or is it better to initialize U, V, U_1, V_1 in the threadInit?
     Vt_1 = cv::Mat::zeros(height, width, CV_32FC1);
 
+    counter=0;
     printf("initialization in feature  extractor thread correctly ended \n");
     return true;
 }
@@ -319,6 +320,10 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
 
         contentBottle = descrBottle.addList();
 
+        counter++;
+
+        contentBottle.addDouble(1);
+        contentBottle.addDouble(counter);
         contentBottle.addDouble(descr[0]);
         contentBottle.addDouble(descr[1]);           
         contentBottle.addDouble(descr[2]);           
