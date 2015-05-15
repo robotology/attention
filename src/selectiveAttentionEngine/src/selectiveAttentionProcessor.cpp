@@ -103,26 +103,6 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
     unsigned char* pface = faceMask->getRawImage();
     for (int r=0; r < height; r++) {
         for (int c=0; c < width; c++) {
-            /*
-            if(sat) {
-                if((*psrc>200)&&(*psrc<240)) {
-                    *pface = (unsigned char) 127;
-                }
-                else {
-                    *pface = (unsigned char) 0;
-                }
-            }
-            if(hue) {
-                if((*psrc>200)&&(*psrc<240)) {
-                    *pface = (unsigned char) 127; 
-                }
-                else {
-                    *pface = (unsigned char) 0;
-                }
-            }
-            pface++;
-            */
-            
             *pdest++ = (unsigned char) *psrc++;
         }
         pdest += padding;
@@ -170,11 +150,11 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     map4_yarp        = new ImageOf <PixelMono>; // orientation
     map5_yarp        = new ImageOf <PixelMono>; // edges 
     map6_yarp        = new ImageOf <PixelMono>; // blob
-    motion_yarp      = new ImageOf <PixelMono>;
-    cart1_yarp       = new ImageOf <PixelMono>;
-    faceMask         = new ImageOf <PixelMono>;
-    habituationImage = new ImageOf <PixelMono>;
-    
+    motion_yarp      = new ImageOf <PixelMono>; // motion
+    cart1_yarp       = new ImageOf <PixelMono>; // 1st cartesian image
+    cart2_yarp       = new ImageOf <PixelMono>; // 1st cartesian image
+    faceMask         = new ImageOf <PixelMono>; // 2nd cartesian image
+    habituationImage = new ImageOf <PixelMono>; // habituation map
     
     tmp=new ImageOf<PixelMono>;
     hueMap = 0;
@@ -197,6 +177,7 @@ selectiveAttentionProcessor::~selectiveAttentionProcessor(){
     delete inputLogImage;
     delete motion_yarp;
     delete cart1_yarp;
+    delete cart2_yarp;
     delete faceMask;
 
     delete tmp;
@@ -249,6 +230,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     intermCartOut          = new ImageOf<PixelRgb>;
     motion_yarp            = new ImageOf<PixelMono>;
     cart1_yarp             = new ImageOf<PixelMono>;
+    cart2_yarp             = new ImageOf<PixelMono>;
     inhicart_yarp          = new ImageOf<PixelMono>;
     habituationImage       = new ImageOf<PixelMono>;
     linearCombinationPrev  = new ImageOf<PixelMono>;
@@ -258,17 +240,18 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     intermCartOut->resize(xSizeValue,ySizeValue);
     motion_yarp->resize(xSizeValue,ySizeValue);
     cart1_yarp->resize(xSizeValue,ySizeValue);
+    cart2_yarp->resize(xSizeValue,ySizeValue);
     inhicart_yarp->resize(xSizeValue,ySizeValue);
     habituationImage->resize(xSizeValue,ySizeValue);
     linearCombinationPrev->resize(xSizeValue,ySizeValue);
     linearCombinationImage->resize(width,height);
 
     motion_yarp->zero();     
-    cart1_yarp->zero();      
+    cart1_yarp->zero();
+    cart2_yarp->zero();
     inhicart_yarp->zero();
     habituationImage->zero();  
     linearCombinationImage->zero();
-    //linearCombinationPrev = new ImageOf <PixelMono>;
     linearCombinationPrev->zero();
 
     habituation      = new float[width * height];
@@ -312,6 +295,7 @@ bool selectiveAttentionProcessor::threadInit(){
     map6Port.open(              getName("/blobs:i").c_str());
 
     cart1Port.open(             getName("/cart1:i").c_str());
+    cart2Port.open(             getName("/cart2:i").c_str());
     motionPort.open(            getName("/motionCart:i").c_str());
 
     inhiCartPort.open(          getName("/inhiCart:i").c_str());
@@ -691,7 +675,8 @@ void selectiveAttentionProcessor::run(){
         linearCombinationPort.prepare() = *linearCombinationImage;
 
         //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
-        double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1;  
+        kc2 = kc1 + 0.3;
+        double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1 + kc2;  
         unsigned char  maxValue    = 0;
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
         unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
@@ -894,6 +879,13 @@ void selectiveAttentionProcessor::run(){
             tmp = cart1Port.read(false);
             if(tmp!= 0) {             
                 copy_8u_C1R(tmp,cart1_yarp);
+                //idle=false;
+            }
+        }
+        if((cart2Port.getInputCount())&&(kc2!=0)) {
+            tmp = cart2Port.read(false);
+            if(tmp!= 0) {             
+                copy_8u_C1R(tmp,cart2_yarp);
                 //idle=false;
             }
         }
@@ -1108,6 +1100,7 @@ cartSpace:
         pImage = outputCartImage.getRawImage();
         unsigned char* pInter    = intermCartOut->getRawImage();
         unsigned char* pcart1    = cart1_yarp->getRawImage();
+        unsigned char* pcart2    = cart2_yarp->getRawImage();
         unsigned char* pinhicart = inhicart_yarp->getRawImage();
         unsigned char* pmotion   = motion_yarp->getRawImage();
         int paddingInterm        = intermCartOut->getPadding(); //padding of the colour image
@@ -1122,8 +1115,8 @@ cartSpace:
         maxResponse = false;
         for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
             for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
-                //double combinValue = (double) (*pcart1 * (kc1/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
-                double combinValue   = (double)  *pInter;
+                double combinValue = (double) (*pcart1 * (kc1/sumK) + *pcart2* (kc2/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
+                //double combinValue   = (double)  *pInter;
                 //if(combinValue >= 255.0) {
                 //    printf("maxResponse for combinValue \n");
                 //}
@@ -1153,6 +1146,7 @@ cartSpace:
                 if(maxValue < value) {
                     maxValue = value;                 
                 }
+                // representation of the red cross
                 if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
                     pImage++; pInter++;
                     *pImage = 255;
@@ -1168,12 +1162,14 @@ cartSpace:
                     pImage++; pInter++;
                 }
                 pcart1++;
+                pcart2++;
                 pmotion++;
                 pinhicart++;
             }
             pImage    += paddingOutput;
             pInter    += paddingInterm;
             pcart1    += paddingCartesian;
+            pcart2    += paddingCartesian;
             pmotion   += paddingCartesian;
             pinhicart += paddingCartesian;
         }
@@ -1242,8 +1238,6 @@ cartSpace:
             *pImage++ = 0;
             *pImage++ = 0;
         }
-        
-        
         
         //representing the depressing gaussian
         //unsigned char* pThres = threshCartImage.getRawImage();

@@ -73,7 +73,8 @@ inline void copy_8u_C1R(ImageOf<PixelMono>* src, ImageOf<PixelMono>* dest) {
         psrc += padding;
     }
     // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
+    // @Rea removed 17/5/2015
+    //{ yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 // ***********************************************************

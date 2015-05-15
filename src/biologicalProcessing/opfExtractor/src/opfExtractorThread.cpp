@@ -154,7 +154,7 @@ void opfExtractorThread::run() {
                     if (outputPort.getOutputCount()) {
                         //yDebug("debug");
                         ImageOf<PixelMono> &c = outputPort.prepare();
-                        c.resize(320,240);
+                        c.resize(320,240);  //
                         c.copy(*outputImage);
                         outputPort.write();
                         //yDebug("debug2");

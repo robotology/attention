@@ -7,5 +7,8 @@ cmake_minimum_required(VERSION 2.6)
 add_subdirectory( audioAttention    )
 add_subdirectory( audioInterface    )
 add_subdirectory( audioTemplate     )
+add_subdirectory( cartesianVisualGenerator)
 add_subdirectory( headingAudio      )
+add_subdirectory( remoteInterface   )
+
 

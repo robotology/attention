@@ -73,6 +73,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map6Port;                 // input port for the 6th saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;               // input port for the flow motion
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;                // input port for the 1st cartesian saliency map
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart2Port;                // input port for the 1st cartesian saliency map
+
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > facilitPort;              // where the image of salient features in spatiocentric reference frame are sent
@@ -159,7 +161,8 @@ private:
     double bu;          // weigth of the bottom-up contribution
     double td;          // weight of the top-down contribution
     double kmotion;     // coefficient of the linear combination of the motion
-    double kc1;         // coeffiencient for the linear combination of the cartesian maps
+    double kc1;         // coeffiencient for the linear combination of the 1 cartesian maps
+    double kc2;         // coeffiencient for the linear combination of the 2 cartesian maps
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* habituationImage; // mono image for habituation process
     float* habituation; // mono image for habituation process
@@ -179,14 +182,13 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono>* map6_yarp;        // saliency map coming from the 6th source
     yarp::sig::ImageOf<yarp::sig::PixelMono>* motion_yarp;      // saliency map coming from the 6th source
     yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart2_yarp;       // saliency map coming from the 6th source
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhicart_yarp;    // cartesian input of the inhibition of return
     yarp::sig::ImageOf<yarp::sig::PixelMono>* facilit_yarp;     // cartesian image of the facilitation paradigm
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        // logpolar input of the inhibition of return
     yarp::sig::ImageOf<yarp::sig::PixelMono>* edges_yarp;       // yarp image of the composition of all the edges
     yarp::sig::ImageOf<yarp::sig::PixelMono>* faceMask;         // yarp image of regions of skin colour
     yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationImage;   //image result of linear combination of all the feature maps
-   
-    
     
     IplImage *cvImage16; // tmp IPLImage necessary for edge detection 16 bit
     IplImage *cvImage8; //tmp IPLImage necessary for edge detection 16 bit
@@ -197,17 +199,13 @@ private:
     static const int CONVMAX_TH = 100; //parameter of the findEdges function
     static const int CONVSEQ_TH = 500; //parameter of the findEdges function
     
-    
     yarp::sig::ImageOf<yarp::sig::PixelMono>* linearCombinationPrev;      //result of the combination (previous time sample)
     int centroid_x; //center of gravity of the selective attention (x position)
     int centroid_y; //center of gravity of the selective attention (y position)
-    
-    
+   
     prioCollectorThread* earlyTrigger;
 
-    static const int thresholdHabituation = 240;
-
-    
+    static const int thresholdHabituation = 240;                          // static threashold for the habituation
     
 public:
     /**
@@ -504,7 +502,12 @@ public:
     /**
      * function that sets the value of the parameter kc1
      */
-    void setKC1(double p) { kc1=p; };
+    void setKC1(double p) { kc1 = p; };
+
+    /**
+     * function that sets the value of the parameter kc2
+     */
+    void setKC2(double p) { kc2 = p; };
     
     /**
      * function that sets the value of the parameter kMotion
