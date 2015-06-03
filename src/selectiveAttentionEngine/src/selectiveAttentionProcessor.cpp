@@ -675,7 +675,7 @@ void selectiveAttentionProcessor::run(){
         linearCombinationPort.prepare() = *linearCombinationImage;
 
         //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
-        kc2 = kc1 + 0.3;
+        kc2 = 0;
         double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1 + kc2;  
         unsigned char  maxValue    = 0;
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
@@ -1115,7 +1115,7 @@ cartSpace:
         maxResponse = false;
         for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
             for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
-                double combinValue = (double) (*pcart1 * (kc1/sumK) + *pcart2* (kc2/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
+                double combinValue = (double) (*pcart1 * (kc1/sumK) + /**pcart2* (kc2/sumK) +*/ *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
                 //double combinValue   = (double)  *pInter;
                 //if(combinValue >= 255.0) {
                 //    printf("maxResponse for combinValue \n");
