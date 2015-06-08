@@ -33,7 +33,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-
+#include <cv.h>
 
 
 class inputCBPort : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > {
@@ -60,11 +60,19 @@ public:
 
 class repeaterThread : public yarp::os::Thread {
 private:
+    int inputWidth;                // width of the input image
+    int inputHeight;               // height of the input image
+    int outputWidth;               // width of the output image
+    int outputHeight;              // height of the output image
+    short widthRatio;              // ratio between the input and output image
+    short heightRatio;             // ratio between the input and output image
+
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
     std::string inputPortName;      // name of input port for incoming events, typically from aexGrabber
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
 
     inputCBPort inputCbPort;  // buffered port listening to images through callback
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
@@ -126,7 +134,10 @@ public:
     */
     void setInputPortName(std::string inpPrtName);
 
-
+    /**
+     * function that perfoms downsampling (if necessary)
+     */
+    void processing();
 
 };
 

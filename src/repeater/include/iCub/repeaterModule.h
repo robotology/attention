@@ -193,9 +193,9 @@ public:
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
 
     /**
-    *  unimplemented
+    *  implemented to define the periodicity of the module
     */
-    //double getPeriod();
+    double getPeriod();
 
     /**
     *  unimplemented

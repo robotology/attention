@@ -45,7 +45,8 @@ repeaterThread::~repeaterThread() {
 }
 
 bool repeaterThread::threadInit() {
-
+    outputWidth  = 320;
+    outputHeight = 240;
     
     /* open ports */ 
     //inputCbPort.hasNewImage = false;
@@ -61,8 +62,6 @@ bool repeaterThread::threadInit() {
     }    
 
     return true;
-    
-
 }
 
 void repeaterThread::setName(string str) {
@@ -85,15 +84,93 @@ void repeaterThread::run() {
     while (isStopping() != true) {
         if (inputCbPort.getInputCount()) {
             inputImage = inputCbPort.read(true);
-            outputPort.prepare() = *inputImage;
+            inputHeight = inputImage->height();
+            inputWidth  = inputImage->width();
+            widthRatio  = floor(inputWidth / outputWidth);
+            heightRatio = floor(inputHeight / outputHeight);
+
+            printf("\n ratio %d %d \n", widthRatio, heightRatio);
+            
+            //outputPort.prepare() = *inputImage;
+            outputImage = &outputPort.prepare();
+            processing();
             outputPort.write();  
         }
     }               
 }
 
+
+void repeaterThread::processing() {
+    outputImage->resize(outputWidth, outputHeight);
+    unsigned char* pOut = outputImage->getRawImage();
+    int outPadding = outputImage->getPadding();
+
+    cv::Mat inputMatrix((IplImage*)  inputImage->getIplImage(), false);
+    cv::Mat outputMatrix((IplImage*) outputImage->getIplImage(), false);
+
+    cv::resize(inputMatrix, outputMatrix,outputMatrix.size(), 0, 0, CV_INTER_LINEAR);
+    //interpolation – interpolation method:
+    //INTER_NEAREST - a nearest-neighbor interpolation
+    //INTER_LINEAR - a bilinear interpolation (used by default)
+    //INTER_AREA - resampling using pixel area relation. It may be a preferred method for image decimation, 
+    //INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood
+    //INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
+
+    IplImage tempIpl = (IplImage) outputMatrix;
+    char* pMatrix     = tempIpl.imageData;
+    int matrixPadding = tempIpl.widthStep - tempIpl.width * 3; 
+    
+    printf("padding matrix: %d-%d=%d \n",tempIpl.widthStep, tempIpl.width,  matrixPadding);
+    printf("padding outputImage : %d \n", outPadding);
+    
+    //making a copy of it
+    for (int r = 0; r < outputHeight; r ++) {
+        for(int c = 0 ; c < outputWidth; c++) {
+            
+            *pOut++ = *pMatrix++;
+            *pOut++ = *pMatrix++;
+            *pOut++ = *pMatrix++;
+            
+        }
+        pOut     += outPadding;
+        pMatrix  += matrixPadding;
+    }
+    //instead of 
+    //outputImage-> wrapIplImage(&tempIpl);
+
+    /**
+    unsigned char* pIn  = inputImage->getRawImage();
+    unsigned char* pOut = outputImage->getRawImage();
+    int inPadding  = inputImage->getPadding();
+    int outPadding = outputImage->getPadding();
+    int inRowSize  = inputImage->getRowSize();
+
+    for (int r = 0; r < outputHeight; r ++) {
+        for(int c = 0 ; c < outputWidth; c++) {
+            
+            *pOut++ = *pIn++;
+            *pOut++ = *pIn++;
+            *pOut++ = *pIn++;
+            
+            for (int rcCount = 0; rcCount < widthRatio - 1; rcCount++) {
+                pIn+=3;
+            }
+            
+        }
+        pOut += outPadding;
+        pIn  += inPadding;
+
+        for (int rrCount = 0; rrCount < heightRatio - 1 ; rrCount++) {
+            pIn += inRowSize;
+        }
+        
+    }
+    */
+    
+}
+
 void repeaterThread::threadRelease() {
-    // nothing
-     
+    // nothing     
 }
 
 void repeaterThread::onStop() {
