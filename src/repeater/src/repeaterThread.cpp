@@ -45,8 +45,6 @@ repeaterThread::~repeaterThread() {
 }
 
 bool repeaterThread::threadInit() {
-    outputWidth  = 320;
-    outputHeight = 240;
     
     /* open ports */ 
     //inputCbPort.hasNewImage = false;

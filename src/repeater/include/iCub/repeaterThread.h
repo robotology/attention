@@ -135,6 +135,14 @@ public:
     void setInputPortName(std::string inpPrtName);
 
     /**
+     * function that sets the dimension of the output image
+     */
+    void setOutputDimension(int width, int height) {
+        outputWidth  = width;
+        outputHeight = height;
+    }
+
+    /**
      * function that perfoms downsampling (if necessary)
      */
     void processing();
