@@ -50,11 +50,11 @@ bool repeaterThread::threadInit() {
     //inputCbPort.hasNewImage = false;
     //inputCbPort.useCallback();          // to enable the port listening to events via callback
 
-    if (!inputCbPort.open(getName("/img:i").c_str())) {
+    if (!inputCbPort.open(getName("/in").c_str())) {
         cout <<": unable to open port for reading events  "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
-    if (!outputPort.open(getName("/img:o").c_str())) {
+    if (!outputPort.open(getName("/out").c_str())) {
         cout << ": unable to open port to send unmasked events "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }    
@@ -80,19 +80,23 @@ void repeaterThread::setInputPortName(string InpPort) {
 
 void repeaterThread::run() {    
     while (isStopping() != true) {
-        if (inputCbPort.getInputCount()) {
+        if ((inputCbPort.getInputCount()) && (outputPort.getOutputCount())) {
+            timeStart = Time::now();
             inputImage = inputCbPort.read(true);
+            timeEnd = Time::now();
+            double time = 1 / (timeEnd-timeStart);
+            printf("time interval %f fps\n", time);
+            
             inputHeight = inputImage->height();
             inputWidth  = inputImage->width();
             widthRatio  = floor(inputWidth / outputWidth);
             heightRatio = floor(inputHeight / outputHeight);
-
-            printf("\n ratio %d %d \n", widthRatio, heightRatio);
-            
+      
             //outputPort.prepare() = *inputImage;
             outputImage = &outputPort.prepare();
             processing();
             outputPort.write();  
+            
         }
     }               
 }
@@ -118,53 +122,16 @@ void repeaterThread::processing() {
     char* pMatrix     = tempIpl.imageData;
     int matrixPadding = tempIpl.widthStep - tempIpl.width * 3; 
     
-    printf("padding matrix: %d-%d=%d \n",tempIpl.widthStep, tempIpl.width,  matrixPadding);
-    printf("padding outputImage : %d \n", outPadding);
-    
     //making a copy of it
     for (int r = 0; r < outputHeight; r ++) {
-        for(int c = 0 ; c < outputWidth; c++) {
-            
+        for(int c = 0 ; c < outputWidth; c++) {            
             *pOut++ = *pMatrix++;
             *pOut++ = *pMatrix++;
-            *pOut++ = *pMatrix++;
-            
+            *pOut++ = *pMatrix++;            
         }
         pOut     += outPadding;
         pMatrix  += matrixPadding;
     }
-    //instead of 
-    //outputImage-> wrapIplImage(&tempIpl);
-
-    /**
-    unsigned char* pIn  = inputImage->getRawImage();
-    unsigned char* pOut = outputImage->getRawImage();
-    int inPadding  = inputImage->getPadding();
-    int outPadding = outputImage->getPadding();
-    int inRowSize  = inputImage->getRowSize();
-
-    for (int r = 0; r < outputHeight; r ++) {
-        for(int c = 0 ; c < outputWidth; c++) {
-            
-            *pOut++ = *pIn++;
-            *pOut++ = *pIn++;
-            *pOut++ = *pIn++;
-            
-            for (int rcCount = 0; rcCount < widthRatio - 1; rcCount++) {
-                pIn+=3;
-            }
-            
-        }
-        pOut += outPadding;
-        pIn  += inPadding;
-
-        for (int rrCount = 0; rrCount < heightRatio - 1 ; rrCount++) {
-            pIn += inRowSize;
-        }
-        
-    }
-    */
-    
 }
 
 void repeaterThread::threadRelease() {

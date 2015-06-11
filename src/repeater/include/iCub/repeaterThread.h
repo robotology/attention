@@ -66,6 +66,8 @@ private:
     int outputHeight;              // height of the output image
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
+    double timeEnd;                //
+    double timeStart;              //
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
