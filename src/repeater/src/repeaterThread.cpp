@@ -85,7 +85,7 @@ void repeaterThread::run() {
             inputImage = inputCbPort.read(true);
             timeEnd = Time::now();
             double time = 1 / (timeEnd-timeStart);
-            printf("time interval %f fps\n", time);
+            //printf("time interval %f fps\n", time);
             
             inputHeight = inputImage->height();
             inputWidth  = inputImage->width();
