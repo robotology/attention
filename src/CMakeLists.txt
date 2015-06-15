@@ -4,6 +4,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 
+add_subdirectory( attentionPrioritiser      )
 add_subdirectory( audio                     )
 #add_subdirectory( audioAttention           )
 #add_subdirectory( audioInterface           )

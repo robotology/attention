@@ -45,6 +45,7 @@ using namespace attention::evaluator;
 #define THCORR          0.99
 #define corrStep        10
 #define FOVEACONFID     30
+#define DEBUG           
 
 //defining the frequency [event/sec] as relation between time and event
 // smp has frequent corrections whereas the other perform action only once
@@ -91,8 +92,6 @@ static Vector orVector (Vector &a, Vector &b) {
             res[i] = 0;
         }
     }
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
     return res;
 }
 
@@ -142,10 +141,6 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
         else
             fprintf(stdout,"%s\n",warning.c_str());
     }
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     return false;
 }
 
@@ -155,9 +150,6 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
 
     eQueue = new evalQueue();
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 
     printf("attPrioritiserThread::attPrioritiserThread \n");
     cUpdate = 0;
@@ -302,10 +294,6 @@ attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRA
 attPrioritiserThread::~attPrioritiserThread() {
     // MUST BE REMOVED THE RF AND TRACKER ALLOCATED IN THE CONSTRUCTOR
     //tracker->stop();
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     delete eQueue;
 }
 
@@ -314,9 +302,6 @@ bool attPrioritiserThread::threadInit() {
     eyeR = new iCubEye("right"); 
 
     printf(" \n ---------------------------- attPrioritiserThread::threadInit:starting the thread.... \n");
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 
     template_size = 20;
     search_size = 100;
@@ -519,15 +504,13 @@ bool attPrioritiserThread::threadInit() {
     
     controlFile = fopen("attPrioritiserThread.controlFile.txt","w+");
 
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
     return true;
 }
 
 void attPrioritiserThread::addCollectionEvalThread() {
 
     // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
+    //{ yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 
     //deque<evalThread*>::iterator it;
     evalQueue::iterator it;
@@ -540,15 +523,9 @@ void attPrioritiserThread::addCollectionEvalThread() {
         it++;
     }
     printf("attPrioritiserThread::addCollectionEvalThread:saved %d eventPredictors \n", eQueue->size());
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 void attPrioritiserThread::interrupt() {
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
 
     //interrupting ports
     inLeftPort  .interrupt();
@@ -572,8 +549,6 @@ void attPrioritiserThread::interrupt() {
     facePort          .interrupt();
     emoPort           .interrupt();
     energyPort        .interrupt();
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 void attPrioritiserThread::threadRelease() {
@@ -645,34 +620,23 @@ void attPrioritiserThread::threadRelease() {
     printf("----------------------------------- attPrioritiserThread::threadRelease:success in releasing all the components \n");
     
     fclose(controlFile);
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-    
 }
 
 void attPrioritiserThread::setDimension(int w, int h) {
     width = w;
     height = h;
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 void attPrioritiserThread::setBlockPitch(double value) {
     blockNeckPitchValue = value;
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 void attPrioritiserThread::setName(string str) {
     this->name=str;
     printf("name: %s \n", name.c_str());
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 std::string attPrioritiserThread::getName(const char* p) {
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
     string str(name);
     str.append(p);
     return str;
@@ -701,15 +665,11 @@ void attPrioritiserThread::setFacialExpression(std::string command) {
         value.addInt(valueSent);
         facePort.write();
     }
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 void attPrioritiserThread::setRobotName(string str) {
     this->robot = str;
     printf("name: %s \n", name.c_str());
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 void attPrioritiserThread::init(const int x, const int y) {
@@ -717,13 +677,6 @@ void attPrioritiserThread::init(const int x, const int y) {
     point.y = y;
     template_roi.width = template_roi.height = template_size;
     search_roi.width = search_roi.height = search_size;
-
-    // debug purpose TO BE REMOVED (TBR)
-    {
-        printf("attPrioritiserThread::init");
-        yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__);
-    }
-
 }
 
 void attPrioritiserThread::getPoint(CvPoint& p) {
@@ -734,10 +687,6 @@ void attPrioritiserThread::getPoint(CvPoint& p) {
 void attPrioritiserThread::sendPendingCommand() {
     //highLevelLoopPort.prepare() = *pendingCommand;
     //highLevelLoopPort.write();
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     printf("sending pending %s \n", pendingCommand->toString().c_str());
     update(this, pendingCommand);
 }
@@ -765,10 +714,6 @@ int attPrioritiserThread::waitCorrection() {
 }
 
 void attPrioritiserThread::run() {
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     //Bottle& status = feedbackPort.prepare();
     Bottle& timing = timingPort.prepare();
     //double start = Time::now(); 
@@ -830,8 +775,8 @@ void attPrioritiserThread::run() {
             firstNull = true;
         }
         
-        setFacialExpression("M08");
-        setFacialExpression("L01");
+        //setFacialExpression("M08");
+        //setFacialExpression("L01");
         
     }
     else if(timeoutResponse > 10.0) {
@@ -1681,10 +1626,6 @@ void attPrioritiserThread::printCommandBuffer() {
 }
 
 void attPrioritiserThread::setAllowStateRequest(int _pos, int value) {
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     int pos;
     //mapping of the state
     if((_pos >= 4) && (_pos <= 6)) pos = 4;    
@@ -1765,11 +1706,6 @@ void attPrioritiserThread::executeClone(int _pos) {
 }
 
 bool attPrioritiserThread::executeCommandBuffer(int _pos) {
-
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     int pos;
     //mapping of the state
     if((_pos >= 4) && (_pos <= 6)) pos = 4;    
@@ -1854,12 +1790,6 @@ bool attPrioritiserThread::executeCommandBuffer(int _pos) {
 //*********************** LIST OF BEHAVIOURS ****************************
 
 void attPrioritiserThread::fixCenter(int elapseTime) {
-
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
-    
     printf("FIX CENTER \n");
     printf("FIX CENTER \n");
     printf("FIX CENTER \n");
@@ -1885,11 +1815,6 @@ void attPrioritiserThread::fixCenter(int elapseTime) {
 }
 
 void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int blueValue){
-
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     // setting TopDown state
     topDownState[0] = 0;
     topDownState[1] = 1;
@@ -1982,11 +1907,6 @@ void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int bl
 
 
 void attPrioritiserThread::seek(Bottle command) {
-
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     int voc = command.get(1).asVocab();
     printf("seeking subject to %s \n", command.get(1).asString().c_str());
     switch (voc) {
@@ -2091,11 +2011,6 @@ void attPrioritiserThread::seek(Bottle command) {
 }
 
 void attPrioritiserThread::reinforceFootprint() {
-
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
     reinfFootprint = false;
 
     printf("SELF REINFORCEMENT \n");
@@ -2195,12 +2110,6 @@ void attPrioritiserThread::reinforceFootprint() {
 }
 
 void attPrioritiserThread::update(observable* o, Bottle * arg) {
-
-
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
-
-    
     cUpdate++;
     //printf("ACK. Aware of observable asking for attention \n");
     if (arg != 0) {
@@ -2273,9 +2182,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 pendingCommand2->addInt(u);
                 pendingCommand2->addInt(v);
                 isPendingCommand2 = true;
-            }
-            
-            
+            }      
             
             //---------------------------------------------------------------------------
             zDistance = arg->get(3).asDouble();
@@ -3828,8 +3735,6 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("Command %s has not been recognised \n",name.c_str());
         }
     }
-    // debug purpose TO BE REMOVED (TBR)
-    { yarp::os::ConstString s(""); if (s.c_str()[0]!='\0') printf("Broken before %s %d\n", __FILE__, __LINE__); }
 }
 
 
