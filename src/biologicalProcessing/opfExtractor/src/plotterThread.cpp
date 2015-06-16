@@ -41,8 +41,8 @@ using namespace std;
 plotterThread::plotterThread() : RateThread(THRATE) {
     synchronised = false;
     count  = 0;
-    width  = 320;   //default dimension width 
-    height = 240;   //default dimension height
+    width  = 320;   //default dimension width //320
+    height = 240;   //default dimension height //240
 }
 
 plotterThread::~plotterThread() {

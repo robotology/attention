@@ -60,8 +60,17 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
     inputPortName           = rf.check("inputPortName",
 			                Value(":i"),
                             "Input port name (string)").asString();
-    
-    
+
+    /**
+     * get the dimension of the output image
+     */   
+    int  outputWidth       = rf.check("outputWidth", 
+                           Value(320), 
+                           "output image width (int)").asInt();
+    int  outputHeight      = rf.check("outputHeight", 
+                           Value(240), 
+                           "output image height (int)").asInt();
+
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
@@ -89,6 +98,7 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
     /* create the thread and pass pointers to the module parameters */
     rThread = new repeaterThread(robotName, configFile);
     rThread->setName(getName().c_str());
+    rThread->setOutputDimension(outputWidth, outputHeight);
     //rThread->setInputPortName(inputPortName.c_str());
     
     /* now start the thread to do the work */
@@ -137,9 +147,9 @@ bool repeaterModule::updateModule()
     return true;
 }
 
-//double repeaterModule::getPeriod()
-//{
+double repeaterModule::getPeriod()
+{
     /* module periodicity (seconds), called implicitly by myModule */
-//    return 0.1;
-//}
+    return 1.0;
+}
 

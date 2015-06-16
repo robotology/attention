@@ -43,8 +43,8 @@
 #include <iCub/featExtractorThread.h>
 #include <iCub/colorcode.h>
 
-#define WIDTH  320
-#define HEIGHT 240
+#define WIDTH  320 //320
+#define HEIGHT 240 //240
 #define	ALGO_FB 1
 #define	ALGO_TV 2
 #define	ALGO_LK 3

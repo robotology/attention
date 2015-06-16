@@ -45,24 +45,21 @@ repeaterThread::~repeaterThread() {
 }
 
 bool repeaterThread::threadInit() {
-
     
     /* open ports */ 
     //inputCbPort.hasNewImage = false;
     //inputCbPort.useCallback();          // to enable the port listening to events via callback
 
-    if (!inputCbPort.open(getName("/img:i").c_str())) {
+    if (!inputCbPort.open(getName("/in").c_str())) {
         cout <<": unable to open port for reading events  "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
-    if (!outputPort.open(getName("/img:o").c_str())) {
+    if (!outputPort.open(getName("/out").c_str())) {
         cout << ": unable to open port to send unmasked events "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }    
 
     return true;
-    
-
 }
 
 void repeaterThread::setName(string str) {
@@ -83,17 +80,62 @@ void repeaterThread::setInputPortName(string InpPort) {
 
 void repeaterThread::run() {    
     while (isStopping() != true) {
-        if (inputCbPort.getInputCount()) {
+        if ((inputCbPort.getInputCount()) && (outputPort.getOutputCount())) {
+            timeStart = Time::now();
             inputImage = inputCbPort.read(true);
-            outputPort.prepare() = *inputImage;
+            timeEnd = Time::now();
+            double time = 1 / (timeEnd-timeStart);
+            //printf("time interval %f fps\n", time);
+            
+            inputHeight = inputImage->height();
+            inputWidth  = inputImage->width();
+            widthRatio  = floor(inputWidth / outputWidth);
+            heightRatio = floor(inputHeight / outputHeight);
+      
+            //outputPort.prepare() = *inputImage;
+            outputImage = &outputPort.prepare();
+            processing();
             outputPort.write();  
+            
         }
     }               
 }
 
+
+void repeaterThread::processing() {
+    outputImage->resize(outputWidth, outputHeight);
+    unsigned char* pOut = outputImage->getRawImage();
+    int outPadding = outputImage->getPadding();
+
+    cv::Mat inputMatrix((IplImage*)  inputImage->getIplImage(), false);
+    cv::Mat outputMatrix((IplImage*) outputImage->getIplImage(), false);
+
+    cv::resize(inputMatrix, outputMatrix,outputMatrix.size(), 0, 0, CV_INTER_LINEAR);
+    //interpolation – interpolation method:
+    //INTER_NEAREST - a nearest-neighbor interpolation
+    //INTER_LINEAR - a bilinear interpolation (used by default)
+    //INTER_AREA - resampling using pixel area relation. It may be a preferred method for image decimation, 
+    //INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood
+    //INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
+
+    IplImage tempIpl = (IplImage) outputMatrix;
+    char* pMatrix     = tempIpl.imageData;
+    int matrixPadding = tempIpl.widthStep - tempIpl.width * 3; 
+    
+    //making a copy of it
+    for (int r = 0; r < outputHeight; r ++) {
+        for(int c = 0 ; c < outputWidth; c++) {            
+            *pOut++ = *pMatrix++;
+            *pOut++ = *pMatrix++;
+            *pOut++ = *pMatrix++;            
+        }
+        pOut     += outPadding;
+        pMatrix  += matrixPadding;
+    }
+}
+
 void repeaterThread::threadRelease() {
-    // nothing
-     
+    // nothing     
 }
 
 void repeaterThread::onStop() {

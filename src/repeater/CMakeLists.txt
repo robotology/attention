@@ -1,5 +1,5 @@
 # Copyright: (C) 2011 RobotCub Consortium
-# Authors: Shashank Pathak
+# Authors: Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 SET(KEYWORD "repeater")
@@ -14,6 +14,7 @@ INCLUDE_DIRECTORIES(
     ${YARP_INCLUDE_DIRS} 	
     ${ICUB_INCLUDE_DIRS}	
     ${ICUB_CONTRIB_DIRS}
+    ${OPENCV_INCLUDE_DIR}
 )
 
 # Search for source code.
@@ -30,7 +31,7 @@ IF (folder_source)
     )
 
     TARGET_LINK_LIBRARIES(${KEYWORD}        
-
+      ${OpenCV_LIBS}
       ${YARP_LIBRARIES}
       )	
 

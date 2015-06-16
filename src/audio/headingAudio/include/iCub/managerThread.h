@@ -693,9 +693,10 @@ protected:
         else if (((state==STATE_IDLE) || (state==STATE_REACH)) && 
                  ((Time::now()-idleTimer)>idleTmo) && !wentHome)
         {    
-            fprintf(stdout,"--- Target timeout => IDLE\n");
+            fprintf(stdout,"--- Target timeout => IDLE %f \n", idleTmo);
 
-            steerHeadToHome();
+            
+            //steerHeadToHome();
             stopControl();
             steerTorsoToHome();
             steerArmToHome(LEFTARM);

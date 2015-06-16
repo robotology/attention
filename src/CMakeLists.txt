@@ -4,6 +4,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 
+add_subdirectory( attentionPrioritiser      )
 add_subdirectory( audio                     )
 #add_subdirectory( audioAttention           )
 #add_subdirectory( audioInterface           )
@@ -49,10 +50,10 @@ endif(IPP_FOUND)
 
 if(IPOPT_FOUND)
     add_subdirectory( gazeArbiter               )
-    add_subdirectory( attentionPrioritiser      )
+    #add_subdirectory( attentionPrioritiser      )
     add_subdirectory( saliencyBlobFinder        )
     add_subdirectory( kalmanTest                )
-    add_subdirectory( predictorTest             )
+    #add_subdirectory( predictorTest             )
 else(IPOPT_FOUND)
     message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
 endif(IPOPT_FOUND)
