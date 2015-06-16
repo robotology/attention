@@ -38,6 +38,7 @@
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/all.h>
 
+#include <iCub/gaussianiir1d.h>
 
 #include <fstream>
 #include <time.h>
@@ -57,12 +58,21 @@ private:
     int width, height;                    // dimension of the squared retina
 
     yarp::os::BufferedPort<yarp::os::Bottle>  outputPortDescr;      // name of output port for the descriptor vector
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPortPlot;     // output port , plot of the Two Thirds Power Law
     yarp::os::Bottle descrBottle;                                   // name of the boottle with float
     yarp::os::Bottle contentBottle;                                 // name of the bottle with list of float
+
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>*  plotImage;         //two-thirds power law graph
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>*  memoryPlot;        //to mantain in memory the last point of the plot
+
+    unsigned char* pMem;
+    unsigned char* pPlot;
 
     cv::Mat Ut;
     cv::Mat Vt;
     cv::Mat Maskt;
+
+    cv::Mat Plot;
 
     bool featDataready;
 
@@ -201,8 +211,8 @@ public:
      * @brief function thatset the dimension of the output image
      * @param value the dimension in pixels of the retina device
      */
-    void setRetinalSize(int value) {
-    }
+    //void setRetinalSize(int value) {
+    //}
 
 
     /**
@@ -211,6 +221,11 @@ public:
      */
     bool test();
     
+    /**
+     * function that make a big pixel
+     * @param p is the pointer to the little pixel, mult is the number of side lenght of the big pixel, color is the color of the big pixel has to be colored
+     */
+    void bigPixel(unsigned char* p, int mult, int color);
 
 };
 

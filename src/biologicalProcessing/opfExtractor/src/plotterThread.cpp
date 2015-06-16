@@ -136,6 +136,14 @@ void plotterThread::copyV(cv::Mat V) {
 
 void plotterThread::copyM(cv::Mat Mask) {        
     sem.wait();
+    for(int i = 1; i < Mask.rows; ++i) {
+        for(int j = 1; j < Mask.cols; ++j){ 
+            if(Mask.at<float>(i,j) == 1.0) {
+                Mask.at<float>(i,j) = 255;
+            }
+        }
+    }
+
     ImageOf<PixelMono>* imagem = new ImageOf<PixelMono>();    //here we are just putting the pointer image at the beginning of the memory , but we have to allocate memory with new
     imagem->resize(width, height);
     convertMat2ImageOf(Mask, imagem);      //oppure fare le 3 sopra,in  modo che sia riutilizzabile anche nel caso uImage e U siano di tipo diverso
@@ -143,6 +151,7 @@ void plotterThread::copyM(cv::Mat Mask) {
     sem.post();
     delete imagem;
 }
+
 
 
 void plotterThread::convertMat2ImageOf(cv::Mat a, ImageOf<PixelMono>* image) {

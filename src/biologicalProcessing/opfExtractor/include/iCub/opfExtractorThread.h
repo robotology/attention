@@ -85,7 +85,7 @@ private:
 	//IplImage ipl_currentMatrix;
     bool dataready;                  //shared flag for saying to the featExtractorThread that U,V,Maskt are ready //it is initialized to 0
 
-    plotterThread* pt;                                       // rateThread responsible for the visualization of the generated images
+    plotterThread* pt;                                       //z rateThread responsible for the visualization of the generated images
     featExtractorThread* fet;                                       // rateThread responsible for the visualization of the generated images
 
 

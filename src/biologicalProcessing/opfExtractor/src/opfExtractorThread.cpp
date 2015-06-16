@@ -133,6 +133,7 @@ void opfExtractorThread::run() {
         if(!idle){
             if(inputPort.getInputCount()) {
                 inputImage = inputPort.read(true);   //blocking reading for synchr with the input
+                //if (inputImage->width() == 2*WIDTH)       //fare il resize e inoltre passare width e height 
 
                 if (throwAway){
                     throwAway = false;
