@@ -44,7 +44,7 @@
 #include <yarp/sig/all.h>
 
 // Log-Polar includes 
-#include <iCub/RC_DIST_FB_logpolar_mapper.h>
+#include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 
 //within project includes
 #include <iCub/observer.h>

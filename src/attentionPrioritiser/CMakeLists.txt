@@ -5,6 +5,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(KEYWORD "attentionPrioritiser")
 PROJECT(${KEYWORD})
 
+message ("logpolar_INCLUDE_DIRS : ${logpolar_INCLUDE_DIRS};")
+
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
@@ -12,6 +14,7 @@ INCLUDE_DIRECTORIES(
     ${OpenCV_INCLUDE_DIRS}
     ${iKin_INCLUDE_DIRS}
     ${ATTENTIONLIB_INCLUDE_DIRS}
+    ${logpolar_INCLUDE_DIRS}
 )
 
 # Search for source code.
@@ -23,8 +26,8 @@ FILE(GLOB folder_source
 	src/sacPlannerThread.cpp
     src/oculomotorController.cpp
     src/trajectoryPredictor.cpp
-
 )
+
 FILE(GLOB folder_header 
 	include/iCub/attPrioritiserModule.h
 	include/iCub/attPrioritiserThread.h
@@ -52,6 +55,7 @@ IF (folder_source)
 	        iKin
 	        icubmod 
             attentionLib
+            logpolar
 	)	
 
     INSTALL_TARGETS(/bin ${KEYWORD})

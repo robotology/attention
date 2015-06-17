@@ -38,7 +38,7 @@
 #include <yarp/dev/all.h>
 
 /* Log-Polar includes */
-#include <iCub/RC_DIST_FB_logpolar_mapper.h>
+#include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 
 #include <string>
 #include <time.h>

@@ -21,7 +21,7 @@
  * @brief Implementation of the early stage of vision thread (see chrominanceThread.h).
  */
 
-#include <iCub/RC_DIST_FB_logpolar_mapper.h>
+#include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/chrominanceThread.h>
 
 #include <cstring>
