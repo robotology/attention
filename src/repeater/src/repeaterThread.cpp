@@ -3,8 +3,8 @@
 
 /*
   * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Shashank Pathak
-  * email: shashank.pathak@iit.it
+  * Author:Francesco Rea
+  * email: Francesco Rea@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -136,13 +136,18 @@ void repeaterThread::processing() {
 
 void repeaterThread::threadRelease() {
     // nothing     
-}
-
-void repeaterThread::onStop() {
-    inputCallbackPort.interrupt();
+        inputCallbackPort.interrupt();
     outputPort.interrupt();
 
     inputCallbackPort.close();
     outputPort.close();
+}
+
+void repeaterThread::onStop() {
+    //inputCallbackPort.interrupt();
+    //outputPort.interrupt();
+
+    //inputCallbackPort.close();
+    //outputPort.close();
 }
 
