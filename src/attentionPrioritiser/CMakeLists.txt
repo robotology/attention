@@ -39,6 +39,7 @@ FILE(GLOB folder_header
     include/iCub/oculomotorController.h
     include/iCub/trajectoryPredictor.h
 )
+
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 

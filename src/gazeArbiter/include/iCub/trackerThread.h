@@ -80,7 +80,7 @@ public:
     {
         //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
         template_size = 20; //rf.check("template_size",Value(20)).asInt();
-        search_size   = 50;  //rf.check("search_size",Value(100)).asInt();
+        search_size   = 40;  //rf.check("search_size",Value(100)).asInt();
 
         //inPort.open(("/"+name+"/img:i").c_str());
         //outPort.open(("/"+name+"/img:o").c_str());
@@ -95,6 +95,8 @@ public:
         init_success = false;
         point.x = 0;
         point.y = 0;
+
+        imgMonoPrev.resize(320,240);
 
         return true;
     }
@@ -151,16 +153,24 @@ public:
             }
 
             // convert the input-image to gray-scale
+            printf("trying to convert it into grayscale \n");
             cvCvtColor(pImgBgrIn->getIplImage(),imgMonoIn.getIplImage(),CV_BGR2GRAY);
+            printf("Converted into gray image %d %d \n", imgMonoIn.width(), imgMonoIn.height());
 
             // copy input-image into output-image
             ImageOf<PixelBgr>  &imgBgrOut   = outPort.prepare();
             ImageOf<PixelMono> &imgTemplate = tmplPort.prepare();
+            printf("prepared images \n");
             imgBgrOut   = *pImgBgrIn;
+            printf("copied the BgrIn into BgrOut \n");
+            
             imgTemplate = imgMonoPrev;
-
+           
+            
+            printf("Before running \n");
             if (running)
             {
+                printf("going into running \n");
                 ImageOf<PixelMono> &img = imgMonoIn;      // image where to seek for the template in
                 ImageOf<PixelMono> &tmp = imgMonoPrev;    // image containing the template
 
@@ -183,6 +193,7 @@ public:
                 point.x=search_roi.x+minLoc.x+(template_roi.width>>1);
                 point.y=search_roi.y+minLoc.y+(template_roi.height>>1);
 
+                printf("counting 5 \n");
                 if(count % 5 == 0) {
 
                     // draw results on the output-image
@@ -211,6 +222,7 @@ public:
             }
 
             // send out output-image
+            printf("writing output port \n");
             outPort.write();
             tmplPort.write();
             // save data for next cycle
