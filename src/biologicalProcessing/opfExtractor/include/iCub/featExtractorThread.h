@@ -38,7 +38,7 @@
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/all.h>
 
-#include <iCub/gaussianiir1d.h>
+//#include <iCub/gaussianiir1d.h>
 
 #include <fstream>
 #include <time.h>

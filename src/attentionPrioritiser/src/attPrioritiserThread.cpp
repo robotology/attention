@@ -644,13 +644,15 @@ std::string attPrioritiserThread::getName(const char* p) {
 
 void attPrioritiserThread::setFacialExpression(std::string command) {
     if(facePort.getOutputCount()) {
-        Bottle& value = facePort.prepare();
-        value.clear();
-        value.addString(command.c_str());
-        facePort.write();
+        //Bottle& value = facePort.prepare();
+        //value.clear();
+        //value.addString(command.c_str());
+        //facePort.write();
     }    
     if(emoPort.getOutputCount()) {
         printf("sending emotion command!!!!!!!!!!!!!!!!!!!!!!!!! \n") ;
+        /*
+        
         int valueSent;
         if(command == "M08") {
             valueSent = 1;
@@ -664,6 +666,14 @@ void attPrioritiserThread::setFacialExpression(std::string command) {
         value.addString("EMO");
         value.addInt(valueSent);
         facePort.write();
+        */
+
+        Bottle& value = emoPort.prepare();
+        value.clear();
+        value.addVocab(Vocab::encode("joy"));
+        value.addInt(1);
+        value.addDouble(4.0);
+        emoPort.write();
     }
 }
 
@@ -775,7 +785,7 @@ void attPrioritiserThread::run() {
             firstNull = true;
         }
         
-        //setFacialExpression("M08");
+        setFacialExpression("M08");
         //setFacialExpression("L01");
         
     }
