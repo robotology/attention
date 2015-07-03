@@ -19,92 +19,49 @@
  */
 
 /**
- * @file featExtractorThread.h
+ * @file plotterThread.h
  * @brief Definition of a thread that sends frame-based representation 
- * (see featExtractorThread.h).
+ * (see plotterthread.h).
  */
 
-#ifndef _FEATEXTRACTOR_THREAD_H_
-#define _FEATEXTRACTOR_THREAD_H_
+#ifndef _PLOTTER_THREAD_H_
+#define _PLOTTER_THREAD_H_
 
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Network.h>
-#include <yarp/os/Log.h>
-#include <yarp/os/LogStream.h>
 #include <yarp/sig/all.h>
 #include <iostream>
-#include <yarp/os/Semaphore.h>
-#include <yarp/os/all.h>
-
-//#include <iCub/gaussianiir1d.h>
-
-#include <fstream>
-#include <time.h>
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
-#include <cstring>
-
-#define TH1__ 0.5
-#define TH2__ 0.5
-#define PTH__ 0.5
 
 
-class featExtractorThread : public yarp::os::RateThread {
+
+
+class plotterThread : public yarp::os::RateThread {
 private:    
     int count;                            // loop counter of the thread
     int width, height;                    // dimension of the squared retina
-
-    yarp::os::BufferedPort<yarp::os::Bottle>  outputPortDescr;      // name of output port for the descriptor vector
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPortPlot;     // output port , plot of the Two Thirds Power Law
-    yarp::os::Bottle descrBottle;                                   // name of the boottle with float
-    yarp::os::Bottle contentBottle;                                 // name of the bottle with list of float
-
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>*  plotImage;         //two-thirds power law graph
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>*  memoryPlot;        //to mantain in memory the last point of the plot
-
-    unsigned char* pMem;
-    unsigned char* pPlot;
-
-    cv::Mat Ut;
-    cv::Mat Vt;
-    cv::Mat Maskt;
-
-    cv::Mat Plot;
-
-    bool featDataready;
-
-	yarp::os::Semaphore semColor;
-	yarp::os::Semaphore semMono;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > leftPort;                 // port whre the output (left) is sent
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > rightPort;                // port whre the output (right) is sent
     
-    yarp::os::Semaphore sem;
 
+    yarp::os::BufferedPort<yarp::sig::Vector > eventPort;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* imageLeft;                                        //image representing the signal on the leftcamera
+    yarp::sig::ImageOf<yarp::sig::PixelRgb>* imageRight;                                       //image representing the signal on the right camera
+    
     std::string name;                           // rootname of all the ports opened by this thread
     bool synchronised;                          // flag to check whether the microsecond counter has been synchronised
     bool stereo;                                // flag indicating the stereo characteristic of the synchronization
-
-
-    std::vector<float> descr;
-    bool firstProcessing;
-    cv::Mat Ut_1;
-    cv::Mat Vt_1;
-
-    cv::Mat MAGt_1;
-    cv::Mat THETAt_1;
-    bool computed;
-    float counter;
 public:
     /**
     * default constructor
     */
-    featExtractorThread();
-                                                                  
+    plotterThread();
+
     /**
      * destructor
      */
-    ~featExtractorThread();
+    ~plotterThread();
 
     /**
     * function that initialise the thread
@@ -152,67 +109,37 @@ public:
     */
     void resize(int width, int height);
 
-     /**
+    /**
      * function that copies the image in the left output
      * @param img passed input of the image to be copied
      */
-    void copyImage(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
+    void copyLeft(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
 
-	 /**
-     * function that copies the image in the left output
-     * @param img passed input of the image to be copied
-     */
-    void copyImage(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
-
-     /**
-     * function that convert a Mat into a ImageOf
-     * @param a passed input of the image to be converted
-     * @return image which is of type ImageOf
-     */
-    void convertMat2ImageOf(cv::Mat a,yarp::sig::ImageOf<yarp::sig::PixelMono>* image);
-
-     /**
-     * function that copies the images
-     * @param U, V, M passed input of the images to be copied
-     */
-    void copyAll(cv::Mat U, cv::Mat V, cv::Mat M)  ;
-
-     /**
-     * function that copies the image in the left output
-     * @param img passed input of the image to be copied
-     */
-    void setFlag();
-
-     /**
-     * function that copies the image in the left output
-     * @param img passed input of the image to be copied
-     */
-    void setFlagPointer(bool* flagPointer);
     /**
      * function that copies the RGB image in the left output 
      * @param img passed input of the image to be copied
      */
-    //void copyLeft(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
+    void copyLeft(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
 
     /**
      * function that copies the RGB image in the right output
      * @param img passed input of the image to be copied
      */
-    //void copyRight(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
+    void copyRight(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
 
     /**
      * function that copies the RGB image in the right output
      * @param img passed input of the image to be copied
      */
-    //void copyRight(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
+    void copyRight(yarp::sig::ImageOf<yarp::sig::PixelRgb>* img);
 
     
     /**
      * @brief function thatset the dimension of the output image
      * @param value the dimension in pixels of the retina device
      */
-    //void setRetinalSize(int value) {
-    //}
+    void setRetinalSize(int value) {
+    }
 
 
     /**
@@ -221,11 +148,6 @@ public:
      */
     bool test();
     
-    /**
-     * function that make a big pixel
-     * @param p is the pointer to the little pixel, mult is the number of side lenght of the big pixel, color is the color of the big pixel has to be colored
-     */
-    void bigPixel(unsigned char* p, int mult, int color);
 
 };
 

@@ -4,9 +4,14 @@
 
 cmake_minimum_required(VERSION 2.6)
 
+<<<<<<< HEAD
 #add_subdirectory( audio                     )
 #add_subdirectory( audioAttention           )
 #add_subdirectory( audioInterface           )
+=======
+add_subdirectory( attentionPrioritiser      )
+add_subdirectory( audio                     )
+>>>>>>> d6da2a9e3480c83dcfd4d927b7ba9dc06eea5f6c
 add_subdirectory( eyePathFinder             )
 add_subdirectory( earlyMotion               )
 add_subdirectory( earlyVision               )
@@ -32,8 +37,7 @@ add_subdirectory( stamper                   )
 add_subdirectory( test                      )
 add_subdirectory( tutorial                  )
 #add_subdirectory( visualFilter             )
-add_subdirectory(workingMemory              )  
-add_subdirectory(biologicalProcessing       ) 
+add_subdirectory(workingMemory              )   
 #add_subdirectory( zeroDisparityFilter      )
 #add_subdirectory( moveBall     )
 add_subdirectory( farnebackTest)
@@ -50,8 +54,13 @@ if(IPOPT_FOUND)
     add_subdirectory( gazeArbiter               )
     add_subdirectory( attentionPrioritiser      )
     add_subdirectory( saliencyBlobFinder        )
+<<<<<<< HEAD
     add_subdirectory( kalmanTest                )
     add_subdirectory( predictorTest             )
+=======
+    #add_subdirectory( kalmanTest                )
+    #add_subdirectory( predictorTest             )
+>>>>>>> d6da2a9e3480c83dcfd4d927b7ba9dc06eea5f6c
 else(IPOPT_FOUND)
     message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
 endif(IPOPT_FOUND)

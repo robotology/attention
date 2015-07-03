@@ -22,7 +22,7 @@
  * @brief Implementation of the early stage of vision thread (see earlyVisionThread.h).
  */
 
-#include <iCub/RC_DIST_FB_logpolar_mapper.h>
+#include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/earlyVisionThread.h>
 
 #include <cstring>

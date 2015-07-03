@@ -46,9 +46,16 @@ include(YarpInstallationHelpers)
 
 
 find_package(OpenCV REQUIRED)
-#find_package(GtkPlus REQUIRED)
 #find_package(GSL)
 find_package(IPOPT)
+
+find_package(logpolar QUIET)
+IF (logpolar_FOUND)
+   message("Attention System: logpolar library detected and used.")
+   message ("logpolar_INCLUDE_DIRS : ${logpolar_INCLUDE_DIRS};")
+ELSE ()
+   message("Attention System: logpolar library undetected")
+ENDIF ()
 
 
 SET(CUDAVISION_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/cudaVision/include)

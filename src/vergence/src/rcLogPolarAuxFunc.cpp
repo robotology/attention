@@ -17,7 +17,7 @@
  * Public License for more details
  */
 #include <iCub/rcLogPolarAuxFunc.h>
-#include <iCub/RC_DIST_FB_logpolar_mapper.h>
+#include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 #include <math.h>
 
 bool isWithin(int v,int max, int min) {

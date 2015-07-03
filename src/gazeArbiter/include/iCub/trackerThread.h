@@ -80,7 +80,7 @@ public:
     {
         //name = "matchTracker"; //rf.check("name",Value("matchTracker")).asString().c_str();
         template_size = 20; //rf.check("template_size",Value(20)).asInt();
-        search_size   = 50;  //rf.check("search_size",Value(100)).asInt();
+        search_size   = 40;  //rf.check("search_size",Value(100)).asInt();
 
         //inPort.open(("/"+name+"/img:i").c_str());
         //outPort.open(("/"+name+"/img:o").c_str());
@@ -95,6 +95,8 @@ public:
         init_success = false;
         point.x = 0;
         point.y = 0;
+
+        imgMonoPrev.resize(320,240);
 
         return true;
     }
@@ -157,6 +159,7 @@ public:
             ImageOf<PixelBgr>  &imgBgrOut   = outPort.prepare();
             ImageOf<PixelMono> &imgTemplate = tmplPort.prepare();
             imgBgrOut   = *pImgBgrIn;
+            
             imgTemplate = imgMonoPrev;
 
             if (running)
@@ -184,7 +187,6 @@ public:
                 point.y=search_roi.y+minLoc.y+(template_roi.height>>1);
 
                 if(count % 5 == 0) {
-
                     // draw results on the output-image
                     CvPoint p0, p1;
                     p0.x=point.x-(template_roi.width>>1);
@@ -211,6 +213,7 @@ public:
             }
 
             // send out output-image
+            printf("writing output port \n");
             outPort.write();
             tmplPort.write();
             // save data for next cycle

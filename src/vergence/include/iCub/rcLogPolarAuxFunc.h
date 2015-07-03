@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <iostream>
 
-#include <iCub/RC_DIST_FB_logpolar_mapper.h>
+#include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 
 using namespace yarp::sig;
 using namespace std;
