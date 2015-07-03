@@ -480,7 +480,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         }
     }
 }
-
+ ///
 void featExtractorThread::bigPixel(unsigned char* p, int mult,  int color) {    //for drowing a "*"
     for (int i=1; i<=mult; i++)
     {
