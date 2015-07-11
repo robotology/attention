@@ -217,7 +217,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
 
     clientGaze.view(iGaze);
     iGaze->blockNeckRoll(0.0);
-    iGaze->setSaccadesStatus(false);
+    iGaze->setSaccadesMode(false);
 
     
     if (rf.check("disable_saccade", Value(0)).asInt())
