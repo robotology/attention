@@ -143,23 +143,24 @@ void batchAnalysis2Thread::run() {
 
         if(!idle){
             alg="Farneback";
-            sequenceID=8;
+            sequenceID=1;
+            for (sequenceID=1; sequenceID<=4; sequenceID++){
 
-            //for (sequenceID=1; sequenceID<=2; sequenceID++){
-            //    if (sequenceID==1){
-            //        seq="lego_medium_size";
-            //        k_max=2228;
-            //    }
-            //    if (sequenceID==1){
-            //        seq="lego";
-            //        k_max=1699;
-            //    }
-            //}
+                if (sequenceID==1){
+                    seq="reaching/leftDumper_a/";
+                }
+                if (sequenceID==3){
+                    seq="reaching/leftDumper_b/";
+                }
+                if (sequenceID==2){
+                    seq="roll/leftDumper_a/";
+                }
+                if (sequenceID==4){
+                    seq="roll/leftDumper_b/";
+                }
 
+                for ( k =1; k<200; k=k+1){
 
-            if (sequenceID==8){
-                seq="legoBig_rectified";
-                for ( k =1; k<1053; k=k+3){
                     acquisitionSequence();   //it takes the one image            //inputImage = inputPort.read(true);
 
                     //if (throwAway){
@@ -180,7 +181,7 @@ void batchAnalysis2Thread::run() {
                         pt->copyV(V);
                         pt->copyM(Maskt);
 
-                        fet->copyAll(U,V,Maskt);    //aaa
+                        fet->copyAll(U,V,Maskt,sequenceID,k);    //aaa
                         fet->setFlag();             //aaa
 
                         /*
@@ -207,7 +208,8 @@ void batchAnalysis2Thread::run() {
 
 void batchAnalysis2Thread::acquisitionSequence(){
     name = seq +"_"+ alg;
-    foldername = "C:/Users/AVignolo/Desktop/\Acquisition/Acquisizioni_iCub/"+seq+"/Images/";
+    //foldername = "C:/Users/AVignolo/Desktop/\Acquisition/Acquisizioni_iCub/"+seq+"/Images/";
+    foldername = "C:/Users/AVignolo/Desktop/Acquisition/Acquisizioni_iCub/clean_acq/"+seq;
     //foldername = "D:/Acquisitions/1st_acquisitions/"+seq+"/leftDumper/"; 
     //foldername = "C:/Users/AVignolo/Desktop/Acquisizioni_iCub/"+seq+"/Images/";
     //foldername = "F:/"+seq+"/";
@@ -660,7 +662,7 @@ void batchAnalysis2Thread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut,
 
     Probt_1 = cv::Mat::zeros(MAGt_1.rows, MAGt_1.cols, CV_32FC1);
 
-      for(int i = DELTA; i < Probt_1.rows-DELTA; ++i) {        //as  before  during segmentation -> Probt_1 will be a matrix of values of probabilities between 0 and 1 
+      for(int i = DELTA; i < Probt_1.rows-DELTA; ++i) {        //as  before  during segmentation -> Probt_1 will be a matrix of values of pVbilities between 0 and 1 
         for(int j = DELTA; j < Probt_1.cols-DELTA; ++j) {
             if(MAGt_1.at<float>(i,j)> TH1_)
                 Probt_1.at<float>(i,j) = ((float)(cv::sum(MAGt_1(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1)) >= TH2_).val[0]))/((float)(LATO*LATO));
@@ -697,8 +699,8 @@ void batchAnalysis2Thread::thresholding(cv::Mat Ut_1, cv::Mat Vt_1, cv::Mat& Ut,
     timeCounter++;
     descr.push_back(timeCounter);
 
-    float roba =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
-	descr.push_back(roba);         //V  is the norm of
+    float V =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
+	descr.push_back(V);         //V  is the norm of
 
 	ACC.at<float>(0,0) =  cv::mean(Ut, Maskt).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
 	ACC.at<float>(0,1) = cv::mean(Vt, Maskt).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 

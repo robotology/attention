@@ -39,6 +39,7 @@
 #include <yarp/os/all.h>
 
 
+#include <queue>          // std::queue
 #include <fstream>
 #include <time.h>
 #include <cv.h>
@@ -74,9 +75,42 @@ private:
     std::string name;                           // rootname of all the ports opened by this thread
     bool synchronised;                          // flag to check whether the microsecond counter has been synchronised
     bool stereo;                                // flag indicating the stereo characteristic of the synchronization
+    int nFr;
 
+    float currentSmoothed;
+    float currentSmoothedV;
+    float currentSmoothedC;
+    float currentSmoothedR;
+    float currentSmoothedA;
+    float currentSmoothedVx;
+    float currentSmoothedVy;    
+    float currentSmoothedVx_1;
+    float currentSmoothedVy_1;
 
     std::vector<float> descr;
+    std::vector<float> bufferV;
+    std::vector<float> bufferC;
+    std::vector<float> bufferR;
+    std::vector<float> bufferA;
+    std::vector<float> bufferVx;
+    std::vector<float> bufferVy;
+    std::vector<float> bufferVx_1;
+    std::vector<float> bufferVy_1;
+    std::vector<float> smoothedBufferV;
+    std::vector<float> smoothedBufferC;
+    std::vector<float> smoothedBufferR;
+    std::vector<float> smoothedBufferA;
+    std::vector<float> smoothedBufferVx;
+    std::vector<float> smoothedBufferVy;
+    std::vector<float> smoothedBufferVx_1;
+    std::vector<float> smoothedBufferVy_1;
+    std::vector<float> slidingWindowV;
+    std::vector<float> slidingWindowC;
+    std::vector<float> slidingWindowR;
+    std::vector<float> slidingWindowA;
+    float smoothedElem[29];
+    //std::queue<float> bufferV;
+
     bool firstProcessing;
     cv::Mat Ut_1;
     cv::Mat Vt_1;
@@ -88,6 +122,15 @@ private:
     int sequenceID;
     int k_max;
     int timeCounter;
+
+    float Vmin;
+    float Vmax;
+    float Cmin;
+    float Cmax;
+    float Rmin;
+    float Rmax;
+    float Amin;
+    float Amax;
 public:
     /**
     * default constructor
@@ -168,8 +211,8 @@ public:
      * function that copies the images
      * @param U, V, M passed input of the images to be copied
      */
-    void copyAll(cv::Mat U, cv::Mat V, cv::Mat M)  ;
 
+    void copyAll(cv::Mat U, cv::Mat V, cv::Mat M, int seqID,  int nFrame);
      /**
      * function that copies the image in the left output
      * @param img passed input of the image to be copied
@@ -213,7 +256,19 @@ public:
      * @return the result of the analysis true/false for success/unsuccess in the test
      */
     bool test();
+
+    /**
+     * @brief function to put a datum in a buffer
+     * @param 
+     */
+    void buffering(int bufferSize, std::vector<float>& buffer, float   data);
     
+    /**
+     * @brief function to do  the convolution between a vector and a kernel
+     * @param 
+     */
+    void convolution(std::vector<float>& buffer, std::vector<float>& kernel, std::vector<float>& smoothedBuffer,  float& currentSmoothed);
+
 
 };
 

@@ -124,6 +124,15 @@ private:
     int k_max;
     int timeCounter;
 
+    float Vmin;
+    float Vmax;
+    float Cmin;
+    float Cmax;
+    float Rmin;
+    float Rmax;
+    float Amin;
+    float Amax;
+
 
 public:
 
