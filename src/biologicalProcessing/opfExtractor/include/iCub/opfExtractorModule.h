@@ -176,6 +176,7 @@ class opfExtractorModule:public yarp::os::RFModule {
 
     yarp::os::Semaphore respondLock;         // check in the case of the respond function
 
+    bool newSeq;
 
 public:
     /**

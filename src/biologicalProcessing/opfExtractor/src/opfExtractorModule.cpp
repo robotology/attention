@@ -67,8 +67,13 @@ bool opfExtractorModule::configure(yarp::os::ResourceFinder &rf) {
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
     */
+    //Rea
     handlerPortName =  "";
     handlerPortName += getName();         // use getName() rather than a literal 
+
+    //Carlo
+    //handlerPortName = "";
+    //handlerPortName += getName(rf.check("CommandPort",Value("/rpc"),"Output image port (string)").asString().c_str());
 
     if (!handlerPort.open(handlerPortName.c_str())) {           
         cout << getName() << ": Unable to open port " << handlerPortName << endl;  
@@ -149,6 +154,14 @@ bool opfExtractorModule::respond(const Bottle& command, Bottle& reply)
                 "help \n" +
                 "quit \n";
     reply.clear(); 
+
+    if(command.get(0).asString()=="newseq")
+    {
+        reply.addString("yeah");
+        //pensare a fare qlcosa come rThread->  e da  li  passare cose a fet
+        return true;
+
+    }
 
     //if (command.get(0).asString()=="quit") {
     //    reply.addString("quitting");

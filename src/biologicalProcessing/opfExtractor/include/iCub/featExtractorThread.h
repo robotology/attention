@@ -39,7 +39,7 @@
 #include <yarp/os/all.h>
 
 //#include <iCub/gaussianiir1d.h>
-
+#include <queue>
 #include <fstream>
 #include <time.h>
 #include <cv.h>
@@ -86,7 +86,40 @@ private:
     bool stereo;                                // flag indicating the stereo characteristic of the synchronization
 
 
+    float currentSmoothed;
+    float currentSmoothedV;
+    float currentSmoothedC;
+    float currentSmoothedR;
+    float currentSmoothedA;
+    float currentSmoothedVx;
+    float currentSmoothedVy;    
+    float currentSmoothedVx_1;
+    float currentSmoothedVy_1;
+
     std::vector<float> descr;
+    std::vector<float> bufferV;
+    std::vector<float> bufferC;
+    std::vector<float> bufferR;
+    std::vector<float> bufferA;
+    std::vector<float> bufferVx;
+    std::vector<float> bufferVy;
+    std::vector<float> bufferVx_1;
+    std::vector<float> bufferVy_1;
+    std::vector<float> smoothedBufferV;
+    std::vector<float> smoothedBufferC;
+    std::vector<float> smoothedBufferR;
+    std::vector<float> smoothedBufferA;
+    std::vector<float> smoothedBufferVx;
+    std::vector<float> smoothedBufferVy;
+    std::vector<float> smoothedBufferVx_1;
+    std::vector<float> smoothedBufferVy_1;
+    std::vector<float> slidingWindowV;
+    std::vector<float> slidingWindowC;
+    std::vector<float> slidingWindowR;
+    std::vector<float> slidingWindowA;
+    float smoothedElem[29];
+    //std::queue<float> bufferV;
+
     bool firstProcessing;
     cv::Mat Ut_1;
     cv::Mat Vt_1;
@@ -94,7 +127,22 @@ private:
     cv::Mat MAGt_1;
     cv::Mat THETAt_1;
     bool computed;
-    float counter;
+
+    int sequenceID;
+    int k_max;
+    int counter;
+    int nFr;
+
+    float Vmin;
+    float Vmax;
+    float Cmin;
+    float Cmax;
+    float Rmin;
+    float Rmax;
+    float Amin;
+    float Amax;
+
+
 public:
     /**
     * default constructor
@@ -225,7 +273,21 @@ public:
      * function that make a big pixel
      * @param p is the pointer to the little pixel, mult is the number of side lenght of the big pixel, color is the color of the big pixel has to be colored
      */
-    void bigPixel(unsigned char* p, int mult, int color);
+    void bigPixel(unsigned char* p, int mult, int color);  
+
+        /**
+     * @brief function to put a datum in a buffer
+     * @param 
+     */
+    void buffering(int bufferSize, std::vector<float>& buffer, float   data);
+    
+    /**
+     * @brief function to do  the convolution between a vector and a kernel
+     * @param 
+     */
+    void convolution(std::vector<float>& buffer, std::vector<float>& kernel, std::vector<float>& smoothedBuffer,  float& currentSmoothed);
+
+
 
 };
 

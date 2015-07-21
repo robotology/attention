@@ -80,7 +80,23 @@ bool featExtractorThread::threadInit() {
     Vt_1 = cv::Mat::zeros(height, width, CV_32FC1);
     Plot = cv::Mat::zeros(1800, 1600, CV_32FC3);
 
+    currentSmoothedV = 0.0;
+    currentSmoothedC = 0.0;
+    currentSmoothedR = 0.0;
+    currentSmoothedA = 0.0;
+
+    Vmin=100.0;
+    Vmax=0.0;
+    Cmin=100.0;
+    Cmax=0.0;
+    Rmin=100.0;
+    Rmax=0.0;
+    Amin=100.0;
+    Amax=0.0;
+
     counter=0;
+
+
     printf("initialization in feature  extractor thread correctly ended \n");
     return true;
 }
@@ -136,6 +152,32 @@ void featExtractorThread::convertMat2ImageOf(cv::Mat a, ImageOf<PixelMono>* imag
     image-> wrapIplImage(&tempIpla);
 }
 
+void featExtractorThread::buffering(int bufferSize, std::vector<float>& buffer, float   data){
+        if (buffer.size()<bufferSize)
+            buffer.push_back(data);
+        if (buffer.size()>=bufferSize){
+            for (int i=0;  i<bufferSize-1; i++){
+                buffer[i]=buffer[i+1];
+            }
+        buffer.pop_back(); 
+        buffer.push_back(data);
+        }
+}
+
+void featExtractorThread::convolution(std::vector<float>& buffer, std::vector<float>& kernel, std::vector<float>& smoothedBuffer, float& currentSmoothed){
+    for(int i = kernel.size() -1; i < buffer.size(); ++i) 
+    {
+        smoothedElem[i] = 0;                             // init to 0 before accumulate
+        int j;
+        int k;
+        for( j = i, k = 0; k < kernel.size(); --j, ++k)
+            smoothedElem[i] += buffer[j] * kernel[k];
+        currentSmoothed= smoothedElem[i];
+        smoothedBuffer.push_back(currentSmoothed);
+        
+
+    }
+}
 
 bool featExtractorThread::test(){
     bool ret = true;
@@ -241,6 +283,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
  
             cv::Mat VEL = cv::Mat::zeros(1,3,CV_32FC1); 
             cv::Mat ACC = cv::Mat::zeros(1,3,CV_32FC1);
+            cv::Mat SmoothedVEL = cv::Mat::zeros(1,3,CV_32FC1); 
             cv::Moments MOMt;
             double minValt_1, maxValt_1;
             cv::Point maxPost_1;
@@ -322,25 +365,107 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
             VEL.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0]; 
             VEL.at<float>(0,2) = 0.1;  //10 fps
 	
-            float roba =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
-        
+            float V =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
+
             // fare chiamata:  void gaussianiir1d(float *roba, long length, float sigma, int numsteps);               //questa é la definizionee
 
-            descr.push_back(roba);                                              //V=is the norm of the velocity (mean of optical flow)
+         if (V!=float(0.033))  {
+            descr.push_back(sequenceID);
+            counter++;
+            descr.push_back(counter);
 
-            ACC.at<float>(0,0) =  cv::mean(Ut, Maskt8U).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
-            ACC.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
-            ACC.at<float>(0,2) = 0.;
+            std::vector<float> gaussian ;
+            gaussian.push_back( 0.0110020044943488);
+            gaussian.push_back( 0.0431751450217583);
+            gaussian.push_back( 0.114643519437383);
+            gaussian.push_back( 0.205977096991566);
+            gaussian.push_back( 0.250404468109888);
+            gaussian.push_back( 0.205977096991566);
+            gaussian.push_back( 0.114643519437383);
+            gaussian.push_back( 0.0431751450217583);
+            gaussian.push_back( 0.0110020044943488);
+            int kernelSize=9;
+
+
+                    ////in case you would like to find the other 3 features from the not smoothed velocity and THEN smooth them
+        //Compute other features from not smoothed Vx and Vy
+        ACC.at<float>(0,0) =  cv::mean(Ut, Maskt8U).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
+        ACC.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
+        ACC.at<float>(0,2) = 0.;
 	
-            descr.push_back(cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3));   //C=Curvature
-            descr.push_back(1/descr[1]);                                      //R=Radius of curvature
-            descr.push_back(descr[0]/descr[2]);                               //A=V/R
-	
+        float C = cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3);       //C=Curvature
+        float R=1/C;                                                   //R=Radius of curvature
+        float A=V/R;                                                   //A=V/R
+
+        //Smoothing the features
+       int bufferSize=9;
+
+       buffering(bufferSize, bufferV, V)   ;                          //create the buffer of data for convolution  with kernel
+       if (bufferV.size()==bufferSize) 
+            convolution(bufferV, gaussian, smoothedBufferV, currentSmoothedV);
+
+        buffering(bufferSize, bufferC, C)   ;
+        if (bufferC.size()==bufferSize) 
+            convolution(bufferC, gaussian, smoothedBufferC, currentSmoothedC);
+
+        buffering(bufferSize, bufferR, R)   ;
+        if (bufferR.size()==bufferSize) 
+            convolution(bufferR, gaussian, smoothedBufferR, currentSmoothedR);
+
+        buffering(bufferSize, bufferA, A)   ;
+        if (bufferA.size()==bufferSize) 
+            convolution(bufferA, gaussian, smoothedBufferA, currentSmoothedA);
+
+
+         if (currentSmoothedV < Vmin)
+            Vmin=currentSmoothedV;
+        if (currentSmoothedV > Vmax)
+            Vmax=currentSmoothedV;
+
+        if (currentSmoothedC < Cmin)
+            Cmin=currentSmoothedC;
+        if (currentSmoothedC > Cmax)
+            Cmax=currentSmoothedC;
+
+        if (currentSmoothedR < Rmin)
+            Rmin=currentSmoothedR;
+        if (currentSmoothedR > Rmax)
+            Rmax=currentSmoothedR;
+
+        if (currentSmoothedA < Amin)
+            Amin=currentSmoothedA;
+        if (currentSmoothedA > Amax)
+            Amax=currentSmoothedA;
+
+
+
+       float currentNormalizedSmoothedV=(currentSmoothedV-Vmin)/(Vmax-Vmin+0.000001);      //+0.000001 because at the beginning Vmax=Vmin=currentSmoothedV
+       float currentNormalizedSmoothedC=(currentSmoothedC-Cmin)/(Cmax-Cmin+0.000001);
+       float currentNormalizedSmoothedR=(currentSmoothedR-Rmin)/(Rmax-Rmin+0.000001);
+       float currentNormalizedSmoothedA=(currentSmoothedA-Amin)/(Amax-Amin+0.000001);
+
+
+        descr.push_back(V);                                              //V=is the norm of the velocity (mean of optical flow)
+        descr.push_back(C);   //C=Curvature
+        descr.push_back(R);                                      //R=Radius of curvature
+        descr.push_back(A);                               //A=V/R
+
+	    descr.push_back(currentSmoothedV);
+        descr.push_back(currentSmoothedC);
+        descr.push_back(currentSmoothedR);
+        descr.push_back(currentSmoothedA);
+        descr.push_back(currentNormalizedSmoothedV);
+        descr.push_back(currentNormalizedSmoothedC);
+        descr.push_back(currentNormalizedSmoothedR);
+        descr.push_back(currentNormalizedSmoothedA);
+
             descr.push_back(maxPost.x);
             descr.push_back(maxPost.y);
 
-            int rf = log (descr[0]/descr[2])*100 +1200 ;
-            int cf = log (cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3))*100 + 1000;
+            //int rf = log (descr[0]/descr[2])*100 +1200 ;
+            //int cf = log (cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3))*100 + 1000;
+            int rf = log (A)*100 +1200 ;
+            int cf = log (C)*100 + 1000;
             //printf("rf is %d\n", rf);
             //printf("cf is %d\n", cf);
 
@@ -453,14 +578,21 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
 
             contentBottle = descrBottle.addList();
 
-            counter++;
 
-            contentBottle.addDouble(1);
-            contentBottle.addDouble(counter);
-            contentBottle.addDouble(descr[0]);
-            contentBottle.addDouble(descr[1]);           
-            contentBottle.addDouble(descr[2]);           
-            contentBottle.addDouble(descr[3]);           
+            //contentBottle.addDouble(descr[0]);
+            //contentBottle.addDouble(descr[1]);           
+            //contentBottle.addDouble(descr[2]);           
+            //contentBottle.addDouble(descr[3]);           
+            //contentBottle.addDouble(descr[4]);           
+            //contentBottle.addDouble(descr[5]);          
+            contentBottle.addDouble(descr[6]);
+            contentBottle.addDouble(descr[7]);
+            contentBottle.addDouble(descr[8]);
+            contentBottle.addDouble(descr[9]);
+            //contentBottle.addDouble(descr[10]);
+            //contentBottle.addDouble(descr[11]);
+            //contentBottle.addDouble(descr[12]);
+            //contentBottle.addDouble(descr[13]);
 
             printf("bottle is %s\n", contentBottle.toString().c_str());
 
@@ -477,6 +609,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
             sem.wait();
             featDataready=false;
             sem.post();
+            }//end if (V!=float(0.033))
         }
     }
 }
