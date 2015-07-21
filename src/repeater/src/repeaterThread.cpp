@@ -83,6 +83,8 @@ void repeaterThread::run() {
         if ((inputCbPort.getInputCount()) && (outputPort.getOutputCount())) {
             timeStart = Time::now();
             inputImage = inputCbPort.read(true);
+            Stamp timestamp;
+            inputCbPort.getEnvelope(timestamp);
             timeEnd = Time::now();
             double time = 1 / (timeEnd-timeStart);
             //printf("time interval %f fps\n", time);
@@ -95,6 +97,7 @@ void repeaterThread::run() {
             //outputPort.prepare() = *inputImage;
             outputImage = &outputPort.prepare();
             processing();
+            outputPort.setEnvelope(timestamp);
             outputPort.write();  
             
         }
