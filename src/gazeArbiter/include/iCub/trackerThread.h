@@ -213,7 +213,7 @@ public:
             }
 
             // send out output-image
-            printf("writing output port \n");
+            //printf("writing output port \n");
             outPort.write();
             tmplPort.write();
             // save data for next cycle
