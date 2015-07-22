@@ -449,7 +449,7 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addString("many");
+            reply.addVocab(Vocab::encode("many"));
             reply.addString("help");
 
             //reply.addString();

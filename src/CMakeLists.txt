@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-add_subdirectory( attentionPrioritiser      )
+#add_subdirectory( attentionPrioritiser      )
 add_subdirectory( biologicalProcessing      )
 add_subdirectory( audio                     )
 
