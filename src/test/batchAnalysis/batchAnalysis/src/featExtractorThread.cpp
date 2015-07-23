@@ -506,10 +506,11 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
        // float R=1/C;                                                   //R=Radius of curvature
        // float A=V/R;                                                   //A=V/R
 
-       //float currentNormalizedSmoothedV=(V-Vmin)/(Vmax-Vmin);
-       //float currentNormalizedSmoothedC=(C-Cmin)/(Cmax-Cmin);
-       //float currentNormalizedSmoothedR=(R-Rmin)/(Rmax-Rmin);
-       //float currentNormalizedSmoothedA=(A-Amin)/(Amax-Amin);
+
+       // float currentNormalizedSmoothedV=(currentSmoothedV-Vmin)/(Vmax-Vmin+0.000001);      //+0.000001 because at the beginning Vmax=Vmin=currentSmoothedV
+       // float currentNormalizedSmoothedC=(currentSmoothedC-Cmin)/(Cmax-Cmin+0.000001);
+       // float currentNormalizedSmoothedR=(currentSmoothedR-Rmin)/(Rmax-Rmin+0.000001);
+       // float currentNormalizedSmoothedA=(currentSmoothedA-Amin)/(Amax-Amin+0.000001);
 
 
         descr.push_back(V);                                              //V=is the norm of the velocity (mean of optical flow)
