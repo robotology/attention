@@ -5,13 +5,13 @@
 cmake_minimum_required(VERSION 2.8)
 
 SET(PROJECTNAME wholeBodyModel)
-PROJECT(${PROJECTNAME})
+#PROJECT(${PROJECTNAME})  #comment Rea
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # MATLAB and YARP is searched before adding the different modules because they will be used by all of them
-find_package(YARP        REQUIRED)
-find_package(Matlab	 REQUIRED)
+#find_package(YARP        REQUIRED)  #comment Rea
+find_package(Matlab)
 
 if(MATLAB_FOUND)
         message(STATUS "Matlab was found!! The configuration may continue")
@@ -21,10 +21,10 @@ if(MATLAB_FOUND)
                 ${MATLAB_ENG_LIBRARY}
         )
 else()
-        message(FATAL_ERROR "Matlab not found")
+        message("Matlab not found")
 endif()
 #find_package(YCM                   REQUIRED)
-find_package(ICUB                   REQUIRED)
+#find_package(ICUB                   REQUIRED)  #comment Rea
 #find_package(Eigen3                 REQUIRED)
 #find_package(TinyXML                REQUIRED)
 #find_package(iDynTree               REQUIRED)
@@ -33,12 +33,15 @@ find_package(ICUB                   REQUIRED)
 #find_package(yarpWholeBodyInterface REQUIRED)
 
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})  #comment Rea
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})  #comment Rea
 
-include(YarpInstallationHelpers)
-yarp_configure_external_installation(codyco)
+#include(YarpInstallationHelpers)  #comment Rea
+#yarp_configure_external_installation(codyco)  #comment Rea
 
+#*****************************************************************************
+
+if(MATLAB_FOUND)
 
 #### Settings for rpath
 if(NOT MSVC)
@@ -47,8 +50,8 @@ if(NOT MSVC)
     mark_as_advanced(MEXWHOLEBODYMODEL_ENABLE_RPATH)
 endif(NOT MSVC)
 
-find_package(YCM REQUIRED)
-include(YCMDefaultDirs)
+#find_package(YCM REQUIRED)  #comment Rea
+#include(YCMDefaultDirs)  #comment Rea
 
 include(AddInstallRPATHSupport)
 add_install_rpath_support(BIN_DIRS ${CMAKE_INSTALL_PREFIX}/bin
@@ -160,3 +163,6 @@ ${MATLAB_LIBRARIES}
 
 
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
+
+endif()
+#**********************************************************************

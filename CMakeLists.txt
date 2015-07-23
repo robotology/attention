@@ -46,8 +46,9 @@ include(YarpInstallationHelpers)
 
 
 find_package(OpenCV REQUIRED)
-find_package(Matlab)
 find_package(IPOPT)
+
+
 
 find_package(logpolar QUIET)
 IF (logpolar_FOUND)

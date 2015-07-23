@@ -4,14 +4,14 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-SET(PROJECTNAME audioFrameExtract)
+SET(PROJECTNAME audioFrameExtractor)
 PROJECT(${PROJECTNAME})
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # MATLAB and YARP is searched before adding the different modules because they will be used by all of them
-find_package(YARP        REQUIRED)
-find_package(Matlab	 REQUIRED)
+#find_package(YARP        REQUIRED)
+find_package(Matlab	 )
 
 if(MATLAB_FOUND)
         message(STATUS "Matlab was found!! The configuration may continue")
@@ -21,10 +21,10 @@ if(MATLAB_FOUND)
                 ${MATLAB_ENG_LIBRARY}
         )
 else()
-        message(FATAL_ERROR "Matlab not found")
+        message( "Matlab not found")
 endif()
 #find_package(YCM                   REQUIRED)
-find_package(ICUB                   REQUIRED)
+#find_package(ICUB                   REQUIRED)
 #find_package(Eigen3                 REQUIRED)
 #find_package(TinyXML                REQUIRED)
 #find_package(iDynTree               REQUIRED)
@@ -33,12 +33,14 @@ find_package(ICUB                   REQUIRED)
 #find_package(yarpWholeBodyInterface REQUIRED)
 
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
-include(YarpInstallationHelpers)
-yarp_configure_external_installation(codyco)
+#include(YarpInstallationHelpers)
+#yarp_configure_external_installation(codyco)
 
+#*****************************************************************************
+if(MATLAB_FOUND)
 
 #### Settings for rpath
 if(NOT MSVC)
@@ -160,3 +162,6 @@ ${MATLAB_LIBRARIES}
 
 
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
+
+endif()
+#**********************************************************************

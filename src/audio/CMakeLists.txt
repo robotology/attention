@@ -11,7 +11,6 @@ add_subdirectory  ( cartesianVisualGenerator )
 add_subdirectory  ( headingAudio             )
 add_subdirectory  ( remoteInterface          )
 
-if(MATLAB_FOUND)
-  add_subdirectory( mexInterface             )
-  add_subdirectory( audioFrameGrabber        )
-endif()
+
+ add_subdirectory( mexInterface              )
+ add_subdirectory( audioFrameExtractor       )
