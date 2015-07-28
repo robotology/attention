@@ -1,0 +1,22 @@
+<application>
+
+  <name>System</name>
+
+  <module>
+      <name>iCub_SIM</name>
+      <node>localhost</node>
+  </module>
+
+  <module>
+      <name>simCartesianControl</name>
+      <parameters>--no_legs</parameters>
+      <node>localhost</node>
+  </module>
+
+  <module>
+      <name>iKinCartesianSolver</name>
+      <parameters>--context simCartesianControl --part left_arm</parameters>
+      <node>localhost</node>
+  </module>
+
+</application>

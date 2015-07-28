@@ -221,7 +221,7 @@ void batchAnalysis2Thread::acquisitionSequence(){
     number1= sprintf(numbername1, "%8.8d.ppm", k);
     filename1 = foldername+numbername1;
     //cout  << filename1 << endl;
-    Matrix = imread(filename1, CV_LOAD_IMAGE_COLOR);   // Read the file
+    Matrix = cv::imread(filename1, CV_LOAD_IMAGE_COLOR);   // Read the file
     //cv::resize(TMP, It, cv::Size(TMP.cols*PARAMS.scale, TMP.rows*PARAMS.scale), cv::INTER_LINEAR );
     //resize(TMP, Matrix, cv::Size(320,240), cv::INTER_LINEAR );
 
@@ -752,7 +752,7 @@ bool batchAnalysis2Thread::processing(){
     int a  =  Matrix.depth();
     int b  =  currentMatrix.depth();
     
-    cv::cvtColor(Matrix, currentMatrix, CV_RGB2GRAY);
+    cvtColor(Matrix, currentMatrix, CV_RGB2GRAY);
 
 	
 	//--------------------------------------------------------------------------
