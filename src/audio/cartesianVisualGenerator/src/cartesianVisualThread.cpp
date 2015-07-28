@@ -172,7 +172,7 @@ int cartesianVisualThread::processing(){
     for (int r = 0; r < height; r++ ) {
         for (int c = 0; c < width; c++) {
 
-            distanceAzimuth =  sqrt((c - azimuthPixel) * (c - azimuthPixel));
+            distanceAzimuth =  sqrt((double)((c - azimuthPixel) * (c - azimuthPixel)));
             if(distanceAzimuth < 10)
                 intensity = gaussianWeights[distanceAzimuth];
             else
