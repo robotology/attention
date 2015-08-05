@@ -1,0 +1,26 @@
+<application>
+
+  <name>Joint State Dump</name>
+
+  <dependencies>
+      <port>/icubSim/left_arm/state:o</port>
+  </dependencies>
+
+  <module>
+      <name>cartesian-interface</name>
+      <node>localhost</node>
+  </module>
+
+  <module>
+      <name>yarpdatadumper</name>
+      <parameters>--name /dump/dumpJointPos </parameters>
+      <node>localhost</node>
+  </module>
+
+  <connection>
+    <from> /icubSim/left_arm/state:o </from>
+    <to> /dump/dumpJointPos </to>
+    <protocol> udp </protocol>
+  </connection>
+
+</application>
