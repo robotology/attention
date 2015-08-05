@@ -1,0 +1,51 @@
+<application>
+
+  <name>Cartesian Interface Dumper</name>
+
+  <dependencies>
+      <port>/icubSim/cartesianController/left_arm/state:o</port>
+  </dependencies>
+
+  <module>
+      <name>reaching</name>
+      <node>localhost</node>
+  </module>
+
+  <module>
+      <name>yarpdatadumper</name>
+      <parameters>--name /dump/dumpPose </parameters>
+      <node>localhost</node>
+  </module>
+
+  <connection>
+    <from> /icubSim/cartesianController/left_arm/state:o </from>
+    <to> /dump/dumpPose </to>
+    <protocol> udp </protocol>
+  </connection>
+
+  <module>
+      <name>yarpdatadumper</name>
+      <parameters>--name /dump/dumpImage --type image </parameters>
+      <node>localhost</node>
+  </module>
+
+  <module>
+      <name>yarpview</name>
+      <parameters>--name /left  </parameters>
+      <node>localhost</node>
+  </module>
+
+  <connection>
+    <from> /icubSim/cam/left </from>
+    <to> /dump/dumpImage </to>
+    <protocol> udp </protocol>
+  </connection>
+
+  <connection>
+    <from> /icubSim/cam/left </from>
+    <to> /left </to>
+    <protocol> udp </protocol>
+  </connection>
+
+</application>
+
