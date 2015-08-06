@@ -66,7 +66,7 @@ public:
         //     (launch iKinCartesianSolver --context simCartesianControl --part left_arm)
         //
         Property option("(device cartesiancontrollerclient)");
-        option.put("remote","/icubSim/cartesianController/left_arm");
+        option.put("remote","/icub/cartesianController/left_arm");
         option.put("local","/cartesian_client/left_arm");
 
         first=true;//for alternating the motio:n
@@ -161,13 +161,13 @@ public:
         if(first){
           xd[0]=-0.25;
           xd[1]=-0.0;
-          xd[2]=+0.1;
+          xd[2]=+0.15;
           first=false;
         }
         else{
           xd[0]=-0.30;
           xd[1]=-0.5;
-          xd[2]=+0.1;
+          xd[2]=+0.15;
           first=true;
         }
 
