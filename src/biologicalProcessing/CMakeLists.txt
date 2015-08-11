@@ -4,5 +4,8 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-add_subdirectory( opfExtractor  )
-
+if(OpenCV_FOUND)
+    add_subdirectory( opfExtractor  )
+else(OpenCV_FOUND)
+    message(STATUS "OpenCV not found/selected in attention/biologicalProcessing, skipping modules")
+endif(OpenCV_FOUND)

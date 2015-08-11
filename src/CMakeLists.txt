@@ -4,10 +4,8 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-#add_subdirectory( attentionPrioritiser      )
-add_subdirectory( biologicalProcessing      )
-add_subdirectory( audio                     )
-
+if(OpenCV_FOUND)
+add_subdirectory( attentionPrioritiser      )
 add_subdirectory( eyePathFinder             )
 add_subdirectory( earlyMotion               )
 add_subdirectory( earlyVision               )
@@ -35,13 +33,10 @@ add_subdirectory( tutorial                  )
 #add_subdirectory( visualFilter             )
 add_subdirectory(workingMemory              )   
 #add_subdirectory( zeroDisparityFilter      )
+else(OpenCV_FOUND)
+    message(STATUS "OpenCV not found/selected, skipping modules")
+endif(OpenCV_FOUND)
 
-
-if(IPP_FOUND)
-  add_subdirectory(yuvProcessor)
-else(IPP_FOUND)
-    message(STATUS "IPP not found/selected, skipping modules")
-endif(IPP_FOUND)
 
 if(IPOPT_FOUND)
     add_subdirectory( gazeArbiter               )
@@ -53,5 +48,10 @@ if(IPOPT_FOUND)
 else(IPOPT_FOUND)
     message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
 endif(IPOPT_FOUND)
+
+
+# subdirectories
+add_subdirectory( biologicalProcessing      )
+add_subdirectory( audio                     )
 
 

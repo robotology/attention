@@ -45,7 +45,7 @@ add_definitions(${YARP_DEFINES})
 include(YarpInstallationHelpers)
 
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV)
 find_package(IPOPT)
 
 
