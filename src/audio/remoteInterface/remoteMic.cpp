@@ -22,6 +22,7 @@ using namespace yarp::dev;
 
 const double rec_seconds = 0.1;
 const int rate = 48000;
+const int fixedNSample = 4096;
 
 int main(int argc, char *argv[]) {
     // initialization
@@ -36,7 +37,8 @@ int main(int argc, char *argv[]) {
     Property conf;
     conf.put("device","portaudio");
     conf.put("read", "");
-    conf.put("samples", rate * rec_seconds);
+    // conf.put("samples", rate * rec_seconds);
+    conf.put("samples", fixedNSample);
     conf.put("rate", rate);
     PolyDriver poly(conf);
     IAudioGrabberSound *get;
@@ -67,20 +69,22 @@ int main(int argc, char *argv[]) {
     Stamp ts;
     while (true)
     {
+      double t1=yarp::os::Time::now();
       ts.update();  
       //s = p.prepare();           
-      double t1=yarp::os::Time::now();
+      
       get->getSound(s);        
-      double t2=yarp::os::Time::now();
+      
       //v1 = s.get(i,j);
       //v = (NetInt16) v1;
       //v2 = s.get(i+1,j+1); 
       //dataAnalysis = (short*) dataSound;        
-      //printf("acquired %f seconds \n", t2-t1);
-      //p.write(b);
       
       p.setEnvelope(ts);
       p.write(s);
+
+      double t2=yarp::os::Time::now();
+      printf("acquired %f seconds \n", t2-t1);
     }
     get->stopRecording();  //stops recording.
 
