@@ -121,6 +121,7 @@ private:
     std::string seq;
     std::string alg;
     int sequenceID;
+    int k_min;
     int k_max;
     int timeCounter;
 

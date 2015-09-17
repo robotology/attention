@@ -20,8 +20,10 @@
 #add_subdirectory ( audiovisualAttention )				
 add_subdirectory ( biologicalProcessing )
 add_subdirectory ( logpolarAttention    )
+add_subdirectory ( batchAnalysis      )
 #add_subdirectory(protoObjectVisualAttention)
 #add_subdirectory(dumpApplication)
+
 
 ## make all applications show up as single target
 #icub_app_all()

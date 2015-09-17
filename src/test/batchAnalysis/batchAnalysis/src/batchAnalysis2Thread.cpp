@@ -143,23 +143,61 @@ void batchAnalysis2Thread::run() {
 
         if(!idle){
             alg="Farneback";
-            sequenceID=1;
-            for (sequenceID=1; sequenceID<=4; sequenceID++){
+            //sequenceID=1;
+            for (sequenceID=1; sequenceID<=8; sequenceID++){      //<=8
+                //simplest case
+                //k_min=0;
+                //k_max=500;
+                //if (sequenceID==1){seq="reaching/leftDumper_a/";}
+                //if (sequenceID==3){seq="reaching/leftDumper_b/";}
+                //if (sequenceID==2){seq="roll/leftDumper_a/";}
+                //if (sequenceID==4){seq="roll/leftDumper_b/";}
 
+                //train
                 if (sequenceID==1){
-                    seq="reaching/leftDumper_a/";
-                }
-                if (sequenceID==3){
-                    seq="reaching/leftDumper_b/";
+                    seq="bio/rollpasta/rollpasta_Alessandra_lowvel_1/leftDumper/";
+                    k_min=50;
+                    k_max=350;
                 }
                 if (sequenceID==2){
-                    seq="roll/leftDumper_a/";
+                    seq="bio/pointing/pointing_Alessandra_1/leftDumper/";
+                    k_min=50;
+                    k_max=350;
+                }
+                if (sequenceID==3){
+                    seq="notBio/roll/random_faster/random_const_1/leftDumper/";
+                    k_min=50;
+                    k_max=350;
                 }
                 if (sequenceID==4){
-                    seq="roll/leftDumper_b/";
+                    seq="notBio/roll/zigzag_faster/zigzag_notconst_1/leftDumper/";
+                    k_min=50;
+                    k_max=350;
                 }
 
-                for ( k =1; k<200; k=k+1){
+                //test
+                if (sequenceID==5){
+                    seq="bio/rollpasta/rollpasta_Alessandra_lowvel_2/leftDumper/";
+                    k_min=50;
+                    k_max=350;
+                }
+                if (sequenceID==6){
+                    seq="bio/pointing/pointing_Alessandra_2/leftDumper/";
+                    k_min=50;
+                    k_max=350;
+                }
+                if (sequenceID==7){
+                    seq="notBio/roll/random_faster/random_const_2/leftDumper/";
+                    k_min=50;
+                    k_max=350;
+                }
+                if (sequenceID==8){
+                    seq="notBio/roll/zigzag_faster/zigzag_notconst_1/leftDumper/";
+                    k_min=50;
+                    k_max=350;
+                }
+
+                for ( k =k_min; k<k_max; k=k+1){
 
                     acquisitionSequence();   //it takes the one image            //inputImage = inputPort.read(true);
 
@@ -209,7 +247,7 @@ void batchAnalysis2Thread::run() {
 void batchAnalysis2Thread::acquisitionSequence(){
     name = seq +"_"+ alg;
     //foldername = "C:/Users/AVignolo/Desktop/\Acquisition/Acquisizioni_iCub/"+seq+"/Images/";
-    foldername = "C:/Users/AVignolo/Desktop/Acquisition/Acquisizioni_iCub/clean_acq/"+seq;
+    //foldername = "C:/Users/AVignolo/Desktop/Acquisition/Acquisizioni_iCub/clean_acq/"+seq;
     //foldername = "D:/Acquisitions/1st_acquisitions/"+seq+"/leftDumper/"; 
     //foldername = "C:/Users/AVignolo/Desktop/Acquisizioni_iCub/"+seq+"/Images/";
     //foldername = "F:/"+seq+"/";
@@ -217,11 +255,14 @@ void batchAnalysis2Thread::acquisitionSequence(){
     //foldername ="C:/Users/AVignolo/Desktop/Acquisizioni_iCub/"+seq+"/Images/";
     //foldername =  "F:/"+seq+"/left/";
     //foldername = "F:/leftDumper_directly_from_cameras/";
+    foldername = "D:/"+seq;
     numbername1 [50];
     number1= sprintf(numbername1, "%8.8d.ppm", k);
     filename1 = foldername+numbername1;
     //cout  << filename1 << endl;
     Matrix = cv::imread(filename1, CV_LOAD_IMAGE_COLOR);   // Read the file
+    //Matrix = cv::imread("C:/Users/AVignolo/Desktop/acquisizioni_reaching_robot/reaching_1/leftDumper/00000000.ppm", CV_LOAD_IMAGE_COLOR);
+    
     //cv::resize(TMP, It, cv::Size(TMP.cols*PARAMS.scale, TMP.rows*PARAMS.scale), cv::INTER_LINEAR );
     //resize(TMP, Matrix, cv::Size(320,240), cv::INTER_LINEAR );
 

@@ -355,7 +355,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         gaussian.push_back( 0.0431751450217583);
         gaussian.push_back( 0.114643519437383);
         gaussian.push_back( 0.205977096991566);
-        gaussian.push_back( 0.250404468109888);
+        gaussian.push_back( 0.350404468109888);
         gaussian.push_back( 0.205977096991566);
         gaussian.push_back( 0.114643519437383);
         gaussian.push_back( 0.0431751450217583);
@@ -365,7 +365,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
                             0.0431751450217583,
                             0.114643519437383,
                             0.205977096991566,
-                            0.250404468109888,
+                            0.350404468109888,
                             0.205977096991566,
                             0.114643519437383,
                             0.0431751450217583,
@@ -527,6 +527,9 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         descr.push_back(currentNormalizedSmoothedR);
         descr.push_back(currentNormalizedSmoothedA);
 
+        descr.push_back(VEL.at<float>(0,0));
+        descr.push_back(VEL.at<float>(0,1));
+
         FILE *fid = fopen("provaalvolo.txt","a" );
         //fprintf(fid, "%lf\n", maxValM);
         fprintf(fid, "%lf\n", cv::norm(VEL));
@@ -546,20 +549,23 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
 
         contentBottle = descrBottle.addList();
         //if(nFr>30){
-            //contentBottle.addDouble(descr[0]);
-            //contentBottle.addDouble(descr[1]);           
+            contentBottle.addDouble(descr[0]);
+            contentBottle.addDouble(descr[1]);           
             //contentBottle.addDouble(descr[2]);           
             //contentBottle.addDouble(descr[3]);           
             //contentBottle.addDouble(descr[4]);           
             //contentBottle.addDouble(descr[5]);          
-            contentBottle.addDouble(descr[6]);
-            contentBottle.addDouble(descr[7]);
-            contentBottle.addDouble(descr[8]);
-            contentBottle.addDouble(descr[9]);
+            //contentBottle.addDouble(descr[6]);               //filtered V:  to be sent to the Carlo's module
+            //contentBottle.addDouble(descr[7]);               //filtered C:  to be sent to the Carlo's module
+            //contentBottle.addDouble(descr[8]);               //filtered R:  to be sent to the Carlo's module
+            ///contentBottle.addDouble(descr[9]);               //filtered A:  to be sent to the Carlo's module
             //contentBottle.addDouble(descr[10]);
             //contentBottle.addDouble(descr[11]);
             //contentBottle.addDouble(descr[12]);
             //contentBottle.addDouble(descr[13]);
+
+            contentBottle.addDouble(descr[14]);   //Vx:  to be sent to a dumper for analysis in batch
+            contentBottle.addDouble(descr[15]);   //Vy:  to be sent to a dumper for analysis in batch
         //}
         //printf("bottle is %s\n", contentBottle.toString().c_str());
 
