@@ -24,39 +24,89 @@
 #include <iCub/handProfilerThread.h>
 #include <cstring>
 
+#define CTRL_THREAD_PER     0.02    // [s]
+#define PRINT_STATUS_PER    1.0     // [s]
+#define MAX_TORSO_PITCH     30.0    // [deg]
+
 using namespace yarp::dev;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace std;
 
-handProfilerThread::handProfilerThread():inputCbPort() {
+handProfilerThread::handProfilerThread(): RateThread(100) {
     robot = "icub";        
 }
 
-handProfilerThread::handProfilerThread(string _robot, string _configFile):inputCbPort(){
+
+handProfilerThread::handProfilerThread(string _robot, string _configFile): RateThread(100){
     robot = _robot;
     configFile = _configFile;
 }
+
+
 
 handProfilerThread::~handProfilerThread() {
     // do nothing
 }
 
+
 bool handProfilerThread::threadInit() {
     
     /* open ports */ 
-    //inputCbPort.hasNewImage = false;
-    //inputCbPort.useCallback();          // to enable the port listening to events via callback
 
-    if (!inputCbPort.open(getName("/in").c_str())) {
-        cout <<": unable to open port for reading events  "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
+    Property option("(device cartesiancontrollerclient)");
+    option.put("remote","/icub/cartesianController/left_arm");
+    option.put("local","/handProfiler/left_arm");
+
+    if (!client.open(option)) {
+                return false;
     }
-    if (!outputPort.open(getName("/out").c_str())) {
-        cout << ": unable to open port to send unmasked events "  << endl;
-        return false;  // unable to open; let RFModule know so that it won't run
-    }    
+    
+    // open the view
+    client.view(icart);
+    
+    // latch the controller context in order to preserve
+    // it after closing the module
+    // the context contains the dofs status, the tracking mode,
+    // the resting positions, the limits and so on.
+    icart->storeContext(&startup_context_id);
+    
+    // set trajectory time
+    icart->setTrajTime(1.0);
 
+    // get the torso dofs
+    Vector newDof, curDof;
+    icart->getDOF(curDof);
+    newDof=curDof;
+
+    // enable the torso yaw and pitch
+    // disable the torso roll
+    newDof[0]=1;
+    newDof[1]=0;
+    newDof[2]=1;
+
+    // impose some restriction on the torso pitch
+    limitTorsoPitch();
+
+    // send the request for dofs reconfiguration
+    icart->setDOF(newDof,curDof);
+
+    // print out some info about the controller
+    Bottle info;
+    icart->getInfo(info);
+    fprintf(stdout,"info = %s\n",info.toString().c_str());
+
+    // register the event, attaching the callback
+    // we wanna raise an event each time the arm is at 20%
+    // of the trajectory (or 70% far from the target)
+    ce->cartesianEventParameters.type="motion-ongoing";
+    ce->cartesianEventParameters.motionOngoingCheckPoint=0.2;
+    icart->registerEvent(*ce);
+
+    xd.resize(3);
+    od.resize(4);
+    
     return true;
 }
 
@@ -73,82 +123,97 @@ std::string handProfilerThread::getName(const char* p) {
 }
 
 void handProfilerThread::setInputPortName(string InpPort) {
-    this->inputPortName = InpPort;
+
 }
 
 void handProfilerThread::run() {    
-    while (isStopping() != true) {
-        if ((inputCbPort.getInputCount()) && (outputPort.getOutputCount())) {
-            timeStart = Time::now();
-            inputImage = inputCbPort.read(true);
-            Stamp timestamp;
-            inputCbPort.getEnvelope(timestamp);
-            timeEnd = Time::now();
-            double time = 1 / (timeEnd-timeStart);
-            //printf("time interval %f fps\n", time);
-            
-            inputHeight = inputImage->height();
-            inputWidth  = inputImage->width();
-            widthRatio  = floor(inputWidth / outputWidth);
-            heightRatio = floor(inputHeight / outputHeight);
-      
-            //outputPort.prepare() = *inputImage;
-            outputImage = &outputPort.prepare();
-            processing();
-            outputPort.setEnvelope(timestamp);
-            outputPort.write();  
-            
-        }
-    }               
+    t=Time::now();
+
+    generateTarget();
+
+    // go to the target :)
+    // (in streaming)
+    icart->goToPose(xd,od);
+
+    // some verbosity
+    printStatus();             
 }
 
+void handProfilerThread::generateTarget() {   
+    // translational target part: a circular trajectory
+    // in the yz plane centered in [-0.3,-0.1,0.1] with radius=0.1 m
+    // and frequency 0.1 Hz
+    xd[0]=-0.3;
+    xd[1]=-0.1; //+0.1*cos(2.0*M_PI*0.1*(t-t0));
+    xd[2]=+0.1; //+0.1*sin(2.0*M_PI*0.1*(t-t0));            
+            
+    // we keep the orientation of the left arm constant:
+    // we want the middle finger to point forward (end-effector x-axis)
+    // with the palm turned down (end-effector y-axis points leftward);
+    // to achieve that it is enough to rotate the root frame of pi around z-axis
+    od[0] = 0.0; od[1] = 0.0; od[2] = 1.0; od[3] = M_PI;
+}
+
+void handProfilerThread::limitTorsoPitch() {
+    int axis=0; // pitch joint
+    double min, max;
+
+    // sometimes it may be helpful to reduce
+    // the range of variability of the joints;
+    // for example here we don't want the torso
+    // to lean out more than 30 degrees forward
+
+    // we keep the lower limit
+    icart->getLimits(axis,&min,&max);
+    icart->setLimits(axis,min,MAX_TORSO_PITCH);
+}
 
 void handProfilerThread::processing() {
-    outputImage->resize(outputWidth, outputHeight);
-    unsigned char* pOut = outputImage->getRawImage();
-    int outPadding = outputImage->getPadding();
-
-    cv::Mat inputMatrix((IplImage*)  inputImage->getIplImage(), false);
-    cv::Mat outputMatrix((IplImage*) outputImage->getIplImage(), false);
-
-    cv::resize(inputMatrix, outputMatrix,outputMatrix.size(), 0, 0, CV_INTER_LINEAR);
-    //interpolation – interpolation method:
-    //INTER_NEAREST - a nearest-neighbor interpolation
-    //INTER_LINEAR - a bilinear interpolation (used by default)
-    //INTER_AREA - resampling using pixel area relation. It may be a preferred method for image decimation, 
-    //INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood
-    //INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
-
-    IplImage tempIpl = (IplImage) outputMatrix;
-    char* pMatrix     = tempIpl.imageData;
-    int matrixPadding = tempIpl.widthStep - tempIpl.width * 3; 
-    
-    //making a copy of it
-    for (int r = 0; r < outputHeight; r ++) {
-        for(int c = 0 ; c < outputWidth; c++) {            
-            *pOut++ = *pMatrix++;
-            *pOut++ = *pMatrix++;
-            *pOut++ = *pMatrix++;            
-        }
-        pOut     += outPadding;
-        pMatrix  += matrixPadding;
-    }
 }
 
 void handProfilerThread::threadRelease() {
-    // nothing     
-        inputCallbackPort.interrupt();
-    outputPort.interrupt();
+    // we require an immediate stop
+    // before closing the client for safety reason
+    icart->stopControl();
 
-    inputCallbackPort.close();
-    outputPort.close();
+    // it's a good rule to restore the controller
+    // context as it was before opening the module
+    icart->restoreContext(startup_context_id);
+
+    client.close();   
+}
+
+void handProfilerThread::printStatus() {        
+    if (t-t1>=PRINT_STATUS_PER) {
+        Vector x,o,xdhat,odhat,qdhat;
+
+        // we get the current arm pose in the
+        // operational space
+        icart->getPose(x,o);
+
+        // we get the final destination of the arm
+        // as found by the solver: it differs a bit
+        // from the desired pose according to the tolerances
+        icart->getDesired(xdhat,odhat,qdhat);
+
+        double e_x=norm(xdhat-x);
+        double e_o=norm(odhat-o);
+
+        fprintf(stdout,"+++++++++\n");
+        fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
+        fprintf(stdout,"xdhat       [m] = %s\n",xdhat.toString().c_str());
+        fprintf(stdout,"x           [m] = %s\n",x.toString().c_str());
+        fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
+        fprintf(stdout,"odhat     [rad] = %s\n",odhat.toString().c_str());
+        fprintf(stdout,"o         [rad] = %s\n",o.toString().c_str());
+        fprintf(stdout,"norm(e_x)   [m] = %g\n",e_x);
+        fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
+        fprintf(stdout,"---------\n\n");
+
+        t1=t;
+    }
 }
 
 void handProfilerThread::onStop() {
-    //inputCallbackPort.interrupt();
-    //outputPort.interrupt();
-
-    //inputCallbackPort.close();
-    //outputPort.close();
 }
 

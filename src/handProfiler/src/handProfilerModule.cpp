@@ -94,7 +94,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* create the thread and pass pointers to the module parameters */
-    rThread = new repeaterThread(robotName, configFile);
+    rThread = new handProfilerThread(robotName, configFile);
     rThread->setName(getName().c_str());
     rThread->setOutputDimension(outputWidth, outputHeight);
     //rThread->setInputPortName(inputPortName.c_str());

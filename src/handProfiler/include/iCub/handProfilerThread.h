@@ -28,44 +28,37 @@
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
 #include <yarp/os/RateThread.h>
+#include <yarp/math/Math.h>
+
+#include <gsl/gsl_math.h>
+
 #include <iostream>
 #include <fstream>
 #include <time.h>
 #include <cv.h>
+#include <stdio.h>
 
-
-class inputCBPort : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > {
-
-public:
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
-    bool hasNewImage;
-
-    inputCBPort() {
-        inputImage = new  yarp::sig::ImageOf<yarp::sig::PixelRgb>; 
-    }
-
-    ~inputCBPort() {
-        delete inputImage;
-    }
-
-    virtual void onRead(yarp::sig::ImageOf<yarp::sig::PixelRgb>& inputImage1) {
-        //printf("Callback for the new image received! \n");
-        inputImage = &inputImage1;
-        hasNewImage = true;             // to be set to false once done with the events
-    }
-};
-
-
-class handProfilerThread : public yarp::os::Thread {
-private:
+class handProfilerThread : public yarp::os::RateThread{
+protected:
     int inputWidth;                // width of the input image
     int inputHeight;               // height of the input image
     int outputWidth;               // width of the output image
     int outputHeight;              // height of the output image
+    int startup_context_id;        // memorizing the context
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
     double timeStart;              //
+    double t;
+    double t0;
+    double t1;  
+
+    yarp::sig::Vector xd;          // vector representating the desired position for the hand
+    yarp::sig::Vector od;          // vector representating the desired orientation for the hand
+
+    yarp::dev::PolyDriver client;
+    yarp::dev::ICartesianControl *icart;
+    yarp::dev::CartesianEvent *ce; 
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
@@ -74,7 +67,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
 
-    inputCBPort inputCbPort;  // buffered port listening to images through callback
+    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;     // output port to plot event
     std::string name;                                                                // rootname of all the ports opened by this thread
@@ -147,6 +140,20 @@ public:
      */
     void processing();
 
+    /**
+    * limiting the torso pitch
+    */
+    void limitTorsoPitch();
+
+    /**
+    * generate the target position in space   
+    */
+    void generateTarget();
+
+    /**
+    * function that prints out the status of the performer.
+    */
+    void printStatus();
 };
 
 #endif  //_HAND_PROFILER_THREAD_H_

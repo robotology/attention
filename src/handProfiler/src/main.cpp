@@ -26,12 +26,14 @@
 using namespace yarp::os;
 using namespace yarp::sig;
 
+YARP_DECLARE_DEVICES(icubmod)
 
 int main(int argc, char * argv[])
 {
     
     Network yarp;
-    repeaterModule module; 
+    YARP_REGISTER_DEVICES(icubmod)
+    handProfilerModule module; 
 
     ResourceFinder rf;
     rf.setVerbose(true);

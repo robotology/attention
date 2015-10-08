@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${ICUB_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS}
-    ${IPP_INCLUDE_DIRS}
+    ${iKin_INCLUDE_DIRS}
     ${logpolar_INCLUDE_DIRS}
 )
 
@@ -31,8 +31,8 @@ IF (folder_source)
       		${YARP_LIBRARIES}
 		${IPP_LIBRARIES}
 		logpolar
-		#icubmod
-		#iKin
+		icubmod
+		iKin
     )
     
   INSTALL_TARGETS(/bin ${KEYWORD})
