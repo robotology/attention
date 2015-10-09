@@ -116,6 +116,7 @@ bool handProfilerModule::close() {
     /* stop the thread */
     printf("stopping the thread \n");
     rThread->stop();
+    delete rThread;
     return true;
 }
 

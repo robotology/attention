@@ -35,13 +35,21 @@ using namespace yarp::math;
 using namespace std;
 
 handProfilerThread::handProfilerThread(): RateThread(100) {
-    robot = "icub";        
+    robot = "icub"; 
+    // we wanna raise an event each time the arm is at 20%
+    // of the trajectory (or 70% far from the target)
+    cartesianEventParameters.type="motion-ongoing";
+    cartesianEventParameters.motionOngoingCheckPoint=0.2;       
 }
 
 
 handProfilerThread::handProfilerThread(string _robot, string _configFile): RateThread(100){
     robot = _robot;
     configFile = _configFile;
+    // we wanna raise an event each time the arm is at 20%
+    // of the trajectory (or 70% far from the target)
+    cartesianEventParameters.type="motion-ongoing";
+    cartesianEventParameters.motionOngoingCheckPoint=0.2;
 }
 
 
@@ -98,14 +106,12 @@ bool handProfilerThread::threadInit() {
     fprintf(stdout,"info = %s\n",info.toString().c_str());
 
     // register the event, attaching the callback
-    // we wanna raise an event each time the arm is at 20%
-    // of the trajectory (or 70% far from the target)
-    ce->cartesianEventParameters.type="motion-ongoing";
-    ce->cartesianEventParameters.motionOngoingCheckPoint=0.2;
-    icart->registerEvent(*ce);
+    icart->registerEvent(*this);
 
     xd.resize(3);
     od.resize(4);
+
+    yInfo("handProfiler thread correctly started");
     
     return true;
 }
@@ -144,8 +150,8 @@ void handProfilerThread::generateTarget() {
     // in the yz plane centered in [-0.3,-0.1,0.1] with radius=0.1 m
     // and frequency 0.1 Hz
     xd[0]=-0.3;
-    xd[1]=-0.1; //+0.1*cos(2.0*M_PI*0.1*(t-t0));
-    xd[2]=+0.1; //+0.1*sin(2.0*M_PI*0.1*(t-t0));            
+    xd[1]=-0.1;//+0.1*cos(2.0*M_PI*0.1*(t-t0));
+    xd[2]=+0.1;//+0.1*sin(2.0*M_PI*0.1*(t-t0));            
             
     // we keep the orientation of the left arm constant:
     // we want the middle finger to point forward (end-effector x-axis)
@@ -175,12 +181,12 @@ void handProfilerThread::threadRelease() {
     // we require an immediate stop
     // before closing the client for safety reason
     icart->stopControl();
-
     // it's a good rule to restore the controller
     // context as it was before opening the module
     icart->restoreContext(startup_context_id);
-
     client.close();   
+
+    yInfo("success in thread release");
 }
 
 void handProfilerThread::printStatus() {        

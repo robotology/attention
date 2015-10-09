@@ -38,7 +38,7 @@
 #include <cv.h>
 #include <stdio.h>
 
-class handProfilerThread : public yarp::os::RateThread{
+class handProfilerThread : public yarp::os::RateThread,  public yarp::dev::CartesianEvent{
 protected:
     int inputWidth;                // width of the input image
     int inputHeight;               // height of the input image
@@ -71,6 +71,11 @@ protected:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;     // output port to plot event
     std::string name;                                                                // rootname of all the ports opened by this thread
+
+    // the event callback attached to the "motion-ongoing"
+    virtual void cartesianEventCallback() {
+        fprintf(stdout,"20%% of trajectory attained\n");
+    }
     
 public:
     /**
@@ -92,17 +97,27 @@ public:
     /**
     *  initialises the thread
     */
-    bool threadInit();
+    virtual bool threadInit();
+    
+    
+    virtual void afterStart(bool s) {
+        if (s)
+              fprintf(stdout,"Thread started successfully\n");
+          else
+              fprintf(stdout,"Thread did not start\n");
+
+          t=t0=t1=yarp::os::Time::now();
+    }
 
     /**
     *  correctly releases the thread
     */
-    void threadRelease();
+    virtual void threadRelease();
 
     /**
     *  active part of the thread
     */
-    void run(); 
+    virtual void run(); 
 
     /**
     *  on stopping of the thread
