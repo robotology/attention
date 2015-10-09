@@ -38,6 +38,8 @@
 #include <cv.h>
 #include <stdio.h>
 
+#include <iCub/MotionProfile.h>
+
 class handProfilerThread : public yarp::os::RateThread,  public yarp::dev::CartesianEvent{
 protected:
     int inputWidth;                // width of the input image
@@ -58,7 +60,8 @@ protected:
 
     yarp::dev::PolyDriver client;
     yarp::dev::ICartesianControl *icart;
-    yarp::dev::CartesianEvent *ce; 
+    yarp::dev::CartesianEvent *ce;
+    MotionProfile *mp;               
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
@@ -99,15 +102,10 @@ public:
     */
     virtual bool threadInit();
     
-    
-    virtual void afterStart(bool s) {
-        if (s)
-              fprintf(stdout,"Thread started successfully\n");
-          else
-              fprintf(stdout,"Thread did not start\n");
-
-          t=t0=t1=yarp::os::Time::now();
-    }
+    /**
+    * function executed after start
+    */
+    virtual void afterStart(bool s);
 
     /**
     *  correctly releases the thread

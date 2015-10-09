@@ -27,6 +27,8 @@
 #define CTRL_THREAD_PER     0.02    // [s]
 #define PRINT_STATUS_PER    1.0     // [s]
 #define MAX_TORSO_PITCH     30.0    // [deg]
+#define RATETHREAD          10      // [ms]
+#define TRAJTIME            1.0     // [s]
 
 using namespace yarp::dev;
 using namespace yarp::os;
@@ -34,16 +36,16 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
-handProfilerThread::handProfilerThread(): RateThread(100) {
+handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     robot = "icub"; 
-    // we wanna raise an event each time the arm is at 20%
+    // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
     cartesianEventParameters.motionOngoingCheckPoint=0.2;       
 }
 
 
-handProfilerThread::handProfilerThread(string _robot, string _configFile): RateThread(100){
+handProfilerThread::handProfilerThread(string _robot, string _configFile): RateThread(RATETHREAD){
     robot = _robot;
     configFile = _configFile;
     // we wanna raise an event each time the arm is at 20%
@@ -111,6 +113,16 @@ bool handProfilerThread::threadInit() {
     xd.resize(3);
     od.resize(4);
 
+    mp = new MotionProfile();
+    Vector O(3); O[0] = -0.3; O[1]=-0.1; O[2]=0.1;
+    mp->setAxes(0.1, 0.1);
+    mp->setCenter(O); 
+    Vector A(3); A[0] = -0.3; A[1]=-0.1; A[2]=0.0;
+    Vector B(3); B[0] = -0.3; B[1]=-0.0; B[2]=0.1;
+    Vector C(3); C[0] = -0.3; C[1]=-0.1; C[2]=0.2; 
+    mp->setViaPoints(A, B, C);
+    
+
     yInfo("handProfiler thread correctly started");
     
     return true;
@@ -137,9 +149,8 @@ void handProfilerThread::run() {
 
     generateTarget();
 
-    // go to the target :)
-    // (in streaming)
-    icart->goToPose(xd,od);
+    // go to the target (in streaming)
+    //icart->goToPose(xd,od);
 
     // some verbosity
     printStatus();             
@@ -150,14 +161,21 @@ void handProfilerThread::generateTarget() {
     // in the yz plane centered in [-0.3,-0.1,0.1] with radius=0.1 m
     // and frequency 0.1 Hz
     xd[0]=-0.3;
-    xd[1]=-0.1;//+0.1*cos(2.0*M_PI*0.1*(t-t0));
-    xd[2]=+0.1;//+0.1*sin(2.0*M_PI*0.1*(t-t0));            
+    xd[1]=-0.1+0.1*cos(2.0*M_PI*0.1*(t-t0));
+    xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0)); 
+
+    Vector _xd = mp->compute(t, t0);
+      
+    printf("Error %f %f %f \n", xd[0] - _xd[0], xd[1] - _xd[1], xd[2] - _xd[2]);
+         
             
     // we keep the orientation of the left arm constant:
     // we want the middle finger to point forward (end-effector x-axis)
     // with the palm turned down (end-effector y-axis points leftward);
     // to achieve that it is enough to rotate the root frame of pi around z-axis
-    od[0] = 0.0; od[1] = 0.0; od[2] = 1.0; od[3] = M_PI;
+    //od[0] = 0.0; od[1] = 0.0; od[2] = 1.0; od[3] = M_PI;
+    //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
+    od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
 }
 
 void handProfilerThread::limitTorsoPitch() {
@@ -188,6 +206,16 @@ void handProfilerThread::threadRelease() {
 
     yInfo("success in thread release");
 }
+
+void handProfilerThread::afterStart(bool s) {
+    if (s)
+        yInfo("Thread started successfully");
+    else
+        yError("Thread did not start");
+
+    t=t0=t1=yarp::os::Time::now();
+}
+
 
 void handProfilerThread::printStatus() {        
     if (t-t1>=PRINT_STATUS_PER) {
