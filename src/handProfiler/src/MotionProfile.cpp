@@ -28,24 +28,24 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
+using namespace profileFactory;
 
-namespace profileFactory {
+namespace profileFactory{
 
-    MotionProfile *factoryCVMotionProfile(const Bottle &param){
-        CVMotionProfile *cvmp = new CVMotionProfile(param);
-        if(!cvmp->isValid()){
-            delete cvmp;
-            return NULL;
-        }
-        else {
-            return static_cast<MotionProfile*>(cvmp);            
-        }
+MotionProfile *factoryCVMotionProfile(/*const Bottle &param*/){
+        //CVMotionProfile *cvmp = new CVMotionProfile(param);
+        //if(!cvmp->isValid()){
+        //    delete cvmp;
+        //    return NULL;
+        //}
+        //else {
+        //    return static_cast<MotionProfile*>(cvmp);            
+        //}
     }
 }
-
 //**************************************************************************************************************
 
-MotionProfile::MotionProfile() {
+MotionProfile::MotionProfile() : valid(false), type("")  {
     A.resize(3);
     B.resize(3);
     C.resize(3);        
@@ -111,12 +111,30 @@ Vector MotionProfile::compute(double t, double t0) {
 //***********************************************************************************************************************
 
 CVMotionProfile::CVMotionProfile(){
-
+    type = "CVP";
+    valid = true;
 }
 
 CVMotionProfile::CVMotionProfile(const CVMotionProfile &cvmp){
+    valid = cvmp.valid;
+    type  = cvmp.type;
 }
 
 CVMotionProfile::CVMotionProfile(const Bottle& b) {
     yDebug("bottle:%f", b.toString().c_str());
+    valid = false;
+    if(b.size() < 5){
+        //extracing the features from the bottle
+        //((xa,ya,za) (xb,yb,zb) (xc,yc,zc) (0,0.7853,1.5707) (0.1))
+        Bottle* aVector = b.get(0).asList();
+        Bottle* bVector = b.get(1).asList();
+        Bottle* cVector = b.get(2).asList();
+        Bottle* angles  = b.get(3).asList();
+        Bottle* params  = b.get(4).asList();
+    }   
+}
+
+bool CVMotionProfile::operator==(const CVMotionProfile &cvmp)
+{
+    return ((valid==cvmp.valid)&&(type==cvmp.type));
 }

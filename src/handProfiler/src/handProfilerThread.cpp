@@ -35,6 +35,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
+using namespace profileFactory;
 
 handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     robot = "icub"; 
@@ -113,14 +114,27 @@ bool handProfilerThread::threadInit() {
     xd.resize(3);
     od.resize(4);
 
-    mp = new MotionProfile();
-    Vector O(3); O[0] = -0.3; O[1]=-0.1; O[2]=0.1;
-    mp->setAxes(0.1, 0.1);
-    mp->setCenter(O); 
-    Vector A(3); A[0] = -0.3; A[1]=-0.1; A[2]=0.0;
-    Vector B(3); B[0] = -0.3; B[1]=-0.0; B[2]=0.1;
-    Vector C(3); C[0] = -0.3; C[1]=-0.1; C[2]=0.2; 
-    mp->setViaPoints(A, B, C);
+    //mp = new CVMotionProfile();
+    //Vector O(3); O[0] = -0.3; O[1]=-0.1; O[2]=0.1;
+    //mp->setAxes(0.1, 0.1);
+    //mp->setCenter(O); 
+    //Vector A(3); A[0] = -0.3; A[1]=-0.1; A[2]=0.0;
+    //Vector B(3); B[0] = -0.3; B[1]=-0.0; B[2]=0.1;
+    //Vector C(3); C[0] = -0.3; C[1]=-0.1; C[2]=0.2; 
+    //mp->setViaPoints(A, B, C);
+
+    Bottle b;
+    //Bottle bA;
+    //bA.addDouble(-0.3);bA.addDouble(-0.1);bA.addDouble(0.0);
+    //b.addList() = bA;
+    //Bottle bB;
+    //bB.addDouble(-0.3);bB.addDouble(-0.1);bB.addDouble(0.0);
+    //b.addList() = bB;
+    //Bottle bC;
+    //bC.addDouble(-0.3);bC.addDouble(-0.1);bC.addDouble(0.0);
+    //b.addList() = bC;
+    
+    //MotionProfile* mp = factoryCVMotionProfile();
     
 
     yInfo("handProfiler thread correctly started");

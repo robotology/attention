@@ -38,6 +38,10 @@
 #include <cv.h>
 #include <stdio.h>
 
+namespace profileFactory {
+
+
+
 class MotionProfile {
 protected:
     yarp::sig::Vector O;               // vector representating the position of the center ellipse
@@ -48,6 +52,8 @@ protected:
     yarp::sig::Vector BO;              // vector from B to center of the ellipse
     yarp::sig::Vector od;              // vector representating the desired orientation for the hand
 
+    std::string type;                  // vocab representing the type
+
     int majAxis;                       // dimension of the major axis
     int minAxis;                       // dimension of the minor axis
 
@@ -56,6 +62,8 @@ protected:
     double thetaA;                     // angular position of the point A
     double thetaB;                     // angular position of the point B
     double thetaC;                     // angular position of the point C
+
+    bool valid;                        // flag indicating whether the motionProfile is valid class
 
 public:
     /**
@@ -77,7 +85,13 @@ public:
     /**
     * checks whether the parameters are valid
     */
-    bool isValid() {return true; };
+    bool isValid() const {return valid; };
+
+
+    /**
+    * function solving the operator ==
+    */  
+    virtual bool operator==(const MotionProfile& mp)=0;
 
     /**
     * function to set the three via points in 3D space
@@ -115,12 +129,13 @@ public:
     CVMotionProfile(const yarp::os::Bottle &b);
 
     CVMotionProfile &operator=(const CVMotionProfile &cvmp);
-    bool operator==(const CVMotionProfile &cvmp);    
+    bool operator==(const CVMotionProfile &cvmp);
+    bool operator==(const MotionProfile &mp) {return operator==(dynamic_cast<const CVMotionProfile&>(mp));}    
 };
 
 
 /**
-* motion profile with constant velocity
+* motion profile with minimumJerk profile
 */
 class MJMotionProfile : public MotionProfile {
 protected:
@@ -135,6 +150,10 @@ public:
     MJMotionProfile &operator=(const MJMotionProfile &mjmp);
     bool operator==(const MJMotionProfile &mjmp);    
 };
+
+
+
+}
 
 #endif  //_MOTION_PROFILE_THREAD_H_
 

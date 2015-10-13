@@ -38,6 +38,8 @@
 #include <cv.h>
 #include <stdio.h>
 
+#include <iCub/MotionProfile.h>
+
 class handProfilerThread : public yarp::os::RateThread,  public yarp::dev::CartesianEvent{
 protected:
     int inputWidth;                // width of the input image
