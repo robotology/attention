@@ -159,7 +159,7 @@ void handProfilerThread::run() {
 void handProfilerThread::generateTarget() {   
     // translational target part: a circular trajectory
     // in the yz plane centered in [-0.3,-0.1,0.1] with radius=0.1 m
-    // and frequency 0.1 Hz
+    // and frequency 0.1 Hz (1/10 of 2PI per second)
     xd[0]=-0.3;
     xd[1]=-0.1+0.1*cos(2.0*M_PI*0.1*(t-t0));
     xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0)); 

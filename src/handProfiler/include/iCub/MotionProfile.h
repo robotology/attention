@@ -39,19 +39,23 @@
 #include <stdio.h>
 
 class MotionProfile {
-private:
+protected:
     yarp::sig::Vector O;               // vector representating the position of the center ellipse
     yarp::sig::Vector A;               // vector representating the initial position for the hand
     yarp::sig::Vector B;               // vector representating the final desired position for the hand
     yarp::sig::Vector C;               // vector representating the check point of the hand
-    yarp::sig::Vector AO;              // 
-    yarp::sig::Vector BO;              // 
+    yarp::sig::Vector AO;              // vector from A to center of the ellipse
+    yarp::sig::Vector BO;              // vector from B to center of the ellipse
     yarp::sig::Vector od;              // vector representating the desired orientation for the hand
 
     int majAxis;                       // dimension of the major axis
     int minAxis;                       // dimension of the minor axis
 
     int a, b, c, d;                    // parameters of the plane 
+
+    double thetaA;                     // angular position of the point A
+    double thetaB;                     // angular position of the point B
+    double thetaC;                     // angular position of the point C
 
 public:
     /**
@@ -69,6 +73,11 @@ public:
      * destructor
      */
     ~MotionProfile();
+
+    /**
+    * checks whether the parameters are valid
+    */
+    bool isValid() {return true; };
 
     /**
     * function to set the three via points in 3D space
@@ -90,6 +99,41 @@ public:
     */  
     yarp::sig::Vector compute(double t,double t0);
     
+};
+
+/**
+* motion profile with constant velocity
+*/
+class CVMotionProfile : public MotionProfile {
+protected:
+    
+    double velocity;
+
+public:
+    CVMotionProfile();
+    CVMotionProfile(const CVMotionProfile &cvmp);
+    CVMotionProfile(const yarp::os::Bottle &b);
+
+    CVMotionProfile &operator=(const CVMotionProfile &cvmp);
+    bool operator==(const CVMotionProfile &cvmp);    
+};
+
+
+/**
+* motion profile with constant velocity
+*/
+class MJMotionProfile : public MotionProfile {
+protected:
+    
+    double timeHorizon;
+    double distance;
+
+public:
+    MJMotionProfile();    
+    MJMotionProfile(const MJMotionProfile &mjmp);
+
+    MJMotionProfile &operator=(const MJMotionProfile &mjmp);
+    bool operator==(const MJMotionProfile &mjmp);    
 };
 
 #endif  //_MOTION_PROFILE_THREAD_H_

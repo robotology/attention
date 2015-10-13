@@ -29,6 +29,22 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 
+namespace profileFactory {
+
+    MotionProfile *factoryCVMotionProfile(const Bottle &param){
+        CVMotionProfile *cvmp = new CVMotionProfile(param);
+        if(!cvmp->isValid()){
+            delete cvmp;
+            return NULL;
+        }
+        else {
+            return static_cast<MotionProfile*>(cvmp);            
+        }
+    }
+}
+
+//**************************************************************************************************************
+
 MotionProfile::MotionProfile() {
     A.resize(3);
     B.resize(3);
@@ -77,6 +93,7 @@ void MotionProfile::setAxes(double _majAxis, double _minAxis) {
 }
 
 Vector MotionProfile::compute(double t, double t0) {
+    double velocity = 0.1; //expressed in frequency [Hz], 1/10 of 2PI per second.    
     double theta =2.0 * M_PI * 0.1 * (t - t0);
     Vector xd(3);
 
@@ -91,4 +108,15 @@ Vector MotionProfile::compute(double t, double t0) {
     return xd;
 }
 
+//***********************************************************************************************************************
 
+CVMotionProfile::CVMotionProfile(){
+
+}
+
+CVMotionProfile::CVMotionProfile(const CVMotionProfile &cvmp){
+}
+
+CVMotionProfile::CVMotionProfile(const Bottle& b) {
+    yDebug("bottle:%f", b.toString().c_str());
+}
