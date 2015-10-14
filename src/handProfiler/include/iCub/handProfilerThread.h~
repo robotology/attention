@@ -61,7 +61,7 @@ protected:
     yarp::dev::PolyDriver client;
     yarp::dev::ICartesianControl *icart;
     yarp::dev::CartesianEvent *ce;
-    MotionProfile *mp;               
+    profileFactory::MotionProfile *mp;               
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set

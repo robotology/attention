@@ -48,14 +48,14 @@ protected:
     yarp::sig::Vector A;               // vector representating the initial position for the hand
     yarp::sig::Vector B;               // vector representating the final desired position for the hand
     yarp::sig::Vector C;               // vector representating the check point of the hand
-    yarp::sig::Vector AO;              // vector from A to center of the ellipse
-    yarp::sig::Vector BO;              // vector from B to center of the ellipse
+    yarp::sig::Vector AO;             // vector from A to center of the ellipse
+    yarp::sig::Vector BO;             // vector from B to center of the ellipse
     yarp::sig::Vector od;              // vector representating the desired orientation for the hand
 
     std::string type;                  // vocab representing the type
 
-    int majAxis;                       // dimension of the major axis
-    int minAxis;                       // dimension of the minor axis
+    double majAxis;                    // dimension of the major axis
+    double minAxis;                    // dimension of the minor axis
 
     int a, b, c, d;                    // parameters of the plane 
 
@@ -101,7 +101,7 @@ public:
     /**
     * function to set the three via points in 3D space
     */
-    void setViaPoints(yarp::sig::Vector A, yarp::sig::Vector B, yarp::sig::Vector C);
+    void setViaPoints(const yarp::sig::Vector A,const yarp::sig::Vector B,const yarp::sig::Vector C);
 
     /**
     * function to se the main axes of the ellipse that belong to the reference plane
@@ -127,10 +127,12 @@ public:
     CVMotionProfile();
     CVMotionProfile(const CVMotionProfile &cvmp);
     CVMotionProfile(const yarp::os::Bottle &b);
-
+  
     CVMotionProfile &operator=(const CVMotionProfile &cvmp);
     bool operator==(const CVMotionProfile &cvmp);
     bool operator==(const MotionProfile &mp) {return operator==(dynamic_cast<const CVMotionProfile&>(mp));}    
+
+    yarp::sig::Vector compute(double t, double t0);
 };
 
 

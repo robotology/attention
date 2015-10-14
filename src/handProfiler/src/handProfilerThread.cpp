@@ -37,8 +37,22 @@ using namespace yarp::math;
 using namespace std;
 using namespace profileFactory;
 
+
+MotionProfile* factoryCVMotionProfile(const Bottle &param){
+        CVMotionProfile *cvmp = new CVMotionProfile(param);
+        if(!cvmp->isValid()){
+            yError("factory ERROR");
+            delete cvmp;
+            return NULL;
+        }
+        else {
+            return static_cast<MotionProfile*>(cvmp);            
+        }
+    }
+
 handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
-    robot = "icub"; 
+    robot = "icub";
+    icart = 0; 
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -71,45 +85,47 @@ bool handProfilerThread::threadInit() {
     option.put("local","/handProfiler/left_arm");
 
     if (!client.open(option)) {
-                return false;
+                //return false;
     }
-    
-    // open the view
-    client.view(icart);
-    
-    // latch the controller context in order to preserve
-    // it after closing the module
-    // the context contains the dofs status, the tracking mode,
-    // the resting positions, the limits and so on.
-    icart->storeContext(&startup_context_id);
-    
-    // set trajectory time
-    icart->setTrajTime(1.0);
+    else {
+        yInfo("preparing the icart");
+        // open the view
+        client.view(icart);
+        
+        // latch the controller context in order to preserve
+        // it after closing the module
+        // the context contains the dofs status, the tracking mode,
+        // the resting positions, the limits and so on.
+        icart->storeContext(&startup_context_id);
+        
+        // set trajectory time
+        icart->setTrajTime(1.0);
 
-    // get the torso dofs
-    Vector newDof, curDof;
-    icart->getDOF(curDof);
-    newDof=curDof;
+        // get the torso dofs
+        Vector newDof, curDof;
+        icart->getDOF(curDof);
+        newDof=curDof;
 
-    // enable the torso yaw and pitch
-    // disable the torso roll
-    newDof[0]=1;
-    newDof[1]=0;
-    newDof[2]=1;
+        // enable the torso yaw and pitch
+        // disable the torso roll
+        newDof[0]=1;
+        newDof[1]=0;
+        newDof[2]=1;
 
-    // impose some restriction on the torso pitch
-    limitTorsoPitch();
+        // impose some restriction on the torso pitch
+        limitTorsoPitch();
 
-    // send the request for dofs reconfiguration
-    icart->setDOF(newDof,curDof);
+        // send the request for dofs reconfiguration
+        icart->setDOF(newDof,curDof);
 
-    // print out some info about the controller
-    Bottle info;
-    icart->getInfo(info);
-    fprintf(stdout,"info = %s\n",info.toString().c_str());
+        // print out some info about the controller
+        Bottle info;
+        icart->getInfo(info);
+        fprintf(stdout,"info = %s\n",info.toString().c_str());
 
-    // register the event, attaching the callback
-    icart->registerEvent(*this);
+        // register the event, attaching the callback
+        icart->registerEvent(*this);
+    }
 
     xd.resize(3);
     od.resize(4);
@@ -123,18 +139,36 @@ bool handProfilerThread::threadInit() {
     //Vector C(3); C[0] = -0.3; C[1]=-0.1; C[2]=0.2; 
     //mp->setViaPoints(A, B, C);
 
+    //O=\(-0.3, -0.1, 0.1)
     Bottle b;
-    //Bottle bA;
-    //bA.addDouble(-0.3);bA.addDouble(-0.1);bA.addDouble(0.0);
-    //b.addList() = bA;
-    //Bottle bB;
-    //bB.addDouble(-0.3);bB.addDouble(-0.1);bB.addDouble(0.0);
-    //b.addList() = bB;
-    //Bottle bC;
-    //bC.addDouble(-0.3);bC.addDouble(-0.1);bC.addDouble(0.0);
-    //b.addList() = bC;
+    Bottle bA;
+    bA.addDouble(-0.3);bA.addDouble(-0.1);bA.addDouble(0.0);
+    b.addList() = bA;
+    Bottle bB;
+    bB.addDouble(-0.3);bB.addDouble(0.0);bB.addDouble(0.1);
+    b.addList() = bB;
+    Bottle bC;
+    bC.addDouble(-0.3);bC.addDouble(-0.1);bC.addDouble(0.0);
+    b.addList() = bC;
+    Bottle bAngles;
+    bAngles.addDouble(-0.3);bAngles.addDouble(-0.1);bAngles.addDouble(0.0);
+    b.addList() = bAngles;
+    Bottle bParam;
+    bParam.addDouble(-0.3);bParam.addDouble(-0.1);bParam.addDouble(0.0);
+    b.addList() = bParam;   
+    Bottle finalB;
+    finalB.addList() = b;
+    yDebug("bottle in threadInit %s", finalB.toString().c_str());
     
-    //MotionProfile* mp = factoryCVMotionProfile();
+    mp = factoryCVMotionProfile(finalB);
+    if(mp==NULL){
+        yError("Error: mp NULL!");  
+        return false;          
+    }
+    else {
+        Vector _xd = mp->compute(t, t0);
+        printf("Error %f %f %f \n", _xd[0], _xd[1], _xd[2]);   
+    }
     
 
     yInfo("handProfiler thread correctly started");
@@ -158,7 +192,9 @@ void handProfilerThread::setInputPortName(string InpPort) {
 
 }
 
-void handProfilerThread::run() {    
+void handProfilerThread::run() {
+    yDebug("Run");    
+        
     t=Time::now();
 
     generateTarget();
@@ -167,7 +203,7 @@ void handProfilerThread::run() {
     //icart->goToPose(xd,od);
 
     // some verbosity
-    printStatus();             
+    //printStatus();             
 }
 
 void handProfilerThread::generateTarget() {   
@@ -212,11 +248,14 @@ void handProfilerThread::processing() {
 void handProfilerThread::threadRelease() {
     // we require an immediate stop
     // before closing the client for safety reason
-    icart->stopControl();
-    // it's a good rule to restore the controller
-    // context as it was before opening the module
-    icart->restoreContext(startup_context_id);
-    client.close();   
+    if(false) {
+        yInfo("Stopping the icart");
+        icart->stopControl();
+        // it's a good rule to restore the controller
+        // context as it was before opening the module
+        icart->restoreContext(startup_context_id);
+        client.close();   
+    }
 
     yInfo("success in thread release");
 }
