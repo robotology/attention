@@ -42,6 +42,10 @@
 
 class handProfilerThread : public yarp::os::RateThread,  public yarp::dev::CartesianEvent{
 protected:
+    
+    static yarp::sig::Vector xZero;  
+
+    int count;                     // counter for execution cycles
     int inputWidth;                // width of the input image
     int inputHeight;               // height of the input image
     int outputWidth;               // width of the output image
@@ -53,8 +57,13 @@ protected:
     double timeStart;              //
     double t;
     double t0;
-    double t1;  
-
+    double t1;
+    
+    bool firstIteration;           // flag indicating the first iteration  
+    bool idle;                     // flag indicating if the thread is in idle
+    bool simulation;               // flag indicating whether the movement is simulation or executed
+    
+    
     yarp::sig::Vector xd;          // vector representating the desired position for the hand
     yarp::sig::Vector od;          // vector representating the desired orientation for the hand
 
@@ -72,8 +81,8 @@ protected:
 
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;     // output port to plot event
-    std::string name;                                                                // rootname of all the ports opened by this thread
+    yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
+    std::string name;                                                                   // rootname of all the ports opened by this thread
 
     // the event callback attached to the "motion-ongoing"
     virtual void cartesianEventCallback() {
@@ -147,6 +156,30 @@ public:
         outputWidth  = width;
         outputHeight = height;
     }
+  
+    /**
+    * function that generates the motionProfile
+    * @param b bottle containing the necessary information for the profile
+    */
+    bool factory(const yarp::os::Bottle b);
+
+    /**
+    *   function that reset the execution
+    */
+    bool resetExecution();
+
+    /**
+    *  function that start the execution from A->B->C
+    *  @param reverse indicates whether ther execution is reverse C->B->A
+    */
+    bool startExecution(const bool reverse);
+
+    /**
+    *  function that start the execution from A->B->C
+    *  @param reverse indicates whether the simulation is reverse C->B->A
+    */
+    bool startSimulation(const bool reverse);
+    
 
     /**
      * function that perfoms downsampling (if necessary)
@@ -162,6 +195,11 @@ public:
     * generate the target position in space   
     */
     void generateTarget();
+
+    /**
+    * function that shows the target in time in the iCubGui
+    */
+    void displayTarget();
 
     /**
     * function that prints out the status of the performer.

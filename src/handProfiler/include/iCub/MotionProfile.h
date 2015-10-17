@@ -37,10 +37,10 @@
 #include <time.h>
 #include <cv.h>
 #include <stdio.h>
+//#include <cmath>
+#include <math.h>
 
 namespace profileFactory {
-
-
 
 class MotionProfile {
 protected:
@@ -48,9 +48,10 @@ protected:
     yarp::sig::Vector A;               // vector representating the initial position for the hand
     yarp::sig::Vector B;               // vector representating the final desired position for the hand
     yarp::sig::Vector C;               // vector representating the check point of the hand
-    yarp::sig::Vector AO;             // vector from A to center of the ellipse
-    yarp::sig::Vector BO;             // vector from B to center of the ellipse
-    yarp::sig::Vector od;              // vector representating the desired orientation for the hand
+    yarp::sig::Vector AO;              // vector from A to center of the ellipse
+    yarp::sig::Vector BO;              // vector from B to center of the ellipse
+    yarp::sig::Vector od;              // vector representing the desired orientation of the hand
+    yarp::sig::Vector* xd;             // vector representing the desired position of the hand
 
     std::string type;                  // vocab representing the type
 
@@ -87,11 +88,18 @@ public:
     */
     bool isValid() const {return valid; };
 
-
     /**
     * function solving the operator ==
     */  
     virtual bool operator==(const MotionProfile& mp)=0;
+
+    /**
+    * function that sets where the action should start and stop
+    * @param thetaA angle of the starting point (in rad)
+    * @param thetaB angle of the viapoint (in rad)
+    * @param thataC angle of the stop point (in rad)
+    */   
+    void setStartStop(const double thetaA, const double thetaB, const double thetaC);
 
     /**
     * function to set the three via points in 3D space
@@ -106,12 +114,25 @@ public:
     /**
     * function to se the main axes of the ellipse that belong to the reference plane
     */
-    void setAxes(double majAxis, double minAxis);
+    void setAxes(const double majAxis,const double minAxis);
+
+    /**
+    * function that computes the angular velocity given desired tang.Velocity, minAxis and majAxis
+    */
+    double computeAngVelocity();
+
+    /**
+    * function that computed the radius in ellipse give a theta angle
+    * @param theta angle at which the radius is computed [rad]
+    * @return radius of the ellipse/circle at a given angle theta
+    */
+    double computeRadius(const double theta);
 
     /**
     * vector returning the 3D location at the instant t 
+    * @return the pointer to the desired position of the hand
     */  
-    yarp::sig::Vector compute(double t,double t0);
+    virtual yarp::sig::Vector* compute(double t,double t0) = 0;
     
 };
 
@@ -121,10 +142,12 @@ public:
 class CVMotionProfile : public MotionProfile {
 protected:
     
-    double velocity;
+    double velocity;          // desired tangential velocity
+    double angVelocity;       // computed angular velocity
 
 public:
     CVMotionProfile();
+    ~CVMotionProfile();
     CVMotionProfile(const CVMotionProfile &cvmp);
     CVMotionProfile(const yarp::os::Bottle &b);
   
@@ -132,7 +155,12 @@ public:
     bool operator==(const CVMotionProfile &cvmp);
     bool operator==(const MotionProfile &mp) {return operator==(dynamic_cast<const CVMotionProfile&>(mp));}    
 
-    yarp::sig::Vector compute(double t, double t0);
+    /**
+    * function that sets the desired tangential velocity of the endEffector
+    */
+    void setVelocity(const double vel) {velocity = vel;};	
+    yarp::sig::Vector* compute(double t, double t0);
+    double computeRadius(const double theta);
 };
 
 
@@ -146,7 +174,8 @@ protected:
     double distance;
 
 public:
-    MJMotionProfile();    
+    MJMotionProfile();
+    ~MJMotionProfile(){};        
     MJMotionProfile(const MJMotionProfile &mjmp);
 
     MJMotionProfile &operator=(const MJMotionProfile &mjmp);
@@ -154,9 +183,33 @@ public:
 };
 
 
+/**
+* motion profile respecting the 2/3 power law
+*/
+class TTPLMotionProfile : public MotionProfile {
+protected:
+    
+    double gain;
+    double beta;
+
+public:
+    TTPLMotionProfile();
+    ~TTPLMotionProfile();        
+    TTPLMotionProfile(const TTPLMotionProfile &ttplmp);
+    TTPLMotionProfile(const yarp::os::Bottle &b);
+
+    TTPLMotionProfile &operator=(const MJMotionProfile &ttplmp);
+    bool operator==(const TTPLMotionProfile &ttplmp);    
+
+    void setGain(const double _gain) { gain = _gain; };
+    void setBeta(const double _beta) { beta = _beta; };
+    double computeTangVelocity(const double theta);
+    yarp::sig::Vector* compute(double t, double t0);
+};
+
+
 
 }
-
 #endif  //_MOTION_PROFILE_THREAD_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------

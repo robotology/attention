@@ -37,7 +37,6 @@ using namespace yarp::math;
 using namespace std;
 using namespace profileFactory;
 
-
 MotionProfile* factoryCVMotionProfile(const Bottle &param){
         CVMotionProfile *cvmp = new CVMotionProfile(param);
         if(!cvmp->isValid()){
@@ -52,7 +51,11 @@ MotionProfile* factoryCVMotionProfile(const Bottle &param){
 
 handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     robot = "icub";
-    icart = 0; 
+    icart = 0;
+    count = 0;
+    firstIteration = true; 
+    idle = true;
+    simulation = true;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -63,6 +66,11 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
 handProfilerThread::handProfilerThread(string _robot, string _configFile): RateThread(RATETHREAD){
     robot = _robot;
     configFile = _configFile;
+    icart = 0;
+    count = 0;    
+    firstIteration = true;
+    idle = true;
+    simulation = true;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -127,6 +135,15 @@ bool handProfilerThread::threadInit() {
         icart->registerEvent(*this);
     }
 
+    string rootNameGui("");
+    rootNameGui.append(getName("/gui:o"));
+    if(!guiPort.open(rootNameGui.c_str())) {
+          yError("guiPort is not open with success. Check for conflicts");
+    }
+    
+
+    /* initialization of the thread */
+        
     xd.resize(3);
     od.resize(4);
 
@@ -139,38 +156,41 @@ bool handProfilerThread::threadInit() {
     //Vector C(3); C[0] = -0.3; C[1]=-0.1; C[2]=0.2; 
     //mp->setViaPoints(A, B, C);
 
-    //O=\(-0.3, -0.1, 0.1)
+
+    /*
+    //O=(-0.3, -0.1, 0.1)
     Bottle b;
     Bottle bA;
-    bA.addDouble(-0.3);bA.addDouble(-0.1);bA.addDouble(0.0);
+    bA.addDouble(-0.3);bA.addDouble(0.0);bA.addDouble(0.1);
     b.addList() = bA;
     Bottle bB;
-    bB.addDouble(-0.3);bB.addDouble(0.0);bB.addDouble(0.1);
+    bB.addDouble(-0.3);bB.addDouble(-0.1);bB.addDouble(0.2);
     b.addList() = bB;
     Bottle bC;
     bC.addDouble(-0.3);bC.addDouble(-0.1);bC.addDouble(0.0);
     b.addList() = bC;
     Bottle bAngles;
-    bAngles.addDouble(-0.3);bAngles.addDouble(-0.1);bAngles.addDouble(0.0);
+    bAngles.addDouble(0.0);bAngles.addDouble(1.5708);bAngles.addDouble(3.1416);
     b.addList() = bAngles;
     Bottle bParam;
-    bParam.addDouble(-0.3);bParam.addDouble(-0.1);bParam.addDouble(0.0);
+    bParam.addDouble(0.1);bParam.addDouble(0.1);;
     b.addList() = bParam;   
     Bottle finalB;
     finalB.addList() = b;
     yDebug("bottle in threadInit %s", finalB.toString().c_str());
     
     mp = factoryCVMotionProfile(finalB);
-    if(mp==NULL){
-        yError("Error: mp NULL!");  
-        return false;          
-    }
-    else {
-        Vector _xd = mp->compute(t, t0);
-        printf("Error %f %f %f \n", _xd[0], _xd[1], _xd[2]);   
-    }
+    //if(mp==NULL){
+    //    yError("Error: mp NULL!");  
+    //    return false;          
+    //}
+    //else {
+    //    Vector _xd = mp->compute(t, t0);
+    //    printf("Error %f %f %f \n", _xd[0], _xd[1], _xd[2]);   
+    //}
+    */
     
-
+    t0 = Time::now();
     yInfo("handProfiler thread correctly started");
     
     return true;
@@ -189,24 +209,97 @@ std::string handProfilerThread::getName(const char* p) {
 }
 
 void handProfilerThread::setInputPortName(string InpPort) {
+    
+}
 
+bool handProfilerThread::resetExecution(){
+    this->suspend();    
+    Vector xZero(3);
+    xZero[0] = -0.3; xZero[1] = -0.1; xZero[2] = 0.1;
+    if(0 != icart) icart->goToPose(xZero,od);
+    firstIteration = true;
+    this->resume();
+}
+
+bool handProfilerThread::startExecution(const bool reverse){
+    count = 0;    
+    idle = false;
+    simulation = false;
+    t0 = Time::now();
+}
+
+bool handProfilerThread::startSimulation(const bool reverse){
+    count = 0;    
+    idle = false;
+    simulation = true;
+    t0 = Time::now();
+}
+
+bool handProfilerThread::factory(const Bottle finalB){
+    /*    
+    yDebug("handProfilerThread::factory");
+    Bottle b;
+    Bottle bA;
+    bA.addDouble(-0.3);bA.addDouble(0.0);bA.addDouble(0.1);
+    b.addList() = bA;
+    Bottle bB;
+    bB.addDouble(-0.3);bB.addDouble(-0.1);bB.addDouble(0.2);
+    b.addList() = bB;
+    Bottle bC;
+    bC.addDouble(-0.3);bC.addDouble(-0.1);bC.addDouble(0.0);
+    b.addList() = bC;
+    Bottle bAngles;
+    bAngles.addDouble(0.0);bAngles.addDouble(1.5708);bAngles.addDouble(3.1416);
+    b.addList() = bAngles;
+    Bottle bParam;
+    bParam.addDouble(0.1);bParam.addDouble(0.1);;
+    b.addList() = bParam;   
+    Bottle finalB;
+    finalB.addList() = b;
+    yDebug("bottle in threadInit %s", finalB.toString().c_str());
+    */
+    
+    mp = factoryCVMotionProfile(finalB);
+    yDebug("returned from factory");
+    if (mp == NULL){
+        yError("factory returned error");
+        return false;    
+    }  
+
+    resetExecution();
+  
+    return true;    
 }
 
 void handProfilerThread::run() {
-    yDebug("Run");    
+    
+    if(!idle) {
+        count++;
+        if (firstIteration) {  
+            t = t0;
+            firstIteration = false;
+        }
+        else {
+            t=Time::now();
+        }
+
+        if(generateTarget()) {
+            
+    
+            // go to the target (in streaming)
+            //if(!simulation) {
+            //icart->goToPose(xd,od);
+            //}
+            
+            displayTarget();
         
-    t=Time::now();
-
-    generateTarget();
-
-    // go to the target (in streaming)
-    //icart->goToPose(xd,od);
-
-    // some verbosity
-    //printStatus();             
+            // some verbosity
+            //printStatus();      
+        }       
+    }
 }
 
-void handProfilerThread::generateTarget() {   
+bool handProfilerThread::generateTarget() {   
     // translational target part: a circular trajectory
     // in the yz plane centered in [-0.3,-0.1,0.1] with radius=0.1 m
     // and frequency 0.1 Hz (1/10 of 2PI per second)
@@ -214,9 +307,17 @@ void handProfilerThread::generateTarget() {
     xd[1]=-0.1+0.1*cos(2.0*M_PI*0.1*(t-t0));
     xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0)); 
 
-    Vector _xd = mp->compute(t, t0);
-      
-    printf("Error %f %f %f \n", xd[0] - _xd[0], xd[1] - _xd[1], xd[2] - _xd[2]);
+    Vector* _xdpointer = mp->compute(t, t0);
+    //Vector _xd;
+    if(_xdpointer == NULL) {
+        //yInfo("STOP");
+        //_xd.resize(3);
+        //_xd[0] = 0.0; _xd[1] = 0.0; _xd[2] = 0.0;
+        return false;
+    }
+ 
+    xd = *_xdpointer;
+    //printf("Error %f %f %f \n", xd[0] -_xd[0], xd[1] - _xd[1], xd[2] - _xd[2]);
          
             
     // we keep the orientation of the left arm constant:
@@ -226,6 +327,7 @@ void handProfilerThread::generateTarget() {
     //od[0] = 0.0; od[1] = 0.0; od[2] = 1.0; od[3] = M_PI;
     //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
     od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
+    return true;
 }
 
 void handProfilerThread::limitTorsoPitch() {
@@ -256,6 +358,9 @@ void handProfilerThread::threadRelease() {
         icart->restoreContext(startup_context_id);
         client.close();   
     }
+    
+    guiPort.interrupt();
+    guiPort.close();
 
     yInfo("success in thread release");
 }
@@ -269,6 +374,47 @@ void handProfilerThread::afterStart(bool s) {
     t=t0=t1=yarp::os::Time::now();
 }
 
+void handProfilerThread::displayTarget() { 
+    int r, g, b;
+    if(simulation) {
+        r =255; g =255; b = 0;        
+    }
+    else {
+        r = 0; g =255; b =0;
+    }
+    
+    if (guiPort.getOutputCount()) {
+        Bottle& obj = guiPort.prepare();
+        obj.clear();   
+        obj.addString("object"); // command to add/update an object
+        string str("");    
+        sprintf((char*)str.c_str(),"%d",count);    
+        yInfo("displaying %s", str.c_str());
+        obj.addString(str.c_str());
+        // object dimensions in millimiters
+        // (it will be displayed as an ellipsoid with the tag "my_object_name")
+        obj.addDouble(5);
+        obj.addDouble(5);
+        obj.addDouble(5);
+        // object position in millimiters
+        // reference frame: X=fwd, Y=left, Z=up
+        obj.addDouble(xd[0] * 1000);
+        obj.addDouble(xd[1] * 1000);
+        obj.addDouble(xd[2] * 1000);
+        // object orientation (roll, pitch, yaw) in degrees
+        obj.addDouble(0.0);
+        obj.addDouble(0.0);
+        obj.addDouble(0.0);
+        // object color (0-255)
+        obj.addInt(r);
+        obj.addInt(g);
+        obj.addInt(b);
+        // transparency (0.0=invisible 1.0=solid)
+        obj.addDouble(1.0);
+
+        guiPort.writeStrict();
+    }    
+}
 
 void handProfilerThread::printStatus() {        
     if (t-t1>=PRINT_STATUS_PER) {
