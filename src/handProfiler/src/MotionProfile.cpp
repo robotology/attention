@@ -362,21 +362,33 @@ bool TTPLMotionProfile::operator==(const TTPLMotionProfile &ttplmp)
     return ((valid==ttplmp.valid)&&(type==ttplmp.type));
 }
 
-double TTPLMotionProfile::computeTangVelocity(const double theta) {
+double TTPLMotionProfile::computeTangVelocity() {
     double reBeta = -1 * beta;
-    double curvature = 1 / computeRadius(theta);
+    double curvature = 1 / radius;
     double vel = gain * pow(curvature, reBeta);
     return vel;
 }
 
+
 Vector* TTPLMotionProfile::compute(double t, double t0) {
     //double velocity  = 0.1; 
+    double theta;
+
+    if(t-t0 == 0) {
+        theta = 0;
+    }
+    else {
+        theta =  thetaPrev + angVelocity * (t - t0);
+    }
+
     //velocity expressed in frequency [Hz],
     //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
     //e.g.: 0.2 => 1/20 of 2PI per second; 2PI in 20sec         
-    double angVelocity = 0.1;
-    double theta = 2.0 * M_PI * angVelocity * (t - t0);
-    double velocity = computeTangVelocity(theta);
+    //double angVelocity = 0.1;
+    //double theta = 2.0 * M_PI * angVelocity * (t - t0);
+    radius          = computeRadius(theta);
+    tanVelocity     = computeTangVelocity();
+    angVelocity     = computeAngVelocity();
     yInfo("theta angle [rad] %f in %f", theta, t-t0);
     
     Vector xdes = *xd;
@@ -388,7 +400,7 @@ Vector* TTPLMotionProfile::compute(double t, double t0) {
     //xd[2]=+0.1+0.1*sin(theta); 
 
     if(theta == 0) {
-        yInfo("theta=0 check");
+        yInfo("theta = 0 check");
         (*xd)[0]=O[0] + majAxis * cos(theta) * AO[0] + minAxis * sin(theta) * BO[0];
         (*xd)[1]=O[1] + majAxis * cos(theta) * AO[1] + minAxis * sin(theta) * BO[1];
         (*xd)[2]=O[2] + majAxis * cos(theta) * AO[2] + minAxis * sin(theta) * BO[2]; 

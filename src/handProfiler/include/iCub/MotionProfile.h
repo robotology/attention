@@ -191,6 +191,11 @@ protected:
     
     double gain;
     double beta;
+    double radius;           // radius of the ellipse function of the angle theta, a, b;
+    double tanVelocity;      // tangential velocity function of curvature, gain and beta
+    double angVelocity;      // angular velocity in rad/s
+    double theta;            // angle in rad
+    double thetaPrev;        // previous angle in rad
 
 public:
     TTPLMotionProfile();
@@ -203,7 +208,7 @@ public:
 
     void setGain(const double _gain) { gain = _gain; };
     void setBeta(const double _beta) { beta = _beta; };
-    double computeTangVelocity(const double theta);
+    double computeTangVelocity();
     yarp::sig::Vector* compute(double t, double t0);
 };
 
