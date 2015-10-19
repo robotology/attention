@@ -55,14 +55,20 @@ protected:
 
     std::string type;                  // vocab representing the type
 
-    double majAxis;                    // dimension of the major axis
-    double minAxis;                    // dimension of the minor axis
+    double xAxis;                      // dimension of the major axis
+    double yAxis;                      // dimension of the minor axis
 
     int a, b, c, d;                    // parameters of the plane 
 
+    double tprev;                      // time at the previous incremental step    
+    double radius;                     // radius of the ellipse function of the angle theta, a, b;    
     double thetaA;                     // angular position of the point A
     double thetaB;                     // angular position of the point B
     double thetaC;                     // angular position of the point C
+    double angVelocity;                // angular velocity in rad/s
+    double theta;                      // angle in rad
+    double thetaPrev;                  // previous angle in rad
+    double tanVelocity;                // tangential velocity function of curvature, gain and beta
 
     bool valid;                        // flag indicating whether the motionProfile is valid class
 
@@ -114,12 +120,12 @@ public:
     /**
     * function to se the main axes of the ellipse that belong to the reference plane
     */
-    void setAxes(const double majAxis,const double minAxis);
+    void setAxes(const double xAxis,const double yAxis);
 
     /**
-    * function that computes the angular velocity given desired tang.Velocity, minAxis and majAxis
+    * function that computes the angular velocity given desired tang.Velocity, xAxis and yAxis
     */
-    double computeAngVelocity();
+    double computeAngVelocity(const double theta);
 
     /**
     * function that computed the radius in ellipse give a theta angle
@@ -142,8 +148,7 @@ public:
 class CVMotionProfile : public MotionProfile {
 protected:
     
-    double velocity;          // desired tangential velocity
-    double angVelocity;       // computed angular velocity
+    //double velocity;          // desired tangential velocity
 
 public:
     CVMotionProfile();
@@ -158,9 +163,9 @@ public:
     /**
     * function that sets the desired tangential velocity of the endEffector
     */
-    void setVelocity(const double vel) {velocity = vel;};	
+    void setVelocity(const double vel) {tanVelocity = vel;};	
     yarp::sig::Vector* compute(double t, double t0);
-    double computeRadius(const double theta);
+    //double computeRadius(const double theta);
 };
 
 
@@ -191,11 +196,6 @@ protected:
     
     double gain;
     double beta;
-    double radius;           // radius of the ellipse function of the angle theta, a, b;
-    double tanVelocity;      // tangential velocity function of curvature, gain and beta
-    double angVelocity;      // angular velocity in rad/s
-    double theta;            // angle in rad
-    double thetaPrev;        // previous angle in rad
 
 public:
     TTPLMotionProfile();
@@ -204,7 +204,8 @@ public:
     TTPLMotionProfile(const yarp::os::Bottle &b);
 
     TTPLMotionProfile &operator=(const MJMotionProfile &ttplmp);
-    bool operator==(const TTPLMotionProfile &ttplmp);    
+    bool operator==(const TTPLMotionProfile &ttplmp);
+    bool operator==(const MotionProfile &mp) {return operator==(dynamic_cast<const TTPLMotionProfile&>(mp));}        
 
     void setGain(const double _gain) { gain = _gain; };
     void setBeta(const double _beta) { beta = _beta; };

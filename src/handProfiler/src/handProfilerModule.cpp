@@ -34,19 +34,19 @@
 #define COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
 #define COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
 #define COMMAND_VOCAB_MINJ   VOCAB4('m','i','n','j')       
-#define COMMAND_VOCAB_TTPL   VOCAB4('t','t','p','l')      
+#define COMMAND_VOCAB_TTPL   VOCAB4('T','T','P','L')      
 #define COMMAND_VOCAB_MANY   VOCAB4('m','a','n','y') 
-#define COMMAND_VOCAB_STAR   VOCAB4('s','t','a','r')
+#define COMMAND_VOCAB_STAR   VOCAB4('S','T','A','R')
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
 #define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
 #define COMMAND_VOCAB_MBA    VOCAB3('m','B','A')           // minimum dimension of the bounding area
 #define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
 #define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
-#define COMMAND_VOCAB_GEN    VOCAB3('g','e','n')
-#define COMMAND_VOCAB_CON    VOCAB3('c','o','n')
-#define COMMAND_VOCAB_SIM    VOCAB3('s','i','m')
-#define COMMAND_VOCAB_EXE    VOCAB3('e','x','e')
+#define COMMAND_VOCAB_GEN    VOCAB3('G','E','N')
+#define COMMAND_VOCAB_CON    VOCAB3('C','V','P')
+#define COMMAND_VOCAB_SIM    VOCAB3('S','I','M')
+#define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
 
 
 using namespace yarp::os;
@@ -186,6 +186,16 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("get Mdb : get maximum dimension allowed for blobs");
             reply.addString("get mdb : get minimum dimension allowed for blobs");
             reply.addString("get mBA : get the minimum bounding area");
+
+            reply.addString("GENERATE PROFILES");
+            reply.addString("GEN CVP  : generate constant velocity profile");
+            reply.addString("GEN MJP  : generate minimum jerk profile");
+            reply.addString("GEN TTPL : generate two-third power law profile");
+
+            reply.addString("START simulation and execute");
+            reply.addString("STAR SIM : start simulation (yellow)");
+            reply.addString("STAR EXE : start execution (green)");
+
             ok = true;
         }
         break;
@@ -337,12 +347,12 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                         finalB.addList() = b;
                         */
     
-                        //gen con (((-0.3 -0.0 0.1) (-0.3 -0.1 0.2) (-0.3 -0.1 0.0) (0.0 1.57 4.71) (0.1 0.1)))
+                        //GEN CVP (((-0.3 -0.0 0.1) (-0.3 -0.1 0.2) (-0.3 -0.1 0.0) (0.0 1.57 4.71) (0.1 0.1)))
 
                         if(command.size() == 3) {                        
                             Bottle* finalB = command.get(2).asList();                        
                             yDebug("bottle in threadInit %s", finalB->toString().c_str());                                     
-                            if(rThread->factory(*finalB)) {
+                            if(rThread->factory("CVP", *finalB)) {
                                 yInfo("factory:constant");                           
                                 //reply.addString("OK");
                                 ok = true;
@@ -357,7 +367,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     reply.addString("minJerk"); 
                     if(0!=rThread){
                         Bottle finalB;                  
-                        if(rThread->factory(finalB)) {
+                        if(rThread->factory("MJP",finalB)) {
                             yInfo("factory:minJerk");
                             reply.addInt(1);
                             ok = true;
@@ -367,12 +377,19 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 break;
             case COMMAND_VOCAB_TTPL:
                 {
-                    int redValue,greenValue, blueValue;
-
-                    reply.addInt(redValue);
-                    reply.addInt(greenValue);
-                    reply.addInt(blueValue);
-                    ok = true;
+                    rec = true;                
+                    reply.addString("twoThirdPowerLaw"); 
+                    if(0!=rThread){
+                        //GEN TTPL (((-0.3 -0.0 0.1) (-0.3 -0.1 0.2) (-0.3 -0.1 0.0) (0.0 1.57 4.71) (0.1 0.1)))
+                        if(command.size() == 3) {                        
+                            Bottle* finalB = command.get(2).asList();                        
+                            yDebug("bottle in threadInit %s", finalB->toString().c_str());                                     
+                            if(rThread->factory("TTPL", *finalB)) {
+                                yInfo("factory:ttpl");                           
+                                ok = true;
+                            }
+                        }
+                    }
                 }
                 break;
             

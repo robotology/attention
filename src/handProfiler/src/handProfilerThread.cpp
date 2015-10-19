@@ -38,16 +38,30 @@ using namespace std;
 using namespace profileFactory;
 
 MotionProfile* factoryCVMotionProfile(const Bottle &param){
-        CVMotionProfile *cvmp = new CVMotionProfile(param);
-        if(!cvmp->isValid()){
-            yError("factory ERROR");
-            delete cvmp;
-            return NULL;
-        }
-        else {
-            return static_cast<MotionProfile*>(cvmp);            
-        }
+    CVMotionProfile *cvmp = new CVMotionProfile(param);
+    if(!cvmp->isValid()){
+        yError("factory ERROR");
+        delete cvmp;
+        return NULL;
     }
+    else {
+        return static_cast<MotionProfile*>(cvmp);            
+    }
+}
+
+MotionProfile* factoryTTPLMotionProfile(const Bottle &param){
+    TTPLMotionProfile *ttplmp = new TTPLMotionProfile(param);
+    if(!ttplmp->isValid()){
+        yError("factory ERROR");
+        delete ttplmp;
+        return NULL;
+    }
+    else {
+        return static_cast<MotionProfile*>(ttplmp);            
+    }
+}
+
+//*************************************************************************************************//
 
 handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     robot = "icub";
@@ -235,7 +249,7 @@ bool handProfilerThread::startSimulation(const bool reverse){
     t0 = Time::now();
 }
 
-bool handProfilerThread::factory(const Bottle finalB){
+bool handProfilerThread::factory(const string type, const Bottle finalB){
     /*    
     yDebug("handProfilerThread::factory");
     Bottle b;
@@ -259,15 +273,29 @@ bool handProfilerThread::factory(const Bottle finalB){
     yDebug("bottle in threadInit %s", finalB.toString().c_str());
     */
     
-    mp = factoryCVMotionProfile(finalB);
-    yDebug("returned from factory");
-    if (mp == NULL){
-        yError("factory returned error");
-        return false;    
-    }  
+    if (!strcmp(type.c_str(),"CVP")) {   
+        mp = factoryCVMotionProfile(finalB);
+        yDebug("returned from factory");
+        if (mp == NULL){
+            yError("factory returned error");
+            return false;    
+
+        }  
+    }
+    else if(!strcmp(type.c_str(),"TTPL")) {   
+        mp = factoryTTPLMotionProfile(finalB);
+        yDebug("returned from factory");
+        if (mp == NULL){
+            yError("factory returned error");
+            return false;    
+        }  
+    }
+    else{
+        yError("Error.Type is unknown.");
+        return false;
+    }
 
     resetExecution();
-  
     return true;    
 }
 

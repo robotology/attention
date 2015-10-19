@@ -161,7 +161,7 @@ public:
     * function that generates the motionProfile
     * @param b bottle containing the necessary information for the profile
     */
-    bool factory(const yarp::os::Bottle b);
+    bool factory(const string type, const yarp::os::Bottle b);
 
     /**
     *   function that reset the execution
@@ -193,8 +193,9 @@ public:
 
     /**
     * generate the target position in space   
+    * @return true/false if newtarget/notarget
     */
-    void generateTarget();
+    bool generateTarget();
 
     /**
     * function that shows the target in time in the iCubGui

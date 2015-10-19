@@ -161,7 +161,7 @@ public:
     * function that generates the motionProfile
     * @param b bottle containing the necessary information for the profile
     */
-    bool factory(const yarp::os::Bottle b);
+    bool factory(const std::string type, const yarp::os::Bottle b);
 
     /**
     *   function that reset the execution
