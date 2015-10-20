@@ -51,6 +51,7 @@ protected:
     yarp::sig::Vector AO;              // vector from A to center of the ellipse
     yarp::sig::Vector BO;              // vector from B to center of the ellipse
     yarp::sig::Vector od;              // vector representing the desired orientation of the hand
+    yarp::sig::Vector xPrev;           // vector representing the position at the previous step
     yarp::sig::Vector* xd;             // vector representing the desired position of the hand
 
     std::string type;                  // vocab representing the type
@@ -62,6 +63,8 @@ protected:
 
     double tprev;                      // time at the previous incremental step    
     double radius;                     // radius of the ellipse function of the angle theta, a, b;    
+    double r,r2,r3;                    // computation variables
+    double radiusPrev;                 // radius at the previous incremental step
     double thetaA;                     // angular position of the point A
     double thetaB;                     // angular position of the point B
     double thetaC;                     // angular position of the point C
@@ -69,6 +72,7 @@ protected:
     double theta;                      // angle in rad
     double thetaPrev;                  // previous angle in rad
     double tanVelocity;                // tangential velocity function of curvature, gain and beta
+    double subA2B2;                    // variable needs for the computation of tang. and ang.Velocity
 
     bool valid;                        // flag indicating whether the motionProfile is valid class
 
@@ -126,6 +130,11 @@ public:
     * function that computes the angular velocity given desired tang.Velocity, xAxis and yAxis
     */
     double computeAngVelocity(const double theta);
+    
+    /**
+    * function that computes the tangential velocity given desired ang.Velocity, xAxis and yAxis
+    */
+    double checkTanVelocity(const double theta);
 
     /**
     * function that computed the radius in ellipse give a theta angle
@@ -133,6 +142,11 @@ public:
     * @return radius of the ellipse/circle at a given angle theta
     */
     double computeRadius(const double theta);
+
+    /**
+    * function preparing the relevant set of variable used in the computation
+    */
+    virtual void preComputation(const double theta) = 0;
 
     /**
     * vector returning the 3D location at the instant t 
@@ -163,9 +177,9 @@ public:
     /**
     * function that sets the desired tangential velocity of the endEffector
     */
-    void setVelocity(const double vel) {tanVelocity = vel;};	
+    void setVelocity(const double vel) {tanVelocity = vel;};
+    void preComputation(const double theta);	
     yarp::sig::Vector* compute(double t, double t0);
-    //double computeRadius(const double theta);
 };
 
 
@@ -207,9 +221,20 @@ public:
     bool operator==(const TTPLMotionProfile &ttplmp);
     bool operator==(const MotionProfile &mp) {return operator==(dynamic_cast<const TTPLMotionProfile&>(mp));}        
 
+    /**
+    * function that sets the gain parameter of the 2/3 power law
+    */
     void setGain(const double _gain) { gain = _gain; };
+    /**
+    * function that set the gain parameter of the 2/3 power law 
+    */
     void setBeta(const double _beta) { beta = _beta; };
+    /**
+    * function that computes the tangVelocity related to the 2/3 power law  
+    */
     double computeTangVelocity();
+
+    void preComputation(const double theta);
     yarp::sig::Vector* compute(double t, double t0);
 };
 

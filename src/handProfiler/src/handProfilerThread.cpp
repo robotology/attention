@@ -51,9 +51,14 @@ MotionProfile* factoryCVMotionProfile(const Bottle &param){
 
 MotionProfile* factoryTTPLMotionProfile(const Bottle &param){
     TTPLMotionProfile *ttplmp = new TTPLMotionProfile(param);
+    if(ttplmp==NULL){
+        yError("factory ERROR: NULL pointer");
+        return NULL;
+    }
     if(!ttplmp->isValid()){
-        yError("factory ERROR");
-        delete ttplmp;
+        yError("factory ERROR: not valid profile");
+        //delete ttplmp;
+        yDebug("deleting the invalid profile");
         return NULL;
     }
     else {
@@ -227,18 +232,19 @@ void handProfilerThread::setInputPortName(string InpPort) {
 }
 
 bool handProfilerThread::resetExecution(){
-    this->suspend();    
+    //this->suspend();    
     Vector xZero(3);
     xZero[0] = -0.3; xZero[1] = -0.1; xZero[2] = 0.1;
     if(0 != icart) icart->goToPose(xZero,od);
-    firstIteration = true;
-    this->resume();
+    idle = true;
+    //this->resume();
 }
 
 bool handProfilerThread::startExecution(const bool reverse){
     count = 0;    
     idle = false;
     simulation = false;
+    firstIteration = true;
     t0 = Time::now();
 }
 
@@ -246,6 +252,7 @@ bool handProfilerThread::startSimulation(const bool reverse){
     count = 0;    
     idle = false;
     simulation = true;
+    firstIteration = true;
     t0 = Time::now();
 }
 
@@ -279,7 +286,6 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
         if (mp == NULL){
             yError("factory returned error");
             return false;    
-
         }  
     }
     else if(!strcmp(type.c_str(),"TTPL")) {   
@@ -311,16 +317,12 @@ void handProfilerThread::run() {
             t=Time::now();
         }
 
-        if(generateTarget()) {
-            
-    
+        if(generateTarget()) {       
             // go to the target (in streaming)
             //if(!simulation) {
             //icart->goToPose(xd,od);
             //}
-            
             displayTarget();
-        
             // some verbosity
             //printStatus();      
         }       
@@ -411,7 +413,7 @@ void handProfilerThread::displayTarget() {
         r = 0; g =255; b =0;
     }
     
-    if (guiPort.getOutputCount()) {
+    if ((guiPort.getOutputCount()) && (count%30==0)) {
         Bottle& obj = guiPort.prepare();
         obj.clear();   
         obj.addString("object"); // command to add/update an object
