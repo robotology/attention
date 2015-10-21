@@ -179,7 +179,6 @@ public:
     *  @param reverse indicates whether the simulation is reverse C->B->A
     */
     bool startSimulation(const bool reverse);
-    
 
     /**
      * function that perfoms downsampling (if necessary)
@@ -201,6 +200,11 @@ public:
     * function that shows the target in time in the iCubGui
     */
     void displayTarget();
+
+    /**
+    * function that display the important via points of the profile
+    */
+    void displayProfile();
 
     /**
     * function that prints out the status of the performer.

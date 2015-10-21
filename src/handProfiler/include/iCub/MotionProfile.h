@@ -49,7 +49,9 @@ protected:
     yarp::sig::Vector B;               // vector representating the final desired position for the hand
     yarp::sig::Vector C;               // vector representating the check point of the hand
     yarp::sig::Vector AO;              // vector from A to center of the ellipse
-    yarp::sig::Vector BO;              // vector from B to center of the ellipse
+    yarp::sig::Vector AOnorm;          // vector from A to center of the ellipse
+    yarp::sig::Vector BO;              // vector from A to center of the ellipse
+    yarp::sig::Vector BOnorm;          // vector from B to center of the ellipse
     yarp::sig::Vector od;              // vector representing the desired orientation of the hand
     yarp::sig::Vector xPrev;           // vector representing the position at the previous step
     yarp::sig::Vector* xd;             // vector representing the desired position of the hand
@@ -75,6 +77,8 @@ protected:
     double subA2B2;                    // variable needs for the computation of tang. and ang.Velocity
 
     bool valid;                        // flag indicating whether the motionProfile is valid class
+
+    //yarp::os::ResourceFinder rf;           // resourceFinder for the parsing of the parameters
 
 public:
     /**
@@ -125,6 +129,31 @@ public:
     * function to se the main axes of the ellipse that belong to the reference plane
     */
     void setAxes(const double xAxis,const double yAxis);
+
+    /**
+    * function returning the A vector
+    */
+    yarp::sig::Vector getO() { return O; };
+
+    /**
+    * function returning the A vector
+    */
+    yarp::sig::Vector getA() { return A; };
+
+    /**
+    * function returning the B vector
+    */
+    yarp::sig::Vector getB() { return B; };    
+    
+    /**
+    * function returning the C vector
+    */
+    yarp::sig::Vector getC() { return C; };
+
+    /**
+    * function that return the vector with module equal to the radius
+    */
+    yarp::sig::Vector normalizeVector(const yarp::sig::Vector u, double const radius);
 
     /**
     * function that computes the angular velocity given desired tang.Velocity, xAxis and yAxis

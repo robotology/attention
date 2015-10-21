@@ -40,7 +40,12 @@ int main(int argc, char * argv[])
     rf.setDefaultConfigFile("handProfiler.ini");      //overridden by --from parameter
     rf.setDefaultContext("handProfilerApp/conf");              //overridden by --context parameter
     rf.configure(argc, argv);  
- 
+    yInfo("argc %d", argc);
+    for (int i=0; i<argc; i++)
+        yInfo("argv %s", argv[i]);
+
+    yInfo("resorceFinder: %s",rf.toString().c_str());
+
     module.runModule(rf);
     return 0;
 }

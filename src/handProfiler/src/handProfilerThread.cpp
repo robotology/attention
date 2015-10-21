@@ -166,49 +166,6 @@ bool handProfilerThread::threadInit() {
     xd.resize(3);
     od.resize(4);
 
-    //mp = new CVMotionProfile();
-    //Vector O(3); O[0] = -0.3; O[1]=-0.1; O[2]=0.1;
-    //mp->setAxes(0.1, 0.1);
-    //mp->setCenter(O); 
-    //Vector A(3); A[0] = -0.3; A[1]=-0.1; A[2]=0.0;
-    //Vector B(3); B[0] = -0.3; B[1]=-0.0; B[2]=0.1;
-    //Vector C(3); C[0] = -0.3; C[1]=-0.1; C[2]=0.2; 
-    //mp->setViaPoints(A, B, C);
-
-
-    /*
-    //O=(-0.3, -0.1, 0.1)
-    Bottle b;
-    Bottle bA;
-    bA.addDouble(-0.3);bA.addDouble(0.0);bA.addDouble(0.1);
-    b.addList() = bA;
-    Bottle bB;
-    bB.addDouble(-0.3);bB.addDouble(-0.1);bB.addDouble(0.2);
-    b.addList() = bB;
-    Bottle bC;
-    bC.addDouble(-0.3);bC.addDouble(-0.1);bC.addDouble(0.0);
-    b.addList() = bC;
-    Bottle bAngles;
-    bAngles.addDouble(0.0);bAngles.addDouble(1.5708);bAngles.addDouble(3.1416);
-    b.addList() = bAngles;
-    Bottle bParam;
-    bParam.addDouble(0.1);bParam.addDouble(0.1);;
-    b.addList() = bParam;   
-    Bottle finalB;
-    finalB.addList() = b;
-    yDebug("bottle in threadInit %s", finalB.toString().c_str());
-    
-    mp = factoryCVMotionProfile(finalB);
-    //if(mp==NULL){
-    //    yError("Error: mp NULL!");  
-    //    return false;          
-    //}
-    //else {
-    //    Vector _xd = mp->compute(t, t0);
-    //    printf("Error %f %f %f \n", _xd[0], _xd[1], _xd[2]);   
-    //}
-    */
-    
     t0 = Time::now();
     yInfo("handProfiler thread correctly started");
     
@@ -241,7 +198,7 @@ bool handProfilerThread::resetExecution(){
 }
 
 bool handProfilerThread::startExecution(const bool reverse){
-    count = 0;    
+    //count = 0;    
     idle = false;
     simulation = false;
     firstIteration = true;
@@ -249,7 +206,7 @@ bool handProfilerThread::startExecution(const bool reverse){
 }
 
 bool handProfilerThread::startSimulation(const bool reverse){
-    count = 0;    
+    //count = 0;    
     idle = false;
     simulation = true;
     firstIteration = true;
@@ -257,28 +214,6 @@ bool handProfilerThread::startSimulation(const bool reverse){
 }
 
 bool handProfilerThread::factory(const string type, const Bottle finalB){
-    /*    
-    yDebug("handProfilerThread::factory");
-    Bottle b;
-    Bottle bA;
-    bA.addDouble(-0.3);bA.addDouble(0.0);bA.addDouble(0.1);
-    b.addList() = bA;
-    Bottle bB;
-    bB.addDouble(-0.3);bB.addDouble(-0.1);bB.addDouble(0.2);
-    b.addList() = bB;
-    Bottle bC;
-    bC.addDouble(-0.3);bC.addDouble(-0.1);bC.addDouble(0.0);
-    b.addList() = bC;
-    Bottle bAngles;
-    bAngles.addDouble(0.0);bAngles.addDouble(1.5708);bAngles.addDouble(3.1416);
-    b.addList() = bAngles;
-    Bottle bParam;
-    bParam.addDouble(0.1);bParam.addDouble(0.1);;
-    b.addList() = bParam;   
-    Bottle finalB;
-    finalB.addList() = b;
-    yDebug("bottle in threadInit %s", finalB.toString().c_str());
-    */
     
     if (!strcmp(type.c_str(),"CVP")) {   
         mp = factoryCVMotionProfile(finalB);
@@ -305,18 +240,17 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     return true;    
 }
 
-void handProfilerThread::run() {
-    
+void handProfilerThread::run() { 
     if(!idle) {
         count++;
         if (firstIteration) {  
             t = t0;
             firstIteration = false;
+            displayProfile();
         }
         else {
             t=Time::now();
         }
-
         if(generateTarget()) {       
             // go to the target (in streaming)
             //if(!simulation) {
@@ -402,6 +336,55 @@ void handProfilerThread::afterStart(bool s) {
         yError("Thread did not start");
 
     t=t0=t1=yarp::os::Time::now();
+}
+
+void handProfilerThread::displayProfile() { 
+    int r, g, b;
+    r =255; g = 0; b = 0;        
+    
+    if (guiPort.getOutputCount()) {
+        // extract important parameters
+        Vector vectorList[4];
+        vectorList[0] = mp->getO();
+        vectorList[1] = mp->getA();  
+        vectorList[2] = mp->getB(); 
+        vectorList[3] = mp->getC(); 
+        string objectName[4];
+        objectName[0].append("O");
+        objectName[1].append("A");
+        objectName[2].append("B");
+        objectName[3].append("C");
+    
+        for(int i = 0; i < 4; i++) {    
+            // preparing the bottle
+            Bottle& obj = guiPort.prepare();
+            obj.clear();   
+            obj.addString("object"); // command to add/update an object
+            obj.addString(objectName[i]);
+            // object dimensions in millimiters
+            // (it will be displayed as an ellipsoid with the tag "my_object_name")
+            obj.addDouble(5);
+            obj.addDouble(5);
+            obj.addDouble(5);
+            // object position in millimiters
+            // reference frame: X=fwd, Y=left, Z=up
+            obj.addDouble((vectorList[i])[0] * 1000);
+            obj.addDouble((vectorList[i])[1] * 1000);
+            obj.addDouble((vectorList[i])[2] * 1000);
+            // object orientation (roll, pitch, yaw) in degrees
+            obj.addDouble(0.0);
+            obj.addDouble(0.0);
+            obj.addDouble(0.0);
+            // object color (0-255)
+            obj.addInt(r);
+            obj.addInt(g);
+            obj.addInt(b);
+            // transparency (0.0=invisible 1.0=solid)
+            obj.addDouble(1.0);
+
+            guiPort.writeStrict();
+        }
+    }    
 }
 
 void handProfilerThread::displayTarget() { 

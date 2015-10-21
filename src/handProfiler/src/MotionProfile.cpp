@@ -61,6 +61,18 @@ void MotionProfile::setStartStop(const double tA, const double tB, const double 
     thetaC = tC;     
 }
 
+Vector MotionProfile::normalizeVector(const Vector u, double const radius) {
+    double module = sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
+    yDebug("module %f", module);
+    Vector unorm(3);
+    if(module != 0) {
+        unorm[0] = (u[0] / module);
+        unorm[1] = (u[1] / module);
+        unorm[2] = (u[2] / module);
+    }
+    return unorm;
+}
+
 void MotionProfile::setViaPoints(const Vector _A, const Vector _B, const Vector _C){  
     yInfo("MotionProfile::setViaPoints");
     A = _A; 
@@ -70,22 +82,34 @@ void MotionProfile::setViaPoints(const Vector _A, const Vector _B, const Vector 
     //       x            y           z
     O[0] = -0.3; O[1] = -0.1; O[2] = 0.1;
 
+    // scaled by the radius in A
     AO[0] = A[0] - O[0];
     AO[1] = A[1] - O[1];
     AO[2] = A[2] - O[2];
-    AO[0] = AO[0];          // x
-    AO[1] = AO[1] / xAxis;  // y
-    AO[2] = AO[2] / xAxis;  // z    
+    AOnorm = normalizeVector(AO, 0.1);
+    //AO[0] = AO[0] / xAxis;  // x
+    //AO[1] = AO[1] / xAxis;  // y
+    //AO[2] = AO[2] / xAxis;  // z   
+    
+    yInfo("AO = %s", AO.toString().c_str());
+    yInfo("AOnorm = %s scaled by radius: %f", AOnorm.toString().c_str(), xAxis);
 
-    BO[0] = B[0] - O[0];
+    //scaled by the radius in B     
+    BO[0] = B[0] - O[0];            
     BO[1] = B[1] - O[1];
     BO[2] = B[2] - O[2]; 
-    BO[0] = BO[0];          // x
-    BO[1] = BO[1] / yAxis;  // y
-    BO[2] = BO[2] / yAxis;  // z
+    BOnorm = normalizeVector(BO, 0.2);
+    //BO[0] = BO[0];          // x
+    //BO[1] = BO[1] / yAxis;  // y
+    //BO[2] = BO[2] / yAxis;  // z
+
+    yInfo("BO = %s", BO.toString().c_str());
+    yInfo("BOnorm = %s scaled by the radius %f", BOnorm.toString().c_str(), yAxis);
     
     Vector N(3);    
     N = cross(AO, BO);
+        
+    yInfo("NormVector = %s", N.toString().c_str());
 
     double revA2   = 1/(xAxis * xAxis);
     double revB2   = 1/(yAxis * yAxis);
@@ -219,9 +243,8 @@ CVMotionProfile::~CVMotionProfile(){
 }
     
 CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
-    type = "CVP";    
-    valid = false;    
-    
+    type = "CVP";
+    valid = true;
     A.resize(3);
     B.resize(3);
     C.resize(3); 
@@ -232,9 +255,33 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
     xd = new Vector(3);
     thetaPrev = 0;
     tprev = 0;
-    radiusPrev = 0.1;   
+    radiusPrev = 0.1;
 
     Bottle* b = bInit.get(0).asList();
+    ResourceFinder rf;
+
+    rf.setVerbose(true);
+    int argc =3;    
+    string stringArray[3];  
+    char* argv[3];
+    stringArray[0].append("./motionProfile");
+    stringArray[1].append("--joint");
+    stringArray[2].append("1");
+    for (int i=0; i < 3; i++){    
+        argv[i] = (char*) stringArray[i].c_str();
+        yDebug("argv %s", argv[i]);
+    }
+    
+    rf.configure(argc, argv);
+    
+    yInfo("resorceFinder: %s",rf.toString().c_str());
+
+    if(rf.check("joint")) yDebug("joint Found");
+    int joint=rf.find("joint").asInt();
+    yInfo("got number of joint %d", joint);
+    
+
+    
     if(b->size() < 6){
         //extracing the features from the bottle
         //((xa,ya,za) (xb,yb,zb) (xc,yc,zc) (0,0.7853,1.5707) (0.1))
@@ -325,13 +372,13 @@ Vector* CVMotionProfile::compute(double t, double t0) {
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2]; 
-        (*xd)[0]=O[0] + radius * cos(theta) * AO[0] + radius * sin(theta) * BO[0];
-        (*xd)[1]=O[1] + radius * cos(theta) * AO[1] + radius * sin(theta) * BO[1];
-        (*xd)[2]=O[2] + radius * cos(theta) * AO[2] + radius * sin(theta) * BO[2];
+        (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
+        (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
+        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2];
         if( ((*xd)[0]!=A[0]) || ((*xd)[1]!=A[1]) || ((*xd)[2]!=A[2]) ){   
             yInfo("Beware: difference between desired location A and computed position!");
             yInfo("vector xdes: %s", xd->toString().c_str());
-            Time::delay(5.0);
+            //Time::delay(5.0);
         }
     }
     else if ((theta >= thetaA) && (theta<=thetaC)) {
@@ -340,9 +387,9 @@ Vector* CVMotionProfile::compute(double t, double t0) {
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];
-        (*xd)[0]=O[0] + radius * cos(theta) * AO[0] + radius * sin(theta) * BO[0];
-        (*xd)[1]=O[1] + radius * cos(theta) * AO[1] + radius * sin(theta) * BO[1];
-        (*xd)[2]=O[2] + radius * cos(theta) * AO[2] + radius * sin(theta) * BO[2]; 
+        (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
+        (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
+        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2]; 
     
         yInfo("xdes %s", xd->toString().c_str());
     }
@@ -467,12 +514,10 @@ bool TTPLMotionProfile::operator==(const TTPLMotionProfile &ttplmp)
 }
 
 double TTPLMotionProfile::computeTangVelocity() {
+    //v = g * K ^ (-beta);    beta = 0.33;
     double reBeta = -1 * beta;
-    yDebug("reBeta %f", reBeta);
     double curvature = 1 / radius;
-    yDebug("curvature %f", curvature);
     double vel = gain * pow(curvature, reBeta);
-    yDebug("vel %f", vel);
     return vel;
 }
 
@@ -480,7 +525,8 @@ void TTPLMotionProfile::preComputation(const double theta) {
     //angular velocity expressed in frequency [Hz],
     //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
     //e.g.: 0.2 => 1/20 of 2PI per second; 2PI in 20sec         
-    //ONLY FOR CIRCLES: angular velocity constant to obtain constant tang.velocity 
+    //ONLY FOR CIRCLES: angular veloc.090001	 0.099486
+
     //FOR ELLIPSE: compute angular velocity from A,B and desired tang.velocity
     radius = computeRadius(theta);
     /*    
@@ -496,8 +542,7 @@ void TTPLMotionProfile::preComputation(const double theta) {
     double v2         = (drdtheta2 + (radius * radius)) * (angVelocity * angVelocity);
     yInfo("v %f", sqrt(v2));
     */
-    //tanVelocity = computeTangVelocity();
-    tanVelocity = 0.1;
+    tanVelocity = computeTangVelocity();
     yInfo("computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
     // computing angular velocity in function of the radius, theta, tangential velocity
     angVelocity = computeAngVelocity(theta);
@@ -523,13 +568,13 @@ Vector* TTPLMotionProfile::compute(double t, double t0) {
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2]; 
-        (*xd)[0]=O[0] + radius * cos(theta) * AO[0] + radius * sin(theta) * BO[0];
-        (*xd)[1]=O[1] + radius * cos(theta) * AO[1] + radius * sin(theta) * BO[1];
-        (*xd)[2]=O[2] + radius * cos(theta) * AO[2] + radius * sin(theta) * BO[2];
+        (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
+        (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
+        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2];
         if( ((*xd)[0]!=A[0]) || ((*xd)[1]!=A[1]) || ((*xd)[2]!=A[2]) ){   
             yInfo("Beware: difference between desired location A and computed position!");
             yInfo("vector xdes: %s", xd->toString().c_str());
-            Time::delay(5.0);
+            //Time::delay(5.0);
         }
     }
     else if ((theta >= thetaA) && (theta<=thetaC)) {
@@ -538,9 +583,9 @@ Vector* TTPLMotionProfile::compute(double t, double t0) {
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];
-        (*xd)[0]=O[0] + radius * cos(theta) * AO[0] + radius * sin(theta) * BO[0];
-        (*xd)[1]=O[1] + radius * cos(theta) * AO[1] + radius * sin(theta) * BO[1];
-        (*xd)[2]=O[2] + radius * cos(theta) * AO[2] + radius * sin(theta) * BO[2]; 
+        (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
+        (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
+        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2]; 
     
         yInfo("xdes %s", xd->toString().c_str());
     }
