@@ -76,6 +76,13 @@ protected:
     double tanVelocity;                // tangential velocity function of curvature, gain and beta
     double subA2B2;                    // variable needs for the computation of tang. and ang.Velocity
 
+    static const double minX = -0.35;  // working space x
+    static const double maxX = -0.20;  // working space x
+    static const double minY = -0.35;  // working space y
+    static const double maxY = +0.35;  // working space y
+    static const double minZ = -0.15;  // working space z
+    static const double maxZ = +0.25;  // working space z
+
     bool valid;                        // flag indicating whether the motionProfile is valid class
 
     //yarp::os::ResourceFinder rf;           // resourceFinder for the parsing of the parameters
@@ -173,6 +180,11 @@ public:
     double computeRadius(const double theta);
 
     /**
+    * function that checks if all the points belong to the reaching space
+    */
+    bool sanityCheck(const yarp::sig::Vector array[], const int size);
+
+    /**
     * function preparing the relevant set of variable used in the computation
     */
     virtual void preComputation(const double theta) = 0;
@@ -223,11 +235,20 @@ protected:
 
 public:
     MJMotionProfile();
-    ~MJMotionProfile(){};        
+    ~MJMotionProfile();        
     MJMotionProfile(const MJMotionProfile &mjmp);
+    MJMotionProfile(const yarp::os::Bottle &b);
 
     MJMotionProfile &operator=(const MJMotionProfile &mjmp);
-    bool operator==(const MJMotionProfile &mjmp);    
+    bool operator==(const MJMotionProfile &mjmp);
+    bool operator==(const MotionProfile &mp) {return operator==(dynamic_cast<const MJMotionProfile&>(mp));} 
+
+    /**
+    * function that sets the desired tangential velocity of the endEffector
+    */
+    void setVelocity(const double vel) {tanVelocity = vel;};
+    void preComputation(const double theta);	
+    yarp::sig::Vector* compute(double t, double t0);     
 };
 
 
