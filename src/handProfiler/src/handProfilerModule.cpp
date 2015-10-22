@@ -62,7 +62,18 @@ using namespace std;
 
 bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
-
+    /* Process all parameters from both command-line and .ini file */
+    if(rf.check("help")) {
+        printf("HELP \n");
+        printf("====== \n");
+        printf("--name           : changes the rootname of the module ports \n");
+        printf("--robot          : changes the name of the robot where the module interfaces to  \n");
+        printf("--name           : rootname for all the connection of the module \n");
+        printf(" \n");
+        printf("press CTRL-C to stop... \n");
+        return true;
+    }    
+    
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
                            Value("/handProfiler"), 
@@ -159,10 +170,10 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
         reply.addString("quitting");
         return false;     
     }
-    else if (command.get(0).asString()=="help") {
-        cout << helpMessage;
-        reply.addString("ok");
-    }
+    //else if (command.get(0).asString()=="help") {
+    //    cout << helpMessage;
+    //    reply.addString("ok");
+    //}
 
     bool ok = false;
     bool rec = false; // is the command recognized?
@@ -173,7 +184,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addVocab(COMMAND_VOCAB_MANY);            
+            reply.addVocab(Vocab::encode("many"));         
             reply.addString("help");         
             reply.addString("get fn \t: general get command");          
             reply.addString("set s1 <s> \t: general set command");
@@ -188,13 +199,14 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("get mBA : get the minimum bounding area");
 
             reply.addString("GENERATE PROFILES");
-            reply.addString("GEN CVP  : generate constant velocity profile");
+            reply.addString("GEN CVP  (((A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 0.1))) : generate constant velocity profile");
             reply.addString("GEN MJP  : generate minimum jerk profile");
             reply.addString("GEN TTPL : generate two-third power law profile");
+            reply.addString("         : (((A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes majaxis[double] minaxis[double]) (param g[double] beta[double])))");
 
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
-            reply.addString("STAR EXE : start execution (green)");
+            reply.addString("STAR EXE : start execution  (green)");
 
             ok = true;
         }

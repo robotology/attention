@@ -30,9 +30,19 @@ using namespace yarp::math;
 using namespace std;
 using namespace profileFactory;
 
-//namespace profileFactory{
 
-//}
+inline void extractVector(const string str, Vector& res) {
+    std::string temp;
+	size_t i = 0, start = 0, end;
+	do {
+		end = str.find_first_of (' ', start );
+		temp = str.substr( start, end );
+			res[i] = ( atof ( temp.c_str ( ) ) );
+			++i;
+		start = end + 1;
+	} while ( start );
+}
+
 //**************************************************************************************************************
 
 MotionProfile::MotionProfile() : valid(false), type("")  {
@@ -259,65 +269,111 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
 
     Bottle* b = bInit.get(0).asList();
     ResourceFinder rf;
-
     rf.setVerbose(true);
-    int argc =3;    
-    string stringArray[3];  
-    char* argv[3];
+    int argc = b->size() * 2 + 1;    
+    string stringArray[argc];  
+    char* argv[argc];
     stringArray[0].append("./motionProfile");
-    stringArray[1].append("--joint");
-    stringArray[2].append("1");
-    for (int i=0; i < 3; i++){    
-        argv[i] = (char*) stringArray[i].c_str();
-        yDebug("argv %s", argv[i]);
-    }
+    //stringArray[1].append("--joint");
+    //stringArray[2].append("1");
+    //for (int i=0; i < 3; i++){    
+    //    argv[i] = (char*) stringArray[i].c_str();
+    //    yDebug("argv %s", argv[i]);
+    //}
     
+    argv[0] = (char*) stringArray[0].c_str();
+    yDebug("added the first %s", argv[0]);    
+        
+    for (int j = 0; j < b->size(); j++) {
+        Bottle* vector = b->get(j).asList();
+        stringArray[j * 2 + 1].append("--");
+        //stringArray[j * 2 + 1].append("A");    
+        stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
+        char temp[50];
+        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        stringArray[j * 2 + 2].append(&temp[0]);
+        argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
+        argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
+        yDebug("param %s", argv[j * 2 + 1]);
+        yDebug("value %s", argv[j * 2 + 2]);
+    }     
+    // configuring the resource finder
     rf.configure(argc, argv);
-    
     yInfo("resorceFinder: %s",rf.toString().c_str());
-
-    if(rf.check("joint")) yDebug("joint Found");
-    int joint=rf.find("joint").asInt();
-    yInfo("got number of joint %d", joint);
+    // visiting the parameters using the RF
+    Vector posVector(3);
+    string  Avector = rf.check("A", 
+                           Value("-0.3 0.0 -0.1"), 
+                           "position A (string)").asString();
+    extractVector(Avector, posVector);
+    yDebug("got A value %s", posVector.toString().c_str());
+    string  Bvector = rf.check("B", 
+                           Value("-0.3 0.0 -0.1"), 
+                           "position B (string)").asString();
+    extractVector(Bvector, posVector);
+    yDebug("got B value %s", posVector.toString().c_str());
+    string  Cvector = rf.check("C", 
+                           Value("-0.3 0.0 -0.1"), 
+                           "position C (string)").asString();
+    extractVector(Cvector, posVector);
+    yDebug("got C value %s", posVector.toString().c_str());
+    Vector thetaVector(3);
+    string  thetaString = rf.check("theta", 
+                           Value("0 1.57 6.28"), 
+                           "theta angles (string)").asString();
+    extractVector(thetaString, thetaVector);
+    yDebug("got theta angles:(%s)", thetaVector.toString().c_str());
+    Vector axisVector(2);
+    string  axisString = rf.check("axes", 
+                           Value("0.1 0.2"), 
+                           "minor and major axes (string)").asString();
+    extractVector(axisString, axisVector);
+    yDebug("got minor and major axes:(%s)", axisVector.toString().c_str());
+    Vector paramVector(1);
+    string  paramString = rf.check("param", 
+                           Value("0.1"), 
+                           "profile parameters (string)").asString();
+    extractVector(paramString, paramVector);
+    yDebug("got profile parameters:(%s)", paramVector.toString().c_str());
     
-
-    
-    if(b->size() < 6){
+    if(b->size() == 6){
         //extracing the features from the bottle
         //((xa,ya,za) (xb,yb,zb) (xc,yc,zc) (0,0.7853,1.5707) (0.1))
-        Bottle* aVector = b->get(0).asList();
-        yDebug("bottleA:%s", aVector->toString().c_str());    
+        Bottle* aVector = b->get(0).asList();            
         Vector aVec(3);
-        aVec[0] = aVector->get(0).asDouble();
-        aVec[1] = aVector->get(1).asDouble();
-        aVec[2] = aVector->get(2).asDouble();
+        aVec[0] = aVector->get(1).asDouble();
+        aVec[1] = aVector->get(2).asDouble();
+        aVec[2] = aVector->get(3).asDouble();
+        yDebug("bottleA:%s", aVec.toString().c_str());
 
-        Bottle* bVector = b->get(1).asList();
-        yDebug("bottleB:%s", bVector->toString().c_str());    
+        Bottle* bVector = b->get(1).asList();    
         Vector bVec(3);
-        bVec[0] = bVector->get(0).asDouble();
-        bVec[1] = bVector->get(1).asDouble();
-        bVec[2] = bVector->get(2).asDouble();
-
-        Bottle* cVector = b->get(2).asList();
-        yDebug("bottleC:%s", cVector->toString().c_str());       
+        bVec[0] = bVector->get(1).asDouble();
+        bVec[1] = bVector->get(2).asDouble();
+        bVec[2] = bVector->get(3).asDouble();
+        yDebug("bottleB:%s", bVec.toString().c_str()); 
+    
+        Bottle* cVector = b->get(2).asList(); 
         Vector cVec(3);
-        cVec[0] = cVector->get(0).asDouble();
-        cVec[1] = cVector->get(1).asDouble();
-        cVec[2] = cVector->get(2).asDouble();
+        cVec[0] = cVector->get(1).asDouble();
+        cVec[1] = cVector->get(2).asDouble();
+        cVec[2] = cVector->get(3).asDouble();
+        yDebug("bottleC:%s", cVec.toString().c_str());       
         
         Bottle* angles  = b->get(3).asList();
         yDebug("angles:%s", angles->toString().c_str());
-        setStartStop(angles->get(0).asDouble(), angles->get(1).asDouble(), angles->get(2).asDouble());  
+        setStartStop(angles->get(1).asDouble(), angles->get(2).asDouble(), angles->get(3).asDouble());  
     
-        Bottle* params  = b->get(4).asList();
+        Bottle* axis  = b->get(4).asList();
+        yDebug("axis:%s", axis->toString().c_str());
+        setAxes(axis->get(1).asDouble(), axis->get(2).asDouble());     
+    
+        Bottle* params  = b->get(5).asList();
         yDebug("params:%s", params->toString().c_str());        
-        if(params->size()==3){
-            setAxes(params->get(0).asDouble(), params->get(1).asDouble());
-            setVelocity(params->get(2).asDouble());  
-            setViaPoints(aVec, bVec, cVec);
-            valid = true;
-        }
+        setVelocity(params->get(1).asDouble());  
+        setViaPoints(aVec, bVec, cVec);
+        valid = true;
+        
     }   
 }
 
