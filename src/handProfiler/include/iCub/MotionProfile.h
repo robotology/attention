@@ -187,7 +187,7 @@ public:
     /**
     * function preparing the relevant set of variable used in the computation
     */
-    virtual void preComputation(const double theta) = 0;
+    virtual void preComputation(const double t, const double theta) = 0;
 
     /**
     * vector returning the 3D location at the instant t 
@@ -219,7 +219,7 @@ public:
     * function that sets the desired tangential velocity of the endEffector
     */
     void setVelocity(const double vel) {tanVelocity = vel;};
-    void preComputation(const double theta);	
+    void preComputation(const double t, const double theta);	
     yarp::sig::Vector* compute(double t, double t0);
 };
 
@@ -230,8 +230,8 @@ public:
 class MJMotionProfile : public MotionProfile {
 protected:
     
-    double timeHorizon;
-    double distance;
+    double tfinal;
+    double thetaGoal;
 
 public:
     MJMotionProfile();
@@ -247,7 +247,12 @@ public:
     * function that sets the desired tangential velocity of the endEffector
     */
     void setVelocity(const double vel) {tanVelocity = vel;};
-    void preComputation(const double theta);	
+    void preComputation(const double t, const double theta);
+    /**
+    * function that computes the tangVelocity according to the min-jerk constraint 
+    */
+    double computeTangVelocity(const double t);
+    	
     yarp::sig::Vector* compute(double t, double t0);     
 };
 
@@ -284,7 +289,7 @@ public:
     */
     double computeTangVelocity();
 
-    void preComputation(const double theta);
+    void preComputation(const double t, const double theta);
     yarp::sig::Vector* compute(double t, double t0);
 };
 

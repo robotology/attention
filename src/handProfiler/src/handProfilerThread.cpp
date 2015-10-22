@@ -49,6 +49,18 @@ MotionProfile* factoryCVMotionProfile(const Bottle &param){
     }
 }
 
+MotionProfile* factoryMJMotionProfile(const Bottle &param){
+    MJMotionProfile *mjmp = new MJMotionProfile(param);
+    if(!mjmp->isValid()){
+        yError("factory ERROR");
+        delete mjmp;
+        return NULL;
+    }
+    else {
+        return static_cast<MotionProfile*>(mjmp);            
+    }
+}
+
 MotionProfile* factoryTTPLMotionProfile(const Bottle &param){
     TTPLMotionProfile *ttplmp = new TTPLMotionProfile(param);
     if(ttplmp==NULL){

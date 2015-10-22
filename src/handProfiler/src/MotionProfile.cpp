@@ -90,7 +90,7 @@ void MotionProfile::setViaPoints(const Vector _A, const Vector _B, const Vector 
     C = _C;     
 
     //       x            y           z
-    O[0] = -0.3; O[1] = -0.1; O[2] = 0.1;
+    //  O[0] = -0.3; O[1] = -0.1; O[2] = 0.1;
 
     // scaled by the radius in A
     AO[0] = A[0] - O[0];
@@ -258,21 +258,27 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
     rf.configure(argc, argv);
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF
+    Vector Ovector(3);    
     Vector Avector(3);
     Vector Bvector(3);
     Vector Cvector(3);
-    string  Astring = rf.check("A", 
-                           Value("-0.3 0.0 -0.1"), 
+    string Ostring = rf.check("O", 
+                           Value("-0.3 -0.1 0.1"), 
+                           "position O (string)").asString();
+    extractVector(Ostring, Ovector);
+    yDebug("got O value %s", Ovector.toString().c_str());
+    string Astring = rf.check("A", 
+                           Value("-0.3 0.0 0.1"), 
                            "position A (string)").asString();
     extractVector(Astring, Avector);
     yDebug("got A value %s", Avector.toString().c_str());
-    string  Bstring = rf.check("B", 
-                           Value("-0.3 0.0 -0.1"), 
+    string Bstring = rf.check("B", 
+                           Value("-0.3 -0.1 0.3"), 
                            "position B (string)").asString();
     extractVector(Bstring, Bvector);
     yDebug("got B value %s", Bvector.toString().c_str());
-    string  Cstring = rf.check("C", 
-                           Value("-0.3 0.0 -0.1"), 
+    string Cstring = rf.check("C", 
+                           Value("-0.3 -0.2 0.1"), 
                            "position C (string)").asString();
     extractVector(Cstring, Cvector);
     yDebug("got C value %s", Cvector.toString().c_str());
@@ -334,7 +340,7 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
         valid = true;
         
     }
-
+    setCenter(Ovector);
     setStartStop(thetaVector[0], thetaVector[1], thetaVector[2]);
     setAxes(axisVector[0], axisVector[1]);
     setVelocity(paramVector[0]);
@@ -342,13 +348,9 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
     array[0] = Avector;  
     array[1] = Bvector;
     array[2] = Cvector;
-    if(sanityCheck(array, 3)) {
-        valid = true;
-        setViaPoints(Avector,Bvector,Cvector);
-    }
-    else {
-        yError("Error positions are not allowed!");
-    }   
+    valid = true;
+    setViaPoints(Avector,Bvector,Cvector);
+   
 }
 
 bool CVMotionProfile::operator==(const CVMotionProfile &cvmp)
@@ -356,7 +358,7 @@ bool CVMotionProfile::operator==(const CVMotionProfile &cvmp)
     return ((valid==cvmp.valid)&&(type==cvmp.type));
 }
 
-void CVMotionProfile::preComputation(const double theta) {
+void CVMotionProfile::preComputation(const double t, const double theta) {
     //angular velocity expressed in frequency [Hz],
     //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
     //e.g.: 0.2 => 1/20 of 2PI per second; 2PI in 20sec         
@@ -398,7 +400,7 @@ Vector* CVMotionProfile::compute(double t, double t0) {
     Vector xdes = *xd;
     if(theta == 0) {
         yInfo("theta=0 check");
-        preComputation(theta);
+        preComputation(t, theta);
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2]; 
@@ -413,7 +415,7 @@ Vector* CVMotionProfile::compute(double t, double t0) {
     }
     else if ((theta >= thetaA) && (theta<=thetaC)) {
         yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
-        preComputation(theta);        
+        preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];
@@ -522,21 +524,27 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
     rf.configure(argc, argv);
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF
+    Vector Ovector(3);    
     Vector Avector(3);
     Vector Bvector(3);
     Vector Cvector(3);
+    string Ostring = rf.check("O", 
+                           Value("-0.3 -0.1 0.1"), 
+                           "position O (string)").asString();
+    extractVector(Ostring, Ovector);
+    yDebug("got O value %s", Ovector.toString().c_str());
     string  Astring = rf.check("A", 
-                           Value("-0.3 0.0 -0.1"), 
+                           Value("-0.3 0.0 0.1"), 
                            "position A (string)").asString();
     extractVector(Astring, Avector);
     yDebug("got A value %s", Avector.toString().c_str());
     string  Bstring = rf.check("B", 
-                           Value("-0.3 0.0 -0.1"), 
+                           Value("-0.3 -0.1 0.2"), 
                            "position B (string)").asString();
     extractVector(Bstring, Bvector);
     yDebug("got B value %s", Bvector.toString().c_str());
     string  Cstring = rf.check("C", 
-                           Value("-0.3 0.0 -0.1"), 
+                           Value("-0.3 -0.2 0.1"), 
                            "position C (string)").asString();
     extractVector(Cstring, Cvector);
     yDebug("got C value %s", Cvector.toString().c_str());
@@ -598,7 +606,8 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
         setViaPoints(aVec, bVec, cVec);
         valid = true;
         
-    } 
+    }
+    setCenter(Ovector); 
     setStartStop(thetaVector[0], thetaVector[1], thetaVector[2]);
     setAxes(axisVector[0], axisVector[1]);
     setGain(paramVector[0]);    
@@ -607,13 +616,8 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
     array[0] = Avector;  
     array[1] = Bvector;
     array[2] = Cvector;
-    if(sanityCheck(array, 3)) {
-        valid = true;
-        setViaPoints(Avector,Bvector,Cvector);
-    }
-    else {
-        yError("Error positions are not allowed!");
-    }
+    valid = true;
+    setViaPoints(Avector,Bvector,Cvector);
 }
 
 bool TTPLMotionProfile::operator==(const TTPLMotionProfile &ttplmp)
@@ -629,7 +633,7 @@ double TTPLMotionProfile::computeTangVelocity() {
     return vel;
 }
 
-void TTPLMotionProfile::preComputation(const double theta) {
+void TTPLMotionProfile::preComputation(const double  t, const double theta) {
     //angular velocity expressed in frequency [Hz],
     //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
     //e.g.: 0.2 => 1/20 of 2PI per second; 2PI in 20sec         
@@ -672,7 +676,7 @@ Vector* TTPLMotionProfile::compute(double t, double t0) {
     Vector xdes = *xd;
     if(theta == 0) {
         yInfo("theta=0 check");
-        preComputation(theta);
+        preComputation(t, theta);
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2]; 
@@ -687,7 +691,7 @@ Vector* TTPLMotionProfile::compute(double t, double t0) {
     }
     else if ((theta >= thetaA) && (theta<=thetaC)) {
         yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
-        preComputation(theta);        
+        preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];
@@ -893,27 +897,35 @@ bool MJMotionProfile::operator==(const MJMotionProfile &cvmp)
     return ((valid==cvmp.valid)&&(type==cvmp.type));
 }
 
-void MJMotionProfile::preComputation(const double theta) {
+double MJMotionProfile::computeTangVelocity(const double t) {
+    //v = g * K ^ (-beta);    beta = 0.33;
+    //double reBeta = -1 * beta;
+    //double curvature = 1 / radius;
+    thetaGoal = 1.57;
+    Vector goal(3);
+    goal[0]=O[0] + radius * cos(thetaGoal) * AOnorm[0] + radius * sin(thetaGoal) * BOnorm[0];
+    goal[1]=O[1] + radius * cos(thetaGoal) * AOnorm[1] + radius * sin(thetaGoal) * BOnorm[1];
+    goal[2]=O[2] + radius * cos(thetaGoal) * AOnorm[2] + radius * sin(thetaGoal) * BOnorm[2]; 
+    Vector distanceVect = goal - (*xd);
+    tfinal = 3.0; 
+    double distance = sqrt(distanceVect[0] * distanceVect[0] + distanceVect[0] * distanceVect[0] + distanceVect[0] * distanceVect[0]);
+    double epsilon = t / tfinal;
+    double epsilon3 = epsilon * epsilon * epsilon;
+    double epsilon4 = epsilon3 * epsilon;
+    double epsilon5 = epsilon4 * epsilon;
+    double vel = distance * (15 * epsilon4  - 6 * epsilon5  - 10 * epsilon3);
+    return vel;
+}
+
+void MJMotionProfile::preComputation(const double t, const double theta) {
     //angular velocity expressed in frequency [Hz],
     //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
     //e.g.: 0.2 => 1/20 of 2PI per second; 2PI in 20sec         
     //ONLY FOR CIRCLES: angular velocity constant to obtain constant tang.velocity 
     //FOR ELLIPSE: compute angular velocity from A,B and desired tang.velocity
     radius = computeRadius(theta);
-    /*    
-    double rDiff2     = (radius - radiusPrev) * (radius-radiusPrev);
-    double thetaDiff2 = (theta  - thetaPrev) * (theta - thetaPrev); 
-    double sDiff2     = rDiff2  + (radius * radius) * thetaDiff2;
-    yInfo("rDiff2 %f thetaDiff2 %f radius %f sDiff %f", rDiff2, thetaDiff2, radius, sqrt(sDiff2));
-    */
-
-    /*    
-    double drdtheta   = (radius - radiusPrev) / (theta - thetaPrev);
-    double drdtheta2  =  drdtheta * drdtheta;
-    double v2         = (drdtheta2 + (radius * radius)) * (angVelocity * angVelocity);
-    yInfo("v %f", sqrt(v2));
-    */
-
+   
+    tanVelocity = computeTangVelocity(t);
     yInfo("computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
     // computing angular velocity in function of the radius, theta, tangential velocity
     angVelocity = computeAngVelocity(theta);
@@ -935,7 +947,7 @@ Vector* MJMotionProfile::compute(double t, double t0) {
     Vector xdes = *xd;
     if(theta == 0) {
         yInfo("theta=0 check");
-        preComputation(theta);
+        preComputation(t,theta);
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2]; 
@@ -950,7 +962,7 @@ Vector* MJMotionProfile::compute(double t, double t0) {
     }
     else if ((theta >= thetaA) && (theta<=thetaC)) {
         yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
-        preComputation(theta);        
+        preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];
