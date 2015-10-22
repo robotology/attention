@@ -63,6 +63,7 @@ protected:
 
     int a, b, c, d;                    // parameters of the plane 
 
+    double t0;                         // time at the beginning istant    
     double tprev;                      // time at the previous incremental step    
     double radius;                     // radius of the ellipse function of the angle theta, a, b;    
     double r,r2,r3;                    // computation variables
@@ -113,6 +114,11 @@ public:
     * function solving the operator ==
     */  
     virtual bool operator==(const MotionProfile& mp)=0;
+    
+    /**
+    * function that sets the time at the starting instant
+    */
+    void setT0(double _t0) { t0 = _t0; };
 
     /**
     * function that sets where the action should start and stop
@@ -193,7 +199,7 @@ public:
     * vector returning the 3D location at the instant t 
     * @return the pointer to the desired position of the hand
     */  
-    virtual yarp::sig::Vector* compute(double t,double t0) = 0;
+    virtual yarp::sig::Vector* compute(double t) = 0;
     
 };
 
@@ -220,7 +226,7 @@ public:
     */
     void setVelocity(const double vel) {tanVelocity = vel;};
     void preComputation(const double t, const double theta);	
-    yarp::sig::Vector* compute(double t, double t0);
+    yarp::sig::Vector* compute(double t);
 };
 
 
@@ -253,7 +259,7 @@ public:
     */
     double computeTangVelocity(const double t);
     	
-    yarp::sig::Vector* compute(double t, double t0);     
+    yarp::sig::Vector* compute(double t);     
 };
 
 
@@ -290,7 +296,7 @@ public:
     double computeTangVelocity();
 
     void preComputation(const double t, const double theta);
-    yarp::sig::Vector* compute(double t, double t0);
+    yarp::sig::Vector* compute(double t);
 };
 
 

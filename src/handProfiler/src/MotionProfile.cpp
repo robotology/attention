@@ -389,7 +389,7 @@ void CVMotionProfile::preComputation(const double t, const double theta) {
     yInfo("theta angle [rad] %f", theta); 
 }
 
-Vector* CVMotionProfile::compute(double t, double t0) {
+Vector* CVMotionProfile::compute(double t) {
     if(t-t0 == 0) {
         theta = 0;
     }
@@ -665,7 +665,7 @@ void TTPLMotionProfile::preComputation(const double  t, const double theta) {
     yInfo("theta angle [rad] %f", theta); 
 }
 
-Vector* TTPLMotionProfile::compute(double t, double t0) {
+Vector* TTPLMotionProfile::compute(double t) {
     if(t-t0 == 0) {
         theta = 0;
     }
@@ -758,7 +758,7 @@ MJMotionProfile::~MJMotionProfile(){
 }
     
 MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
-    type = "CVP";
+    type = "MJP";
     valid = true;
     A.resize(3);
     B.resize(3);
@@ -773,9 +773,11 @@ MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
     radiusPrev = 0.1;
 
     Bottle* b = bInit.get(0).asList();
+    yDebug("Analyzing the list of vectors from bottle b:%s", b->toString().c_str());
     ResourceFinder rf;
     rf.setVerbose(true);
     int argc = b->size() * 2 + 1;    
+    
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
@@ -799,9 +801,14 @@ MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
     rf.configure(argc, argv);
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF
+    Vector Ovector(3);    
     Vector Avector(3);
     Vector Bvector(3);
     Vector Cvector(3);
+    string Ostring = rf.check("O", 
+                           Value("-0.3 -0.1 0.1"), 
+                           "position O (string)").asString();
+    extractVector(Ostring, Ovector);  
     string  Astring = rf.check("A", 
                            Value("-0.3 0.0 -0.1"), 
                            "position A (string)").asString();
@@ -873,9 +880,8 @@ MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
         setVelocity(params->get(1).asDouble());  
         setViaPoints(aVec, bVec, cVec);
         valid = true;
-        
     }
-
+    setCenter(Ovector); 
     setStartStop(thetaVector[0], thetaVector[1], thetaVector[2]);
     setAxes(axisVector[0], axisVector[1]);
     setVelocity(paramVector[0]);
@@ -902,14 +908,17 @@ double MJMotionProfile::computeTangVelocity(const double t) {
     //double reBeta = -1 * beta;
     //double curvature = 1 / radius;
     thetaGoal = 1.57;
+    double goalRadius = computeRadius(thetaGoal);
     Vector goal(3);
-    goal[0]=O[0] + radius * cos(thetaGoal) * AOnorm[0] + radius * sin(thetaGoal) * BOnorm[0];
-    goal[1]=O[1] + radius * cos(thetaGoal) * AOnorm[1] + radius * sin(thetaGoal) * BOnorm[1];
-    goal[2]=O[2] + radius * cos(thetaGoal) * AOnorm[2] + radius * sin(thetaGoal) * BOnorm[2]; 
+    goal[0]=O[0] + goalRadius * cos(thetaGoal) * AOnorm[0] + goalRadius * sin(thetaGoal) * BOnorm[0];
+    goal[1]=O[1] + goalRadius * cos(thetaGoal) * AOnorm[1] + goalRadius * sin(thetaGoal) * BOnorm[1];
+    goal[2]=O[2] + goalRadius * cos(thetaGoal) * AOnorm[2] + goalRadius * sin(thetaGoal) * BOnorm[2]; 
     Vector distanceVect = goal - (*xd);
-    tfinal = 3.0; 
-    double distance = sqrt(distanceVect[0] * distanceVect[0] + distanceVect[0] * distanceVect[0] + distanceVect[0] * distanceVect[0]);
-    double epsilon = t / tfinal;
+    yDebug("distanceVector: %s", distanceVect.toString().c_str());
+    double distance = sqrt(distanceVect[0] * distanceVect[0] + distanceVect[1] * distanceVect[1] + distanceVect[2] * distanceVect[2]);
+    yDebug("distance:%f", distance);
+    double epsilon = (t - t0) / (tfinal - t0);
+    yDebug("epsilon:%f t:%f tfinal:%f", epsilon, t, tfinal);
     double epsilon3 = epsilon * epsilon * epsilon;
     double epsilon4 = epsilon3 * epsilon;
     double epsilon5 = epsilon4 * epsilon;
@@ -921,10 +930,9 @@ void MJMotionProfile::preComputation(const double t, const double theta) {
     //angular velocity expressed in frequency [Hz],
     //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
     //e.g.: 0.2 => 1/20 of 2PI per second; 2PI in 20sec         
-    //ONLY FOR CIRCLES: angular velocity constant to obtain constant tang.velocity 
+    //ONLY FOR CIRCLES: angular velocity constant to obtain constant tang.velocity  
     //FOR ELLIPSE: compute angular velocity from A,B and desired tang.velocity
     radius = computeRadius(theta);
-   
     tanVelocity = computeTangVelocity(t);
     yInfo("computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
     // computing angular velocity in function of the radius, theta, tangential velocity
@@ -936,9 +944,10 @@ void MJMotionProfile::preComputation(const double t, const double theta) {
     yInfo("theta angle [rad] %f", theta); 
 }
 
-Vector* MJMotionProfile::compute(double t, double t0) {
+Vector* MJMotionProfile::compute(double t) {
     if(t-t0 == 0) {
         theta = 0;
+        tfinal = t0 + 5.0;
     }
     else {
         theta =  thetaPrev + (t - tprev) * angVelocity;

@@ -229,7 +229,7 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     
     if (!strcmp(type.c_str(),"CVP")) {   
         mp = factoryCVMotionProfile(finalB);
-        yDebug("returned from factory");
+        yDebug("returned from CVP factory");
         if (mp == NULL){
             yError("factory returned error");
             return false;    
@@ -237,7 +237,16 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     }
     else if(!strcmp(type.c_str(),"TTPL")) {   
         mp = factoryTTPLMotionProfile(finalB);
-        yDebug("returned from factory");
+        yDebug("returned from TTPL factory");
+        if (mp == NULL){
+            yError("factory returned error");
+            return false;    
+        }  
+    }
+    else if(!strcmp(type.c_str(),"MJP")) { 
+        yDebug("Entering in factory")  ;
+        mp = factoryMJMotionProfile(finalB);
+        yDebug("returned from MJP factory");
         if (mp == NULL){
             yError("factory returned error");
             return false;    
@@ -257,6 +266,7 @@ void handProfilerThread::run() {
         count++;
         if (firstIteration) {  
             t = t0;
+            mp->setT0(t0);
             firstIteration = false;
             displayProfile();
         }
@@ -279,11 +289,11 @@ bool handProfilerThread::generateTarget() {
     // translational target part: a circular trajectory
     // in the yz plane centered in [-0.3,-0.1,0.1] with radius=0.1 m
     // and frequency 0.1 Hz (1/10 of 2PI per second)
-    xd[0]=-0.3;
-    xd[1]=-0.1+0.1*cos(2.0*M_PI*0.1*(t-t0));
-    xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0)); 
+    //xd[0]=-0.3;
+    ///xd[1]=-0.1+0.1*cos(2.0*M_PI*0.1*(t-t0));
+    //xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0)); 
 
-    Vector* _xdpointer = mp->compute(t, t0);
+    Vector* _xdpointer = mp->compute(t);
     //Vector _xd;
     if(_xdpointer == NULL) {
         //yInfo("STOP");

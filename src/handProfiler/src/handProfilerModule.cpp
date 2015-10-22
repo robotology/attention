@@ -45,6 +45,7 @@
 #define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
 #define COMMAND_VOCAB_GEN    VOCAB3('G','E','N')
 #define COMMAND_VOCAB_CON    VOCAB3('C','V','P')
+#define COMMAND_VOCAB_MJP    VOCAB3('M','J','P')    
 #define COMMAND_VOCAB_SIM    VOCAB3('S','I','M')
 #define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
 
@@ -199,10 +200,12 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("get mBA : get the minimum bounding area");
 
             reply.addString("GENERATE PROFILES");
-            reply.addString("GEN CVP  (((A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 0.1))) : generate constant velocity profile");
+            reply.addString("GEN CVP  : generate constant velocity profile");
+	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 0.1)))");
             reply.addString("GEN MJP  : generate minimum jerk profile");
+	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 1.57 3.0)))");
             reply.addString("GEN TTPL : generate two-third power law profile");
-            reply.addString("         : (((A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes majaxis[double] minaxis[double]) (param g[double] beta[double])))");
+            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 0.1 0.33)))");
 
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
@@ -257,7 +260,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 }
                 break;
             default:
-                cout << "received an unknown request " << endl;
+                cout << "received an unknown request after SET" << endl;
                 break;
             }
         }
@@ -288,7 +291,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             /* LATER: implement case COMMAND_VOCAB_MBA */
 
             default:
-                cout << "received an unknown request after a SALIENCE_VOCAB_GET" << endl;
+                cout << "received an unknown request after a GET" << endl;
                 break;
             }
         }
@@ -373,15 +376,14 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     }
                 }
             break;
-            case COMMAND_VOCAB_MINJ:
+            case COMMAND_VOCAB_MJP:
                 {
                     rec = true;                
                     reply.addString("minJerk"); 
                     if(0!=rThread){
-                        Bottle finalB;                  
-                        if(rThread->factory("MJP",finalB)) {
+                        Bottle* finalB = command.get(2).asList();                 
+                        if(rThread->factory("MJP",*finalB)) {
                             yInfo("factory:minJerk");
-                            reply.addInt(1);
                             ok = true;
                         } 
                     }  
@@ -409,7 +411,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             /* LATER: implement case COMMAND_VOCAB_MBA */
 
             default:
-                cout << "received an unknown request after a SALIENCE_VOCAB_GET" << endl;
+                cout << "received an unknown request after GEN" << endl;
                 break;
             }
         }
