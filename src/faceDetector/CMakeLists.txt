@@ -29,7 +29,10 @@ include_directories(${ICUB_INCLUDE_DIRS}
 					${OPENCV_INCLUDE_DIR})
 
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header})
-target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} ${YARP_LIBRARIES} icubmod )
+target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} 
+  ${YARP_LIBRARIES} 
+  #icubmod 
+)
 
 install(TARGETS ${PROJECTNAME} DESTINATION ${ICUB_DIR}/bin)
 #add_subdirectory(app)

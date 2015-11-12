@@ -29,7 +29,7 @@ IF (folder_source)
     TARGET_LINK_LIBRARIES( ${KEYWORD}
       ${YARP_LIBRARIES} 
       ${OpenCV_LIBRARIES}  
- 	  icubmod
+ 	  #icubmod
 	  logpolar
     )	
     INSTALL_TARGETS(/bin ${KEYWORD})

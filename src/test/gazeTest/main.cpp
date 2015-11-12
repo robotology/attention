@@ -40,11 +40,11 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace iCub::ctrl;
 
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 int main(int argc, char *argv[]) {
     
-    YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
         
     // Open the network
     Network yarp;

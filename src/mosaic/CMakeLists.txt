@@ -32,7 +32,7 @@ IF (folder_source)
     )
 
     TARGET_LINK_LIBRARIES(${KEYWORD}        
-      icubmod 
+      #icubmod 
       iKin 
       ${YARP_LIBRARIES}
       ${OpenCV_LIBRARIES}

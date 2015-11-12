@@ -31,7 +31,7 @@ IF (folder_source)
     TARGET_LINK_LIBRARIES(${KEYWORD} 
 	        ${YARP_LIBRARIES}
 	        ${OpenCV_LIBS}
-	        icubmod
+	        #icubmod
 		attentionLib
 	)	
 

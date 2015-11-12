@@ -29,13 +29,13 @@
 // using namespace yarp::os;
 // using namespace yarp::sig;
 
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 
 int main(int argc, char * argv[])
 {
     Network yarp;
-    YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
     Time::turboBoost();
     gazeArbiterModule module; 
 

@@ -28,7 +28,7 @@
 #include <yarp/dev/Drivers.h>
 
 
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     Time::turboBoost();
     selectiveAttentionModule module; 
 
-    YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
 
     /* prepare and configure the resource finder */
 

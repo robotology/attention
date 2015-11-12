@@ -31,7 +31,7 @@ IF (folder_source)
       		${YARP_LIBRARIES}
 		${IPP_LIBRARIES}
 		logpolar
-		icubmod
+		#icubmod
 		iKin
     )
     

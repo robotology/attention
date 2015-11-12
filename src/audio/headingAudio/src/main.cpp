@@ -6,7 +6,7 @@
 #include <yarp/math/Math.h>
 #include <iCub/headingControlModule.h>
 
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 using namespace std;
 using namespace yarp::os;
@@ -24,9 +24,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
     
-      //myReport rep;
+    //myReport rep;
 
     ResourceFinder rf;
     rf.setVerbose(true);

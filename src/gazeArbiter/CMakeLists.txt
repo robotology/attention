@@ -30,7 +30,7 @@ IF (folder_source)
 	        ${YARP_LIBRARIES}
 	        ${OpenCV_LIBRARIES}
 	        iKin
-	        icubmod 
+	        #icubmod 
 	)	
 
     INSTALL_TARGETS(/bin ${KEYWORD})

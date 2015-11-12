@@ -27,7 +27,7 @@
 //#include <ippi.h>
 //#include <ippcore.h>
 #include <yarp/dev/Drivers.h>
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
     Network yarp;
     Time::turboBoost();
     stereoAttModule module; 
-    YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
 
     ResourceFinder rf;
     rf.setVerbose(true);

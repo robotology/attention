@@ -90,7 +90,7 @@ public:
 int main(int argc, char *argv[]) 
 {
     Network yarp;
-    YARP_REGISTER_DEVICES(icubmod)
+    //YARP_REGISTER_DEVICES(icubmod)
 
     DetectorModule module;
     ResourceFinder rf;
