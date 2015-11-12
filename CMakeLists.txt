@@ -48,8 +48,6 @@ include(YarpInstallationHelpers)
 find_package(OpenCV)
 find_package(IPOPT)
 
-
-
 find_package(logpolar QUIET)
 IF (logpolar_FOUND)
    message("Attention System: logpolar library detected and used.")
