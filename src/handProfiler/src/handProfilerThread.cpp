@@ -174,9 +174,13 @@ bool handProfilerThread::threadInit() {
     
 
     /* initialization of the thread */
-        
+    x.resize(3);
+    o.resize(4);
     xd.resize(3);
     od.resize(4);
+    xdhat.resize(3);
+    odhat.resize(4);
+    qdhat.resize(4);
 
     t0 = Time::now();
     yInfo("handProfiler thread correctly started");
@@ -201,12 +205,49 @@ void handProfilerThread::setInputPortName(string InpPort) {
 }
 
 bool handProfilerThread::resetExecution(){
+    bool result = true;
     //this->suspend();    
     Vector xZero(3);
     xZero[0] = -0.3; xZero[1] = -0.1; xZero[2] = 0.1;
-    if(0 != icart) icart->goToPose(xZero,od);
+    //Vector od(4);
+    od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514;
+    if(0 != icart){
+        yInfo("resetting position");
+        fprintf(stdout,"xd          [m] = %s\n",xZero.toString().c_str());
+        fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
+        icart->goToPose(xZero,od);
+        
+        // we get the current arm pose in the
+        // operational space
+        icart->getPose(x,o);
+
+        // we get the final destination of the arm
+        // as found by the solver: it differs a bit
+        // from the desired pose according to the tolerances
+        icart->getDesired(xdhat,odhat,qdhat);
+
+        double e_x=norm(xdhat-xZero);
+        double e_o=norm(odhat-od);
+
+        fprintf(stdout,"+++++++++\n");
+        fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
+        fprintf(stdout,"xdhat       [m] = %s\n",xdhat.toString().c_str());
+        fprintf(stdout,"x           [m] = %s\n",x.toString().c_str());
+        fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
+        fprintf(stdout,"odhat     [rad] = %s\n",odhat.toString().c_str());
+        fprintf(stdout,"o         [rad] = %s\n",o.toString().c_str());
+        fprintf(stdout,"norm(e_x)   [m] = %g\n",e_x);
+        fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
+        fprintf(stdout,"---------\n\n");
+        
+        if (e_x > 0.05) {
+            yError("Error in resetting the initial position");
+            result = false;
+        }
+
+    }
     idle = true;
-    //this->resume();
+    return result;
 }
 
 bool handProfilerThread::startExecution(const bool reverse){
@@ -256,9 +297,10 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
         yError("Error.Type is unknown.");
         return false;
     }
-
-    resetExecution();
-    return true;    
+    
+    bool result = true;
+    result = result & resetExecution();
+    return result;    
 }
 
 void handProfilerThread::run() { 
@@ -275,9 +317,10 @@ void handProfilerThread::run() {
         }
         if(generateTarget()) {       
             // go to the target (in streaming)
-            //if(!simulation) {
-            //icart->goToPose(xd,od);
-            //}
+            if(!simulation) {
+                yInfo("EXECUTION");
+                icart->goToPose(xd,od);
+            }
             displayTarget();
             // some verbosity
             //printStatus();      

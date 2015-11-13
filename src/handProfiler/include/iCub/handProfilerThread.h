@@ -64,9 +64,14 @@ protected:
     bool simulation;               // flag indicating whether the movement is simulation or executed
     
     
+    yarp::sig::Vector x;          // vector representating the desired position for the hand
+    yarp::sig::Vector o;          // vector representating the desired position for the hand
     yarp::sig::Vector xd;          // vector representating the desired position for the hand
     yarp::sig::Vector od;          // vector representating the desired orientation for the hand
-
+    yarp::sig::Vector xdhat;       // vector representating the desired orientation for the hand
+    yarp::sig::Vector odhat;       // vector representating the desired orientation for the hand
+    yarp::sig::Vector qdhat;       // vector representating the desired orientation for the hand
+    
     yarp::dev::PolyDriver client;
     yarp::dev::ICartesianControl *icart;
     yarp::dev::CartesianEvent *ce;
