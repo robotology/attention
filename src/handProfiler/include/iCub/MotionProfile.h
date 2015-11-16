@@ -147,6 +147,11 @@ public:
     * function returning the A vector
     */
     yarp::sig::Vector getO() { return O; };
+    
+    /**
+    * function setting the A vector
+    */
+    yarp::sig::Vector setA(yarp::sig::Vector value) { A = value; };
 
     /**
     * function returning the A vector
@@ -154,14 +159,29 @@ public:
     yarp::sig::Vector getA() { return A; };
 
     /**
+    * function setting the A vector
+    */
+    yarp::sig::Vector setB(yarp::sig::Vector value) { B = value; };
+    
+    /**
     * function returning the B vector
     */
     yarp::sig::Vector getB() { return B; };    
     
     /**
+    * function setting the A vector
+    */
+    yarp::sig::Vector setC(yarp::sig::Vector value) { C = value; };
+    
+    /**
     * function returning the C vector
     */
     yarp::sig::Vector getC() { return C; };
+
+    /**
+     * function that returs the initial position of the traj.
+     */
+    yarp::sig::Vector getInitial() { return A; };
 
     /**
     * function that return the vector with module equal to the radius
