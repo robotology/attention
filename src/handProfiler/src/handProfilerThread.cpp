@@ -318,11 +318,11 @@ bool handProfilerThread::resetExecution(){
         // from the desired pose according to the tolerances
         icart->getDesired(xdhat,odhat,qdhat);
 
-        double e_x=norm(xdhat-xZero);
+        double e_x=norm(xdhat-xInit);
         double e_o=norm(odhat-od);
 
         fprintf(stdout,"+++++++++\n");
-        fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
+        //fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
         fprintf(stdout,"xdhat       [m] = %s\n",xdhat.toString().c_str());
         fprintf(stdout,"x           [m] = %s\n",x.toString().c_str());
         fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
@@ -332,7 +332,7 @@ bool handProfilerThread::resetExecution(){
         fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
         fprintf(stdout,"---------\n\n");
         
-        if (e_x > 0.05) {
+        if (e_x > 0.1) {
             yError("Error in resetting the initial position");
             //result = false;
         }
@@ -342,16 +342,18 @@ bool handProfilerThread::resetExecution(){
     return result;
 }
 
-bool handProfilerThread::startExecution(const bool reverse){
-    //count = 0;    
+bool handProfilerThread::startExecution(const bool _reverse){
+    //count = 0;
+    //mp->setReverse(_reverse);
     idle = false;
     simulation = false;
     firstIteration = true;
     t0 = Time::now();
 }
 
-bool handProfilerThread::startSimulation(const bool reverse){
-    //count = 0;    
+bool handProfilerThread::startSimulation(const bool _reverse){
+    //count = 0;
+    //mp->setReverse(_reverse);
     idle = false;
     simulation = true;
     firstIteration = true;

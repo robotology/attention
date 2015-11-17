@@ -66,9 +66,24 @@ void MotionProfile::setCenter(Vector _O){
 }
 
 void MotionProfile::setStartStop(const double tA, const double tB, const double tC){  
-    thetaA = tA; 
-    thetaB = tB;
-    thetaC = tC;     
+    if(reverse == 1) {
+        yInfo("Setting for NOT REVERSE");
+        thetaA = tA; 
+        thetaB = tB;
+        thetaC = tC;     
+    }
+    else if(reverse == -1) { 
+        yInfo("Setting for REVERSE %d", reverse);
+        thetaA = tC; 
+        thetaB = tB;
+        thetaC = tA;
+    }
+    else {
+        reverse = 0;
+        thetaA = tA; 
+        thetaB = tB;
+        thetaC = tC;
+    }
 }
 
 Vector MotionProfile::normalizeVector(const Vector u, double const radius) {
@@ -176,6 +191,35 @@ bool MotionProfile::sanityCheck(const Vector array[], const int size) {
         if((toCheck[2] < minZ) || (toCheck[2] > maxZ)) return false;
     }
     return true;
+}
+
+Vector MotionProfile::getInitial() {
+    Vector locInitial(3);
+    //FOR ELLIPSE: compute angular velocity from A,B and desired tang.velocity
+    radius = computeRadius(thetaA);
+    //preComputation(t, thetaA);  //computes the radius
+    locInitial[0]=O[0] + radius * cos(thetaA) * AOnorm[0] + radius * sin(thetaA) * BOnorm[0];
+    locInitial[1]=O[1] + radius * cos(thetaA) * AOnorm[1] + radius * sin(thetaA) * BOnorm[1];
+    locInitial[2]=O[2] + radius * cos(thetaA) * AOnorm[2] + radius * sin(thetaA) * BOnorm[2];
+    yInfo("getting the initial position %s for thetaStart %f with radius", locInitial.toString().c_str(), thetaA, radius); 
+    return locInitial;
+}
+
+bool MotionProfile::inRange(double theta) {
+    //reverseGain = 1 when reverse = FALSE
+    if(reverse == 1) {
+        if((theta > thetaA) && (theta< thetaC)) 
+            return true;
+        else
+            return false;
+    }
+    //reverseGain = -1 when reverse = TRUE
+    else {
+       if((theta > thetaC) && (theta < thetaA)) 
+            return true;
+        else
+            return false; 
+    }
 }
 
 //***********************************************************************************************************************
@@ -300,6 +344,8 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
                            "profile parameters (string)").asString();
     extractVector(paramString, paramVector);
     yDebug("got profile parameters:(%s)", paramVector.toString().c_str());
+    bool reverse = rf.check("rev");
+    reverse? yDebug("reverse is ON") : yDebug("reverse is ON");
     
     if(b->size() == 6){
         //extracing the features from the bottle
@@ -341,6 +387,7 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
         
     }
     setCenter(Ovector);
+    setReverse(reverse);
     setStartStop(thetaVector[0], thetaVector[1], thetaVector[2]);
     setAxes(axisVector[0], axisVector[1]);
     setVelocity(paramVector[0]);
@@ -350,13 +397,14 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
     array[2] = Cvector;
     valid = true;
     setViaPoints(Avector,Bvector,Cvector);
-   
 }
 
 bool CVMotionProfile::operator==(const CVMotionProfile &cvmp)
 {
     return ((valid==cvmp.valid)&&(type==cvmp.type));
 }
+
+
 
 void CVMotionProfile::preComputation(const double t, const double theta) {
     //angular velocity expressed in frequency [Hz],
@@ -391,15 +439,15 @@ void CVMotionProfile::preComputation(const double t, const double theta) {
 
 Vector* CVMotionProfile::compute(double t) {
     if(t-t0 == 0) {
-        theta = 0;
+        theta = thetaA;
     }
     else {
         theta =  thetaPrev + (t - tprev) * angVelocity;
     }
     
     Vector xdes = *xd;
-    if(theta == 0) {
-        yInfo("theta=0 check");
+    if(theta == thetaA) {
+        yInfo("theta=thetaA check");
         preComputation(t, theta);
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
@@ -413,7 +461,7 @@ Vector* CVMotionProfile::compute(double t) {
             //Time::delay(5.0);
         }
     }
-    else if ((theta >= thetaA) && (theta<=thetaC)) {
+    else if ((theta > thetaA) && (theta<=thetaC)) {
         yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
         preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
@@ -431,8 +479,7 @@ Vector* CVMotionProfile::compute(double t) {
     
     Vector distance = (*xd) - xPrev;
     yInfo("travelled distance x = %f , travelled distance y = %f absolute = %f", distance[1]/(t-tprev), distance[2]/(t-tprev), 
-    sqrt(distance[1] * distance[1] + distance[2] * distance[2])/(t-tprev));     
-    
+    sqrt(distance[1] * distance[1] + distance[2] * distance[2])/(t-tprev));      
 
     // updating the previous incremental step values
     radiusPrev =  radius;
@@ -566,6 +613,9 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
                            "profile parameters (string)").asString();
     extractVector(paramString, paramVector);
     yDebug("got profile parameters:(%s)", paramVector.toString().c_str());
+    bool reverse = rf.check("rev");
+    reverse? yDebug("reverse is ON") : yDebug("reverse is OFF");
+
     
     if(b->size() == 6){
         //extracing the features from the bottle
@@ -608,6 +658,7 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
         
     }
     setCenter(Ovector); 
+    setReverse(reverse);
     setStartStop(thetaVector[0], thetaVector[1], thetaVector[2]);
     setAxes(axisVector[0], axisVector[1]);
     setGain(paramVector[0]);    
@@ -666,16 +717,19 @@ void TTPLMotionProfile::preComputation(const double  t, const double theta) {
 }
 
 Vector* TTPLMotionProfile::compute(double t) {
+    double thetaStart;
+    
     if(t-t0 == 0) {
-        theta = 0;
+        theta = thetaA;
+        thetaStart =  thetaA;
     }
     else {
-        theta =  thetaPrev + (t - tprev) * angVelocity;
+        theta =  thetaPrev + reverse * (t - tprev) * angVelocity;
     }
-    
+
     Vector xdes = *xd;
-    if(theta == 0) {
-        yInfo("theta=0 check");
+    if(theta == thetaStart) {
+        yInfo("theta=thetaStart check");
         preComputation(t, theta);
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
@@ -689,7 +743,7 @@ Vector* TTPLMotionProfile::compute(double t) {
             //Time::delay(5.0);
         }
     }
-    else if ((theta >= thetaA) && (theta<=thetaC)) {
+    else if (inRange(theta)) {
         yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
         preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
@@ -697,8 +751,7 @@ Vector* TTPLMotionProfile::compute(double t) {
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];
         (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
         (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
-        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2]; 
-    
+        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2];     
         yInfo("xdes %s", xd->toString().c_str());
     }
     else {
@@ -709,14 +762,12 @@ Vector* TTPLMotionProfile::compute(double t) {
     yInfo("travelled distance x = %f , travelled distance y = %f absolute = %f", distance[1]/(t-tprev), distance[2]/(t-tprev), 
     sqrt(distance[1] * distance[1] + distance[2] * distance[2])/(t-tprev));     
     
-
     // updating the previous incremental step values
     radiusPrev =  radius;
     thetaPrev = theta;    
     tprev     = t;    
     xPrev = (*xd);
-    return xd;    
-    
+    return xd;       
 }
 
 //***********************************************************************************************************************
@@ -842,6 +893,8 @@ MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
                            "profile parameters (string)").asString();
     extractVector(paramString, paramVector);
     yDebug("got profile parameters:(%s)", paramVector.toString().c_str());
+    bool reverse = rf.check("rev");
+    reverse? yDebug("reverse is ON") : yDebug("reverse is ON");
     
     if(b->size() == 6){
         //extracing the features from the bottle
@@ -926,6 +979,7 @@ double MJMotionProfile::computeTangVelocity(const double t) {
     return vel;
 }
 
+
 void MJMotionProfile::preComputation(const double t, const double theta) {
     //angular velocity expressed in frequency [Hz],
     //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
@@ -946,7 +1000,7 @@ void MJMotionProfile::preComputation(const double t, const double theta) {
 
 Vector* MJMotionProfile::compute(double t) {
     if(t-t0 == 0) {
-        theta = 0;
+        theta = thetaA;
         tfinal = t0 + 5.0;
     }
     else {
@@ -954,8 +1008,8 @@ Vector* MJMotionProfile::compute(double t) {
     }
     
     Vector xdes = *xd;
-    if(theta == 0) {
-        yInfo("theta=0 check");
+    if(theta == thetaA) {
+        yInfo("theta=thetaA check");
         preComputation(t,theta);
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
@@ -969,7 +1023,7 @@ Vector* MJMotionProfile::compute(double t) {
             //Time::delay(5.0);
         }
     }
-    else if ((theta >= thetaA) && (theta<=thetaC)) {
+    else if ((theta > thetaA) && (theta<=thetaC)) {
         yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
         preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];

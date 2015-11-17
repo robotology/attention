@@ -52,6 +52,7 @@
 #define COMMAND_VOCAB_SIM    VOCAB3('S','I','M')
 #define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
 #define COMMAND_VOCAB_ROT    VOCAB3('R','O','T')
+#define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
 
 
 using namespace yarp::os;
@@ -317,9 +318,20 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
 
             case COMMAND_VOCAB_SIM:
                 {
+                    bool rev = false;
                     if(0!=rThread) {
                         reply.addString("OK");
-                        rThread->startSimulation(false);    
+                        
+                        if(command.size() == 3) {
+                            yInfo("Looking for REV COMMNAD");
+                            if(command.get(2).asVocab() == COMMAND_VOCAB_REV) {
+                                yInfo("REV COMMAND found");
+                                rev = true;
+                            }
+                        }
+                        Time::delay(5.0);
+                        rThread->startSimulation(rev);
+                        
                     }
                     ok = true;
                 }
