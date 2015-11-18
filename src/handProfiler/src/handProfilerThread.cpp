@@ -26,7 +26,7 @@
 
 #define CTRL_THREAD_PER     0.02    // [s]
 #define PRINT_STATUS_PER    1.0     // [s]
-#define MAX_TORSO_PITCH     30.0    // [deg]
+#define MAX_TORSO_PITCH     10.0    // [deg]
 #define RATETHREAD          10      // [ms]
 #define TRAJTIME            1.0     // [s]
 
@@ -87,7 +87,7 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     firstIteration = true; 
     idle = true;
     simulation = true;
-    gazetracking = true;
+    gazetracking = false;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -103,7 +103,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     firstIteration = true;
     idle = true;
     simulation = true;
-    gazetracking = true;
+    gazetracking = false;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -198,6 +198,7 @@ bool handProfilerThread::threadInit() {
     string localCon("/handProfiler/gaze");
     localCon.append(getName(""));
     optionGaze.put("local",localCon.c_str());
+    yInfo("activating the PolyDriver");
 
     clientGazeCtrl = new PolyDriver();
     clientGazeCtrl->open(optionGaze);
@@ -216,20 +217,28 @@ bool handProfilerThread::threadInit() {
        }
     }
     else {
+        yInfo("Not Valid clientGazeCtrl");
         igaze = 0;
     }
+    yInfo("Success in initialising the gaze");
+    
 
     string rootNameGui("");
     rootNameGui.append(getName("/gui:o"));
     if(!guiPort.open(rootNameGui.c_str())) {
           yError("guiPort is not open with success. Check for conflicts");
     }
-    string xdNameGui("");
-    xdNameGui.append(getName("/xd:o"));
-    if(!xdPort.open(xdNameGui.c_str())) {
+    //string xdNameGui("");
+    //xdNameGui.append(getName("/xd:o"));
+    if(!xdPort.open("/handProfiler/xd:o")) {
           yError("xdPort is not open with success. Check for conflicts");
     }
-    
+    string velName("");
+    velName.append(getName("/vel:o"));
+    if(!velPort.open(velName.c_str())) {
+          yError("velPort is not open with success. Check for conflicts");
+    }
+
     /* initialization of the thread */
     x.resize(3);
     o.resize(4);
@@ -262,9 +271,14 @@ void  handProfilerThread::rotAxisX(const double& angle) {
     Anew = mp->getA();
     Bnew = mp->getB();
     Cnew = mp->getC();
+
+    // multiplying the vector by the matrix
+    
+
     mp->setA(Anew);
     mp->setB(Bnew);
     mp->setC(Cnew);
+    mp->setViaPoints(Anew, Bnew, Cnew);
 }
 
 void  handProfilerThread::rotAxisY(const double& angle) {
@@ -421,10 +435,23 @@ void handProfilerThread::run() {
             if(xdPort.getOutputCount()) {
                 printXd();
             }
+            if(velPort.getOutputCount()) {
+                printVel();
+            }
             // some verbosity
             //printStatus();      
         }       
     }
+}
+
+void handProfilerThread::printVel() {
+    Stamp ts;
+    ts.update();
+    Bottle& b = velPort.prepare();
+    b.clear();
+    b.addDouble(mp->getTanVelocity());
+    velPort.setEnvelope(ts);
+    velPort.write();
 }
 
 void handProfilerThread::printXd() {
@@ -467,6 +494,7 @@ bool handProfilerThread::generateTarget() {
     // to achieve that it is enough to rotate the root frame of pi around z-axis
     //od[0] = 0.0; od[1] = 0.0; od[2] = 1.0; od[3] = M_PI;
     //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
+    //od[0] = -0.43; od[1] = -0.02; od[2] = -0.90; od[3] = 2.98;
     od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
     return true;
 }
@@ -507,6 +535,8 @@ void handProfilerThread::threadRelease() {
     guiPort.close();
     xdPort.interrupt();
     xdPort.close();
+    velPort.interrupt();
+    velPort.close();
 
     yInfo("success in thread release");
 }

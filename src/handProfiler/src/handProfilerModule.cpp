@@ -115,12 +115,20 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     int  yawDof           = rf.check("yawDof", 
                                      Value(1), 
                                      "value of the yawDofl(int)").asInt();
-    int  rollDof           = rf.check("rollDof", 
+    int  rollDof          = rf.check("rollDof", 
                                      Value(0), 
                                      "value of the rollDof(int)").asInt();
-    int  pitchDof           = rf.check("pitchDof", 
+    int  pitchDof         = rf.check("pitchDof", 
                                      Value(1), 
                                      "value of the pitchRoll(int)").asInt();
+
+    bool gazeTracking     = rf.check("gazeTracking");
+    if(gazeTracking) {
+        yInfo("gazeTracking ON");
+    }
+    else {
+        yInfo("gazeTracking OFF");
+    }
     
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
@@ -150,6 +158,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     rThread = new handProfilerThread(robotName, configFile);
     rThread->setName(getName().c_str());
     rThread->setTorsoDof(yawDof, rollDof, pitchDof);
+    rThread->setGazeTracking(gazeTracking);
     rThread->setOutputDimension(outputWidth, outputHeight);
     //rThread->setInputPortName(inputPortName.c_str());
     
@@ -204,23 +213,14 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("help");         
             reply.addString("get fn \t: general get command");          
             reply.addString("set s1 <s> \t: general set command");
-            
-            reply.addString("NOTE: capitalization of command name is mandatory");
-            reply.addString("set Mdb : set maximum dimension allowed for blobs");
-            reply.addString("set mdb : set minimum dimension allowed for blobs");
-            reply.addString("set mBA : set the minimum bounding area");
-
-            reply.addString("get Mdb : get maximum dimension allowed for blobs");
-            reply.addString("get mdb : get minimum dimension allowed for blobs");
-            reply.addString("get mBA : get the minimum bounding area");
-
+          
             reply.addString("GENERATE PROFILES");
             reply.addString("GEN CVP  : generate constant velocity profile");
-	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 0.1)))");
+	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1)))");
             reply.addString("GEN MJP  : generate minimum jerk profile");
-	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 1.57 3.0)))");
+	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 1.57 3.0)))");
             reply.addString("GEN TTPL : generate two-third power law profile");
-            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (param 0.1 0.33)))");
+            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
 
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
@@ -329,7 +329,6 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                                 rev = true;
                             }
                         }
-                        Time::delay(5.0);
                         rThread->startSimulation(rev);
                         
                     }

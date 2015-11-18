@@ -95,6 +95,8 @@ protected:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                   // output port to plot event
+
     std::string name;                                                                   // rootname of all the ports opened by this thread
 
     // the event callback attached to the "motion-ongoing"
@@ -156,6 +158,11 @@ public:
     * @return rootname 
     */
     std::string getName(const char* p);
+
+    /**
+    * function that returns sets the gazeTracking either ON or OFF
+    */
+    void setGazeTracking(bool value){ gazetracking = value; };
 
     /*
     * function that sets the inputPort name
@@ -250,6 +257,11 @@ public:
     * function that prints out the desired location to track
     */
     void printXd();
+    
+    /**
+    * function that prints out the linearVelocity of the end-effector
+    */
+    void printVel();
 };
 
 #endif  //_HAND_PROFILER_THREAD_H_

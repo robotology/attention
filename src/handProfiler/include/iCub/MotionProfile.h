@@ -190,6 +190,11 @@ public:
     yarp::sig::Vector getInitial();
 
     /**
+     * function that returs the initial position of the traj.
+     */
+    double  getTanVelocity() {return tanVelocity; };
+
+    /**
     * function that return the vector with module equal to the radius
     */
     yarp::sig::Vector normalizeVector(const yarp::sig::Vector u, double const radius);
