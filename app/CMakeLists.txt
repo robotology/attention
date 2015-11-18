@@ -20,7 +20,7 @@
 #add_subdirectory ( audiovisualAttention )				
 add_subdirectory ( biologicalProcessing )
 add_subdirectory ( logpolarAttention    )
-#add_subdirectory ( batchAnalysis      )
+add_subdirectory ( handProfiler         )
 #add_subdirectory(protoObjectVisualAttention)
 #add_subdirectory(dumpApplication)
 
