@@ -76,8 +76,8 @@ private:
 
     bool featDataready;
 
-	yarp::os::Semaphore semColor;
-	yarp::os::Semaphore semMono;
+    yarp::os::Semaphore semColor;
+    yarp::os::Semaphore semMono;
     
     yarp::os::Semaphore sem;
 
@@ -123,6 +123,9 @@ private:
     bool firstProcessing;
     cv::Mat Ut_1;
     cv::Mat Vt_1;
+    cv::Mat BBinfo_1;
+    cv::Mat Maskt_1;
+    cv::Mat Maskt_18U;
 
     cv::Mat MAGt_1;
     cv::Mat THETAt_1;
@@ -206,7 +209,7 @@ public:
      */
     void copyImage(yarp::sig::ImageOf<yarp::sig::PixelMono>* img);
 
-	 /**
+     /**
      * function that copies the image in the left output
      * @param img passed input of the image to be copied
      */

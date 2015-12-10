@@ -30,7 +30,7 @@
 #include <cv.h>
 #include <highgui.h>
 #include <cxcore.h>
-
+#include <limits>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -78,6 +78,8 @@ bool featExtractorThread::threadInit() {
 
     Ut_1 = cv::Mat::zeros(height, width, CV_32FC1);  //I have already use U and V to put them in U_1 and V_1  //?or is it better to initialize U, V, U_1, V_1 in the threadInit?
     Vt_1 = cv::Mat::zeros(height, width, CV_32FC1);
+    Maskt_1 = cv::Mat::zeros(height, width, CV_32FC1);
+
     Plot = cv::Mat::zeros(1800, 1600, CV_32FC3);
 
     currentSmoothedV = 0.0;
@@ -130,9 +132,9 @@ void featExtractorThread::setFlag() {
 
 /*
 void featExtractorThread::setFlagPointer(bool* flagPointer) {           //p1
-	sem.wait();
+    sem.wait();
     featDataready=flagPointer;           //p1=p2
-	sem.post();
+    sem.post();
 }
 */
 
@@ -185,8 +187,8 @@ bool featExtractorThread::test(){
     return ret;
 }
 
-void featExtractorThread::run() {    //uImage,vImage,mImage
-//ddd
+/*featExtractorThread takes U thresholded,V thresholded and the mask from opfExtractorThread, and from them it computes the features*/
+void featExtractorThread::run() {
 
     if(outputPortDescr.getOutputCount()) {
         //yDebug("plotting the image");
@@ -203,94 +205,18 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         imagePlot.resize(1600, 1800);
         imagePlot.zero();
 
-        //sem.wait();
-        //IplImage IplPlot = (IplImage) Plot; 
-        //plotImage-> wrapIplImage(&IplPlot);
-        //imagePrepare.copy(*plotImage);
-        //sem.post();
-
-        //outputPortPlot.write();
-    
-
-        int DELTA = 10;
-        int LATO = DELTA*2+1;
-
         bool tempReady;
         sem.wait();
         tempReady = featDataready;          //this is to protect featDataready
         sem.post();
 
-
         if(tempReady){
-
-            //yInfo("ciaoooooooo");
-            //cv::Mat Ut((IplImage*) uImage->getIplImage(), false);
-            //cv::Mat Vt((IplImage*) vImage->getIplImage(), false);
-            //cv::Mat Maskt((IplImage*) mImage->getIplImage(), false);
-
             descr.clear();
-
-            /*if(!COND) {
-    
-                if(DEBUG_) {
-                    cv::Mat Im = cv::Mat::zeros(Ut.rows, Ut.cols, CV_8UC1);
-                    cv::imshow("DEBUG", Im);
-                    cv::waitKey(10);
-                    Im.release();
-      
-                }
-    
-                MAGt.release();
-                THETAt.release();
-                MAGt_1.release();
-                THETAt_1.release();
-                Maskt.release();
-                computed = 0;
-                return;
-            }*/
-
-
-            /*for(int x = 0; x < NewMask.cols; ++x) {
-                for(int y = 0; y < NewMask.rows; ++y) {
-                    if(NewMask.at<uchar>(y,x) > 0) {
-	                    CUM.at<float>(y,x) += MAGt.at<float>(y,x);   //CUM is just to  visualize the evolution of the region (it is something like to put together the binary matrices)->it can be commented
-                    }
-                }
-            }*/
-
-
-            /*if(DEBUG_) {
-    
-
-            double minVal, maxVal;
-            cv::Point maxPos;
-            cv::minMaxLoc(CUM, &minVal, &maxVal, NULL, &maxPos, NewMask);
-    
-            cv::Mat Ig = cv::Mat::zeros(CUM.rows, CUM.cols, CV_8UC3);
-            cv::Mat C = 255*(CUM-((float)(minVal)))/(((float)(maxVal))-((float)(minVal)));     //Normalization of CUM
-            C.convertTo(Ig, CV_8UC3);
-    
-            cv::circle(Ig, maxPos, 3, CV_RGB(255,0,0));
-    
-            cv::imshow("DEBUG", NewMask);
-            //cv::imshow("DEBUG", NewMask3);
-            cv::waitKey(10);
-            //If.release();
-            //Im.release();
-            //Imrgb.release();
-    
-            }*/
- 
             cv::Mat VEL = cv::Mat::zeros(1,3,CV_32FC1); 
             cv::Mat ACC = cv::Mat::zeros(1,3,CV_32FC1);
             cv::Mat SmoothedVEL = cv::Mat::zeros(1,3,CV_32FC1); 
             cv::Moments MOMt;
-            double minValt_1, maxValt_1;
-            cv::Point maxPost_1;
-            cv::Mat Probt_1;
-            cv::Mat Maskt_1;
             cv::Mat mean, std;
-
 
             cv::Mat MatV = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
             cv::Mat MatC = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
@@ -298,317 +224,265 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
             cv::Mat MatA = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
             int delta = 3;
 
-            //AAA togliere commenti e decidere dove settare il case, per ora c'e' solo quella del centroide
-            //switch(flag_) {     //dove lo setto
+            //togliere commenti e decidere dove settare il case, per ora c'e' solo quella del centroide
+            //switch(flag_) {
             //case 0: // analisi del centroide  
 
-            // devo trovare il centroide della roi         //roi=region of interest
-            //aaa da qui decommenta
+            //to find the centroid of the roi=region of interest
             MOMt = cv::moments(Maskt, true);    //moments(Calculates all of the moments up to the third order of a polygon or rasterized shape.)
             cv::Point maxPost;
             if (MOMt.m00 == 0)
                 MOMt.m00 = 0.000001;
             maxPost.x = MOMt.m10/MOMt.m00;
             maxPost.y = MOMt.m01/MOMt.m00;
-            // spatial moments
-            //double  m00, m10, m01, m20, m11, m02, m30, m21, m12, m03;
-            // central moments
-            //double  mu20, mu11, mu02, mu30, mu21, mu12, mu03;
-            // central normalized moments
-            //double  nu20, nu11, nu02, nu30, nu21, nu12, nu03;
-
-            MAGt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);
-            THETAt_1 = cv::Mat::zeros(Ut.rows, Ut.cols, CV_32FC1);  
-            float a = Ut_1.depth();
-            float b = Ut.depth();
-            float c = Maskt.depth();
-
-
-            double minvala, maxvala;	
-		    cv::Point  minLoca, maxLoca;
-		    cv::minMaxLoc(Ut,&minvala, &maxvala, &minLoca, &maxLoca);
-
-            double minvalz, maxvalz;	
-		    cv::Point  minLocz, maxLocz;
-		    cv::minMaxLoc(Ut_1,&minvalz, &maxvalz, &minLocz, &maxLocz);
-
-            cv::cartToPolar(Ut_1, Vt_1, MAGt_1, THETAt_1, false);
-
-            Probt_1 = cv::Mat::zeros(MAGt_1.rows, MAGt_1.cols, CV_32FC1);
-
-            for(int i = DELTA; i < Probt_1.rows-DELTA; ++i) {        //as  before  during segmentation -> Probt_1 will be a matrix of values of probabilities between 0 and 1 
-                for(int j = DELTA; j < Probt_1.cols-DELTA; ++j) {
-                    if(MAGt_1.at<float>(i,j)> TH1__)
-                        Probt_1.at<float>(i,j) = ((float)(cv::sum(MAGt_1(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1)) >= TH2__).val[0]))/((float)(LATO*LATO));
-                }
-            }
-      
-                Maskt_1 = Probt_1 >= PTH__;
-
-            //COND = cv::sum(Maskt_1).val[0] >= 0.05*(255*Ut.rows*Ut.cols);   //?rimane sempre a 0, quindi  ho  tolto l'if successivo  
-            //if(COND) {
-            //  yInfo("interno del  cond");
-            //}
-
-            //    devo trovare il centroide della roi
-            cv::Moments MOMt_1 = cv::moments(Maskt_1, true);
-            if (MOMt_1.m00 == 0) {
-                MOMt_1.m00 = 0.000001;
-            }
-            maxPost_1.x = MOMt_1.m10/MOMt_1.m00;      //??
-            maxPost_1.y = MOMt_1.m01/MOMt_1.m00;
 
             // DESCRITTORE: Vt Ct Rt At
             cv::Mat Maskt8U;
             Maskt.convertTo(Maskt8U, CV_8UC1);
-            VEL.at<float>(0,0) = cv::mean(Ut, Maskt8U).val[0];   //crasha
+            Maskt_1.convertTo(Maskt_18U, CV_8UC1);
+            //cv::imshow("Maskt",Maskt)  ;
+            //cv::imshow("Maskt_1",Maskt_1)  ;
+            //cv::waitKey(10);
+
+            VEL.at<float>(0,0) = cv::mean(Ut, Maskt8U).val[0];
             VEL.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0]; 
-            VEL.at<float>(0,2) = 0.1;  //10 fps
-	
+            VEL.at<float>(0,2) = 0.0666;  //15 fps
+
             float V =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
 
-            // fare chiamata:  void gaussianiir1d(float *roba, long length, float sigma, int numsteps);               //questa é la definizionee
+            ////in case you would like to find the other 3 features from the not smoothed velocity and THEN smooth them
+            //Compute other features from not smoothed Vx and Vy
+            ACC.at<float>(0,0) =  cv::mean(Ut, Maskt8U).val[0] - cv::mean(Ut_1, Maskt_18U).val[0]; 
+            ACC.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0] - cv::mean(Vt_1, Maskt_18U).val[0]; 
+            ACC.at<float>(0,2) = 0.;
 
-         if (V!=float(0.033))  {
-            descr.push_back(sequenceID);
-            counter++;
-            descr.push_back(counter);
+            float C = cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3);       //C=Curvature
+            float R=1/C;                                                   //R=Radius of curvature
+            float A=V/R;                                                   //A=V/R
 
-            std::vector<float> gaussian ;
-            gaussian.push_back( 0.0110020044943488);
-            gaussian.push_back( 0.0431751450217583);
-            gaussian.push_back( 0.114643519437383);
-            gaussian.push_back( 0.205977096991566);
-            gaussian.push_back( 0.250404468109888);
-            gaussian.push_back( 0.205977096991566);
-            gaussian.push_back( 0.114643519437383);
-            gaussian.push_back( 0.0431751450217583);
-            gaussian.push_back( 0.0110020044943488);
-            int kernelSize=9;
+            if (    (V!=VEL.at<float>(0,2))  && C!=0.0 ){ 
+                //Smoothing the features
+                //gaussian filter to be convoluted with the signal to filter it
+                std::vector<float> gaussian ;
+                gaussian.push_back( 0.0110020044943488);
+                gaussian.push_back( 0.0431751450217583);
+                gaussian.push_back( 0.114643519437383);
+                gaussian.push_back( 0.205977096991566);
+                gaussian.push_back( 0.250404468109888);
+                gaussian.push_back( 0.205977096991566);
+                gaussian.push_back( 0.114643519437383);
+                gaussian.push_back( 0.0431751450217583);
+                gaussian.push_back( 0.0110020044943488);
+                int kernelSize=9;
+                int bufferSize=9;
 
+                buffering(bufferSize, bufferV, V)   ;                          //create the buffer of data for convolution  with kernel
+                if (bufferV.size()==bufferSize) 
+                    convolution(bufferV, gaussian, smoothedBufferV, currentSmoothedV);
 
-                    ////in case you would like to find the other 3 features from the not smoothed velocity and THEN smooth them
-        //Compute other features from not smoothed Vx and Vy
-        ACC.at<float>(0,0) =  cv::mean(Ut, Maskt8U).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
-        ACC.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
-        ACC.at<float>(0,2) = 0.;
-	
-        float C = cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3);       //C=Curvature
-        float R=1/C;                                                   //R=Radius of curvature
-        float A=V/R;                                                   //A=V/R
+                buffering(bufferSize, bufferC, C)   ;
+                if (bufferC.size()==bufferSize) 
+                    convolution(bufferC, gaussian, smoothedBufferC, currentSmoothedC);
 
-        //Smoothing the features
-       int bufferSize=9;
+                buffering(bufferSize, bufferR, R)   ;
+                if (bufferR.size()==bufferSize) 
+                    convolution(bufferR, gaussian, smoothedBufferR, currentSmoothedR);
 
-       buffering(bufferSize, bufferV, V)   ;                          //create the buffer of data for convolution  with kernel
-       if (bufferV.size()==bufferSize) 
-            convolution(bufferV, gaussian, smoothedBufferV, currentSmoothedV);
-
-        buffering(bufferSize, bufferC, C)   ;
-        if (bufferC.size()==bufferSize) 
-            convolution(bufferC, gaussian, smoothedBufferC, currentSmoothedC);
-
-        buffering(bufferSize, bufferR, R)   ;
-        if (bufferR.size()==bufferSize) 
-            convolution(bufferR, gaussian, smoothedBufferR, currentSmoothedR);
-
-        buffering(bufferSize, bufferA, A)   ;
-        if (bufferA.size()==bufferSize) 
-            convolution(bufferA, gaussian, smoothedBufferA, currentSmoothedA);
+                buffering(bufferSize, bufferA, A)   ;
+                if (bufferA.size()==bufferSize) 
+                    convolution(bufferA, gaussian, smoothedBufferA, currentSmoothedA);
 
 
-         if (currentSmoothedV < Vmin)
-            Vmin=currentSmoothedV;
-        if (currentSmoothedV > Vmax)
-            Vmax=currentSmoothedV;
+                if (currentSmoothedV < Vmin)
+                    Vmin=currentSmoothedV;
+                if (currentSmoothedV > Vmax)
+                    Vmax=currentSmoothedV;
 
-        if (currentSmoothedC < Cmin)
-            Cmin=currentSmoothedC;
-        if (currentSmoothedC > Cmax)
-            Cmax=currentSmoothedC;
+                if (currentSmoothedC < Cmin)
+                    Cmin=currentSmoothedC;
+                if (currentSmoothedC > Cmax)
+                    Cmax=currentSmoothedC;
 
-        if (currentSmoothedR < Rmin)
-            Rmin=currentSmoothedR;
-        if (currentSmoothedR > Rmax)
-            Rmax=currentSmoothedR;
+                if (currentSmoothedR < Rmin)
+                    Rmin=currentSmoothedR;
+                if (currentSmoothedR > Rmax)
+                    Rmax=currentSmoothedR;
 
-        if (currentSmoothedA < Amin)
-            Amin=currentSmoothedA;
-        if (currentSmoothedA > Amax)
-            Amax=currentSmoothedA;
+                if (currentSmoothedA < Amin)
+                    Amin=currentSmoothedA;
+                if (currentSmoothedA > Amax)
+                    Amax=currentSmoothedA;
 
 
 
-       float currentNormalizedSmoothedV=(currentSmoothedV-Vmin)/(Vmax-Vmin+0.000001);      //+0.000001 because at the beginning Vmax=Vmin=currentSmoothedV
-       float currentNormalizedSmoothedC=(currentSmoothedC-Cmin)/(Cmax-Cmin+0.000001);
-       float currentNormalizedSmoothedR=(currentSmoothedR-Rmin)/(Rmax-Rmin+0.000001);
-       float currentNormalizedSmoothedA=(currentSmoothedA-Amin)/(Amax-Amin+0.000001);
+                float currentNormalizedSmoothedV=(currentSmoothedV-Vmin)/(Vmax-Vmin+0.000001);      //+0.000001 because at the beginning Vmax=Vmin=currentSmoothedV
+                float currentNormalizedSmoothedC=(currentSmoothedC-Cmin)/(Cmax-Cmin+0.000001);
+                float currentNormalizedSmoothedR=(currentSmoothedR-Rmin)/(Rmax-Rmin+0.000001);
+                float currentNormalizedSmoothedA=(currentSmoothedA-Amin)/(Amax-Amin+0.000001);
+
+                //put the information in the bottle
+                descr.push_back(sequenceID);
+                counter++;
+                descr.push_back(counter);
+
+                descr.push_back(V);     //V=is the norm of the velocity (mean of optical flow)
+                descr.push_back(C);     //C=Curvature
+                descr.push_back(R);     //R=Radius of curvature
+                descr.push_back(A);     //A=V/R
+
+                descr.push_back(currentSmoothedV);
+                descr.push_back(currentSmoothedC);
+                descr.push_back(currentSmoothedR);
+                descr.push_back(currentSmoothedA);
+                descr.push_back(currentNormalizedSmoothedV);
+                descr.push_back(currentNormalizedSmoothedC);
+                descr.push_back(currentNormalizedSmoothedR);
+                descr.push_back(currentNormalizedSmoothedA);
+
+                descr.push_back(maxPost.x);
+                descr.push_back(maxPost.y);
 
 
-        descr.push_back(V);                                              //V=is the norm of the velocity (mean of optical flow)
-        descr.push_back(C);   //C=Curvature
-        descr.push_back(R);                                      //R=Radius of curvature
-        descr.push_back(A);                               //A=V/R
+                int rf = log (A)*100 +1200 ;
+                int cf = log (C)*100 + 1000;
 
-	    descr.push_back(currentSmoothedV);
-        descr.push_back(currentSmoothedC);
-        descr.push_back(currentSmoothedR);
-        descr.push_back(currentSmoothedA);
-        descr.push_back(currentNormalizedSmoothedV);
-        descr.push_back(currentNormalizedSmoothedC);
-        descr.push_back(currentNormalizedSmoothedR);
-        descr.push_back(currentNormalizedSmoothedA);
+                ////for a  black  and white graph
+                //if (cf%3==0)
+                //    cf=cf;
+                //else if ((cf+1)%3==0)
+                //    cf=cf+1;
+                //else if ((cf+2)%3==0)
+                //    cf=cf+2;
+                //Plot.at<float>(rf,cf)=255;
+                //Plot.at<float>(rf,cf+1)=255;
+                //Plot.at<float>(rf,cf+2)=255;
+                //uchar *MatrixPointer = Plot.data;
+                //for(int r = 0; r < 180; ++r) {
+                //    for(int c = 0; c < 160; ++c) {
+                //        if (Plot.at<float>(r,c) > 0)    //if it is 0,  it remains 0
+                //           Plot.at<float>(r,c) --;
+                //       if (r==int(0.667*(c-100)+120))
+                //          Plot.at<float>(r,c)=255;
+                //    }
+                //}
 
-            descr.push_back(maxPost.x);
-            descr.push_back(maxPost.y);
+                pPlot = imagePlot.getRawImage();
+                pMem =  memoryPlot->getRawImage();
 
-            //int rf = log (descr[0]/descr[2])*100 +1200 ;
-            //int cf = log (cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3))*100 + 1000;
-            int rf = log (A)*100 +1200 ;
-            int cf = log (C)*100 + 1000;
-            //printf("rf is %d\n", rf);
-            //printf("cf is %d\n", cf);
+                int totRow =  imagePlot.height();
+                int totCol =  imagePlot.width();
+                int nChannel = imagePlot.getPixelSize();
+                int padding  = imagePlot.getPadding();
 
-            //for a  black  and white graph
-            //if (cf%3==0)
-            //    cf=cf;
-            //else if ((cf+1)%3==0)
-            //    cf=cf+1;
-            //else if ((cf+2)%3==0)
-            //    cf=cf+2;
-            //Plot.at<float>(rf,cf)=255;
-            //Plot.at<float>(rf,cf+1)=255;
-            //Plot.at<float>(rf,cf+2)=255;
-            //uchar *MatrixPointer = Plot.data;
-            //for(int r = 0; r < 180; ++r) {
-            //    for(int c = 0; c < 160; ++c) {
-            //        if (Plot.at<float>(r,c) > 0)    //if it is 0,  it remains 0
-            //           Plot.at<float>(r,c) --;
-            //       if (r==int(0.667*(c-100)+120))
-            //          Plot.at<float>(r,c)=255;
-            //    }
-            //}
+                for(int r = 0; r < totRow; ++r) {
+                    for(int c = 0; c < totCol; ++c) {
 
-            pPlot = imagePlot.getRawImage();
-            pMem =  memoryPlot->getRawImage();
+                        // 1.  writing information about new feature
+                        if((r==totRow -rf) && (c == cf)) {
+                            *pMem = 255; 
+                            bigPixel(pMem,8,255);
 
-            int totRow =  imagePlot.height();
-            int totCol =  imagePlot.width();
-            int nChannel = imagePlot.getPixelSize();
-            int padding  = imagePlot.getPadding();
+                            pMem++;
+                            *pMem = 255;
+                            bigPixel(pMem,8,255);
+                            pMem++;
+                            *pMem = 255;
+                            bigPixel(pMem,8,255);
+                            pMem++;
+                        }
+                        else if((*pMem)>0)  {
+                            *pMem=*pMem-3;
+                            pMem++;
+                            *pMem=*pMem-3;
+                            pMem++;
+                            *pMem=*pMem-3;
+                            pMem++;
+                        }
+                        else {
+                            pMem  += 3;
+                        }
+                        pMem -=3;
 
-            for(int r = 0; r < totRow; ++r) {
-                for(int c = 0; c < totCol; ++c) {
+                        //2. copying
+                        if (r==totRow-int(0.667*(c-1000)+1200)) {          //two-thirds line
+                            *pPlot = 255;
+                            bigPixel(pPlot, 8, 255);
+                            pPlot++; pMem++;
+                            *pPlot = 0;
+                            bigPixel(pPlot,8,0);
+                            pPlot++; pMem++;
+                            *pPlot = 0;
+                            bigPixel(pPlot,8,0);
+                            pPlot++; pMem++;
 
-                    // 1.  writing information about new feature
-                    if((r==totRow -rf) && (c == cf)) {
-                        *pMem = 255; 
-                        bigPixel(pMem,8,255);
+                        }
+                        else {                              //copying
+                            *pPlot = *pMem;
+                            pPlot++; pMem++;
+                            *pPlot = *pMem;
 
-                        pMem++;
-                        *pMem = 255;
-                        bigPixel(pMem,8,255);
-                        pMem++;
-                        *pMem = 255;
-                        bigPixel(pMem,8,255);
-                        pMem++;
+                            pPlot++; pMem++;
+                            *pPlot = *pMem;
+
+                            pPlot++; pMem++;
+                        }
                     }
-                    else if((*pMem)>0)  {
-                        *pMem=*pMem-3;
-                        pMem++;
-                        *pMem=*pMem-3;
-                        pMem++;
-                        *pMem=*pMem-3;
-                        pMem++;
-                    }
-                    else {
-                        pMem  += 3;
-                    }
-                    pMem -=3;
-
-                    //2. copying
-                    if (r==totRow-int(0.667*(c-1000)+1200)) {          //two-thirds line
-                        *pPlot = 255;
-                        bigPixel(pPlot, 8, 255);
-                        pPlot++; pMem++;
-                        *pPlot = 0;
-                        bigPixel(pPlot,8,0);
-                        pPlot++; pMem++;
-                        *pPlot = 0;
-                        bigPixel(pPlot,8,0);
-                        pPlot++; pMem++;
-
-                    }
-                    else {                              //copying
-                        *pPlot = *pMem;
-                        pPlot++; pMem++;
-                        *pPlot = *pMem;
-
-                        pPlot++; pMem++;
-                        *pPlot = *pMem;
-
-                        pPlot++; pMem++;
-                    }
+                    pPlot += padding;
+                    pMem  += padding;
                 }
-                pPlot += padding;
-                pMem  += padding;
-            }
 
-            outputPortPlot.write();
+                outputPortPlot.write();
         
 
-            //for(int r = 0; r < 180; ++r) {
-            //    for(int c = 0; c < 160; ++c) {
-            //        //if (Plot.at<float>(r,c) > 0)    //if it is 0,  it remains 0
-            //           //Plot.at<float>(r,c) --;
-            //       //if (r==int(0.667*(c-100)+120)){
-            //          MatrixPointer[0]=255;
-            //          MatrixPointer[1]=0;
-            //          MatrixPointer[2]=0;
-            //          MatrixPointer += 3;
-            //       //}
-            //    }
-            //} //*/
+                //for(int r = 0; r < 180; ++r) {
+                //    for(int c = 0; c < 160; ++c) {
+                //        //if (Plot.at<float>(r,c) > 0)    //if it is 0,  it remains 0
+                //           //Plot.at<float>(r,c) --;
+                //       //if (r==int(0.667*(c-100)+120)){
+                //          MatrixPointer[0]=255;
+                //          MatrixPointer[1]=0;
+                //          MatrixPointer[2]=0;
+                //          MatrixPointer += 3;
+                //       //}
+                //    }
+                //} //*/
 
-            std::cout  << "  Ut Vt  " <<  cv::mean(Ut, Maskt8U).val[0] << " " <<  cv::mean(Vt, Maskt8U).val[0] << " "  << std::endl;  
+                //std::cout  << "  Ut Vt  " <<  cv::mean(Ut, Maskt8U).val[0] << " " <<  cv::mean(Vt, Maskt8U).val[0] << " "  << std::endl;  
+                //std::cout  << "Descriptor    " <<  descr[0] << " " << descr[1] << " " << descr[2] << " " << descr[3]  << std::endl;  
 
-            std::cout  << "Descriptor    " <<  descr[0] << " " << descr[1] << " " << descr[2] << " " << descr[3]  << std::endl;  
+                computed = 1;   
 
-            computed = 1;   
-
-            contentBottle = descrBottle.addList();
-
-
-            //contentBottle.addDouble(descr[0]);
-            //contentBottle.addDouble(descr[1]);           
-            //contentBottle.addDouble(descr[2]);           
-            //contentBottle.addDouble(descr[3]);           
-            //contentBottle.addDouble(descr[4]);           
-            //contentBottle.addDouble(descr[5]);          
-            contentBottle.addDouble(descr[6]);
-            contentBottle.addDouble(descr[7]);
-            contentBottle.addDouble(descr[8]);
-            contentBottle.addDouble(descr[9]);
-            //contentBottle.addDouble(descr[10]);
-            //contentBottle.addDouble(descr[11]);
-            //contentBottle.addDouble(descr[12]);
-            //contentBottle.addDouble(descr[13]);
-
-            printf("bottle is %s\n", contentBottle.toString().c_str());
-
-            //  } else {
-            //computed = 0;
-            //  }
-
-            Ut_1=Ut.clone();
-            Vt_1=Vt.clone();
-            int e=Ut_1.depth();
-            int f=Ut.depth();
+                contentBottle = descrBottle.addList();
 
 
-            sem.wait();
-            featDataready=false;
-            sem.post();
+                //contentBottle.addDouble(descr[0]);
+                //contentBottle.addDouble(descr[1]);           
+                //contentBottle.addDouble(descr[2]);           
+                //contentBottle.addDouble(descr[3]);           
+                //contentBottle.addDouble(descr[4]);           
+                //contentBottle.addDouble(descr[5]);          
+                contentBottle.addDouble(descr[6]);     //mando i smoothed a modulo class
+                contentBottle.addDouble(descr[7]);
+                contentBottle.addDouble(descr[8]);
+                contentBottle.addDouble(descr[9]);
+                //contentBottle.addDouble(descr[10]);
+                //contentBottle.addDouble(descr[11]);
+                //contentBottle.addDouble(descr[12]);
+                //contentBottle.addDouble(descr[13]);
+
+                //printf("bottle is %s\n", contentBottle.toString().c_str());
+
+                //  } else {
+                //computed = 0;
+                //  }
+
+                Ut_1=Ut.clone();
+                Vt_1=Vt.clone();
+                Maskt_1=Maskt.clone();
+
+                sem.wait();
+                featDataready=false;
+                sem.post();
             }//end if (V!=float(0.033))
         }
     }

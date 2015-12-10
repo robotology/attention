@@ -87,21 +87,21 @@ bool opfExtractorModule::configure(yarp::os::ResourceFinder &rf) {
 	*  reading the threshold1 value
 	*/ 
 	double th1Level = rf.check("threshold1Level", 
-                           Value(0.5), 
+                           Value(0.5),
                            "threshold 1 level for the segmentation (float)").asDouble();
 
     /**
 	*  reading the threshold2 value
 	*/ 
 	double th2Level = rf.check("threshold2Level", 
-                           Value(0.5), 
+                           Value(0.5), //0.7
                            "threshold 2 level for the segmentation (float)").asDouble();
 
     /**
 	*  reading the threshold3 value
 	*/ 
 	double th3Level = rf.check("threshold3Level", 
-                           Value(0.5), 
+                           Value(0.5),  //0.6
                            "threshold 3 level for the segmentation (float)").asDouble();
 
     if (rf.check("config")) {
@@ -160,7 +160,6 @@ bool opfExtractorModule::respond(const Bottle& command, Bottle& reply)
         reply.addString("yeah");
         //pensare a fare qlcosa come rThread->  e da  li  passare cose a fet
         return true;
-
     }
 
     //if (command.get(0).asString()=="quit") {
@@ -276,35 +275,35 @@ bool opfExtractorModule::respond(const Bottle& command, Bottle& reply)
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_FB); 
 
-						rThread->setAlgorithm(ALGO_FB);
+                        rThread->setAlgorithm(ALGO_FB);
 
                         //reply.addDouble(wt);
                         rec = true;
                         ok = true;
                         break;
-					case COMMAND_VOCAB_TV:
+                        case COMMAND_VOCAB_TV:
                         
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_TV); 
 
-						rThread->setAlgorithm(ALGO_TV);
+                        rThread->setAlgorithm(ALGO_TV);
 
                         //reply.addDouble(wt);
                         rec = true;
                         ok = true;
                         break;
-					case COMMAND_VOCAB_LK:
+                        case COMMAND_VOCAB_LK:
                         
                         reply.clear();
                         reply.addVocab(COMMAND_VOCAB_LK); 
 
-						rThread->setAlgorithm(ALGO_LK);
+                        rThread->setAlgorithm(ALGO_LK);
 
                         //reply.addDouble(wt);
                         rec = true;
                         ok = true;
                         break;
-					
+                        
                                                    
                     default:
                         rec = false;
