@@ -330,6 +330,7 @@ bool opfExtractorModule::respond(const Bottle& command, Bottle& reply)
         rec = true;
         {
             reply.addString("resuming processing");
+            Time::delay(2.0);
             rThread->resume();
             ok = true;
         }

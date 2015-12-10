@@ -75,6 +75,10 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
         printf("--name           : changes the rootname of the module ports \n");
         printf("--robot          : changes the name of the robot where the module interfaces to  \n");
         printf("--name           : rootname for all the connection of the module \n");
+        printf("--pitchDof       : 0/1 disable/enable the DoF \n");
+        printf("--yawDof         : 0/1 disable/enable the DoF \n");
+        printf("--rollDof        : 0/1 disable/enable the DoF \n");
+        printf("--gazeTracking   : enable gaze tracking \n");
         printf(" \n");
         printf("press CTRL-C to stop... \n");
         return true;

@@ -1671,19 +1671,19 @@ void selectiveAttentionProcessor::magnoCellularSuppression(bool on) {
     if(on) {
         // avoid inhibition of the earlyMotion module. 
         // express saccade can be inhibit as well
-        //Bottle& commandBottle = magnoCellFeedback.prepare();
-        //commandBottle.clear();
-        //commandBottle.addVocab(VOCAB3('s','u','s'));
-        //magnoCellFeedback.write();
+        Bottle& commandBottle = magnoCellFeedback.prepare();
+        commandBottle.clear();
+        commandBottle.addVocab(VOCAB3('s','u','s'));
+        magnoCellFeedback.write();
     }
     else {
         //setting counter motion to 0 allows time before the earlyMotion activates again
         setCounterMotion(0);
         
-        //Bottle& commandBottle = magnoCellFeedback.prepare();
-        //commandBottle.clear();
-        //commandBottle.addVocab(VOCAB3('r','e','s'));
-        //magnoCellFeedback.write();
+        Bottle& commandBottle = magnoCellFeedback.prepare();
+        commandBottle.clear();
+        commandBottle.addVocab(VOCAB3('r','e','s'));
+        magnoCellFeedback.write();
     }
 }
 

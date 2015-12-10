@@ -1131,7 +1131,7 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_NINH);
+            sent->addVocab(COMMAND_VOCAB_INH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -1323,7 +1323,7 @@ void attPrioritiserThread::run() {
             delete received;
         }
         //printf("AFTER COMMAND OF RESUME \n");
-        Time::delay(0.005);
+        //Time::delay(2.00);
     }
 //============================================================================================
     else if(allowedTransitions(3)>0) {
