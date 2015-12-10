@@ -51,6 +51,11 @@ protected:
     int outputWidth;               // width of the output image
     int outputHeight;              // height of the output image
     int startup_context_id;        // memorizing the context
+    int yawDof;
+    int rollDof;
+    int pitchDof;                  // 
+    int originalContext;           // original context for the gaze Controller
+    int blockNeckPitchValue;
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
@@ -62,10 +67,10 @@ protected:
     bool firstIteration;           // flag indicating the first iteration  
     bool idle;                     // flag indicating if the thread is in idle
     bool simulation;               // flag indicating whether the movement is simulation or executed
+    bool gazetracking;             // flag indicating whether the gaze should follow hand move
     
-    
-    yarp::sig::Vector x;          // vector representating the desired position for the hand
-    yarp::sig::Vector o;          // vector representating the desired position for the hand
+    yarp::sig::Vector x;           // vector representating the desired position for the hand
+    yarp::sig::Vector o;           // vector representating the desired position for the hand
     yarp::sig::Vector xd;          // vector representating the desired position for the hand
     yarp::sig::Vector od;          // vector representating the desired orientation for the hand
     yarp::sig::Vector xdhat;       // vector representating the desired orientation for the hand
@@ -75,6 +80,8 @@ protected:
     yarp::dev::PolyDriver client;
     yarp::dev::ICartesianControl *icart;
     yarp::dev::CartesianEvent *ce;
+    yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
+    yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
     profileFactory::MotionProfile *mp;               
 
     std::string robot;              // name of the robot
@@ -87,6 +94,9 @@ protected:
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                   // output port to plot event
+
     std::string name;                                                                   // rootname of all the ports opened by this thread
 
     // the event callback attached to the "motion-ongoing"
@@ -149,10 +159,22 @@ public:
     */
     std::string getName(const char* p);
 
+    /**
+    * function that returns sets the gazeTracking either ON or OFF
+    */
+    void setGazeTracking(bool value){ gazetracking = value; };
+
     /*
     * function that sets the inputPort name
     */
     void setInputPortName(std::string inpPrtName);
+
+        /*
+    * function that sets the inputPort name
+    */
+    void setTorsoDof(const int _yawDof, const int _rollDof, const int _pitchDof ) {
+        yawDof = _yawDof; rollDof = _rollDof; pitchDof = _pitchDof;
+    }
 
     /**
      * function that sets the dimension of the output image
@@ -202,6 +224,21 @@ public:
     bool generateTarget();
 
     /**
+     * function thatrotates the OAB triple around x
+     */
+    void rotAxisX(const double& angle);
+
+    /**
+     * function thatrotates the OAB triple around y
+     */
+    void rotAxisY(const double& angle); 
+
+    /**
+     * function thatrotates the OAB triple around z
+     */
+    void rotAxisZ(const double& angle);
+
+    /**
     * function that shows the target in time in the iCubGui
     */
     void displayTarget();
@@ -215,6 +252,16 @@ public:
     * function that prints out the status of the performer.
     */
     void printStatus();
+
+    /**
+    * function that prints out the desired location to track
+    */
+    void printXd();
+    
+    /**
+    * function that prints out the linearVelocity of the end-effector
+    */
+    void printVel();
 };
 
 #endif  //_HAND_PROFILER_THREAD_H_

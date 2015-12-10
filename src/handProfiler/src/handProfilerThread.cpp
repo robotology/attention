@@ -26,7 +26,7 @@
 
 #define CTRL_THREAD_PER     0.02    // [s]
 #define PRINT_STATUS_PER    1.0     // [s]
-#define MAX_TORSO_PITCH     30.0    // [deg]
+#define MAX_TORSO_PITCH     10.0    // [deg]
 #define RATETHREAD          10      // [ms]
 #define TRAJTIME            1.0     // [s]
 
@@ -87,6 +87,7 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     firstIteration = true; 
     idle = true;
     simulation = true;
+    gazetracking = false;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -102,6 +103,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     firstIteration = true;
     idle = true;
     simulation = true;
+    gazetracking = false;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -124,7 +126,8 @@ bool handProfilerThread::threadInit() {
     option.put("local","/handProfiler/left_arm");
 
     if (!client.open(option)) {
-                //return false;
+        yInfo("Client not available. Proceeding to pure imagination action performance ");
+        icart = 0;
     }
     else {
         yInfo("preparing the icart");
@@ -147,9 +150,30 @@ bool handProfilerThread::threadInit() {
 
         // enable the torso yaw and pitch
         // disable the torso roll
-        newDof[0]=1;
-        newDof[1]=0;
-        newDof[2]=1;
+        if(yawDof == 1) { 
+            yInfo("yawDof = ON");            
+            newDof[0] = yawDof;  //1;
+        }
+        else {
+            yInfo("yawDof = OFF");
+            newDof[0] = 0;
+        }
+        if(rollDof == 1) { 
+            yInfo("rollDof = ON");            
+            newDof[1]=rollDof; //0;
+        }
+        else {
+            yInfo("rollDof = OFF");            
+            newDof[1] = 0; //0;
+        }
+        if(pitchDof == 1) { 
+            yInfo("pitchDof = ON");            
+            newDof[2]=pitchDof;//1;
+        }
+        else {
+            yInfo("pitchDof = OFF");            
+            newDof[2] = 0; //1
+        }
 
         // impose some restriction on the torso pitch
         limitTorsoPitch();
@@ -166,12 +190,54 @@ bool handProfilerThread::threadInit() {
         icart->registerEvent(*this);
     }
 
+    //initializing gazecontrollerclient
+    printf("initialising gazeControllerClient \n");
+    Property optionGaze;
+    optionGaze.put("device","gazecontrollerclient");
+    optionGaze.put("remote","/iKinGazeCtrl");
+    string localCon("/handProfiler/gaze");
+    localCon.append(getName(""));
+    optionGaze.put("local",localCon.c_str());
+    yInfo("activating the PolyDriver");
+
+    clientGazeCtrl = new PolyDriver();
+    clientGazeCtrl->open(optionGaze);
+    igaze = NULL;
+
+    if (clientGazeCtrl->isValid()) {
+       clientGazeCtrl->view(igaze);
+       igaze->storeContext(&originalContext);
+       blockNeckPitchValue = -1;
+       if(blockNeckPitchValue != -1) {
+           igaze->blockNeckPitch(blockNeckPitchValue);
+           printf("pitch fixed at %f \n",blockNeckPitchValue);
+       }
+       else {
+           printf("pitch free to change\n");
+       }
+    }
+    else {
+        yInfo("Not Valid clientGazeCtrl");
+        igaze = 0;
+    }
+    yInfo("Success in initialising the gaze");
+    
+
     string rootNameGui("");
     rootNameGui.append(getName("/gui:o"));
     if(!guiPort.open(rootNameGui.c_str())) {
           yError("guiPort is not open with success. Check for conflicts");
     }
-    
+    //string xdNameGui("");
+    //xdNameGui.append(getName("/xd:o"));
+    if(!xdPort.open("/handProfiler/xd:o")) {
+          yError("xdPort is not open with success. Check for conflicts");
+    }
+    string velName("");
+    velName.append(getName("/vel:o"));
+    if(!velPort.open(velName.c_str())) {
+          yError("velPort is not open with success. Check for conflicts");
+    }
 
     /* initialization of the thread */
     x.resize(3);
@@ -200,6 +266,41 @@ std::string handProfilerThread::getName(const char* p) {
     return str;
 }
 
+void  handProfilerThread::rotAxisX(const double& angle) {
+    Vector Anew, Bnew, Cnew;
+    Anew = mp->getA();
+    Bnew = mp->getB();
+    Cnew = mp->getC();
+
+    // multiplying the vector by the matrix
+    
+
+    mp->setA(Anew);
+    mp->setB(Bnew);
+    mp->setC(Cnew);
+    mp->setViaPoints(Anew, Bnew, Cnew);
+}
+
+void  handProfilerThread::rotAxisY(const double& angle) {
+    Vector Anew, Bnew, Cnew;
+    Anew = mp->getA();
+    Bnew = mp->getB();
+    Cnew = mp->getC();
+    mp->setA(Anew);
+    mp->setB(Bnew);
+    mp->setC(Cnew);
+}
+
+void  handProfilerThread::rotAxisZ(const double& angle) {
+    Vector Anew, Bnew, Cnew;
+    Anew = mp->getA();
+    Bnew = mp->getB();
+    Cnew = mp->getC();
+    mp->setA(Anew);
+    mp->setB(Bnew);
+    mp->setC(Cnew);  
+}
+
 void handProfilerThread::setInputPortName(string InpPort) {
     
 }
@@ -212,10 +313,15 @@ bool handProfilerThread::resetExecution(){
     //Vector od(4);
     od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514;
     if(0 != icart){
-        yInfo("resetting position");
-        fprintf(stdout,"xd          [m] = %s\n",xZero.toString().c_str());
+        Vector xInit(3);
+        xInit = mp->getInitial();
+        yInfo("resetting position to %s", xInit.toString().c_str());
+        fprintf(stdout,"xd          [m] = %s\n",xInit.toString().c_str());
         fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
-        icart->goToPose(xZero,od);
+        icart->goToPose(xInit,od);
+        if(gazetracking) {
+            igaze->lookAtFixationPoint(xInit);
+        }
         
         // we get the current arm pose in the
         // operational space
@@ -226,11 +332,11 @@ bool handProfilerThread::resetExecution(){
         // from the desired pose according to the tolerances
         icart->getDesired(xdhat,odhat,qdhat);
 
-        double e_x=norm(xdhat-xZero);
+        double e_x=norm(xdhat-xInit);
         double e_o=norm(odhat-od);
 
         fprintf(stdout,"+++++++++\n");
-        fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
+        //fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
         fprintf(stdout,"xdhat       [m] = %s\n",xdhat.toString().c_str());
         fprintf(stdout,"x           [m] = %s\n",x.toString().c_str());
         fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
@@ -240,9 +346,9 @@ bool handProfilerThread::resetExecution(){
         fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
         fprintf(stdout,"---------\n\n");
         
-        if (e_x > 0.05) {
+        if (e_x > 0.1) {
             yError("Error in resetting the initial position");
-            result = false;
+            //result = false;
         }
 
     }
@@ -250,16 +356,18 @@ bool handProfilerThread::resetExecution(){
     return result;
 }
 
-bool handProfilerThread::startExecution(const bool reverse){
-    //count = 0;    
+bool handProfilerThread::startExecution(const bool _reverse){
+    //count = 0;
+    //mp->setReverse(_reverse);
     idle = false;
     simulation = false;
     firstIteration = true;
     t0 = Time::now();
 }
 
-bool handProfilerThread::startSimulation(const bool reverse){
-    //count = 0;    
+bool handProfilerThread::startSimulation(const bool _reverse){
+    //count = 0;
+    //mp->setReverse(_reverse);
     idle = false;
     simulation = true;
     firstIteration = true;
@@ -318,15 +426,46 @@ void handProfilerThread::run() {
         if(generateTarget()) {       
             // go to the target (in streaming)
             if(!simulation) {
-                yInfo("EXECUTION");
                 icart->goToPose(xd,od);
+                if(gazetracking) {
+                    igaze->lookAtFixationPoint(xd);
+                }
             }
             displayTarget();
+            if(xdPort.getOutputCount()) {
+                printXd();
+            }
+            if(velPort.getOutputCount()) {
+                printVel();
+            }
             // some verbosity
             //printStatus();      
         }       
     }
 }
+
+void handProfilerThread::printVel() {
+    Stamp ts;
+    ts.update();
+    Bottle& b = velPort.prepare();
+    b.clear();
+    b.addDouble(mp->getTanVelocity());
+    velPort.setEnvelope(ts);
+    velPort.write();
+}
+
+void handProfilerThread::printXd() {
+    Stamp ts;
+    ts.update();
+    Bottle& b = xdPort.prepare();
+    b.clear();
+    b.addDouble(xd[0]);
+    b.addDouble(xd[1]);
+    b.addDouble(xd[2]);
+    xdPort.setEnvelope(ts);
+    xdPort.write();
+}
+
 
 bool handProfilerThread::generateTarget() {   
     // translational target part: a circular trajectory
@@ -355,6 +494,7 @@ bool handProfilerThread::generateTarget() {
     // to achieve that it is enough to rotate the root frame of pi around z-axis
     //od[0] = 0.0; od[1] = 0.0; od[2] = 1.0; od[3] = M_PI;
     //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
+    //od[0] = -0.43; od[1] = -0.02; od[2] = -0.90; od[3] = 2.98;
     od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
     return true;
 }
@@ -379,7 +519,7 @@ void handProfilerThread::processing() {
 void handProfilerThread::threadRelease() {
     // we require an immediate stop
     // before closing the client for safety reason
-    if(false) {
+    if(icart) {
         yInfo("Stopping the icart");
         icart->stopControl();
         // it's a good rule to restore the controller
@@ -387,9 +527,16 @@ void handProfilerThread::threadRelease() {
         icart->restoreContext(startup_context_id);
         client.close();   
     }
-    
+    if(igaze){
+        igaze->restoreContext(originalContext);
+        delete clientGazeCtrl;
+    }
     guiPort.interrupt();
     guiPort.close();
+    xdPort.interrupt();
+    xdPort.close();
+    velPort.interrupt();
+    velPort.close();
 
     yInfo("success in thread release");
 }

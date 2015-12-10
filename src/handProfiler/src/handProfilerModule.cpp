@@ -36,6 +36,9 @@
 #define COMMAND_VOCAB_MINJ   VOCAB4('m','i','n','j')       
 #define COMMAND_VOCAB_TTPL   VOCAB4('T','T','P','L')      
 #define COMMAND_VOCAB_MANY   VOCAB4('m','a','n','y') 
+#define COMMAND_VOCAB_XAXI   VOCAB4('X','A','X','I')
+#define COMMAND_VOCAB_YAXI   VOCAB4('Y','A','X','I')
+#define COMMAND_VOCAB_ZAXI   VOCAB4('Z','A','X','I')
 #define COMMAND_VOCAB_STAR   VOCAB4('S','T','A','R')
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -48,6 +51,8 @@
 #define COMMAND_VOCAB_MJP    VOCAB3('M','J','P')    
 #define COMMAND_VOCAB_SIM    VOCAB3('S','I','M')
 #define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
+#define COMMAND_VOCAB_ROT    VOCAB3('R','O','T')
+#define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
 
 
 using namespace yarp::os;
@@ -107,7 +112,24 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     int  outputHeight      = rf.check("outputHeight", 
                            Value(240), 
                            "output image height (int)").asInt();
+    int  yawDof           = rf.check("yawDof", 
+                                     Value(1), 
+                                     "value of the yawDofl(int)").asInt();
+    int  rollDof          = rf.check("rollDof", 
+                                     Value(0), 
+                                     "value of the rollDof(int)").asInt();
+    int  pitchDof         = rf.check("pitchDof", 
+                                     Value(1), 
+                                     "value of the pitchRoll(int)").asInt();
 
+    bool gazeTracking     = rf.check("gazeTracking");
+    if(gazeTracking) {
+        yInfo("gazeTracking ON");
+    }
+    else {
+        yInfo("gazeTracking OFF");
+    }
+    
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
@@ -135,6 +157,8 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     /* create the thread and pass pointers to the module parameters */
     rThread = new handProfilerThread(robotName, configFile);
     rThread->setName(getName().c_str());
+    rThread->setTorsoDof(yawDof, rollDof, pitchDof);
+    rThread->setGazeTracking(gazeTracking);
     rThread->setOutputDimension(outputWidth, outputHeight);
     //rThread->setInputPortName(inputPortName.c_str());
     
@@ -189,23 +213,14 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("help");         
             reply.addString("get fn \t: general get command");          
             reply.addString("set s1 <s> \t: general set command");
-            
-            reply.addString("NOTE: capitalization of command name is mandatory");
-            reply.addString("set Mdb : set maximum dimension allowed for blobs");
-            reply.addString("set mdb : set minimum dimension allowed for blobs");
-            reply.addString("set mBA : set the minimum bounding area");
-
-            reply.addString("get Mdb : get maximum dimension allowed for blobs");
-            reply.addString("get mdb : get minimum dimension allowed for blobs");
-            reply.addString("get mBA : get the minimum bounding area");
-
+          
             reply.addString("GENERATE PROFILES");
             reply.addString("GEN CVP  : generate constant velocity profile");
-	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 0.1)))");
+	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1)))");
             reply.addString("GEN MJP  : generate minimum jerk profile");
-	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 1.57 3.0)))");
+	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 1.57 3.0)))");
             reply.addString("GEN TTPL : generate two-third power law profile");
-            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (param 0.1 0.33)))");
+            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
 
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
@@ -303,9 +318,19 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
 
             case COMMAND_VOCAB_SIM:
                 {
+                    bool rev = false;
                     if(0!=rThread) {
                         reply.addString("OK");
-                        rThread->startSimulation(false);    
+                        
+                        if(command.size() == 3) {
+                            yInfo("Looking for REV COMMNAD");
+                            if(command.get(2).asVocab() == COMMAND_VOCAB_REV) {
+                                yInfo("REV COMMAND found");
+                                rev = true;
+                            }
+                        }
+                        rThread->startSimulation(rev);
+                        
                     }
                     ok = true;
                 }
@@ -329,7 +354,47 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             ok = true;
         }
         break;
+    case COMMAND_VOCAB_ROT:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()) {
 
+            case COMMAND_VOCAB_XAXI:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->rotAxisX(5.0);    
+                    }
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_YAXI:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->rotAxisY(5.0);    
+                    }
+                    ok = true;
+                }
+                break;
+            case COMMAND_VOCAB_ZAXI:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->rotAxisZ(5.0);    
+                    }
+                    ok = true;
+                }
+                break;   
+
+            default:
+                cout << "received an unknown request after a STAR" << endl;
+                break;
+            }
+            
+            ok = true;
+        }
+        break;
     case COMMAND_VOCAB_GEN:
         rec = true;
         {

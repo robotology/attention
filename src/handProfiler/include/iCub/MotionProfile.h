@@ -85,8 +85,9 @@ protected:
     static const double maxZ = +0.25;  // working space z
 
     bool valid;                        // flag indicating whether the motionProfile is valid class
+    int reverse;                      // flag indicating if the action is performed reverse
 
-    //yarp::os::ResourceFinder rf;           // resourceFinder for the parsing of the parameters
+    //yarp::os::ResourceFinder rf;     // resourceFinder for the parsing of the parameters
 
 public:
     /**
@@ -121,6 +122,11 @@ public:
     void setT0(double _t0) { t0 = _t0; };
 
     /**
+     * function that sets the flag reverse in the class
+     */
+    void setReverse(const bool _reverse) {_reverse?reverse = -1 : reverse = 1; };
+
+    /**
     * function that sets where the action should start and stop
     * @param thetaA angle of the starting point (in rad)
     * @param thetaB angle of the viapoint (in rad)
@@ -147,6 +153,11 @@ public:
     * function returning the A vector
     */
     yarp::sig::Vector getO() { return O; };
+    
+    /**
+    * function setting the A vector
+    */
+    yarp::sig::Vector setA(yarp::sig::Vector value) { A = value; };
 
     /**
     * function returning the A vector
@@ -154,14 +165,34 @@ public:
     yarp::sig::Vector getA() { return A; };
 
     /**
+    * function setting the A vector
+    */
+    yarp::sig::Vector setB(yarp::sig::Vector value) { B = value; };
+    
+    /**
     * function returning the B vector
     */
     yarp::sig::Vector getB() { return B; };    
     
     /**
+    * function setting the A vector
+    */
+    yarp::sig::Vector setC(yarp::sig::Vector value) { C = value; };
+    
+    /**
     * function returning the C vector
     */
     yarp::sig::Vector getC() { return C; };
+
+    /**
+     * function that returs the initial position of the traj.
+     */
+    yarp::sig::Vector getInitial();
+
+    /**
+     * function that returs the initial position of the traj.
+     */
+    double  getTanVelocity() {return tanVelocity; };
 
     /**
     * function that return the vector with module equal to the radius
@@ -189,6 +220,12 @@ public:
     * function that checks if all the points belong to the reaching space
     */
     bool sanityCheck(const yarp::sig::Vector array[], const int size);
+
+    /**
+     * function that return whether the theta angle is in the execution range
+     * 
+     */
+    bool inRange(const double theta);
 
     /**
     * function preparing the relevant set of variable used in the computation
