@@ -77,6 +77,8 @@ private:
     cv::Mat U;
     cv::Mat V;
     cv::Mat Maskt;
+    cv::Mat gradientMask;
+    cv::Mat gradientMaskNorm;
     cv::Mat BBinfo;
     cv::Mat BBinfo_resized2blobs;
     cv::Mat BBinfo_sorted;
@@ -98,9 +100,20 @@ private:
     yarp::os::Semaphore checkImage;                          // semaphore responsible for the access to the inputImage     
     std::string name;                                                                // rootname of all the ports opened by this thread
 
+    
     int countDescr;
     float dist_min_first, dist_min_second;
     int c_min_first, c_min_second;
+    int i_BB;
+    float distCurr;
+    float maxDistTemp;
+    int i_maxDistTemp;
+    std::vector<float> i_maxDist;
+    int i_maxDistt;
+    int n_BBinfo;
+    int i_BB_1;
+    int i_it;
+
 
 public:
     /**

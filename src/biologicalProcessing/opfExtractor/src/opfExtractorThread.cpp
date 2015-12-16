@@ -147,7 +147,13 @@ void opfExtractorThread::run() {
 
                     pt->copyImage(processingImage);
                     pt->copyU(U);                       //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
-                    pt->copyV(V);
+                    
+                    double minval, maxval;
+                    cv::Point  minLoc, maxLoc;
+                    cv::minMaxLoc(gradientMaskNorm,&minval, &maxval, &minLoc, &maxLoc);
+                    cv::minMaxLoc(gradientMaskNorm,&minval, &maxval, &minLoc, &maxLoc);
+
+                    pt->copyV(gradientMaskNorm);
                     pt->copyM(Maskt);
 
                     fet->copyAll(U,V,Maskt);
@@ -255,6 +261,8 @@ bool opfExtractorThread::processing(){
         V = cv::Mat::zeros(height, width, CV_32FC1);
 
         Maskt = cv::Mat::zeros(height, width,  CV_32FC1);
+        gradientMask = cv::Mat::zeros(height, width,  CV_32FC1);
+        gradientMaskNorm = cv::Mat::zeros(height, width,  CV_32FC1);
         BBinfo = cv::Mat::zeros(4, 2, CV_32FC1);
         BBinfo_resized2blobs = cv::Mat::zeros(2, 2, CV_32FC1);
         BBinfo_sorted = cv::Mat::zeros(4, 2, CV_32FC1);
@@ -300,18 +308,47 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
                 Probt.at<float>(i,j) = cv::sum(MQ).val[0]/((float)(LATO*LATO));          // divide by lato*lato in such a way to have 1 as maximum
                 if(Probt.at<float>(i,j) >= PTH_) {
                     Maskt.at<float>(i,j) = 1.0;
+                    float a = MAGt.at<float>(i,j); 
+                    gradientMask.at<float>(i,j) = MAGt.at<float>(i,j); 
                 }
                 else {
                     Maskt.at<float>(i,j) =  0.0;
+                    gradientMask.at<float>(i,j) = 0.0;
                 }
                 Q.release();
                 MQ.release();
             }
             else {
                 Maskt.at<float>(i,j) =  0;
+                gradientMask.at<float>(i,j) = 0.0;
             }
         }
     }// so now we have a matrix Maskt of 0 and 1, with 1 in the points where we want to take into account the flow
+
+        double minval, maxval;
+        cv::Point  minLoc, maxLoc;
+        cv::minMaxLoc(gradientMask,&minval, &maxval, &minLoc, &maxLoc);
+        cv::minMaxLoc(gradientMask,&minval, &maxval, &minLoc, &maxLoc);
+        
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                float fg = gradientMask.at<float>(y, x);//motim.Pixel(x, y, 0);
+
+                float fgnorm;
+
+                if (maxval == minval)
+                    fgnorm=0.00000001;
+                else
+                    fgnorm = (fg-minval)/(maxval-minval);
+
+                gradientMaskNorm.at<float>(y, x) = fgnorm*255;
+            }
+        }
+
+        double minval_x, maxval_x, minval_y, maxval_y;
+        cv::Point  minLoc_x, maxLoc_x, minLoc_y, maxLoc_y;
+        cv::minMaxLoc(gradientMaskNorm,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
+        cv::minMaxLoc(gradientMaskNorm,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
 
     // to see an image for debugging (without using yarp ports)
     //cv::imshow("Maskt", Maskt);
@@ -349,6 +386,60 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
         BBinfo.at<float>(c, 1) = BBmom.m01/BBmom.m00;
     }
 
+    ////NEW -- check it               aaa
+    //n_BBinfo = BBinfo.rows;
+    //while(n_BBinfo > 2){             //until we have more than 2 new centroids
+
+    //    cout<<"BBinfo_1 \n" <<BBinfo_1<<endl;
+    //    cout<<"BBinfo \n" <<BBinfo<<endl;
+
+    //    float maxDistTemp  = 0;
+    //    int i_res = 0;
+    //    for (i_BB = 0; i_BB <  BBinfo.rows; ++i_BB){    //find the new blob with maximum distance wrt old blobs
+    //        for (i_BB_1 = 0; i_BB_1 <  BBinfo_1.rows; ++i_BB_1){
+    //            distCurr = distance(BBinfo.at<float>(i_BB, 0), BBinfo.at<float>(i_BB, 1), BBinfo_1.at<float>(i_BB_1, 0), BBinfo_1.at<float>(i_BB_1, 1));
+    //            if(distCurr > maxDistTemp  ){
+    //                maxDistTemp = distCurr;
+    //                i_maxDistTemp = i_BB;
+    //            }
+    //        }
+    //    }
+    //    n_BBinfo--;
+    //    //i_maxDist.push_back(i_maxDistTemp);    //to have a vector with the indeces of the vector BBinfo that I don t have to copy tu the BBinfo_resized2blobs
+    //    i_maxDistt = i_maxDistTemp;
+    ////}
+
+    //    //if(i_maxDist.size()!=0){
+    //    i_it  = 0;
+    //    for(std::vector<std::vector<cv::Point> >::iterator it = contours.begin(); it != contours.end(); ) {                         //contours.begin() is the pointer to the initial element
+    //        if (i_it == i_maxDistt ){
+    //            it = contours.erase(it);
+    //        }
+    //        i_it++;   //check it, si alza di troppo invece io volevo qualcosa che andasse da 0 a 2
+    //    }
+
+    //    for(int i=0; i<BBinfo.rows;i++){
+    //        if (i!=i_maxDistt){
+    //            BBinfo_resized2blobs.at<float>(i_res, 0)=BBinfo.at<float>(i, 0);
+    //            BBinfo_resized2blobs.at<float>(i_res, 1)=BBinfo.at<float>(i, 1);
+    //            i_res++;
+    //        }
+    //    }
+    //    BBinfo = BBinfo_resized2blobs.clone();
+
+    //    cout<<"BBinfo_1 \n" <<BBinfo_1<<endl;
+    //    cout<<"BBinfo \n" <<BBinfo<<endl;
+    //    cout<<"BBinfo_resized2blobs \n" <<BBinfo_resized2blobs<<endl;
+
+
+    //    //}
+    //}
+
+
+
+
+
+    //NO
     ////if BBinfo has more than 3 centroids, I will take just the two blobs with greater area
     //while (BBinfo.rows>2){
     //    BBinfo_resized2blobs;
@@ -440,6 +531,7 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
     //yInfo("drawing contours");
