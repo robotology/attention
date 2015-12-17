@@ -58,6 +58,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  outputPortu;       //Mono means that values are unsigned integer between 0 and 255
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  outputPortv;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  outputPortm;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >  outputPortgM;
     yarp::os::BufferedPort<yarp::sig::Vector > eventPort;
 
     yarp::sig::ImageOf<yarp::sig::PixelRgb>*  imageColorOutput;                                        //image representing the signal on the leftcamera
@@ -67,6 +68,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono>*  vImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono>*  uImage;
     yarp::sig::ImageOf<yarp::sig::PixelMono>*  mImage;
+    yarp::sig::ImageOf<yarp::sig::PixelMono>*  gMImage;
 
     cv::Mat vMatrix;
     cv::Mat V;
@@ -79,6 +81,7 @@ private:
     std::string name;                           // rootname of all the ports opened by this thread
     bool synchronised;                          // flag to check whether the microsecond counter has been synchronised
     bool stereo;                                // flag indicating the stereo characteristic of the synchronization
+    bool flagVis;
 public:
     /**
     * default constructor
@@ -151,7 +154,10 @@ public:
     void copyU(cv::Mat U);
     void copyV(cv::Mat V);
     void copyM(cv::Mat Mask);
+    void copyGradientMask(cv::Mat GradientMaskNorm);
     void convertMat2ImageOf(cv::Mat a);
+    void resetFlagVisualization_plotter();
+    void setFlagVisualization_plotter();
 
     /**
      * function that copies the RGB image in the left output 

@@ -89,6 +89,7 @@ private:
     //int DELTA;
     //int LATO;
     //IplImage ipl_currentMatrix;
+    
     bool dataready;                  //shared flag for saying to the featExtractorThread that U,V,Maskt are ready //it is initialized to 0
 
     plotterThread* pt;                                       //z rateThread responsible for the visualization of the generated images
@@ -218,6 +219,9 @@ public:
      * @brief suspend the processing of the module
      */
     void suspend(){idleLock.wait(); idle=true; idleLock.post();};
+
+    void resetFlagVisualization();
+    void setFlagVisualization();
 
     /**
      * @brief resume the processing of the module

@@ -322,8 +322,8 @@ bool opfExtractorModule::respond(const Bottle& command, Bottle& reply)
         rec = true;
         {
             reply.addString("suspending processing");
-            rThread->suspend();
-            rThread->visualizationSuspend();
+            //rThread->suspend();
+            rThread->resetFlagVisualization();
             ok = true;   
         }
         break;
@@ -333,7 +333,8 @@ bool opfExtractorModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("resuming processing");
             Time::delay(2.0);
             rThread->resume();
-            rThread->visualizationResume();
+            rThread->setFlagVisualization();
+            //rThread->visualizationResume();
             ok = true;
         }
         break;

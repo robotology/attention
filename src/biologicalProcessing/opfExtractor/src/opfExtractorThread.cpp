@@ -111,6 +111,15 @@ void opfExtractorThread::visualizationSuspend(){
     pt->suspend();
 }
 
+void opfExtractorThread::resetFlagVisualization(){
+    pt->resetFlagVisualization_plotter();
+}
+
+void opfExtractorThread::setFlagVisualization(){
+    pt->setFlagVisualization_plotter();
+}
+
+
 bool opfExtractorThread::test(){
     bool reply = true;
 
@@ -147,14 +156,9 @@ void opfExtractorThread::run() {
 
                     pt->copyImage(processingImage);
                     pt->copyU(U);                       //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
-                    
-                    double minval, maxval;
-                    cv::Point  minLoc, maxLoc;
-                    cv::minMaxLoc(gradientMaskNorm,&minval, &maxval, &minLoc, &maxLoc);
-                    cv::minMaxLoc(gradientMaskNorm,&minval, &maxval, &minLoc, &maxLoc);
-
-                    pt->copyV(gradientMaskNorm);
+                    pt->copyV(V);
                     pt->copyM(Maskt);
+                    pt->copyGradientMask(gradientMaskNorm);
 
                     fet->copyAll(U,V,Maskt);
                     fet->setFlag();
