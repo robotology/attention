@@ -36,7 +36,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-#define THRATE 66   //15 fps
+#define     THRATE 10 // THRATE 66   //15 fps
 
 plotterThread::plotterThread() : RateThread(THRATE) {
     synchronised = false;

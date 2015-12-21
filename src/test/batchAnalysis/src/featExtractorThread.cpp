@@ -36,7 +36,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-#define THRATE 66   //15 fps
+#define THRATE 10 //THRATE 66   //15 fps
 
 featExtractorThread::featExtractorThread() : RateThread(THRATE) {
     synchronised = false;
@@ -70,6 +70,7 @@ bool featExtractorThread::threadInit() {
 
     Ut_1 = cv::Mat::zeros(height, width, CV_32FC1);  //I have already use U and V to put them in U_1 and V_1  //?or is it better to initialize U, V, U_1, V_1 in the threadInit?
     Vt_1 = cv::Mat::zeros(height, width, CV_32FC1);
+    Maskt_1 = cv::Mat::zeros(height, width, CV_32FC1);
 
     currentSmoothedV = 0.0;
     currentSmoothedC = 0.0;
@@ -263,7 +264,6 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         double minValt_1, maxValt_1;
         cv::Point maxPost_1;
         cv::Mat Probt_1;
-        cv::Mat Maskt_1;
         cv::Mat mean, std;
 
 
@@ -320,7 +320,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
             }
         }
       
-            Maskt_1 = Probt_1 >= PTH__;               
+            //Maskt_1 = Probt_1 >= PTH__;               
 
         //COND = cv::sum(Maskt_1).val[0] >= 0.05*(255*Ut.rows*Ut.cols);   //?rimane sempre a 0, quindi  ho  tolto l'if successivo  
         //if(COND) {
@@ -328,12 +328,12 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         //}
 
         //    devo trovare il centroide della roi
-        cv::Moments MOMt_1 = cv::moments(Maskt_1, true);
-        if (MOMt_1.m00 == 0) {
-            MOMt_1.m00 = 0.000001;
-        }
-        maxPost_1.x = MOMt_1.m10/MOMt_1.m00;      //??
-        maxPost_1.y = MOMt_1.m01/MOMt_1.m00;
+        //cv::Moments MOMt_1 = cv::moments(Maskt_1, true);
+        //if (MOMt_1.m00 == 0) {
+        //    MOMt_1.m00 = 0.000001;
+        //}
+        //maxPost_1.x = MOMt_1.m10/MOMt_1.m00;      //??
+        //maxPost_1.y = MOMt_1.m01/MOMt_1.m00;
 
         // DESCRITTORE: Vt Ct Rt At
         cv::Mat Maskt8U;
@@ -344,7 +344,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
 
         float V =  sqrt(VEL.at<float>(0,0) * VEL.at<float>(0,0) + VEL.at<float>(0,1) * VEL.at<float>(0,1) + VEL.at<float>(0,2)*VEL.at<float>(0,2))  ;
 
-        if (V!=float(0.033))  {
+        //if (V!=float(0.033))  {
         descr.push_back(sequenceID);
         timeCounter++;
         descr.push_back(timeCounter);
@@ -395,10 +395,20 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
      //                Amax=0.774497000000000;
      //}
 
+        //cv::imshow("Ut",Ut)  ;
+        //cv::imshow("Ut_1",Ut_1)  ;
+        //cv::imshow("Maskt",Maskt)  ;
+        //cv::imshow("Maskt_1",Maskt_1)  ;
+        //cv::waitKey(10);
+
+        cv::Mat Maskt_18U;
+        Maskt_1.convertTo(Maskt_18U, CV_8UC1);
+
         ////in case you would like to find the other 3 features from the not smoothed velocity and THEN smooth them
         //Compute other features from not smoothed Vx and Vy
-        ACC.at<float>(0,0) =  cv::mean(Ut, Maskt8U).val[0] - cv::mean(Ut_1, Maskt_1).val[0]; 
-        ACC.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0] - cv::mean(Vt_1, Maskt_1).val[0]; 
+
+        ACC.at<float>(0,0) =  cv::mean(Ut, Maskt8U).val[0] - cv::mean(Ut_1, Maskt_18U).val[0]; 
+        ACC.at<float>(0,1) = cv::mean(Vt, Maskt8U).val[0] - cv::mean(Vt_1, Maskt_18U).val[0]; 
         ACC.at<float>(0,2) = 0.;
 	
         float C = cv::norm(VEL.cross(ACC))/pow(cv::norm(VEL),3);       //C=Curvature
@@ -575,6 +585,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
 
         Ut_1=Ut.clone();
         Vt_1=Vt.clone();
+        Maskt_1=Maskt.clone();
         int e=Ut_1.depth();
         int f=Ut.depth();
 
@@ -583,7 +594,7 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
         featDataready=false;
         sem.post();
 
-        }//if V!=0.033 
+        //}//if V!=0.033 
         }
 }
 

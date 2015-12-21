@@ -114,6 +114,7 @@ private:
     bool firstProcessing;
     cv::Mat Ut_1;
     cv::Mat Vt_1;
+    cv::Mat Maskt_1;
 
     cv::Mat MAGt_1;
     cv::Mat THETAt_1;

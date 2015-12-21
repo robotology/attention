@@ -79,6 +79,7 @@ private:
     cv::Mat U;
     cv::Mat V;
     cv::Mat Maskt;
+    cv::Mat Maskt_1;
     cv::Mat MAGt;
     //cv::Mat THETAt;
     //cv::Mat Probt;
