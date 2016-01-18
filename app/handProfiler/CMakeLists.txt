@@ -1,13 +1,14 @@
 # Copyright: (C) 2014 RobotCub Consortium
-# Authors: Alessia Vignolo
+# Authors: Alessia Vignolo, Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(appname handProfiler)
 #icub_app(${appname})
 
 file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.xml)
-file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template)
+file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.sh )
 
+# Introduced the file *.sh in the installation
 # Removed the installation in $ICUB_ROOT/app 11/10/13
 
 #icub_app_install(${appname} 
