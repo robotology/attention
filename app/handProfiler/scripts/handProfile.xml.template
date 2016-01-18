@@ -8,7 +8,7 @@
 
   <module>
       <name>handProfiler</name>
-      <parameters>--name /dump/dumpPose </parameters>
+      <parameters>--gazeTracking </parameters>
       <node>localhost</node>
   </module>
 
