@@ -28,7 +28,8 @@
 #include <yarp/math/SVD.h>
 #include <cstring>
 
-
+#define _USE_MATH_DEFINES
+#include <cmath> 
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -825,8 +826,8 @@ void gazeArbiterThread::run() {
                     qw[3]=head[0]  * ratio;
                     qw[4]=head[1]  * ratio;
                     qw[5]=head[2]  * ratio;
-                    qw[6]=0.0 * CTRL_DEG2RAD;
-                    qw[7]=0.0 * CTRL_DEG2RAD;
+                    qw[6]=0.0 * iCub::ctrl::CTRL_DEG2RAD;
+                    qw[7]=0.0 * iCub::ctrl::CTRL_DEG2RAD;
                 
                     double ver = head[5];
                     xo = yarp::math::operator *(eye->getH(qw),xe);
