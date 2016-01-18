@@ -46,7 +46,10 @@ inline void extractVector(const string str, Vector& res) {
 //**************************************************************************************************************
 
 MotionProfile::MotionProfile() : valid(false), type("")  {
-    A.resize(3);
+
+    initRange();
+	
+	A.resize(3);
     B.resize(3);
     C.resize(3);
     O.resize(3);
@@ -59,6 +62,15 @@ MotionProfile::MotionProfile() : valid(false), type("")  {
 MotionProfile::~MotionProfile() {
     // do nothing
     delete xd;
+}
+
+void MotionProfile::initRange(){
+	 minX = -0.35;					   
+     maxX = -0.20;					   
+     minY = -0.35;					   
+     maxY = +0.35;					   
+     minZ = -0.15;					   
+     maxZ = +0.25;		
 }
 
 void MotionProfile::setCenter(Vector _O){
@@ -278,7 +290,9 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
     Bottle* b = bInit.get(0).asList();
     ResourceFinder rf;
     rf.setVerbose(true);
-    int argc = b->size() * 2 + 1;    
+	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
+    //int argc = b->size() * 2 + 1;   
+	const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
@@ -546,8 +560,10 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
 
     Bottle* b = bInit.get(0).asList();
     ResourceFinder rf;
-    rf.setVerbose(true);
-    int argc = b->size() * 2 + 1;    
+    rf.setVerbose(true); 
+	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
+    //int argc = b->size() * 2 + 1;   
+	const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
@@ -827,8 +843,9 @@ MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
     yDebug("Analyzing the list of vectors from bottle b:%s", b->toString().c_str());
     ResourceFinder rf;
     rf.setVerbose(true);
-    int argc = b->size() * 2 + 1;    
-    
+    //fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
+    //int argc = b->size() * 2 + 1;   
+	const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
