@@ -54,7 +54,7 @@ void error_function(char *msg)
   exit(1);
 }
 
-MultiClass::MultiClass(IppiSize im_size_, int psb_in_, int n_, Parameters *_params)
+MultiClass::MultiClass(defSize im_size_, int psb_in_, int n_, Parameters *_params)
 {
 
   params = _params;   
@@ -88,6 +88,7 @@ MultiClass::~MultiClass()
 void MultiClass::clear()
 {
   // set all the pixels to zero
+  //TODO uncomment this?
   //ippiSet_8u_C1R(0,out,psb,im_size);
   
   int widthStep = outImage->widthStep;
@@ -270,80 +271,80 @@ int MultiClass::compute_energy() {
 
 void MultiClass::expand(int a)
 {
-  Coord p,q;
-  int d,dq;
-  Energy::Var var, qvar;
-  int E_old, E00, E0a, Ea0;
-  int k;
-  
-  
-  Energy *e = new Energy(error_function);
-  
-  
-  /* non-neighbourhood terms */
-  for (p.y=1; p.y<im_size.height-1; p.y++)
-    for (p.x=1; p.x<im_size.width-1; p.x++)
-      {
-	d = out[p.y*psb + p.x];
-	if (a == d)
-	  {
-	    ptr_im[p.y*len_nv + p.x] = VAR_ACTIVE;
-	    e->add_constant(likelihood(p, d));
-	  }
-	else
-	  {
-	    ptr_im[p.y*len_nv + p.x] = var = e->add_variable();
-	    e->ADD_TERM1(var, likelihood(p, d), likelihood(p, a));
-	  }
-      }
-  
+	Coord p,q;
+	int d,dq;
+	Energy::Var var, qvar;
+	int E_old, E00, E0a, Ea0;
+	int k;
 
-  /* neighbourhood terms */
-  for (p.y=1; p.y<im_size.height-1; p.y++)
-    for (p.x=1; p.x<im_size.width-1; p.x++)
-      {	
-	d = out[p.y*psb + p.x];
-	var = (Energy::Var) ptr_im[p.y*len_nv + p.x];
-	for (k=0; k<NEIGHBOR_NUM; k++)
-	  {
-	    q = p + NEIGHBORS[k];
-	    if ( ! ( q>=Coord(1,1) && q<im_sz-Coord(1,1) ) ) continue;
-	    qvar = (Energy::Var) ptr_im[q.y*len_nv + q.x];
-	    dq = out[q.y*psb + q.x];
-	    if (var != VAR_ACTIVE && qvar != VAR_ACTIVE)
-	      E00 = prior_intensity_smoothness(p, q, d, dq);
-	    if (var != VAR_ACTIVE)
-	      E0a = prior_intensity_smoothness(p, q, d, a);
-	    if (qvar != VAR_ACTIVE)
-	      Ea0 = prior_intensity_smoothness(p, q, a, dq);
-	    if (var != VAR_ACTIVE)
-	      {
-		if (qvar != VAR_ACTIVE) e->ADD_TERM2(var, qvar, E00, E0a, Ea0, 0);
-		else                    e->ADD_TERM1(var, E0a, 0);
-	      }
-	    else
-	      {
-		if (qvar != VAR_ACTIVE) e->ADD_TERM1(qvar, Ea0, 0);
-	      }
-	  }
-      }
-  
-  E_old = E;
-  E = e->minimize();
-  
-  if (E < E_old)
-    {
-      for (p.y=1; p.y<im_size.height-1; p.y++)
-	for (p.x=1; p.x<im_size.width-1; p.x++)
-	  {
-	    var = (Energy::Var) ptr_im[p.y*len_nv + p.x];
-	    if (var!=VAR_ACTIVE && e->get_var(var)==VALUE1)
-	      {
-		out[p.y*psb + p.x] = a;
-	      }
-	  }
-    }
-  
-  delete e;
-  
+
+	Energy *e = new Energy(error_function);
+
+
+	/* non-neighbourhood terms */
+	for (p.y=1; p.y<im_size.height-1; p.y++)
+		for (p.x=1; p.x<im_size.width-1; p.x++)
+		{
+			d = out[p.y*psb + p.x];
+			if (a == d)
+			{
+				ptr_im[p.y*len_nv + p.x] = VAR_ACTIVE;
+				e->add_constant(likelihood(p, d));
+			}
+			else
+			{
+				ptr_im[p.y*len_nv + p.x] = var = e->add_variable();
+				e->ADD_TERM1(var, likelihood(p, d), likelihood(p, a));
+			}
+		}
+
+
+		/* neighbourhood terms */
+		for (p.y=1; p.y<im_size.height-1; p.y++)
+			for (p.x=1; p.x<im_size.width-1; p.x++)
+			{	
+				d = out[p.y*psb + p.x];
+				var = (Energy::Var) ptr_im[p.y*len_nv + p.x];
+				for (k=0; k<NEIGHBOR_NUM; k++)
+				{
+					q = p + NEIGHBORS[k];
+					if ( ! ( q>=Coord(1,1) && q<im_sz-Coord(1,1) ) ) continue;
+					qvar = (Energy::Var) ptr_im[q.y*len_nv + q.x];
+					dq = out[q.y*psb + q.x];
+					if (var != VAR_ACTIVE && qvar != VAR_ACTIVE)
+						E00 = prior_intensity_smoothness(p, q, d, dq);
+					if (var != VAR_ACTIVE)
+						E0a = prior_intensity_smoothness(p, q, d, a);
+					if (qvar != VAR_ACTIVE)
+						Ea0 = prior_intensity_smoothness(p, q, a, dq);
+					if (var != VAR_ACTIVE)
+					{
+						if (qvar != VAR_ACTIVE) e->ADD_TERM2(var, qvar, E00, E0a, Ea0, 0);
+						else                    e->ADD_TERM1(var, E0a, 0);
+					}
+					else
+					{
+						if (qvar != VAR_ACTIVE) e->ADD_TERM1(qvar, Ea0, 0);
+					}
+				}
+			}
+
+			E_old = E;
+			E = e->minimize();
+
+			if (E < E_old)
+			{
+				for (p.y=1; p.y<im_size.height-1; p.y++)
+					for (p.x=1; p.x<im_size.width-1; p.x++)
+					{
+						var = (Energy::Var) ptr_im[p.y*len_nv + p.x];
+						if (var!=VAR_ACTIVE && e->get_var(var)==VALUE1)
+						{
+							out[p.y*psb + p.x] = a;
+						}
+					}
+			}
+
+			delete e;
+
 }

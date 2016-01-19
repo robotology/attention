@@ -105,7 +105,7 @@ private:
     bool startProcessing;
 	int psb_in, t_lock_lr, t_lock_ud;
 	//Sizes:
-	IppiSize srcsize, msize, tsize, tisize, trsize; //ippi variables containing all different sizes
+	defSize srcsize, msize, tsize, tisize, trsize; //ippi variables containing all different sizes
 	//Vars:
 	int sx,sy;
   	float max_v, max_t;              //Ipp32f
@@ -177,9 +177,9 @@ private:
 	unsigned char *l_orig,     *r_orig;                   // Ipp8u
     IplImage      *l_orig_ipl, *r_orig_ipl;            
 	int psb;
-	IppiRect inroi;
-	IppiSize insize;
-    IppiSize tempSize;
+	defRect inroi;
+	defSize insize;
+    defSize tempSize;
     int BufferSize;
     
     //string containing module name
@@ -210,11 +210,11 @@ public:
     void onStop();
 	
 	//void get_rank(Coord c,Ipp8u *im, int w, int*list);
-    void   get_rank(Coord c,unsigned char *im, int w, int*list);
+    void   get_rank(Coord c, unsigned char *im, int w, int *list);
 	double cmp_rank(int *l1, int *l2);
-	void   get_ndt (Coord c, char *im, int w, int*list); //void get_ndt(Coord c,Ipp8u *im, int w, int*list);
+	void   get_ndt (Coord c, char *im, int w, int *list); //void get_ndt(Coord c,Ipp8u *im, int w, int*list);
 	double cmp_ndt (int *l1, int *l2);
-	void getAreaCoGSpread(char *im, int p, IppiSize s, int* parea, double* pdx, double *pdy, double* pspread); 
+	void getAreaCoGSpread(char *im, int p, defSize s, int *parea, double *pdx, double *pdy, double *pspread); 
     //void getAreaCoGSpread(Ipp8u*im, int p,IppiSize s, int*parea,double*pdx,double*pdy,double*pspread);
     void setName(std::string module);
 };

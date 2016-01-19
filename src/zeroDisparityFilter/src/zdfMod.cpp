@@ -425,6 +425,7 @@ void ZDFThread::run()
                     cvSetImageROI((IplImage*) img_in_left->getIplImage(),cvRect( x, y, srcsize.width, srcsize.height) );
                     cvCopy((IplImage*) img_in_left->getIplImage(), copyImg_ipl, mask);
                     printf("success! \n");
+					//TODO uncomment this?
                     //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
                     
                     ////ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
@@ -437,7 +438,7 @@ void ZDFThread::run()
                     //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
                     cvCopy((IplImage*) img_in_right->getIplImage(), r_orig_ipl, mask);
               	}else{
-					yInfo("scale is not 1");
+					yInfo("scale is not 1"); //TODO never?
                     //scale to width,height:
                     //ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
                     //Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
@@ -510,6 +511,7 @@ void ZDFThread::run()
 		        //******************************************************************
                 //Create left fovea and find left template in left image
                 printf("creating left fovea and left template matching \n");
+				//TODO uncomment this?
 		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ly[(( srcsize.height - tisize.height )/2)*psb_in + ( srcsize.width - tisize.width )/2],
 				//               psb_in, tisize,
 				//               temp_l,
@@ -521,9 +523,11 @@ void ZDFThread::run()
                 printf("result width %d == %d \n",rec_im_ly_mat.cols - temp_l_mat.cols + 1, res_t_mat.cols);
                 printf("result height%d == %d \n",rec_im_ly_mat.rows - temp_l_mat.rows + 1, res_t_mat.rows);
                 
-                cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
+                //TODO uncomment this?
+				cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
                 //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
 
+				//TODO uncomment this?
                 //ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
                 //ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
 
@@ -539,6 +543,7 @@ void ZDFThread::run()
 		        //******************************************************************
 		        //Create right fovea and find right template in right image:
                 printf("creating right fovea and right template matching \n");
+				//TODO uncomment this?
 		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ry[((srcsize.height-tisize.height)/2 + dpix_y )*psb_in + (srcsize.width-tisize.width)/2],
 				//	        psb_in,tisize,
 				//	        temp_r,
@@ -547,8 +552,10 @@ void ZDFThread::run()
 
                 
                 cvMatchTemplate(rec_im_ry_ipl, temp_r_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
+				//TODO uncomment this?
                	//cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());  
 
+				//TODO uncomment this?
 		        //ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
 		        //ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
                 double minVal_r; double maxVal_r;
@@ -635,6 +642,7 @@ void ZDFThread::run()
                 IplImage* m_class_ipl = m->get_class_ipl(); 
                 cvCopy(m_class_ipl, out_ipl, maskMsize);
                 char* pm_get_class = m->get_class();
+				//TODO uncomment this?
 		        //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
                 
                 //*******************************************************************
@@ -676,6 +684,7 @@ void ZDFThread::run()
           			//Bring cog of target towards centre of fovea://SNAP GAZE TO OBJECT:
           			cog_x*= params->cog_snap;
           			cog_y*= params->cog_snap;
+					//TODO uncomment this??
 			        //floor(val + 0.5) instead of round
 			        //ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
 			        //ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
@@ -699,7 +708,8 @@ void ZDFThread::run()
                         int right  = -1;
                         int bottom = -1;
                         
-                        /*
+						//TODO Big block
+                        /* 
                         for (int j=0;j<msize.height* psb_m;j++){                            
                             if ( (int)seg_im[ j ] > 0){
                                 top = j/psb_m; 
@@ -772,6 +782,8 @@ void ZDFThread::run()
                         }
                         */
 
+
+						//TODO uncomment this??
                         //ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
                         //cvCopy(tempImg_ipl, img_out_temp->getIplImage(), maskTempSize);
 
@@ -783,6 +795,7 @@ void ZDFThread::run()
                         
                    	    imageOutTemp.write();
                         printf("sent image \n");
+						//TODO uncomment this?
                         //delete img_out_temp;
                         //ippiFree (tempImg);
                         //cvReleaseImage(&tempImg_ipl);
@@ -809,17 +822,20 @@ void ZDFThread::run()
                 
 		        //send it all when connections are established
 		        if (imageOutProb.getOutputCount()>0){ 
+				   //TODO uncomment this??
                   //ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
 			        imageOutProb.prepare() = *img_out_prob;	
                    	imageOutProb.write();
                 }
 
 		        if (imageOutSeg.getOutputCount()>0){
+					//TODO uncomment this??
                   //ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
                    	imageOutSeg.prepare() = *img_out_seg;	
                    	imageOutSeg.write();
                 }
 		        if (imageOutDog.getOutputCount()>0){
+					//TODO uncomment this??
                   //ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
                    	imageOutDog.prepare() = *img_out_dog;	
                    	imageOutDog.write();
@@ -831,7 +847,7 @@ void ZDFThread::run()
 
 void ZDFThread::threadRelease() 
 {
-    
+    yDebug("Nothing happens_zdfMod.cpp_threadRelease");
 }
 
 void ZDFThread::onStop()
@@ -1069,7 +1085,7 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     tr_y = 0;
     waiting = 0;
     rmax = sqrt((msize.width/2.0)*(msize.width/2.0) 
-    +(msize.height/2.0)*(msize.height/2.0));
+		 +(msize.height/2.0)*(msize.height/2.0));
 
     update = false;
     acquire = true;
@@ -1235,6 +1251,7 @@ double ZDFThread::cmp_rank(int*l1, int*l2)
     }
 
     tau = (is) / (sqrt((float)n1) * sqrt((float)n2));
+	//TODO uncomment this??
     // svar = (4.0 * n + 10.0) / (9.0 * n * (n - 1.0));
     // z = tau / sqrt(svar);
     // prob = erfcc(abs(z) / 1.4142136);
@@ -1246,7 +1263,7 @@ double ZDFThread::cmp_rank(int*l1, int*l2)
 
 
 
-void ZDFThread::getAreaCoGSpread(char *im_, int psb_, IppiSize sz_, int *parea, double *pdx, double *pdy, double *spread){
+void ZDFThread::getAreaCoGSpread(char *im_, int psb_, defSize sz_, int *parea, double *pdx, double *pdy, double *spread){
 
     double naccum = 0.0, xaccum = 0.0, yaccum = 0.0;
     *spread = 0.0;

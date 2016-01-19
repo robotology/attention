@@ -24,14 +24,14 @@
 typedef struct {
     int width;
     int height;
-} IppiSize;
+} defSize;
 
 typedef struct {
     int x;
     int y;
     int width;
     int height;
-} IppiRect;
+} defRect;
 
 #define PAD_BORD 8
 
@@ -45,7 +45,7 @@ public:
     /** Constructor.
      * @param imsize Input image width and height for memory allocation.
      */
-    DoG(IppiSize imsize);
+    DoG(defSize imsize);
 
     /** Destructor.
      */
@@ -87,18 +87,18 @@ public:
      * Convert from 32f precision back to 8u
      */
     //void conv_32f_to_8u( Ipp32f* im_i, int p4_, Ipp8u*im_o, int p1_, IppiSize srcsize_);
-    void conv_32f_to_8u( float* im_i, int p4_, char *im_o, int p1_, IppiSize srcsize_);
+    void conv_32f_to_8u( float* im_i, int p4_, char *im_o, int p1_, defSize srcsize_);
 
      /** 
      * Convert from 32f precision back to 8u
      */
-    void conv_32f_to_8u( IplImage* im_i, int p4_, IplImage *im_o, int p1_, IppiSize srcsize_);
+    void conv_32f_to_8u( IplImage* im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
 
     /**
      * Convert from 8u precision back to 32f
      */
-    void conv_8u_to_32f( IplImage *im_i, int p4_, IplImage *im_o, int p1_, IppiSize srcsize_);
-    void conv_8u_to_32f( cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, IppiSize srcsize_);
+    void conv_8u_to_32f( IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
+    void conv_8u_to_32f( cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
 
 private:
     float *dog;          //Ipp32f
@@ -131,9 +131,9 @@ private:
     IplImage *out_dog_onoff_image;      //Ipp8u
     
 
-    int width,height;
-    int psb_o,psb_pad,psb_pad_8u;
-    IppiSize srcsize,psize;
+    int width, height;
+    int psb_o, psb_pad, psb_pad_8u;
+    defSize srcsize, psize;
 
     CvMat* kern1_mat;
     CvMat* kern2_mat;
