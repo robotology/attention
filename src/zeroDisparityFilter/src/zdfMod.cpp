@@ -437,6 +437,7 @@ void ZDFThread::run()
                     //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
                     cvCopy((IplImage*) img_in_right->getIplImage(), r_orig_ipl, mask);
               	}else{
+					yInfo("scale is not 1");
                     //scale to width,height:
                     //ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
                     //Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
