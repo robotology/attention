@@ -28,6 +28,9 @@
 #include <highgui.h>
 #include <cstring>
 
+#define _USE_MATH_DEFINES
+#include <cmath> 
+
 #define MAXMEMORY 100
 #define LEFT_EYE 0
 #define RIGHT_EYE 1
