@@ -21,6 +21,7 @@
 add_subdirectory ( biologicalProcessing )
 add_subdirectory ( logpolarAttention    )
 add_subdirectory ( handProfiler         )
+add_subdirectory ( zdfApplication       )
 #add_subdirectory(protoObjectVisualAttention)
 #add_subdirectory(dumpApplication)
 
