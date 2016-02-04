@@ -261,7 +261,7 @@ ZDFThread::ZDFThread( MultiClass::Parameters *parameters, string workWith )
        withArbiter = false;
        cout << "running normally without attention system" << endl;
     }
-
+	
     params = parameters;
     img_out_prob = NULL;    
 	img_out_seg  = NULL;
@@ -303,10 +303,45 @@ ZDFThread::ZDFThread( MultiClass::Parameters *parameters, string workWith )
 
     allocated = false;
     startProcessing = false;
+
+	//HACK: init images, view deallocate for more info. #amaroyo on 04/02/2016
+	copyImg_ipl			= NULL;
+	fov_r_ipl			= NULL;
+	zd_prob_8u_ipl		= NULL;
+	o_prob_8u_ipl		= NULL;
+	tempImg_ipl			= NULL;
+	l_orig_ipl			= NULL;
+	r_orig_ipl			= NULL;
+	yuva_orig_l_ipl		= NULL;
+	yuva_orig_r_ipl		= NULL;
+	tmp_ipl				= NULL;
+	first_plane_l_ipl	= NULL;
+	second_plane_l_ipl	= NULL;
+	third_plane_l_ipl	= NULL;
+	first_plane_r_ipl	= NULL;
+	second_plane_r_ipl	= NULL;
+	third_plane_r_ipl	= NULL;
+	rec_im_ly_ipl		= NULL;
+	rec_im_ry_ipl		= NULL;
+	res_t_ipl			= NULL;
+	out_ipl				= NULL;
+	seg_im_ipl			= NULL;
+	seg_dog_ipl			= NULL;
+	fov_l_ipl			= NULL;
+	temp_l_ipl			= NULL;
+	temp_r_ipl			= NULL;
+
+	yInfo("End of the Thread Costructor");
 }
 
 ZDFThread::~ZDFThread( )
 {
+
+	//HACK: better call deallocate - it's improved. #amaroyo 04/02/2016
+	deallocate();
+
+
+	/*
     delete dl;
     delete dr;
     delete m;
@@ -340,6 +375,8 @@ ZDFThread::~ZDFThread( )
     delete img_out_prob;
     delete img_out_seg;
     delete img_out_dog;
+
+	*/
    
 }
 
@@ -351,7 +388,7 @@ void ZDFThread::setName(string module)
 bool ZDFThread::threadInit() 
 {
     /* initialize variables and create data-structures if needed */
-
+	yDebug("Start of the Thread Initialization");
     //create all ports
     inputNameLeft = "/" + moduleName + "/imageLeft:i";
     imageInLeft.open( inputNameLeft.c_str() );
@@ -376,7 +413,7 @@ bool ZDFThread::threadInit()
 
     outputNameCog = "/" + moduleName + "/cog:o";
     cogPort.open( outputNameCog.c_str() );
-    
+	yDebug("End of the Thread Initialization");
     return true;
 }
 
@@ -384,12 +421,15 @@ void ZDFThread::run()
 {
 
     while (isStopping() != true) { // the thread continues to run until isStopping() returns true
-        
+
+		yDebug("Cycle Start");
         ImageOf<PixelBgr> *img_in_left  = imageInLeft.read(true);
         ImageOf<PixelBgr> *img_in_right = imageInRight.read(true);
 
+		yDebug("Cycle before first if \n");
         if(img_in_left != NULL && img_in_right != NULL) {
 
+			yDebug("inside the first if \n");
             Bottle check;
             check.clear();
 
@@ -407,38 +447,53 @@ void ZDFThread::run()
             }    
             
             if(startProcessing){            
+				yDebug("START PROCESSING \n");
 
-                IplImage *mask  = cvCreateImage( cvSize(srcsize.width, srcsize.height),IPL_DEPTH_8U,1) ; 
+				//The variable srcsize is not initialized till the allocate() method, the istruction is moved few lines below. #aaroyo 04/02/2016
+                //IplImage *mask  = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 1); 
 
-                if( !allocated || img_in_left->width() != insize.width || img_in_left->height() != insize.height) {
+
+                // TODO Assuming it's right #amaroyo 04/01/2016
+				if(!allocated || img_in_left->width() != insize.width || img_in_left->height() != insize.height) {
                   deallocate();
-                  allocate(img_in_left);
+				  allocate(img_in_left);
                 }
+				
+				IplImage *mask = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 1);
+				yDebug("image size %d %d", srcsize.width, srcsize.height);
+				
 		        //processing for zdf
 		        if (scale==1.0){ //resize the images if needed
                   //copy yarp image to OPENCV
                     int x = 0, y = 0;
-                    printf("copying the input image left............");
+					yDebug("copying the input image left............\n");
+
                     IplImage* inputdepth = (IplImage*) (img_in_left->getIplImage());
-                    printf("copying yarp image %d %d %d %d \n", img_in_left->width(), img_in_left->height(), inputdepth->depth, inputdepth->nChannels);
-                    printf("into IplImage %d %d %d %d \n", copyImg_ipl->width, copyImg_ipl->height, copyImg_ipl->depth, copyImg_ipl->nChannels);
-                    cvSetImageROI((IplImage*) img_in_left->getIplImage(),cvRect( x, y, srcsize.width, srcsize.height) );
+
+					yDebug("copying yarp image %d %d %d %d \n", img_in_left->width(), img_in_left->height(), inputdepth->depth, inputdepth->nChannels);
+					yDebug("into IplImage %d %d %d %d \n", copyImg_ipl->width, copyImg_ipl->height, copyImg_ipl->depth, copyImg_ipl->nChannels);
+                   
+					cvSetImageROI((IplImage*) img_in_left->getIplImage(),cvRect( x, y, srcsize.width, srcsize.height) );
                     cvCopy((IplImage*) img_in_left->getIplImage(), copyImg_ipl, mask);
-                    printf("success! \n");
-					//TODO uncomment this?
-                    //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
-                    
+					yDebug("success! \n");
+
+
+					//TODO uncomment this?  #amaroyo 04/01/2016
+                    //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);                 
                     ////ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
                     
+
                     //test with YUV images instead of grayscale left
                     //ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
                     cvCopy((IplImage*) img_in_left->getIplImage(), l_orig_ipl, mask);
+					yDebug("Success copying left image");
                     
                     //and right
                     //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
                     cvCopy((IplImage*) img_in_right->getIplImage(), r_orig_ipl, mask);
+					yDebug("Success copying right image");
               	}else{
-					yInfo("scale is not 1"); //TODO never?
+					yInfo("scale is not 1");
                     //scale to width,height:
                     //ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
                     //Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
@@ -450,7 +505,10 @@ void ZDFThread::run()
                     ////ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
 		        }
                 
-                printf("extracting YUV planes for the left ");
+				
+				
+
+				yDebug("extracting YUV planes for the left \n");
                 //extract yuv plane
                 //ippiRGBToYUV_8u_AC4R( l_orig, psb4, yuva_orig_l, psb4, srcsize );
                 cvCvtColor(l_orig_ipl, yuva_orig_l_ipl, CV_RGB2YCrCb);
@@ -465,6 +523,8 @@ void ZDFThread::run()
                 pyuva_l[3] = tmp; 
                 printf("..............success \n");
                
+				goto initialization; //TODO gotos will disappear after testing  #amaroyo 04/01/2016
+
                 printf("extracting YUV planes for the right");
                 //ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
                 cvCvtColor(r_orig_ipl, yuva_orig_r_ipl, CV_RGB2YCrCb);
@@ -511,23 +571,26 @@ void ZDFThread::run()
 		        //******************************************************************
                 //Create left fovea and find left template in left image
                 printf("creating left fovea and left template matching \n");
-				//TODO uncomment this?
+				//TODO uncomment this?  #amaroyo 04/01/2016
 		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ly[(( srcsize.height - tisize.height )/2)*psb_in + ( srcsize.width - tisize.width )/2],
 				//               psb_in, tisize,
 				//               temp_l,
 				//               psb_t, tsize,
 				//               res_t, psb_rest);
+
+initialization:
                 cv::Mat rec_im_ly_mat(rec_im_ly_ipl);
                 cv::Mat temp_l_mat(temp_l_ipl);
                 cv::Mat res_t_mat(res_t_ipl);
-                printf("result width %d == %d \n",rec_im_ly_mat.cols - temp_l_mat.cols + 1, res_t_mat.cols);
-                printf("result height%d == %d \n",rec_im_ly_mat.rows - temp_l_mat.rows + 1, res_t_mat.rows);
+				yDebug("result width %d == %d \n", rec_im_ly_mat.cols - temp_l_mat.cols + 1, res_t_mat.cols);
+				yDebug("result height %d == %d \n", rec_im_ly_mat.rows - temp_l_mat.rows + 1, res_t_mat.rows);
+				goto streaming; //TODO gotos will disappear after testing  #amaroyo 04/01/2016
                 
-                //TODO uncomment this?
+                //TODO uncomment this?  #amaroyo 04/01/2016
 				cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
                 //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
 
-				//TODO uncomment this?
+				//TODO uncomment this?  #amaroyo 04/01/2016
                 //ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
                 //ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
 
@@ -543,7 +606,7 @@ void ZDFThread::run()
 		        //******************************************************************
 		        //Create right fovea and find right template in right image:
                 printf("creating right fovea and right template matching \n");
-				//TODO uncomment this?
+				//TODO uncomment this?  #amaroyo 04/01/2016
 		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ry[((srcsize.height-tisize.height)/2 + dpix_y )*psb_in + (srcsize.width-tisize.width)/2],
 				//	        psb_in,tisize,
 				//	        temp_r,
@@ -552,10 +615,10 @@ void ZDFThread::run()
 
                 
                 cvMatchTemplate(rec_im_ry_ipl, temp_r_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
-				//TODO uncomment this?
+				//TODO uncomment this?  #amaroyo 04/01/2016
                	//cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());  
 
-				//TODO uncomment this?
+				//TODO uncomment this?  #amaroyo 04/01/2016
 		        //ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
 		        //ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
                 double minVal_r; double maxVal_r;
@@ -642,7 +705,7 @@ void ZDFThread::run()
                 IplImage* m_class_ipl = m->get_class_ipl(); 
                 cvCopy(m_class_ipl, out_ipl, maskMsize);
                 char* pm_get_class = m->get_class();
-				//TODO uncomment this?
+				//TODO uncomment this?  #amaroyo 04/01/2016
 		        //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
                 
                 //*******************************************************************
@@ -684,7 +747,7 @@ void ZDFThread::run()
           			//Bring cog of target towards centre of fovea://SNAP GAZE TO OBJECT:
           			cog_x*= params->cog_snap;
           			cog_y*= params->cog_snap;
-					//TODO uncomment this??
+					//TODO uncomment this??  #amaroyo 04/01/2016
 			        //floor(val + 0.5) instead of round
 			        //ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
 			        //ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
@@ -708,9 +771,9 @@ void ZDFThread::run()
                         int right  = -1;
                         int bottom = -1;
                         
-						//TODO Big block
-                        /* 
-                        for (int j=0;j<msize.height* psb_m;j++){                            
+						//TODO Big block -- seems to be working, why commented?  #amaroyo 04/01/2016
+						
+                        for (int j=0; j<msize.height* psb_m; j++){                            
                             if ( (int)seg_im[ j ] > 0){
                                 top = j/psb_m; 
                                 //cout << "top : " << top << endl;
@@ -780,12 +843,12 @@ void ZDFThread::run()
                             u = 0;
                             v ++;
                         }
-                        */
+                        
+						
 
-
-						//TODO uncomment this??
+						//TODO check  #amaroyo 04/01/2016
                         //ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
-                        //cvCopy(tempImg_ipl, img_out_temp->getIplImage(), maskTempSize);
+                        cvCopy(tempImg_ipl, img_out_temp->getIplImage(), maskTempSize);
 
                         img_out_temp = &imageOutTemp.prepare();
                         img_out_temp->resize(l_orig_ipl->width, l_orig_ipl->height);
@@ -795,10 +858,15 @@ void ZDFThread::run()
                         
                    	    imageOutTemp.write();
                         printf("sent image \n");
-						//TODO uncomment this?
-                        //delete img_out_temp;
+						//TODO uncommented  #amaroyo 04/01/2016
+                        delete img_out_temp;
+						// HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
+						img_out_temp = NULL;
+
                         //ippiFree (tempImg);
-                        //cvReleaseImage(&tempImg_ipl);
+                        cvReleaseImage(&tempImg_ipl);
+						// HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
+						tempImg_ipl = NULL;
                     }
                     
                     //*******************************************************************
@@ -819,24 +887,39 @@ void ZDFThread::run()
 		        target[1]=cog_y_send;
 		        cogPort.write();
 
+streaming:
                 
 		        //send it all when connections are established
 		        if (imageOutProb.getOutputCount()>0){ 
-				   //TODO uncomment this??
-                  //ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
-			        imageOutProb.prepare() = *img_out_prob;	
+					yDebug("Inside imageProb\n");
+				    //TODO inefficient  #amaroyo 04/01/2016
+                    //ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
+					
+					
+					/* HACK  #amaroyo 04/01/2016
+					this is correct , change and improve efficiency in future
+					imageOutProb.prepare() = *img_out_prob;
                    	imageOutProb.write();
-                }
+					for now: */
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage->wrapIplImage(first_plane_l_ipl);
+					imageOutProb.prepare() = *processingMonoImage;
+					imageOutProb.write();
 
+
+                }
+				
 		        if (imageOutSeg.getOutputCount()>0){
-					//TODO uncomment this??
-                  //ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
+					yDebug("Inside imageSeg\n");
+					//TODO uncomment this??  #amaroyo 04/01/2016
+                    //ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
                    	imageOutSeg.prepare() = *img_out_seg;	
                    	imageOutSeg.write();
                 }
 		        if (imageOutDog.getOutputCount()>0){
-					//TODO uncomment this??
-                  //ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
+					yDebug("Inside imageDog\n");
+					//TODO uncomment this??  #amaroyo 04/01/2016
+                    //ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
                    	imageOutDog.prepare() = *img_out_dog;	
                    	imageOutDog.write();
                 }
@@ -872,45 +955,55 @@ void ZDFThread::onStop()
 
 void ZDFThread::deallocate() {
 
-  printf("deallocate process started ..........");
+    yDebug("deallocate process started ..........\n");
 
     delete dl;
     delete dr;
     delete m;
     
-    cvReleaseImage(&copyImg_ipl);
-    cvReleaseImage(&l_orig_ipl);
-    cvReleaseImage(&r_orig_ipl);
-    cvReleaseImage(&yuva_orig_l_ipl);
-    cvReleaseImage(&yuva_orig_r_ipl);
-    cvReleaseImage(&tmp_ipl);
-    cvReleaseImage(&first_plane_l_ipl);
-    cvReleaseImage(&second_plane_l_ipl);
-    cvReleaseImage(&third_plane_l_ipl);
-    cvReleaseImage(&first_plane_r_ipl);
-    cvReleaseImage(&second_plane_r_ipl);
-    cvReleaseImage(&third_plane_r_ipl);
+
+	/* HACK: As the very first step is to deallocate and then allocate, some
+	   of the variables are not initialized, thus, thr program crashes
+	   when it tries to release non existing images. Setting them to NULL
+	   in the constructor and checking them here solves the issue.
+	   #amaroyo 04/02/2016
+	
+	*/
+
+	if (tempImg_ipl			!= NULL) cvReleaseImage(&tempImg_ipl);
+	if (copyImg_ipl			!= NULL) cvReleaseImage(&copyImg_ipl);
+	if (l_orig_ipl			!= NULL) cvReleaseImage(&l_orig_ipl);
+	if (r_orig_ipl			!= NULL) cvReleaseImage(&r_orig_ipl);
+	if (yuva_orig_l_ipl		!= NULL) cvReleaseImage(&yuva_orig_l_ipl);
+	if (yuva_orig_r_ipl		!= NULL) cvReleaseImage(&yuva_orig_r_ipl);
+	if (tmp_ipl				!= NULL) cvReleaseImage(&tmp_ipl);
+	if (first_plane_l_ipl	!= NULL) cvReleaseImage(&first_plane_l_ipl);
+	if (second_plane_l_ipl	!= NULL) cvReleaseImage(&second_plane_l_ipl);
+	if (third_plane_l_ipl	!= NULL) cvReleaseImage(&third_plane_l_ipl);
+	if (first_plane_r_ipl	!= NULL) cvReleaseImage(&first_plane_r_ipl);
+	if (second_plane_r_ipl	!= NULL) cvReleaseImage(&second_plane_r_ipl);
+	if (third_plane_r_ipl	!= NULL) cvReleaseImage(&third_plane_r_ipl);
     free(pyuva_l);
     free(pyuva_r); 
-    cvReleaseImage(&rec_im_ly_ipl);
-    cvReleaseImage(&rec_im_ry_ipl);
-    cvReleaseImage(&res_t_ipl);
-    cvReleaseImage(&out_ipl);
-    cvReleaseImage(&seg_im_ipl);
-    cvReleaseImage(&seg_dog_ipl);
-    cvReleaseImage(&fov_l_ipl);
-    cvReleaseImage(&fov_r_ipl);
-    cvReleaseImage(&zd_prob_8u_ipl);
-    cvReleaseImage(&o_prob_8u_ipl);
+	if (rec_im_ly_ipl		!= NULL) cvReleaseImage(&rec_im_ly_ipl);
+	if (rec_im_ry_ipl		!= NULL) cvReleaseImage(&rec_im_ry_ipl);
+	if (res_t_ipl			!= NULL) cvReleaseImage(&res_t_ipl);
+	if (out_ipl				!= NULL) cvReleaseImage(&out_ipl);
+	if (seg_im_ipl			!= NULL) cvReleaseImage(&seg_im_ipl);
+	if (seg_dog_ipl			!= NULL) cvReleaseImage(&seg_dog_ipl);
+	if (fov_l_ipl			!= NULL) cvReleaseImage(&fov_l_ipl);
+	if (fov_r_ipl			!= NULL) cvReleaseImage(&fov_r_ipl);
+	if (zd_prob_8u_ipl		!= NULL) cvReleaseImage(&zd_prob_8u_ipl);
+	if (o_prob_8u_ipl		!= NULL) cvReleaseImage(&o_prob_8u_ipl);
     free(p_prob);
-    cvReleaseImage(&temp_l_ipl);
-    cvReleaseImage(&temp_r_ipl);
+	if (temp_l_ipl			!= NULL) cvReleaseImage(&temp_l_ipl);
+	if (temp_r_ipl			!= NULL) cvReleaseImage(&temp_r_ipl);
     delete img_out_prob;
     delete img_out_seg;
     delete img_out_dog;
     allocated = false;
 
-    printf("allocationg sequence ended successfully  \n");
+	yDebug("deallocating sequence ended successfully  \n");
 }
 
 void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
@@ -1251,7 +1344,6 @@ double ZDFThread::cmp_rank(int*l1, int*l2)
     }
 
     tau = (is) / (sqrt((float)n1) * sqrt((float)n2));
-	//TODO uncomment this??
     // svar = (4.0 * n + 10.0) / (9.0 * n * (n - 1.0));
     // z = tau / sqrt(svar);
     // prob = erfcc(abs(z) / 1.4142136);
