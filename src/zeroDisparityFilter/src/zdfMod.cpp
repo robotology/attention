@@ -87,7 +87,6 @@ bool zdfMod::configure(yarp::os::ResourceFinder &rf)
 
 bool zdfMod::updateModule() 
 {
-
     return true;
 }
 
@@ -449,7 +448,7 @@ void ZDFThread::run()
             if(startProcessing){            
 				yDebug("START PROCESSING \n");
 
-				//The variable srcsize is not initialized till the allocate() method, the istruction is moved few lines below. #aaroyo 04/02/2016
+				//HACK: The variable srcsize is not initialized till the allocate() method, the istruction is moved few lines below. #aaroyo 04/02/2016
                 //IplImage *mask  = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 1); 
 
 
@@ -463,8 +462,9 @@ void ZDFThread::run()
 				yDebug("image size %d %d", srcsize.width, srcsize.height);
 				
 		        //processing for zdf
-		        if (scale==1.0){ //resize the images if needed
-                  //copy yarp image to OPENCV
+		        if (scale==1.0){ 
+					//resize the images if needed
+                    //copy yarp image to OPENCV
                     int x = 0, y = 0;
 					yDebug("copying the input image left............\n");
 
@@ -473,12 +473,12 @@ void ZDFThread::run()
 					yDebug("copying yarp image %d %d %d %d \n", img_in_left->width(), img_in_left->height(), inputdepth->depth, inputdepth->nChannels);
 					yDebug("into IplImage %d %d %d %d \n", copyImg_ipl->width, copyImg_ipl->height, copyImg_ipl->depth, copyImg_ipl->nChannels);
                    
-					cvSetImageROI((IplImage*) img_in_left->getIplImage(),cvRect( x, y, srcsize.width, srcsize.height) );
+					cvSetImageROI((IplImage*) img_in_left->getIplImage(), cvRect( x, y, srcsize.width, srcsize.height));
                     cvCopy((IplImage*) img_in_left->getIplImage(), copyImg_ipl, mask);
 					yDebug("success! \n");
 
 
-					//TODO uncomment this?  #amaroyo 04/01/2016
+					//TODO This is commented in initial file #amaroyo 08/01/2016
                     //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);                 
                     ////ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
                     
@@ -505,8 +505,6 @@ void ZDFThread::run()
                     ////ippiResize_8u_C3R( img_in_right->getRawImage(), insize, img_in_right->width() * 3, inroi, r_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
 		        }
                 
-				
-				
 
 				yDebug("extracting YUV planes for the left \n");
                 //extract yuv plane
@@ -515,17 +513,16 @@ void ZDFThread::run()
                 //ippiCopy_8u_C4P4R( yuva_orig_l, psb4, pyuva_l, psb, srcsize );
                 cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, NULL);
                 first_plane_l  = (unsigned char *)  first_plane_l_ipl->imageData;
-                second_plane_l = (unsigned char *) second_plane_l_ipl->imageData;
+                second_plane_l = (unsigned char *)  second_plane_l_ipl->imageData;
                 third_plane_l  = (unsigned char *)  third_plane_l_ipl->imageData;
                 pyuva_l[0] = first_plane_l;  //Y
                 pyuva_l[1] = second_plane_l; //U
                 pyuva_l[2] = third_plane_l;  //V
                 pyuva_l[3] = tmp; 
-                printf("..............success \n");
+				yDebug("..............success \n");
                
-				goto initialization; //TODO gotos will disappear after testing  #amaroyo 04/01/2016
 
-                printf("extracting YUV planes for the right");
+				yDebug("extracting YUV planes for the right");
                 //ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
                 cvCvtColor(r_orig_ipl, yuva_orig_r_ipl, CV_RGB2YCrCb);
                 //ippiCopy_8u_C4P4R( yuva_orig_r, psb4, pyuva_r, psb, srcsize );
@@ -537,18 +534,18 @@ void ZDFThread::run()
                 pyuva_r[1]= second_plane_r; //U
                 pyuva_r[2]= third_plane_r;  //V
                 pyuva_r[3]= tmp;        
-                printf("..............success \n");
+				yDebug("..............success \n");
                 
                 
-                printf("copying intensity channels for the left and the right...........");
+				yDebug("copying intensity channels for the left and the right...........");
                 //ippiCopy_8u_C1R( first_plane_l, f_psb,  rec_im_ly, psb_in, srcsize);
                 cvCopy(first_plane_l_ipl, rec_im_ly_ipl, mask);
                 //ippiCopy_8u_C1R( first_plane_r, f_psb,  rec_im_ry, psb_in, srcsize);
                 cvCopy(first_plane_r_ipl, rec_im_ry_ipl, mask);
-                printf("success \n");
+				yDebug("success \n");
 
 		        if (acquire){
-                    printf("acquiring \n");
+					yDebug("acquiring \n");
                     IplImage* tsizeMask = cvCreateImage( cvSize(tsize.width, tsize.height),IPL_DEPTH_8U,1) ; 
                     //ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);
                     cvSetImageROI(rec_im_ly_ipl ,cvRect( ( srcsize.width - tsize.width ) /2,
@@ -570,27 +567,27 @@ void ZDFThread::run()
 
 		        //******************************************************************
                 //Create left fovea and find left template in left image
-                printf("creating left fovea and left template matching \n");
-				//TODO uncomment this?  #amaroyo 04/01/2016
+				yDebug("creating left fovea and left template matching \n");
+			
 		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ly[(( srcsize.height - tisize.height )/2)*psb_in + ( srcsize.width - tisize.width )/2],
 				//               psb_in, tisize,
 				//               temp_l,
 				//               psb_t, tsize,
 				//               res_t, psb_rest);
 
-initialization:
+
                 cv::Mat rec_im_ly_mat(rec_im_ly_ipl);
                 cv::Mat temp_l_mat(temp_l_ipl);
                 cv::Mat res_t_mat(res_t_ipl);
 				yDebug("result width %d == %d \n", rec_im_ly_mat.cols - temp_l_mat.cols + 1, res_t_mat.cols);
 				yDebug("result height %d == %d \n", rec_im_ly_mat.rows - temp_l_mat.rows + 1, res_t_mat.rows);
-				goto streaming; //TODO gotos will disappear after testing  #amaroyo 04/01/2016
+
+				
                 
-                //TODO uncomment this?  #amaroyo 04/01/2016
 				cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
                 //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
-
-				//TODO uncomment this?  #amaroyo 04/01/2016
+				goto streaming;
+				
                 //ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
                 //ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
 
@@ -605,8 +602,8 @@ initialization:
 
 		        //******************************************************************
 		        //Create right fovea and find right template in right image:
-                printf("creating right fovea and right template matching \n");
-				//TODO uncomment this?  #amaroyo 04/01/2016
+                yDebug("creating right fovea and right template matching \n");
+
 		        //ippiCrossCorrValid_NormLevel_8u32f_C1R(&rec_im_ry[((srcsize.height-tisize.height)/2 + dpix_y )*psb_in + (srcsize.width-tisize.width)/2],
 				//	        psb_in,tisize,
 				//	        temp_r,
@@ -615,10 +612,9 @@ initialization:
 
                 
                 cvMatchTemplate(rec_im_ry_ipl, temp_r_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
-				//TODO uncomment this?  #amaroyo 04/01/2016
+		
                	//cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());  
 
-				//TODO uncomment this?  #amaroyo 04/01/2016
 		        //ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
 		        //ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
                 double minVal_r; double maxVal_r;
@@ -632,49 +628,55 @@ initialization:
                 
                 //*****************************************************************
                 //Star diffence of gaussian on foveated images
-                printf("difference of gaussian on foveated images \n");
+                yDebug("difference of gaussian on foveated images \n");
 		        dl->proc( fov_l_ipl, psb_m );
 		        dr->proc( fov_r_ipl, psb_m );
+				
 
 		        //*****************************************************************
 		        //SPATIAL ZD probability map from fov_l and fov_r:
-                printf("computing the spatial ZD probability map from fov_l and fov_r \n");
+				yDebug("computing the spatial ZD probability map from fov_l and fov_r \n");
 		        //perform RANK or NDT kernel comparison:	
                 o_prob_8u  =  o_prob_8u_ipl->imageData;
                 zd_prob_8u = zd_prob_8u_ipl->imageData;
+				
+				yDebug("Koffsety: %d, height: %d \n", koffsety, msize.height);
+
 		        for (int j = koffsety; j < msize.height - koffsety; j++){
+
                     c.y = j;
                     for (int i = koffsetx; i < msize.width - koffsetx; i++){
+
                         c.x = i;
                         char* p_dogonoff = dl->get_dog_onoff();
                         //if either l or r textured at this retinal location: 
                         if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
                             if (RANK0_NDT1==0){
-                                printf("using RANK \n");
+								yDebug("using RANK \n");
                                 //use RANK:
-                                get_rank(c, (unsigned char*) fov_l_ipl->imageData, psb_m, rank1);   printf("got RANK from left\n");
-                                get_rank(c, (unsigned char*) fov_r_ipl->imageData, psb_m, rank2);   printf("got RANK from right\n");
-                                cmp_res = cmp_rank(rank1,rank2); printf("compared RANKS \n");
+								get_rank(c, (unsigned char*)fov_l_ipl->imageData, psb_m, rank1);   yDebug("got RANK from left\n");
+								get_rank(c, (unsigned char*)fov_r_ipl->imageData, psb_m, rank2);   yDebug("got RANK from right\n");
+								cmp_res = cmp_rank(rank1, rank2); yDebug("compared RANKS \n");
                             }
                             else{ 
-                                printf("using NDT \n");
+								yDebug("using NDT \n");
                                 //use NDT:
                                 get_ndt(c,fov_l,psb_m,ndt1);
                                 get_ndt(c,fov_r,psb_m,ndt2);
                                 cmp_res = cmp_ndt( ndt1, ndt2 );
                             }
-                            printf("preparing zerodisparity probability mono channel \n");
+							yDebug("preparing zerodisparity probability mono channel \n");
                             zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
                         }
                         else{
-                            //printf("untextured in both l & r \n");
+                            //yDebug("untextured in both l & r \n");
                             //untextured in both l & r, so set to bland prob (ZD):
                             zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
                         } 
-                        
+
                         //RADIAL PENALTY:
                         //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
-                        //printf("introducing RADIAL PENALITY \n");
+                        //yDebug("introducing RADIAL PENALITY \n");
                         //current radius:
                         r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
                         rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
@@ -683,37 +685,39 @@ initialization:
                             rad_pen=max_rad_pen;
                         }
                         //apply radial penalty
-                        //printf("applying radial penality...... ");
+                        //yDebug("applying radial penality...... ");
                         zd_prob_8u[j*psb_m+i]-= rad_pen;
-                        //printf("success \n");
+						//yDebug("success \n");
                         
                         //manufacture NZD prob (other):
                         o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
                     }
 		        }
 
+				
                 //*******************************************************************          
 		        //Do MRF optimization:
-                printf("performing Markov Random Field optimization \n");
+				yDebug("performing Markov Random Field optimization \n");
                 fov_r   =  fov_r_ipl->imageData;
                 
                 p_prob[0] = o_prob_8u;
                 p_prob[1] = zd_prob_8u;
 		        m->proc( fov_r, p_prob ); //provide edge map and probability map
 		        //cache for distribution:
-                printf("getting the class out \n");
+				yDebug("getting the class out \n");
                 IplImage* m_class_ipl = m->get_class_ipl(); 
                 cvCopy(m_class_ipl, out_ipl, maskMsize);
                 char* pm_get_class = m->get_class();
 				//TODO uncomment this?  #amaroyo 04/01/2016
 		        //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
-                
+
+				
                 //*******************************************************************
 		        //evaluate result:
-		        printf("evaluating result.... \n");
+				yDebug("evaluating result.... \n");
                 char* out =  out_ipl->imageData;
                 getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
-                printf("success \n");
+				yDebug("success \n");
 	
 		        cog_x_send = cog_x;
 		        cog_y_send = cog_y;
@@ -735,15 +739,16 @@ initialization:
             			}
           			}
 		        }
-                
+
+
                 //********************************************************************
 		        //If nice segmentation:
-                printf("checking for nice segmentation \n");
+				yDebug("checking for nice segmentation \n");
 		        if (area >= params->min_area && area <= params->max_area && spread <= params->max_spread){ 
           			//don't update templates to image centre any more as we have a nice target
            			acquire = false;
                     //update templates towards segmentation CoG:
-          			printf("area:%d spread:%f cogx:%f cogy:%f - UPDATING TEMPLATE\n",area,spread,cog_x,cog_y);
+					yDebug("area:%d spread:%f cogx:%f cogy:%f - UPDATING TEMPLATE\n", area, spread, cog_x, cog_y);
           			//Bring cog of target towards centre of fovea://SNAP GAZE TO OBJECT:
           			cog_x*= params->cog_snap;
           			cog_y*= params->cog_snap;
@@ -759,7 +764,7 @@ initialization:
 		        }
 		        //Otherwise, just keep previous templates:
 		        else{
-          			printf("area:%d spread:%f cogx:%f cogy:%f\n",area,spread,cog_x,cog_y);	
+					yDebug("area:%d spread:%f cogx:%f cogy:%f\n", area, spread, cog_x, cog_y);
           			waiting++;
            			//report that we didn't update template:
                     //-----------------------------------------------extract just template
@@ -854,10 +859,10 @@ initialization:
                         img_out_temp->resize(l_orig_ipl->width, l_orig_ipl->height);
 
                         cvCopy(l_orig_ipl, img_out_temp->getIplImage(), NULL);
-                        printf("copied image success \n");
+						yDebug("copied image success \n");
                         
                    	    imageOutTemp.write();
-                        printf("sent image \n");
+						yDebug("sent image \n");
 						//TODO uncommented  #amaroyo 04/01/2016
                         delete img_out_temp;
 						// HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
@@ -874,13 +879,13 @@ initialization:
           			update = false;
                     //retreive only the segmented object in order to send as template
 		        }
-	
+			
 		        if(waiting >= 25 ){ //acquire_wait
-          			printf("Acquiring new target until nice seg (waiting:%d >= acquire_wait:%d)\n",waiting, params->acquire_wait );//acquire_wait
+					yDebug("Acquiring new target until nice seg (waiting:%d >= acquire_wait:%d)\n", waiting, params->acquire_wait);//acquire_wait
           			acquire = true;
 		        }
 
-                printf("preparing the vector target for the COG \n");
+				yDebug("preparing the vector target for the COG \n");
                 Vector& target = cogPort.prepare();
 		        target.resize(2);
 		        target[0]=cog_x_send;
@@ -888,24 +893,32 @@ initialization:
 		        cogPort.write();
 
 streaming:
+
+				/*Adding mask to copy the results to output
+				  #amaroyo 08/02/2016
+				*/
+				IplImage *maskOutput = cvCreateImage(cvSize(msize.width, msize.height), IPL_DEPTH_8U, 1);
+
                 
 		        //send it all when connections are established
 		        if (imageOutProb.getOutputCount()>0){ 
 					yDebug("Inside imageProb\n");
-				    //TODO inefficient  #amaroyo 04/01/2016
+				    //TODO this is correct , change and improve efficiency in future  #amaroyo 04/01/2016
                     //ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
 					
-					
-					/* HACK  #amaroyo 04/01/2016
-					this is correct , change and improve efficiency in future
+
+					/*cvCopy(zd_prob_8u_ipl, img_out_prob->getIplImage(), maskOutput);
 					imageOutProb.prepare() = *img_out_prob;
-                   	imageOutProb.write();
-					for now: */
+                   	imageOutProb.write();*/
+					
+					
+					//HACK to test output #amaroyo 04/01/2016
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(first_plane_l_ipl);
+					
+					processingMonoImage->wrapIplImage(res_t_ipl);
 					imageOutProb.prepare() = *processingMonoImage;
 					imageOutProb.write();
-
+					
 
                 }
 				
