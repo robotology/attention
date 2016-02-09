@@ -586,20 +586,22 @@ void ZDFThread::run()
                 
 				cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
                 //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
-				goto streaming;
+				
 				
                 //ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
                 //ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
 
                 double minVal_l; double maxVal_l;
                 cv::Point minLoc_l, maxLoc_l, matchLoc_l;
+				//this function gives back the locations and brightness values of the brightest and darkest spots of the image #amaroyo 09/02/2016
                 cv::minMaxLoc(res_t_mat, &minVal_l, &maxVal_l, &minLoc_l, &maxLoc_l, cv::Mat());
 
-                cvSetImageROI(rec_im_ly_ipl ,cvRect( mid_x, mid_y,msize.width, msize.height) );
-                cvCopy(rec_im_ly_ipl, fov_l_ipl,NULL);                      
+                cvSetImageROI(rec_im_ly_ipl, cvRect(mid_x, mid_y, msize.width, msize.height));
+                cvCopy(rec_im_ly_ipl, fov_l_ipl, NULL);                      
                 cvResetImageROI(rec_im_ly_ipl);
 
-
+				
+				
 		        //******************************************************************
 		        //Create right fovea and find right template in right image:
                 yDebug("creating right fovea and right template matching \n");
@@ -624,7 +626,8 @@ void ZDFThread::run()
                 cvSetImageROI(rec_im_ry_ipl ,cvRect( mid_x, mid_y,msize.width, msize.height) );
                 cvCopy(rec_im_ry_ipl, fov_r_ipl,NULL);                      
                 cvResetImageROI(rec_im_ry_ipl);
-                
+
+				goto streaming;
                 
                 //*****************************************************************
                 //Star diffence of gaussian on foveated images
@@ -914,8 +917,7 @@ streaming:
 					
 					//HACK to test output #amaroyo 04/01/2016
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					
-					processingMonoImage->wrapIplImage(res_t_ipl);
+					processingMonoImage->wrapIplImage(fov_r_ipl); //res_t_ipl
 					imageOutProb.prepare() = *processingMonoImage;
 					imageOutProb.write();
 					
@@ -926,15 +928,28 @@ streaming:
 					yDebug("Inside imageSeg\n");
 					//TODO uncomment this??  #amaroyo 04/01/2016
                     //ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
-                   	imageOutSeg.prepare() = *img_out_seg;	
-                   	imageOutSeg.write();
+                   	//imageOutSeg.prepare() = *img_out_seg;	
+                   	//imageOutSeg.write();
+
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage->wrapIplImage(temp_r_ipl); 
+					imageOutSeg.prepare() = *processingMonoImage;
+					imageOutSeg.write();
+
+				
                 }
 		        if (imageOutDog.getOutputCount()>0){
 					yDebug("Inside imageDog\n");
 					//TODO uncomment this??  #amaroyo 04/01/2016
                     //ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
-                   	imageOutDog.prepare() = *img_out_dog;	
-                   	imageOutDog.write();
+                   	//imageOutDog.prepare() = *img_out_dog;	
+                   	//imageOutDog.write();
+
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage->wrapIplImage(rec_im_ry_ipl);
+					imageOutDog.prepare() = *processingMonoImage;
+					imageOutDog.write();
+
                 }
             }
 		}
