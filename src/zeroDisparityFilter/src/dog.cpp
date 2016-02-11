@@ -55,6 +55,8 @@ DoG::DoG(defSize srcsize_)
     //dog       = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
     dog_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1); 
 
+	dog_image_8u = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_8U, 1);
+
     //invert image
     invert_image = cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F,1);
 
@@ -101,6 +103,7 @@ DoG::~DoG()
     cvReleaseImage(&tmp2_image);          // ippFree(tmp2);
     cvReleaseImage(&tmp3_image);          // ippFree(tmp3);
     cvReleaseImage(&dog_image);           // ippFree(dog);
+	cvReleaseImage(&dog_image_8u);
     cvReleaseImage(&dog_on_image);        // ippFree(dog_on);
     cvReleaseImage(&dog_off_image);       // ippFree(dog_off);
     cvReleaseImage(&dog_onoff_image);     // ippFree(dog_onoff);
@@ -120,11 +123,13 @@ void DoG::conv_32f_to_8u( float *im_i, int p4_,char *im_o, int p1_, defSize srcs
 } 
 
 void DoG::conv_32f_to_8u( IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_) {
-    float min = 0.0; //Ipp32f
+    float min = 1.0; //Ipp32f
     float max = 0.0; //Ipp32f
+	printf("conv32fto8u\n");
     cv::Mat mat_i = cvCloneImage(im_i);
     cv::Mat mat_o = cvCloneImage(im_o);
     mat_i.convertTo(mat_o, CV_8U, max, min);
+	im_o = &(IplImage)mat_o;
 }
 
 
@@ -134,15 +139,25 @@ void DoG::conv_8u_to_32f( IplImage *im_i, int p4_, IplImage *im_o, int p1_, defS
     cv::Mat mat_i = cvCloneImage(im_i);
     cv::Mat mat_o = cvCloneImage(im_o);
     mat_i.convertTo(mat_o, CV_32F);
+	im_o = &(IplImage)mat_o;
 }
 
 void DoG::conv_8u_to_32f( cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_) {
+	printf("conv 8u to 32f matrix \n");
     float min = 0.0; //Ipp32f
     float max = 0.0; //Ipp32f
-	//TODO uncomment this?
     //cv::Mat mat_i = cvCloneImage(im_i);
     //cv::Mat mat_o = cvCloneImage(im_o);
     mat_i->convertTo(*mat_o, CV_32F);
+}
+
+void DoG::conv_32f_to_8u(cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_) {
+	printf("conv 32f to 8u matrix \n");
+	float min = 0.0; //Ipp32f
+	float max = 0.0; //Ipp32f
+	//cv::Mat mat_i = cvCloneImage(im_i);
+	//cv::Mat mat_o = cvCloneImage(im_o);
+	mat_i->convertTo(*mat_o, CV_8U);
 }
 
 void DoG::proc(unsigned char *in_, int psb_in_)
@@ -185,23 +200,27 @@ void DoG::proc(IplImage *in_, int psb_in_)
     //padding
     printf("cloning the image for border making \n");
     
-    cv::Mat in_mat = cvCloneImage(in_);
+	//IplImage in_ is 8U
+    cv::Mat in_mat = cv::cvarrToMat(in_);
+
     cv::Mat in_pad_8u_mat;
     //ippiCopyReplicateBorder_8u_C1R(in_,psb_in_,srcsize,in_pad_8u,psb_pad_8u,psize,PAD_BORD,PAD_BORD);
     cv::Scalar value = cv::Scalar( 0, 0, 0 );
-    copyMakeBorder(in_mat, in_pad_8u_mat, 5, 5, 5, 5, cv::BORDER_REPLICATE, value); 
+    copyMakeBorder(in_mat, in_pad_8u_mat, 5, 5, 5, 5, cv::BORDER_CONSTANT, value); 
 
     //convert to 32f: 
     //ippiConvert_8u32f_C1R(in_pad_8u,psb_pad_8u,in_pad,psb_pad,psize);
     cv::Mat in_pad_mat;
     defSize is; is.width = 0; is.height = 0;
     conv_8u_to_32f(&in_pad_8u_mat, 0, &in_pad_mat, 0, is);
+	printf("converted the image to 32f success \n");
+
 
     //----------------  DOG filtering -----------------------------------------
     printf("DOG filtering \n");
 
     cv::Point anchor(0, 0);
-    //cv::Mat kern1_mat;
+    //cv::Mat kern1_mat; removed because already defined
     
     //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
     filter2D(in_pad_mat, tmp1_mat, CV_32F, (cv::Mat) kern1_mat, anchor); 
@@ -218,13 +237,41 @@ void DoG::proc(IplImage *in_, int psb_in_)
     filter2D(tmp1_mat, tmp3_mat, CV_32F, (cv::Mat) kern2_mat, anchor); 
 
     printf("filtering successfully ended \n");
+	
+	printf("DoG: Substraction \n");
 	//TODO uncomment this?
     //ippiSub_32f_C1R(tmp2,psb_pad,tmp3,psb_pad,dog,psb_pad,psize);
-    //dog_mat   = tmp2_mat - tmp3_mat;
+    dog_mat   = tmp2_mat - tmp3_mat;
     //cvSub(&tmp2_mat, &tmp3_mat, dog_image);
-    //dog_image = cvCloneImage(&(IplImage)dog_mat);
+ 
+	//remove borders
+	cv::Rect imgROI(5, 5, in_->width, in_->height);
+	cv::Mat croppedImage = dog_mat(imgROI);
+	cv::Mat copy;
+	croppedImage.copyTo(copy);
+
+	//convert 32F copy to 8u mat 
+	cv::Mat copy_8u;
+	conv_32f_to_8u(&copy, 0, &copy_8u, 0, is);
+
+	*dog_image_8u = (IplImage)copy_8u;
+	cv::imshow("Matrix", copy_8u);
+	cv::waitKey(1);
+
+
+	printf("test data of the _mat \n");
+	for (int i = 1; i < 5; i++) {
+		for (int j = 1; j < 5; j++) {
+			//p++;
+			printf(" data inside: %d \n", copy_8u.at<char>(i, j));
+		}
+	}
+
+	/*
+
     //cvCopy(dog_image, &dog_mat.operator IplImage(),NULL); 
     //dog_image = &dog_mat.operator IplImage();
+	printf("DoG: Substraction success \n");
 
     //---------------  on-centre -----------------------------------------------
     //keep only results above zero:
@@ -255,6 +302,8 @@ void DoG::proc(IplImage *in_, int psb_in_)
     conv_32f_to_8u(dog_off_image, 0, out_dog_off_image,0, srcsize);
     //conv_32f_to_8u(&dog_onoff[PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_onoff, psb_o, srcsize);
     conv_32f_to_8u(dog_onoff_image, 0, out_dog_onoff_image, 0, srcsize);
+	*/
+
     printf("procedure concluded \n");
 
 }

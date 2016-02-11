@@ -65,23 +65,36 @@ public:
      */
     //Ipp8u* get_dog_on(){return out_dog_on;}          //on-centre
     char* get_dog_on(){return out_dog_on;}    //on-centre
+	IplImage* get_dog_on_ipl(){ return out_dog_on_image; }
 
     /** Access to the off-centre output.
      * @return Pointer to the off-centre output image.
      */
     //Ipp8u* get_dog_off(){return out_dog_off;}        //off-centre
     char* get_dog_off(){return out_dog_off;}  //off-centre
+	IplImage* get_dog_off_ipl(){ return out_dog_off_image; }
 
     /** Access to the magnitude output.
      * @return Pointer to the on/off-centre output image.
      */
     //Ipp8u* get_dog_onoff(){return out_dog_onoff;}        //absolute difference
     char* get_dog_onoff(){return out_dog_onoff;}           //absolute difference
+	IplImage* get_dog_onoff_ipl(){ return out_dog_onoff_image; }
 
     /** Memory width return function.
      * @return Step in bytes through the output image.
      */
     int get_psb(){return psb_o;}
+
+	/** DoG image return function
+	 * @return IplImage* 32F
+	 */
+	IplImage* get_dog_image(){ return dog_image; }
+
+	/** DoG image return function
+	* @return IplImage* 8U
+	*/
+	IplImage* get_dog_image_8u(){ return dog_image_8u; }
 
     /** 
      * Convert from 32f precision back to 8u
@@ -93,6 +106,7 @@ public:
      * Convert from 32f precision back to 8u
      */
     void conv_32f_to_8u( IplImage* im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
+	void conv_32f_to_8u(cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
 
     /**
      * Convert from 8u precision back to 32f
@@ -129,6 +143,7 @@ private:
     IplImage *out_dog_on_image;         //Ipp8u
     IplImage *out_dog_off_image;        //Ipp8u
     IplImage *out_dog_onoff_image;      //Ipp8u
+	IplImage *dog_image_8u;
     
 
     int width, height;

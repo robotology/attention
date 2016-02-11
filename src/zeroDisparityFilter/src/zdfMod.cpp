@@ -627,14 +627,16 @@ void ZDFThread::run()
                 cvCopy(rec_im_ry_ipl, fov_r_ipl,NULL);                      
                 cvResetImageROI(rec_im_ry_ipl);
 
-				goto streaming;
+				
                 
                 //*****************************************************************
                 //Star diffence of gaussian on foveated images
                 yDebug("difference of gaussian on foveated images \n");
 		        dl->proc( fov_l_ipl, psb_m );
-		        dr->proc( fov_r_ipl, psb_m );
-				
+				// as output of the previous call we get out_dog_on,_off, _onoff
+
+		        //dr->proc( fov_r_ipl, psb_m );
+				goto streaming;
 
 		        //*****************************************************************
 		        //SPATIAL ZD probability map from fov_l and fov_r:
@@ -917,7 +919,7 @@ streaming:
 					
 					//HACK to test output #amaroyo 04/01/2016
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(fov_r_ipl); //res_t_ipl
+					processingMonoImage->wrapIplImage(dl->get_dog_image_8u());
 					imageOutProb.prepare() = *processingMonoImage;
 					imageOutProb.write();
 					
@@ -946,7 +948,7 @@ streaming:
                    	//imageOutDog.write();
 
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(rec_im_ry_ipl);
+					processingMonoImage->wrapIplImage(fov_l_ipl);
 					imageOutDog.prepare() = *processingMonoImage;
 					imageOutDog.write();
 
