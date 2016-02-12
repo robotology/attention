@@ -919,7 +919,7 @@ streaming:
 					
 					//HACK to test output #amaroyo 04/01/2016
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(dl->get_dog_image_8u());
+					processingMonoImage->wrapIplImage(dl->get_dog_on_ipl());
 					imageOutProb.prepare() = *processingMonoImage;
 					imageOutProb.write();
 					
@@ -928,7 +928,7 @@ streaming:
 				
 		        if (imageOutSeg.getOutputCount()>0){
 					yDebug("Inside imageSeg\n");
-					//TODO uncomment this??  #amaroyo 04/01/2016
+					//TODO missing copy #amaroyo 12/01/2016
                     //ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
                    	//imageOutSeg.prepare() = *img_out_seg;	
                    	//imageOutSeg.write();
@@ -942,7 +942,7 @@ streaming:
                 }
 		        if (imageOutDog.getOutputCount()>0){
 					yDebug("Inside imageDog\n");
-					//TODO uncomment this??  #amaroyo 04/01/2016
+					//TODO missing copy #amaroyo 12/01/2016
                     //ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
                    	//imageOutDog.prepare() = *img_out_dog;	
                    	//imageOutDog.write();
