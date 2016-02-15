@@ -149,7 +149,8 @@
 
 
 class handProfilerModule:public yarp::os::RFModule {
-
+    yarp::sig::Vector vectorDownOrientation;
+    yarp::sig::Vector vectorUpOrientation;
     
     std::string moduleName;                  // name of the module
     std::string robotName;                   // name of the robot 
