@@ -548,6 +548,7 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
                 Ut.at<float>(y, x) = 0.000001;
                 Vt.at<float>(y, x) = 0.000001;
                 Maskt.at<float>(y, x) = 0.0;
+                gradientMaskNorm.at<float>(y, x) = 0.0;
             }
             else {
             }

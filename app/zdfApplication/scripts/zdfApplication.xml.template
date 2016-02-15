@@ -1,0 +1,86 @@
+<application>
+	<name>Zero Disparity Filter App</name>
+	
+ 	<dependencies>
+		<port>/icubSim/cam/left</port>
+		<port>/icubSim/cam/right</port>
+	</dependencies>
+
+	<module>
+		<name>iCub_SIM</name>
+		<tag>icubSim</tag>
+		<node>/node</node>
+	</module>
+	
+	<module>
+      <name>yarpview</name>
+      <parameters>--name /imageProb --x 320 --y 350 </parameters>
+      <node>/node</node>
+	  <tag>imageProb</tag>
+    </module>
+	
+	<module>
+      <name>yarpview</name>
+      <parameters>--name /imageSeg --x 320 --y 350 </parameters>
+      <node>/node</node>
+	  <tag>imageSeg</tag>
+    </module>
+	
+	<module>
+      <name>yarpview</name>
+      <parameters>--name /imageDog --x 320 --y 350 </parameters>
+      <node>/node</node>
+	  <tag>imageDog</tag>
+    </module>
+	
+	<module>
+      <name>yarpview</name>
+      <parameters>--name /imageTemp --x 320 --y 350 </parameters>
+      <node>/node</node>
+	  <tag>imageTemp</tag>
+    </module>
+	
+	<module>
+	  <name>ZeroDisparityFilter</name>
+	  <node>/node</node>
+	  <tag>ZeroDisparityFilter</tag>
+     </module>
+	
+	<connection>
+        <from>/icubSim/cam/left</from>
+		<to>/zdfMod/imageLeft:i</to>
+		<protocol>tcp</protocol>
+	</connection>
+	
+	<connection>
+        <from>/icubSim/cam/right</from>
+		<to>/zdfMod/imageRight:i</to>
+		<protocol>tcp</protocol>
+	</connection>
+	
+	<connection>
+        <from>/zdfMod/imageProb:o</from>
+		<to>/imageProb</to>
+		<protocol>tcp</protocol>
+	</connection>
+	
+	<connection>
+        <from>/zdfMod/imageSeg:o</from>
+		<to>/imageSeg</to>
+		<protocol>tcp</protocol>
+	</connection>
+	
+	<connection>
+        <from>/zdfMod/imageDog:o</from>
+		<to>/imageDog</to>
+		<protocol>tcp</protocol>
+	</connection>
+	
+	<connection>
+        <from>/zdfMod/imageTemp:o</from>
+		<to>/imageTemp</to>
+		<protocol>tcp</protocol>
+	</connection>
+	
+</application>
+

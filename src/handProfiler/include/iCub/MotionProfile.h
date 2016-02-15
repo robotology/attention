@@ -40,9 +40,23 @@
 //#include <cmath>
 #include <math.h>
 
+#define minX_DF  -0.35;  // working space x
+#define maxX_DF  -0.20;  // working space x
+#define minY_DF  -0.35;  // working space y
+#define maxY_DF  +0.35;  // working space y
+#define minZ_DF  -0.15;  // working space z
+#define maxZ_DF  +0.25;  // working space z
+
 namespace profileFactory {
 
 class MotionProfile {
+private:
+	/**
+    * range initialization
+    */
+	void initRange();
+	
+
 protected:
     yarp::sig::Vector O;               // vector representating the position of the center ellipse
     yarp::sig::Vector A;               // vector representating the initial position for the hand
@@ -77,12 +91,12 @@ protected:
     double tanVelocity;                // tangential velocity function of curvature, gain and beta
     double subA2B2;                    // variable needs for the computation of tang. and ang.Velocity
 
-    static const double minX = -0.35;  // working space x
-    static const double maxX = -0.20;  // working space x
-    static const double minY = -0.35;  // working space y
-    static const double maxY = +0.35;  // working space y
-    static const double minZ = -0.15;  // working space z
-    static const double maxZ = +0.25;  // working space z
+    double minX;					   // working space x
+    double maxX;					   // working space x
+    double minY;					   // working space y
+    double maxY;					   // working space y
+    double minZ;					   // working space z
+    double maxZ;					   // working space z
 
     bool valid;                        // flag indicating whether the motionProfile is valid class
     int reverse;                      // flag indicating if the action is performed reverse
@@ -157,7 +171,7 @@ public:
     /**
     * function setting the A vector
     */
-    yarp::sig::Vector setA(yarp::sig::Vector value) { A = value; };
+    void setA(yarp::sig::Vector value) { A = value; };
 
     /**
     * function returning the A vector
@@ -167,7 +181,7 @@ public:
     /**
     * function setting the A vector
     */
-    yarp::sig::Vector setB(yarp::sig::Vector value) { B = value; };
+    void setB(yarp::sig::Vector value) { B = value; };
     
     /**
     * function returning the B vector
@@ -177,7 +191,7 @@ public:
     /**
     * function setting the A vector
     */
-    yarp::sig::Vector setC(yarp::sig::Vector value) { C = value; };
+    void setC(yarp::sig::Vector value) { C = value; };
     
     /**
     * function returning the C vector

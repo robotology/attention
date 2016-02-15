@@ -31,6 +31,10 @@
 #include <iCub/iKin/iKinFwd.h>
 #include <yarp/math/Math.h>
 
+#define _USE_MATH_DEFINES
+#include <cmath> 
+
+
 const double F               = 4;			// camera F length.
 const double PixScaleX       = 120;			// camera mm to pixel conversion factor.
 const double PixScaleY       = 98;			// same along the y coord.

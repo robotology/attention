@@ -371,6 +371,7 @@ bool handProfilerThread::startExecution(const bool _reverse){
     simulation = false;
     firstIteration = true;
     t0 = Time::now();
+	return true;
 }
 
 bool handProfilerThread::startSimulation(const bool _reverse){
@@ -380,6 +381,7 @@ bool handProfilerThread::startSimulation(const bool _reverse){
     simulation = true;
     firstIteration = true;
     t0 = Time::now();
+	return true;
 }
 
 bool handProfilerThread::factory(const string type, const Bottle finalB){

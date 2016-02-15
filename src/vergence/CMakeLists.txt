@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 2.6)
 set(PROJECTNAME vergence)
 project(${PROJECTNAME})
 
+if(MSVC)
+   add_definitions(-D_USE_MATH_DEFINES)
+endif()
+
 find_package(YARP)
 find_package(ICUB)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})

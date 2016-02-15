@@ -30,7 +30,7 @@
 /** 
   * The neighbourhood structure.
   */
-    const struct Coord NEIGHBORS[] = { Coord(1, 0), Coord(0, -1) };
+const struct Coord NEIGHBORS[] = { Coord(1, 0), Coord(0, -1) };
 #define NEIGHBOR_NUM (sizeof(NEIGHBORS) / sizeof(Coord))
       
 /** 
@@ -69,7 +69,7 @@ class MultiClass{
    * @param numClasses Number of classes in output, and number of class probability maps provided.
    * @param params Input parameters.
    */
-  MultiClass(IppiSize imsize,int psb_in,int numClasses,Parameters *params);
+  MultiClass(defSize imsize, int psb_in, int numClasses, Parameters *params);
   
   /** 
    *Destructor.
@@ -111,8 +111,8 @@ class MultiClass{
   int nmaps;
   int len_nv;
   int psb_in,psb;
-  IppiSize im_size;
-  IplImage* outImage;               //outputImage of the class
+  defSize im_size;
+  IplImage* outImage;      //outputImage of the class
   Coord im_sz;
   char *im, **prob;        //Ipp8u
   char *out;               //Ipp8u 
