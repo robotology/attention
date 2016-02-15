@@ -25,6 +25,7 @@
 // general command vocab's
 #define COMMAND_VOCAB_IS     VOCAB2('i','s')
 #define COMMAND_VOCAB_OK     VOCAB2('o','k')
+#define COMMAND_VOCAB_UP     VOCAB2('U','P')
 
 #define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
 #define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
@@ -34,12 +35,15 @@
 #define COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
 #define COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
 #define COMMAND_VOCAB_MINJ   VOCAB4('m','i','n','j')       
-#define COMMAND_VOCAB_TTPL   VOCAB4('T','T','P','L')      
+#define COMMAND_VOCAB_TTPL   VOCAB4('T','T','P','L')
 #define COMMAND_VOCAB_MANY   VOCAB4('m','a','n','y') 
 #define COMMAND_VOCAB_XAXI   VOCAB4('X','A','X','I')
 #define COMMAND_VOCAB_YAXI   VOCAB4('Y','A','X','I')
 #define COMMAND_VOCAB_ZAXI   VOCAB4('Z','A','X','I')
 #define COMMAND_VOCAB_STAR   VOCAB4('S','T','A','R')
+#define COMMAND_VOCAB_PALM   VOCAB4('P','A','L','M')
+#define COMMAND_VOCAB_DOWN   VOCAB4('D','O','W','N')
+
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
 #define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
@@ -68,6 +72,9 @@ using namespace std;
 
 bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     /* Process all parameters from both command-line and .ini file */
+    Vector tmp(4);
+    tmp[0] = -0.096; tmp[1] = 0.513; tmp[2] = -0.8528; tmp[3] = 2.514;
+    vectorDownOrientation = tmp;
     /* Process all parameters from both command-line and .ini file */
     if(rf.check("help")) {
         printf("HELP \n");
@@ -315,6 +322,34 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             }
         }
         break;
+         case COMMAND_VOCAB_PALM:
+        rec = true;
+        {
+            //reply.addVocab(COMMAND_VOCAB_IS);
+            //reply.add(command.get(1));
+            switch(command.get(1).asVocab()) {
+
+            case COMMAND_VOCAB_DOWN:
+                {
+                    rThread->setOrientation(vectorDownOrientation);
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_MINDB:
+                {
+                    rThread->setOrientation(vectorUpOrientation);
+                    ok = true;
+                }
+                break;
+               
+            /* LATER: implement case COMMAND_VOCAB_MBA */
+
+            default:
+                cout << "received an unknown request after a GET" << endl;
+                break;
+            }
+        }
+        break;
     case COMMAND_VOCAB_STAR:
         rec = true;
         {
@@ -402,6 +437,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_GEN:
         rec = true;
         {
+            yInfo("GEN %s ", command.get(1).asString().c_str());
             //reply.addVocab(COMMAND_VOCAB_IS);
             //reply.add(command.get(1));
             switch(command.get(1).asVocab()) {

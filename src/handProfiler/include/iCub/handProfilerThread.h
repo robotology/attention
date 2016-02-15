@@ -151,6 +151,11 @@ public:
     * @param str rootnma
     */
     void setName(std::string str);
+
+    /**
+     * function that sets the orientation of the endeffector
+     */
+    bool setOrientation(const yarp::sig::Vector vectorOrientaion);
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter
@@ -216,6 +221,11 @@ public:
     * limiting the torso pitch
     */
     void limitTorsoPitch();
+
+    /**
+    * limiting the torso pitch
+    */
+    void limitTorsoYaw();
 
     /**
     * generate the target position in space   
