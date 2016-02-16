@@ -190,7 +190,7 @@ bool featExtractorThread::test(){
 /*featExtractorThread takes U thresholded,V thresholded and the mask from opfExtractorThread, and from them it computes the features*/
 void featExtractorThread::run() {
 
-    if(outputPortDescr.getOutputCount()) {
+    if(outputPortDescr.getOutputCount() ) {
         //yDebug("plotting the image");
         Bottle& outbot = outputPortDescr.prepare();
         outbot.clear();
@@ -199,7 +199,7 @@ void featExtractorThread::run() {
     }
 
 
-    if(outputPortPlot.getOutputCount()) {
+    if(outputPortPlot.getOutputCount() || outputPortPlot.getOutputCount() ) {
         //yDebug("plotting the image");
         ImageOf<PixelRgb>& imagePlot = outputPortPlot.prepare();
         imagePlot.resize(1600, 1800);
