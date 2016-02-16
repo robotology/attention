@@ -291,13 +291,13 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
     ResourceFinder rf;
     rf.setVerbose(true);
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
-    //int argc = b->size() * 2 + 1;   
-	const int argc = 20;
+    int argc = b->size() * 2 + 1;   
+	// fix: const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
     argv[0] = (char*) stringArray[0].c_str();
-    yDebug("added the first %s", argv[0]);    
+    yDebug("added first %s", argv[0]);    
         
     for (int j = 0; j < b->size(); j++) {
         Bottle* vector = b->get(j).asList();
@@ -310,8 +310,10 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
         argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
         yDebug("param %s", argv[j * 2 + 1]);
-        yDebug("value %s", argv[j * 2 + 2]);
-    }     
+        //yDebug("value %s", argv[j * 2 + 2]);
+    }
+    yDebug("parsing ");
+    yDebug("%s",argv[0] );
     // configuring the resource finder
     rf.configure(argc, argv);
     yInfo("resorceFinder: %s",rf.toString().c_str());
@@ -562,13 +564,13 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
     ResourceFinder rf;
     rf.setVerbose(true); 
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
-    //int argc = b->size() * 2 + 1;   
-	const int argc = 20;
+    int argc = b->size() * 2 + 1;   
+	//fix: const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
     argv[0] = (char*) stringArray[0].c_str();
-    yDebug("added the first %s", argv[0]);    
+    yDebug("added first %s", argv[0]);    
         
     for (int j = 0; j < b->size(); j++) {
         Bottle* vector = b->get(j).asList();
@@ -576,15 +578,21 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
         //stringArray[j * 2 + 1].append("A");    
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
+        yDebug("%f %f %f",vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
         sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+       
         stringArray[j * 2 + 2].append(&temp[0]);
+        yDebug("string: %s %s", stringArray[j * 2 + 1].c_str(), stringArray[j * 2 + 2].c_str());
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
         argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
         yDebug("param %s", argv[j * 2 + 1]);
         yDebug("value %s", argv[j * 2 + 2]);
-    }     
+    } 
+    yDebug("parsing......");
+    yDebug("argc %d argv %s", argc, argv[0]);
     // configuring the resource finder
     rf.configure(argc, argv);
+    
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF
     Vector Ovector(3);    
