@@ -693,10 +693,12 @@ bool TTPLMotionProfile::operator==(const TTPLMotionProfile &ttplmp)
 }
 
 double TTPLMotionProfile::computeTangVelocity() {
-    //v = g * K ^ (-beta);    beta = 0.33;
+    //ang.vel = g * K ^ (-beta);    beta = 0.33;
+    //tan.vel = ang.vel * r 
     double reBeta = -1 * beta;
     double curvature = 1 / radius;
     double vel = gain * pow(curvature, reBeta);
+    yInfo("ComputeTangVelocity: beta= %fcurvature=%f tan.vel=%f", beta, curvature, vel);
     return vel;
 }
 

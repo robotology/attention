@@ -27,6 +27,8 @@
 #define CTRL_THREAD_PER     0.02    // [s]
 #define PRINT_STATUS_PER    1.0     // [s]
 #define MAX_TORSO_PITCH     10.0    // [deg]
+#define MIN_TORSO_YAW       -40.0   // [deg]
+#define MAX_TORSO_YAW       40.0    // [deg]
 #define RATETHREAD          10      // [ms]
 #define TRAJTIME            1.0     // [s]
 
@@ -119,8 +121,8 @@ handProfilerThread::~handProfilerThread() {
 
 bool handProfilerThread::threadInit() {
     
-    /* open ports */ 
 
+    /* open ports */ 
     Property option("(device cartesiancontrollerclient)");
     option.put("remote","/icub/cartesianController/left_arm");
     option.put("local","/handProfiler/left_arm");
@@ -175,8 +177,9 @@ bool handProfilerThread::threadInit() {
             newDof[2] = 0; //1
         }
 
-        // impose some restriction on the torso pitch
+        // impose some restriction on the torso pitch and yaw
         limitTorsoPitch();
+        limitTorsoYaw();
 
         // send the request for dofs reconfiguration
         icart->setDOF(newDof,curDof);
@@ -249,6 +252,10 @@ bool handProfilerThread::threadInit() {
     qdhat.resize(4);
 
     t0 = Time::now();
+    //initialization of the relevant vectors
+    //od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514; 
+    od[0] = -0.076; od[1] = -0.974; od[2] = 0.213; od[3] = 3.03; 
+
     yInfo("handProfiler thread correctly started");
     
     return true;
@@ -311,7 +318,8 @@ bool handProfilerThread::resetExecution(){
     Vector xZero(3);
     xZero[0] = -0.3; xZero[1] = -0.1; xZero[2] = 0.1;
     //Vector od(4);
-    od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514;
+    //od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514;
+
     if(0 != icart){
         Vector xInit(3);
         xInit = mp->getInitial();
@@ -468,6 +476,13 @@ void handProfilerThread::printXd() {
     xdPort.write();
 }
 
+bool handProfilerThread::setOrientation(const Vector vectorOrientation) {
+    if (vectorOrientation.size() == 4) {
+        od = vectorOrientation;
+        return true;
+    }
+    return false;
+}
 
 bool handProfilerThread::generateTarget() {   
     // translational target part: a circular trajectory
@@ -497,8 +512,22 @@ bool handProfilerThread::generateTarget() {
     //od[0] = 0.0; od[1] = 0.0; od[2] = 1.0; od[3] = M_PI;
     //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
     //od[0] = -0.43; od[1] = -0.02; od[2] = -0.90; od[3] = 2.98;
-    od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
+    //od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
     return true;
+}
+void handProfilerThread::limitTorsoYaw() {
+    int axis=1; // yaw joint
+    double min, max;
+
+    // sometimes it may be helpful to reduce
+    // the range of variability of the joints;
+    // for example here we don't want the torso
+    // to rotate out more than needed
+
+    // we keep the lower limit
+    icart->getLimits(axis,&min,&max);
+    yInfo("Torso Yaw limits [%f:%f]->[%f:%f]", min, max, MIN_TORSO_YAW, MAX_TORSO_YAW);
+    icart->setLimits(axis,MIN_TORSO_YAW,MAX_TORSO_YAW);
 }
 
 void handProfilerThread::limitTorsoPitch() {
