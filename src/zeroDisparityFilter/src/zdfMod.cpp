@@ -922,7 +922,16 @@ streaming:
 					processingMonoImage->wrapIplImage(dl->get_dog_on_ipl());
 					imageOutProb.prepare() = *processingMonoImage;
 					imageOutProb.write();
-					
+				
+
+					/*
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage = &imageOutDog.prepare();
+					processingMonoImage->resize(msize.width, msize.height);
+					processingMonoImage->wrapIplImage(dl->get_dog_on_ipl());
+					printf("ZDF PROCESSING 1 %08X  \n", processingMonoImage);
+					imageOutDog.write();
+					*/
 
                 }
 				
@@ -934,10 +943,21 @@ streaming:
                    	//imageOutSeg.write();
 
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(temp_r_ipl); 
+					
+					IplImage* img = dl->get_dog_off_ipl();
+					printf("ZDF ADDRESS 1 %08X  \n", img);					
+					processingMonoImage->wrapIplImage(img);
 					imageOutSeg.prepare() = *processingMonoImage;
+					printf("ZDF PROCESSING 1 %08X  \n", processingMonoImage);
 					imageOutSeg.write();
-
+					/*
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage = &imageOutSeg.prepare();
+					processingMonoImage->resize(msize.width, msize.height);
+					processingMonoImage->wrapIplImage(dl->get_dog_off_ipl());
+					printf("ZDF PROCESSING 2 %08X  \n", processingMonoImage);
+					imageOutSeg.write();
+					*/
 				
                 }
 		        if (imageOutDog.getOutputCount()>0){
@@ -948,9 +968,21 @@ streaming:
                    	//imageOutDog.write();
 
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(fov_l_ipl);
+					IplImage* img = dl->get_dog_onoff_ipl();
+					printf("ZDF ADDRESS 2 %08X  \n", img);
+					processingMonoImage->wrapIplImage(img);
 					imageOutDog.prepare() = *processingMonoImage;
+					printf("ZDF PROCESSING 2 %08X  \n", processingMonoImage);
 					imageOutDog.write();
+					/*
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage = &imageOutDog.prepare();
+					processingMonoImage->resize(msize.width, msize.height);
+					processingMonoImage->wrapIplImage(dl->get_dog_onoff_ipl());
+					printf("ZDF PROCESSING 3 %08X  \n", processingMonoImage);
+					imageOutDog.write();
+					*/
+					
 
                 }
             }

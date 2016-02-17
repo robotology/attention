@@ -105,14 +105,16 @@ public:
      /** 
      * Convert from 32f precision back to 8u
      */
-    void conv_32f_to_8u( IplImage* im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
-	void conv_32f_to_8u(cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
+    void conv_32f_to_8u(const IplImage* im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
+	void conv_32f_to_8u(const cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
 
     /**
      * Convert from 8u precision back to 32f
      */
-    void conv_8u_to_32f( IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
-    void conv_8u_to_32f( cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
+    void conv_8u_to_32f(const IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
+    void conv_8u_to_32f(const cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
+
+	IplImage* remove_borders(IplImage* input);
 
 private:
     float *dog;          //Ipp32f
@@ -132,7 +134,8 @@ private:
     IplImage *tmp2_image;         //Ipp32f
     IplImage *tmp3_image;         //Ipp32f
     IplImage *in_pad_image;       //Ipp32f
-    IplImage *invert_image;       
+    IplImage *invert_image;    
+	IplImage *dog_aux_32f_small;
 
     unsigned char *in_pad_8u;     //Ipp8u
     char *out_dog_on;             //Ipp8u
