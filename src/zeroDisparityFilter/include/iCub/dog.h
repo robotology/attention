@@ -65,21 +65,33 @@ public:
      */
     //Ipp8u* get_dog_on(){return out_dog_on;}          //on-centre
     char* get_dog_on(){return out_dog_on;}    //on-centre
-	IplImage* get_dog_on_ipl(){ return out_dog_on_image; }
+	IplImage* get_dog_on_ipl(){ 
+		printf("DoG ON ADDRESS %08X  \n", out_dog_on_image);
+		//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
+		//cv::waitKey(0);
+		return out_dog_on_image; }
 
     /** Access to the off-centre output.
      * @return Pointer to the off-centre output image.
      */
     //Ipp8u* get_dog_off(){return out_dog_off;}        //off-centre
     char* get_dog_off(){return out_dog_off;}  //off-centre
-	IplImage* get_dog_off_ipl(){ return out_dog_off_image; }
+	IplImage* get_dog_off_ipl(){ 
+		printf("DoG OFF ADDRESS %08X  \n", out_dog_off_image);
+		//cv::imshow("Matrix2", cv::cvarrToMat(out_dog_off_image));
+		//cv::waitKey(0);
+		return out_dog_off_image; }
 
     /** Access to the magnitude output.
      * @return Pointer to the on/off-centre output image.
      */
     //Ipp8u* get_dog_onoff(){return out_dog_onoff;}        //absolute difference
     char* get_dog_onoff(){return out_dog_onoff;}           //absolute difference
-	IplImage* get_dog_onoff_ipl(){ return out_dog_onoff_image; }
+	IplImage* get_dog_onoff_ipl(){ 
+		printf("DoG ON OFF ADDRESS %08X  \n", out_dog_onoff_image);
+		//cv::imshow("Matrix3", cv::cvarrToMat(out_dog_onoff_image));
+		//cv::waitKey(0);
+		return out_dog_onoff_image; }
 
     /** Memory width return function.
      * @return Step in bytes through the output image.
@@ -114,7 +126,7 @@ public:
     void conv_8u_to_32f(const IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_);
     void conv_8u_to_32f(const cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
 
-	IplImage* remove_borders(IplImage* input);
+	IplImage* remove_borders(const IplImage* input);
 
 private:
     float *dog;          //Ipp32f
