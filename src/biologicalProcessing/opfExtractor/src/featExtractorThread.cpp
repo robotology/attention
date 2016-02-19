@@ -199,7 +199,7 @@ void featExtractorThread::run() {
     }
 
 
-    if(outputPortPlot.getOutputCount()) {
+    if(outputPortDescr.getOutputCount() || outputPortPlot.getOutputCount()) {
         //yDebug("plotting the image");
         ImageOf<PixelRgb>& imagePlot = outputPortPlot.prepare();
         imagePlot.resize(1600, 1800);

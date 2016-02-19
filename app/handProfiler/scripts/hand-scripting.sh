@@ -396,6 +396,20 @@ angry() {
     echo "set all ang" | yarp rpc /icub/face/emotions/in
 }
 
+handProfile_CVPHoriz005() {
+    echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.05)))" | yarp rpc /handProfiler
+}
+
+handProfile_CVPHoriz01() {
+    echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.1)))" | yarp rpc /handProfiler
+}
+
+handProfile_CVPHoriz02() {
+    echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.2)))" | yarp rpc /handProfiler
+}
+
+
+
 handProfile_TTPLHoriz02() {
     echo "GEN TTPL (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.2 0.33)))" | yarp rpc /handProfiler
 }
@@ -556,22 +570,106 @@ handProfile_STAREXE() {
 
     synchro02() {
         handProfile_TTPLHoriz02
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     synchro04() {
         handProfile_TTPLHoriz04
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     synchro08() {
         handProfile_TTPLHoriz08
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     synchro12() {
         handProfile_TTPLHoriz12
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    constant005() {
+        handProfile_CVPHoriz005
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    constant01() {
+        handProfile_CVPHoriz01
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    constant02() {
+        handProfile_CVPHoriz02
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    constant005_10() {
+        sleep 2.0
+        constant005
+        sleep 9.0
+        constant005
+        sleep 9.0
+        constant005
+        sleep 9.0
+        constant005
+        sleep 9.0 
+        constant005
+        sleep 9.0
+        constant005
+        sleep 9.0
+        constant005
+        sleep 9.0
+        constant005
+        sleep 9.0
+        constant005
+        sleep 9.0
+        constant005
+    }
+
+    constant01_10() {
+        sleep 2.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+        sleep 5.0
+        constant01
+    }
+    
+     constant02_10() {
+        sleep 2.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
+        sleep 4.0
+        constant02
     }
     
     synchro02_10() {
