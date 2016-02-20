@@ -191,11 +191,13 @@ bool featExtractorThread::test(){
 void featExtractorThread::run() {
 
     if(outputPortDescr.getOutputCount()) {
-        //yDebug("plotting the image");
-        Bottle& outbot = outputPortDescr.prepare();
-        outbot.clear();
-        outbot = contentBottle;//descrBottle
-        outputPortDescr.write();
+        if(contentBottle.size()!=0.0){
+            //yDebug("plotting the image");
+            Bottle& outbot = outputPortDescr.prepare();
+            outbot.clear();
+            outbot = contentBottle;//descrBottle
+            outputPortDescr.write();
+        }
     }
 
 
