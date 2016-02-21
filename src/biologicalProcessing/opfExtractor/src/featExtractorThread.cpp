@@ -191,7 +191,7 @@ bool featExtractorThread::test(){
 void featExtractorThread::run() {
 
     if(outputPortDescr.getOutputCount()) {
-        if(contentBottle.size()!=0.0){
+        if(contentBottle.size()!=0.0 && contentBottle.get(0).asDouble() !=0.0 ){
             //yDebug("plotting the image");
             Bottle& outbot = outputPortDescr.prepare();
             outbot.clear();
