@@ -570,105 +570,105 @@ handProfile_STAREXE() {
 
     synchro02() {
         handProfile_TTPLHoriz02
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     synchro04() {
         handProfile_TTPLHoriz04
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     synchro08() {
         handProfile_TTPLHoriz08
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     synchro12() {
         handProfile_TTPLHoriz12
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     constant005() {
         handProfile_CVPHoriz005
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     constant01() {
         handProfile_CVPHoriz01
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     constant02() {
         handProfile_CVPHoriz02
-        sleep 1.0 && handProfile_STAREXE
+        sleep 2.0 && handProfile_STAREXE
     }
 
     constant005_10() {
-        sleep 5.0
+        sleep 2.0
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
-        sleep 5.0 
+        sleep 9.0 
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
-        sleep 5.0
+        sleep 9.0
         constant005
     }
 
     constant01_10() {
         sleep 2.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
-        sleep 3.0
+        sleep 5.0
         constant01
     }
     
      constant02_10() {
-        sleep 5.0
-        constant02
         sleep 2.0
         constant02
-        sleep 2.0
+        sleep 4.0
         constant02
-        sleep 2.0
+        sleep 4.0
         constant02
-        sleep 2.0
+        sleep 4.0
         constant02
-        sleep 2.0
+        sleep 4.0
         constant02
-        sleep 2.0
+        sleep 4.0
         constant02
-        sleep 2.0
+        sleep 4.0
         constant02
-        sleep 2.0
+        sleep 4.0
         constant02
-        sleep 2.0
+        sleep 4.0
+        constant02
+        sleep 4.0
         constant02
     }
     

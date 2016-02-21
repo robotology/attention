@@ -634,8 +634,8 @@ void ZDFThread::run()
                 yDebug("difference of gaussian on foveated images \n");
 		        dl->proc( fov_l_ipl, psb_m );
 				// as output of the previous call we get out_dog_on,_off, _onoff
-
-		        //dr->proc( fov_r_ipl, psb_m );
+				
+		        dr->proc( fov_r_ipl, psb_m );
 				goto streaming;
 
 		        //*****************************************************************
@@ -916,11 +916,25 @@ streaming:
 					imageOutProb.prepare() = *img_out_prob;
                    	imageOutProb.write();*/
 					
-					
+					/*
 					//HACK to test output #amaroyo 04/01/2016
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(dl->get_dog_image_8u());
+					processingMonoImage->wrapIplImage(dl->get_dog_on_ipl());
 					imageOutProb.prepare() = *processingMonoImage;
+					imageOutProb.write();
+					*/
+
+					
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage = &imageOutProb.prepare();
+					processingMonoImage->resize(msize.width, msize.height);
+					IplImage* aux = dr->get_dog_on_ipl();
+					printf("ZDF IMG 1 %08X  \n", aux);
+					//cv::imshow("Matrix", cv::cvarrToMat(aux));
+					//cv::waitKey(0);
+					
+					processingMonoImage->wrapIplImage(aux); //fov_l_ipl
+					printf("ZDF PROCESSING 1 %08X  \n", processingMonoImage);
 					imageOutProb.write();
 					
 
@@ -928,29 +942,66 @@ streaming:
 				
 		        if (imageOutSeg.getOutputCount()>0){
 					yDebug("Inside imageSeg\n");
-					//TODO uncomment this??  #amaroyo 04/01/2016
+					//TODO missing copy #amaroyo 12/01/2016
                     //ippiCopy_8u_C1R( seg_im, psb_m, img_out_seg->getRawImage(), img_out_seg->getRowSize(), msize );
                    	//imageOutSeg.prepare() = *img_out_seg;	
                    	//imageOutSeg.write();
 
-					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(temp_r_ipl); 
+					/*
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;				
+					IplImage* img = dl->get_dog_off_ipl();
+					printf("ZDF ADDRESS 1 %08X  \n", img);					
+					processingMonoImage->wrapIplImage(img);
 					imageOutSeg.prepare() = *processingMonoImage;
+					printf("ZDF PROCESSING 1 %08X  \n", processingMonoImage);
 					imageOutSeg.write();
+					*/
 
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage = &imageOutSeg.prepare();
+					processingMonoImage->resize(msize.width, msize.height);
+					IplImage* aux = dr->get_dog_off_ipl();
+					printf("ZDF IMG 2 %08X  \n", aux);
+					//cv::imshow("Matrix", cv::cvarrToMat(aux));
+					//cv::waitKey(0);
+					
+					processingMonoImage->wrapIplImage(aux); //temp_r_ipl
+					printf("ZDF PROCESSING 2 %08X  \n", processingMonoImage);
+					imageOutSeg.write();
+					
 				
                 }
 		        if (imageOutDog.getOutputCount()>0){
 					yDebug("Inside imageDog\n");
-					//TODO uncomment this??  #amaroyo 04/01/2016
+					//TODO missing copy #amaroyo 12/01/2016
                     //ippiCopy_8u_C1R( seg_dog, psb_m, img_out_dog->getRawImage(), img_out_dog->getRowSize(), msize );
                    	//imageOutDog.prepare() = *img_out_dog;	
                    	//imageOutDog.write();
 
+
+					/*
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
-					processingMonoImage->wrapIplImage(fov_l_ipl);
+					IplImage* img = dl->get_dog_onoff_ipl();
+					printf("ZDF ADDRESS 2 %08X  \n", img);
+					processingMonoImage->wrapIplImage(img);
 					imageOutDog.prepare() = *processingMonoImage;
+					printf("ZDF PROCESSING 2 %08X  \n", processingMonoImage);
 					imageOutDog.write();
+					*/
+
+					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
+					processingMonoImage = &imageOutDog.prepare();
+					processingMonoImage->resize(msize.width, msize.height);
+					IplImage* aux = dr->get_dog_onoff_ipl();
+					printf("ZDF IMG 3 %08X  \n", aux);
+					//cv::imshow("Matrix", cv::cvarrToMat(aux));
+					//cv::waitKey(0);
+					
+					processingMonoImage->wrapIplImage(aux); //fov_r_ipl
+					printf("ZDF PROCESSING 3 %08X  \n", processingMonoImage);
+					imageOutDog.write();
+					
+					
 
                 }
             }
@@ -1086,6 +1137,7 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     cog_x_send = 0.0;
     cog_y_send = 0.0;
 
+	//TODO RANK and NDT have the same values #amaroyo 19/02/2016
     if (RANK0_NDT1==0){
         koffsetx = RANKX;
         koffsety = RANKY;
