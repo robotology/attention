@@ -327,25 +327,29 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
         for(int j = DELTA; j < Probt.cols-DELTA; ++j) {
             //std::cout <<  MAGt.at<float>(i,j) << " " << TH1_ << " " << std::endl;
             if(MAGt.at<float>(i,j)> TH1_ ) {
-                double sum = 0.0;
-                for (int iD = 0; iD < LATO; ++iD){
-                    for(int jD = 0; jD < LATO; ++jD ){
-                        int iToT   =    i + iD - DELTA ;
-                        int jToT   =    j  + jD - DELTA;
-                        if(MAGt.at<float>(iToT,jToT) > TH2_){
-                            MQ.at<float>(iD,jD) = 1.0;
-                            sum += 1.0;
-                        }
-                        else{
-                            MQ.at<float>(iD,jD) = 0.0;
-                        }
-                    }// for jD
-                } //for iD
-                //cv::Mat Q = MAGt(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1));
-                //cv::Mat MQ = Q >= TH2_;       //>= returns a map of 0 and 255 instead of 1
-                //MQ = MQ/255.;                 //to have a map of 0 and 1
-                //Probt.at<float>(i,j) = cv::sum(MQ).val[0]/((float)(LATO*LATO));          // divide by lato*lato in such a way to have 1 as maximum
-                Probt.at<float>(i,j) = sum/((float)(LATO*LATO));
+                cv::Mat Q = MAGt(cv::Range(i-DELTA,i+DELTA+1), cv::Range(j-DELTA,j+DELTA+1));
+                cv::Mat MQ = Q >= TH2_;       //>= returns a map of 0 and 255 instead of 1
+                MQ = MQ/255.;                 //to have a map of 0 and 1
+                Probt.at<float>(i,j) = cv::sum(MQ).val[0]/((float)(LATO*LATO));          // divide by lato*lato in such a way to have 1 as maximum
+
+
+                //second version of the previus 4 lines, trying to optimize
+                                //double sum = 0.0;
+                //for (int iD = 0; iD < LATO; ++iD){
+                //    for(int jD = 0; jD < LATO; ++jD ){
+                //        int iToT   =    i + iD - DELTA ;
+                //        int jToT   =    j  + jD - DELTA;
+                //        if(MAGt.at<float>(iToT,jToT) > TH2_){
+                //            MQ.at<float>(iD,jD) = 1.0;
+                //            sum += 1.0;
+                //        }
+                //        else{
+                //            MQ.at<float>(iD,jD) = 0.0;
+                //        }
+                //    }// for jD
+                //} //for iD
+                //Probt.at<float>(i,j) = sum/((float)(LATO*LATO));
+
                 if(Probt.at<float>(i,j) >= PTH_) {
                     Maskt.at<float>(i,j) = 1.0;
                     float a = MAGt.at<float>(i,j); 
@@ -355,8 +359,8 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
                     Maskt.at<float>(i,j) =  0.0;
                     gradientMask.at<float>(i,j) = 0.0;
                 }
-                //Q.release();
-                //MQ.release();
+                Q.release();
+                MQ.release();
             }
             else {
                 Maskt.at<float>(i,j) =  0;
