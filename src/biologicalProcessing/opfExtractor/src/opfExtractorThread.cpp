@@ -142,7 +142,6 @@ During the processing, it is computed:
 -the optical flow is masked by the mask just found (in the thresholding function)
 Moreover, it instantiates an object of the plotterThread and an object of the featExtractorThread*/
 void opfExtractorThread::run() {
-    double timeStartRunopfExtractorThread = Time::now();  
 
     while (isStopping() != true) {
         bool result;
@@ -154,10 +153,8 @@ void opfExtractorThread::run() {
                     throwAway = false;
                 }
                 else {
-                    double timeStart = Time::now();
                     result = processing();               //generates the outputImage which is what we want to plot
                     bool plotting = true;
-                    double timeStartCopy = Time::now();
                     if(plotting) {
                         pt->copyImage(processingImage);
                         pt->copyU(U);                       //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
@@ -168,14 +165,9 @@ void opfExtractorThread::run() {
 
                     fet->copyAll(U,V,Maskt);
                     fet->setFlag();
-                    double timeStopCopy = Time::now();  
-                    double diffCopy = timeStopCopy - timeStartCopy;
-                    yInfo("time interval for copyng to new threads %f ms", diffCopy * 1000);
+
 
                     throwAway = true;;
-                    double timeStop = Time::now();  
-                    double diff = timeStop - timeStart;
-                    yInfo("time interval for processing %f ms", diff * 1000);
                 }
             }
             else {
@@ -183,10 +175,6 @@ void opfExtractorThread::run() {
             }
         }
     }
-
-    double timeStopRunopfExtractorThread = Time::now();  
-    double diffRunopfExtractorThread = timeStopRunopfExtractorThread - timeStartRunopfExtractorThread;
-    //yInfo("time interval for run of opfExtractorThread %f ms", diffRunopfExtractorThread * 1000);
 }
 
 
@@ -219,12 +207,8 @@ bool opfExtractorThread::processing(){
 
         switch (ofAlgo) {
             case ALGO_FB:{
-                double timeStart = Time::now();
                 cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 7, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
                 cv::split(flow, MV);
-                double timeStop = Time::now();  
-                double diff = timeStop - timeStart;
-                yInfo("time interval for OF %f ms", diff * 1000);
             }break;
 
             case ALGO_LK:{
@@ -322,8 +306,8 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
     cv::Mat Probt = cv::Mat::zeros(MAGt.rows, MAGt.cols, CV_32FC1);
     int DELTA = 10;
     int LATO = DELTA*2+1;
-    cv::Mat MQ = cv::Mat::zeros(LATO,LATO, CV_32FC1);
     for(int i = DELTA; i < Probt.rows-DELTA; ++i) {
+        cv::Mat MQ = cv::Mat::zeros(LATO,LATO, CV_32FC1);
         for(int j = DELTA; j < Probt.cols-DELTA; ++j) {
             //std::cout <<  MAGt.at<float>(i,j) << " " << TH1_ << " " << std::endl;
             if(MAGt.at<float>(i,j)> TH1_ ) {

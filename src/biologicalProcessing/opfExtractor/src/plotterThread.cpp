@@ -221,7 +221,6 @@ bool plotterThread::test(){
 }
 
 void plotterThread::run() {
-    double timeStartRunplotterThread = Time::now();  
 
     //count++;
     if(outputPort.getOutputCount()) {
@@ -299,11 +298,6 @@ void plotterThread::run() {
         synchronised = true;
         outputPortgM.write();
     }
-
-
-    double timeStopRunplotterThread = Time::now();  
-    double diffRunplotterThread = timeStopRunplotterThread - timeStartRunplotterThread;
-    //yInfo("time interval for run of plotterTrhread %f ms", diffRunplotterThread * 1000);
 }
 
 

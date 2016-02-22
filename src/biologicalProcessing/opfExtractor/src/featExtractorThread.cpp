@@ -200,7 +200,6 @@ bool featExtractorThread::test(){
 
 /*featExtractorThread takes U thresholded,V thresholded and the mask from opfExtractorThread, and from them it computes the features*/
 void featExtractorThread::run() {
-    double timeStartRunfeatExtractorThread = Time::now();
 
     if(outputPortDescr.getOutputCount() || outputPortPlot.getOutputCount()) {
         bool tempReady;
@@ -481,16 +480,8 @@ void featExtractorThread::run() {
                 //yInfo("set flag OFF") ;
                 sem.post();
             }//end if (V!=float(0.033))
-
-            double timeStop = Time::now();  
-            double diff = timeStop - timeStart;
-            timeStart = Time::now();
-            yInfo("time interval for feature extraction trans cycles %f ms", diff * 1000);
         }
     }
-    double timeStopRunfeatExtractorThread = Time::now();  
-    double diffRunfeatExtractorThread = timeStopRunfeatExtractorThread - timeStartRunfeatExtractorThread;
-    //yInfo("time interval for run of featExtractorThread %f ms", diffRunfeatExtractorThread * 1000);
 }
  ///
 void featExtractorThread::bigPixel(unsigned char* p, int mult,  int color) {    //for drowing a "*"
