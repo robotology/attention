@@ -65,6 +65,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>*  plotImage;         //two-thirds power law graph
     yarp::sig::ImageOf<yarp::sig::PixelRgb>*  memoryPlot;        //to mantain in memory the last point of the plot
 
+    double timeStart;
     unsigned char* pMem;
     unsigned char* pPlot;
 
@@ -91,6 +92,10 @@ private:
     float currentSmoothedC;
     float currentSmoothedR;
     float currentSmoothedA;
+    float currentNormalizedSmoothedV;
+    float currentNormalizedSmoothedC;
+    float currentNormalizedSmoothedR;
+    float currentNormalizedSmoothedA;
     float currentSmoothedVx;
     float currentSmoothedVy;    
     float currentSmoothedVx_1;
@@ -145,6 +150,7 @@ private:
     float Amin;
     float Amax;
 
+    std::vector<float> gaussian ;
 
 public:
     /**
