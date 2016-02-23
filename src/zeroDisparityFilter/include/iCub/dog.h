@@ -66,7 +66,7 @@ public:
     //Ipp8u* get_dog_on(){return out_dog_on;}          //on-centre
     char* get_dog_on(){return out_dog_on;}    //on-centre
 	IplImage* get_dog_on_ipl(){ 
-		printf("DoG ON ADDRESS %08X  \n", out_dog_on_image);
+		//printf("DoG ON ADDRESS %08X  \n", out_dog_on_image);
 		//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
 		//cv::waitKey(0);
 		return out_dog_on_image; }
@@ -77,7 +77,7 @@ public:
     //Ipp8u* get_dog_off(){return out_dog_off;}        //off-centre
     char* get_dog_off(){return out_dog_off;}  //off-centre
 	IplImage* get_dog_off_ipl(){ 
-		printf("DoG OFF ADDRESS %08X  \n", out_dog_off_image);
+		//printf("DoG OFF ADDRESS %08X  \n", out_dog_off_image);
 		//cv::imshow("Matrix2", cv::cvarrToMat(out_dog_off_image));
 		//cv::waitKey(0);
 		return out_dog_off_image; }
@@ -88,7 +88,7 @@ public:
     //Ipp8u* get_dog_onoff(){return out_dog_onoff;}        //absolute difference
     char* get_dog_onoff(){return out_dog_onoff;}           //absolute difference
 	IplImage* get_dog_onoff_ipl(){ 
-		printf("DoG ON OFF ADDRESS %08X  \n", out_dog_onoff_image);
+		//printf("DoG ON OFF ADDRESS %08X  \n", out_dog_onoff_image);
 		//cv::imshow("Matrix3", cv::cvarrToMat(out_dog_onoff_image));
 		//cv::waitKey(0);
 		return out_dog_onoff_image; }
