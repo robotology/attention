@@ -221,7 +221,6 @@ bool plotterThread::test(){
 }
 
 void plotterThread::run() {
-
     //count++;
     if(outputPort.getOutputCount()) {
         //yDebug("plotting the image");
@@ -298,6 +297,9 @@ void plotterThread::run() {
         synchronised = true;
         outputPortgM.write();
     }
+
+
+
 }
 
 

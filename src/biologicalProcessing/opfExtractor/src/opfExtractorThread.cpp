@@ -142,7 +142,6 @@ During the processing, it is computed:
 -the optical flow is masked by the mask just found (in the thresholding function)
 Moreover, it instantiates an object of the plotterThread and an object of the featExtractorThread*/
 void opfExtractorThread::run() {
-
     while (isStopping() != true) {
         bool result;
 
@@ -154,20 +153,17 @@ void opfExtractorThread::run() {
                 }
                 else {
                     result = processing();               //generates the outputImage which is what we want to plot
-                    bool plotting = true;
-                    if(plotting) {
-                        pt->copyImage(processingImage);
-                        pt->copyU(U);                       //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
-                        pt->copyV(V);
-                        pt->copyM(Maskt);
-                        pt->copyGradientMask(gradientMaskNorm);
-                    }
+
+                    pt->copyImage(processingImage);
+                    pt->copyU(U);                       //I have instantiated an  object p of type plotterThread, and now I can call the function of this class (copyU)
+                    pt->copyV(V);
+                    pt->copyM(Maskt);
+                    pt->copyGradientMask(gradientMaskNorm);
 
                     fet->copyAll(U,V,Maskt);
                     fet->setFlag();
 
-
-                    throwAway = true;;
+                    throwAway = true;
                 }
             }
             else {
@@ -207,8 +203,8 @@ bool opfExtractorThread::processing(){
 
         switch (ofAlgo) {
             case ALGO_FB:{
-                cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 7, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
-                cv::split(flow, MV);
+                    cv::calcOpticalFlowFarneback(previousMatrix, currentMatrix, flow, 0.2, 3, 19, 10, 7, 1.5, cv::OPTFLOW_FARNEBACK_GAUSSIAN);
+                    cv::split(flow, MV);
             }break;
 
             case ALGO_LK:{
@@ -307,7 +303,6 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
     int DELTA = 10;
     int LATO = DELTA*2+1;
     for(int i = DELTA; i < Probt.rows-DELTA; ++i) {
-        cv::Mat MQ = cv::Mat::zeros(LATO,LATO, CV_32FC1);
         for(int j = DELTA; j < Probt.cols-DELTA; ++j) {
             //std::cout <<  MAGt.at<float>(i,j) << " " << TH1_ << " " << std::endl;
             if(MAGt.at<float>(i,j)> TH1_ ) {
@@ -315,25 +310,6 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
                 cv::Mat MQ = Q >= TH2_;       //>= returns a map of 0 and 255 instead of 1
                 MQ = MQ/255.;                 //to have a map of 0 and 1
                 Probt.at<float>(i,j) = cv::sum(MQ).val[0]/((float)(LATO*LATO));          // divide by lato*lato in such a way to have 1 as maximum
-
-
-                //second version of the previus 4 lines, trying to optimize
-                                //double sum = 0.0;
-                //for (int iD = 0; iD < LATO; ++iD){
-                //    for(int jD = 0; jD < LATO; ++jD ){
-                //        int iToT   =    i + iD - DELTA ;
-                //        int jToT   =    j  + jD - DELTA;
-                //        if(MAGt.at<float>(iToT,jToT) > TH2_){
-                //            MQ.at<float>(iD,jD) = 1.0;
-                //            sum += 1.0;
-                //        }
-                //        else{
-                //            MQ.at<float>(iD,jD) = 0.0;
-                //        }
-                //    }// for jD
-                //} //for iD
-                //Probt.at<float>(i,j) = sum/((float)(LATO*LATO));
-
                 if(Probt.at<float>(i,j) >= PTH_) {
                     Maskt.at<float>(i,j) = 1.0;
                     float a = MAGt.at<float>(i,j); 
@@ -353,30 +329,30 @@ void opfExtractorThread::thresholding(cv::Mat& Ut, cv::Mat& Vt, cv::Mat& maskThr
         }
     }// so now we have a matrix Maskt of 0 and 1, with 1 in the points where we want to take into account the flow
 
-    double minval, maxval;
-    cv::Point  minLoc, maxLoc;
-    cv::minMaxLoc(gradientMask,&minval, &maxval, &minLoc, &maxLoc);
-    cv::minMaxLoc(gradientMask,&minval, &maxval, &minLoc, &maxLoc);
+        double minval, maxval;
+        cv::Point  minLoc, maxLoc;
+        cv::minMaxLoc(gradientMask,&minval, &maxval, &minLoc, &maxLoc);
+        cv::minMaxLoc(gradientMask,&minval, &maxval, &minLoc, &maxLoc);
         
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            float fg = gradientMask.at<float>(y, x);//motim.Pixel(x, y, 0);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                float fg = gradientMask.at<float>(y, x);//motim.Pixel(x, y, 0);
 
-            float fgnorm;
+                float fgnorm;
 
-            if (maxval == minval)
-                fgnorm=0.00000001;
-            else
-                fgnorm = (fg-minval)/(maxval-minval);
+                if (maxval == minval)
+                    fgnorm=0.00000001;
+                else
+                    fgnorm = (fg-minval)/(maxval-minval);
 
-            gradientMaskNorm.at<float>(y, x) = fgnorm*255;
+                gradientMaskNorm.at<float>(y, x) = fgnorm*255;
+            }
         }
-    }
 
-    double minval_x, maxval_x, minval_y, maxval_y;
-    cv::Point  minLoc_x, maxLoc_x, minLoc_y, maxLoc_y;
-    cv::minMaxLoc(gradientMaskNorm,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
-    cv::minMaxLoc(gradientMaskNorm,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
+        double minval_x, maxval_x, minval_y, maxval_y;
+        cv::Point  minLoc_x, maxLoc_x, minLoc_y, maxLoc_y;
+        cv::minMaxLoc(gradientMaskNorm,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
+        cv::minMaxLoc(gradientMaskNorm,&minval_x, &maxval_x, &minLoc_x, &maxLoc_x);
 
     // to see an image for debugging (without using yarp ports)
     //cv::imshow("Maskt", Maskt);
