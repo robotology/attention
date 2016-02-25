@@ -623,8 +623,8 @@ void ZDFThread::run()
                 cv::Point minLoc_r, maxLoc_r, matchLoc_r;
                 cv::minMaxLoc(res_t_mat, &minVal_r, &maxVal_r, &minLoc_r, &maxLoc_r, cv::Mat());
 
-                cvSetImageROI(rec_im_ry_ipl ,cvRect( mid_x, mid_y,msize.width, msize.height) );
-                cvCopy(rec_im_ry_ipl, fov_r_ipl,NULL);                      
+                cvSetImageROI(rec_im_ry_ipl ,cvRect( mid_x, mid_y, msize.width, msize.height) );
+                cvCopy(rec_im_ry_ipl, fov_r_ipl, NULL);                      
                 cvResetImageROI(rec_im_ry_ipl);
 
 				
@@ -632,11 +632,12 @@ void ZDFThread::run()
                 //*****************************************************************
                 //Star diffence of gaussian on foveated images
                 yDebug("difference of gaussian on foveated images \n");
+				yDebug("Sizes of Foveas, Left Width=%d, Left Height=%d, Right Width=%d, RightHeight=%d \n", fov_l_ipl->width, fov_l_ipl->height, fov_r_ipl->width, fov_r_ipl->height);
 		        dl->proc( fov_l_ipl, psb_m );
 				// as output of the previous call we get out_dog_on,_off, _onoff
 				
 		        dr->proc( fov_r_ipl, psb_m );
-				goto streaming;
+				
 
 		        //*****************************************************************
 		        //SPATIAL ZD probability map from fov_l and fov_r:
@@ -646,22 +647,35 @@ void ZDFThread::run()
                 zd_prob_8u = zd_prob_8u_ipl->imageData;
 				
 				yDebug("Koffsety: %d, height: %d \n", koffsety, msize.height);
+				yDebug("Printing psb_m size: %d \n", psb_m);
 
 		        for (int j = koffsety; j < msize.height - koffsety; j++){
-
+					
                     c.y = j;
                     for (int i = koffsetx; i < msize.width - koffsetx; i++){
 
                         c.x = i;
-                        char* p_dogonoff = dl->get_dog_onoff();
+						//modification #amaroyo 19/02/16
+                        //char* p_dogonoff = dl->get_dog_onoff(); --this is null
+						
+						char* p_dogonoff_l = dl->get_dog_onoff_ipl()->imageData;
+						//yDebug("Sizes Left Dog width= %d, height= %d, step = %d \n", dl->get_dog_onoff_ipl()->width, dl->get_dog_onoff_ipl()->height, dl->get_dog_onoff_ipl()->widthStep);
+						char* p_dogonoff_r = dr->get_dog_onoff_ipl()->imageData;
+						//yDebug("Sizes Right Dog width= %d, height= %d, step = %d  \n", dr->get_dog_onoff_ipl()->width, dr->get_dog_onoff_ipl()->height, dr->get_dog_onoff_ipl()->widthStep);
+						//yDebug("values %d, %d, %d, %d \n", *p_dogonoff_l, *p_dogonoff_r, p_dogonoff_l[i + j*dl->get_psb()], params->data_penalty);
+
+						
                         //if either l or r textured at this retinal location: 
-                        if (dl->get_dog_onoff()[i + j*dl->get_psb()] >= params->data_penalty || dr->get_dog_onoff()[i + j*dr->get_psb()] >= params->bland_dog_thresh ){      
-                            if (RANK0_NDT1==0){
-								yDebug("using RANK \n");
+						//TODO check this parameters
+						if (p_dogonoff_l[i + j*dl->get_psb()] >= params->data_penalty || p_dogonoff_r[i + j*dr->get_psb()] >= params->bland_dog_thresh){
+							
+							if (RANK0_NDT1==0){
+								//yDebug("using RANK \n");
                                 //use RANK:
-								get_rank(c, (unsigned char*)fov_l_ipl->imageData, psb_m, rank1);   yDebug("got RANK from left\n");
-								get_rank(c, (unsigned char*)fov_r_ipl->imageData, psb_m, rank2);   yDebug("got RANK from right\n");
-								cmp_res = cmp_rank(rank1, rank2); yDebug("compared RANKS \n");
+								get_rank(c, (unsigned char*)fov_l_ipl->imageData, psb_m, rank1);   //yDebug("got RANK from left\n");
+								get_rank(c, (unsigned char*)fov_r_ipl->imageData, psb_m, rank2);   //yDebug("got RANK from right\n");
+								cmp_res = cmp_rank(rank1, rank2); 
+								//yDebug("compared RANKS \n");
                             }
                             else{ 
 								yDebug("using NDT \n");
@@ -670,7 +684,8 @@ void ZDFThread::run()
                                 get_ndt(c,fov_r,psb_m,ndt2);
                                 cmp_res = cmp_ndt( ndt1, ndt2 );
                             }
-							yDebug("preparing zerodisparity probability mono channel \n");
+							
+							//yDebug("preparing zerodisparity probability mono channel \n");
                             zd_prob_8u[ j * psb_m + i] = (int)(cmp_res * 255.0);
                         }
                         else{
@@ -678,12 +693,13 @@ void ZDFThread::run()
                             //untextured in both l & r, so set to bland prob (ZD):
                             zd_prob_8u[j*psb_m+i] = (int)(params->bland_prob * 255.0);//bland_prob
                         } 
-
+						
                         //RADIAL PENALTY:
                         //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
                         //yDebug("introducing RADIAL PENALITY \n");
                         //current radius:
                         r = sqrt((c.x-msize.width/2.0)*(c.x-msize.width/2.0)+(c.y-msize.height/2.0)*(c.y-msize.height/2.0));
+						//yDebug("Penalty: %d \n", params->radial_penalty);
                         rad_pen =  (int) ( (r/rmax)* params->radial_penalty );//radial_penalty
                         max_rad_pen = zd_prob_8u[j*psb_m+i];
                         if(max_rad_pen < rad_pen) {
@@ -696,10 +712,11 @@ void ZDFThread::run()
                         
                         //manufacture NZD prob (other):
                         o_prob_8u[psb_m*j+i] = 255 - zd_prob_8u[psb_m*j+i];
+						
                     }
 		        }
 
-				
+				goto streaming;
                 //*******************************************************************          
 		        //Do MRF optimization:
 				yDebug("performing Markov Random Field optimization \n");
@@ -910,12 +927,11 @@ streaming:
 					yDebug("Inside imageProb\n");
 				    //TODO this is correct , change and improve efficiency in future  #amaroyo 04/01/2016
                     //ippiCopy_8u_C1R( zd_prob_8u, psb_m, img_out_prob->getRawImage(), img_out_prob->getRowSize(), msize );
-					
-
 					/*cvCopy(zd_prob_8u_ipl, img_out_prob->getIplImage(), maskOutput);
 					imageOutProb.prepare() = *img_out_prob;
                    	imageOutProb.write();*/
 					
+
 					/*
 					//HACK to test output #amaroyo 04/01/2016
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
@@ -928,7 +944,7 @@ streaming:
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
 					processingMonoImage = &imageOutProb.prepare();
 					processingMonoImage->resize(msize.width, msize.height);
-					IplImage* aux = dr->get_dog_on_ipl();
+					IplImage* aux = zd_prob_8u_ipl;
 					printf("ZDF IMG 1 %08X  \n", aux);
 					//cv::imshow("Matrix", cv::cvarrToMat(aux));
 					//cv::waitKey(0);
