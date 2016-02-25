@@ -785,9 +785,6 @@ void gazeArbiterThread::run() {
                 
                 Matrix  *invPrj = (isLeft?invPrjL:invPrjR);
                 iCubEye *eye = (isLeft?eyeL:eyeR);
-                
-                
-
 
                 //function that calculates the 3DPoint where to redirect saccade and add the offset
                 Vector torso(3);
@@ -852,7 +849,6 @@ void gazeArbiterThread::run() {
                 }
                 
                 // update position wrt the root frame
-                
                 //Vector xo = yarp::math::operator *(eye->getH(q),xe);
                 printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
                 
@@ -1074,8 +1070,10 @@ void gazeArbiterThread::run() {
                     Time::delay(0.005);
                     igaze->checkMotionDone(&done);                    
                 }
+                bool PSCHECK = false;
 
-                if(timeout >= TIMEOUT_CONST) { 
+                // Francesco: introduced further flag that enables the PostSaccadic Check @20022016
+                if((timeout >= TIMEOUT_CONST)&&(PSCHECK)) { 
                     // if the gaze controller runs out of time (timeout)
                     Vector v(3);                    
                     timetotStop = Time::now();
@@ -1092,7 +1090,7 @@ void gazeArbiterThread::run() {
                     status.addString("SAC_FAIL");
                     statusPort.write();
                     
-                    v(0)= -0.5; v(1) = 0; v(2) = 0.5;
+                    v(0)= -0.5; v(1) = 0; v(2) = 0.35;
                     //igaze->stopControl();
                     igaze->lookAtFixationPoint(v);
                     timeoutStart = Time::now();
@@ -1102,11 +1100,10 @@ void gazeArbiterThread::run() {
                     printf("checkMotionDone %d \n", done);
                 }
             }
-                  
+            
             //printf("preparing visual correction \n");
             Time::delay(0.5);  // allowing time for preparation
-            
-            
+                        
             // *********************************************************************************************
             // sending the command to the episodic tracker
             ptracker->setCheck(true);
@@ -1350,15 +1347,17 @@ void gazeArbiterThread::run() {
                     timing.addDouble(-1);
                     timingPort.write();
 
+                    // -------------- Resetting after error --------------------
                     //px[0] = -0.5 + xOffset;
                     //px[1] =  0.0 + yOffset;
                     //px[2] =  0.0 + zOffset;
                     //igaze->lookAtFixationPoint(px);
-
+                    // change the lookat FixationPoint into lookAtAbsAngle
                     px[0] = 0; 
                     px[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
                     px[2] = 0;    
                     igaze->lookAtAbsAngles(px);
+                    //----------------------------------------------------------
                         
                     /*igaze->checkMotionDone(&done);
                     while((!done)&&(timeout < TIMEOUT_CONST)) {                        
@@ -1387,7 +1386,26 @@ void gazeArbiterThread::run() {
                     statusPort.writeStrict();
                     
                 }
-            }
+            } //end if(visualCorrection)
+
+            
+
+            //--------------- FORCE RESETTING ---------------------
+            // note this is for IROS2016. Please remove after it
+            // author: Francesco Rea @20022016
+            yInfo("Resetting for IROS2016");
+            Time::delay(5.0);
+            Vector resetV(3), v(3);
+            v(0)= -0.5; v(1) = 0; v(2) = 0.05;
+            igaze->stopControl();
+            igaze->lookAtFixationPoint(v);
+            //resetV[0] = 0; 
+            //resetV[1] = (blockNeckPitchValue == -1)?0:blockNeckPitchValue;
+            //resetV[2] = 0;    
+            //igaze->lookAtAbsAngles(resetV);
+            igaze->waitMotionDone();
+            //----------------------------------------------------
+
             
             //-----------------
             //accomplished_flag = true;
