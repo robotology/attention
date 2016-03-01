@@ -312,6 +312,7 @@ bool selectiveAttentionProcessor::threadInit(){
     testPort.open(              getName("/test:o").c_str());
     magnoCellFeedback.open(     getName("/magnoCells:o").c_str());
 
+		
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
 
@@ -320,7 +321,8 @@ bool selectiveAttentionProcessor::threadInit(){
         return false;
     }
     cout << "||| lookup table allocation done" << endl;
-
+	
+	/* **************************************************************************************	
     //initializing gazecontrollerclient
     Property option;
     option.put("device","gazecontrollerclient");
@@ -339,10 +341,10 @@ bool selectiveAttentionProcessor::threadInit(){
     else {
         return false;
     }
-
     cout<<"||| initialization of the gazecontroller client done"<<endl;
+	//**************************************************************************************
 
-    /*
+    /* *************************************************************************************
     // set up the ARM MOTOR INTERFACE	
     name = getName("");
     string localName = "/" + name + "/armCtrl";
@@ -379,7 +381,7 @@ bool selectiveAttentionProcessor::threadInit(){
        return false;
     }
     cartCtrlDevice->view(armCart);
-    */
+    ****************************************************************************************/
 
     habituationStart = Time::now();
 
@@ -1046,7 +1048,7 @@ cartSpace:
             //double azimuth   =  10.0;
             //double elevation = -10.0;
             Vector angles(3);
-            bool b = igaze->getAngles(angles);
+            // bool b = igaze->getAngles(angles); //@REA removed to enable version without igaze 1/3/16
             //printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
@@ -1341,7 +1343,8 @@ cartSpace:
                 
                 if(vergenceCmdPort.getInputCount()) {
                     Vector angles(3);
-                    bool b = igaze->getAngles(angles);
+						
+                    //bool b = igaze->getAngles(angles); //@REA removed the section that needs the igaze
                     printf(" azim %f, elevation %f, vergence %f \n",angles[0],angles[1],angles[2]);
                     double vergence   = (angles[2] * 3.14) / 180;
                     double version    = (angles[0] * 3.14) / 180;
@@ -1392,9 +1395,12 @@ cartSpace:
                     
                 }
                 
+				/** ************************************************
+				//@Rea commented to remove the reference to iGaze	@1/3/16
                 if(directSaccade) {
                     igaze->lookAtMonoPixel(camSel,px,z);
                 }
+				***************************************************/
                 
                 
                 if(outputCmdPort.getOutputCount()){
@@ -1753,9 +1759,10 @@ void selectiveAttentionProcessor::threadRelease(){
 
 void selectiveAttentionProcessor::suspend() {
     printf("suspending processor....after stopping control \n");
-    if(igaze!=0) {
-        igaze->stopControl();
-    }
+    
+	//if(igaze!=0) {
+    //    igaze->stopControl();
+    //}
     RateThread::suspend();
 }
 
