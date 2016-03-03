@@ -201,7 +201,7 @@ public:
      */    
     //Multiclass
     struct MultiClass::Parameters *params;
-	MultiClass *m;
+	MultiClass *multiClass;
     void allocate(yarp::sig::ImageOf<yarp::sig::PixelBgr> *img);
     void deallocate();
     bool threadInit();     
@@ -219,7 +219,7 @@ public:
     void setName(std::string module);
 };
 
-class zdfMod:public yarp::os::RFModule
+class zeroDisparityFilterMod :public yarp::os::RFModule
 {
     /* module parameters */
     std::string moduleName; 

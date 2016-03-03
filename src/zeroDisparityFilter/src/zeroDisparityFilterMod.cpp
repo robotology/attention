@@ -18,7 +18,7 @@
  * Public License for more details
  */
 
-#include "iCub/zdfMod.h"
+#include "iCub/zeroDisparityFilterMod.h"
 #include <math.h>
 #include <cmath>
 #include <cassert>
@@ -27,30 +27,51 @@ using namespace std;
 using namespace yarp::os; 
 using namespace yarp::sig;
 
-bool zdfMod::configure(yarp::os::ResourceFinder &rf)
+bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf)
 {    
     /* Process all parameters from both command-line and .ini file */
     
     /* get the module name which will form the stem of all module port names */
     moduleName            = rf.check("name", 
-                           Value("zdfMod"), 
+                           Value("zeroDisparityFilterMod"), 
                            "module name (string)").asString();
+
+	/*
+	Default Ini file values: #amaroyo 03/03/2016
+
+		max_iteration 1
+		randomize_iteration 0
+		smoothness_penalty_base 50
+		smoothness_penalty 600
+		data_penalty 106
+		smoothness_3sigmaon2 13
+		bland_dog_thresh 1
+		radial_penalty 50
+		acquire_wait 25
+		min_area  5000
+		max_area  10000
+		max_spread 50
+		cog_snap 0.3
+		bland_prob 0.3
+	
+	*/
 
     setName(moduleName.c_str());
     parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration",Value(1),"what did the user select?").asInt();
-    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration",Value(1),"what did the user select?").asInt();
-    parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base",Value(1),"what did the user select?").asInt();
-    parameters.smoothness_penalty = rf.findGroup("PARAMS").check("smoothness_penalty",Value(1),"what did the user select?").asInt();
-    parameters.data_penalty  = rf.findGroup("PARAMS").check("data_penalty",Value(1),"what did the user select?").asInt();
-    parameters.smoothness_3sigmaon2 = rf.findGroup("PARAMS").check("smoothness_3sigmaon2",Value(1),"what did the user select?").asInt();
+    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration",Value(0),"what did the user select?").asInt();
+    parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base",Value(50),"what did the user select?").asInt();
+    parameters.smoothness_penalty = rf.findGroup("PARAMS").check("smoothness_penalty",Value(600),"what did the user select?").asInt();
+    parameters.data_penalty  = rf.findGroup("PARAMS").check("data_penalty",Value(106),"what did the user select?").asInt();
+    parameters.smoothness_3sigmaon2 = rf.findGroup("PARAMS").check("smoothness_3sigmaon2",Value(13),"what did the user select?").asInt();
     parameters.bland_dog_thresh = rf.findGroup("PARAMS").check("bland_dog_thresh",Value(1),"what did the user select?").asInt();
-    parameters.radial_penalty = rf.findGroup("PARAMS").check("radial_penalty",Value(1),"what did the user select?").asInt();
-    parameters.acquire_wait = rf.findGroup("PARAMS").check("acquire_wait",Value(1),"what did the user select?").asInt();
-    parameters.min_area = rf.findGroup("PARAMS").check("min_area",Value(1),"what did the user select?").asInt();
-    parameters.max_area = rf.findGroup("PARAMS").check("max_area",Value(1),"what did the user select?").asInt();
-    parameters.max_spread = rf.findGroup("PARAMS").check("max_spread",Value(1),"what did the user select?").asInt();
-    parameters.cog_snap = rf.findGroup("PARAMS").check("cog_snap",Value(1),"what did the user select?").asDouble();
-    parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob",Value(1),"what did the user select?").asDouble();
+    parameters.radial_penalty = rf.findGroup("PARAMS").check("radial_penalty",Value(50),"what did the user select?").asInt();
+    parameters.acquire_wait = rf.findGroup("PARAMS").check("acquire_wait",Value(25),"what did the user select?").asInt();
+    parameters.min_area = rf.findGroup("PARAMS").check("min_area",Value(5000),"what did the user select?").asInt();
+    parameters.max_area = rf.findGroup("PARAMS").check("max_area",Value(10000),"what did the user select?").asInt();
+    parameters.max_spread = rf.findGroup("PARAMS").check("max_spread",Value(50),"what did the user select?").asInt();
+    parameters.cog_snap = rf.findGroup("PARAMS").check("cog_snap",Value(0.3),"what did the user select?").asDouble();
+    parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob",Value(0.3),"what did the user select?").asDouble();
+
 
    /*
     * attach a port of the same name as the module (prefixed with a /) to the module
@@ -85,19 +106,19 @@ bool zdfMod::configure(yarp::os::ResourceFinder &rf)
 
 /* Called periodically every getPeriod() seconds */
 
-bool zdfMod::updateModule() 
+bool zeroDisparityFilterMod::updateModule() 
 {
     return true;
 }
 
-bool zdfMod::interruptModule() 
+bool zeroDisparityFilterMod::interruptModule() 
 {
 
     handlerPort.interrupt();
     return true;
 }
 
-bool zdfMod::close() 
+bool zeroDisparityFilterMod::close() 
 {
     handlerPort.close();
     zdfThread->stop();
@@ -106,13 +127,13 @@ bool zdfMod::close()
     return true;
 }
 
-double zdfMod::getPeriod() 
+double zeroDisparityFilterMod::getPeriod() 
 {
     return 0.1;
 }
 
 
-bool zdfMod::respond(const Bottle& command, Bottle& reply) 
+bool zeroDisparityFilterMod::respond(const Bottle& command, Bottle& reply) 
 {
 
     bool ok = false;
@@ -296,7 +317,7 @@ ZDFThread::ZDFThread( MultiClass::Parameters *parameters, string workWith )
 	//Difference of Gaussian:
 	dl     = NULL;
   	dr     = NULL;
-	m      = NULL;
+	multiClass = NULL;
     l_orig = NULL;
     r_orig = NULL;
 
@@ -329,6 +350,26 @@ ZDFThread::ZDFThread( MultiClass::Parameters *parameters, string workWith )
 	fov_l_ipl			= NULL;
 	temp_l_ipl			= NULL;
 	temp_r_ipl			= NULL;
+
+
+	yInfo("max_iteration: %d", parameters->iter_max);
+	yInfo("randomize_iteration: %d", parameters->randomize_every_iteration);
+	yInfo("smoothness_penalty_base: %d", parameters->smoothness_penalty_base);
+	yInfo("smoothness_penalty: %d", parameters->smoothness_penalty);
+	yInfo("data_penalty: %d", parameters->data_penalty);
+	yInfo("smoothness_3sigmaon2: %d", parameters->smoothness_3sigmaon2);
+	yInfo("bland_dog_thresh: %d", parameters->bland_dog_thresh);
+	yInfo("radial_penalty: %d", parameters->radial_penalty);
+	yInfo("acquire_wait: %d", parameters->acquire_wait);
+	yInfo("min_area: %d", parameters->min_area);
+	yInfo("max_area: %d", parameters->max_area);
+	yInfo("max_spread: %d", parameters->max_spread);
+	yInfo("cog_snap: %f", parameters->cog_snap);
+	yInfo("bland_prob: %f", parameters->bland_prob);
+
+	//cv::imshow("Matrix", NULL);
+	//cv::waitKey(0);
+
 
 	yInfo("End of the Thread Costructor");
 }
@@ -716,7 +757,7 @@ void ZDFThread::run()
                     }
 		        }
 
-				goto streaming;
+				
                 //*******************************************************************          
 		        //Do MRF optimization:
 				yDebug("performing Markov Random Field optimization \n");
@@ -724,21 +765,23 @@ void ZDFThread::run()
                 
                 p_prob[0] = o_prob_8u;
                 p_prob[1] = zd_prob_8u;
-		        m->proc( fov_r, p_prob ); //provide edge map and probability map
+
+				multiClass->proc(fov_r, p_prob); //provide edge map and probability map
 		        //cache for distribution:
 				yDebug("getting the class out \n");
-                IplImage* m_class_ipl = m->get_class_ipl(); 
+				IplImage* m_class_ipl = multiClass->get_class_ipl();
                 cvCopy(m_class_ipl, out_ipl, maskMsize);
-                char* pm_get_class = m->get_class();
+				char* pm_get_class = multiClass->get_class();
 				//TODO uncomment this?  #amaroyo 04/01/2016
 		        //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
 
-				
+				goto streaming;
                 //*******************************************************************
 		        //evaluate result:
 				yDebug("evaluating result.... \n");
                 char* out =  out_ipl->imageData;
                 getAreaCoGSpread(out, psb_m , msize, &area, &cog_x, &cog_y, &spread); 	
+				yDebug("area: %d, cog_x: %d, cog_y: %d, spread: %d", area, cog_x, cog_y, spread);
 				yDebug("success \n");
 	
 		        cog_x_send = cog_x;
@@ -747,11 +790,17 @@ void ZDFThread::run()
                 seg_im  =  seg_im_ipl->imageData;
                 seg_dog = seg_dog_ipl->imageData; 
 
+				//debugging #amaroyo 24/02/2016
+				int cont = 0;
+				int eqZero = 0;
+
 		        //we have mask and image  (out)   [0/255]
 		        //construct masked image  (fov_l) [0..255]
 		        for (int j = 0; j < msize.height; j++){
           			for (int i = 0;i < msize.width; i++){
+						cont++;
             			if (out[i + j*psb_m  ]==0) {
+							eqZero++;
               				seg_im [ j * psb_m + i] = 0;
               				seg_dog[ j * psb_m + i] = 0;
             			}
@@ -762,7 +811,10 @@ void ZDFThread::run()
           			}
 		        }
 
+				yDebug("Total count: %d, Eq to Zero: %d", cont, eqZero);
 
+
+				//goto streaming;
                 //********************************************************************
 		        //If nice segmentation:
 				yDebug("checking for nice segmentation \n");
@@ -885,6 +937,7 @@ void ZDFThread::run()
                         
                    	    imageOutTemp.write();
 						yDebug("sent image \n");
+
 						//TODO uncommented  #amaroyo 04/01/2016
                         delete img_out_temp;
 						// HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
@@ -976,10 +1029,10 @@ streaming:
 					yarp::sig::ImageOf<yarp::sig::PixelMono>* processingMonoImage;
 					processingMonoImage = &imageOutSeg.prepare();
 					processingMonoImage->resize(msize.width, msize.height);
-					IplImage* aux = dr->get_dog_off_ipl();
+					IplImage* aux = o_prob_8u_ipl;
 					printf("ZDF IMG 2 %08X  \n", aux);
 					//cv::imshow("Matrix", cv::cvarrToMat(aux));
-					//cv::waitKey(0);
+					//cv::waitKey(1);
 					
 					processingMonoImage->wrapIplImage(aux); //temp_r_ipl
 					printf("ZDF PROCESSING 2 %08X  \n", processingMonoImage);
@@ -1027,7 +1080,7 @@ streaming:
 
 void ZDFThread::threadRelease() 
 {
-    yDebug("Nothing happens_zdfMod.cpp_threadRelease");
+    yDebug("Nothing happens_zeroDisparityFilterMod.cpp_threadRelease");
 }
 
 void ZDFThread::onStop()
@@ -1056,7 +1109,7 @@ void ZDFThread::deallocate() {
 
     delete dl;
     delete dr;
-    delete m;
+	delete multiClass;
     
 
 	/* HACK: As the very first step is to deallocate and then allocate, some
@@ -1268,7 +1321,7 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     dl = new DoG(msize);
     dr = new DoG(msize);
 
-    m = new MultiClass( msize, psb_m, nclasses, params );
+	multiClass = new MultiClass(msize, psb_m, nclasses, params);
 
     tl_x = 0;
     tl_y = 0;

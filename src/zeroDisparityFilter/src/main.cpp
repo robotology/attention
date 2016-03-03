@@ -1,6 +1,6 @@
 /** 
  *
- * \defgroup icub_zdfModule zdfMod
+ * \defgroup icub_zeroDisparityFilterModule zeroDisparityFilterMod
  * @ingroup icub_logPolarAttentionSystem
  *
  * Receives the left and right images from the robot and segments objects that are located in the fovea. Performs marker-less pixel-wise segmentation of an object located in the fovea.The output is an image of the segmented object in grayscale and a difference of gausian segmentation.
@@ -18,13 +18,13 @@
  * The following key-value pairs can be specified as command-line parameters by prefixing \c -- to the key 
  * (e.g. \c --from file.ini. The value part can be changed to suit your needs; the default values are shown below. 
  *
- * - \c from \c zdfMod.ini \n 
+ * - \c from \c zeroDisparityFilterMod.ini \n 
  *   specifies the configuration file
  *
- * - \c context \c zdfMod/conf \n
+ * - \c context \c zeroDisparityFilterMod/conf \n
  *   specifies the sub-path from \c $ICUB_ROOT/icub/app to the configuration file
  *
- * - \c name \c zdfMod \n   
+ * - \c name \c zeroDisparityFilterMod \n   
  *   specifies the name of the module (used to form the stem of module port names)  
  *
  * Configuration File Parameters
@@ -65,7 +65,7 @@
  *
  *  Input ports
  *
- *  - \c /zdfMod \n
+ *  - \c /zeroDisparityFilterMod \n
  *    This port is used to change the parameters of the module at run time or stop the module. \n
  *    The following commands are available
  * 
@@ -77,18 +77,18 @@
  *    The port can be used by other modules but also interactively by a user through the yarp rpc directive, viz.: \c yarp \c rpc \c /zdfMod
  *    This opens a connection from a terminal to the port and allows the user to then type in commands and receive replies.
  *       
- *  - \c /zdfMod/imageLeft:i \n
- *  - \c /zdfMod/imageRight:i \n
+ *  - \c /zeroDisparityFilterMod/imageLeft:i \n
+ *  - \c /zeroDisparityFilterMod/imageRight:i \n
  *
  * Output ports
  *
- *  - \c /zdfMod \n
+ *  - \c /zeroDisparityFilterMod \n
  *    see above
  *
- *  - \c /zdfMod/imageProb:o \n
- *  - \c /zdfMod/imageSeg:o \n
- *  - \c /zdfMod/imageDog:o \n
- *  - \c /zdfMod/imageCog:o \n
+ *  - \c /zeroDisparityFilterMod/imageProb:o \n
+ *  - \c /zeroDisparityFilterMod/imageSeg:o \n
+ *  - \c /zeroDisparityFilterMod/imageDog:o \n
+ *  - \c /zeroDisparityFilterMod/imageCog:o \n
  *
  * Port types
  *
@@ -112,15 +112,15 @@
  *
  * \section conf_file_sec Configuration Files
  *
- * \c zdfMod.ini  in \c $ICUB_ROOT/app/zdfMod/conf \n
+ * \c zeroDisparityFilterMod.ini  in \c $ICUB_ROOT/app/zeroDisparityFilterMod/conf \n
  * 
  * \section tested_os_sec Tested OS
  *
- * Linux: Ubuntu 9.10 and Debian Stable 
+ * Linux: Ubuntu 14.04 and Debian Stable 
  *
  * \section example_sec Example Instantiation of the Module
  * 
- * <tt>zdfMod --name zdfMod --context zdfMod/conf --from zdfMod.ini </tt>
+ * <tt>zeroDisparityFilterMod --name zeroDisparityFilterMod --context zeroDisparityFilterMod/conf --from zeroDisparityFilterMod.ini </tt>
  * 
  * \author 
  * 
@@ -137,7 +137,7 @@
  *   Yuri Boykov and Vladimir Kolmogorov.
  *   In IEEE Transactions on Pattern Analysis and Machine Intelligence (PAMI)
  *
- * This file can be edited at \c $ICUB_ROOT/contrib/src/logPolarAttentionSystem/src/zdfModule/src
+ * This file can be edited at \c $ICUB_ROOT/contrib/src/logPolarAttentionSystem/src/zeroDisparityFilterModule/src
  *
  */
 
@@ -160,7 +160,7 @@
  */
   
 
-#include "iCub/zdfMod.h" 
+#include "iCub/zeroDisparityFilterMod.h" 
 using namespace yarp::os;
 
 int main(int argc, char * argv[])
@@ -169,13 +169,13 @@ int main(int argc, char * argv[])
     Network yarp;
 
     /* create the module */
-    zdfMod module; 
+	zeroDisparityFilterMod module;
 
     /* prepare and configure the resource finder */
     ResourceFinder rf;
     rf.setVerbose( true );
-    rf.setDefaultConfigFile( "zdfMod.ini" ); //overridden by --from parameter
-    rf.setDefaultContext( "zdfApplication" );   //overridden by --context parameter
+    rf.setDefaultConfigFile( "zeroDisparityFilterMod.ini" );	//overridden by --from parameter
+    rf.setDefaultContext( "zeroDisparityFilterApplication" );   //overridden by --context parameter
     rf.configure( argc, argv );
  
     /* run the module: runModule() calls configure first and, if successful, it then runs */

@@ -123,6 +123,20 @@ void MultiClass::proc(char* im_, char** prob_)
     
     im   =   im_;
     prob = prob_;
+
+
+	/*For testing, uncomment below the releases #amaroyo 03/03/2016
+	IplImage* aux = cvCreateImage(cvSize(100, 100), IPL_DEPTH_8U, 1);;
+	aux->imageData = prob[0];
+	cv::imshow("Matrix", cv::cvarrToMat(aux));
+	cv::waitKey(1);
+
+	IplImage* aux2 = cvCreateImage(cvSize(100, 100), IPL_DEPTH_8U, 1);;
+	aux2->imageData = prob[1];
+	cv::imshow("Matrix2", cv::cvarrToMat(aux2));
+	cv::waitKey(1);
+	*/
+
     
     int a;
     int buf_num;
@@ -133,11 +147,12 @@ void MultiClass::proc(char* im_, char** prob_)
     srand(1);
     int *permutation = new  int[nmaps];
     bool *buf        = new bool[nmaps];
+	int energyOut;
    
     //initial energy:
     printf("computing initial energy....... \n");
-    compute_energy();
-    printf("success \n");
+	energyOut = compute_energy();
+	printf("success, energy is %d \n", energyOut);
     
     //optimise:
     printf("optimization......\n");
@@ -152,12 +167,14 @@ void MultiClass::proc(char* im_, char** prob_)
             generate_permutation(permutation, nmaps);
         }
         
+		printf("NMMAPS is: %d \n", nmaps);
         for (int index=0; index<nmaps; index++) {
             label = permutation[index];
             if (buf[label]) 
                 continue;
             
             a = label;
+			printf("label a is: %d \n", a);
             E_old = E;
             expand(a);
             
@@ -180,6 +197,10 @@ void MultiClass::proc(char* im_, char** prob_)
     printf("returning from the multiclass process \n");
     delete [] permutation;
     delete [] buf;
+
+	//
+	//cvReleaseImage(&aux);
+	//cvReleaseImage(&aux2);
 }
 
 int MultiClass::likelihood(Coord c, int d)
@@ -188,10 +209,22 @@ int MultiClass::likelihood(Coord c, int d)
     //given the hypothesized configuration.
     //return low penalty if likely.
     
-    //prob[x][y] is {0..255}.
-    
-    int penalty = (int)( params->data_penalty * (1.0 - (prob[d][c.y * psb_in + c.x]/255.0)) );
-   
+    //prob[x][y] is in range{0..255}.
+    //int penalty = (int)( params->data_penalty * (1.0 - (prob[d][c.y * psb_in + c.x]/255.0)) );
+
+	
+	
+
+	int param_penalty = params->data_penalty;
+
+	double op = (double)prob[d][c.y * psb_in + c.x];
+
+	op = op / 225.0;
+
+	int penalty = (int)(param_penalty * (1.0 - op));
+	//printf("%d\n", penalty);
+
+
     return penalty;
     
 }
@@ -247,7 +280,7 @@ int MultiClass::compute_energy() {
     for (p.y = 1; p.y < im_size.height-1; p.y++) {
         for (p.x = 1; p.x < im_size.width-1; p.x++) {
             //printf("%d %d %d %08x \n", p.y, p.x, psb, out);
-            d = out[p.y * psb + p.x];
+            d = out[p.y * psb + p.x]; // d is supposed to be in the range between 0 and 1
             //non-neighbourhood terms:
             //printf("computing likelihood for d = %d \n", d);
             E += likelihood(p, d);
@@ -277,6 +310,7 @@ void MultiClass::expand(int a)
 	int E_old, E00, E0a, Ea0;
 	int k;
 
+	printf("EXPANDING!!\n");
 
 	Energy *e = new Energy(error_function);
 
@@ -332,18 +366,29 @@ void MultiClass::expand(int a)
 			E_old = E;
 			E = e->minimize();
 
+			printf("attempt to write a = %d \n",a);
+			int tot = 0;
+			int written = 0;
 			if (E < E_old)
 			{
 				for (p.y=1; p.y<im_size.height-1; p.y++)
 					for (p.x=1; p.x<im_size.width-1; p.x++)
 					{
+						tot++;
 						var = (Energy::Var) ptr_im[p.y*len_nv + p.x];
 						if (var!=VAR_ACTIVE && e->get_var(var)==VALUE1)
 						{
-							out[p.y*psb + p.x] = a;
+							
+							unsigned char temp = a;
+							//printf("written %d  \n", temp);
+							out[p.y*psb + p.x] = temp;
+							written++;
+							
 						}
 					}
 			}
+
+			printf("written %d / %d \n", written, tot);
 
 			delete e;
 
