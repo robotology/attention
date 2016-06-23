@@ -80,6 +80,22 @@ MotionProfile* factoryTTPLMotionProfile(const Bottle &param){
     }
 }
 
+MotionProfile* factoryTwoThirdMotionProfile(const Bottle &param){
+    TwoThirdMotionProfile *ttplmp = new TwoThirdMotionProfile(param);
+    if(ttplmp==NULL){
+        yError("factory ERROR: NULL pointer");
+        return NULL;
+    }
+    if(!ttplmp->isValid()){
+        yError("factory ERROR: not valid profile");
+        //delete ttplmp;
+        yDebug("deleting the invalid profile");
+        return NULL;
+    }
+    else {
+        return static_cast<MotionProfile*>(ttplmp);            
+    }
+}
 //*************************************************************************************************//
 
 handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
@@ -397,6 +413,14 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     else if(!strcmp(type.c_str(),"TTPL")) {   
         mp = factoryTTPLMotionProfile(finalB);
         yDebug("returned from TTPL factory");
+        if (mp == NULL){
+            yError("factory returned error");
+            return false;    
+        }  
+    }
+    else if(!strcmp(type.c_str(),"TwoThird")) {   
+        mp = factoryTwoThirdMotionProfile(finalB);
+        yDebug("returned from TT factory");
         if (mp == NULL){
             yError("factory returned error");
             return false;    

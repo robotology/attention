@@ -27,6 +27,7 @@
 #define COMMAND_VOCAB_OK     VOCAB2('o','k')
 #define COMMAND_VOCAB_UP     VOCAB2('U','P')
 
+
 #define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
 #define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
 #define COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
@@ -57,6 +58,7 @@
 #define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
 #define COMMAND_VOCAB_ROT    VOCAB3('R','O','T')
 #define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
+#define COMMAND_VOCAB_TTL    VOCAB3('T','T','L')
 
 
 using namespace yarp::os;
@@ -497,7 +499,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             case COMMAND_VOCAB_TTPL:
                 {
                     rec = true;                
-                    reply.addString("twoThirdPowerLaw"); 
+                    reply.addString("nonBioLaw"); 
                     if(0!=rThread){
                         //GEN TTPL (((-0.3 -0.0 0.1) (-0.3 -0.1 0.2) (-0.3 -0.1 0.0) (0.0 1.57 4.71) (0.1 0.1)))
                         if(command.size() == 3) {                        
@@ -511,7 +513,23 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     }
                 }
                 break;
-            
+            case COMMAND_VOCAB_TTL:
+                {
+                    rec = true;                
+                    reply.addString("twoThirdPowerLaw"); 
+                    if(0!=rThread){
+                        //GEN TT (((-0.3 -0.0 0.1) (-0.3 -0.1 0.2) (-0.3 -0.1 0.0) (0.0 1.57 4.71) (0.1 0.1)))
+                        if(command.size() == 3) {                        
+                            Bottle* finalB = command.get(2).asList();                        
+                            yDebug("bottle in threadInit %s", finalB->toString().c_str());                                     
+                            if(rThread->factory("TwoThird", *finalB)) {
+                                yInfo("factory:tt");                           
+                                ok = true;
+                            }
+                        }
+                    }
+                }
+                break;
             
             /* LATER: implement case COMMAND_VOCAB_MBA */
 

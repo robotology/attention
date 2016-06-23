@@ -797,7 +797,296 @@ Vector* TTPLMotionProfile::compute(double t) {
     return xd;       
 }
 
+
 //***********************************************************************************************************************
+TwoThirdMotionProfile::TwoThirdMotionProfile(){
+    type = "TwoThird";
+    valid = true;
+    A.resize(3);
+    B.resize(3);
+    C.resize(3); 
+    O.resize(3);       
+    AO.resize(3);
+    BO.resize(3);
+    xPrev.resize(3);
+    xd = new Vector(3);
+    thetaPrev = 0;
+    tprev = 0;
+    radiusPrev = 0.1;  
+}
+
+TwoThirdMotionProfile::TwoThirdMotionProfile(const TwoThirdMotionProfile &ttplmp){
+    valid = ttplmp.valid;
+    type  = ttplmp.type;
+    A.resize(3);
+    B.resize(3);
+    C.resize(3);        
+    O.resize(3);
+    AO.resize(3);
+    BO.resize(3);   
+    xPrev.resize(3); 
+    xd = new Vector(3);
+    thetaPrev = 0;
+    tprev = 0;
+    radiusPrev = 0.1;  
+}
+
+TwoThirdMotionProfile::~TwoThirdMotionProfile(){
+    delete xd;
+}    
+
+TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
+    type = "TwoThird";    
+    valid = false;    
+    
+    A.resize(3);
+    B.resize(3);
+    C.resize(3); 
+    O.resize(3);       
+    AO.resize(3);
+    BO.resize(3);
+    xPrev.resize(3);
+    xd = new Vector(3);
+    thetaPrev = 0;
+    tprev = 0;
+    radiusPrev = 0.1;  
+
+    Bottle* b = bInit.get(0).asList();
+    ResourceFinder rf;
+    rf.setVerbose(true); 
+	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
+    int argc = b->size() * 2 + 1;   
+	//fix: const int argc = 20;
+    string stringArray[argc];  
+    char* argv[argc];
+    stringArray[0].append("./motionProfile");
+    argv[0] = (char*) stringArray[0].c_str();
+    yDebug("added first %s", argv[0]);    
+        
+    for (int j = 0; j < b->size(); j++) {
+        Bottle* vector = b->get(j).asList();
+        stringArray[j * 2 + 1].append("--");
+        //stringArray[j * 2 + 1].append("A");    
+        stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
+        char temp[50];
+        yDebug("%f %f %f",vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+       
+        stringArray[j * 2 + 2].append(&temp[0]);
+        yDebug("string: %s %s", stringArray[j * 2 + 1].c_str(), stringArray[j * 2 + 2].c_str());
+        argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
+        argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
+        yDebug("param %s", argv[j * 2 + 1]);
+        yDebug("value %s", argv[j * 2 + 2]);
+    } 
+    yDebug("parsing......");
+    yDebug("argc %d argv %s", argc, argv[0]);
+    // configuring the resource finder
+    rf.configure(argc, argv);
+    
+    yInfo("resorceFinder: %s",rf.toString().c_str());
+    // visiting the parameters using the RF
+    Vector Ovector(3);    
+    Vector Avector(3);
+    Vector Bvector(3);
+    Vector Cvector(3);
+    string Ostring = rf.check("O", 
+                           Value("-0.3 -0.1 0.1"), 
+                           "position O (string)").asString();
+    extractVector(Ostring, Ovector);
+    yDebug("got O value %s", Ovector.toString().c_str());
+    string  Astring = rf.check("A", 
+                           Value("-0.3 0.0 0.1"), 
+                           "position A (string)").asString();
+    extractVector(Astring, Avector);
+    yDebug("got A value %s", Avector.toString().c_str());
+    string  Bstring = rf.check("B", 
+                           Value("-0.3 -0.1 0.2"), 
+                           "position B (string)").asString();
+    extractVector(Bstring, Bvector);
+    yDebug("got B value %s", Bvector.toString().c_str());
+    string  Cstring = rf.check("C", 
+                           Value("-0.3 -0.2 0.1"), 
+                           "position C (string)").asString();
+    extractVector(Cstring, Cvector);
+    yDebug("got C value %s", Cvector.toString().c_str());
+    Vector thetaVector(3);
+    string  thetaString = rf.check("theta", 
+                           Value("0 1.57 6.28"), 
+                           "theta angles (string)").asString();
+    extractVector(thetaString, thetaVector);
+    yDebug("got theta angles:(%s)", thetaVector.toString().c_str());
+    Vector axisVector(2);
+    string  axisString = rf.check("axes", 
+                           Value("0.1 0.2"), 
+                           "minor and major axes (string)").asString();
+    extractVector(axisString, axisVector);
+    yDebug("got minor and major axes:(%s)", axisVector.toString().c_str());
+    Vector paramVector(1);
+    string  paramString = rf.check("param", 
+                           Value("0.1"), 
+                           "profile parameters (string)").asString();
+    extractVector(paramString, paramVector);
+    yDebug("got profile parameters:(%s)", paramVector.toString().c_str());
+    bool reverse = rf.check("rev");
+    reverse? yDebug("reverse is ON") : yDebug("reverse is OFF");
+
+    
+    if(b->size() == 6){
+        //extracing the features from the bottle
+        //((xa,ya,za) (xb,yb,zb) (xc,yc,zc) (0,0.7853,1.5707) (0.1 0.1 0.2 0.1))
+        Bottle* aVector = b->get(0).asList();
+        yDebug("bottleA:%s", aVector->toString().c_str());    
+        Vector aVec(3);
+        aVec[0] = aVector->get(1).asDouble();
+        aVec[1] = aVector->get(2).asDouble();
+        aVec[2] = aVector->get(3).asDouble();
+
+        Bottle* bVector = b->get(1).asList();
+        yDebug("bottleB:%s", bVector->toString().c_str());    
+        Vector bVec(3);
+        bVec[0] = bVector->get(1).asDouble();
+        bVec[1] = bVector->get(2).asDouble();
+        bVec[2] = bVector->get(3).asDouble();
+
+        Bottle* cVector = b->get(2).asList();
+        yDebug("bottleC:%s", cVector->toString().c_str());       
+        Vector cVec(3);
+        cVec[0] = cVector->get(1).asDouble();
+        cVec[1] = cVector->get(2).asDouble();
+        cVec[2] = cVector->get(3).asDouble();
+
+        Bottle* angles  = b->get(3).asList();
+        yDebug("angles:%s", angles->toString().c_str());
+        setStartStop(angles->get(1).asDouble(), angles->get(2).asDouble(), angles->get(3).asDouble()); 
+        
+        Bottle* axes  = b->get(4).asList();
+        yDebug("axes:%s", axes->toString().c_str());
+        setAxes(axes->get(1).asDouble(), axes->get(2).asDouble());
+    
+        Bottle* params  = b->get(5).asList();
+        yDebug("params:%s", params->toString().c_str());        
+        setGain(params->get(1).asDouble()); 
+        setBeta(params->get(2).asDouble());
+        setViaPoints(aVec, bVec, cVec);
+        valid = true;
+        
+    }
+    setCenter(Ovector); 
+    setReverse(reverse);
+    setStartStop(thetaVector[0], thetaVector[1], thetaVector[2]);
+    setAxes(axisVector[0], axisVector[1]);
+    setGain(paramVector[0]);    
+    setBeta(paramVector[1]);
+    Vector array[3];
+    array[0] = Avector;  
+    array[1] = Bvector;
+    array[2] = Cvector;
+    valid = true;
+    setViaPoints(Avector,Bvector,Cvector);
+}
+
+bool TwoThirdMotionProfile::operator==(const TwoThirdMotionProfile &ttplmp)
+{
+    return ((valid==ttplmp.valid)&&(type==ttplmp.type));
+}
+
+double TwoThirdMotionProfile::computeTangVelocity() {
+    //ang.vel = g * K ^ (-beta);    beta = 0.33;
+    //tan.vel = ang.vel * r 
+    double reBeta = -1 * beta;
+    double curvature = 1 / radius;
+    double vel = gain * pow(curvature, reBeta);
+    yInfo("ComputeTangVelocity: beta= %fcurvature=%f tan.vel=%f", beta, curvature, vel);
+    return vel;
+}
+
+void TwoThirdMotionProfile::preComputation(const double  t, const double theta) {
+    //angular velocity expressed in frequency [Hz],
+    //e.g.: 0.1 => 1/10 of 2PI per second; 2PI in 10sec
+    //e.g.: 0.2 => 1/20 of 2PI per second; 2PI in 20sec         
+    //ONLY FOR CIRCLES: angular veloc.090001	 0.099486
+
+    //FOR ELLIPSE: compute angular velocity from A,B and desired tang.velocity
+    radius = computeRadius(theta);
+    /*    
+    double rDiff2     = (radius - radiusPrev) * (radius-radiusPrev);
+    double thetaDiff2 = (theta  - thetaPrev) * (theta - thetaPrev); 
+    double sDiff2     = rDiff2  + (radius * radius) * thetaDiff2;
+    yInfo("rDiff2 %f thetaDiff2 %f radius %f sDiff %f", rDiff2, thetaDiff2, radius, sqrt(sDiff2));
+    */
+
+    /*    
+    double drdtheta   = (radius - radiusPrev) / (theta - thetaPrev);
+    double drdtheta2  =  drdtheta * drdtheta;
+    double v2         = (drdtheta2 + (radius * radius)) * (angVelocity * angVelocity);
+    yInfo("v %f", sqrt(v2));
+    */
+    tanVelocity = computeTangVelocity();
+    yInfo("computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
+    // computing angular velocity in function of the radius, theta, tangential velocity
+    angVelocity = computeAngVelocity(theta);
+    yInfo("computed angular velocity %f in rad/s", angVelocity);
+    double tanVelocity_temp = checkTanVelocity(theta);
+    yInfo("computed tang velocity %f in m/s", tanVelocity_temp);
+    //double theta = 2.0 * M_PI * angVelocity * (t - t0);
+    yInfo("theta angle [rad] %f", theta); 
+}
+
+Vector* TwoThirdMotionProfile::compute(double t) {
+    double thetaStart;
+    
+    if(t-t0 == 0) {
+        theta = thetaA;
+        thetaStart =  thetaA;
+    }
+    else {
+        theta =  thetaPrev + reverse * (t - tprev) * angVelocity;
+    }
+
+    Vector xdes = *xd;
+    if(theta == thetaStart) {
+        yInfo("theta=thetaStart check");
+        preComputation(t, theta);
+        //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
+        //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
+        //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2]; 
+        (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
+        (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
+        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2];
+        if( ((*xd)[0]!=A[0]) || ((*xd)[1]!=A[1]) || ((*xd)[2]!=A[2]) ){   
+            yInfo("Beware: difference between desired location A and computed position!");
+            yInfo("vector xdes: %s", xd->toString().c_str());
+            //Time::delay(5.0);
+        }
+    }
+    else if (inRange(theta)) {
+        yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
+        preComputation(t, theta);        
+        //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
+        //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
+        //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];
+        (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
+        (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
+        (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2];     
+        yInfo("xdes %s", xd->toString().c_str());
+    }
+    else {
+        return NULL;
+    }
+    
+    Vector distance = (*xd) - xPrev;
+    yInfo("travelled distance x = %f , travelled distance y = %f absolute = %f", distance[1]/(t-tprev), distance[2]/(t-tprev), 
+    sqrt(distance[1] * distance[1] + distance[2] * distance[2])/(t-tprev));     
+    
+    // updating the previous incremental step values
+    radiusPrev =  radius;
+    thetaPrev = theta;    
+    tprev     = t;    
+    xPrev = (*xd);
+    return xd;       
+}
+//**********************************************************************************************************************************************
 
 MJMotionProfile::MJMotionProfile(){
     type = "CVP";

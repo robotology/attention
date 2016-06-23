@@ -315,7 +315,7 @@ public:
 
 
 /**
-* motion profile respecting the 2/3 power law
+* motion profile NOT respecting the 2/3 power law
 */
 class TTPLMotionProfile : public MotionProfile {
 protected:
@@ -347,6 +347,61 @@ public:
     double computeTangVelocity();
 
     void preComputation(const double t, const double theta);
+    yarp::sig::Vector* compute(double t);
+};
+
+/**
+* motion profile  respecting the 2/3 power law
+*/
+class TwoThirdMotionProfile : public MotionProfile {
+protected:
+    
+    double gain;
+    double beta;
+
+public:
+    /**
+     * constructor
+     */
+    TwoThirdMotionProfile();
+    /**
+     * destructor
+     */
+    ~TwoThirdMotionProfile();        
+    /**
+     * constructor
+     */
+    TwoThirdMotionProfile(const TwoThirdMotionProfile &ttplmp);
+    /**
+     * constructor
+     */
+    TwoThirdMotionProfile(const yarp::os::Bottle &b);
+
+    TwoThirdMotionProfile &operator=(const MJMotionProfile &ttplmp);
+    bool operator==(const TwoThirdMotionProfile &ttplmp);
+    bool operator==(const MotionProfile &mp) {return operator==(dynamic_cast<const TwoThirdMotionProfile&>(mp));}        
+
+    /**
+    * function that sets the gain parameter of the 2/3 power law
+    */
+    void setGain(const double _gain) { gain = _gain; };
+    /**
+    * function that set the gain parameter of the 2/3 power law 
+    */
+    void setBeta(const double _beta) { beta = _beta; };
+    /**
+    * function that computes the tangVelocity related to the 2/3 power law  
+    */
+    double computeTangVelocity();
+
+    /**
+     * function preparing the computation of the location in space and time
+     */
+    void preComputation(const double t, const double theta);
+
+    /**
+     * computing the vector location
+     */
     yarp::sig::Vector* compute(double t);
 };
 
