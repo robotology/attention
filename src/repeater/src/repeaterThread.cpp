@@ -104,6 +104,54 @@ void repeaterThread::run() {
     }               
 }
 
+void repeaterThread::adjustHSV(cv::Mat& outputMatrix, cv::Mat tempMatrix) {
+    //yDebug("converting to HSV height:%d width: %d",outputHeight,outputWidth);
+    //convert the image to HSV and adjusting the Hue, Saturation and Value param
+    int idxHue = 0;
+    int idxSat = 1;
+    int idxBri = 2;
+
+    int valueSat = 1;
+    int valueBri = -1;
+    int valueHue = -1;
+
+
+    cv::cvtColor(outputMatrix,tempMatrix,CV_BGR2HSV);
+    for (int r = 0; r < outputHeight; r ++) {
+        for(int c = 0 ; c < outputWidth; c++) { 
+            // You need to check this, but I think index 1 is for saturation, but it might be 0 or 2
+            
+            //if(gainSat != -1) {
+            if(tempMatrix.at<cv::Vec3b>(r,c)[idxSat]+deltaSat > 255){
+                tempMatrix.at<cv::Vec3b>(r,c)[idxSat] = 255;
+            }
+            else if(tempMatrix.at<cv::Vec3b>(r,c)[idxSat]+deltaSat < 0) {
+                tempMatrix.at<cv::Vec3b>(r,c)[idxSat] = 0;
+            }
+            else {
+                tempMatrix.at<cv::Vec3b>(r,c)[idxSat] += deltaSat;
+            }
+            
+                
+
+            tempMatrix.at<cv::Vec3b>(r,c)[idxHue] += deltaHue;
+                            //}
+            //if(gainBri != -1) {
+                tempMatrix.at<cv::Vec3b>(r,c)[idxBri] += deltaBri;
+                
+                //}
+
+            // or:
+            // img.at<cv::Vec3b>(i,j)[idx] += adds_constant_value;
+            //yInfo("data %f ", tempMatrix.at<int>(r,c));
+        }
+    }
+    
+    gainSat = -1; gainBri = -1; gainHue = -1;
+
+    cv::cvtColor(tempMatrix, outputMatrix, CV_HSV2BGR);
+}
+
 
 void repeaterThread::processing() {
     outputImage->resize(outputWidth, outputHeight);
@@ -111,23 +159,29 @@ void repeaterThread::processing() {
     int outPadding = outputImage->getPadding();
 
     cv::Mat inputMatrix((IplImage*)  inputImage->getIplImage(), false);
+    cv::Mat tempMatrix((IplImage*) outputImage->getIplImage(), false);
     cv::Mat outputMatrix((IplImage*) outputImage->getIplImage(), false);
 
-    cv::resize(inputMatrix, outputMatrix,outputMatrix.size(), 0, 0, CV_INTER_LINEAR);
+
+    //resize image with specific interpolation strategy
     //interpolation – interpolation method:
     //INTER_NEAREST - a nearest-neighbor interpolation
     //INTER_LINEAR - a bilinear interpolation (used by default)
     //INTER_AREA - resampling using pixel area relation. It may be a preferred method for image decimation, 
     //INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood
     //INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
+    cv::resize(inputMatrix,outputMatrix,outputMatrix.size(), 0, 0, CV_INTER_LINEAR);
+    
+    //adjusting the desired paramters
+    adjustHSV(outputMatrix, tempMatrix);
 
+    // preparing the IPL image for the final copy
     IplImage tempIpl = (IplImage) outputMatrix;
     char* pMatrix     = tempIpl.imageData;
-    int matrixPadding = tempIpl.widthStep - tempIpl.width * 3; 
-    
+    int matrixPadding = tempIpl.widthStep - tempIpl.width * 3;
     //making a copy of it
     for (int r = 0; r < outputHeight; r ++) {
-        for(int c = 0 ; c < outputWidth; c++) {            
+        for(int c = 0 ; c < outputWidth; c++) {             
             *pOut++ = *pMatrix++;
             *pOut++ = *pMatrix++;
             *pOut++ = *pMatrix++;            

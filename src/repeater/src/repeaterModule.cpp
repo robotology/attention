@@ -28,6 +28,25 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
+// general command vocab's
+#define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
+#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
+#define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
+#define COMMAND_VOCAB_RUN                VOCAB3('r','u','n')
+#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
+#define COMMAND_VOCAB_FIX                VOCAB3('f','i','x')
+#define COMMAND_VOCAB_IS                 VOCAB2('i','s')
+#define COMMAND_VOCAB_OK                 VOCAB2('o','k')
+#define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
+#define COMMAND_VOCAB_SEEK               VOCAB4('s','e','e','k')
+#define COMMAND_VOCAB_CENT               VOCAB4('c','e','n','t')
+#define COMMAND_VOCAB_STOP               VOCAB4('s','t','o','p')
+#define COMMAND_VOCAB_PUSH               VOCAB4('p','u','s','h')
+#define COMMAND_VOCAB_SAT                VOCAB3('s','a','t')
+#define COMMAND_VOCAB_HUE                VOCAB3('h','u','e')
+#define COMMAND_VOCAB_BRI                VOCAB3('b','r','i')
+
 /* 
  * Configure method. Receive a previously initialized
  * resource finder object. Use it to configure your module.
@@ -123,6 +142,8 @@ bool repeaterModule::close() {
 
 bool repeaterModule::respond(const Bottle& command, Bottle& reply) 
 {
+    bool ok = false;
+    bool rec = false; // is the command recognized?
     string helpMessage =  string(getName().c_str()) + 
                 " commands are: \n" +  
                 "help \n" +
@@ -137,7 +158,134 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
         cout << helpMessage;
         reply.addString("ok");
     }
+    else if ((command.get(0).asString()=="sus") || (command.get(0).asString()=="\"sus\"")) {
+        //prioritiser->waitMotionDone();
+        //prioritiser->suspend();
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString()=="res" || command.get(0).asString()=="\"res\"" ) {
+        //prioritiser->resume();
+        reply.addString("ok");
+    }
     
+    mutex.wait();
+    switch (command.get(0).asVocab()) {
+    case COMMAND_VOCAB_HELP:
+        rec = true;
+        {
+            reply.addVocab(Vocab::encode("many"));
+            reply.addString("help");
+
+            //reply.addString();
+            reply.addString("set fn \t: general set command ");
+            reply.addString("get fn \t: general get command ");
+            //reply.addString();
+
+            
+            //reply.addString();
+            reply.addString("seek red \t : looking for a red color object");
+            reply.addString("seek rgb \t : looking for a general color object");
+            reply.addString("sus  \t : suspending");
+            reply.addString("res  \t : resuming");
+            //reply.addString();
+
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_SUSPEND:
+        rec = true;
+        {
+            //prioritiser->suspend();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_STOP:
+        rec = true;
+        {
+            //prioritiser->suspend();
+            //prioritiser->resume();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_RESUME:
+    rec = true;
+        {
+            //prioritiser->resume();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_SEEK:
+        rec = true;
+        {
+            //prioritiser->suspend();
+            //prioritiser->seek(command);
+            //prioritiser->resume();
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_FIX:
+        rec = true;
+        {
+            switch (command.get(1).asVocab()) {
+            case COMMAND_VOCAB_CENT:
+                {
+                    printf("Fixating in Center \n");
+                    //prioritiser->fixCenter(1000);
+                }
+                break;
+            }
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_PUSH:
+        rec = true;
+        {
+            switch (command.get(1).asVocab()) {
+            case COMMAND_VOCAB_SAT:
+                {   int delta = command.get(2).asInt();
+                    printf("Pushing Saturation %d \n", delta);
+                    rThread->setSatPush(delta);
+                }
+                break;
+            
+            case COMMAND_VOCAB_BRI:
+                {
+                    int delta = command.get(2).asInt();
+                    printf("Pushing Brightness %d \n", delta);
+                    rThread->setBriPush(delta);
+                }
+                break;
+            
+            case COMMAND_VOCAB_HUE:
+                {
+                    int delta = command.get(2).asInt();
+                    printf("Pushing Hue %d \n", delta);
+                    rThread->setHuePush(delta);
+                }
+                break;
+                
+            }
+            ok = true;
+        }
+        break;
+    default: {
+                
+    }
+        break;    
+    }
+    mutex.post();
+
+    if (!rec)
+        ok = RFModule::respond(command,reply);
+    
+    if (!ok) {
+        reply.clear();
+        reply.addVocab(COMMAND_VOCAB_FAILED);
+    }
+    else {
+        reply.addVocab(COMMAND_VOCAB_OK);
+    }
+
     return true;
 }
 

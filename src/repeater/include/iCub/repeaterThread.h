@@ -64,6 +64,9 @@ private:
     int inputHeight;               // height of the input image
     int outputWidth;               // width of the output image
     int outputHeight;              // height of the output image
+    int deltaSat, gainSat;
+    int deltaHue, gainHue;
+    int deltaBri, gainBri;
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
@@ -77,6 +80,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
 
     inputCBPort inputCbPort;  // buffered port listening to images through callback
+  
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outputPort;     // output port to plot event
     std::string name;                                                                // rootname of all the ports opened by this thread
@@ -149,6 +153,14 @@ public:
      */
     void processing();
 
+    /**
+     * function necessary to adjust Hue Saturation and Brightness in the image
+     */
+    void adjustHSV(cv::Mat& outputMatrix, cv::Mat tempMatrix);
+
+    void setHuePush(int value) { deltaHue = value; gainHue = 1; };
+    void setBriPush(int value) { deltaBri = value; gainBri = 1; };
+    void setSatPush(int value) { deltaSat = value; gainSat = 1; };
 };
 
 #endif  //_REPEATER_THREAD_H_

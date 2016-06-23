@@ -161,7 +161,7 @@ class repeaterModule:public yarp::os::RFModule {
     std::string outputPortName;              // name of output port
     std::string handlerPortName;             // name of handler port
     std::string configFile;                  // name of the configFile that the resource Finder will seek
-    
+    yarp::os::Semaphore mutex;
     yarp::os::Port handlerPort;              // a port to handle messages 
     /*  */
     repeaterThread *rThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
