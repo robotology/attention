@@ -1389,7 +1389,7 @@ void gazeArbiterThread::run() {
             } //end if(visualCorrection)
 
             
-
+            /*
             //--------------- FORCE RESETTING ---------------------
             // note this is for IROS2016. Please remove after it
             // author: Francesco Rea @20022016
@@ -1405,7 +1405,7 @@ void gazeArbiterThread::run() {
             //igaze->lookAtAbsAngles(resetV);
             igaze->waitMotionDone();
             //----------------------------------------------------
-
+            */
             
             //-----------------
             //accomplished_flag = true;
