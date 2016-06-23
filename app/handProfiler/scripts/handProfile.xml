@@ -1,0 +1,23 @@
+<application>
+
+  <name>handProfile application</name>
+
+  <dependencies>
+      <port>/iCubGui/objects</port>
+  </dependencies>
+
+  <module>
+      <name>handProfiler</name>
+      <parameters>--gazeTracking </parameters>
+      <node>localhost</node>
+  </module>
+
+  <connection>
+    <from> /handProfile/command:o</from>
+    <to> /iCubGui/objects </to>
+    <protocol> udp </protocol>
+  </connection>
+
+
+</application>
+
