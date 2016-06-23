@@ -163,11 +163,13 @@ double MotionProfile::computeRadius(const double theta) {
     double sin2theta = sin(theta) * sin(theta);    
     double aSquare = xAxis * xAxis;
     double bSquare = yAxis * yAxis;
+    double argSqrt = (aSquare * sin2theta + bSquare * cos2theta);
     double invR2 = (cos2theta/aSquare + sin2theta/bSquare);
     double R2 = 1 / invR2;
     r = sqrt(R2);
     r2 = r * r;
     r3 = r2 * r;
+    k = (xAxis * yAxis) / sqrt(argSqrt * argSqrt * argSqrt);
     return r;
 }
 
@@ -995,7 +997,9 @@ double TwoThirdMotionProfile::computeTangVelocity() {
     //ang.vel = g * K ^ (-beta);    beta = 0.33;
     //tan.vel = ang.vel * r 
     double reBeta = -1 * beta;
-    double curvature = 1 / radius;
+    //double curvature = 1 / radius;
+    // fundamental change in the computation formula of the curvature @Rea 23/6/16
+    double curvature = k;
     double vel = gain * pow(curvature, reBeta);
     yInfo("ComputeTangVelocity: beta= %fcurvature=%f tan.vel=%f", beta, curvature, vel);
     return vel;

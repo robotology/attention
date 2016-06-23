@@ -77,6 +77,7 @@ protected:
 
     int a, b, c, d;                    // parameters of the plane 
 
+    double k;                          // curvature 
     double t0;                         // time at the beginning istant    
     double tprev;                      // time at the previous incremental step    
     double radius;                     // radius of the ellipse function of the angle theta, a, b;    
