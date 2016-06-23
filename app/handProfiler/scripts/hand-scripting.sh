@@ -717,6 +717,29 @@ handProfile_STAREXE() {
         sleep 3.0
         synchro04
     }
+
+    synchro04_100() {
+        sleep 2.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+        sleep 3.0
+        synchro04_10
+    }
     
      synchro08_10() {
         sleep 5.0
