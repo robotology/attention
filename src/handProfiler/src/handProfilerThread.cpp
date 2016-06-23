@@ -474,7 +474,10 @@ void handProfilerThread::run() {
             }
             // some verbosity
             //printStatus();      
-        }       
+        } 
+        double tend = Time::now();
+        double diff = (tend-t) * 1000;
+        //yInfo("diff=%f [ms]", diff);
     }
 }
 

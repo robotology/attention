@@ -55,6 +55,7 @@
 #define COMMAND_VOCAB_CON    VOCAB3('C','V','P')
 #define COMMAND_VOCAB_MJP    VOCAB3('M','J','P')    
 #define COMMAND_VOCAB_SIM    VOCAB3('S','I','M')
+#define COMMAND_VOCAB_CLR    VOCAB3('C','L','R')
 #define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
 #define COMMAND_VOCAB_ROT    VOCAB3('R','O','T')
 #define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
@@ -232,13 +233,14 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
 	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1)))");
             reply.addString("GEN MJP  : generate minimum jerk profile");
 	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 1.57 3.0)))");
-            reply.addString("GEN TTPL : generate two-third power law profile");
+            reply.addString("GEN TTPL : generate NON two-third power law profile");
             reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
-
+reply.addString("GEN TT : generate two-third power law profile");
+            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
             reply.addString("STAR EXE : start execution  (green)");
-
+            reply.addString("SIM CLR  : simulator cleaning");
             ok = true;
         }
         break;
@@ -434,6 +436,24 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             }
             
             ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_SIM:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()) {
+
+            case COMMAND_VOCAB_CLR:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                         
+                    }
+                    ok = true;
+                }
+            break;
+            }
+
         }
         break;
     case COMMAND_VOCAB_GEN:

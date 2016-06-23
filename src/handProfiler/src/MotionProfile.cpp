@@ -1001,7 +1001,7 @@ double TwoThirdMotionProfile::computeTangVelocity() {
     // fundamental change in the computation formula of the curvature @Rea 23/6/16
     double curvature = k;
     double vel = gain * pow(curvature, reBeta);
-    yInfo("ComputeTangVelocity: beta= %fcurvature=%f tan.vel=%f", beta, curvature, vel);
+    //yDebug("TT:ComputeTangVelocity: beta= %fcurvature=%f tan.vel=%f", beta, curvature, vel);
     return vel;
 }
 
@@ -1027,14 +1027,14 @@ void TwoThirdMotionProfile::preComputation(const double  t, const double theta) 
     yInfo("v %f", sqrt(v2));
     */
     tanVelocity = computeTangVelocity();
-    yInfo("computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
+    //yDebug("TT:computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
     // computing angular velocity in function of the radius, theta, tangential velocity
     angVelocity = computeAngVelocity(theta);
-    yInfo("computed angular velocity %f in rad/s", angVelocity);
+    //yDebug("TT:computed angular velocity %f in rad/s", angVelocity);
     double tanVelocity_temp = checkTanVelocity(theta);
-    yInfo("computed tang velocity %f in m/s", tanVelocity_temp);
+    yDebug("TT:computed tang velocity %f in m/s", tanVelocity_temp);
     //double theta = 2.0 * M_PI * angVelocity * (t - t0);
-    yInfo("theta angle [rad] %f", theta); 
+    //yDebug("TT:theta angle [rad] %f", theta); 
 }
 
 Vector* TwoThirdMotionProfile::compute(double t) {
@@ -1050,7 +1050,7 @@ Vector* TwoThirdMotionProfile::compute(double t) {
 
     Vector xdes = *xd;
     if(theta == thetaStart) {
-        yInfo("theta=thetaStart check");
+        //yDebug("TT:theta=thetaStart check");
         preComputation(t, theta);
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
@@ -1065,7 +1065,7 @@ Vector* TwoThirdMotionProfile::compute(double t) {
         }
     }
     else if (inRange(theta)) {
-        yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
+        //yDebug("TT:In the range xAxis:%f yAxis:%f", xAxis,yAxis);
         preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
@@ -1073,15 +1073,15 @@ Vector* TwoThirdMotionProfile::compute(double t) {
         (*xd)[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
         (*xd)[1]=O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
         (*xd)[2]=O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2];     
-        yInfo("xdes %s", xd->toString().c_str());
+        //yInfo("xdes %s", xd->toString().c_str());
     }
     else {
         return NULL;
     }
     
     Vector distance = (*xd) - xPrev;
-    yInfo("travelled distance x = %f , travelled distance y = %f absolute = %f", distance[1]/(t-tprev), distance[2]/(t-tprev), 
-    sqrt(distance[1] * distance[1] + distance[2] * distance[2])/(t-tprev));     
+    //yInfo("TT:travelled distance x = %f , travelled distance y = %f absolute = %f", distance[1]/(t-tprev), distance[2]/(t-tprev), 
+    //sqrt(distance[1] * distance[1] + distance[2] * distance[2])/(t-tprev));     
     
     // updating the previous incremental step values
     radiusPrev =  radius;
