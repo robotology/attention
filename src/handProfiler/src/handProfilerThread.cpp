@@ -29,7 +29,7 @@
 #define MAX_TORSO_PITCH     10.0    // [deg]
 #define MIN_TORSO_YAW       -40.0   // [deg]
 #define MAX_TORSO_YAW       40.0    // [deg]
-#define RATETHREAD          10      // [ms]
+#define RATETHREAD          5      // [ms]
 #define TRAJTIME            1.0     // [s]
 
 using namespace yarp::dev;
