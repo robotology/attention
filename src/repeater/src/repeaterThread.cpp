@@ -45,6 +45,10 @@ repeaterThread::~repeaterThread() {
 }
 
 bool repeaterThread::threadInit() {
+
+    deltaSat = 0;
+    deltaHue = 0;
+    deltaBri = 0;
     
     /* open ports */ 
     //inputCbPort.hasNewImage = false;
@@ -115,7 +119,6 @@ void repeaterThread::adjustHSV(cv::Mat& outputMatrix, cv::Mat tempMatrix) {
     int valueBri = -1;
     int valueHue = -1;
 
-
     cv::cvtColor(outputMatrix,tempMatrix,CV_BGR2HSV);
     for (int r = 0; r < outputHeight; r ++) {
         for(int c = 0 ; c < outputWidth; c++) { 
@@ -131,24 +134,12 @@ void repeaterThread::adjustHSV(cv::Mat& outputMatrix, cv::Mat tempMatrix) {
             else {
                 tempMatrix.at<cv::Vec3b>(r,c)[idxSat] += deltaSat;
             }
-            
-                
-
             tempMatrix.at<cv::Vec3b>(r,c)[idxHue] += deltaHue;
-                            //}
-            //if(gainBri != -1) {
-                tempMatrix.at<cv::Vec3b>(r,c)[idxBri] += deltaBri;
-                
-                //}
-
-            // or:
-            // img.at<cv::Vec3b>(i,j)[idx] += adds_constant_value;
+            tempMatrix.at<cv::Vec3b>(r,c)[idxBri] += deltaBri;
             //yInfo("data %f ", tempMatrix.at<int>(r,c));
         }
     }
-    
     gainSat = -1; gainBri = -1; gainHue = -1;
-
     cv::cvtColor(tempMatrix, outputMatrix, CV_HSV2BGR);
 }
 

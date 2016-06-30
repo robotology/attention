@@ -33,16 +33,16 @@ int main(int argc, char * argv[])
 {
     
     Network yarp;
-    repeaterModule module; 
+     
 
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("repeater.ini");      //overridden by --from parameter
-    rf.setDefaultContext("eMorph/conf");    //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);  
- 
-    module.runModule(rf);
-    return 0;
+    rf.setDefaultContext("attention/conf");     //overridden by --context parameter
+    rf.configure(argc, argv);  
+    repeaterModule module;
+   
+    return module.runModule(rf);
 }
 
 
