@@ -69,6 +69,8 @@ protected:
     yarp::sig::Vector od;              // vector representing the desired orientation of the hand
     yarp::sig::Vector xPrev;           // vector representing the position at the previous step
     yarp::sig::Vector* xd;             // vector representing the desired position of the hand
+    yarp::sig::Vector* xprev;          // vector position of the previous step
+    yarp::sig::Vector* xder1;      // vector position of the previous step
 
     std::string type;                  // vocab representing the type
 
@@ -99,8 +101,9 @@ protected:
     double minZ;					   // working space z
     double maxZ;					   // working space z
 
+    bool firstCompute;                 //
     bool valid;                        // flag indicating whether the motionProfile is valid class
-    int reverse;                      // flag indicating if the action is performed reverse
+    int reverse;                       // flag indicating if the action is performed reverse
 
     //yarp::os::ResourceFinder rf;     // resourceFinder for the parsing of the parameters
 
@@ -210,6 +213,21 @@ public:
     double  getTanVelocity() {return tanVelocity; };
 
     /**
+     * function that returns the curvature
+     */
+    double getCurvature() {return k;};
+    
+    /**
+     * function that returns the angVelocity
+     */
+    double getAngVelocity() {return angVelocity;};
+
+    /**
+     * function that returns the radius
+     */
+    double getRadius() {return r;};    
+
+    /**
     * function that return the vector with module equal to the radius
     */
     yarp::sig::Vector normalizeVector(const yarp::sig::Vector u, double const radius);
@@ -229,7 +247,9 @@ public:
     * @param theta angle at which the radius is computed [rad]
     * @return radius of the ellipse/circle at a given angle theta
     */
-    double computeRadius(const double theta);
+    virtual double computeRadius(const double theta);
+
+
 
     /**
     * function that checks if all the points belong to the reaching space
@@ -395,6 +415,11 @@ public:
     */
     double computeTangVelocity();
 
+    /**
+     * function that computes the curvature in a small epsilon around the current location
+     */
+    double computeCurvature(const double timeDiff, const double thetePrev, const yarp::sig::Vector* xprev);
+        
     /**
      * function preparing the computation of the location in space and time
      */

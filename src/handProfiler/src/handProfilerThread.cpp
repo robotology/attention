@@ -487,6 +487,9 @@ void handProfilerThread::printVel() {
     Bottle& b = velPort.prepare();
     b.clear();
     b.addDouble(mp->getTanVelocity());
+    b.addDouble(mp->getCurvature());
+    b.addDouble(mp->getRadius());
+    b.addDouble(mp->getAngVelocity());
     velPort.setEnvelope(ts);
     velPort.write();
 }
