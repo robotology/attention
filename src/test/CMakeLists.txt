@@ -4,10 +4,10 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-add_subdirectory( testOpenVis        )
+#add_subdirectory( testOpenVis        )
 #add_subdirectory( evalTest           )
-add_subdirectory( gazeTest           )
-add_subdirectory( batchAnalysis)
+add_subdirectory ( gazeTest           )
+add_subdirectory ( batchAnalysis      )
 
 
 
