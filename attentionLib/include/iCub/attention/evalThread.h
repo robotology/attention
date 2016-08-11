@@ -252,7 +252,7 @@ class evalThread : public yarp::os::Thread {
             double sumError = 0;
             for(int i = 0; i < numIter ; i++) {
                 //printf("%d < %d =>----------------------------------------------------------\n", i, numIter);
-                printf("%08X  %d \n", this, id);
+                //printf("%08X  %d \n", this, id);
                 double s = Random::uniform() + 0.5 ; 
                 Vector zTmp = zMeasure->getRow(i);
                 

@@ -1,30 +1,52 @@
-<application>
-<name>yarpscopeGui</name>
-
-
-<!--
-<module>
-  <name>yarpscope</name>
-  <parameters>--name /finger --x 000--y 000 --w 280 --h 210 --RefreshTime 33 --xml fingersScope.xml  --context yarpScopeDarwin</parameters>
-  <tag>finger</tag>
-  <node>icub14</node>
-</module>
--->
-
-<module>
-  <name>yarpscope</name>
-  <parameters>--name /PmpEndEffector --x 320 --y 000 --w 280 --h 210 --RefreshTime 33 --xml PMPEndEffector.xml  --context cognitiveGuiApp</parameters>
-  <tag>PmpEndEffector</tag>
-  <node>icub14</node>
-</module>
-
-<module>
-  <name>yarpscope</name>
-  <parameters>--name /PmpYarpScope --x 620 --y 000 --w 280 --h 210 --RefreshTime 33 --xml PmpYarpScope_new.xml  --context cognitiveGuiApp</parameters>
-  <tag>PmpYarpScope</tag>
-  <node>icub14</node>
-</module>
-
-
-
-</application>
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="2" columns="2" carrier="mcast">
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="2"
+          title="Plot 00"
+          minval="-5"
+          maxval="5"
+          bgcolor="LightGrey">
+        <graph remote="/icub/cartesianController/left_arm/state:o"
+               index="0"
+               color="Red"
+               title="Graph 0"
+               type="lines" />
+        <graph remote="/icub/cartesianController/left_arm/state:o"
+               index="1"
+               color="Green"
+               title="Graph 1"
+               type="lines" />
+	<graph remote="/handProfiler/vel:o"
+               index="0"
+               color="Blue"
+               title="Graph 2"
+               type="lines" />
+    </plot>
+    <plot gridx="1"
+          gridy="0"
+          hspan="1"
+          vspan="2"
+          title="Plot 01"
+          minval="-100"
+          maxval="100"
+          bgcolor="LightGrey">
+        <graph remote="/handProfiler/vel:o"
+               index="1"
+               color="Green"
+               title="Graph 1"
+               type="lines" />
+        <graph remote="/handProfiler/vel:o"
+               index="2"
+               color="Blue"
+               title="Graph 2"
+               type="points" />
+        <graph remote="/handProfiler/vel:o"
+               index="3"
+               color="Magenta"
+               title="Graph 2"
+               type="points" />
+    </plot>
+   
+</portscope>
