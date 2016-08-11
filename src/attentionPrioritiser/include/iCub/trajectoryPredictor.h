@@ -172,7 +172,6 @@ private:
      * function that adds the evaluation thread to the list
      */
     void addEvalThread(attention::evaluator::evalThread* et){ 
-        printf("trajectoryPredictor::addEvalThread %08X \n", et);
         Vector x = et->getX();
         printf("trajectoryPredictor::addEvalThread: x = \n %s \n", x.toString().c_str());
         eQueue->push_back(et); 

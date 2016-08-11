@@ -143,11 +143,60 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     str.append("/controller");
     controller->setName(str.c_str());
     controller->setResourceFinder(&rf);
-    controller->setLogFile     (rf.findFile("logFile.txt"));
-    controller->setLogState    (rf.findFile("logState.txt"));
-    controller->setPsaFile     (rf.findFile("psaFile.txt"));
-    controller->setRewardFile  (rf.findFile("rewardFile.txt"));
-    controller->setQualityFile (rf.findFile("qualityFile.txt"));
+    //----- finding logFile -------
+    if (!strcmp((const char *)rf.findFile("logFile.txt").c_str(), "")) {
+      yError("finding logFile.txt..... operation result:ERROR");
+      yError("Please touch the files in the proper directory. See ResourceFinder details.");
+      return false;
+    }
+    else{
+      yInfo("finding logFile.txt..... operation result:OK");
+      controller->setLogFile(rf.findFile("logFile.txt"));
+    }    
+    //----- finding logState -------
+    if (!strcmp((const char *)rf.findFile("logState.txt").c_str(), "")) {
+      yError("finding logState.txt..... operation result:ERROR");
+      yError("Please touch the files in the proper directory. See ResourceFinder details.");
+      return false;
+    }
+    else{
+      yInfo("finding logState.txt..... operation result:OK");
+      controller->setLogState(rf.findFile("logState.txt"));
+    }
+    //----- finding psaFile -------
+    if (!strcmp((const char *)rf.findFile("psaFile.txt").c_str(), "")) {
+      yError("finding psaFile.txt..... operation result:ERROR");
+      yError("Please touch the files in the proper directory. See ResourceFinder details.");
+      return false;
+    }
+    else{
+      yInfo("finding psaFile.txt..... operation result:OK");
+      controller->setPsaFile(rf.findFile("psaFile.txt"));
+    }
+    //----- finding rewardFile -------
+    if (!strcmp((const char *)rf.findFile("rewardFile.txt").c_str(), "")) {
+      yError("finding rewardFile.txt..... operation result:ERROR");
+      yError("Please touch the files in the proper directory. See ResourceFinder details.");
+      return false;
+    }
+    else{
+      yInfo("finding rewardFile.txt..... operation result:OK");
+      controller->setRewardFile(rf.findFile("rewardFile.txt"));
+    }
+    //----- finding qualityFile -------
+    if (!strcmp((const char *)rf.findFile("qualityFile.txt").c_str(), "")) {
+      yError("finding qualityFile.txt..... operation result:ERROR");
+      yError("Please touch the files in the proper directory. See ResourceFinder details.");
+      return false;
+    }
+    else{
+      yInfo("finding qualityFile.txt..... operation result:OK");
+      controller->setQualityFile(rf.findFile("logState.txt"));
+    } 
+    //controller->setLogState    (rf.findFile("logState.txt"));
+    //controller->setPsaFile     (rf.findFile("psaFile.txt"));
+    //controller->setRewardFile  (rf.findFile("rewardFile.txt"));
+    //controller->setQualityFile (rf.findFile("qualityFile.txt"));
     printf("controller correctly initialised \n");   
     
 
