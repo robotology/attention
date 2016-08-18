@@ -8,4 +8,5 @@ add_subdirectory( tutorialThread           )
 add_subdirectory( tutorialRatethread       )
 add_subdirectory( reaching                 )
 add_subdirectory( cartesian-interface      )
-
+add_subdirectory( simpleThriftServer       )
+add_subdirectory( simpleThriftClient       )
