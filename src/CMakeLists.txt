@@ -40,13 +40,23 @@ else(OpenCV_FOUND)
 endif(OpenCV_FOUND)
 
 #graphic user interfaces
-if (FALSE)
+# Tools available both for Qt5 and GTK2
+if(ICUB_USE_Qt5)
+  add_subdirectory(guis/selAttentionGui)
+endif()
+
+if(ENABLE_GTK2)
   add_subdirectory( earlyVisionInterface      )
   add_subdirectory( salBlobFinderInterface    )
   add_subdirectory( selAttentionInterface     )
   add_subdirectory( zdfControl                )
-endif(FALSE)
+endif()
 
+if(NOT ICUB_USE_Qt5 AND NOT ICUB_USE_GTK2)
+   message(STATUS "Qt5 and GTK2 not found/selected, skipping iCubSkinGui")
+   message(STATUS "Qt5 and GTK2 not found/selected, skipping frameGrabberGui2")
+   message(STATUS "Qt5 and GTK2 not found/selected, skipping skinManagerGui")
+endif()
 
 if(IPOPT_FOUND)
     add_subdirectory( gazeArbiter               )
