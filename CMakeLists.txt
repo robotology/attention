@@ -19,7 +19,9 @@ find_package(ICUB REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
 list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH})
 include(YarpInstallationHelpers)
-
+message("PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR} ")
+include(${PROJECT_SOURCE_DIR}/conf/iCubUseQt5.cmake)
+#include(iCubUseQt5)
 
 find_package(ICUBcontrib REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
@@ -38,14 +40,15 @@ include(ICUBcontribHelpers)
 include(ICUBcontribOptions)
 icubcontrib_set_default_prefix() #set CMAKE_INSTALL_PREFIX to the ICUBcontrib one; print warning if user modifies it
 
-
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
 add_definitions(${YARP_DEFINES})
 include(YarpInstallationHelpers)
 
+find_package(Qt3)
+find_package(Qt5 COMPONENTS Core Widgets OpenGL Quick Qml Concurrent PrintSupport QUIET)
 
 find_package(OpenCV)
+message(STATUS "OpenCV version is ${OpenCV_VERSION_MAJOR}.${OpenCV_VERSION_MINOR}")
 find_package(IPOPT)
 
 find_package(logpolar QUIET)
@@ -65,6 +68,7 @@ set(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}" CACHE PATH "Application path pref
 
 ### Go through single folder
 option(ENABLE_CUDA  "Do you want to compile with Cuda?" OFF)
+option(ENABLE_GTK2  "Do you want to compile with GTK2?" OFF)
 
 if (ENABLE_CUDA)  
     find_package(CUDA QUIET REQUIRED)
