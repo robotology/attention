@@ -1102,6 +1102,7 @@ void TwoThirdMotionProfile::preComputation(const double  t, const double theta) 
 Vector* TwoThirdMotionProfile::compute(double t) {
     double thetaStart;
     double timeDiff = t - tprev;
+    
     Vector xdes = *xd;
     if(firstCompute) {
         xPrev[0]=O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
@@ -1111,25 +1112,29 @@ Vector* TwoThirdMotionProfile::compute(double t) {
         firstCompute = false;
     }
 
-    // setting the attribute of the class k(curvature)
-    
-    k = computeCurvature(timeDiff ,thetaPrev,  &xPrev);
-    yDebug("Computing Curvature: %f", k);
         
     if(t-t0 == 0) {
+        yDebug("initial condition of t-t0 = 0");
         theta = thetaA;
         thetaStart =  thetaA;
         k = 100;
+        timeDiff = 0.05;
+        yDebug("timeDiff: %f", timeDiff);
     }
     else {        
         theta =  thetaPrev + reverse * timeDiff * angVelocity;
     }
-    yDebug("pre-computing %f with tanVelocity %f", theta, tanVelocity);
-    preComputation(t, theta);
+    //yDebug("pre-computing %f with tanVelocity %f", theta, tanVelocity);
+    //preComputation(t, theta);
     
     if(theta == thetaStart) {
-        //yDebug("TT:theta=thetaStart check");
-        //preComputation(t, theta);        
+        // setting the attribute of the class k(curvature)
+        yDebug("timeDiff: %f", timeDiff);
+        k = computeCurvature(timeDiff ,thetaPrev,  &xPrev);
+        k = 1;
+        yDebug("Computed Curvature: %f", k);
+        yDebug("TT:theta=thetaStart check");
+        preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2]; 
@@ -1146,8 +1151,11 @@ Vector* TwoThirdMotionProfile::compute(double t) {
         (*xprev)[2] = (*xd)[2];
     }
     else if (inRange(theta)) {
-        //yDebug("TT:In the range xAxis:%f yAxis:%f", xAxis,yAxis);
-        //preComputation(t, theta);        
+        // setting the attribute of the class k(curvature)    
+        k = computeCurvature(timeDiff ,thetaPrev,  &xPrev);
+        yDebug("Computed Curvature: %f", k);
+        yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
+        preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
         //(*xd)[2]=O[2] + xAxis * cos(theta) * AO[2] + yAxis * sin(theta) * BO[2];

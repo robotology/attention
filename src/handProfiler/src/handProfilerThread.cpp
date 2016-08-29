@@ -552,7 +552,7 @@ void handProfilerThread::limitTorsoYaw() {
     // sometimes it may be helpful to reduce
     // the range of variability of the joints;
     // for example here we don't want the torso
-    // to rotate out more than needed
+    // to rotate out more than neededSSS
 
     // we keep the lower limit
     icart->getLimits(axis,&min,&max);
