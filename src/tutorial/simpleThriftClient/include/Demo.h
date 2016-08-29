@@ -12,15 +12,15 @@ class Demo;
 
 class Demo : public yarp::os::Wire {
 public:
-  Demo();
-  virtual int32_t get_answer();
-  virtual bool set_answer(const int32_t rightAnswer);
-  virtual int32_t add_one(const int32_t x);
-  virtual bool start();
-  virtual bool stop();
-  virtual bool is_running();
-  virtual bool read(yarp::os::ConnectionReader& connection);
-  virtual std::vector<std::string> help(const std::string& functionName="--all");
+  Demo(){};
+  virtual int32_t get_answer(){};
+  virtual bool set_answer(const int32_t rightAnswer){};
+  virtual int32_t add_one(const int32_t x){};
+  virtual bool start(){};
+  virtual bool stop(){};
+  virtual bool is_running(){};
+  virtual bool read(yarp::os::ConnectionReader& connection){};
+  virtual std::vector<std::string> help(const std::string& functionName="--all"){};
 };
 
 #endif
