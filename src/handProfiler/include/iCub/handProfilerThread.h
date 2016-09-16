@@ -64,6 +64,7 @@ protected:
     double t0;
     double t1;
     
+    bool verbosity;                // flag indicating verbosity
     bool firstIteration;           // flag indicating the first iteration  
     bool idle;                     // flag indicating if the thread is in idle
     bool simulation;               // flag indicating whether the movement is simulation or executed
@@ -96,7 +97,7 @@ protected:
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                   // output port to plot event
-
+    yarp::os::BufferedPort<yarp::os::Bottle>  errPort;                                   // output port to plot event
     std::string name;                                                                   // rootname of all the ports opened by this thread
 
     // the event callback attached to the "motion-ongoing"
@@ -156,6 +157,11 @@ public:
      * function that sets the orientation of the endeffector
      */
     bool setOrientation(const yarp::sig::Vector vectorOrientaion);
+
+    /**
+     * function that sets the orientation of the endeffector
+     */
+    bool setCurrentOrientation();
     
     /**
     * function that returns the original root name and appends another string iff passed as parameter
@@ -262,6 +268,11 @@ public:
     * function that prints out the status of the performer.
     */
     void printStatus();
+
+    /**
+    * function that prints out the status of the performer.
+    */
+    void printErr();
 
     /**
     * function that prints out the desired location to track

@@ -177,7 +177,7 @@ double MotionProfile::computeRadius(const double theta) {
     //double k = (xAxis * yAxis) / sqrt(argSqrt);
     //k = 1 / r;
 
-    yDebug("%f: r=%f k=",theta, r);
+    //yDebug("%f: r=%f k=",theta, r);
     return r;
 }
 
@@ -1022,15 +1022,15 @@ double TwoThirdMotionProfile::computeCurvature(const double timeDiff, const doub
     Vector xder1prev(3);
     Vector xder2(3);
     double epsilon = 0.01;
-    yDebug("timeDiff %f reverse %d", timeDiff, reverse);
+    //yDebug("timeDiff %f reverse %d", timeDiff, reverse);
     double theta   =  thetaPrev + reverse * timeDiff *  epsilon;
     
     xcur[0] = O[0] + radius * cos(theta) * AOnorm[0] + radius * sin(theta) * BOnorm[0];
     xcur[1] = O[1] + radius * cos(theta) * AOnorm[1] + radius * sin(theta) * BOnorm[1];
     xcur[2] = O[2] + radius * cos(theta) * AOnorm[2] + radius * sin(theta) * BOnorm[2];
-    yDebug("epsilon = %f radius = %f",epsilon, radius); 
-    yDebug("xcur:%s", xcur.toString().c_str());
-    yDebug("xprev:%s", xprev->toString().c_str());
+    //yDebug("epsilon = %f radius = %f",epsilon, radius); 
+    //yDebug("xcur:%s", xcur.toString().c_str());
+    //yDebug("xprev:%s", xprev->toString().c_str());
     
     xder1prev[0] = (*xder1)[0];
     xder1prev[1] = (*xder1)[1];
@@ -1041,12 +1041,12 @@ double TwoThirdMotionProfile::computeCurvature(const double timeDiff, const doub
     (*xder1)[0] =(xcur[0] - (*xprev)[0]) / (timeDiff * epsilon);
     (*xder1)[1] =(xcur[1] - (*xprev)[1]) / (timeDiff * epsilon);
     (*xder1)[2] =(xcur[2] - (*xprev)[2]) / (timeDiff * epsilon);
-    yDebug("Computed the first derivative:%s", xder1->toString().c_str());
+    //yDebug("Computed the first derivative:%s", xder1->toString().c_str());
     
     xder2[0] =((*xder1)[0] - xder1prev[0]) / (timeDiff * epsilon);
     xder2[1] =((*xder1)[1] - xder1prev[1]) / (timeDiff * epsilon);
     xder2[2] =((*xder1)[2] - xder1prev[2]) / (timeDiff * epsilon);
-    yDebug("Computed the second derivative:%s", xder2.toString().c_str());
+    //yDebug("Computed the second derivative:%s", xder2.toString().c_str());
     
     double xprimysec = (*xder1)[0] * xder2[1]; // x`y''
     double yprimxsec = (*xder1)[1] * xder2[0]; // y'x''
@@ -1063,7 +1063,7 @@ double TwoThirdMotionProfile::computeCurvature(const double timeDiff, const doub
     double d = sqrt(a + b + c);
     double e = sqrt(pow(xprimsquare +  yprimsquare + zprimsquare,3));
     double k = e / d;
-    yDebug("curvature = %f", k);
+    //yDebug("curvature = %f", k);
     return k;
 }
 
@@ -1092,9 +1092,9 @@ void TwoThirdMotionProfile::preComputation(const double  t, const double theta) 
     //yDebug("TT:computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
     // computing angular velocity in function of the radius, theta, tangential velocity
     angVelocity = computeAngVelocity(theta);
-    yDebug("TT:computed angular velocity %f in rad/s", angVelocity);
+    //yDebug("TT:computed angular velocity %f in rad/s", angVelocity);
     double tanVelocity_temp = checkTanVelocity(theta);
-    yDebug("TT:computed tangVelocity %f k %f r %f", tanVelocity, k, radius);
+    //yDebug("TT:computed tangVelocity %f k %f r %f", tanVelocity, k, radius);
     //double theta = 2.0 * M_PI * angVelocity * (t - t0);
     //yDebug("TT:theta angle [rad] %f", theta); 
 }
@@ -1114,12 +1114,12 @@ Vector* TwoThirdMotionProfile::compute(double t) {
 
         
     if(t-t0 == 0) {
-        yDebug("initial condition of t-t0 = 0");
+        //yDebug("initial condition of t-t0 = 0");
         theta = thetaA;
         thetaStart =  thetaA;
         k = 100;
         timeDiff = 0.05;
-        yDebug("timeDiff: %f", timeDiff);
+        // yDebug("timeDiff: %f", timeDiff);
     }
     else {        
         theta =  thetaPrev + reverse * timeDiff * angVelocity;
@@ -1129,11 +1129,11 @@ Vector* TwoThirdMotionProfile::compute(double t) {
     
     if(theta == thetaStart) {
         // setting the attribute of the class k(curvature)
-        yDebug("timeDiff: %f", timeDiff);
+        //yDebug("timeDiff: %f", timeDiff);
         k = computeCurvature(timeDiff ,thetaPrev,  &xPrev);
         k = 1;
-        yDebug("Computed Curvature: %f", k);
-        yDebug("TT:theta=thetaStart check");
+        //yDebug("Computed Curvature: %f", k);
+        //yDebug("TT:theta=thetaStart check");
         preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
@@ -1153,8 +1153,8 @@ Vector* TwoThirdMotionProfile::compute(double t) {
     else if (inRange(theta)) {
         // setting the attribute of the class k(curvature)    
         k = computeCurvature(timeDiff ,thetaPrev,  &xPrev);
-        yDebug("Computed Curvature: %f", k);
-        yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
+        //yDebug("Computed Curvature: %f", k);
+        //yInfo("In the range xAxis:%f yAxis:%f", xAxis,yAxis);
         preComputation(t, theta);        
         //(*xd)[0]=O[0] + xAxis * cos(theta) * AO[0] + yAxis * sin(theta) * BO[0];
         //(*xd)[1]=O[1] + xAxis * cos(theta) * AO[1] + yAxis * sin(theta) * BO[1];
@@ -1381,11 +1381,11 @@ double MJMotionProfile::computeTangVelocity(const double t) {
     goal[1]=O[1] + goalRadius * cos(thetaGoal) * AOnorm[1] + goalRadius * sin(thetaGoal) * BOnorm[1];
     goal[2]=O[2] + goalRadius * cos(thetaGoal) * AOnorm[2] + goalRadius * sin(thetaGoal) * BOnorm[2]; 
     Vector distanceVect = goal - (*xd);
-    yDebug("distanceVector: %s", distanceVect.toString().c_str());
+    //yDebug("distanceVector: %s", distanceVect.toString().c_str());
     double distance = sqrt(distanceVect[0] * distanceVect[0] + distanceVect[1] * distanceVect[1] + distanceVect[2] * distanceVect[2]);
-    yDebug("distance:%f", distance);
+    //yDebug("distance:%f", distance);
     double epsilon = (t - t0) / (tfinal - t0);
-    yDebug("epsilon:%f t:%f tfinal:%f", epsilon, t, tfinal);
+    //yDebug("epsilon:%f t:%f tfinal:%f", epsilon, t, tfinal);
     double epsilon3 = epsilon * epsilon * epsilon;
     double epsilon4 = epsilon3 * epsilon;
     double epsilon5 = epsilon4 * epsilon;
@@ -1402,14 +1402,14 @@ void MJMotionProfile::preComputation(const double t, const double theta) {
     //FOR ELLIPSE: compute angular velocity from A,B and desired tang.velocity
     radius = computeRadius(theta);
     tanVelocity = computeTangVelocity(t);
-    yInfo("computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
+    //yInfo("computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
     // computing angular velocity in function of the radius, theta, tangential velocity
     angVelocity = computeAngVelocity(theta);
-    yInfo("computed angular velocity %f in rad/s", angVelocity);
+    //yInfo("computed angular velocity %f in rad/s", angVelocity);
     double tanVelocity_temp = checkTanVelocity(theta);
-    yInfo("computed tang velocity %f in m/s", tanVelocity_temp);
+    //yInfo("computed tang velocity %f in m/s", tanVelocity_temp);
     //double theta = 2.0 * M_PI * angVelocity * (t - t0);
-    yInfo("theta angle [rad] %f", theta); 
+    //yInfo("theta angle [rad] %f", theta); 
 }
 
 Vector* MJMotionProfile::compute(double t) {

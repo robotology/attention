@@ -29,8 +29,9 @@
 #define MAX_TORSO_PITCH     10.0    // [deg]
 #define MIN_TORSO_YAW       -40.0   // [deg]
 #define MAX_TORSO_YAW       40.0    // [deg]
-#define RATETHREAD          5      // [ms]
-#define TRAJTIME            1.0     // [s]
+#define RATETHREAD          5       // [ms]
+#define TRAJTIME            0.5     // [s]
+#define GAZEINTERVAL        20 
 
 using namespace yarp::dev;
 using namespace yarp::os;
@@ -121,6 +122,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     firstIteration = true;
     idle = true;
     simulation = true;
+    verbosity = true;
     gazetracking = false;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
@@ -229,10 +231,10 @@ bool handProfilerThread::threadInit() {
        blockNeckPitchValue = -1;
        if(blockNeckPitchValue != -1) {
            igaze->blockNeckPitch(blockNeckPitchValue);
-           printf("pitch fixed at %f \n",blockNeckPitchValue);
+           yInfo("pitch fixed at %d \n",blockNeckPitchValue);
        }
        else {
-           printf("pitch free to change\n");
+           yInfo("pitch free to change\n");
        }
     }
     else {
@@ -241,7 +243,6 @@ bool handProfilerThread::threadInit() {
     }
     yInfo("Success in initialising the gaze");
     
-
     string rootNameGui("");
     rootNameGui.append(getName("/gui:o"));
     if(!guiPort.open(rootNameGui.c_str())) {
@@ -461,7 +462,7 @@ void handProfilerThread::run() {
             // go to the target (in streaming)
             if(!simulation) {
                 icart->goToPose(xd,od);
-                if(gazetracking) {
+                if(gazetracking && (count%GAZEINTERVAL==0)) {
                     igaze->lookAtFixationPoint(xd);
                 }
             }
@@ -473,12 +474,25 @@ void handProfilerThread::run() {
                 printVel();
             }
             // some verbosity
-            //printStatus();      
+            if(verbosity) {
+                printStatus();
+            }
         } 
         double tend = Time::now();
         double diff = (tend-t) * 1000;
         //yInfo("diff=%f [ms]", diff);
     }
+}
+
+void handProfilerThread::printErr() {
+    Stamp ts;
+    ts.update();
+    Bottle& b = errPort.prepare();
+    b.clear();
+    //b.addDouble(mp->getError());
+    b.addDouble(-1.0);
+    errPort.setEnvelope(ts);
+    errPort.write();
 }
 
 void handProfilerThread::printVel() {
@@ -504,6 +518,13 @@ void handProfilerThread::printXd() {
     b.addDouble(xd[2]);
     xdPort.setEnvelope(ts);
     xdPort.write();
+}
+
+bool handProfilerThread::setCurrentOrientation() {
+    Vector x0,o0;
+    icart->getPose(x0,o0);
+    od = o0;
+    return true;
 }
 
 bool handProfilerThread::setOrientation(const Vector vectorOrientation) {
@@ -715,8 +736,9 @@ void handProfilerThread::printStatus() {
         // from the desired pose according to the tolerances
         icart->getDesired(xdhat,odhat,qdhat);
 
-        double e_x=norm(xdhat-x);
+        double e_xdhat=norm(xdhat-x);
         double e_o=norm(odhat-o);
+        double e_xd=norm(xd-x);
 
         fprintf(stdout,"+++++++++\n");
         fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
@@ -725,7 +747,8 @@ void handProfilerThread::printStatus() {
         fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
         fprintf(stdout,"odhat     [rad] = %s\n",odhat.toString().c_str());
         fprintf(stdout,"o         [rad] = %s\n",o.toString().c_str());
-        fprintf(stdout,"norm(e_x)   [m] = %g\n",e_x);
+        fprintf(stdout,"norm(e_xd)   [m] = %g\n",e_xd);
+        fprintf(stdout,"norm(e_xdhat)[m] = %g\n",e_xdhat);
         fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
         fprintf(stdout,"---------\n\n");
 

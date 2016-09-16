@@ -44,6 +44,7 @@
 #define COMMAND_VOCAB_STAR   VOCAB4('S','T','A','R')
 #define COMMAND_VOCAB_PALM   VOCAB4('P','A','L','M')
 #define COMMAND_VOCAB_DOWN   VOCAB4('D','O','W','N')
+#define COMMAND_VOCAB_CURR   VOCAB4('C','U','R','R')
 
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -60,6 +61,8 @@
 #define COMMAND_VOCAB_ROT    VOCAB3('R','O','T')
 #define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
 #define COMMAND_VOCAB_TTL    VOCAB3('T','T','L')
+#define COMMAND_VOCAB_CUS    VOCAB3('C','U','S')
+
 
 
 using namespace yarp::os;
@@ -237,6 +240,11 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
             reply.addString("GEN TTL : generate two-third power law profile");
             reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
+
+            reply.addString("PALM CUS : to change the orientation of the palm ");
+            reply.addString("PALM CUS (-0.076 -0.974 0.213 3.03) ");
+                            
+            
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
             reply.addString("STAR EXE : start execution  (green)");
@@ -326,7 +334,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             }
         }
         break;
-         case COMMAND_VOCAB_PALM:
+    case COMMAND_VOCAB_PALM:
         rec = true;
         {
             //reply.addVocab(COMMAND_VOCAB_IS);
@@ -339,10 +347,34 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     ok = true;
                 }
             break;
-            case COMMAND_VOCAB_MINDB:
+            case COMMAND_VOCAB_UP:
                 {
                     rThread->setOrientation(vectorUpOrientation);
                     ok = true;
+                }
+                break;
+            case COMMAND_VOCAB_CURR:
+                {
+                    rThread->setCurrentOrientation();
+                    ok = true;
+                }
+                break;
+             case COMMAND_VOCAB_CUS:
+                {
+                    Bottle* b = command.get(2).asList();
+                    Vector v(4);
+                    v(0) = b->get(0).asDouble();
+                    v(1) = b->get(1).asDouble();
+                    v(2) = b->get(2).asDouble();
+                    v(3) = b->get(3).asDouble();
+                    yInfo("PALM CUSTOM setting to vector %s", v.toString().c_str());
+                    //rThread->setOrientation(vectorUpOrientation);
+                    if(v.size() == 4) {
+                        ok = rThread->setOrientation(v);
+                    }
+                    else {
+                        ok = false;
+                    }
                 }
                 break;
                
