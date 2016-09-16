@@ -395,6 +395,20 @@ cun() {
 angry() {
     echo "set all ang" | yarp rpc /icub/face/emotions/in
 }
+####################################################################################################################
+#                              Palm orientations                                                                   #
+####################################################################################################################
+palm4stick() {
+    echo "PALM CUS (0.140137 0.654117 -0.743298 2.849317) " | yarp rpc /handProfiler
+}
+
+palmup() {
+    echo "PALM CUS (-0.254182	 0.891684	-0.374555	 3.025273) " | yarp rpc /handProfiler
+}
+
+palmface() {
+    echo "PALM CUS (-0.617941	 0.243286	-0.747637	 3.095665) " | yarp rpc /handProfiler
+}
 
 ####################################################################################################################
 #                              Ellipses Trajectories                                                               #
@@ -424,6 +438,15 @@ handProfile_TTPLEllipse02() {
     echo "GEN TTPL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.2 0.33)))" | yarp rpc /handProfiler
 }
 
+handProfile_TTLFront04(){
+    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 0.0 1.57 3.14) (axes 0.1 0.1) (param 0.01 0.33)))" | yarp rpc /handProfiler
+}
+
+handProfile_TTLFront04_rev(){
+    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 1.57 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
+}
+
+
 handProfile_TTLEllipse001() {
     echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
 }
@@ -451,6 +474,7 @@ handProfile_CVPHoriz01() {
 handProfile_CVPHoriz02() {
     echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.2)))" | yarp rpc /handProfiler
 }
+
 
 handProfile_TTPLHoriz02() {
     echo "GEN TTPL (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.2 0.33)))" | yarp rpc /handProfiler
@@ -622,6 +646,11 @@ handProfile_STAREXE() {
         sleep 2.0 && handProfile_STAREXE
     }
 
+    frontTTL04() {
+        handProfile_TTPLFront04
+        sleep 2.0 && handProfile_STAREXE
+    }
+    
     horizTTPL04() {
         handProfile_TTPLHoriz04
         sleep 2.0 && handProfile_STAREXE
@@ -675,7 +704,25 @@ handProfile_STAREXE() {
     ellipseCVP01() {
         handProfile_CVPEllipse01
         sleep 2.0 && handProfile_STAREXE
-    } 
+    }
+
+    provideObject04() {
+	palm4stick
+	handProfile_TTLFront04_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    invite04() {
+	palmface
+	handProfile_TTLFront04_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
+    
+    halt04(){
+	palmface
+	handProfile_TTLFront04_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
 
 #############     Repeatings     #####################################
     

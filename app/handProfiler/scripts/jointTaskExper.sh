@@ -396,6 +396,10 @@ angry() {
     echo "set all ang" | yarp rpc /icub/face/emotions/in
 }
 
+handProfile_CVPEllipse005() {
+    echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1))) " | yarp rpc /handProfiler
+}
+
 handProfile_CVPHoriz005() {
     echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.05)))" | yarp rpc /handProfiler
 }
