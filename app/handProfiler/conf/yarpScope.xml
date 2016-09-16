@@ -33,7 +33,7 @@
           maxval="100"
           bgcolor="LightGrey">
         <graph remote="/handProfiler/vel:o"
-               index="1"
+               index="0"
                color="Green"
                title="Graph 1"
                type="lines" />
@@ -41,12 +41,12 @@
                index="2"
                color="Blue"
                title="Graph 2"
-               type="points" />
+               type="lines" />
         <graph remote="/handProfiler/vel:o"
                index="3"
                color="Magenta"
                title="Graph 2"
-               type="points" />
+               type="lines" />
     </plot>
    
 </portscope>
