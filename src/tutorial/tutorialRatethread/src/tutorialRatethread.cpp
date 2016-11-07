@@ -88,7 +88,8 @@ void tutorialRatethread::run() {
         *outputImage = outputPort.prepare();
         outputImage->resize(inputImage->width(), inputImage->height());
         // changing the pointer of the prepared area for the outputPort.write()
-        outputPort.prepare() = *inputImage;
+        copy(inputImage, outImage);
+        //outputPort.prepare() = *inputImage; //deprecated
 
         outputPort.write();
     }
