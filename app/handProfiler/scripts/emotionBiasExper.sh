@@ -410,6 +410,9 @@ palmface() {
     echo "PALM CUS (-0.617941	 0.243286	-0.747637	 3.095665) " | yarp rpc /handProfiler
 }
 
+palmfaceright(){
+   echo "PALM CUS (-0.037738	-0.996767	 0.070937	 2.145385)" | yarp rpc /handProfiler
+}
 ####################################################################################################################
 #                              Ellipses Trajectories                                                               #
 ####################################################################################################################
@@ -438,14 +441,25 @@ handProfile_TTPLEllipse02() {
     echo "GEN TTPL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.2 0.33)))" | yarp rpc /handProfiler
 }
 
-handProfile_TTLFront04(){
+handProfile_TTLFront001(){
     echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 0.0 1.57 3.14) (axes 0.1 0.1) (param 0.01 0.33)))" | yarp rpc /handProfiler
 }
 
-handProfile_TTLFront04_rev(){
-    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 1.57 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
+handProfile_TTLFront002(){
+    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 0.0 1.57 3.14) (axes 0.1 0.1) (param 0.02 0.33)))" | yarp rpc /handProfiler
 }
 
+handProfile_TTLFront001_rev(){
+    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
+}
+
+handProfile_TTLFront004_emp(){
+    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.05) (B -0.25 -0.1 0.3) (C -0.25 -0.1 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.04 0.33)))" | yarp rpc /handProfiler
+}
+
+handRightP_CVPFront008_emp(){
+    echo "GEN CVP (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.3) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.08)))" | yarp rpc /handProfiler
+}
 
 handProfile_TTLEllipse001() {
     echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
@@ -459,8 +473,77 @@ handProfile_TTLEllipse005() {
     echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.05 0.33)))" | yarp rpc /handProfiler
 }
 
+######################################### right hand provide object
+
+handRightP_TTLFront001_rev(){
+    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.2) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
+}
+
+handRightP_CVPFront001_rev(){
+    echo "GEN CVP (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.2) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.03)))" | yarp rpc /handProfiler
+}
+
+handRightP_TTLFront004_emp(){
+    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.3) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.04 0.33)))" | yarp rpc /handProfiler
+}
+
+######################################### right hand halt
+
+handRightP_TTLHalt001_rev(){
+    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.2) (C -0.25 0.2 0.0) (theta 1.25 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
+}
+
+handRightP_TTLHalt002_emp(){
+    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.25) (C -0.2 0.2 0.0) (theta 1.25 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.04 0.33)))" | yarp rpc /handProfiler
+}
+
+handRightP_CVPHalt008_emp(){
+    echo "GEN CVP (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.25) (C -0.25 0.2 0.0) (theta 1.25 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.4)))" | yarp rpc /handProfiler
+}
+
+########################################### right hand pointing
+
+handRightP_TTLPoint005_emp(){
+    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 -0.1) (B -0.25 0.2 0.35) (C -0.2 0.2 0.0) (theta 0.123 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.07 0.33)))" | yarp rpc /handProfiler
+}
+
+handRightP_CVPPoint008_emp(){
+    echo "GEN CVP (((O -0.25 0.2 0.1) (A -0.35 0.2 -0.1) (B -0.25 0.2 0.1) (C -0.25 0.2 0.0) (theta 0.125 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.1)))" | yarp rpc /handProfiler
+}
+
+handRightP_TTLPoint001_rev(){
+    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 -0.1) (B -0.25 0.2 0.2) (C -0.25 0.2 0.0) (theta 0.125 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.02 0.33)))" | yarp rpc /handProfiler
+}
+
+testTrajectory(){
+    echo "GEN TTL (((O -0.2 0.15 -0.1) (A -0.15 0.15 0.0) (B -0.25 0.15 0.1) (C -0.30 0.15 -0.1) (theta 0.3 1.57 2.15)  (axes 0.1 0.15) (param 0.02 0.33)))" | yarp rpc /handProfiler
+}
+
+testTrajectoryConst(){
+    echo "GEN CVP (((O -0.2 0.15 -0.1) (A -0.15 0.15 0.0) (B -0.25 0.15 0.0) (C -0.30 0.15 -0.1) (theta 0.3 1.57 2.4)  (axes 0.1 0.15) (param 0.15)))" | yarp rpc /handProfiler
+}
+
+testTrajectoryEmp(){
+    echo "GEN TTL (((O -0.2 0.15 -0.1) (A -0.15 0.15 0.0) (B -0.3 0.15 0.15) (C -0.30 0.15 -0.1) (theta 0.3 1.57 2.3)  (axes 0.1 0.15) (param 0.08 0.33)))" | yarp rpc /handProfiler
+}
+
+############################################ tests for Placing an object on a table
+
+handRightP_TTLTable005_emp(){
+    echo "GEN TTL (((O -0.2 0.2 0.0) (A -0.2 0.2 0.2) (B -0.25 0.2 0.10) (C -0.35 0.2 0.0) (theta 0.3 1.57 2.65) (axes 0.2 0.15) (param 0.1 0.33)))" | yarp rpc /handProfiler
+}
+
+handRightP_TTLTable002(){
+    echo "GEN TTL (((O -0.2 0.2 0.0) (A -0.2 0.2 0.1) (B -0.25 0.2 0.1) (C -0.35 0.2 0.0) (theta 0.785 1.57 2.65) (axes 0.1 0.15) (param 0.03 0.33)))" | yarp rpc /handProfiler
+}
+
+handRightP_CVPTable008_const(){
+    echo "GEN CVP (((O -0.2 0.2 0.0) (A -0.15 0.2 0.1) (B -0.35 0.2 0.1) (C -0.35 0.2 0.0) (theta 0.785 1.57 2.65) (axes 0.1 0.2) (param 0.15)))" | yarp rpc /handProfiler
+}
+
+
 ####################################################################################################################
-#                              Linear Trajectories: Horizontal                                                     #
+#                              Linear Trajectories: Horizontal (left)                                              #
 ####################################################################################################################
 
 handProfile_CVPHoriz005() {
@@ -646,13 +729,13 @@ handProfile_STAREXE() {
         sleep 2.0 && handProfile_STAREXE
     }
 
-    frontTTL04() {
-        handProfile_TTPLFront04
+    frontTTL001() {
+        handProfile_TTPLFront001
         sleep 2.0 && handProfile_STAREXE
     }
     
-    horizTTPL04() {
-        handProfile_TTPLHoriz04
+    horizTTPL001() {
+        handProfile_TTPLHoriz001
         sleep 2.0 && handProfile_STAREXE
     }
 
@@ -706,9 +789,24 @@ handProfile_STAREXE() {
         sleep 2.0 && handProfile_STAREXE
     }
 
-    provideObject04() {
+    ############################################################### left
+    
+    provideObject001() {
 	palm4stick
-	handProfile_TTLFront04_rev
+	handProfile_TTLFront001_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    
+    provideObjectEmp() {
+	palm4stick
+	handProfile_TTLFront004_emp
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    provideObjectEmp_const(){
+	palm4stick
+	handRightP_CVPFront008_emp
         sleep 2.0 && handProfile_STAREXE
     }
 
@@ -720,9 +818,88 @@ handProfile_STAREXE() {
     
     halt04(){
 	palmface
-	handProfile_TTLFront04_rev
+	handProfile_TTLFront001_rev
         sleep 2.0 && handProfile_STAREXE
     }
+   
+
+    ################################################################ right
+    
+    provideObject001Right() {
+	palm4stick
+	handRightP_TTLFront001_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    provideObject001Right_const() {
+	palm4stick
+	handRightP_CVPFront001_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+     provideObjectEmpRight() {
+	palm4stick
+	handRightP_TTLFront004_emp
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    haltRight04(){
+	palmfaceright
+	handRightP_TTLHalt001_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    haltRight02Emp(){
+	palmfaceright
+	handRightP_TTLHalt002_emp
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    haltRight08Const(){
+	palmfaceright
+	handRightP_CVPHalt008_emp
+        sleep 2.0 && handProfile_STAREXE
+    }
+    
+    pointRight04(){
+	palm4stick
+	handRightP_TTLPoint001_rev
+        sleep 2.0 && handProfile_STAREXE
+    }
+    
+    pointRight05Emp(){
+	palm4stick
+	handRightP_TTLPoint005_emp
+        sleep 2.0 && handProfile_STAREXE
+    }
+    
+    pointRight08Const(){
+	palm4stick
+	handRightP_CVPPoint008_emp
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+############################ tests for table
+
+    placeTableRight() {
+	palm4stick
+	handRightP_TTLTable002
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    placeTableRightEmp() {
+	palm4stick
+	handRightP_TTLTable005_emp
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+    placeTableRightConst() {
+	palm4stick
+	handRightP_CVPTable008_const
+        sleep 2.0 && handProfile_STAREXE
+    }
+
+
 
 #############     Repeatings     #####################################
     
