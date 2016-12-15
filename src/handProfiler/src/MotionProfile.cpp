@@ -48,6 +48,7 @@ inline void extractVector(const string str, Vector& res) {
 MotionProfile::MotionProfile() : valid(false), type("")  {
 
     initRange();
+    
 	firstCompute = true;
 	A.resize(3);
     B.resize(3);
@@ -59,6 +60,13 @@ MotionProfile::MotionProfile() : valid(false), type("")  {
     xd = new Vector(3);
     xprev = new Vector(3);
     xder1 = new Vector(3);
+
+    //////////Fabio open port for data gathering 
+    //string velName("");
+    //velName.append(getName("/vel:o")); 
+    if(!dataPort.open("/motionProfile/data:o")) {
+          yError("dataPort is not open with success. Check for conflicts");
+    }
 }
 
 MotionProfile::~MotionProfile() {
@@ -190,7 +198,7 @@ double MotionProfile::computeAngVelocity(const double theta) {
     double drdtheta = (r3 / 2) * subA2B2 * sin(2 * theta);
     double v2       = tanVelocity * tanVelocity;
     double den      = drdtheta * drdtheta + r2;
-    return            sqrt(v2 / den); 
+    return            sqrt(v2 / den);
 }
 
 double MotionProfile::checkTanVelocity(const double theta) {
@@ -823,7 +831,7 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(){
     xd = new Vector(3);
     thetaPrev = 0;
     tprev = 0;
-    radiusPrev = 0.1;  
+    radiusPrev = 0.1;
 }
 
 TwoThirdMotionProfile::TwoThirdMotionProfile(const TwoThirdMotionProfile &ttplmp){
@@ -1064,6 +1072,20 @@ double TwoThirdMotionProfile::computeCurvature(const double timeDiff, const doub
     double e = sqrt(pow(xprimsquare +  yprimsquare + zprimsquare,3));
     double k = e / d;
     //yDebug("curvature = %f", k);
+    
+    ///////////////// Fabio
+    //if (dataPort.getOutputCount()) {  
+        Bottle& dataBottle = dataPort.prepare();
+        dataBottle.clear();
+        dataBottle.addDouble(xcur[0]); dataBottle.addDouble(xcur[1]); dataBottle.addDouble(xcur[2]); //position
+        dataBottle.addDouble((*xder1)[0]); dataBottle.addDouble((*xder1)[1]); dataBottle.addDouble((*xder1)[2]); //velocity
+        dataBottle.addDouble( xder2[0]); dataBottle.addDouble( xder2[1]); dataBottle.addDouble( xder2[2]); //acceleration
+        dataBottle.addDouble(d); dataBottle.addDouble(e); dataBottle.addDouble(k); //d, e, k
+        
+        //dataPort.setEnvelope(ts);
+        dataPort.write();
+    //}
+    ///////////////////////////    
     return k;
 }
 
@@ -1092,11 +1114,20 @@ void TwoThirdMotionProfile::preComputation(const double  t, const double theta) 
     //yDebug("TT:computed radius %f [m] for tangVelocity %f [m/s]", radius, tanVelocity);
     // computing angular velocity in function of the radius, theta, tangential velocity
     angVelocity = computeAngVelocity(theta);
+    double newAngVelocity = computeAngVelFabio();
+    angVelocity = newAngVelocity;
+    //yDebug("-----------old: %f ---------new: %f", angVelocity, newAngVelocity);
     //yDebug("TT:computed angular velocity %f in rad/s", angVelocity);
     double tanVelocity_temp = checkTanVelocity(theta);
     //yDebug("TT:computed tangVelocity %f k %f r %f", tanVelocity, k, radius);
     //double theta = 2.0 * M_PI * angVelocity * (t - t0);
     //yDebug("TT:theta angle [rad] %f", theta); 
+}
+
+double TwoThirdMotionProfile::computeAngVelFabio() {    
+    //////////Fabio
+    return gain*pow(1/k, 1-beta);
+    ////////////////
 }
 
 Vector* TwoThirdMotionProfile::compute(double t) {

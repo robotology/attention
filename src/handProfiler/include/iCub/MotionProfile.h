@@ -64,7 +64,7 @@ protected:
     yarp::sig::Vector C;               // vector representating the check point of the hand
     yarp::sig::Vector AO;              // vector from A to center of the ellipse
     yarp::sig::Vector AOnorm;          // vector from A to center of the ellipse
-    yarp::sig::Vector BO;              // vector from A to center of the ellipse
+    yarp::sig::Vector BO;              // vector from B to center of the ellipse
     yarp::sig::Vector BOnorm;          // vector from B to center of the ellipse
     yarp::sig::Vector od;              // vector representing the desired orientation of the hand
     yarp::sig::Vector xPrev;           // vector representing the position at the previous step
@@ -104,6 +104,8 @@ protected:
     bool firstCompute;                 //
     bool valid;                        // flag indicating whether the motionProfile is valid class
     int reverse;                       // flag indicating if the action is performed reverse
+
+    yarp::os::BufferedPort<yarp::os::Bottle>  dataPort;
 
     //yarp::os::ResourceFinder rf;     // resourceFinder for the parsing of the parameters
 
@@ -424,6 +426,11 @@ public:
      * function preparing the computation of the location in space and time
      */
     void preComputation(const double t, const double theta);
+    
+    /**
+    * function that computes the angVelocity related to the 2/3 power law  
+    */
+    double computeAngVelFabio();
 
     /**
      * computing the vector location

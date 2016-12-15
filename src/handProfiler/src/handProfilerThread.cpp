@@ -142,8 +142,8 @@ bool handProfilerThread::threadInit() {
 
     /* open ports */ 
     Property option("(device cartesiancontrollerclient)");
-    option.put("remote","/icub/cartesianController/left_arm");
-    option.put("local","/handProfiler/left_arm");
+    option.put("remote","/icub/cartesianController/right_arm");
+    option.put("local","/handProfiler/right_arm");
 
     if (!client.open(option)) {
         yInfo("Client not available. Proceeding to pure imagination action performance ");
@@ -211,6 +211,7 @@ bool handProfilerThread::threadInit() {
         icart->registerEvent(*this);
     }
 
+    /*
     //initializing gazecontrollerclient
     printf("initialising gazeControllerClient \n");
     Property optionGaze;
@@ -242,6 +243,7 @@ bool handProfilerThread::threadInit() {
         igaze = 0;
     }
     yInfo("Success in initialising the gaze");
+    */
     
     string rootNameGui("");
     rootNameGui.append(getName("/gui:o"));
@@ -330,12 +332,9 @@ void handProfilerThread::setInputPortName(string InpPort) {
 }
 
 bool handProfilerThread::resetExecution(){
-    bool result = true;
-    //this->suspend();    
+    bool result = true;    
     Vector xZero(3);
     xZero[0] = -0.3; xZero[1] = -0.1; xZero[2] = 0.1;
-    //Vector od(4);
-    //od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514;
 
     if(0 != icart){
         Vector xInit(3);
@@ -371,7 +370,7 @@ bool handProfilerThread::resetExecution(){
         fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
         fprintf(stdout,"---------\n\n");
         
-        if (e_x > 0.1) {
+        if (e_x > 0.5) {
             yError("Error in resetting the initial position");
             //result = false;
         }
@@ -421,7 +420,7 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     }
     else if(!strcmp(type.c_str(),"TwoThird")) {   
         mp = factoryTwoThirdMotionProfile(finalB);
-        yDebug("returned from TT factory");
+        yDebug("returned from TwoThird factory");
         if (mp == NULL){
             yError("factory returned error");
             return false;    
@@ -446,8 +445,10 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     return result;    
 }
 
-void handProfilerThread::run() { 
+void handProfilerThread::run() {
+    
     if(!idle) {
+        yInfo("!idle");
         count++;
         if (firstIteration) {  
             t = t0;
@@ -458,10 +459,12 @@ void handProfilerThread::run() {
         else {
             t=Time::now();
         }
-        if(generateTarget()) {       
+        bool success = generateTarget();
+        yInfo("Success in generating the target");
+        if(success) {       
             // go to the target (in streaming)
             if(!simulation) {
-                icart->goToPose(xd,od);
+                icart-> goToPose(xd,od);
                 if(gazetracking && (count%GAZEINTERVAL==0)) {
                     igaze->lookAtFixationPoint(xd);
                 }
@@ -473,6 +476,7 @@ void handProfilerThread::run() {
             if(velPort.getOutputCount()) {
                 printVel();
             }
+            
             // some verbosity
             if(verbosity) {
                 printStatus();
