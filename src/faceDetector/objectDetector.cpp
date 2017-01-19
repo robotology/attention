@@ -47,7 +47,7 @@ public:
         ConstString nestedCascade; 
         if(!rf.check("cascade") /*|| !rf.check("nested-cascade")*/)
         {
-            fprintf(stderr, "Could not find the cascade file. \n");
+            yError("Could not find the cascade file.");
             return false;
         }
 

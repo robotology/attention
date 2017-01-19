@@ -41,7 +41,7 @@ typedef struct __circle_t {
 }circle_t;
 
 
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 class Detector
 {
@@ -97,7 +97,7 @@ private:
     double offsetY;
     bool withSaliency;
     std::vector<double> rotation;
-    yarp::dev::PolyDriver clientGaze;
+    yarp::dev::PolyDriver* clientGaze;
     yarp::dev::IGazeControl *iGaze;
     double prev_x;
     double prev_y;
