@@ -27,11 +27,13 @@ using namespace yarp::os;
 class DetectorModule: public RFModule
 {
    Detector* detector;
+   yarp::os::Port handlerPort; 
 
 public:
 
     DetectorModule()
     {
+        
         detector = new Detector();
     }
 
@@ -47,13 +49,26 @@ public:
         ConstString nestedCascade; 
         if(!rf.check("cascade") /*|| !rf.check("nested-cascade")*/)
         {
-            yError("Could not find the cascade file.");
+            yError("Could not find the cascade file in the parameters.");
             return false;
         }
 
         detector->strCascade = rf.getContextPath() + "/" + rf.find("cascade").asString();
         printf("cascade: %s\n", detector->strCascade.c_str());
         //detector->strNestedCascade= rf.find("nested-cascade").asString();
+
+        /* 
+        * attach a port of the same name as the module (not prefixed with a /) to the module
+        * so tha    t messages received from the port are redirected to the respond method
+        */  
+        std::string handlerPortName =  "/faceDetector/control/rpc";
+        //handlerPortName += getName();         // use getName() rather than a literal 
+
+        if (!handlerPort.open(handlerPortName.c_str())) {           
+            std::cout << getName() << ": Unable to open port " << handlerPortName << std::endl;  
+            return false;
+        }
+        attach(handlerPort);                  // attach to port
 
         return detector->open(rf);
     }
@@ -73,6 +88,7 @@ public:
     {
         fprintf(stderr, "Interrupting\n");
         detector->interrupt();
+        handlerPort.interrupt();
         return true;
     }
 
@@ -80,10 +96,39 @@ public:
     {
         fprintf(stderr, "Calling close\n");
         detector->close();
+        handlerPort.close();
         return true;
     }
 
-    //void respond();
+    bool respond(const Bottle& command, Bottle& reply) {
+    std::string helpMessage =  std::string(getName().c_str()) + 
+        " commands are: \n" +  
+        "help \n" + 
+        "quit \n";
+
+    reply.clear(); 
+
+    if (command.get(0).asString()=="quit") {
+        reply.addString("quitting");
+        return false;     
+    }
+    else if (command.get(0).asString()=="help") {
+        std::cout << helpMessage;
+        reply.addString("ok");
+    }
+    else if ((command.get(0).asString()=="sus") || (command.get(0).asString()=="\"sus\"")) {
+        
+        detector->suspend();
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString()=="res" || command.get(0).asString()=="\"res\"" ) {
+        detector->resume();
+        reply.addString("ok");
+    }
+    
+    return true;
+}
+
 
 };
 

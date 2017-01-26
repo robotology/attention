@@ -27,9 +27,19 @@ using namespace yarp::dev;
 using namespace std;
 using namespace cv;
 
+void Detector::suspend() {
+    idle = true;
+}
+
+void Detector::resume() {
+    idle = false;
+}
 
 void Detector::loop()
-{    
+{   
+
+  if (!idle){
+   
     ImageOf<PixelRgb> *image = imagePort.read();  // read an image
     if (image != NULL) 
     { 
@@ -78,7 +88,9 @@ void Detector::loop()
                         prev_y = posRoot[1];
                         prev_z = posRoot[2];
 
+                        //-------------------------------------
                         iGaze->lookAtFixationPoint(posRoot);
+                        //--------------------------------------
                         
                         Bottle &target=targetPort.prepare();
                         target.clear();
@@ -114,6 +126,7 @@ void Detector::loop()
             saliencyPort.write();
         }
     }
+  }
 }
 
 
@@ -222,6 +235,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
             rotation.push_back(rot->get(i).asDouble());
     }
 
+    //---------------------------------------------------------------
     yDebug("Opening the connection to the iKinGaze");
     Property optGaze; //("(device gazecontrollerclient)");
     optGaze.put("device","gazecontrollerclient");
@@ -249,6 +263,8 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     iGaze->blockNeckRoll(0.0);
     //iGaze->setSaccadesStatus(false);
     iGaze->setSaccadesMode(false);
+
+    //---------------------------------------------------------------
 
     
     if (rf.check("disable_saccade", Value(0)).asInt())
