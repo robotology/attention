@@ -46,6 +46,7 @@ protected:
     static yarp::sig::Vector xZero;  
 
     int count;                     // counter for execution cycles
+    int fileCounter;               // counter for file naming
     int inputWidth;                // width of the input image
     int inputHeight;               // height of the input image
     int outputWidth;               // width of the output image
@@ -67,7 +68,6 @@ protected:
     bool verbosity;                // flag indicating verbosity
     bool firstIteration;           // flag indicating the first iteration  
     bool idle;                     // flag indicating if the thread is in idle
-    bool simulation;               // flag indicating whether the movement is simulation or executed
     bool gazetracking;             // flag indicating whether the gaze should follow hand move
     
     yarp::sig::Vector x;           // vector representating the desired position for the hand
@@ -99,6 +99,12 @@ protected:
     yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                   // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  errPort;                                   // output port to plot event
     std::string name;                                                                   // rootname of all the ports opened by this thread
+    
+    std::ofstream myFile;                                                               // file in which to save joints values
+    enum States {none, simulation, execution, save};
+    States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file 
+    yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
+    yarp::os::Stamp* timestamp;
 
     // the event callback attached to the "motion-ongoing"
     virtual void cartesianEventCallback() {
@@ -217,6 +223,16 @@ public:
     *  @param reverse indicates whether the simulation is reverse C->B->A
     */
     bool startSimulation(const bool reverse);
+
+     /**
+    *  function that set parameters for saving in a file the value of joints
+    */
+    bool saveDeg();
+
+    /**
+    *  function that saves in a file the value of joints
+    */
+    void saveToFile();
 
     /**
      * function that perfoms downsampling (if necessary)

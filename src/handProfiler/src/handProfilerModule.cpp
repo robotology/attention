@@ -45,6 +45,7 @@
 #define COMMAND_VOCAB_PALM   VOCAB4('P','A','L','M')
 #define COMMAND_VOCAB_DOWN   VOCAB4('D','O','W','N')
 #define COMMAND_VOCAB_CURR   VOCAB4('C','U','R','R')
+#define COMMAND_VOCAB_SAVE   VOCAB4('S','A','V','E')        //save action joints in a file
 
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -62,6 +63,7 @@
 #define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
 #define COMMAND_VOCAB_TTL    VOCAB3('T','T','L')
 #define COMMAND_VOCAB_CUS    VOCAB3('C','U','S')
+#define COMMAND_VOCAB_DEG    VOCAB3('D','E','G')            //save action joints in a file
 
 
 
@@ -239,7 +241,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("GEN TTPL : generate NON two-third power law profile");
             reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
             reply.addString("GEN TTL : generate two-third power law profile");
-            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
+            reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.01 0.33)))");
 
             reply.addString("PALM CUS : to change the orientation of the palm ");
             reply.addString("PALM CUS (-0.076 -0.974 0.213 3.03) ");
@@ -423,6 +425,32 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
 
             default:
                 cout << "received an unknown request after a STAR" << endl;
+                break;
+            }
+            
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_SAVE:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()) {
+
+            case COMMAND_VOCAB_DEG:
+                {
+                    
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        
+                        rThread->saveDeg();
+                        
+                    }
+                    ok = true;
+                }
+            break;
+            
+            default:
+                cout << "received an unknown request" << endl;
                 break;
             }
             

@@ -31,7 +31,7 @@
 #define MAX_TORSO_YAW       40.0    // [deg]
 #define RATETHREAD          5       // [ms]
 #define TRAJTIME            0.5     // [s]
-#define GAZEINTERVAL        20 
+#define GAZEINTERVAL        20
 
 using namespace yarp::dev;
 using namespace yarp::os;
@@ -105,12 +105,14 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     count = 0;
     firstIteration = true; 
     idle = true;
-    simulation = true;
+    state = none;
+    fileCounter = 0;
+    timestamp = new yarp::os::Stamp(0,0);
     gazetracking = false;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
-    cartesianEventParameters.motionOngoingCheckPoint=0.2;       
+    cartesianEventParameters.motionOngoingCheckPoint=0.2;
 }
 
 
@@ -121,7 +123,9 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     count = 0;    
     firstIteration = true;
     idle = true;
-    simulation = true;
+    state = none;
+    fileCounter = 0;
+    timestamp = new Stamp(0,0);
     verbosity = true;
     gazetracking = false;
     // we wanna raise an event each time the arm is at 20%
@@ -142,8 +146,8 @@ bool handProfilerThread::threadInit() {
 
     /* open ports */ 
     Property option("(device cartesiancontrollerclient)");
-    option.put("remote","/icub/cartesianController/right_arm");
-    option.put("local","/handProfiler/right_arm");
+    option.put("remote","/icub/cartesianController/left_arm");
+    option.put("local","/handProfiler/left_arm");
 
     if (!client.open(option)) {
         yInfo("Client not available. Proceeding to pure imagination action performance ");
@@ -384,7 +388,7 @@ bool handProfilerThread::startExecution(const bool _reverse){
     //count = 0;
     //mp->setReverse(_reverse);
     idle = false;
-    simulation = false;
+    state = execution;
     firstIteration = true;
     t0 = Time::now();
 	return true;
@@ -394,7 +398,17 @@ bool handProfilerThread::startSimulation(const bool _reverse){
     //count = 0;
     //mp->setReverse(_reverse);
     idle = false;
-    simulation = true;
+    state = simulation;
+    firstIteration = true;
+    t0 = Time::now();
+	return true;
+}
+
+bool handProfilerThread::saveDeg(){                 //save to file
+    //count = 0;
+    //mp->setReverse(_reverse);
+    idle = false;
+    state = save;
     firstIteration = true;
     t0 = Time::now();
 	return true;
@@ -448,27 +462,42 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
 void handProfilerThread::run() {
     
     if(!idle) {
-        yInfo("!idle");
+        //yInfo("!idle");
         count++;
-        if (firstIteration) {  
+        if (firstIteration) {
+            yInfo("first iteration");  
             t = t0;
             mp->setT0(t0);
             firstIteration = false;
             displayProfile();
+            ostringstream convert;
+            convert << fileCounter;
+            string fileName = "action_" + convert.str() + ".txt";
+            myFile.open(fileName.c_str(), std::ofstream::out);   
         }
         else {
             t=Time::now();
         }
         bool success = generateTarget();
-        yInfo("Success in generating the target");
+        //yInfo("Success in generating the target");
         if(success) {       
             // go to the target (in streaming)
-            if(!simulation) {
-                icart-> goToPose(xd,od);
-                if(gazetracking && (count%GAZEINTERVAL==0)) {
-                    igaze->lookAtFixationPoint(xd);
-                }
+            switch (state) {
+                case execution:
+                    icart-> goToPose(xd,od);
+                    if(gazetracking && (count%GAZEINTERVAL==0)) {
+                        igaze->lookAtFixationPoint(xd);
+                    }
+                    break;
+                case simulation:
+                    
+                    break;
+                case save:
+                    saveToFile();
+                    break;
+                
             }
+    
             displayTarget();
             if(xdPort.getOutputCount()) {
                 printXd();
@@ -480,11 +509,16 @@ void handProfilerThread::run() {
             // some verbosity
             if(verbosity) {
                 printStatus();
-            }
+            }   
+        }else if (!success && myFile.is_open()){
+            yDebug("file saved");
+            fileCounter++;
+            myFile.close();
         } 
         double tend = Time::now();
         double diff = (tend-t) * 1000;
         //yInfo("diff=%f [ms]", diff);
+
     }
 }
 
@@ -568,8 +602,26 @@ bool handProfilerThread::generateTarget() {
     //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
     //od[0] = -0.43; od[1] = -0.02; od[2] = -0.90; od[3] = 2.98;
     //od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
+    
     return true;
 }
+
+void handProfilerThread::saveToFile(){                 //save to file
+    icart->askForPose(xd, od, xd, od, jointsToSave);
+    timestamp->update();        
+    if (myFile.is_open()){
+        for(int i=0; i<10; i++){
+            myFile << jointsToSave[i] << " ";
+        }
+        myFile.precision(13);
+        myFile << timestamp->getTime();
+        myFile << "\n";
+        myFile.precision(8);
+    }
+    else cout << "Unable to open file";
+}
+
+
 void handProfilerThread::limitTorsoYaw() {
     int axis=1; // yaw joint
     double min, max;
@@ -687,7 +739,7 @@ void handProfilerThread::displayProfile() {
 
 void handProfilerThread::displayTarget() { 
     int r, g, b;
-    if(simulation) {
+    if(state == simulation) {
         r =255; g =255; b = 0;        
     }
     else {
