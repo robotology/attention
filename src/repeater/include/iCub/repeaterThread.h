@@ -35,7 +35,6 @@
 #include <time.h>
 #include <cv.h>
 
-
 class inputCBPort : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > {
 
 public:
@@ -67,6 +66,10 @@ private:
     int deltaSat, gainSat;
     int deltaHue, gainHue;
     int deltaBri, gainBri;
+    int idxHue, valueHue;     
+    int idxSat, valueSat;     
+    int idxBri, valueBri;     
+
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
