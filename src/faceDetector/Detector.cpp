@@ -223,7 +223,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     yDebug("Opening the Detector");
     eye = rf.check("eye", Value("left")).asString().c_str();
     faceExpression = rf.check("expression", Value("ang")).asString().c_str();
-    eyeDist = fabs(rf.check("eyeDist", Value(0.3)).asDouble());
+    eyeDist = fabs(rf.check("eyeDist", Value(0.7)).asDouble());
 	certainty = rf.check("certainty", Value(1.0)).asInt();
     offsetZ =  rf.check("offset_z", Value(-0.05)).asDouble();
     offsetY =  rf.check("offset_y", Value(0.0)).asDouble();
