@@ -124,7 +124,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     firstIteration = true;
     idle = true;
     state = none;
-    fileCounter = 0;
+    fileCounter = 10;
     timestamp = new Stamp(0,0);
     verbosity = true;
     gazetracking = false;
@@ -145,11 +145,11 @@ bool handProfilerThread::threadInit() {
     
 
     /* open ports */ 
-    Property option("(device cartesiancontrollerclient)");
-    option.put("remote","/icub/cartesianController/left_arm");
-    option.put("local","/handProfiler/left_arm");
+    Property optionCartesian("(device cartesiancontrollerclient)");
+    optionCartesian.put("remote","/icub/cartesianController/left_arm");
+    optionCartesian.put("local","/handProfiler/left_arm");
 
-    if (!client.open(option)) {
+    if (!client.open(optionCartesian)) {
         yInfo("Client not available. Proceeding to pure imagination action performance ");
         icart = 0;
     }
@@ -215,6 +215,29 @@ bool handProfilerThread::threadInit() {
         icart->registerEvent(*this);
     }
 
+    //// initialize joint movement
+    Property optionJoints;
+    optionJoints.put("device", "remote_controlboard");
+    optionJoints.put("local", "/handProfiler/joints");                 //local port names
+    optionJoints.put("remote", "/icub/left_arm");                        //where we connect to
+
+    if (!robotDevice.open(optionJoints)) {
+        printf("Device not available.  Here are the known devices:\n");
+        printf("%s", Drivers::factory().toString().c_str());
+    }
+
+    bool ok;
+    ok = robotDevice.view(pos);
+    ok = ok && robotDevice.view(encs);
+    ok = ok && robotDevice.view(ictrl);
+    ok = ok && robotDevice.view(idir);
+
+    if (!ok) {
+        yError("Problems acquiring interfaces\n");
+        return 0;
+    }
+    
+    
     /*
     //initializing gazecontrollerclient
     printf("initialising gazeControllerClient \n");
@@ -414,6 +437,18 @@ bool handProfilerThread::saveDeg(){                 //save to file
 	return true;
 }
 
+bool handProfilerThread::startDeg(){                 //MOVE FROM file
+    //count = 0;
+    //mp->setReverse(_reverse);
+    idle = false;
+    state = file;
+    firstIteration = false;
+    t0 = Time::now();
+	return true;
+}
+
+
+
 bool handProfilerThread::factory(const string type, const Bottle finalB){
     
     if (!strcmp(type.c_str(),"CVP")) {   
@@ -460,64 +495,84 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
 }
 
 void handProfilerThread::run() {
-    
+
     if(!idle) {
         //yInfo("!idle");
         count++;
         if (firstIteration) {
-            yInfo("first iteration");  
+            yInfo("first iteration");
             t = t0;
             mp->setT0(t0);
             firstIteration = false;
             displayProfile();
+            
+            //-----file opening to save -------
             ostringstream convert;
             convert << fileCounter;
             string fileName = "action_" + convert.str() + ".txt";
-            myFile.open(fileName.c_str(), std::ofstream::out);   
+            outputFile.open(fileName.c_str(), std::ofstream::out);
+            //-------------------------------
         }
         else {
             t=Time::now();
         }
-        bool success = generateTarget();
-        //yInfo("Success in generating the target");
-        if(success) {       
-            // go to the target (in streaming)
-            switch (state) {
-                case execution:
+        
+        bool success;
+        switch (state) {
+            case execution:
+                success = generateTarget();
+                if(success){
                     icart-> goToPose(xd,od);
                     if(gazetracking && (count%GAZEINTERVAL==0)) {
                         igaze->lookAtFixationPoint(xd);
                     }
-                    break;
-                case simulation:
-                    
-                    break;
-                case save:
-                    saveToFile();
-                    break;
-                
-            }
-    
-            displayTarget();
-            if(xdPort.getOutputCount()) {
-                printXd();
-            }
-            if(velPort.getOutputCount()) {
-                printVel();
-            }
+                }else{
+                    state = none;
+                    idle = true;
+                }
+                break;
+            case simulation:
+                success = generateTarget();
+                if(!success){
+                    state = none;
+                    idle = true;
+                }
+                break;
+            case save:
+                success = generateTarget();
+                saveToFile();
+                if(!success && outputFile.is_open()){
+                    yInfo("file saved");
+                    fileCounter++;
+                    outputFile.close();
+                    state = none;
+                    idle = true;
+                }
+                break;
+            case file:
+                yInfo("starting movement from file");
+                startFromFile();
+                break;
+        }
+
+        displayTarget();
+        if(xdPort.getOutputCount()) {
+            printXd();
+        }
+        if(velPort.getOutputCount()) {
+            printVel();
+        }
+        
+        // some verbosity
+        if(verbosity) {
+            printStatus();
+        }   
             
-            // some verbosity
-            if(verbosity) {
-                printStatus();
-            }   
-        }else if (!success && myFile.is_open()){
-            yDebug("file saved");
-            fileCounter++;
-            myFile.close();
-        } 
         double tend = Time::now();
         double diff = (tend-t) * 1000;
         //yInfo("diff=%f [ms]", diff);
+
+        
 
     }
 }
@@ -582,6 +637,7 @@ bool handProfilerThread::generateTarget() {
     //xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0)); 
 
     Vector* _xdpointer = mp->compute(t);
+
     //Vector _xd;
     if(_xdpointer == NULL) {
         //yInfo("STOP");
@@ -589,11 +645,10 @@ bool handProfilerThread::generateTarget() {
         //_xd[0] = 0.0; _xd[1] = 0.0; _xd[2] = 0.0;
         return false;
     }
- 
+
     xd = *_xdpointer;
     //printf("Error %f %f %f \n", xd[0] -_xd[0], xd[1] - _xd[1], xd[2] - _xd[2]);
          
-            
     // we keep the orientation of the left arm constant:
     // we want the middle finger to point forward (end-effector x-axis)
     // with the palm turned down (end-effector y-axis points leftward);
@@ -607,18 +662,115 @@ bool handProfilerThread::generateTarget() {
 }
 
 void handProfilerThread::saveToFile(){                 //save to file
+
     icart->askForPose(xd, od, xd, od, jointsToSave);
     timestamp->update();        
-    if (myFile.is_open()){
+    if (outputFile.is_open()){
         for(int i=0; i<10; i++){
-            myFile << jointsToSave[i] << " ";
+            outputFile << jointsToSave[i] << " ";
         }
-        myFile.precision(13);
-        myFile << timestamp->getTime();
-        myFile << "\n";
-        myFile.precision(8);
+        outputFile.precision(13);
+        outputFile << timestamp->getTime();
+        outputFile << "\n";
+        outputFile.precision(8);
     }
     else cout << "Unable to open file";
+}
+
+void handProfilerThread::startFromFile(){                 //move from file
+
+    int nj=0;
+    idir->getAxes(&nj);
+    yDebug("njoints = %d", nj);
+    Vector encoders;
+    Vector command;
+    Vector dirPositions;
+    Vector tmp;
+    encoders.resize(nj);
+    dirPositions.resize(nj);
+    tmp.resize(nj);
+    command.resize(nj);
+    bool first = true;
+    bool done = false;
+    
+    encs->getEncoders(encoders.data());
+    for(int i = 0; i<nj; i++){
+        yInfo("joint %d: %f", i, encoders[i]);
+    }
+    
+    for (int i = 0; i < nj; i++) {
+        tmp[i] = 50.0;
+        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
+    }
+    
+    encs->getEncoders(encoders.data());
+    for(int i = 0; i<nj; i++){
+        yError("joint %d: %f", i, encoders[i]);
+    }
+    
+    idir->getRefPositions(dirPositions.data());
+    for(int i = 0; i<nj; i++){
+        yDebug("joint %d: %f", i, dirPositions[i]);
+    }
+
+    //idir->setPositions(dirPositions.data());
+    
+    /*pos->setRefAccelerations(tmp.data());
+
+    for (int i = 0; i < nj; i++) {
+        tmp[i] = 20.0;
+        pos->setRefSpeed(i, tmp[i]);
+    }
+
+    yInfo("waiting for encoders");
+    while(!encs->getEncoders(encoders.data())){
+        Time::delay(0.1);
+        printf(".");
+    }
+    printf("\n;");
+
+    command=encoders;
+
+    int playCount = 0;
+    double playJoints[11];
+    inputFile.open("action_10.txt");
+    yDebug("opening file");
+    //Time::delay(1.0);
+    if(inputFile.is_open()){
+        done=false;
+        double jointValue = 0.0;
+        while(inputFile >> jointValue){
+            done = false;
+            playJoints[playCount%11]=jointValue;
+            playCount++;
+            if(playCount%11 == 0){
+                for(int i=3;i<10;i++){
+                    command[i-3]=playJoints[i];
+                }
+                //yDebug("moving");
+
+                pos->positionMove(command.data());
+                //Time::delay(playJoints[11]);
+                //yInfo("time = %f", playJoints[11] );
+                if(playCount == 11){
+                    pos->checkMotionDone(&done);
+                    while(!done){
+                        pos->checkMotionDone(&done);
+                        yError("delay");
+                        Time::delay(0.01);
+                    }
+                }else{Time::delay(0.3);}
+
+            }
+        }
+        yDebug("finished movement");
+        inputFile.close();
+    }*/
+   
+    
+    state = none;
+    idle = true;
+
 }
 
 

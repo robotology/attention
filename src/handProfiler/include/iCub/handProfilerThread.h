@@ -79,6 +79,11 @@ protected:
     yarp::sig::Vector qdhat;       // vector representating the desired orientation for the hand
     
     yarp::dev::PolyDriver client;
+    yarp::dev::PolyDriver robotDevice;
+    yarp::dev::IPositionControl2 *pos;
+    yarp::dev::IPositionDirect *idir;
+    yarp::dev::IControlMode2 *ictrl;
+    yarp::dev::IEncoders *encs;
     yarp::dev::ICartesianControl *icart;
     yarp::dev::CartesianEvent *ce;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
@@ -96,12 +101,13 @@ protected:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
-    yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                   // output port to plot event
-    yarp::os::BufferedPort<yarp::os::Bottle>  errPort;                                   // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                  // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  errPort;                                  // output port to plot event
     std::string name;                                                                   // rootname of all the ports opened by this thread
-    
-    std::ofstream myFile;                                                               // file in which to save joints values
-    enum States {none, simulation, execution, save};
+        
+    std::ofstream outputFile;                                                           // file in which to save joints values
+    std::ifstream inputFile;                                                            // file to read joint positions from
+    enum States {none, simulation, execution, save, file};
     States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file 
     yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
     yarp::os::Stamp* timestamp;
@@ -233,6 +239,16 @@ public:
     *  function that saves in a file the value of joints
     */
     void saveToFile();
+
+    /**
+    *  function that set parameters for starting movement from a file with joint values
+    */
+    bool startDeg();
+
+    /**
+    *  function that starts movement from a file with joint values
+    */
+    void startFromFile();
 
     /**
      * function that perfoms downsampling (if necessary)

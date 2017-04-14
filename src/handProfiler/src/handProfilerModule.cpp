@@ -46,6 +46,7 @@
 #define COMMAND_VOCAB_DOWN   VOCAB4('D','O','W','N')
 #define COMMAND_VOCAB_CURR   VOCAB4('C','U','R','R')
 #define COMMAND_VOCAB_SAVE   VOCAB4('S','A','V','E')        //save action joints in a file
+#define COMMAND_VOCAB_FILE   VOCAB4('F','I','L','E')        //start movement from joints file
 
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -132,13 +133,13 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
                            Value(240), 
                            "output image height (int)").asInt();
     int  yawDof           = rf.check("yawDof", 
-                                     Value(1), 
+                                     Value(0), 
                                      "value of the yawDofl(int)").asInt();
     int  rollDof          = rf.check("rollDof", 
                                      Value(0), 
                                      "value of the rollDof(int)").asInt();
     int  pitchDof         = rf.check("pitchDof", 
-                                     Value(1), 
+                                     Value(0), 
                                      "value of the pitchRoll(int)").asInt();
 
     bool gazeTracking     = rf.check("gazeTracking");
@@ -420,7 +421,16 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     }
                     ok = true;
                 }
-                break;
+            break;
+            case COMMAND_VOCAB_FILE:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->startDeg();    
+                    }
+                    ok = true;
+                }
+            break;
                
 
             default:
