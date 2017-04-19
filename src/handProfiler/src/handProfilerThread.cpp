@@ -672,7 +672,7 @@ void handProfilerThread::saveToFile(){                 //save to file
         outputFile.precision(13);
         outputFile << timestamp->getTime();
         outputFile << "\n";
-        outputFile.precision(8);
+        outputFile.precision(13);
     }
     else cout << "Unable to open file";
 }
@@ -684,14 +684,14 @@ void handProfilerThread::startFromFile(){                 //move from file
     yDebug("njoints = %d", nj);
     Vector encoders;
     Vector command;
-    Vector dirPositions;
     Vector tmp;
     encoders.resize(nj);
-    dirPositions.resize(nj);
     tmp.resize(nj);
     command.resize(nj);
     bool first = true;
     bool done = false;
+    double executionTime = 0;
+    double previousTime = 0;
     
     encs->getEncoders(encoders.data());
     for(int i = 0; i<nj; i++){
@@ -700,7 +700,7 @@ void handProfilerThread::startFromFile(){                 //move from file
     
     for (int i = 0; i < nj; i++) {
         tmp[i] = 50.0;
-        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
+        ictrl->setControlMode(i, VOCAB_CM_POSITION);
     }
     
     encs->getEncoders(encoders.data());
@@ -708,14 +708,9 @@ void handProfilerThread::startFromFile(){                 //move from file
         yError("joint %d: %f", i, encoders[i]);
     }
     
-    idir->getRefPositions(dirPositions.data());
-    for(int i = 0; i<nj; i++){
-        yDebug("joint %d: %f", i, dirPositions[i]);
-    }
-
     //idir->setPositions(dirPositions.data());
     
-    /*pos->setRefAccelerations(tmp.data());
+    //pos->setRefAccelerations(tmp.data());
 
     for (int i = 0; i < nj; i++) {
         tmp[i] = 20.0;
@@ -747,30 +742,38 @@ void handProfilerThread::startFromFile(){                 //move from file
                 for(int i=3;i<10;i++){
                     command[i-3]=playJoints[i];
                 }
-                //yDebug("moving");
-
-                pos->positionMove(command.data());
-                //Time::delay(playJoints[11]);
-                //yInfo("time = %f", playJoints[11] );
-                if(playCount == 11){
+                if(first){
+                    first = false;                    
+                    previousTime = playJoints[10];
+                    /*pos->positionMove(command.data());
                     pos->checkMotionDone(&done);
                     while(!done){
                         pos->checkMotionDone(&done);
                         yError("delay");
-                        Time::delay(0.01);
+                        Time::delay(1.0);
+                    }*/
+                    for (int i = 0; i < nj; i++) {
+                        tmp[i] = 50.0;
+                        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
                     }
-                }else{Time::delay(0.3);}
-
+                }else{
+                    executionTime = playJoints[10]-previousTime;
+                    previousTime = playJoints[10];
+                    if(executionTime == 0.0){executionTime = 0.03;}
+                    //yWarning("Time: %f", executionTime);
+                    idir->setPositions(command.data());
+                    Time::delay(executionTime);
+                }
             }
         }
+            printXd();
         yDebug("finished movement");
         inputFile.close();
-    }*/
-   
+    }
     
+
     state = none;
     idle = true;
-
 }
 
 
