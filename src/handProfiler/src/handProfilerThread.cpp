@@ -231,6 +231,7 @@ bool handProfilerThread::threadInit() {
     ok = ok && robotDevice.view(encs);
     ok = ok && robotDevice.view(ictrl);
     ok = ok && robotDevice.view(idir);
+    ok = ok && robotDevice.view(motorEncs);
 
     if (!ok) {
         yError("Problems acquiring interfaces\n");
@@ -682,10 +683,14 @@ void handProfilerThread::startFromFile(){                 //move from file
     int nj=0;
     idir->getAxes(&nj);
     yDebug("njoints = %d", nj);
-    Vector encoders;
+    Vector encoders, motorEncoders;
     Vector command;
+    Vector dirPositions, posPositions;
     Vector tmp;
+    motorEncoders.resize(nj);
     encoders.resize(nj);
+    dirPositions.resize(nj);
+    posPositions.resize(nj);
     tmp.resize(nj);
     command.resize(nj);
     bool first = true;
@@ -745,16 +750,16 @@ void handProfilerThread::startFromFile(){                 //move from file
                 if(first){
                     first = false;                    
                     previousTime = playJoints[10];
-                    /*pos->positionMove(command.data());
+                    pos->positionMove(command.data());
                     pos->checkMotionDone(&done);
                     while(!done){
                         pos->checkMotionDone(&done);
                         yError("delay");
                         Time::delay(1.0);
-                    }*/
+                    }
                     for (int i = 0; i < nj; i++) {
                         tmp[i] = 50.0;
-                        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
+                        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);   
                     }
                 }else{
                     executionTime = playJoints[10]-previousTime;
@@ -762,11 +767,18 @@ void handProfilerThread::startFromFile(){                 //move from file
                     if(executionTime == 0.0){executionTime = 0.03;}
                     //yWarning("Time: %f", executionTime);
                     idir->setPositions(command.data());
+                    idir->getRefPositions(dirPositions.data());
+                    encs->getEncoders(encoders.data());
+                    motorEncs->getMotorEncoders(motorEncoders.data());
+                    //pos->getTargetPositions(posPositions.data());
+                    for(int i = 0; i<7; i++){
+                        yInfo("joint %d: %f --- %f --- %f", i, encoders[i], dirPositions[i], motorEncoders[i]);
+                    }
                     Time::delay(executionTime);
                 }
             }
         }
-            printXd();
+
         yDebug("finished movement");
         inputFile.close();
     }

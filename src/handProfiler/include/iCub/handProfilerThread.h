@@ -80,10 +80,11 @@ protected:
     
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
-    yarp::dev::IPositionControl2 *pos;
+    yarp::dev::IPositionControl *pos;
     yarp::dev::IPositionDirect *idir;
     yarp::dev::IControlMode2 *ictrl;
     yarp::dev::IEncoders *encs;
+    yarp::dev::IMotorEncoders *motorEncs;
     yarp::dev::ICartesianControl *icart;
     yarp::dev::CartesianEvent *ce;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
