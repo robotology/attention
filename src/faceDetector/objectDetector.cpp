@@ -46,14 +46,21 @@ public:
     bool configure(ResourceFinder &rf)
     {
         ConstString cascade;
-        ConstString nestedCascade; 
-        if(!rf.check("cascade") /*|| !rf.check("nested-cascade")*/)
-        {
-            yError("Could not find the cascade file in the parameters.");
-            return false;
-        }
+        ConstString nestedCascade;
+        ConstString nameOfFile =  rf.check("cascade", Value("haarcascade_frontalface_alt.xml")).asString().c_str(); 
+        yInfo("name of file: %s", nameOfFile.c_str());
+         
+        ConstString filePath = rf.findPath(nameOfFile.c_str()).c_str();
 
-        detector->strCascade = rf.getContextPath() + "/" + rf.find("cascade").asString();
+        if(filePath == "") /*|| !rf.check("nested-cascade")*/
+        {        
+           yError("Could not find the cascade file in the parameters.");
+           return false;
+        }
+        //detector->strCascade = rf.find("cascade").asString();
+       
+        yInfo("Using cascade file: %s", nameOfFile.c_str());
+        detector->strCascade = filePath;
         printf("cascade: %s\n", detector->strCascade.c_str());
         //detector->strNestedCascade= rf.find("nested-cascade").asString();
 

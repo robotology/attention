@@ -224,10 +224,19 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     eye = rf.check("eye", Value("left")).asString().c_str();
     faceExpression = rf.check("expression", Value("ang")).asString().c_str();
     eyeDist = fabs(rf.check("eyeDist", Value(0.7)).asDouble());
-	certainty = rf.check("certainty", Value(1.0)).asInt();
+    certainty = rf.check("certainty", Value(1.0)).asInt();
     offsetZ =  rf.check("offset_z", Value(-0.05)).asDouble();
     offsetY =  rf.check("offset_y", Value(0.0)).asDouble();
     withSaliency = rf.check("enable_saliency", Value(0)).asInt();
+
+    yInfo("eye: %s", eye);
+    yInfo("faceExpression: %s", faceExpression);
+    yInfo("eyeDistance: %d", eyeDist);
+    yInfo("certainty: %d", certainty);
+    yInfo("offsetZ: %d", offsetZ);
+    yInfo("offsetY: %d", offsetY);
+    yInfo("withSaliency: %d", withSaliency);
+    
 
     if(Bottle *rot=rf.find("rotation").asList())
     {
