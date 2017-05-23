@@ -48,7 +48,7 @@ MotionProfile* factoryCVMotionProfile(const Bottle &param){
         return NULL;
     }
     else {
-        return static_cast<MotionProfile*>(cvmp);            
+        return static_cast<MotionProfile*>(cvmp);
     }
 }
 
@@ -60,7 +60,7 @@ MotionProfile* factoryMJMotionProfile(const Bottle &param){
         return NULL;
     }
     else {
-        return static_cast<MotionProfile*>(mjmp);            
+        return static_cast<MotionProfile*>(mjmp);
     }
 }
 
@@ -77,7 +77,7 @@ MotionProfile* factoryTTPLMotionProfile(const Bottle &param){
         return NULL;
     }
     else {
-        return static_cast<MotionProfile*>(ttplmp);            
+        return static_cast<MotionProfile*>(ttplmp);
     }
 }
 
@@ -94,7 +94,7 @@ MotionProfile* factoryTwoThirdMotionProfile(const Bottle &param){
         return NULL;
     }
     else {
-        return static_cast<MotionProfile*>(ttplmp);            
+        return static_cast<MotionProfile*>(ttplmp);
     }
 }
 //*************************************************************************************************//
@@ -103,12 +103,13 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     robot = "icub";
     icart = 0;
     count = 0;
-    firstIteration = true; 
+    firstIteration = true;
     idle = true;
     state = none;
     fileCounter = 0;
     timestamp = new yarp::os::Stamp(0,0);
     gazetracking = false;
+    saveOn = false;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -120,7 +121,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     robot = _robot;
     configFile = _configFile;
     icart = 0;
-    count = 0;    
+    count = 0;
     firstIteration = true;
     idle = true;
     state = none;
@@ -128,6 +129,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     timestamp = new Stamp(0,0);
     verbosity = true;
     gazetracking = false;
+    saveOn = false;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -142,9 +144,9 @@ handProfilerThread::~handProfilerThread() {
 
 
 bool handProfilerThread::threadInit() {
-    
 
-    /* open ports */ 
+
+    /* open ports */
     Property optionCartesian("(device cartesiancontrollerclient)");
     string str("/");
     str.append(robot);
@@ -161,13 +163,13 @@ bool handProfilerThread::threadInit() {
         yInfo("preparing the icart");
         // open the view
         client.view(icart);
-        
+
         // latch the controller context in order to preserve
         // it after closing the module
         // the context contains the dofs status, the tracking mode,
         // the resting positions, the limits and so on.
         icart->storeContext(&startup_context_id);
-        
+
         // set trajectory time
         icart->setTrajTime(1.0);
 
@@ -178,28 +180,28 @@ bool handProfilerThread::threadInit() {
 
         // enable the torso yaw and pitch
         // disable the torso roll
-        if(yawDof == 1) { 
-            yInfo("yawDof = ON");            
+        if(yawDof == 1) {
+            yInfo("yawDof = ON");
             newDof[0] = yawDof;  //1;
         }
         else {
             yInfo("yawDof = OFF");
             newDof[0] = 0;
         }
-        if(rollDof == 1) { 
-            yInfo("rollDof = ON");            
+        if(rollDof == 1) {
+            yInfo("rollDof = ON");
             newDof[1]=rollDof; //0;
         }
         else {
-            yInfo("rollDof = OFF");            
+            yInfo("rollDof = OFF");
             newDof[1] = 0; //0;
         }
-        if(pitchDof == 1) { 
-            yInfo("pitchDof = ON");            
+        if(pitchDof == 1) {
+            yInfo("pitchDof = ON");
             newDof[2]=pitchDof;//1;
         }
         else {
-            yInfo("pitchDof = OFF");            
+            yInfo("pitchDof = OFF");
             newDof[2] = 0; //1
         }
 
@@ -241,8 +243,8 @@ bool handProfilerThread::threadInit() {
         yError("Problems acquiring interfaces\n");
         return 0;
     }
-    
-    
+
+
     /*
     //initializing gazecontrollerclient
     printf("initialising gazeControllerClient \n");
@@ -276,7 +278,7 @@ bool handProfilerThread::threadInit() {
     }
     yInfo("Success in initialising the gaze");
     */
-    
+
     string rootNameGui("");
     rootNameGui.append(getName("/gui:o"));
     if(!guiPort.open(rootNameGui.c_str())) {
@@ -304,11 +306,11 @@ bool handProfilerThread::threadInit() {
 
     t0 = Time::now();
     //initialization of the relevant vectors
-    //od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514; 
-    od[0] = -0.076; od[1] = -0.974; od[2] = 0.213; od[3] = 3.03; 
+    //od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514;
+    od[0] = -0.076; od[1] = -0.974; od[2] = 0.213; od[3] = 3.03;
 
     yInfo("handProfiler thread correctly started");
-    
+
     return true;
 }
 
@@ -331,7 +333,7 @@ void  handProfilerThread::rotAxisX(const double& angle) {
     Cnew = mp->getC();
 
     // multiplying the vector by the matrix
-    
+
 
     mp->setA(Anew);
     mp->setB(Bnew);
@@ -356,15 +358,15 @@ void  handProfilerThread::rotAxisZ(const double& angle) {
     Cnew = mp->getC();
     mp->setA(Anew);
     mp->setB(Bnew);
-    mp->setC(Cnew);  
+    mp->setC(Cnew);
 }
 
 void handProfilerThread::setInputPortName(string InpPort) {
-    
+
 }
 
 bool handProfilerThread::resetExecution(){
-    bool result = true;    
+    bool result = true;
     Vector xZero(3);
     xZero[0] = -0.3; xZero[1] = -0.1; xZero[2] = 0.1;
 
@@ -378,7 +380,7 @@ bool handProfilerThread::resetExecution(){
         if(gazetracking) {
             igaze->lookAtFixationPoint(xInit);
         }
-        
+
         // we get the current arm pose in the
         // operational space
         icart->getPose(x,o);
@@ -401,7 +403,7 @@ bool handProfilerThread::resetExecution(){
         fprintf(stdout,"norm(e_x)   [m] = %g\n",e_x);
         fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
         fprintf(stdout,"---------\n\n");
-        
+
         if (e_x > 0.5) {
             yError("Error in resetting the initial position");
             //result = false;
@@ -436,8 +438,9 @@ bool handProfilerThread::saveDeg(){                 //save to file
     //count = 0;
     //mp->setReverse(_reverse);
     idle = false;
-    state = save;
+    //state = save;
     firstIteration = true;
+    saveOn = true;
     t0 = Time::now();
 	return true;
 }
@@ -455,48 +458,48 @@ bool handProfilerThread::startDeg(){                 //MOVE FROM file
 
 
 bool handProfilerThread::factory(const string type, const Bottle finalB){
-    
-    if (!strcmp(type.c_str(),"CVP")) {   
+
+    if (!strcmp(type.c_str(),"CVP")) {
         mp = factoryCVMotionProfile(finalB);
         yDebug("returned from CVP factory");
         if (mp == NULL){
             yError("factory returned error");
-            return false;    
-        }  
+            return false;
+        }
     }
-    else if(!strcmp(type.c_str(),"TTPL")) {   
+    else if(!strcmp(type.c_str(),"TTPL")) {
         mp = factoryTTPLMotionProfile(finalB);
         yDebug("returned from TTPL factory");
         if (mp == NULL){
             yError("factory returned error");
-            return false;    
-        }  
+            return false;
+        }
     }
-    else if(!strcmp(type.c_str(),"TwoThird")) {   
+    else if(!strcmp(type.c_str(),"TwoThird")) {
         mp = factoryTwoThirdMotionProfile(finalB);
         yDebug("returned from TwoThird factory");
         if (mp == NULL){
             yError("factory returned error");
-            return false;    
-        }  
+            return false;
+        }
     }
-    else if(!strcmp(type.c_str(),"MJP")) { 
+    else if(!strcmp(type.c_str(),"MJP")) {
         yDebug("Entering in factory")  ;
         mp = factoryMJMotionProfile(finalB);
         yDebug("returned from MJP factory");
         if (mp == NULL){
             yError("factory returned error");
-            return false;    
-        }  
+            return false;
+        }
     }
     else{
         yError("Error.Type is unknown.");
         return false;
     }
-    
+
     bool result = true;
     result = result & resetExecution();
-    return result;    
+    return result;
 }
 
 void handProfilerThread::run() {
@@ -510,7 +513,7 @@ void handProfilerThread::run() {
             mp->setT0(t0);
             firstIteration = false;
             displayProfile();
-            
+
             //-----file opening to save -------
             ostringstream convert;
             convert << fileCounter;
@@ -521,17 +524,24 @@ void handProfilerThread::run() {
         else {
             t=Time::now();
         }
-        
+
         bool success;
         switch (state) {
             case execution:
                 success = generateTarget();
                 if(success){
                     icart-> goToPose(xd,od);
+                    if(saveOn) saveToFile();
                     if(gazetracking && (count%GAZEINTERVAL==0)) {
                         igaze->lookAtFixationPoint(xd);
                     }
                 }else{
+                    if(outputFile.is_open()){
+                      yInfo("file saved");
+                      fileCounter++;
+                      outputFile.close();
+                    }
+                    saveOn = false;
                     state = none;
                     idle = true;
                 }
@@ -559,8 +569,8 @@ void handProfilerThread::run() {
                 startFromFile();
                 break;
         }
-    
-        
+
+
         displayTarget();
         if(xdPort.getOutputCount()) {
             printXd();
@@ -568,17 +578,17 @@ void handProfilerThread::run() {
         if(velPort.getOutputCount()) {
             printVel();
         }
-        
+
         // some verbosity
         if(verbosity) {
             //printStatus();
-        }   
+        }
 
         double tend = Time::now();
         double diff = (tend-t) * 1000;
         //yInfo("diff=%f [ms]", diff);
 
-        
+
 
     }
 }
@@ -634,13 +644,13 @@ bool handProfilerThread::setOrientation(const Vector vectorOrientation) {
     return false;
 }
 
-bool handProfilerThread::generateTarget() {   
+bool handProfilerThread::generateTarget() {
     // translational target part: a circular trajectory
     // in the yz plane centered in [-0.3,-0.1,0.1] with radius=0.1 m
     // and frequency 0.1 Hz (1/10 of 2PI per second)
     //xd[0]=-0.3;
     ///xd[1]=-0.1+0.1*cos(2.0*M_PI*0.1*(t-t0));
-    //xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0)); 
+    //xd[2]=+0.1+0.1*sin(2.0*M_PI*0.1*(t-t0));
 
     Vector* _xdpointer = mp->compute(t);
 
@@ -654,7 +664,7 @@ bool handProfilerThread::generateTarget() {
 
     xd = *_xdpointer;
     //printf("Error %f %f %f \n", xd[0] -_xd[0], xd[1] - _xd[1], xd[2] - _xd[2]);
-         
+
     // we keep the orientation of the left arm constant:
     // we want the middle finger to point forward (end-effector x-axis)
     // with the palm turned down (end-effector y-axis points leftward);
@@ -663,14 +673,14 @@ bool handProfilerThread::generateTarget() {
     //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
     //od[0] = -0.43; od[1] = -0.02; od[2] = -0.90; od[3] = 2.98;
     //od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
-    
+
     return true;
 }
 
 void handProfilerThread::saveToFile_old(){                 //save to file
 
     icart->askForPose(xd, od, xd, od, jointsToSave);
-    timestamp->update();        
+    timestamp->update();
     if (outputFile.is_open()){
         for(int i=0; i<10; i++){
             outputFile << jointsToSave[i] << " ";
@@ -684,11 +694,10 @@ void handProfilerThread::saveToFile_old(){                 //save to file
 }
 
 void handProfilerThread::saveToFile(){                 //save to file
-
-    icart->askForPose(xd, od, xd, od, jointsToSave);
-    timestamp->update();        
+    encs->getEncoders(jointsToSave.data());
+    timestamp->update();
     if (outputFile.is_open()){
-        for(int i=0; i<10; i++){
+        for(int i=0; i<7; i++){
             outputFile << jointsToSave[i] << " ";
         }
         outputFile.precision(13);
@@ -704,7 +713,7 @@ void handProfilerThread::startFromFile(){                 //move from file
     int nj=0;
     idir->getAxes(&nj);
     yDebug("njoints = %d", nj);
-    Vector encoders, motorEncoders;
+    Vector encoders;
     Vector command;
     Vector dirPositions, posPositions;
     Vector tmp;
@@ -718,24 +727,24 @@ void handProfilerThread::startFromFile(){                 //move from file
     bool done = false;
     double executionTime = 0;
     double previousTime = 0;
-    
+
     encs->getEncoders(encoders.data());
     for(int i = 0; i<nj; i++){
         yInfo("joint %d: %f", i, encoders[i]);
     }
-    
+
     for (int i = 0; i < nj; i++) {
         tmp[i] = 10.0;
         ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
     }
-    
+
     /*encs->getEncoders(encoders.data());
     for(int i = 0; i<nj; i++){
         yError("joint %d: %f", i, encoders[i]);
     }*/
-    
+
     //idir->setPositions(dirPositions.data());
-    
+
     //pos->setRefAccelerations(tmp.data());
 
     /*for (int i = 0; i < nj; i++) {
@@ -753,7 +762,7 @@ void handProfilerThread::startFromFile(){                 //move from file
     command = encoders;
 
     int playCount = 0;
-    double playJoints[11];
+    double playJoints[8];
     inputFile.open("action_10.txt");
     yDebug("opening file.....");
     //Time::delay(1.0);
@@ -762,46 +771,46 @@ void handProfilerThread::startFromFile(){                 //move from file
         double jointValue = 0.0;
         while(inputFile >> jointValue){
             done = false;
-            playJoints[playCount%11] = jointValue;
+            playJoints[playCount%8] = jointValue;
             printf("%f %f %f %f \n", command[0],  command[1],  command[2],  command[3]);
             playCount++;
-            if(playCount%11 == 0){
+            if(playCount%8 == 0){
                 if(first){
                     first = false;
-  
-                    for(int i=3; i<10; i++){  
+
+                    for(int i=0; i<7; i++){
                         double offsetInitial = 0;                  //put robot in initial position
-                        if(command[i-3] < playJoints[i]){
+                        if(command[i] < playJoints[i]){
                             offsetInitial = 0.2;
-                        }else if(command[i-3] > playJoints[i]){
+                        }else if(command[i] > playJoints[i]){
                             offsetInitial = -0.2;
                         }
-                        while(command[i-3] < playJoints[i]-0.2 || command[i-3] > playJoints[i]+0.2){
-                            command[i-3] = command[i-3] + offsetInitial;
+                        while(command[i] < playJoints[i]-0.2 || command[i] > playJoints[i]+0.2){
+                            command[i] = command[i] + offsetInitial;
                             idir->setPositions(command.data());
                             Time::delay(0.01);
                         }
                     }
                     yDebug("initial position reached");
                     Time::delay(3.0);
-                    previousTime = playJoints[10];
+                    previousTime = playJoints[7];
 
                 }else{
-                    for(int i=3; i<10; i++){                      //move robot through trajectory
-                        command[i-3] = playJoints[i];
+                    for(int i=0; i<7; i++){                      //move robot through trajectory
+                        command[i] = playJoints[i];
                     }
-                    executionTime = playJoints[10] - previousTime;
-                    previousTime = playJoints[10];
+                    executionTime = playJoints[7] - previousTime;
+                    previousTime = playJoints[7];
                     if(executionTime == 0.0) {
                         executionTime = 0.03;
                     }
                     //yWarning("Time: %f", executionTime);
-                    // idir->setPositions(command.data());                    
+                    // idir->setPositions(command.data());
                     Time::delay(0.05);
                 }
             }
         }
-        
+
 
         yDebug("finished movement");
         inputFile.close();
@@ -809,16 +818,16 @@ void handProfilerThread::startFromFile(){                 //move from file
     else {
         yError("File not found");
     }
-    
+
     /*for (int i = 0; i < nj; i++) {
         tmp[i] = 50.0;
-        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);   
+        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
     }
     for(int i=0; i<80; i++){
         command[0] = command[0]-0.2;
         command[1] = command[1]-0.2;
         idir->setPositions(command.data());
-        Time::delay(0.01); 
+        Time::delay(0.01);
     }
 
     inputFile.close();
@@ -870,7 +879,7 @@ void handProfilerThread::threadRelease() {
         // it's a good rule to restore the controller
         // context as it was before opening the module
         icart->restoreContext(startup_context_id);
-        client.close();   
+        client.close();
     }
     if(igaze){
         igaze->restoreContext(originalContext);
@@ -895,27 +904,27 @@ void handProfilerThread::afterStart(bool s) {
     t=t0=t1=yarp::os::Time::now();
 }
 
-void handProfilerThread::displayProfile() { 
+void handProfilerThread::displayProfile() {
     int r, g, b;
-    r =255; g = 0; b = 0;        
-    
+    r =255; g = 0; b = 0;
+
     if (guiPort.getOutputCount()) {
         // extract important parameters
         Vector vectorList[4];
         vectorList[0] = mp->getO();
-        vectorList[1] = mp->getA();  
-        vectorList[2] = mp->getB(); 
-        vectorList[3] = mp->getC(); 
+        vectorList[1] = mp->getA();
+        vectorList[2] = mp->getB();
+        vectorList[3] = mp->getC();
         string objectName[4];
         objectName[0].append("O");
         objectName[1].append("A");
         objectName[2].append("B");
         objectName[3].append("C");
-    
-        for(int i = 0; i < 4; i++) {    
+
+        for(int i = 0; i < 4; i++) {
             // preparing the bottle
             Bottle& obj = guiPort.prepare();
-            obj.clear();   
+            obj.clear();
             obj.addString("object"); // command to add/update an object
             obj.addString(objectName[i]);
             // object dimensions in millimiters
@@ -941,24 +950,24 @@ void handProfilerThread::displayProfile() {
 
             guiPort.writeStrict();
         }
-    }    
+    }
 }
 
-void handProfilerThread::displayTarget() { 
+void handProfilerThread::displayTarget() {
     int r, g, b;
     if(state == simulation) {
-        r =255; g =255; b = 0;        
+        r =255; g =255; b = 0;
     }
     else {
         r = 0; g =255; b =0;
     }
-    
+
     if ((guiPort.getOutputCount()) && (count%30==0)) {
         Bottle& obj = guiPort.prepare();
-        obj.clear();   
+        obj.clear();
         obj.addString("object"); // command to add/update an object
-        string str("");    
-        sprintf((char*)str.c_str(),"%d",count);    
+        string str("");
+        sprintf((char*)str.c_str(),"%d",count);
         yInfo("displaying %s", str.c_str());
         obj.addString(str.c_str());
         // object dimensions in millimiters
@@ -983,10 +992,10 @@ void handProfilerThread::displayTarget() {
         obj.addDouble(1.0);
 
         guiPort.writeStrict();
-    }    
+    }
 }
 
-void handProfilerThread::printStatus() {        
+void handProfilerThread::printStatus() {
     if (t-t1>=PRINT_STATUS_PER) {
         Vector x,o,xdhat,odhat,qdhat;
 
@@ -1021,4 +1030,3 @@ void handProfilerThread::printStatus() {
 
 void handProfilerThread::onStop() {
 }
-

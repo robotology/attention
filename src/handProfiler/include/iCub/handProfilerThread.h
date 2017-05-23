@@ -42,8 +42,8 @@
 
 class handProfilerThread : public yarp::os::RateThread,  public yarp::dev::CartesianEvent{
 protected:
-    
-    static yarp::sig::Vector xZero;  
+
+    static yarp::sig::Vector xZero;
 
     int count;                     // counter for execution cycles
     int fileCounter;               // counter for file naming
@@ -54,7 +54,7 @@ protected:
     int startup_context_id;        // memorizing the context
     int yawDof;
     int rollDof;
-    int pitchDof;                  // 
+    int pitchDof;                  //
     int originalContext;           // original context for the gaze Controller
     int blockNeckPitchValue;
     short widthRatio;              // ratio between the input and output image
@@ -64,12 +64,13 @@ protected:
     double t;
     double t0;
     double t1;
-    
+
     bool verbosity;                // flag indicating verbosity
-    bool firstIteration;           // flag indicating the first iteration  
+    bool firstIteration;           // flag indicating the first iteration
     bool idle;                     // flag indicating if the thread is in idle
     bool gazetracking;             // flag indicating whether the gaze should follow hand move
-    
+    bool saveOn                    // flag indicating if saving is enabled or not
+
     yarp::sig::Vector x;           // vector representating the desired position for the hand
     yarp::sig::Vector o;           // vector representating the desired position for the hand
     yarp::sig::Vector xd;          // vector representating the desired position for the hand
@@ -77,7 +78,7 @@ protected:
     yarp::sig::Vector xdhat;       // vector representating the desired orientation for the hand
     yarp::sig::Vector odhat;       // vector representating the desired orientation for the hand
     yarp::sig::Vector qdhat;       // vector representating the desired orientation for the hand
-    
+
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
     yarp::dev::IPositionControl *pos;
@@ -89,7 +90,7 @@ protected:
     yarp::dev::CartesianEvent *ce;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
-    profileFactory::MotionProfile *mp;               
+    profileFactory::MotionProfile *mp;
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
@@ -98,18 +99,18 @@ protected:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
 
-    
+
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  errPort;                                  // output port to plot event
     std::string name;                                                                   // rootname of all the ports opened by this thread
-        
+
     std::ofstream outputFile;                                                           // file in which to save joints values
     std::ifstream inputFile;                                                            // file to read joint positions from
     enum States {none, simulation, execution, save, file};
-    States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file 
+    States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file
     yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
     yarp::os::Stamp* timestamp;
 
@@ -117,7 +118,7 @@ protected:
     virtual void cartesianEventCallback() {
         fprintf(stdout,"20%% of trajectory attained\n");
     }
-    
+
 public:
     /**
     * constructor default
@@ -125,7 +126,7 @@ public:
     handProfilerThread();
 
     /**
-    * constructor 
+    * constructor
     * @param robotname name of the robot
     */
     handProfilerThread(std::string robotname,std::string configFile);
@@ -139,7 +140,7 @@ public:
     *  initialises the thread
     */
     virtual bool threadInit();
-    
+
     /**
     * function executed after start
     */
@@ -153,7 +154,7 @@ public:
     /**
     *  active part of the thread
     */
-    virtual void run(); 
+    virtual void run();
 
     /**
     *  on stopping of the thread
@@ -175,11 +176,11 @@ public:
      * function that sets the orientation of the endeffector
      */
     bool setCurrentOrientation();
-    
+
     /**
     * function that returns the original root name and appends another string iff passed as parameter
     * @param p pointer to the string that has to be added
-    * @return rootname 
+    * @return rootname
     */
     std::string getName(const char* p);
 
@@ -207,7 +208,7 @@ public:
         outputWidth  = width;
         outputHeight = height;
     }
-  
+
     /**
     * function that generates the motionProfile
     * @param b bottle containing the necessary information for the profile
@@ -267,7 +268,7 @@ public:
     void limitTorsoYaw();
 
     /**
-    * generate the target position in space   
+    * generate the target position in space
     * @return true/false if newtarget/notarget
     */
     bool generateTarget();
@@ -280,7 +281,7 @@ public:
     /**
      * function thatrotates the OAB triple around y
      */
-    void rotAxisY(const double& angle); 
+    void rotAxisY(const double& angle);
 
     /**
      * function thatrotates the OAB triple around z
@@ -311,7 +312,7 @@ public:
     * function that prints out the desired location to track
     */
     void printXd();
-    
+
     /**
     * function that prints out the linearVelocity of the end-effector
     */
@@ -321,4 +322,3 @@ public:
 #endif  //_HAND_PROFILER_THREAD_H_
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
-
