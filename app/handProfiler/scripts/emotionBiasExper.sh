@@ -224,13 +224,29 @@ release_apple() {
     echo "release_apple TODO"
 }
 
+blinkWithEmotions() {
+    echo "set all sur" | yarp rpc /icub/face/emotions/in
+    sleep 0.1
+    echo "set all hap" | yarp rpc /icub/face/emotions/in
+}
+blinkDoubleWithEmotions() {
+    echo "set all sur" | yarp rpc /icub/face/emotions/in
+    sleep 0.1
+    echo "set all hap" | yarp rpc /icub/face/emotions/in
+    sleep 0.1
+    echo "set all sur" | yarp rpc /icub/face/emotions/in
+    sleep 0.1
+    echo "set all hap" | yarp rpc /icub/face/emotions/in
+}
+
+
 mostra_muscoli() {
     breathers "stop"
     echo "ctpq time 1.5 off 0 pos (-27.0 78.0 -37.0 33.0 -79.0 0.0 -4.0 26.0 27.0 0.0 29.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
     echo "ctpq time 1.5 off 0 pos (-27.0 78.0 -37.0 33.0 -79.0 0.0 -4.0 26.0 27.0 0.0 29.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
     echo "ctpq time 1.0 off 0 pos (-27.0 78.0 -37.0 93.0 -79.0 0.0 -4.0 26.0 67.0 0.0 99.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
     echo "ctpq time 1.0 off 0 pos (-27.0 78.0 -37.0 93.0 -79.0 0.0 -4.0 26.0 67.0 0.0 99.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
-    speak "Dei supereroi"
+    # speak "Dei supereroi"
     sleep 3.0
     smile
     go_home_helper 2.0
@@ -336,13 +352,13 @@ meteo_bot() {
 saluta() {
     breathers "stop"
     echo "ctpq time 1.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0 -11.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
-    sleep 2.0 && speak "Salve colleghi."
+    #sleep 2.0 && speak "Salve colleghi."
     echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0  25.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
     echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0 -11.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
     echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0  25.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
-    echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0 -11.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpcy
+    echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0 -11.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
     smile
-    go_home
+    #go_home
     smile
 }
 
@@ -400,6 +416,10 @@ angry() {
 ####################################################################################################################
 palm4stick() {
     echo "PALM CUS (0.140137 0.654117 -0.743298 2.849317) " | yarp rpc /handProfiler
+}
+
+palm4pass() {
+    echo "PALM CUS (0.2176 0.7718 -0.5977 3.0170) " | yarp rpc /handProfiler
 }
 
 palmup() {
@@ -584,7 +604,7 @@ handLeftP_TTLTable005_emp(){
 }
 
 handLeftP_TTLTable002(){
-    echo "GEN TTL (((O -0.2 0.2 0.0) (A -0.2 0.2 0.15) (B -0.25 0.2 0.0) (C -0.2 0.2 -0.15) (theta 0.0 1.57 1.70) (axes 0.15 0.05) (param 0.009  0.33)))" | yarp rpc /handProfiler
+    echo "GEN TTL (((O -0.15 -0.14 0.05) (A -0.15 -0.14 0.08) (B -0.30 -0.14 0.05) (C -0.15 -0.14 0.02) (theta 0.0 1.57 1.58) (axes 0.03 0.15) (param 0.008  0.33)))" | yarp rpc /handProfiler
 }
 
 handLeftP_CVPTable008_const_strange(){
@@ -1113,8 +1133,90 @@ handProfile_STARSIM() {
 	breathers "start"
 
     }
+	
+    homeRobotic(){
+	breathers "stop"
+	echo "ctpq time 1.5 off 0 pos (-29.5 30.6 0.0 44.5 0.0 0.0 0.0 15.0 44.8 6.2 15.3 5.3 11.9 9.0 17.0 5.0 )" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (-29.5 30.6 0.0 44.5 0.0 0.0 0.0 15.0 44.8 6.2 15.3 5.3 11.9 9.0 17.0 5.0 )" | yarp rpc /ctpservice/left_arm/rpc
+	sleep 3.0
+	breathers "start"
+    }
+    
+    snakeRobotic(){
+	breathers "stop"
+	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
+	sleep 3.0
+	breathers "start"
+    }
 
+    captchaRobotic(){
+	breathers "stop"
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (0.0 0.0 10.0)" | yarp rpc /ctpservice/torso/rpc
+	sleep 2.0
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	sleep 2.0
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	sleep 1.0
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	sleep 3.0
+	breathers "start"
+    }
 
+    captchaNatural(){
+	breathers "stop"
+	echo "set reb sur" | yarp rpc /icub/face/emotions/in
+	sleep 6.0
+	echo "set all hap" | yarp rpc /icub/face/emotions/in
+	sleep 3.0
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (0.0 0.0 10.0)" | yarp rpc /ctpservice/torso/rpc
+	sleep 2.0
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	sleep 2.0
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	sleep 1.0
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	sleep 3.0
+	breathers "start"
+    }
+
+    homeNatural(){
+	breathers "stop"
+	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 60.0 68.4 -9.0 53.0 51.0 20.0 19.8 19.8 9.9 14.4 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 60.0 68.4 -9.0 53.0 51.0 20.0 19.8 19.8 9.9 14.4 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	echo "set all hap" | yarp rpc /icub/face/emotions/in
+	sleep 3.0
+	breathers "start"
+    }
+    
+    snakeNatural(){
+	breathers "stop"
+	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 60.0 68.4 -9.0 53.0 51.0 20.0 19.8 19.8 9.9 14.4 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
+	echo "ctpq time 1.5 off 0 pos (0.0 0.0 10.0)" | yarp rpc /ctpservice/torso/rpc
+	sleep 2.0
+	echo "ctpq time 0.8 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 18.0 42.0 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
+	sleep 0.8
+	echo "ctpq time 0.8 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
+	breathers "start"
+    }
+
+    torsoAvantiIndietro(){
+	breathers "stop"
+	echo "ctpq time 1.5 off 0 pos (0.0 0.0 8.0)" | yarp rpc /ctpservice/torso/rpc
+	sleep 3.0
+	echo "ctpq time 1.5 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
+	breathers "start"
+    }
 #############     Repeatings     #####################################
     
     constant005_10() {

@@ -47,7 +47,7 @@ include(YarpInstallationHelpers)
 find_package(Qt3)
 find_package(Qt5 COMPONENTS Core Widgets OpenGL Quick Qml Concurrent PrintSupport QUIET)
 
-find_package(OpenCV)
+find_package(OpenCV REQUIRED)
 message(STATUS "OpenCV version is ${OpenCV_VERSION_MAJOR}.${OpenCV_VERSION_MINOR}")
 find_package(IPOPT)
 
