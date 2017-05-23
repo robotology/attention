@@ -252,6 +252,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("STAR SIM : start simulation (yellow)");
             reply.addString("STAR EXE : start execution  (green)");
             reply.addString("SIM CLR  : simulator cleaning");
+            reply.addString("STAR FILE: start execution from file");
             ok = true;
         }
         break;
