@@ -72,24 +72,31 @@ void Detector::loop()
                     if(withSaliency){
                         cvCircle(saliency, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(255,255,255), -1, 8, 0 );
                     }
-                        
+                    double alfa = 0.2;    
                     yarp::sig::Vector uv(2);
                     yarp::sig::Vector posRoot(3);
                     uv[0] = face.x;
                     uv[1] = face.y;
-                    yDebug("position %f %f distance %d", face.x, face.y, eyeDist);
+                    yDebug("position %f %f distance %f", face.x, face.y, eyeDist);
                     bool ret = iGaze->get3DPoint((eye=="left")?0:1, uv, eyeDist, posRoot );
                     yDebug("got 3D position %s", posRoot.toString().c_str());
                     if(ret)
                     {
                         yDebug("get3DPoint sent in...ready to send");
                         
-                        prev_x = -eyeDist;
-                        prev_y = posRoot[1];
-                        prev_z = posRoot[2];
+                        
 
+                        yarp::sig::Vector posRootFinal(3);
+                        posRootFinal[0] = alfa * posRoot[0] + (1 - alfa) * prev_x;
+                        posRootFinal[1] = alfa * posRoot[1] + (1 - alfa) * prev_y;
+                        posRootFinal[2] = alfa * posRoot[2] + (1 - alfa) * prev_z;
+
+                        prev_x = -eyeDist;
+                        prev_y = posRootFinal[1];
+                        prev_z = posRootFinal[2];
+                        
                         //-------------------------------------
-                        iGaze->lookAtFixationPoint(posRoot);
+                        iGaze->lookAtFixationPoint(posRootFinal);
                         //--------------------------------------
                         
                         Bottle &target=targetPort.prepare();
@@ -192,7 +199,8 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
            c.y = center.y; 
         }
 
-        yInfo("c.x %d c.y %d",c.x, c.y);
+        yInfo("c.x %f c.y %f",c.x, c.y);
+                                            
         
         /*
         if( nestedCascade.empty() )
@@ -229,12 +237,12 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     offsetY =  rf.check("offset_y", Value(0.0)).asDouble();
     withSaliency = rf.check("enable_saliency", Value(0)).asInt();
 
-    yInfo("eye: %s", eye);
-    yInfo("faceExpression: %s", faceExpression);
-    yInfo("eyeDistance: %d", eyeDist);
+    yInfo("eye: %s", eye.c_str());
+    yInfo("faceExpression: %s", faceExpression.c_str());
+    yInfo("eyeDistance: %f", eyeDist);
     yInfo("certainty: %d", certainty);
-    yInfo("offsetZ: %d", offsetZ);
-    yInfo("offsetY: %d", offsetY);
+    yInfo("offsetZ: %f", offsetZ);
+    yInfo("offsetY: %f", offsetY);
     yInfo("withSaliency: %d", withSaliency);
     
 
@@ -272,6 +280,10 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     iGaze->blockNeckRoll(0.0);
     //iGaze->setSaccadesStatus(false);
     iGaze->setSaccadesMode(false);
+    // set trajectory time:
+    iGaze->setNeckTrajTime(0.8);
+    iGaze->setEyesTrajTime(0.5);
+    iGaze->setTrackingMode(true);
 
     //---------------------------------------------------------------
 
@@ -317,6 +329,10 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     if(withSaliency){
         ret = ret && saliencyPort.open("/faceDetector/saliency/out");     
     }
+
+    prev_y = 0.0;
+    prev_z = 0.35;
+    
     yDebug("Initialization completed");
     return ret;
     
