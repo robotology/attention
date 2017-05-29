@@ -437,11 +437,13 @@ bool handProfilerThread::startSimulation(const bool _reverse){
 bool handProfilerThread::saveDeg(){                 //save to file
     //count = 0;
     //mp->setReverse(_reverse);
-    idle = false;
+    //idle = false;
     //state = save;
-    firstIteration = true;
-    saveOn = true;
+    //firstIteration = true;
+    saveOn = !saveOn;
     t0 = Time::now();
+    if(saveOn) yInfo("save to file ENABLED");
+    else yInfo("save to file DISABLED");
 	return true;
 }
 
@@ -529,18 +531,22 @@ void handProfilerThread::run() {
         switch (state) {
             case execution:
                 success = generateTarget();
+                yDebug("generated target %d", success);
                 if(success){
                     icart-> goToPose(xd,od);
+                    yDebug("gone to pose");
                     if(saveOn) saveToFile();
                     if(gazetracking && (count%GAZEINTERVAL==0)) {
                         igaze->lookAtFixationPoint(xd);
                     }
+                }else if(!success && outputFile.is_open() && saveOn){
+                    yInfo("file saved");
+                    fileCounter++;
+                    outputFile.close();
+                    saveOn = false;
+                    state = none;
+                    idle = true;
                 }else{
-                    if(outputFile.is_open()){
-                      yInfo("file saved");
-                      fileCounter++;
-                      outputFile.close();
-                    }
                     saveOn = false;
                     state = none;
                     idle = true;
@@ -555,7 +561,7 @@ void handProfilerThread::run() {
                 break;
             case save:
                 success = generateTarget();
-                saveToFile_old();
+                saveToFile();
                 if(!success && outputFile.is_open()){
                     yInfo("file saved");
                     fileCounter++;
@@ -677,7 +683,7 @@ bool handProfilerThread::generateTarget() {
     return true;
 }
 
-void handProfilerThread::saveToFile_old(){                 //save to file
+/*void handProfilerThread::saveToFile_old(){                 //save to file
 
     icart->askForPose(xd, od, xd, od, jointsToSave);
     timestamp->update();
@@ -691,7 +697,7 @@ void handProfilerThread::saveToFile_old(){                 //save to file
         outputFile.precision(13);
     }
     else cout << "Unable to open file";
-}
+}*/
 
 void handProfilerThread::saveToFile(){                 //save to file
     encs->getEncoders(jointsToSave.data());
@@ -713,7 +719,7 @@ void handProfilerThread::startFromFile(){                 //move from file
     int nj=0;
     idir->getAxes(&nj);
     yDebug("njoints = %d", nj);
-    Vector encoders;
+    Vector encoders, motorEncoders;
     Vector command;
     Vector dirPositions, posPositions;
     Vector tmp;

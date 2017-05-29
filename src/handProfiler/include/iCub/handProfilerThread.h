@@ -69,7 +69,7 @@ protected:
     bool firstIteration;           // flag indicating the first iteration
     bool idle;                     // flag indicating if the thread is in idle
     bool gazetracking;             // flag indicating whether the gaze should follow hand move
-    bool saveOn                    // flag indicating if saving is enabled or not
+    bool saveOn;                   // flag indicating if saving is enabled or not
 
     yarp::sig::Vector x;           // vector representating the desired position for the hand
     yarp::sig::Vector o;           // vector representating the desired position for the hand
