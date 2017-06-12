@@ -309,8 +309,9 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
     ResourceFinder rf;
     rf.setVerbose(true);
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
-    int argc = b->size() * 2 + 1;   
-	// fix: const int argc = 20;
+    //int argc = b->size() * 2 + 1;   
+	// fix: 
+	const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
@@ -584,8 +585,9 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
     ResourceFinder rf;
     rf.setVerbose(true); 
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
-    int argc = b->size() * 2 + 1;   
-	//fix: const int argc = 20;
+    //int argc = b->size() * 2 + 1;   
+	//fix: 
+	const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
@@ -874,8 +876,9 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
     ResourceFinder rf;
     rf.setVerbose(true); 
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
-    int argc = b->size() * 2 + 1;   
-	//fix: const int argc = 20;
+    //int argc = b->size() * 2 + 1;   
+	//fix: 
+	const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");
@@ -901,7 +904,7 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
     yDebug("parsing......");
     yDebug("argc %d argv %s", argc, argv[0]);
     // configuring the resource finder
-    rf.configure(argc, argv);
+    yDebug("success %f", rf.configure(argc, argv));
     
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF

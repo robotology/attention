@@ -110,6 +110,7 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     timestamp = new yarp::os::Stamp(0,0);
     gazetracking = false;
     saveOn = false;
+    speedFactor = 1.0;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -130,6 +131,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     verbosity = true;
     gazetracking = false;
     saveOn = false;
+    speedFactor = 1.0;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -438,9 +440,6 @@ bool handProfilerThread::startSimulation(const bool _reverse){
 bool handProfilerThread::saveJoints(){                 //save to file
     //count = 0;
     //mp->setReverse(_reverse);
-    //idle = false;
-    //state = save;
-    //firstIteration = true;
     saveOn = !saveOn;
     t0 = Time::now();
     if(saveOn) yInfo("save to file ENABLED");
@@ -448,13 +447,14 @@ bool handProfilerThread::saveJoints(){                 //save to file
 	return true;
 }
 
-bool handProfilerThread::startJoints(){                 //MOVE FROM file
+bool handProfilerThread::startJoints(double factor){                 //MOVE FROM file
     //count = 0;
     //mp->setReverse(_reverse);
     idle = false;
     state = file;
     firstIteration = false;
     t0 = Time::now();
+    speedFactor = factor;
 	return true;
 }
 
@@ -556,17 +556,6 @@ void handProfilerThread::run() {
             case simulation:
                 success = generateTarget();
                 if(!success){
-                    state = none;
-                    idle = true;
-                }
-                break;
-            case save:
-                success = generateTarget();
-                saveToFile();
-                if(!success && outputFile.is_open()){
-                    yInfo("file saved");
-                    fileCounter++;
-                    outputFile.close();
                     state = none;
                     idle = true;
                 }
@@ -706,12 +695,14 @@ void handProfilerThread::startFromFile(){                 //move from file
     //** to make the name of the file a parameter**/
     inputFile.open("action_1.txt");
     yDebug("opening file.....");
-    if(inputFile.is_open()){    
-
-        playFromFile();
-
-        yDebug("finished movement");
-        inputFile.close();
+    if(inputFile.is_open()){
+        if(speedFactor >= 0.1 && speedFactor <= 2.0){
+            playFromFile();
+            yDebug("finished movement");
+            inputFile.close();
+        }else{
+            yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 2.0");
+        }
     }
     else {
         yError("File not found");
@@ -722,7 +713,6 @@ void handProfilerThread::startFromFile(){                 //move from file
 
 void handProfilerThread::playFromFile(){
     double jointValue = 0.0;
-    double factor = 0.2;
     double playJoints[8];
 
     double executionTime = 0;
@@ -736,14 +726,14 @@ void handProfilerThread::playFromFile(){
     Vector encoders;
     Vector command;
     encoders.resize(njoints);
-    command.resize(njoints);    
+    command.resize(njoints);
 
     encs->getEncoders(encoders.data());
     for (int i = 0; i < njoints; i++) {
         ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
     }
     command = encoders;
-    
+
     while(inputFile >> jointValue){
         done = false;
         playJoints[playCount%8] = jointValue;
@@ -779,7 +769,7 @@ void handProfilerThread::playFromFile(){
                 }
                 //yWarning("Time: %f", executionTime);
                 idir->setPositions(command.data());
-                Time::delay(executionTime * factor);
+                Time::delay(executionTime / speedFactor);
             }
         }
     }

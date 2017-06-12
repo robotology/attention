@@ -57,7 +57,7 @@ protected:
     int pitchDof;                  //
     int originalContext;           // original context for the gaze Controller
     int blockNeckPitchValue;
-    int njoints;                   // number of joints for saving to file (left_arm)s  
+    int njoints;                   // number of joints for saving to file (left_arm)s
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
@@ -65,6 +65,7 @@ protected:
     double t;
     double t0;
     double t1;
+    double speedFactor;           // factor to regulate speed in movement from file
 
     bool verbosity;                // flag indicating verbosity
     bool firstIteration;           // flag indicating the first iteration
@@ -108,7 +109,7 @@ protected:
 
     std::ofstream outputFile;                                                           // file in which to save joints values
     std::ifstream inputFile;                                                            // file to read joint positions from
-    enum States {none, simulation, execution, save, file};
+    enum States {none, simulation, execution, file};
     States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file
     //yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
     yarp::os::Stamp* timestamp;
@@ -244,7 +245,7 @@ public:
     /**
     *  function that set parameters for starting movement from a file with joint values
     */
-    bool startJoints();
+    bool startJoints(double factor);
 
     /**
     *  function that starts movement from a file with joint values
