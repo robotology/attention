@@ -100,6 +100,7 @@ bool skinProcessorRateThread::threadInit() {
     }     
 
     yInfo("Initialization of the processing thread correctly ended");
+    yWarning("left, right, torso %d %d %d", useLeftArm, useRightArm, useTorso );
 
     return true;
 }

@@ -125,7 +125,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     firstIteration = true;
     idle = true;
     state = none;
-    fileCounter = 10;
+    fileCounter = 1;
     timestamp = new Stamp(0,0);
     verbosity = true;
     gazetracking = false;
@@ -233,17 +233,18 @@ bool handProfilerThread::threadInit() {
     }
 
     bool ok;
-    ok = robotDevice.view(pos);
-    ok = ok && robotDevice.view(encs);
+    ok = robotDevice.view(encs);
     ok = ok && robotDevice.view(ictrl);
     ok = ok && robotDevice.view(idir);
-    ok = ok && robotDevice.view(motorEncs);
+
 
     if (!ok) {
         yError("Problems acquiring interfaces\n");
         return 0;
     }
 
+    idir->getAxes(&njoints);
+    yDebug("njoints = %d", njoints);
 
     /*
     //initializing gazecontrollerclient
@@ -434,7 +435,7 @@ bool handProfilerThread::startSimulation(const bool _reverse){
 	return true;
 }
 
-bool handProfilerThread::saveDeg(){                 //save to file
+bool handProfilerThread::saveJoints(){                 //save to file
     //count = 0;
     //mp->setReverse(_reverse);
     //idle = false;
@@ -447,7 +448,7 @@ bool handProfilerThread::saveDeg(){                 //save to file
 	return true;
 }
 
-bool handProfilerThread::startDeg(){                 //MOVE FROM file
+bool handProfilerThread::startJoints(){                 //MOVE FROM file
     //count = 0;
     //mp->setReverse(_reverse);
     idle = false;
@@ -531,10 +532,10 @@ void handProfilerThread::run() {
         switch (state) {
             case execution:
                 success = generateTarget();
-                yDebug("generated target %d", success);
+                //yDebug("generated target %d", success);
                 if(success){
                     icart-> goToPose(xd,od);
-                    yDebug("gone to pose");
+                    //yDebug("gone to pose");
                     if(saveOn) saveToFile();
                     if(gazetracking && (count%GAZEINTERVAL==0)) {
                         igaze->lookAtFixationPoint(xd);
@@ -683,24 +684,11 @@ bool handProfilerThread::generateTarget() {
     return true;
 }
 
-/*void handProfilerThread::saveToFile_old(){                 //save to file
-
-    icart->askForPose(xd, od, xd, od, jointsToSave);
-    timestamp->update();
-    if (outputFile.is_open()){
-        for(int i=0; i<10; i++){
-            outputFile << jointsToSave[i] << " ";
-        }
-        outputFile.precision(13);
-        outputFile << timestamp->getTime();
-        outputFile << "\n";
-        outputFile.precision(13);
-    }
-    else cout << "Unable to open file";
-}*/
-
 void handProfilerThread::saveToFile(){                 //save to file
-    encs->getEncoders(jointsToSave.data());
+    Vector jointsToSave;
+    jointsToSave.resize(njoints);
+    bool retFromEncoders = encs->getEncoders(jointsToSave.data());
+    if(!retFromEncoders) yError("encoders misreading");
     timestamp->update();
     if (outputFile.is_open()){
         for(int i=0; i<7; i++){
@@ -715,108 +703,12 @@ void handProfilerThread::saveToFile(){                 //save to file
 }
 
 void handProfilerThread::startFromFile(){                 //move from file
-
-    int nj=0;
-    idir->getAxes(&nj);
-    yDebug("njoints = %d", nj);
-    Vector encoders, motorEncoders;
-    Vector command;
-    Vector dirPositions, posPositions;
-    Vector tmp;
-    motorEncoders.resize(nj);
-    encoders.resize(nj);
-    dirPositions.resize(nj);
-    posPositions.resize(nj);
-    tmp.resize(nj);
-    command.resize(nj);
-    bool first = true;
-    bool done = false;
-    double executionTime = 0;
-    double previousTime = 0;
-
-    encs->getEncoders(encoders.data());
-    for(int i = 0; i<nj; i++){
-        yInfo("joint %d: %f", i, encoders[i]);
-    }
-
-    for (int i = 0; i < nj; i++) {
-        tmp[i] = 10.0;
-        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
-    }
-
-    /*encs->getEncoders(encoders.data());
-    for(int i = 0; i<nj; i++){
-        yError("joint %d: %f", i, encoders[i]);
-    }*/
-
-    //idir->setPositions(dirPositions.data());
-
-    //pos->setRefAccelerations(tmp.data());
-
-    /*for (int i = 0; i < nj; i++) {
-        tmp[i] = 20.0;
-        pos->setRefSpeed(i, tmp[i]);
-    }*/
-
-    yInfo("waiting for encoders");
-    while(!encs->getEncoders(encoders.data())){
-        Time::delay(0.1);
-        printf(".");
-    }
-    printf("\n");
-
-    command = encoders;
-
-    int playCount = 0;
-    double playJoints[8];
-    inputFile.open("action_10.txt");
+    //** to make the name of the file a parameter**/
+    inputFile.open("action_1.txt");
     yDebug("opening file.....");
-    //Time::delay(1.0);
-    if(inputFile.is_open()){
-        done=false;
-        double jointValue = 0.0;
-        while(inputFile >> jointValue){
-            done = false;
-            playJoints[playCount%8] = jointValue;
-            printf("%f %f %f %f \n", command[0],  command[1],  command[2],  command[3]);
-            playCount++;
-            if(playCount%8 == 0){
-                if(first){
-                    first = false;
+    if(inputFile.is_open()){    
 
-                    for(int i=0; i<7; i++){
-                        double offsetInitial = 0;                  //put robot in initial position
-                        if(command[i] < playJoints[i]){
-                            offsetInitial = 0.2;
-                        }else if(command[i] > playJoints[i]){
-                            offsetInitial = -0.2;
-                        }
-                        while(command[i] < playJoints[i]-0.2 || command[i] > playJoints[i]+0.2){
-                            command[i] = command[i] + offsetInitial;
-                            idir->setPositions(command.data());
-                            Time::delay(0.01);
-                        }
-                    }
-                    yDebug("initial position reached");
-                    Time::delay(3.0);
-                    previousTime = playJoints[7];
-
-                }else{
-                    for(int i=0; i<7; i++){                      //move robot through trajectory
-                        command[i] = playJoints[i];
-                    }
-                    executionTime = playJoints[7] - previousTime;
-                    previousTime = playJoints[7];
-                    if(executionTime == 0.0) {
-                        executionTime = 0.03;
-                    }
-                    //yWarning("Time: %f", executionTime);
-                    // idir->setPositions(command.data());
-                    Time::delay(0.05);
-                }
-            }
-        }
-
+        playFromFile();
 
         yDebug("finished movement");
         inputFile.close();
@@ -824,25 +716,76 @@ void handProfilerThread::startFromFile(){                 //move from file
     else {
         yError("File not found");
     }
-
-    /*for (int i = 0; i < nj; i++) {
-        tmp[i] = 50.0;
-        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
-    }
-    for(int i=0; i<80; i++){
-        command[0] = command[0]-0.2;
-        command[1] = command[1]-0.2;
-        idir->setPositions(command.data());
-        Time::delay(0.01);
-    }
-
-    inputFile.close();
-    yDebug("finished movement");
-    */
     state = none;
     idle = true;
 }
 
+void handProfilerThread::playFromFile(){
+    double jointValue = 0.0;
+    double factor = 0.2;
+    double playJoints[8];
+
+    double executionTime = 0;
+    double previousTime = 0;
+
+    int playCount = 0;
+
+    bool  done=false;
+    bool first = true;
+
+    Vector encoders;
+    Vector command;
+    encoders.resize(njoints);
+    command.resize(njoints);    
+
+    encs->getEncoders(encoders.data());
+    for (int i = 0; i < njoints; i++) {
+        ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
+    }
+    command = encoders;
+    
+    while(inputFile >> jointValue){
+        done = false;
+        playJoints[playCount%8] = jointValue;
+        playCount++;
+        if(playCount%8 == 0){
+            if(first){
+                first = false;
+                for(int i=0; i<7; i++){
+                    double offsetInitial = 0;                  //put robot in initial position
+                    if(command[i] < playJoints[i]){
+                        offsetInitial = 0.2;
+                    }else if(command[i] > playJoints[i]){
+                        offsetInitial = -0.2;
+                    }
+                    while(command[i] < playJoints[i]-0.2 || command[i] > playJoints[i]+0.2){
+                        command[i] = command[i] + offsetInitial;
+                        idir->setPositions(command.data());
+                        Time::delay(0.01);
+                    }
+                }
+                yDebug("initial position reached");
+                Time::delay(3.0);
+                previousTime = playJoints[7];
+
+            }else{
+                for(int i=0; i<7; i++){                      //move robot through trajectory
+                    command[i] = playJoints[i];
+                }
+                executionTime = playJoints[7] - previousTime;
+                previousTime = playJoints[7];
+                if(executionTime <= 0.0) {
+                    executionTime = 0.05;
+                }
+                //yWarning("Time: %f", executionTime);
+                idir->setPositions(command.data());
+                Time::delay(executionTime * factor);
+            }
+        }
+    }
+
+    return;
+}
 
 void handProfilerThread::limitTorsoYaw() {
     int axis=1; // yaw joint

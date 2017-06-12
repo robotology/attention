@@ -64,7 +64,7 @@
 #define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
 #define COMMAND_VOCAB_TTL    VOCAB3('T','T','L')
 #define COMMAND_VOCAB_CUS    VOCAB3('C','U','S')
-#define COMMAND_VOCAB_DEG    VOCAB3('D','E','G')            //save action joints in a file
+#define COMMAND_VOCAB_JOI    VOCAB3('J','O','I')            //save action joints in a file
 
 
 
@@ -253,6 +253,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("STAR EXE : start execution  (green)");
             reply.addString("SIM CLR  : simulator cleaning");
             reply.addString("STAR FILE: start execution from file");
+            reply.addString("SAVE JOI: save joints positions in file");
             ok = true;
         }
         break;
@@ -427,7 +428,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 {
                     if(0!=rThread) {
                         reply.addString("OK");
-                        rThread->startDeg();    
+                        rThread->startJoints();    
                     }
                     ok = true;
                 }
@@ -447,13 +448,13 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
         {
             switch(command.get(1).asVocab()) {
 
-            case COMMAND_VOCAB_DEG:
+            case COMMAND_VOCAB_JOI:
                 {
                     
                     if(0!=rThread) {
                         reply.addString("OK");
                         
-                        rThread->saveDeg();
+                        rThread->saveJoints();
                         
                     }
                     ok = true;

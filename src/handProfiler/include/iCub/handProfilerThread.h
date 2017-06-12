@@ -57,6 +57,7 @@ protected:
     int pitchDof;                  //
     int originalContext;           // original context for the gaze Controller
     int blockNeckPitchValue;
+    int njoints;                   // number of joints for saving to file (left_arm)s  
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
@@ -81,11 +82,9 @@ protected:
 
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
-    yarp::dev::IPositionControl *pos;
     yarp::dev::IPositionDirect *idir;
-    yarp::dev::IControlMode2 *ictrl;
     yarp::dev::IEncoders *encs;
-    yarp::dev::IMotorEncoders *motorEncs;
+    yarp::dev::IControlMode2 *ictrl;
     yarp::dev::ICartesianControl *icart;
     yarp::dev::CartesianEvent *ce;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
@@ -111,7 +110,7 @@ protected:
     std::ifstream inputFile;                                                            // file to read joint positions from
     enum States {none, simulation, execution, save, file};
     States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file
-    yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
+    //yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
     yarp::os::Stamp* timestamp;
 
     // the event callback attached to the "motion-ongoing"
@@ -235,7 +234,7 @@ public:
      /**
     *  function that set parameters for saving in a file the value of joints
     */
-    bool saveDeg();
+    bool saveJoints();
 
     /**
     *  function that saves in a file the value of joints
@@ -245,12 +244,17 @@ public:
     /**
     *  function that set parameters for starting movement from a file with joint values
     */
-    bool startDeg();
+    bool startJoints();
 
     /**
     *  function that starts movement from a file with joint values
     */
     void startFromFile();
+
+     /**
+    *  function that plays movement from a file with joint values
+    */
+    void playFromFile();
 
     /**
      * function that perfoms downsampling (if necessary)
