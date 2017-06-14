@@ -253,7 +253,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("STAR SIM : start simulation (yellow)");
             reply.addString("STAR EXE : start execution  (green)");
             reply.addString("SIM CLR  : simulator cleaning");
-            reply.addString("STAR FILE SPEE value: start execution from file with speed multiplied for the value, if omitted (STAR FILE) default value is 1.0");
+            reply.addString("STAR FILE SPEE value: start execution from file with speed multiplied for the value, if omitted default value is 1.0");
             reply.addString("SAVE JOI: save joints positions in file");
             ok = true;
         }
@@ -428,7 +428,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             case COMMAND_VOCAB_FILE:
                 {
                     if(command.get(2).asVocab() == COMMAND_VOCAB_SPEED && 0!=rThread) {
-                        if(command.get(3).isDouble()){
+                        if(command.get(3).isDouble() || command.get(3).isInt()){
                             reply.addString("OK");
                             rThread->startJoints(command.get(3).asDouble());
                             ok = true;
@@ -443,7 +443,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                             rThread->startJoints(1.0);
                         }
                         ok = true;
-                    }
+                        }
                 }
             break;
 

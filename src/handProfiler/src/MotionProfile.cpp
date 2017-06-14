@@ -325,6 +325,7 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
         sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        //yDebug("stringArray %s", stringArray.c_str());
         stringArray[j * 2 + 2].append(&temp[0]);
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
         argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
@@ -884,7 +885,8 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
     stringArray[0].append("./motionProfile");
     argv[0] = (char*) stringArray[0].c_str();
     yDebug("added first %s", argv[0]);    
-        
+    yDebug("number of elements %d", b->size());
+    
     for (int j = 0; j < b->size(); j++) {
         Bottle* vector = b->get(j).asList();
         stringArray[j * 2 + 1].append("--");
@@ -902,9 +904,12 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
         yDebug("value %s", argv[j * 2 + 2]);
     } 
     yDebug("parsing......");
-    yDebug("argc %d argv %s", argc, argv[0]);
+    yDebug("argc %d argv %s", b->size(), argv[0]);
+    for (int j = 0; j < b->size() * 2 + 1; j++) {
+        yDebug("argv %s", argv[j]);
+    }
     // configuring the resource finder
-    yDebug("success %f", rf.configure(argc, argv));
+    yDebug("success %f", rf.configure(b->size() * 2 + 1, argv));
     
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF

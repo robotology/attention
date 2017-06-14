@@ -682,6 +682,7 @@ void handProfilerThread::saveToFile(){                 //save to file
     if (outputFile.is_open()){
         for(int i=0; i<7; i++){
             outputFile << jointsToSave[i] << " ";
+            yDebug("position %d : %f", i, jointsToSave[i]); 
         }
         outputFile.precision(13);
         outputFile << timestamp->getTime();
@@ -698,10 +699,12 @@ void handProfilerThread::startFromFile(){                 //move from file
     if(inputFile.is_open()){
         if(speedFactor >= 0.1 && speedFactor <= 2.0){
             playFromFile();
+            yWarning("speedFactor %f ", speedFactor);
             yDebug("finished movement");
             inputFile.close();
         }else{
             yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 2.0");
+            inputFile.close();
         }
     }
     else {
@@ -714,7 +717,6 @@ void handProfilerThread::startFromFile(){                 //move from file
 void handProfilerThread::playFromFile(){
     double jointValue = 0.0;
     double playJoints[8];
-
     double executionTime = 0;
     double previousTime = 0;
 
@@ -767,7 +769,6 @@ void handProfilerThread::playFromFile(){
                 if(executionTime <= 0.0) {
                     executionTime = 0.05;
                 }
-                //yWarning("Time: %f", executionTime);
                 idir->setPositions(command.data());
                 Time::delay(executionTime / speedFactor);
             }
@@ -934,7 +935,7 @@ void handProfilerThread::displayTarget() {
     }
 }
 
-void handProfilerThread::printStatus() {
+/*void handProfilerThread::printStatus() {
     if (t-t1>=PRINT_STATUS_PER) {
         Vector x,o,xdhat,odhat,qdhat;
 
@@ -965,6 +966,37 @@ void handProfilerThread::printStatus() {
 
         t1=t;
     }
+    }*/
+
+void handProfilerThread::printStatus() {
+    Vector x,o,xdhat,odhat,qdhat;
+
+    // we get the current arm pose in the
+    // operational space
+    icart->getPose(x,o);
+
+    // we get the final destination of the arm
+    // as found by the solver: it differs a bit
+    // from the desired pose according to the tolerances
+    icart->getDesired(xdhat,odhat,qdhat);
+
+    double e_xdhat=norm(xdhat-x);
+    double e_o=norm(odhat-o);
+    double e_xd=norm(xd-x);
+
+    fprintf(stdout,"+++++++++\n");
+    fprintf(stdout,"xd          [m] = %s\n",xd.toString().c_str());
+    fprintf(stdout,"xdhat       [m] = %s\n",xdhat.toString().c_str());
+    fprintf(stdout,"x           [m] = %s\n",x.toString().c_str());
+    fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
+    fprintf(stdout,"odhat     [rad] = %s\n",odhat.toString().c_str());
+    fprintf(stdout,"o         [rad] = %s\n",o.toString().c_str());
+    fprintf(stdout,"norm(e_xd)   [m] = %g\n",e_xd);
+    fprintf(stdout,"norm(e_xdhat)[m] = %g\n",e_xdhat);
+    fprintf(stdout,"norm(e_o) [rad] = %g\n",e_o);
+    fprintf(stdout,"---------\n\n");
+
+    t1=t;
 }
 
 void handProfilerThread::onStop() {
