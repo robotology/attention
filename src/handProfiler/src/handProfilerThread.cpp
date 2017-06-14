@@ -544,11 +544,9 @@ void handProfilerThread::run() {
                     yInfo("file saved");
                     fileCounter++;
                     outputFile.close();
-                    saveOn = false;
                     state = none;
                     idle = true;
                 }else{
-                    saveOn = false;
                     state = none;
                     idle = true;
                 }
@@ -682,7 +680,7 @@ void handProfilerThread::saveToFile(){                 //save to file
     if (outputFile.is_open()){
         for(int i=0; i<7; i++){
             outputFile << jointsToSave[i] << " ";
-            yDebug("position %d : %f", i, jointsToSave[i]); 
+            yDebug("position %d : %f", i, jointsToSave[i]);
         }
         outputFile.precision(13);
         outputFile << timestamp->getTime();
@@ -697,13 +695,13 @@ void handProfilerThread::startFromFile(){                 //move from file
     inputFile.open("action_1.txt");
     yDebug("opening file.....");
     if(inputFile.is_open()){
-        if(speedFactor >= 0.1 && speedFactor <= 2.0){
+        if(speedFactor >= 0.1 && speedFactor <= 3.0){
             playFromFile();
             yWarning("speedFactor %f ", speedFactor);
             yDebug("finished movement");
             inputFile.close();
         }else{
-            yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 2.0");
+            yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 3.0");
             inputFile.close();
         }
     }
