@@ -23,9 +23,9 @@
 #include "iCub/coord.h"
 #include "iCub/dog.h"
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
+#include <opencv/cv.h>
+#include <opencv/cvaux.h>
+#include <opencv/highgui.h>
 
 /** 
   * The neighbourhood structure.
@@ -80,7 +80,7 @@ class MultiClass{
    * @return Pointer to the output classification image.
    */
   //Ipp8u* get_class(){return out;};
-  char* get_class(){return out;};
+  unsigned char* get_class(){return out;};
 
   /** Access to the classification output.
    * @return Pointer to the output classification image.
@@ -98,7 +98,7 @@ class MultiClass{
    * @param pMaps Reference to the array of pointers to the input class probability maps.
    */
   //void proc(Ipp8u* im_in, Ipp8u** pMaps);
-  void proc(char* im_in, char** pMaps);
+  void proc(unsigned char* im_in, unsigned char** pMaps);
   
  private:
   int  likelihood(Coord c, int d);
@@ -114,8 +114,8 @@ class MultiClass{
   defSize im_size;
   IplImage* outImage;      //outputImage of the class
   Coord im_sz;
-  char *im, **prob;        //Ipp8u
-  char *out;               //Ipp8u 
+  unsigned char *im, **prob;        //Ipp8u
+  unsigned char *out;               //Ipp8u
   Parameters *params;
   int E;
   void **ptr_im;
