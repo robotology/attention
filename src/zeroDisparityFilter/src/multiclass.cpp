@@ -18,11 +18,7 @@
 
 
 #include <stdio.h>
-//#include <unistd.h>
-#include <string.h>
 #include <time.h>
-#include <math.h>
-
 #include "iCub/multiclass.h"
 #include "iCub/energy.h"
 
@@ -68,7 +64,7 @@ MultiClass::MultiClass(defSize im_size_, int psb_in_, int n_, Parameters *_param
 
   //out = ippiMalloc_8u_C1(im_size.width,im_size.height,&psb); 
   outImage = cvCreateImage(cvSize(im_size.width, im_size.height), IPL_DEPTH_8U, 1);
-  out = outImage->imageData;
+  out = (unsigned char *)outImage->imageData;
   psb = outImage->widthStep;
 
   ptr_im = (void**) malloc(im_size.width*im_size.height*sizeof(void*));
@@ -117,10 +113,10 @@ void MultiClass::generate_permutation(int *buf, int n)
     }
 }
 
-void MultiClass::proc(char* im_, char** prob_)
+void MultiClass::proc( unsigned  char* im_, unsigned char** prob_)
 {
     printf("multiclass processing \n");
-    
+
     im   =   im_;
     prob = prob_;
 
@@ -212,8 +208,6 @@ int MultiClass::likelihood(Coord c, int d)
     //prob[x][y] is in range{0..255}.
     //int penalty = (int)( params->data_penalty * (1.0 - (prob[d][c.y * psb_in + c.x]/255.0)) );
 
-	
-	
 
 	int param_penalty = params->data_penalty;
 
