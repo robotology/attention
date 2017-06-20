@@ -161,11 +161,11 @@ void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_,
 	//cv::imshow("Matrix1", mat_o);
 	//cv::waitKey(0);
 	//*im_o = (IplImage)mat_o;
-	
-	char* p = im_o->imageData;
+
+    unsigned char* p = (unsigned char *)im_o->imageData;
 	for (int r = 0; r < im_o->height; r++) {
 		for (int c = 0; c < im_o->width; c++) {
-			*p = mat_o.at<char>(r, c);
+			*p = mat_o.at<unsigned char >(r, c);
 			p++;
 			//printf(" data inside: %d \n", mat_o.at<char>(r, c));
 		}
@@ -297,18 +297,18 @@ void DoG::proc(IplImage *in_, int psb_in_)
     //cv::Mat kern1_mat; removed because already defined
     
     //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
-    filter2D(in_pad_mat, tmp1_mat, CV_32F, (cv::Mat) kern1_mat, anchor); 
+    filter2D(in_pad_mat, tmp1_mat, CV_32F,  cv::cvarrToMat(kern1_mat), anchor); 
     
     //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp2[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
-    filter2D(tmp1_mat, tmp2_mat, CV_32F, (cv::Mat) kern1_mat, anchor); 
+    filter2D(tmp1_mat, tmp2_mat, CV_32F,  cv::cvarrToMat(kern1_mat), anchor); 
     
 
     //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
-    filter2D(in_pad_mat, tmp1_mat, CV_32F, (cv::Mat) kern2_mat, anchor); 
+    filter2D(in_pad_mat, tmp1_mat, CV_32F,  cv::cvarrToMat(kern2_mat), anchor); 
     
 
     //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp3[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
-    filter2D(tmp1_mat, tmp3_mat, CV_32F, (cv::Mat) kern2_mat, anchor); 
+    filter2D(tmp1_mat, tmp3_mat, CV_32F, cv::cvarrToMat(kern2_mat), anchor); 
 
     printf("filtering successfully ended \n");
 	
@@ -326,16 +326,16 @@ void DoG::proc(IplImage *in_, int psb_in_)
 	//we do not remove the borders, we need them for later #amaroyo 11/02/2016
 	*dog_image = (IplImage)dog_mat;
 	
-	/* TODO Fix me, this should get floating number from the matrix and copy them to a 32f IplImage. For not
-	   we will use the casting of the matrix - just above. #amaroyo 19/02/2016
-	char* pData = dog_image->imageData;
+	// TODO Fix me, this should get floating number from the matrix and copy them to a 32f IplImage. For not
+    // we will use the casting of the matrix - just above. #amaroyo 19/02/2016
+	unsigned char* pData = dog_image->imageData;
 	for (int rows = 0; rows < dog_mat.rows; rows++) {
 		for (int cols = 0; cols < dog_mat.cols; cols++) {
-			*pData = dog_mat.at<char>(rows, cols);
+			*pData = dog_mat.at<unsigned char>(rows, cols);
 			pData+=4;
 		}
 	}
-	*/
+
 
 	/****************************
 	 Debugging and testing
@@ -368,7 +368,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 	*/
 
 
-    //cvCopy(dog_image, &dog_mat.operator IplImage(),NULL); 
+    //cvCopy(dog_image, &dog_mat.operator IplImage(),NULL);
     //dog_image = &dog_mat.operator IplImage(); --unnecesary, done before
 	printf("DoG: Substraction success \n");
 
@@ -395,7 +395,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
     cvAdd(dog_on_image, dog_off_image, dog_onoff_image);
 	
     //TODO this seems not useful #amaroyo 12/02/2016
-	//out_dog_onoff = dog_onoff_image->imageData; 
+	out_dog_onoff = (unsigned char *)dog_onoff_image->imageData;
     
 
     //convert to 8u and remove pad:
@@ -405,7 +405,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 	//printf("IN ADDRESSES %08X  and %08X \n", dog_on_image, out_dog_on_image);
 	IplImage* inputFirst = remove_borders(dog_on_image);
 	conv_32f_to_8u(inputFirst, 0, out_dog_on_image, 0, srcsize);
-	printf("OUT ADDRESSES %08X  and %08X \n", inputFirst, out_dog_on_image);
+	//printf("OUT ADDRESSES %08X  and %08X \n", inputFirst, out_dog_on_image);
 
 	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
 	//cv::waitKey(0);
@@ -413,7 +413,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
     //conv_32f_to_8u(&dog_off  [PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_off,   psb_o, srcsize);
 	//printf("IN ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
 	conv_32f_to_8u(remove_borders(dog_off_image), 0, out_dog_off_image, 0, srcsize);
-	printf("OUT ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
+	//printf("OUT ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
 
 	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
 	//cv::waitKey(0);
@@ -421,7 +421,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
     //conv_32f_to_8u(&dog_onoff[PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_onoff, psb_o, srcsize);
 	//printf("IN ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
 	conv_32f_to_8u(remove_borders(dog_onoff_image), 0, out_dog_onoff_image, 0, srcsize);
-	printf("OUT ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
+	//printf("OUT ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
 
 	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
 	//cv::waitKey(0);
@@ -434,15 +434,15 @@ void DoG::proc(IplImage *in_, int psb_in_)
 IplImage* DoG::remove_borders(const IplImage* input){
 
 	printf("removing borders \n");
-	printf("removing borders input address %08X \n", input);
+	//printf("removing borders input address %08X \n", input);
 	
 	cv::Rect imgROI(PAD_BORD, PAD_BORD, srcsize.width, srcsize.height);
 	cv::Mat dog_mat_aux = cv::cvarrToMat(input);
 	cv::Mat croppedImage = dog_mat_aux(imgROI);
 	cv::Mat copy;
 	croppedImage.copyTo(copy);
-	*dog_aux_32f_small = (IplImage)copy;
-	printf("removing borders output address %08X \n", dog_aux_32f_small);
+	*dog_aux_32f_small =  copy;
+	//printf("removing borders output address %08X \n", dog_aux_32f_small);
 	printf("removing borders concluded\n");
 
 
