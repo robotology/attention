@@ -128,7 +128,7 @@ void DoG::conv_32f_to_8u( float *im_i, int p4_,char *im_o, int p1_, defSize srcs
 void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_) {
     //float min = 1.0; //Ipp32f
     //float max = 0.0; //Ipp32f
-	printf("conv32fto8uIpl IN OUT ADDRESS %08X \n", im_o);
+	//printf("conv32fto8uIpl IN OUT ADDRESS %08X \n", im_o);
 
 	double minVal, maxVal;
 	
@@ -180,7 +180,7 @@ void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_,
 
 	
 
-	printf("conv32fto8uIpl OUT ADDRESS %08X \n", im_o);
+	//printf("conv32fto8uIpl OUT ADDRESS %08X \n", im_o);
 	
 }
 
@@ -328,7 +328,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 	
 	// TODO Fix me, this should get floating number from the matrix and copy them to a 32f IplImage. For not
     // we will use the casting of the matrix - just above. #amaroyo 19/02/2016
-	unsigned char* pData = dog_image->imageData;
+	unsigned char* pData =  (unsigned char *) dog_image->imageData;
 	for (int rows = 0; rows < dog_mat.rows; rows++) {
 		for (int cols = 0; cols < dog_mat.cols; cols++) {
 			*pData = dog_mat.at<unsigned char>(rows, cols);
@@ -378,7 +378,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 	printf("sizes: %d == %d and %d == %d \n", dog_image->height, dog_on_image->height, dog_image->width, dog_on_image->width);
 	printf("depths: %d == %d \n", dog_image->depth, dog_on_image->depth);
 	printf("channels: %d == %d \n", dog_image->nChannels, dog_on_image->nChannels);
-	cvThreshold(dog_image, dog_on_image, 0.0, NULL, CV_THRESH_TOZERO); // threshold to Zero; BEFORE: 1.0, CV_THRESH_BINARY, by #amaroyo on 15/02/2016
+	cvThreshold(dog_image, dog_on_image, 0.0, 0.0, CV_THRESH_TOZERO); // threshold to Zero; BEFORE: 1.0, CV_THRESH_BINARY, by #amaroyo on 15/02/2016
 
 
     //---------------- off-centre ----------------------------------------------
@@ -388,7 +388,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 
     //and keep only results above zero:
     //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_off,psb_pad,psize,0.0);
-	cvThreshold(dog_image, dog_off_image, 0.0, NULL, CV_THRESH_TOZERO);
+	cvThreshold(dog_image, dog_off_image, 0.0, 0.0, CV_THRESH_TOZERO);
 	
     //on+off:
     //ippiAdd_32f_C1R(dog_on,psb_pad,dog_off,psb_pad,dog_onoff,psb_pad,psize);
