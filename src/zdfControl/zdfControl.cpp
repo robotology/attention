@@ -27,6 +27,8 @@
 
 #include <string.h>
 #include <sstream>
+#include <fstream>
+
 
 #define COMMAND_VOCAB_SET VOCAB3('s','e','t')
 #define COMMAND_VOCAB_GET VOCAB3('g','e','t')
@@ -39,6 +41,9 @@
 
 using namespace yarp::os;
 using namespace std;
+
+
+
 
 GtkWidget *mainWindow=0;
 static GdkPixbuf *frame = NULL;
@@ -59,9 +64,9 @@ pgmOptions _options; //option set by the config file
 GtkWidget *saveSingleDialog;
 GtkWidget *saveSetDialog;
 GtkWidget *menubar;
-GtkWidget *fileMenu, *imageMenu, *helpMenu;
-GtkWidget *fileItem, *helpItem;
-GtkWidget *fileSingleItem, *fileSetItem, *fileQuitItem;
+GtkWidget *fileMenu, *imageMenu, *helpMenu, *savingMenu;
+GtkWidget *fileItem, *helpItem, *saveParametersItem;
+GtkWidget *fileSingleItem, *fileSetItem, *fileQuitItem, *savingParametersItem;
 GtkWidget *imageSizeItem, *imageRatioItem, *imageFreezeItem, *imageFramerateItem;
 GtkWidget *synchroDisplayItem;
 GtkWidget *helpAboutItem;
@@ -349,6 +354,11 @@ gint menuFileQuit_CB(GtkWidget *widget, gpointer data) {
     return TRUE;
 }
 
+gint menuSaveParameters_CB(GtkWidget *widget, gpointer data) {
+    saveParametersToFile();
+    return TRUE;
+}
+
 gint menuHelpAbout_CB(GtkWidget *widget, gpointer data) {
 #if GTK_CHECK_VERSION(2,6,0)
     const gchar *authors[] = 
@@ -426,9 +436,11 @@ GtkWidget* createMenubar(void) {
     menubar =  gtk_menu_bar_new ();
     GtkWidget *menuSeparator;	
     // Submenus Items on menubar
+    saveParametersItem = gtk_menu_item_new_with_label ("Save");
     fileItem = gtk_menu_item_new_with_label ("File");
     helpItem = gtk_menu_item_new_with_label ("Help");
-    // Submenu: File 
+
+    // Submenu: File
     fileMenu = gtk_menu_new();
     menuSeparator = gtk_separator_menu_item_new();
     gtk_menu_append( GTK_MENU(fileMenu), menuSeparator);
@@ -438,17 +450,28 @@ GtkWidget* createMenubar(void) {
     
     // Submenu: Help
     helpMenu = gtk_menu_new();
+    gtk_menu_append( GTK_MENU(helpMenu), menuSeparator);
     helpAboutItem = gtk_menu_item_new_with_label ("About..");
     gtk_menu_append( GTK_MENU(helpMenu), helpAboutItem);
     gtk_signal_connect( GTK_OBJECT(helpAboutItem), "activate", GTK_SIGNAL_FUNC(menuHelpAbout_CB), mainWindow);
+
+    // Submenu : SavingParameters
+    savingMenu = gtk_menu_new();
+    savingParametersItem = gtk_menu_item_new_with_label ("Save Parameters");
+    gtk_menu_append( GTK_MENU(savingMenu), savingParametersItem);
+    gtk_signal_connect( GTK_OBJECT(savingParametersItem), "activate", GTK_SIGNAL_FUNC(menuSaveParameters_CB), mainWindow);
+
+
     // linking the submenus to items on menubar
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileItem), fileMenu);
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(helpItem), helpMenu);
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(saveParametersItem), savingMenu);
+
     // appending the submenus to the menubar
     gtk_menu_bar_append(GTK_MENU_BAR(menubar), fileItem);
     gtk_menu_item_set_right_justified (GTK_MENU_ITEM (helpItem), TRUE);
     gtk_menu_bar_append(GTK_MENU_BAR(menubar), helpItem);
-  
+    gtk_menu_bar_append(GTK_MENU_BAR(menubar), saveParametersItem);
     return menubar;
 }
 
@@ -753,6 +776,22 @@ void cleanExit() {
     timeout_update_ID=0;
 
     gtk_main_quit ();
+}
+
+void saveParametersToFile() {
+    // Create a file under the current directory
+    ofstream parametersFile;
+    parametersFile.open ("parametersZeroDisparity.ini");
+
+    parametersFile << "data penalty " << (double)gtk_adjustment_get_value(GTK_ADJUSTMENT(adj1)) << endl;
+    parametersFile << "smoothness penalty base " << gtk_adjustment_get_value(GTK_ADJUSTMENT(adj2)) << endl;
+    parametersFile << "smoothness penalty " << gtk_adjustment_get_value(GTK_ADJUSTMENT(adj3)) << endl;
+    parametersFile << "radial penalty " << gtk_adjustment_get_value(GTK_ADJUSTMENT(adj4)) << endl;
+    parametersFile << "smoothness 3sigmaon2 " << gtk_adjustment_get_value(GTK_ADJUSTMENT(adj5)) << endl;
+    parametersFile << "bland dog thresh " << gtk_adjustment_get_value(GTK_ADJUSTMENT(adj6)) << endl;
+
+
+    parametersFile.close();
 }
 
 //-------------------------------------------------
