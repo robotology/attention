@@ -23,18 +23,18 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "CannotResolve"
+
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 
 
-void showIplImage(const IplImage * image){
-    cv::imshow("",cv::cvarrToMat(image));
+// Display an Ipl* image with openCV
+void showIplImage(const IplImage *image) {
+    cv::imshow("", cv::cvarrToMat(image));
     cv::waitKey(50);
 }
-
-
-
 
 
 bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
@@ -301,7 +301,8 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
             }
             break;
         }
-        default:break;
+        default:
+            break;
     }
 
     return true;
@@ -401,9 +402,6 @@ ZDFThread::ZDFThread(MultiClass::Parameters *parameters, string workWith) {
     yInfo("cog_snap: %f", parameters->cog_snap);
     yInfo("bland_prob: %f", parameters->bland_prob);
 
-    //cv::imshow("Matrix", NULL);
-    //cv::waitKey(0);
-
 
     yInfo("End of the Thread Costructor");
 }
@@ -495,7 +493,6 @@ void ZDFThread::run() {
         yDebug("Cycle Start");
         ImageOf<PixelBgr> *img_in_left = imageInLeft.read(true);
         ImageOf<PixelBgr> *img_in_right = imageInRight.read(true);
-        //yDebug("Cycle before first if \n");
 
         if (img_in_left != NULL && img_in_right != NULL) {
 
@@ -533,21 +530,23 @@ void ZDFThread::run() {
                     int x = 0, y = 0;
                     yDebug("copying the input image left............\n");
 
+                    /*
+                     * Debug
                     IplImage *inputdepth = (IplImage *) img_in_left->getIplImage();
-
                     yDebug("copying yarp image %d %d %d %d \n", img_in_left->width(), img_in_left->height(),
                            inputdepth->depth, inputdepth->nChannels);
                     yDebug("into IplImage %d %d %d %d \n", copyImg_ipl->width, copyImg_ipl->height, copyImg_ipl->depth,
                            copyImg_ipl->nChannels);
+                     */
 
+                    //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);
                     cvSetImageROI((IplImage *) img_in_left->getIplImage(), cvRect(x, y, srcsize.width, srcsize.height));
-                    cvCopy((IplImage *) img_in_left->getIplImage(), copyImg_ipl, mask);
-                    copyImg = (unsigned char*) copyImg_ipl->imageData;
+                    cvCopy((IplImage *) img_in_left->getIplImage(), copyImg_ipl, NULL);
+                    copyImg = (unsigned char *) copyImg_ipl->imageData;
                     yDebug("success! \n");
 
 
                     //TODO This is commented in initial file #amaroyo 08/01/2016
-                    //ippiCopy_8u_C3R( img_in_left->getRawImage(),  img_in_left->getRowSize(), copyImg, psbCopy, srcsize);                 
                     //ippiCopy_8u_C3R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb, srcsize);
 
 
@@ -560,6 +559,7 @@ void ZDFThread::run() {
                     //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
                     cvCopy((IplImage *) img_in_right->getIplImage(), r_orig_ipl, NULL);
                     yDebug("Success copying right image");
+
                 } else {
                     yInfo("scale is not 1");
                     //scale to width,height:
@@ -616,7 +616,6 @@ void ZDFThread::run() {
 
                 if (acquire) {
                     yDebug("acquiring \n");
-                    IplImage *tsizeMask = cvCreateImage(cvSize(tsize.width, tsize.height), IPL_DEPTH_8U, 1);
                     //ippiCopy_8u_C1R(&rec_im_ly [(( srcsize.height - tsize.height ) / 2 ) * psb_in + ( srcsize.width - tsize.width ) /2 ], psb_in, temp_l, psb_t, tsize);
                     cvSetImageROI(rec_im_ly_ipl, cvRect((srcsize.width - tsize.width) / 2,
                                                         (srcsize.height - tsize.height) / 2,
@@ -642,24 +641,20 @@ void ZDFThread::run() {
                 //               psb_t, tsize,
                 //               res_t, psb_rest);
 
-
                 cv::Mat rec_im_ly_mat(cv::cvarrToMat(rec_im_ly_ipl));
                 cv::Mat temp_l_mat(cv::cvarrToMat(temp_l_ipl));
                 cv::Mat res_t_mat(cv::cvarrToMat(res_t_ipl));
+
                 yDebug("result width %d == %d \n", rec_im_ly_mat.cols - temp_l_mat.cols + 1, res_t_mat.cols);
                 yDebug("result height %d == %d \n", rec_im_ly_mat.rows - temp_l_mat.rows + 1, res_t_mat.rows);
-
-
                 cvMatchTemplate(rec_im_ly_ipl, temp_l_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
-                //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
-
 
                 //ippiMaxIndx_32f_C1R( res_t, psb_rest, trsize, &max_t, &sx, &sy);
                 //ippiCopy_8u_C1R( &rec_im_ly [ ( mid_y + tl_y ) * psb_in + mid_x + tl_x], psb_in, fov_l, psb_m, msize ); //original
 
                 double minVal_l;
                 double maxVal_l;
-                cv::Point minLoc_l, maxLoc_l, matchLoc_l;
+                cv::Point minLoc_l, maxLoc_l;
                 //this function gives back the locations and brightness values of the brightest and darkest spots of the image #amaroyo 09/02/2016
                 cv::minMaxLoc(res_t_mat, &minVal_l, &maxVal_l, &minLoc_l, &maxLoc_l, cv::Mat());
 
@@ -682,13 +677,11 @@ void ZDFThread::run() {
 
                 cvMatchTemplate(rec_im_ry_ipl, temp_r_ipl, res_t_ipl, CV_TM_CCORR_NORMED);
 
-                //cv::normalize(result_mat, result_mat, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
-
                 //ippiMaxIndx_32f_C1R(res_t,psb_rest,trsize,&max_t,&sx,&sy);
                 //ippiCopy_8u_C1R(&rec_im_ry[(mid_y+tr_y+dpix_y)*psb_in + mid_x+tr_x],psb_in,fov_r,psb_m,msize); // original
                 double minVal_r;
                 double maxVal_r;
-                cv::Point minLoc_r, maxLoc_r, matchLoc_r;
+                cv::Point minLoc_r, maxLoc_r;
                 cv::minMaxLoc(res_t_mat, &minVal_r, &maxVal_r, &minLoc_r, &maxLoc_r, cv::Mat());
 
                 cvSetImageROI(rec_im_ry_ipl, cvRect(mid_x, mid_y, msize.width, msize.height));
@@ -697,13 +690,12 @@ void ZDFThread::run() {
 
 
                 //*****************************************************************
-                //Star diffence of gaussian on foveated images
+                //Start diffence of gaussian on foveated images
                 yDebug("difference of gaussian on foveated images \n");
                 yDebug("Sizes of Foveas, Left Width=%d, Left Height=%d, Right Width=%d, RightHeight=%d \n",
                        fov_l_ipl->width, fov_l_ipl->height, fov_r_ipl->width, fov_r_ipl->height);
-                dl->proc(fov_l_ipl, psb_m);
                 // as output of the previous call we get out_dog_on,_off, _onoff
-
+                dl->proc(fov_l_ipl, psb_m);
                 dr->proc(fov_r_ipl, psb_m);
 
 
@@ -726,12 +718,12 @@ void ZDFThread::run() {
                         //modification #amaroyo 19/02/16
                         //char* p_dogonoff = dl->get_dog_onoff(); --this is null
 
-                        char *p_dogonoff_l = dl->get_dog_onoff_ipl()->imageData;
+                        unsigned char *p_dogonoff_l = (unsigned char*) dl->get_dog_onoff_ipl()->imageData;
+                        unsigned char *p_dogonoff_r =  (unsigned char*) dr->get_dog_onoff_ipl()->imageData;
+
                         //yDebug("Sizes Left Dog width= %d, height= %d, step = %d \n", dl->get_dog_onoff_ipl()->width, dl->get_dog_onoff_ipl()->height, dl->get_dog_onoff_ipl()->widthStep);
-                        char *p_dogonoff_r = dr->get_dog_onoff_ipl()->imageData;
                         //yDebug("Sizes Right Dog width= %d, height= %d, step = %d  \n", dr->get_dog_onoff_ipl()->width, dr->get_dog_onoff_ipl()->height, dr->get_dog_onoff_ipl()->widthStep);
                         //yDebug("values %d, %d, %d, %d \n", *p_dogonoff_l, *p_dogonoff_r, p_dogonoff_l[i + j*dl->get_psb()], params->data_penalty);
-
 
                         //if either l or r textured at this retinal location: 
                         //TODO check this parameters
@@ -798,21 +790,17 @@ void ZDFThread::run() {
                 multiClass->proc(fov_r, p_prob); //provide edge map and probability map
                 //cache for distribution:
                 yDebug("getting the class out \n");
-                IplImage *m_class_ipl = multiClass->get_class_ipl();
-                //cvCopy(m_class_ipl, out_ipl, NULL);
-                unsigned char *pm_get_class = multiClass->get_class();
-                //TODO uncomment this?  #amaroyo 04/01/2016
                 //ippiCopy_8u_C1R( m->get_class(), m->get_psb(), out, psb_m, msize);
+                IplImage *m_class_ipl = multiClass->get_class_ipl();
+                unsigned char *out = (unsigned char *) m_class_ipl->imageData;
 
-
-
+                //TODO uncomment this?  #amaroyo 04/01/2016
                 //goto streaming;
 
 
                 //evaluate result:
-                yDebug("evaluating result.... \n");
-                unsigned char *out = (unsigned char *) m_class_ipl->imageData;
                 getAreaCoGSpread(out, psb_m, msize, &area, &cog_x, &cog_y, &spread);
+                yDebug("evaluating result.... \n");
                 yDebug("area: %d, cog_x: %f, cog_y: %f, spread: %f", area, cog_x, cog_y, spread);
                 yDebug("success \n");
 
@@ -862,6 +850,10 @@ void ZDFThread::run() {
 
                     //TODO uncomment this??  #amaroyo 04/01/2016
                     //floor(val + 0.5) instead of round
+                    //ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
+                    //ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
+
+                    //We've updated, so reset waiting:
 
                     int floorFov_l =
                             (mid_x_m + ((int) floor(cog_x + 0.5))) + (mid_y_m + ((int) floor(cog_y + 0.5))) * psb_m;
@@ -871,12 +863,6 @@ void ZDFThread::run() {
                     temp_l = &fov_l[floorFov_l];
                     temp_r = &fov_r[floorFov_r];
 
-                    //ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
-                    //ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
-
-
-
-                    //We've updated, so reset waiting:
                     waiting = 0;
                     //report that we-ve updated templates:
                     update = true;
@@ -940,6 +926,7 @@ void ZDFThread::run() {
                         int v = 0;
                         tempSize.width = right - left + 1;
                         tempSize.height = bottom - top + 1;
+
                         //tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
                         tempImg_ipl = cvCreateImage(cvSize(tempSize.width, tempSize.height), IPL_DEPTH_8U, 3);
                         tempImg = (unsigned char *) tempImg_ipl->imageData;
@@ -947,7 +934,6 @@ void ZDFThread::run() {
 
                         img_out_temp = new ImageOf<PixelBgr>;
                         img_out_temp->resize(tempSize.width, tempSize.height);
-                        IplImage *maskTempSize = cvCreateImage(cvSize(tempSize.width, tempSize.height), 8, 1);
 
                         for (int j = top; j < bottom + 1; j++) {
                             for (int i = left; i < right + 1; i++) {
@@ -1018,12 +1004,6 @@ void ZDFThread::run() {
 
                 // streaming :
 
-                /*Adding mask to copy the results to output
-                  #amaroyo 08/02/2016
-                */
-                IplImage *maskOutput = cvCreateImage(cvSize(msize.width, msize.height), IPL_DEPTH_8U, 1);
-
-
                 //send it all when connections are established
                 if (imageOutProb.getOutputCount() > 0) {
                     yDebug("Inside imageProb\n");
@@ -1047,13 +1027,11 @@ void ZDFThread::run() {
                     processingMonoImage = &imageOutProb.prepare();
                     processingMonoImage->resize(msize.width, msize.height);
                     IplImage *aux = zd_prob_8u_ipl;
-                    //print("ZDF IMG 1 %08X  \n", (unsigned int) aux);
-                    //cv::imshow("Matrix", cv::cvarrToMat(aux));
-                    //cv::waitKey(0);
-
                     processingMonoImage->wrapIplImage(aux); //fov_l_ipl
-                    //print("ZDF PROCESSING 1 %08X  \n", (unsigned int) processingMonoImage);
                     imageOutProb.write();
+
+                    //print("ZDF IMG 1 %08X  \n", (unsigned int) aux);
+                    //print("ZDF PROCESSING 1 %08X  \n", (unsigned int) processingMonoImage);
 
 
                 }
@@ -1080,14 +1058,12 @@ void ZDFThread::run() {
                     processingMonoImage = &imageOutSeg.prepare();
                     processingMonoImage->resize(msize.width, msize.height);
                     IplImage *aux = seg_im_ipl;
-                    //print("ZDF IMG 2 %08X  \n", (unsigned int) aux);
-                    //cv::imshow("Matrix", cv::cvarrToMat(aux));
-                    //cv::waitKey(1);
-
                     processingMonoImage->wrapIplImage(aux); //temp_r_ipl
-                    //print("ZDF PROCESSING 2 %08X  \n", (unsigned int) processingMonoImage);
                     imageOutSeg.write();
 
+
+                    //print("ZDF IMG 2 %08X  \n", (unsigned int) aux);
+                    //print("ZDF PROCESSING 2 %08X  \n", (unsigned int) processingMonoImage);
 
 
                 }
@@ -1113,13 +1089,11 @@ void ZDFThread::run() {
                     processingMonoImage = &imageOutDog.prepare();
                     processingMonoImage->resize(msize.width, msize.height);
                     IplImage *aux = dr->get_dog_onoff_ipl();
-                    //print("ZDF IMG 3 %08X  \n", (unsigned int) aux);
-                    //cv::imshow("Matrix", cv::cvarrToMat(aux));
-                    //cv::waitKey(0);
-
                     processingMonoImage->wrapIplImage(aux); //fov_r_ipl
-                    //print("ZDF PROCESSING 3 %08X  \n", (unsigned int) processingMonoImage);
                     imageOutDog.write();
+
+                    //print("ZDF IMG 3 %08X  \n", (unsigned int) aux);
+                    //print("ZDF PROCESSING 3 %08X  \n", (unsigned int) processingMonoImage);
 
                 }
 
@@ -1546,7 +1520,8 @@ double ZDFThread::cmp_rank(int *l1, int *l2) {
 
 
 void
-ZDFThread::getAreaCoGSpread(unsigned char *im_, int psb_, defSize sz_, int *parea, double *pdx, double *pdy, double *spread) {
+ZDFThread::getAreaCoGSpread(unsigned char *im_, int psb_, defSize sz_, int *parea, double *pdx, double *pdy,
+                            double *spread) {
 
     double naccum = 0.0, xaccum = 0.0, yaccum = 0.0;
     *spread = 0.0;
@@ -1588,6 +1563,6 @@ ZDFThread::getAreaCoGSpread(unsigned char *im_, int psb_, defSize sz_, int *pare
         *pdy = 0.0;
         *spread = 0.0;
     }
-}  
+}
 
 #pragma clang diagnostic pop
