@@ -4,7 +4,7 @@
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Vadim Tikhanoff
  * email:   vadim.tikhanoff@iit.it
- * website: www.robotcub.org 
+ * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -778,7 +778,7 @@ int myMain(int argc, char* argv[]) {
     rf.setVerbose(true);
     rf.setDefaultConfigFile("zdfControl.ini"); //overridden by --from parameter
     rf.setDefaultContext("zdfControl/conf");   //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);
+    rf.configure(argc, argv);
     
     _options.portName      = rf.check("name", 
                            Value("/zdfControl"), 
