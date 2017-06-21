@@ -783,6 +783,8 @@ void saveParametersToFile() {
     ofstream parametersFile;
     parametersFile.open ("parametersZeroDisparity.ini");
 
+    parametersFile << "#Parameters for the zeroDisparityFilters " << endl;
+
     parametersFile << "data penalty " << (double)gtk_adjustment_get_value(GTK_ADJUSTMENT(adj1)) << endl;
     parametersFile << "smoothness penalty base " << gtk_adjustment_get_value(GTK_ADJUSTMENT(adj2)) << endl;
     parametersFile << "smoothness penalty " << gtk_adjustment_get_value(GTK_ADJUSTMENT(adj3)) << endl;
