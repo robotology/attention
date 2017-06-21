@@ -124,8 +124,8 @@ private:
     float *res_t;                                    //Ipp32f
     IplImage *res_t_ipl;
     //Ipp8u *out, *seg_im, *seg_dog, *fov_l, *fov_r, *zd_prob_8u, *o_prob_8u, *tempImg, *copyImg;
-    unsigned char *out;
-    unsigned char *seg_im, *seg_dog;
+    unsigned char * out;
+    unsigned char * seg_im, *seg_dog;
     IplImage *out_ipl, *seg_im_ipl, *seg_dog_ipl, *fov_l_ipl;
     unsigned char *fov_r, *fov_l;
     unsigned char *tempImg, *copyImg;

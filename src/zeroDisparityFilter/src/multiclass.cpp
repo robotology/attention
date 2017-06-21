@@ -29,7 +29,7 @@
   if ALPHA_SINK is defined then interpretation of a cut is as follows:
   SOURCE means initial label
   SINK   means new label \alpha
-  
+
   if ALPHA_SINK is not defined then SOURCE and SINK are swapped
 */
 #ifdef ALPHA_SINK
