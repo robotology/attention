@@ -544,11 +544,9 @@ void handProfilerThread::run() {
                     yInfo("file saved");
                     fileCounter++;
                     outputFile.close();
-                    saveOn = false;
                     state = none;
                     idle = true;
                 }else{
-                    saveOn = false;
                     state = none;
                     idle = true;
                 }
@@ -682,7 +680,7 @@ void handProfilerThread::saveToFile(){                 //save to file
     if (outputFile.is_open()){
         for(int i=0; i<7; i++){
             outputFile << jointsToSave[i] << " ";
-            yDebug("position %d : %f", i, jointsToSave[i]); 
+            yDebug("position %d : %f", i, jointsToSave[i]);
         }
         outputFile.precision(13);
         outputFile << timestamp->getTime();
