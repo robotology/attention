@@ -697,13 +697,13 @@ void handProfilerThread::startFromFile(){                 //move from file
     inputFile.open("action_1.txt");
     yDebug("opening file.....");
     if(inputFile.is_open()){
-        if(speedFactor >= 0.1 && speedFactor <= 2.0){
+        if(speedFactor >= 0.1 && speedFactor <= 10.0){
             playFromFile();
             yWarning("speedFactor %f ", speedFactor);
             yDebug("finished movement");
             inputFile.close();
         }else{
-            yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 2.0");
+            yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 10.0");
             inputFile.close();
         }
     }
