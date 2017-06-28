@@ -18,7 +18,6 @@
  * Public License for more details
  */
 #include "iCub/dog.h"
-#include <stdio.h>
 
 //set up DoG Kernel stuff:
 const int kern_sz  = 7;
@@ -38,7 +37,7 @@ DoG::DoG(defSize srcsize_)
     height  = srcsize.height;
 
     //in_pad_8u = ippiMalloc_8u_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad_8u);
-    in_pad_8u_image = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
+    in_pad_8u_image = cvCreateImage(cvSize(width+PAD_BORD*2, height+PAD_BORD*2), IPL_DEPTH_8U, 1);
 
     //in_pad    = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
     in_pad_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height+PAD_BORD*2), IPL_DEPTH_32F, 1);
@@ -264,10 +263,11 @@ void DoG::proc(unsigned char *in_, int psb_in_)
 
 }
 
+
 void DoG::proc(IplImage *in_, int psb_in_)
 {
     //padding
-    printf("cloning the image for border making, size %d by %d \n", in_->width, in_->height);
+    printf("Cloning the image for border making, size %d by %d \n", in_->width, in_->height);
     
 	//IplImage in_ is 8U
     cv::Mat in_mat = cv::cvarrToMat(in_);
@@ -300,7 +300,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
     filter2D(in_pad_mat, tmp1_mat, CV_32F,  cv::cvarrToMat(kern1_mat), anchor); 
     
     //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp2[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
-    filter2D(tmp1_mat, tmp2_mat, CV_32F,  cv::cvarrToMat(kern1_mat), anchor); 
+    filter2D(tmp1_mat, tmp2_mat, CV_32F,  cv::cvarrToMat(kern1_mat), anchor);
     
 
     //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);

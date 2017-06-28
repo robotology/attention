@@ -136,7 +136,7 @@ private:
 
     //templates:
     unsigned char *temp_l, *temp_r;              //Ipp8u *temp_l, *temp_r;
-    IplImage *temp_l_ipl, *temp_r_ipl;
+    IplImage *template_left_ipl, *temp_r_ipl;
 
     //input:x
     unsigned char *rec_im_ly;                             //Ipp8u

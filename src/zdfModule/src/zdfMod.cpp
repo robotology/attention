@@ -412,8 +412,8 @@ void ZDFThread::run()
 			        //scale to width,height:
                     ippiResizeGetBufSize(inroi, inroi, 3, IPPI_INTER_CUBIC, &BufferSize);
                     Ipp8u* pBuffer=ippsMalloc_8u(BufferSize);
-                    ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);   
-                    ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);     
+                    ippiResizeSqrPixel_8u_C3R( img_in_left->getRawImage(), insize, psb, inroi, l_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);
+                    ippiResizeSqrPixel_8u_C3R( img_in_right->getRawImage(), insize, psb, inroi, r_orig, psb, inroi, scale, scale, 0, 0, IPPI_INTER_CUBIC, pBuffer);
                     ippsFree(pBuffer);
                     //the following is deprecated...use previous
 			        //ippiResize_8u_C3R( img_in_left->getRawImage(), insize, img_in_left->width() * 3, inroi, l_orig, psb, srcsize, scale, scale, IPPI_INTER_CUBIC);
@@ -750,7 +750,7 @@ void ZDFThread::deallocate() {
 }
 
 void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
-     assert (allocated == false);
+    assert (allocated == false);
 
     cout << "Received left input image dimensions: " << img->width() << " " << img->height() << endl;
     cout << "Received right input image dimensions: " << img->width() << " " << img->height() << endl;

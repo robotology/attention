@@ -27,4 +27,4 @@ yarp connect /zdfControl/command:o /zeroDisparityFilterMod
 
 #Connect iCubSim camera to yarpView
 yarp connect /icubSim/cam/left /leftCamera
-yarp connect /icubSim/cam/left /RightCamera
+yarp connect /icubSim/cam/right /RightCamera

@@ -12,18 +12,19 @@ FILE(GLOB folder_header include/iCub/*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
+FIND_PACKAGE(YARP REQUIRED)
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
 	${ICUB_INCLUDE_DIRS}
-	${IPP_INCLUDE_DIRS}
+	/opt/intel/ipp/include
 )
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header} )
 
 TARGET_LINK_LIBRARIES(
     ${PROJECTNAME}
-	${IPP_LIBRARIES}
+
 	${YARP_LIBRARIES}
 )
 

@@ -92,7 +92,7 @@ void MultiClass::clear()
   int width     = outImage->width;
 
   for( int y=0; y < height; y++ ) { 
-        uchar* ptr = (uchar*) ( outImage->imageData + y * widthStep ); 
+        unsigned char* ptr = (unsigned char*) ( outImage->imageData + y * widthStep );
         for( int x=0; x < width; x++ ) { 
             ptr[x] = 0; //Set red to max (BGR format)
         }
