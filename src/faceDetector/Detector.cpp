@@ -72,19 +72,19 @@ void Detector::loop()
                     if(withSaliency){
                         cvCircle(saliency, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(255,255,255), -1, 8, 0 );
                     }
-                    double alfa = 0.2;    
+                    double alfa = 0.15;    
                     yarp::sig::Vector uv(2);
                     yarp::sig::Vector posRoot(3);
+
                     uv[0] = face.x;
                     uv[1] = face.y;
-                    yDebug("position %f %f distance %f", face.x, face.y, eyeDist);
+                    
+                    //yDebug("position %f %f distance %f", face.x, face.y, eyeDist);
                     bool ret = iGaze->get3DPoint((eye=="left")?0:1, uv, eyeDist, posRoot );
-                    yDebug("got 3D position %s", posRoot.toString().c_str());
+                    //yDebug("got 3D position %s", posRoot.toString().c_str());
                     if(ret)
                     {
-                        yDebug("get3DPoint sent in...ready to send");
-                        
-                        
+                        //yDebug("get3DPoint sent in...ready to send");
 
                         yarp::sig::Vector posRootFinal(3);
                         posRootFinal[0] = alfa * posRoot[0] + (1 - alfa) * prev_x;
@@ -276,14 +276,20 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     }
     else
         return false;
+
+    iGaze->storeContext(&startup_context_id);
+    
     //clientGaze.view(iGaze);
     iGaze->blockNeckRoll(0.0);
     //iGaze->setSaccadesStatus(false);
     iGaze->setSaccadesMode(false);
     // set trajectory time:
-    iGaze->setNeckTrajTime(0.8);
-    iGaze->setEyesTrajTime(0.5);
+    iGaze->setNeckTrajTime(0.9);
+    iGaze->setEyesTrajTime(0.2);
     iGaze->setTrackingMode(true);
+    iGaze->setVORGain(1.3);
+    iGaze->setOCRGain(1.0);
+                     
 
     //---------------------------------------------------------------
 
@@ -340,6 +346,9 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
 
 bool Detector::close()
 {
+    iGaze->stopControl();
+    iGaze->restoreContext(startup_context_id);
+        
     clientGaze->close();
     imagePort.close();
     outPort.close();
