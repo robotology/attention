@@ -568,10 +568,14 @@ handLeftP_TTLFront004_emp(){
     echo "GEN TTL (((O -0.25 -0.2 0.1) (A -0.35 -0.2 0.1) (B -0.25 -0.2 0.3) (C -0.25 -0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.012 0.33)))" | yarp rpc /handProfiler
 }
 
+newHandLeftProvide(){
+    echo "GEN TTL (((O -0.3 -0.15 0.1) (A -0.4 -0.15 0.1) (B -0.3 -0.15 0.2) (C -0.2 -0.15 0.1) (theta 0.2 1.57 3.0) (axes 0.1 0.1) (rev) (param 0.008 0.33)))" | yarp rpc /handProfiler
+}
+
 ######################################### left hand halt
 
 handLeftP_TTLHalt001_rev(){
-    echo "GEN TTL (((O -0.25 -0.17 0.1) (A -0.35 -0.17 0.1) (B -0.25 -0.17 0.11) (C -0.1 -0.17 0.1) (theta 0.1 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.005 0.33)))" | yarp rpc /handProfiler
+    echo "GEN TTL (((O -0.25 -0.17 0.1) (A -0.35 -0.17 0.1) (B -0.25 -0.17 0.11) (C -0.1 -0.17 0.1) (theta 0.1 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.003 0.33)))" | yarp rpc /handProfiler
 }
 
 handLeftP_TTLHalt002_emp(){
