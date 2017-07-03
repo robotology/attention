@@ -58,6 +58,7 @@ protected:
     int originalContext;           // original context for the gaze Controller
     int blockNeckPitchValue;
     int njoints;                   // number of joints for saving to file (left_arm)s
+    int sampleNumber;              // number of samples read from file
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
@@ -66,6 +67,10 @@ protected:
     double t0;
     double t1;
     double speedFactor;           // factor to regulate speed in movement from file
+    double partnerStart;           
+    double partnerStop;           
+    double partnerTime;
+    double movementDuration;      // duration of movement read from file
 
     bool verbosity;                // flag indicating verbosity
     bool firstIteration;           // flag indicating the first iteration
@@ -109,6 +114,7 @@ protected:
 
     std::ofstream outputFile;                                                           // file in which to save joints values
     std::ifstream inputFile;                                                            // file to read joint positions from
+    std::ifstream infoFile;                                                            // file to read with info about the movement
     enum States {none, simulation, execution, file};
     States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file
     //yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
@@ -208,6 +214,21 @@ public:
         outputWidth  = width;
         outputHeight = height;
     }
+
+     /**
+     * function that sets the variable partnerStart
+     */
+    void setPartnerStart();
+
+    /**
+     * function that sets the variable partnerStop
+     */
+    void setPartnerStop ();
+
+    /**
+     * function that sets the variable partnerTime
+     */
+    void setPartnerTime ();
 
     /**
     * function that generates the motionProfile

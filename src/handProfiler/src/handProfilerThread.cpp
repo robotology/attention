@@ -111,6 +111,7 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     gazetracking = false;
     saveOn = false;
     speedFactor = 1.0;
+    partnerTime = 0;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -132,10 +133,14 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     gazetracking = false;
     saveOn = false;
     speedFactor = 1.0;
+    partnerTime = 0;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
     cartesianEventParameters.motionOngoingCheckPoint=0.2;
+
+    ConstString path = rf.findFile("action1_info");
+    
 }
 
 
@@ -322,6 +327,20 @@ void handProfilerThread::setName(string str) {
     printf("name: %s", name.c_str());
 }
 
+void handProfilerThread::setPartnerStart() {
+    this->partnerStart = Time::now();
+    yDebug("start time: %f", partnerStart);
+}
+
+void handProfilerThread::setPartnerStop() {
+    this->partnerStop = Time::now();
+    yDebug("stop time: %f", partnerStop);
+}
+
+void handProfilerThread::setPartnerTime() {
+    this->partnerTime = partnerStop - partnerStart;
+    yDebug("sync time: %f", partnerTime);
+}
 
 std::string handProfilerThread::getName(const char* p) {
     string str(name);
@@ -447,7 +466,7 @@ bool handProfilerThread::saveJoints(){                 //save to file
 	return true;
 }
 
-bool handProfilerThread::startJoints(double factor){                 //MOVE FROM file
+bool handProfilerThread::startJoints(double factor = 1.0){                 //MOVE FROM file
     //count = 0;
     //mp->setReverse(_reverse);
     idle = false;
@@ -691,13 +710,24 @@ void handProfilerThread::saveToFile(){                 //save to file
 }
 
 void handProfilerThread::startFromFile(){                 //move from file
+    infoFile.open("action_1.info");
+    yDebug("opening file.....");
+    if(infoFile.is_open()){
+        infoFile >> movementDuration;
+        infoFile >> sampleNumber;
+        yDebug("duration: %f  number: %d", movementDuration, sampleNumber );
+    }
+    if (partnerTime != 0.0) {
+        speedFactor = movementDuration / partnerTime;        //if partnerTime is set change speedFactor
+    }
+    
     //** to make the name of the file a parameter**/
-    inputFile.open("action_1.txt");
+    inputFile.open("action_1.log");
     yDebug("opening file.....");
     if(inputFile.is_open()){
-        if(speedFactor >= 0.1 && speedFactor <= 10.0){
-            playFromFile();
+        if(speedFactor >= 0.1 && speedFactor <= 2.0){
             yWarning("speedFactor %f ", speedFactor);
+            playFromFile();
             yDebug("finished movement");
             inputFile.close();
         }else{
@@ -728,6 +758,21 @@ void handProfilerThread::playFromFile(){
     encoders.resize(njoints);
     command.resize(njoints);
 
+    Vector startPos(3);
+    Vector startOri(4);
+    startPos[0] = -0.3;
+    startPos[1] = -0.1;
+    startPos[2] = 0.0;
+    //-0.076 -0.974 0.213 3.03
+    startOri[0] = -0.076;
+    startOri[1] = -0.974;
+    startOri[2] = 0.213;
+    startOri[3] = 3.03;
+    icart->goToPose(startPos,startOri);
+
+    icart->waitMotionDone();
+    
+    // encoder reading from current position.
     encs->getEncoders(encoders.data());
     for (int i = 0; i < njoints; i++) {
         ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
