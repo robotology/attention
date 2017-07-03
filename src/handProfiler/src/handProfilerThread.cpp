@@ -115,6 +115,8 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     infoSamples = 0;
     firstDuration = 0;
     repsNumber = 1;
+    firstPos.resize(3);
+    firstOri.resize(4);
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -140,6 +142,9 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile, Resour
     infoSamples = 0;
     firstDuration = 0;
     repsNumber = 1;
+    this->rf = rf;
+    firstPos.resize(3);
+    firstOri.resize(4);
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -553,6 +558,7 @@ void handProfilerThread::run() {
             fileName = "action_" + convert.str() + ".info";
             infoOutputFile.open(fileName.c_str(), std::ofstream::out);
             firstDuration = Time::now();
+            icart->getPose(firstPos, firstOri);
             //-------------------------------
         }
         else {
@@ -727,9 +733,6 @@ void handProfilerThread::saveToFile(){                 //save to file: first sav
 }
 
 void handProfilerThread::saveInfo(){                 //save the info in separate file
-    Vector firstPos(3);
-    Vector firstOri(4);
-    icart->getPose(firstPos, firstOri);
     if (infoOutputFile.is_open()){
         infoOutputFile << Time::now() - firstDuration << " ";
         infoOutputFile << infoSamples << " ";
@@ -766,7 +769,7 @@ void handProfilerThread::startFromFile(){                 //move from file
     }
 
     //** to make the name of the file a parameter**/
-    ConstString filePath = rf.findFile("action_1.log");
+    filePath = rf.findFile("action_1.log");
     for(int i=0; i<repsNumber; i++){
         inputFile.open(filePath);
         yDebug("opening file.....");
@@ -786,7 +789,7 @@ void handProfilerThread::startFromFile(){                 //move from file
         }
     }
     repsNumber = 1;
-    yInfo("reps number reset to 1")
+    yInfo("reps number reset to 1");
     partnerTime = 0.0;
     state = none;
     idle = true;
@@ -818,7 +821,7 @@ void handProfilerThread::playFromFile(){
     startOri[1] = -0.974;
     startOri[2] = 0.213;
     startOri[3] = 3.03;*/
-    if(startPos != NULL && startOri != NULL){
+    if(startPos(0) != NULL && startPos(1) != NULL && startPos(2) != NULL && startOri(0) != NULL && startOri(1) != NULL && startOri(2) != NULL && startOri(3) != NULL){
       icart->goToPose(startPos,startOri);
       icart->waitMotionDone();
     }

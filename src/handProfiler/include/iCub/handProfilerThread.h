@@ -90,6 +90,8 @@ protected:
     yarp::sig::Vector qdhat;       // vector representating the desired orientation for the hand
     yarp::sig::Vector startPos;           // vector with first position of hand for play from file
     yarp::sig::Vector startOri;           // vector with first position of hand for play from file
+    yarp::sig::Vector firstPos;           // vector with first position of hand for save to file
+    yarp::sig::Vector firstOri;           // vector with first position of hand for save to file
 
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
@@ -109,7 +111,7 @@ protected:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
 
-
+    yarp::os::ResourceFinder rf;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
