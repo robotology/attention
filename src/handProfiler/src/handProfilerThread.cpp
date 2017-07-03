@@ -748,7 +748,7 @@ void handProfilerThread::saveInfo(){                 //save the info in separate
 
 void handProfilerThread::startFromFile(){                 //move from file
     ConstString filePath = rf.findFile("action_1.info");
-    infoInputFile.open(filePath);
+    infoInputFile.open(filePath.c_str());
     yDebug("opening file.....");
     if(infoInputFile.is_open()){
         infoInputFile >> movementDuration;
@@ -771,7 +771,7 @@ void handProfilerThread::startFromFile(){                 //move from file
     //** to make the name of the file a parameter**/
     filePath = rf.findFile("action_1.log");
     for(int i=0; i<repsNumber; i++){
-        inputFile.open(filePath);
+        inputFile.open(filePath.c_str());
         yDebug("opening file.....");
         if(inputFile.is_open()){
             if(speedFactor >= 0.1 && speedFactor <= 2.0){
