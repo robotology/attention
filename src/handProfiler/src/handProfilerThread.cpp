@@ -112,6 +112,9 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     saveOn = false;
     speedFactor = 1.0;
     partnerTime = 0;
+    infoSamples = 0;
+    firstDuration = 0;
+    repsNumber = 1;
     // we want to raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
@@ -119,7 +122,7 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
 }
 
 
-handProfilerThread::handProfilerThread(string _robot, string _configFile): RateThread(RATETHREAD){
+handProfilerThread::handProfilerThread(string _robot, string _configFile, ResourceFinder rf): RateThread(RATETHREAD){
     robot = _robot;
     configFile = _configFile;
     icart = 0;
@@ -134,13 +137,14 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile): RateT
     saveOn = false;
     speedFactor = 1.0;
     partnerTime = 0;
+    infoSamples = 0;
+    firstDuration = 0;
+    repsNumber = 1;
     // we wanna raise an event each time the arm is at 20%
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
     cartesianEventParameters.motionOngoingCheckPoint=0.2;
 
-    ConstString path = rf.findFile("action1_info");
-    
 }
 
 
@@ -330,6 +334,11 @@ void handProfilerThread::setName(string str) {
 void handProfilerThread::setPartnerStart() {
     this->partnerStart = Time::now();
     yDebug("start time: %f", partnerStart);
+}
+
+void handProfilerThread::setRepsNumber(int n) {
+     this->repsNumber = n;
+     yInfo("number of repetitions set to: %d", repsNumber);
 }
 
 void handProfilerThread::setPartnerStop() {
@@ -539,8 +548,11 @@ void handProfilerThread::run() {
             //-----file opening to save -------
             ostringstream convert;
             convert << fileCounter;
-            string fileName = "action_" + convert.str() + ".txt";
+            string fileName = "action_" + convert.str() + ".log";
             outputFile.open(fileName.c_str(), std::ofstream::out);
+            fileName = "action_" + convert.str() + ".info";
+            infoOutputFile.open(fileName.c_str(), std::ofstream::out);
+            firstDuration = Time::now();
             //-------------------------------
         }
         else {
@@ -561,8 +573,12 @@ void handProfilerThread::run() {
                     }
                 }else if(!success && outputFile.is_open() && saveOn){
                     yInfo("file saved");
+                    saveInfo();           //save info to file
                     fileCounter++;
                     outputFile.close();
+                    infoOutputFile.close();
+                    firstDuration = 0;
+                    infoSamples = 0;
                     state = none;
                     idle = true;
                 }else{
@@ -690,7 +706,7 @@ bool handProfilerThread::generateTarget() {
     return true;
 }
 
-void handProfilerThread::saveToFile(){                 //save to file
+void handProfilerThread::saveToFile(){                 //save to file: first save joints values and the info in separate file
     Vector jointsToSave;
     jointsToSave.resize(njoints);
     bool retFromEncoders = encs->getEncoders(jointsToSave.data());
@@ -705,39 +721,73 @@ void handProfilerThread::saveToFile(){                 //save to file
         outputFile << timestamp->getTime();
         outputFile << "\n";
         outputFile.precision(13);
+        infoSamples++;
     }
-    else cout << "Unable to open file";
+    else cout << "Unable to open output file";
+}
+
+void handProfilerThread::saveInfo(){                 //save the info in separate file
+    Vector firstPos(3);
+    Vector firstOri(4);
+    icart->getPose(firstPos, firstOri);
+    if (infoOutputFile.is_open()){
+        infoOutputFile << Time::now() - firstDuration << " ";
+        infoOutputFile << infoSamples << " ";
+        for(int i=0; i<3; i++){
+          infoOutputFile << firstPos(i) << " ";
+        }
+        for(int i=0; i<4; i++){
+          infoOutputFile << firstOri(i) << " ";
+        }
+    }
+    else cout << "Unable to open info output file";
 }
 
 void handProfilerThread::startFromFile(){                 //move from file
-    infoFile.open("action_1.info");
+    ConstString filePath = rf.findFile("action_1.info");
+    infoInputFile.open(filePath);
     yDebug("opening file.....");
-    if(infoFile.is_open()){
-        infoFile >> movementDuration;
-        infoFile >> sampleNumber;
+    if(infoInputFile.is_open()){
+        infoInputFile >> movementDuration;
+        infoInputFile >> sampleNumber;
+        startPos.resize(3);
+        startOri.resize(4);
+        for(int i=0; i<3; i++){
+          infoInputFile >> startPos(i);
+        }
+        for(int i=0; i<4; i++){
+          infoInputFile >> startOri(i);
+        }
         yDebug("duration: %f  number: %d", movementDuration, sampleNumber );
     }
     if (partnerTime != 0.0) {
         speedFactor = movementDuration / partnerTime;        //if partnerTime is set change speedFactor
+        yWarning("start from partner time");
     }
-    
+
     //** to make the name of the file a parameter**/
-    inputFile.open("action_1.log");
-    yDebug("opening file.....");
-    if(inputFile.is_open()){
-        if(speedFactor >= 0.1 && speedFactor <= 2.0){
-            yWarning("speedFactor %f ", speedFactor);
-            playFromFile();
-            yDebug("finished movement");
-            inputFile.close();
-        }else{
-            yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 10.0");
-            inputFile.close();
+    ConstString filePath = rf.findFile("action_1.log");
+    for(int i=0; i<repsNumber; i++){
+        inputFile.open(filePath);
+        yDebug("opening file.....");
+        if(inputFile.is_open()){
+            if(speedFactor >= 0.1 && speedFactor <= 2.0){
+                yWarning("speedFactor %f ", speedFactor);
+                playFromFile();
+                yDebug("finished movement");
+                inputFile.close();
+            }else{
+                yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 6.0");
+                inputFile.close();
+            }
+        }
+        else {
+            yError("File not found");
         }
     }
-    else {
-        yError("File not found");
-    }
+    repsNumber = 1;
+    yInfo("reps number reset to 1")
+    partnerTime = 0.0;
     state = none;
     idle = true;
 }
@@ -750,7 +800,7 @@ void handProfilerThread::playFromFile(){
 
     int playCount = 0;
 
-    bool  done=false;
+    bool done = false;
     bool first = true;
 
     Vector encoders;
@@ -758,7 +808,7 @@ void handProfilerThread::playFromFile(){
     encoders.resize(njoints);
     command.resize(njoints);
 
-    Vector startPos(3);
+    /*Vector startPos(3);
     Vector startOri(4);
     startPos[0] = -0.3;
     startPos[1] = -0.1;
@@ -767,11 +817,12 @@ void handProfilerThread::playFromFile(){
     startOri[0] = -0.076;
     startOri[1] = -0.974;
     startOri[2] = 0.213;
-    startOri[3] = 3.03;
-    icart->goToPose(startPos,startOri);
+    startOri[3] = 3.03;*/
+    if(startPos != NULL && startOri != NULL){
+      icart->goToPose(startPos,startOri);
+      icart->waitMotionDone();
+    }
 
-    icart->waitMotionDone();
-    
     // encoder reading from current position.
     encs->getEncoders(encoders.data());
     for (int i = 0; i < njoints; i++) {

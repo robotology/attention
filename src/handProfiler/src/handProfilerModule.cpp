@@ -51,6 +51,7 @@
 #define COMMAND_VOCAB_MARK   VOCAB4('M','A','R','K')        //
 #define COMMAND_VOCAB_STOP   VOCAB4('S','T','O','P')        //
 #define COMMAND_VOCAB_SYNC   VOCAB4('S','Y','N','C')        //
+#define COMMAND_VOCAB_REPS   VOCAB4('R','E','P','S')        //
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
 #define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
@@ -444,8 +445,8 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                         // when we have no SPEE command
                         if(0!=rThread) {
                             reply.addString("OK");
-                            
-                            
+
+
                             rThread->startJoints(1.0);
                         }
                         ok = true;
@@ -485,6 +486,18 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 break;
             }
 
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_REPS:
+        rec = true;
+        {
+            if(0!=rThread && command.get(1).asInt() != 0) {
+              reply.addString("OK");
+
+              rThread->setRepsNumber(command.get(1).asInt());
+
+            }
             ok = true;
         }
         break;

@@ -59,6 +59,8 @@ protected:
     int blockNeckPitchValue;
     int njoints;                   // number of joints for saving to file (left_arm)s
     int sampleNumber;              // number of samples read from file
+    int infoSamples;               // numbero of samples save to file
+    int repsNumber;
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
@@ -67,10 +69,11 @@ protected:
     double t0;
     double t1;
     double speedFactor;           // factor to regulate speed in movement from file
-    double partnerStart;           
-    double partnerStop;           
+    double partnerStart;
+    double partnerStop;
     double partnerTime;
     double movementDuration;      // duration of movement read from file
+    double firstDuration;         // time of the first sample for saving to file
 
     bool verbosity;                // flag indicating verbosity
     bool firstIteration;           // flag indicating the first iteration
@@ -85,6 +88,8 @@ protected:
     yarp::sig::Vector xdhat;       // vector representating the desired orientation for the hand
     yarp::sig::Vector odhat;       // vector representating the desired orientation for the hand
     yarp::sig::Vector qdhat;       // vector representating the desired orientation for the hand
+    yarp::sig::Vector startPos;           // vector with first position of hand for play from file
+    yarp::sig::Vector startOri;           // vector with first position of hand for play from file
 
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
@@ -113,8 +118,9 @@ protected:
     std::string name;                                                                   // rootname of all the ports opened by this thread
 
     std::ofstream outputFile;                                                           // file in which to save joints values
+    std::ofstream infoOutputFile;                                                           // file in which to save info about the movement
     std::ifstream inputFile;                                                            // file to read joint positions from
-    std::ifstream infoFile;                                                            // file to read with info about the movement
+    std::ifstream infoInputFile;                                                            // file to read with info about the movement
     enum States {none, simulation, execution, file};
     States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file
     //yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
@@ -135,7 +141,7 @@ public:
     * constructor
     * @param robotname name of the robot
     */
-    handProfilerThread(std::string robotname,std::string configFile);
+    handProfilerThread(std::string robotname,std::string configFile, yarp::os::ResourceFinder rf);
 
     /**
      * destructor
@@ -221,6 +227,11 @@ public:
     void setPartnerStart();
 
     /**
+    * function that sets the number of repetitions to perform
+    */
+   void setRepsNumber(int n);
+
+    /**
      * function that sets the variable partnerStop
      */
     void setPartnerStop ();
@@ -262,6 +273,11 @@ public:
     *  function that saves in a file the value of joints
     */
     void saveToFile();
+
+    /**
+    *  function that saves in a file the info of a movement
+    */
+    void saveInfo();
 
     /**
     *  function that set parameters for starting movement from a file with joint values
