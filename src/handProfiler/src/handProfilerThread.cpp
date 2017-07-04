@@ -555,14 +555,16 @@ void handProfilerThread::run() {
             displayProfile();
 
             //-----file opening to save -------
-            ostringstream convert;
-            convert << fileCounter;
-            string fileToSave = "action_" + convert.str() + ".log";
-            outputFile.open(fileToSave.c_str(), std::ofstream::out);
-            fileToSave = "action_" + convert.str() + ".info";
-            infoOutputFile.open(fileToSave.c_str(), std::ofstream::out);
-            firstDuration = Time::now();
-            icart->getPose(firstPos, firstOri);
+            if(saveOn){
+                ostringstream convert;
+                convert << fileCounter;
+                string fileToSave = "action_" + convert.str() + ".log";
+                outputFile.open(fileToSave.c_str(), std::ofstream::out);
+                fileToSave = "action_" + convert.str() + ".info";
+                infoOutputFile.open(fileToSave.c_str(), std::ofstream::out);
+                firstDuration = Time::now();
+                icart->getPose(firstPos, firstOri);
+            }
             //-------------------------------
         }
         else {
@@ -577,7 +579,8 @@ void handProfilerThread::run() {
                 if(success){
                     icart-> goToPose(xd,od);
                     //yDebug("gone to pose");
-                    if(saveOn) saveToFile();
+                    if(saveOn)
+                        saveToFile();
                     if(gazetracking && (count%GAZEINTERVAL==0)) {
                         igaze->lookAtFixationPoint(xd);
                     }
@@ -820,21 +823,11 @@ void handProfilerThread::playFromFile(){
     encoders.resize(njoints);
     command.resize(njoints);
 
-    /*Vector startPos(3);
-    Vector startOri(4);
-    startPos[0] = -0.3;
-    startPos[1] = -0.1;
-    startPos[2] = 0.0;
-    //-0.076 -0.974 0.213 3.03
-    startOri[0] = -0.076;
-    startOri[1] = -0.974;
-    startOri[2] = 0.213;
-    startOri[3] = 3.03;*/
-  //  if(startPos(0) != NULL && startPos(1) != NULL && startPos(2) != NULL && startOri(0) != NULL && startOri(1) != NULL && startOri(2) != NULL && startOri(3) != NULL){
-      yInfo("icart moving to initial position");
-      icart->goToPose(startPos, startOri);
-      icart->waitMotionDone();
-  //  }
+    if(startPos(0) != 0.0 || startPos(1) != 0.0 || startPos(2) != 0.0 || startOri(0) != 0.0 || startOri(1) != 0.0 || startOri(2) != 0.0 || startOri(3) != 0.0){
+        yInfo("icart moving to initial position");
+        icart->goToPose(startPos, startOri);
+        icart->waitMotionDone();
+    }
 
     // encoder reading from current position.
     encs->getEncoders(encoders.data());
@@ -849,6 +842,7 @@ void handProfilerThread::playFromFile(){
         playCount++;
         if(playCount%8 == 0){
             if(first){
+                yInfo("idir moving to initial position");
                 first = false;
                 for(int i=0; i<7; i++){
                     double offsetInitial = 0;                  //put robot in initial position
@@ -866,7 +860,6 @@ void handProfilerThread::playFromFile(){
                 yInfo("initial position reached");
                 //Time::delay(1.0);
                 previousTime = playJoints[7];
-
             }else{
                 for(int i=0; i<7; i++){                      //move robot through trajectory
                     command[i] = playJoints[i];
