@@ -111,13 +111,15 @@ protected:
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
 
+    yarp::os::ConstString filePath;
     yarp::os::ResourceFinder rf;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                  // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  errPort;                                  // output port to plot event
-    std::string name;                                                                   // rootname of all the ports opened by this thread
+    std::string name;
+    std::string fileName;                                                                   // rootname of all the ports opened by this thread
 
     std::ofstream outputFile;                                                           // file in which to save joints values
     std::ofstream infoOutputFile;                                                           // file in which to save info about the movement
@@ -180,6 +182,12 @@ public:
     * @param str rootnma
     */
     void setName(std::string str);
+
+    /*
+    * function that sets the rootname of all the ports that are going to be created by the thread
+    * @param str rootnma
+    */
+    void setFileName(std::string str);
 
     /**
      * function that sets the orientation of the endeffector

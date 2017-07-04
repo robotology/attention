@@ -260,7 +260,7 @@ bool handProfilerThread::threadInit() {
     }
 
     idir->getAxes(&njoints);
-    yDebug("njoints = %d", njoints);
+    //yDebug("njoints = %d", njoints);
 
     /*
     //initializing gazecontrollerclient
@@ -334,6 +334,10 @@ bool handProfilerThread::threadInit() {
 void handProfilerThread::setName(string str) {
     this->name=str;
     printf("name: %s", name.c_str());
+}
+
+void handProfilerThread::setFileName(string str) {
+    this->fileName=str;
 }
 
 void handProfilerThread::setPartnerStart() {
@@ -553,10 +557,10 @@ void handProfilerThread::run() {
             //-----file opening to save -------
             ostringstream convert;
             convert << fileCounter;
-            string fileName = "action_" + convert.str() + ".log";
-            outputFile.open(fileName.c_str(), std::ofstream::out);
-            fileName = "action_" + convert.str() + ".info";
-            infoOutputFile.open(fileName.c_str(), std::ofstream::out);
+            string fileToSave = "action_" + convert.str() + ".log";
+            outputFile.open(fileToSave.c_str(), std::ofstream::out);
+            fileToSave = "action_" + convert.str() + ".info";
+            infoOutputFile.open(fileToSave.c_str(), std::ofstream::out);
             firstDuration = Time::now();
             icart->getPose(firstPos, firstOri);
             //-------------------------------
@@ -600,7 +604,7 @@ void handProfilerThread::run() {
                 }
                 break;
             case file:
-                yInfo("starting movement from file");
+                yWarning("starting movement from file");
                 startFromFile();
                 break;
         }
@@ -716,12 +720,13 @@ void handProfilerThread::saveToFile(){                 //save to file: first sav
     Vector jointsToSave;
     jointsToSave.resize(njoints);
     bool retFromEncoders = encs->getEncoders(jointsToSave.data());
-    if(!retFromEncoders) yError("encoders misreading");
+    if(!retFromEncoders)
+        yError("encoders misreading");
     timestamp->update();
     if (outputFile.is_open()){
         for(int i=0; i<7; i++){
             outputFile << jointsToSave[i] << " ";
-            yDebug("position %d : %f", i, jointsToSave[i]);
+            //yDebug("position %d : %f", i, jointsToSave[i]);
         }
         outputFile.precision(13);
         outputFile << timestamp->getTime();
@@ -729,7 +734,8 @@ void handProfilerThread::saveToFile(){                 //save to file: first sav
         outputFile.precision(13);
         infoSamples++;
     }
-    else cout << "Unable to open output file";
+    else
+        yError("Unable to open output file");
 }
 
 void handProfilerThread::saveInfo(){                 //save the info in separate file
@@ -743,13 +749,14 @@ void handProfilerThread::saveInfo(){                 //save the info in separate
           infoOutputFile << firstOri(i) << " ";
         }
     }
-    else cout << "Unable to open info output file";
+    else
+        yError("Unable to open info output file");
 }
 
 void handProfilerThread::startFromFile(){                 //move from file
-    ConstString filePath = rf.findFile("action_1.info");
+    filePath = rf.findFile(fileName + ".info");           //read info file
     infoInputFile.open(filePath.c_str());
-    yDebug("opening file.....");
+    yInfo("opening file.....");
     if(infoInputFile.is_open()){
         infoInputFile >> movementDuration;
         infoInputFile >> sampleNumber;
@@ -757,27 +764,30 @@ void handProfilerThread::startFromFile(){                 //move from file
         startOri.resize(4);
         for(int i=0; i<3; i++){
           infoInputFile >> startPos(i);
+          //yDebug("startpos %d, : %f", i, startPos(i));
         }
         for(int i=0; i<4; i++){
           infoInputFile >> startOri(i);
+          //yDebug("startori %d, : %f", i, startOri(i));
         }
-        yDebug("duration: %f  number: %d", movementDuration, sampleNumber );
+        yInfo("duration: %f  number: %d", movementDuration, sampleNumber );
+        infoInputFile.close();
     }
+
     if (partnerTime != 0.0) {
         speedFactor = movementDuration / partnerTime;        //if partnerTime is set change speedFactor
         yWarning("start from partner time");
     }
 
-    //** to make the name of the file a parameter**/
-    filePath = rf.findFile("action_1.log");
+    filePath = rf.findFile(fileName + ".log");                //read joints file
     for(int i=0; i<repsNumber; i++){
         inputFile.open(filePath.c_str());
-        yDebug("opening file.....");
+        yInfo("opening file.....");
         if(inputFile.is_open()){
             if(speedFactor >= 0.1 && speedFactor <= 2.0){
                 yWarning("speedFactor %f ", speedFactor);
                 playFromFile();
-                yDebug("finished movement");
+                yInfo("finished movement");
                 inputFile.close();
             }else{
                 yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 6.0");
@@ -821,10 +831,11 @@ void handProfilerThread::playFromFile(){
     startOri[1] = -0.974;
     startOri[2] = 0.213;
     startOri[3] = 3.03;*/
-    if(startPos(0) != NULL && startPos(1) != NULL && startPos(2) != NULL && startOri(0) != NULL && startOri(1) != NULL && startOri(2) != NULL && startOri(3) != NULL){
-      icart->goToPose(startPos,startOri);
+  //  if(startPos(0) != NULL && startPos(1) != NULL && startPos(2) != NULL && startOri(0) != NULL && startOri(1) != NULL && startOri(2) != NULL && startOri(3) != NULL){
+      yInfo("icart moving to initial position");
+      icart->goToPose(startPos, startOri);
       icart->waitMotionDone();
-    }
+  //  }
 
     // encoder reading from current position.
     encs->getEncoders(encoders.data());
@@ -853,8 +864,8 @@ void handProfilerThread::playFromFile(){
                         Time::delay(0.01);
                     }
                 }
-                yDebug("initial position reached");
-                Time::delay(3.0);
+                yInfo("initial position reached");
+                //Time::delay(1.0);
                 previousTime = playJoints[7];
 
             }else{
