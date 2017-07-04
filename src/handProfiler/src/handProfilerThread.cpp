@@ -784,19 +784,18 @@ void handProfilerThread::startFromFile(){                 //move from file
         inputFile.open(filePath.c_str());
         yInfo("opening file.....");
         if(inputFile.is_open()){
-            if(speedFactor >= 0.1 && speedFactor <= 2.0){
+            if(speedFactor >= 0.1 && speedFactor <= 6.0){
                 yWarning("speedFactor %f ", speedFactor);
                 playFromFile();
                 yInfo("finished movement");
-                inputFile.close();
             }else{
                 yError("Speed Factor value is either too low or too high, please insert value between 0.1 and 6.0");
-                inputFile.close();
             }
         }
         else {
             yError("File not found");
         }
+        inputFile.close();
     }
     repsNumber = 1;
     yInfo("reps number reset to 1");
