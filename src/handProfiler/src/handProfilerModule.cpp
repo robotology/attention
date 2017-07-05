@@ -503,7 +503,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 if(0!=rThread) {
                     reply.addString("OK");
 
-                    rThread->setFileName(command.get(2).asString());
+                    rThread->loadFile(command.get(2).asString());
 
                 }
                 ok = true;

@@ -187,7 +187,7 @@ public:
     * function that sets the rootname of all the ports that are going to be created by the thread
     * @param str rootnma
     */
-    void setFileName(std::string str);
+    void loadFile(std::string str);
 
     /**
      * function that sets the orientation of the endeffector

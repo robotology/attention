@@ -336,8 +336,30 @@ void handProfilerThread::setName(string str) {
     printf("name: %s", name.c_str());
 }
 
-void handProfilerThread::setFileName(string str) {
+void handProfilerThread::loadFile(string str) {
     this->fileName=str;
+
+    filePath = rf.findFile(fileName + ".info");           //read info file
+    infoInputFile.open(filePath.c_str());
+    yInfo("opening file.....");
+    if(infoInputFile.is_open()){
+        infoInputFile >> movementDuration;
+        infoInputFile >> sampleNumber;
+        startPos.resize(3);
+        startOri.resize(4);
+        for(int i=0; i<3; i++){
+          infoInputFile >> startPos(i);
+          //yDebug("startpos %d, : %f", i, startPos(i));
+        }
+        for(int i=0; i<4; i++){
+          infoInputFile >> startOri(i);
+          //yDebug("startori %d, : %f", i, startOri(i));
+        }
+        yInfo("duration: %f  number: %d", movementDuration, sampleNumber );
+        infoInputFile.close();
+    }else{
+        yError(".info File not found");
+    }
 }
 
 void handProfilerThread::setPartnerStart() {
@@ -757,25 +779,6 @@ void handProfilerThread::saveInfo(){                 //save the info in separate
 }
 
 void handProfilerThread::startFromFile(){                 //move from file
-    filePath = rf.findFile(fileName + ".info");           //read info file
-    infoInputFile.open(filePath.c_str());
-    yInfo("opening file.....");
-    if(infoInputFile.is_open()){
-        infoInputFile >> movementDuration;
-        infoInputFile >> sampleNumber;
-        startPos.resize(3);
-        startOri.resize(4);
-        for(int i=0; i<3; i++){
-          infoInputFile >> startPos(i);
-          //yDebug("startpos %d, : %f", i, startPos(i));
-        }
-        for(int i=0; i<4; i++){
-          infoInputFile >> startOri(i);
-          //yDebug("startori %d, : %f", i, startOri(i));
-        }
-        yInfo("duration: %f  number: %d", movementDuration, sampleNumber );
-        infoInputFile.close();
-    }
 
     if (partnerTime != 0.0) {
         speedFactor = movementDuration / partnerTime;        //if partnerTime is set change speedFactor
@@ -796,7 +799,7 @@ void handProfilerThread::startFromFile(){                 //move from file
             }
         }
         else {
-            yError("File not found");
+            yError(".log File not found");
         }
         inputFile.close();
     }
