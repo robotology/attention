@@ -162,7 +162,7 @@ handProfilerThread::~handProfilerThread() {
 bool handProfilerThread::threadInit() {
 
 
-    /* open ports */
+    /* set the cartesian conntroller for movement */
     Property optionCartesian("(device cartesiancontrollerclient)");
     string str("/");
     str.append(robot);
@@ -237,7 +237,7 @@ bool handProfilerThread::threadInit() {
         icart->registerEvent(*this);
     }
 
-    //// initialize joint movement
+      /* set the position controller for movement from file */
     Property optionJoints;
     optionJoints.put("device", "remote_controlboard");
     optionJoints.put("local", "/handProfiler/joints");                 //local port names
@@ -339,11 +339,11 @@ void handProfilerThread::setName(string str) {
 void handProfilerThread::loadFile(string str) {
     this->fileName=str;
 
-    filePath = rf.findFile(fileName + ".info");           //read info file
-    infoInputFile.open(filePath.c_str());
+    filePath = rf.findFile(fileName + ".info");           //look for info file
+    infoInputFile.open(filePath.c_str());                 //open info file
     yInfo("opening file.....");
     if(infoInputFile.is_open()){
-        infoInputFile >> movementDuration;
+        infoInputFile >> movementDuration;                //save info from file
         infoInputFile >> sampleNumber;
         startPos.resize(3);
         startOri.resize(4);
@@ -496,7 +496,7 @@ bool handProfilerThread::startSimulation(const bool _reverse){
 	return true;
 }
 
-bool handProfilerThread::saveJoints(){                 //save to file
+bool handProfilerThread::saveJoints(){                                  //save to file
     //count = 0;
     //mp->setReverse(_reverse);
     saveOn = !saveOn;
@@ -506,7 +506,7 @@ bool handProfilerThread::saveJoints(){                 //save to file
 	return true;
 }
 
-bool handProfilerThread::startJoints(double factor = 1.0){                 //MOVE FROM file
+bool handProfilerThread::startJoints(double factor = 1.0){              //move from file
     //count = 0;
     //mp->setReverse(_reverse);
     idle = false;
@@ -570,15 +570,15 @@ void handProfilerThread::run() {
         //yInfo("!idle");
         count++;
         if (firstIteration) {
-            yInfo("first iteration");
+            yInfo("first iteration");                                                           // first itaration set variables
             t = t0;
             mp->setT0(t0);
             firstIteration = false;
             displayProfile();
 
             //-----file opening to save -------
-            if(saveOn){
-                ostringstream convert;
+            if(saveOn){                                                                         // if save is enabled, open files for output and
+                ostringstream convert;                                                          // set variables for duration calculation and initial position
                 convert << fileCounter;
                 string fileToSave = "action_" + convert.str() + ".log";
                 outputFile.open(fileToSave.c_str(), std::ofstream::out);
@@ -608,8 +608,8 @@ void handProfilerThread::run() {
                     }
                 }else if(!success && outputFile.is_open() && saveOn){
                     yInfo("file saved");
-                    saveInfo();           //save info to file
-                    fileCounter++;
+                    saveInfo();                                           //save info to file
+                    fileCounter++;                                        //movement finished, if save enabled close the files and reset the state
                     outputFile.close();
                     infoOutputFile.close();
                     firstDuration = 0;
@@ -741,7 +741,7 @@ bool handProfilerThread::generateTarget() {
     return true;
 }
 
-void handProfilerThread::saveToFile(){                 //save to file: first save joints values and the info in separate file
+void handProfilerThread::saveToFile(){                                          //save to file: read encoders and save values in file with timestamp
     Vector jointsToSave;
     jointsToSave.resize(njoints);
     bool retFromEncoders = encs->getEncoders(jointsToSave.data());
@@ -763,29 +763,29 @@ void handProfilerThread::saveToFile(){                 //save to file: first sav
         yError("Unable to open output file");
 }
 
-void handProfilerThread::saveInfo(){                 //save the info in separate file
+void handProfilerThread::saveInfo(){                                            //save the info in separate file
     if (infoOutputFile.is_open()){
-        infoOutputFile << Time::now() - firstDuration << " ";
-        infoOutputFile << infoSamples << " ";
+        infoOutputFile << Time::now() - firstDuration << " ";                   //duration
+        infoOutputFile << infoSamples << " ";                                   //samples number
         for(int i=0; i<3; i++){
-          infoOutputFile << firstPos(i) << " ";
+          infoOutputFile << firstPos(i) << " ";                                 //initial cartesian position
         }
         for(int i=0; i<4; i++){
-          infoOutputFile << firstOri(i) << " ";
+          infoOutputFile << firstOri(i) << " ";                                 //initial cartesian orientation
         }
     }
     else
         yError("Unable to open info output file");
 }
 
-void handProfilerThread::startFromFile(){                 //move from file
+void handProfilerThread::startFromFile(){                                       //move from file
 
     if (partnerTime != 0.0) {
-        speedFactor = movementDuration / partnerTime;        //if partnerTime is set change speedFactor
+        speedFactor = movementDuration / partnerTime;                           //if partnerTime is set change speedFactor
         yWarning("start from partner time");
     }
 
-    filePath = rf.findFile(fileName + ".log");                //read joints file
+    filePath = rf.findFile(fileName + ".log");                                  //read joints file
     for(int i=0; i<repsNumber; i++){
         inputFile.open(filePath.c_str());
         yInfo("opening file.....");
@@ -826,14 +826,13 @@ void handProfilerThread::playFromFile(){
     encoders.resize(njoints);
     command.resize(njoints);
 
-    if(startPos(0) != 0.0 || startPos(1) != 0.0 || startPos(2) != 0.0 || startOri(0) != 0.0 || startOri(1) != 0.0 || startOri(2) != 0.0 || startOri(3) != 0.0){
+    if(startPos(0) != 0.0 && startPos(1) != 0.0 && startPos(2) != 0.0){         //go to initial position with cartesian controller
         yInfo("icart moving to initial position");
         icart->goToPose(startPos, startOri);
         icart->waitMotionDone();
     }
 
-    // encoder reading from current position.
-    encs->getEncoders(encoders.data());
+    encs->getEncoders(encoders.data());                                         // encoder reading from current position
     for (int i = 0; i < njoints; i++) {
         ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
     }
@@ -848,8 +847,8 @@ void handProfilerThread::playFromFile(){
                 yInfo("idir moving to initial position");
                 first = false;
                 for(int i=0; i<7; i++){
-                    double offsetInitial = 0;                  //put robot in initial position
-                    if(command[i] < playJoints[i]){
+                    double offsetInitial = 0;                                   // put robot in initial position  (adjust position reached with cartesian controller
+                    if(command[i] < playJoints[i]){                             // to be more precise according to the first position of .log file)
                         offsetInitial = 0.2;
                     }else if(command[i] > playJoints[i]){
                         offsetInitial = -0.2;
@@ -864,7 +863,7 @@ void handProfilerThread::playFromFile(){
                 //Time::delay(1.0);
                 previousTime = playJoints[7];
             }else{
-                for(int i=0; i<7; i++){                      //move robot through trajectory
+                for(int i=0; i<7; i++){
                     command[i] = playJoints[i];
                 }
                 executionTime = playJoints[7] - previousTime;
@@ -872,8 +871,8 @@ void handProfilerThread::playFromFile(){
                 if(executionTime <= 0.0) {
                     executionTime = 0.05;
                 }
-                idir->setPositions(command.data());
-                Time::delay(executionTime / speedFactor);
+                idir->setPositions(command.data());                             // move robot through trajectory
+                Time::delay(executionTime / speedFactor);                       // time to wait before reaching next point as read from file and modified with speedFactor
             }
         }
     }

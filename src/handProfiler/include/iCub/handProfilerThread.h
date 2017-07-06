@@ -54,22 +54,20 @@ protected:
     int startup_context_id;        // memorizing the context
     int yawDof;
     int rollDof;
-    int pitchDof;                  //
+    int pitchDof;
     int originalContext;           // original context for the gaze Controller
     int blockNeckPitchValue;
     int njoints;                   // number of joints for saving to file (left_arm)s
     int sampleNumber;              // number of samples read from file
     int infoSamples;               // numbero of samples save to file
-    int repsNumber;
+    int repsNumber;                // number of repetitions to perform from file
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
-    double timeEnd;                //
-    double timeStart;              //
     double t;
     double t0;
     double t1;
     double speedFactor;           // factor to regulate speed in movement from file
-    double partnerStart;
+    double partnerStart;          // variables to set the duration from MARK and SYNC commands
     double partnerStop;
     double partnerTime;
     double movementDuration;      // duration of movement read from file
@@ -95,10 +93,10 @@ protected:
 
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
-    yarp::dev::IPositionDirect *idir;
-    yarp::dev::IEncoders *encs;
-    yarp::dev::IControlMode2 *ictrl;
-    yarp::dev::ICartesianControl *icart;
+    yarp::dev::IPositionDirect *idir;               // Position DIrect for movement from file
+    yarp::dev::IEncoders *encs;                     // to read encoders values
+    yarp::dev::IControlMode2 *ictrl;                // to set control mode of the joints
+    yarp::dev::ICartesianControl *icart;            // cartesian controller to generate and move
     yarp::dev::CartesianEvent *ce;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
@@ -108,27 +106,22 @@ protected:
     std::string configFile;         // name of the configFile where the parameter of the camera are set
     std::string inputPortName;      // name of input port for incoming events, typically from aexGrabber
 
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* outputImage;
+    yarp::os::ConstString filePath;                               // path of the file found by the resource finder
+    yarp::os::ResourceFinder rf;                                  // resource finder
+    yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;            // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;             // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  velPort;            // output port to plot event
+    yarp::os::BufferedPort<yarp::os::Bottle>  errPort;            // output port to plot event
+    std::string name;                                             // rootname of all the ports opened by this thread
+    std::string fileName;                                         // name of the file to load for movement
 
-    yarp::os::ConstString filePath;
-    yarp::os::ResourceFinder rf;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > inputCallbackPort;
-    yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;                                  // output port to plot event
-    yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;                                   // output port to plot event
-    yarp::os::BufferedPort<yarp::os::Bottle>  velPort;                                  // output port to plot event
-    yarp::os::BufferedPort<yarp::os::Bottle>  errPort;                                  // output port to plot event
-    std::string name;
-    std::string fileName;                                                                   // rootname of all the ports opened by this thread
-
-    std::ofstream outputFile;                                                           // file in which to save joints values
-    std::ofstream infoOutputFile;                                                           // file in which to save info about the movement
-    std::ifstream inputFile;                                                            // file to read joint positions from
-    std::ifstream infoInputFile;                                                            // file to read with info about the movement
-    enum States {none, simulation, execution, file};
-    States state;                                                                       // flag indicating whether the movement is simulation or executed or saved in a file
-    //yarp::sig::Vector jointsToSave;                                                     // vector containing the value of joints in the kinematic chain, for saving in a file
-    yarp::os::Stamp* timestamp;
+    std::ofstream outputFile;                                     // file in which to save joints values
+    std::ofstream infoOutputFile;                                 // file in which to save info about the movement
+    std::ifstream inputFile;                                      // file to read joint positions from
+    std::ifstream infoInputFile;                                  // file to read with info about the movement
+    enum States {none, simulation, execution, file};              // states for the controller
+    States state;
+    yarp::os::Stamp* timestamp;                                   // timestamp for saving to file
 
     // the event callback attached to the "motion-ongoing"
     virtual void cartesianEventCallback() {
@@ -179,13 +172,13 @@ public:
 
     /*
     * function that sets the rootname of all the ports that are going to be created by the thread
-    * @param str rootnma
+    * @param str rootname
     */
     void setName(std::string str);
 
     /*
-    * function that sets the rootname of all the ports that are going to be created by the thread
-    * @param str rootnma
+    * function that loads a file for movement performing
+    * @param str name of the file without extension
     */
     void loadFile(std::string str);
 
@@ -231,15 +224,15 @@ public:
         outputHeight = height;
     }
 
+    /**
+    * function that sets the number of repetitions to perform
+    */
+    void setRepsNumber(int n);
+
      /**
      * function that sets the variable partnerStart
      */
     void setPartnerStart();
-
-    /**
-    * function that sets the number of repetitions to perform
-    */
-   void setRepsNumber(int n);
 
     /**
      * function that sets the variable partnerStop
@@ -291,6 +284,7 @@ public:
 
     /**
     *  function that set parameters for starting movement from a file with joint values
+    * @param factor to divide by execution time to speed up or slow down a movement from file
     */
     bool startJoints(double factor);
 
