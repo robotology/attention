@@ -569,7 +569,7 @@ handLeftP_TTLFront004_emp(){
 }
 
 newHandLeftProvide(){
-    echo "GEN TTL (((O -0.3 -0.15 0.1) (A -0.4 -0.15 0.1) (B -0.3 -0.15 0.2) (C -0.2 -0.15 0.1) (theta 0.2 1.57 3.0) (axes 0.1 0.1) (rev) (param 0.008 0.33)))" | yarp rpc /handProfiler
+    echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.37 -0.1 0.1) (B -0.3 -0.1 0.13) (C -0.23 -0.1 0.1) (theta 0.0 1.57 3.14) (axes 0.07 0.03) (rev) (param 0.005 0.33)))" | yarp rpc /handProfiler
 }
 
 ######################################### left hand halt

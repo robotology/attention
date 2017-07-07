@@ -29,7 +29,7 @@
 #define MAX_TORSO_PITCH     10.0    // [deg]
 #define MIN_TORSO_YAW       -40.0   // [deg]
 #define MAX_TORSO_YAW       40.0    // [deg]
-#define RATETHREAD          5       // [ms]
+#define RATETHREAD          10      // [ms]
 #define TRAJTIME            0.5     // [s]
 #define GAZEINTERVAL        20
 
@@ -565,7 +565,6 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
 }
 
 void handProfilerThread::run() {
-
     if(!idle) {
         //yInfo("!idle");
         count++;
@@ -600,7 +599,7 @@ void handProfilerThread::run() {
                 //yDebug("generated target %d", success);
                 if(success){
                     icart-> goToPose(xd,od);
-                    //yDebug("gone to pose");
+                    yDebug("goToPose");
                     if(saveOn)
                         saveToFile();
                     if(gazetracking && (count%GAZEINTERVAL==0)) {
@@ -741,7 +740,8 @@ bool handProfilerThread::generateTarget() {
     return true;
 }
 
-void handProfilerThread::saveToFile(){                                          //save to file: read encoders and save values in file with timestamp
+void handProfilerThread::saveToFile(){                         //save to file: read encoders and save values in file with timestamp
+    yDebug("saveToFile");
     Vector jointsToSave;
     jointsToSave.resize(njoints);
     bool retFromEncoders = encs->getEncoders(jointsToSave.data());
@@ -756,7 +756,7 @@ void handProfilerThread::saveToFile(){                                          
         outputFile.precision(13);
         outputFile << timestamp->getTime();
         outputFile << "\n";
-        outputFile.precision(13);
+        //outputFile.precision(13);
         infoSamples++;
     }
     else
@@ -860,7 +860,7 @@ void handProfilerThread::playFromFile(){
                     }
                 }
                 yInfo("initial position reached");
-                //Time::delay(1.0);
+                Time::delay(2.0);
                 previousTime = playJoints[7];
             }else{
                 for(int i=0; i<7; i++){
@@ -872,6 +872,7 @@ void handProfilerThread::playFromFile(){
                     executionTime = 0.05;
                 }
                 idir->setPositions(command.data());                             // move robot through trajectory
+                yDebug("execution time: %f", executionTime / speedFactor);
                 Time::delay(executionTime / speedFactor);                       // time to wait before reaching next point as read from file and modified with speedFactor
             }
         }
