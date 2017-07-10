@@ -29,7 +29,7 @@
 #define MAX_TORSO_PITCH     10.0    // [deg]
 #define MIN_TORSO_YAW       -40.0   // [deg]
 #define MAX_TORSO_YAW       40.0    // [deg]
-#define RATETHREAD          10      // [ms]
+#define RATETHREAD          5       // [ms]
 #define TRAJTIME            0.5     // [s]
 #define GAZEINTERVAL        20
 
@@ -565,6 +565,7 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
 }
 
 void handProfilerThread::run() {
+    double iniziaqui = Time::now();
     if(!idle) {
         //yInfo("!idle");
         count++;
@@ -585,6 +586,7 @@ void handProfilerThread::run() {
                 infoOutputFile.open(fileToSave.c_str(), std::ofstream::out);
                 firstDuration = Time::now();
                 icart->getPose(firstPos, firstOri);
+                icart->storeContext(&icartContext);
             }
             //-------------------------------
         }
@@ -598,15 +600,26 @@ void handProfilerThread::run() {
                 success = generateTarget();
                 //yDebug("generated target %d", success);
                 if(success){
-                    icart-> goToPose(xd,od);
-                    yDebug("goToPose");
+                    icart-> goToPose(xd,od, 0.01);
+                    //yDebug("goToPose");
                     if(saveOn)
-                        saveToFile();
+                        saveToArray();
+
                     if(gazetracking && (count%GAZEINTERVAL==0)) {
                         igaze->lookAtFixationPoint(xd);
                     }
                 }else if(!success && outputFile.is_open() && saveOn){
                     yInfo("file saved");
+                    yDebug("cicli: %d ", infoSamples);
+                    bool motionDone;
+                    icart->checkMotionDone(&motionDone);
+                    while(!motionDone){
+                        if(saveOn)
+                            saveToArray();
+                        icart->checkMotionDone(&motionDone);
+                        Time::delay(0.005);
+                    }
+                    saveToFile();
                     saveInfo();                                           //save info to file
                     fileCounter++;                                        //movement finished, if save enabled close the files and reset the state
                     outputFile.close();
@@ -615,9 +628,11 @@ void handProfilerThread::run() {
                     infoSamples = 0;
                     state = none;
                     idle = true;
+                    icart->restoreContext(icartContext);
                 }else{
                     state = none;
                     idle = true;
+                    icart->restoreContext(icartContext);
                 }
                 break;
             case simulation:
@@ -652,8 +667,10 @@ void handProfilerThread::run() {
         //yInfo("diff=%f [ms]", diff);
 
 
-
     }
+    //yDebug("before %f", Time::now());
+    //Time::delay(1);
+    //yDebug("durata %f", Time::now()-iniziaqui);
 }
 
 void handProfilerThread::printErr() {
@@ -740,27 +757,38 @@ bool handProfilerThread::generateTarget() {
     return true;
 }
 
-void handProfilerThread::saveToFile(){                         //save to file: read encoders and save values in file with timestamp
-    yDebug("saveToFile");
-    Vector jointsToSave;
-    jointsToSave.resize(njoints);
-    bool retFromEncoders = encs->getEncoders(jointsToSave.data());
+void handProfilerThread::saveToArray(){                         //save to file: read encoders and save values in file with timestamp
+    //yDebug("saveToArray");
+    Vector tempJoints;
+    tempJoints.resize(njoints);
+    bool retFromEncoders = encs->getEncoders(tempJoints.data());
     if(!retFromEncoders)
         yError("encoders misreading");
+
     timestamp->update();
+    for(int i=0; i<7; i++){
+        jointsToSave.push_back(tempJoints[i]);
+        //yDebug("position %d : %f", i, tempJoints[i]);
+    }
+    jointsToSave.push_back(timestamp->getTime());
+    infoSamples++;
+}
+
+void handProfilerThread::saveToFile(){                         //save to file: read encoders and save values in file with timestamp
+    //yDebug("saveToFile");
+    outputFile.precision(13);
     if (outputFile.is_open()){
-        for(int i=0; i<7; i++){
+        for(int i=0; i<jointsToSave.length(); i++){
+            if (i%8 == 0 && i != 0)
+                outputFile << "\n";
             outputFile << jointsToSave[i] << " ";
             //yDebug("position %d : %f", i, jointsToSave[i]);
         }
-        outputFile.precision(13);
-        outputFile << timestamp->getTime();
-        outputFile << "\n";
-        //outputFile.precision(13);
-        infoSamples++;
     }
     else
         yError("Unable to open output file");
+
+    jointsToSave.resize(0);
 }
 
 void handProfilerThread::saveInfo(){                                            //save the info in separate file
@@ -790,7 +818,7 @@ void handProfilerThread::startFromFile(){                                       
         inputFile.open(filePath.c_str());
         yInfo("opening file.....");
         if(inputFile.is_open()){
-            if(speedFactor >= 0.1 && speedFactor <= 6.0){
+            if(speedFactor >= 0.1 && speedFactor <= 10.0){
                 yWarning("speedFactor %f ", speedFactor);
                 playFromFile();
                 yInfo("finished movement");

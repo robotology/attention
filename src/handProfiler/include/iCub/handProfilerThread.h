@@ -45,6 +45,7 @@ protected:
 
     static yarp::sig::Vector xZero;
 
+    int icartContext;
     int count;                     // counter for execution cycles
     int fileCounter;               // counter for file naming
     int inputWidth;                // width of the input image
@@ -90,6 +91,7 @@ protected:
     yarp::sig::Vector startOri;           // vector with first position of hand for play from file
     yarp::sig::Vector firstPos;           // vector with first position of hand for save to file
     yarp::sig::Vector firstOri;           // vector with first position of hand for save to file
+    yarp::sig::Vector jointsToSave;       // vector with all joints values for save to file
 
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
@@ -271,6 +273,11 @@ public:
     *  function that set parameters for saving in a file the value of joints
     */
     bool saveJoints();
+
+    /**
+    *  function that saves in an array vaues of joints
+    */
+    void saveToArray();
 
     /**
     *  function that saves in a file the value of joints
