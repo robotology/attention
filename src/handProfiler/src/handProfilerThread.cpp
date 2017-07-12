@@ -586,7 +586,7 @@ void handProfilerThread::run() {
                 infoOutputFile.open(fileToSave.c_str(), std::ofstream::out);
                 firstDuration = Time::now();
                 icart->getPose(firstPos, firstOri);
-                icart->storeContext(&icartContext);
+                // icart->storeContext(&icartContext);
             }
             //-------------------------------
         }
@@ -600,8 +600,10 @@ void handProfilerThread::run() {
                 success = generateTarget();
                 //yDebug("generated target %d", success);
                 if(success){
-                    icart-> goToPose(xd,od, 0.01);
-                    //yDebug("goToPose");
+                    icart-> goToPose(xd,od);
+                    // double trajTime;
+                    // icart->getTrajTime(&trajTime); 	
+                    // yDebug("trajTime %f", trajTime);
                     if(saveOn)
                         saveToArray();
 
@@ -628,11 +630,11 @@ void handProfilerThread::run() {
                     infoSamples = 0;
                     state = none;
                     idle = true;
-                    icart->restoreContext(icartContext);
+                    // icart->restoreContext(icartContext);
                 }else{
                     state = none;
                     idle = true;
-                    icart->restoreContext(icartContext);
+                    // icart->restoreContext(icartContext);
                 }
                 break;
             case simulation:
