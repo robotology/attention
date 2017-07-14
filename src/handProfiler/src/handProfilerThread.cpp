@@ -602,7 +602,7 @@ void handProfilerThread::run() {
                 if(success){
                     icart-> goToPose(xd,od);
                     // double trajTime;
-                    // icart->getTrajTime(&trajTime); 	
+                    // icart->getTrajTime(&trajTime);
                     // yDebug("trajTime %f", trajTime);
                     if(saveOn)
                         saveToArray();
@@ -874,23 +874,26 @@ void handProfilerThread::playFromFile(){
         playCount++;
         if(playCount%8 == 0){
             if(first){
-                yInfo("idir moving to initial position");
                 first = false;
                 for(int i=0; i<7; i++){
-                    double offsetInitial = 0;                                   // put robot in initial position  (adjust position reached with cartesian controller
-                    if(command[i] < playJoints[i]){                             // to be more precise according to the first position of .log file)
-                        offsetInitial = 0.2;
-                    }else if(command[i] > playJoints[i]){
-                        offsetInitial = -0.2;
-                    }
-                    while(command[i] < playJoints[i]-0.2 || command[i] > playJoints[i]+0.2){
-                        command[i] = command[i] + offsetInitial;
-                        idir->setPositions(command.data());
-                        Time::delay(0.01);
+                    if(abs(command[i] - playJoints[i]) > 10){
+                        yInfo("idir moving joint %d to initial position", i);
+                        double offsetInitial = 0;                                   // put robot in initial position  (adjust position reached with cartesian controller
+                        if(command[i] < playJoints[i]){                             // to be more precise according to the first position of .log file)
+                            offsetInitial = 0.2;
+                        }else if(command[i] > playJoints[i]){
+                            offsetInitial = -0.2;
+                        }
+                        while(command[i] < playJoints[i]-0.2 || command[i] > playJoints[i]+0.2){
+                            command[i] = command[i] + offsetInitial;
+                            idir->setPositions(command.data());
+                            Time::delay(0.01);
+                        }
                     }
                 }
+
                 yInfo("initial position reached");
-                Time::delay(2.0);
+                //Time::delay(2.0);
                 previousTime = playJoints[7];
             }else{
                 for(int i=0; i<7; i++){
@@ -902,7 +905,7 @@ void handProfilerThread::playFromFile(){
                     executionTime = 0.05;
                 }
                 idir->setPositions(command.data());                             // move robot through trajectory
-                yDebug("execution time: %f", executionTime / speedFactor);
+                //yDebug("execution time: %f", executionTime / speedFactor);
                 Time::delay(executionTime / speedFactor);                       // time to wait before reaching next point as read from file and modified with speedFactor
             }
         }
