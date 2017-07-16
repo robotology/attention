@@ -616,7 +616,7 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
-    adj1 = gtk_adjustment_new (1.0, 0.0,255.0,1.0, 0.0, 0.0);
+    adj1 = gtk_adjustment_new (1.0, 0.0,500.0,1.0, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj1));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
     scale_set_default_values (GTK_SCALE (hscale));

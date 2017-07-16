@@ -59,7 +59,8 @@ public:
     //void proc(Ipp8u* im, int psb_8u);
     void proc(unsigned char* im, int psb_8u);
     void proc(IplImage* im, int psb_8u);
-    
+    void procCvMatrix(IplImage* im);
+
 
     /** Access to the on-centre output.
      * @return Pointer to the on-centre output image.
@@ -128,6 +129,7 @@ public:
     void conv_8u_to_32f(const cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_);
 
 	IplImage* remove_borders(const IplImage* input);
+
 
 private:
     float *dog;          //Ipp32f

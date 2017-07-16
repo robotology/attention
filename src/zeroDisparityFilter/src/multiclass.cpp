@@ -250,7 +250,7 @@ int MultiClass::prior_intensity_smoothness(Coord p, Coord np, int label, int nla
     double sigma      = 2.0 * params->smoothness_3sigmaon2/3.0;
     double p_int_edge = 1.0 - exp(-(d_I*d_I)/(2.0*sigma*sigma));
     
-    //If it's likely that it's an intensity edge, 
+    //If it's likely that it's an intensity edge, p_prob
     //return less additional penalty.
     //if it's not much of an edge, return 
     //more additional penalty:

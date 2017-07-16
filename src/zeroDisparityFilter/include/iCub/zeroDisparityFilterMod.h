@@ -46,7 +46,7 @@
 #include <yarp/sig/Vector.h>
 
 //use NDT or RANK comparision
-#define RANK0_NDT1 0 //0 (NDT FASTER and RANK a little too sensitive)
+#define RANK0_NDT1 1 //0 (NDT FASTER and RANK a little too sensitive)
 //NDT:
 #define NDTX     2
 #define NDTY     2
@@ -104,7 +104,7 @@ private:
     bool startProcessing;
     int psb_in, t_lock_lr, t_lock_ud;
     //Sizes:
-    defSize srcsize, msize, tsize, tisize, trsize; //ippi variables containing all different sizes
+    defSize srcsize, foveaSize, tsize, tisize, trsize; //ippi variables containing all different sizes
     //Vars:
     int sx, sy;
     float max_v, max_t;              //Ipp32f
@@ -227,6 +227,8 @@ public:
 
     //void getAreaCoGSpread(Ipp8u*im, int p,IppiSize s, int*parea,double*pdx,double*pdy,double*pspread);
     void setName(std::string module);
+
+
 };
 
 class zeroDisparityFilterMod : public yarp::os::RFModule {
