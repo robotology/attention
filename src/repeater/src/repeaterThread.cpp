@@ -157,7 +157,7 @@ void repeaterThread::processing() {
     cv::Mat tempMatrix(   (IplImage*) outputImage->getIplImage(), false);
     cv::Mat outputMatrix( (IplImage*) outputImage->getIplImage(), false);
                 double fine = Time::now(); 
-                yDebug("processing init %f \n", fine-inizio);
+                // yDebug("processing init %f \n", fine-inizio);
                 inizio = fine;  
                 
     // ----------------- downsample OpencV ----------------------------------
