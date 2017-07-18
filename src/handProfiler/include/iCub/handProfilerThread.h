@@ -239,12 +239,12 @@ public:
     /**
      * function that sets the variable partnerStop
      */
-    void setPartnerStop ();
+    void setPartnerStop();
 
     /**
      * function that sets the variable partnerTime
      */
-    void setPartnerTime ();
+    void setPartnerTime(double time);
 
     /**
     * function that generates the motionProfile

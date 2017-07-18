@@ -53,6 +53,7 @@
 #define COMMAND_VOCAB_SYNC   VOCAB4('S','Y','N','C')        //
 #define COMMAND_VOCAB_REPS   VOCAB4('R','E','P','S')        //
 #define COMMAND_VOCAB_LOAD   VOCAB4('L','O','A','D')        //
+#define COMMAND_VOCAB_TIME   VOCAB4('T','I','M','E')        //
 
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -551,6 +552,18 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     ok = true;
                 }
             break;
+            case COMMAND_VOCAB_TIME:
+                {
+
+                    if(0!=rThread && command.get(2).asDouble() != 0) {
+                        reply.addString("OK");
+
+                        rThread->setPartnerTime(command.get(2).asDouble());
+
+                    }
+                    ok = true;
+                }
+            break;
 
             default:
                 cout << "received an unknown request" << endl;
@@ -566,7 +579,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             if(0!=rThread) {
                 reply.addString("OK");
 
-                rThread->setPartnerTime();
+                rThread->setPartnerTime(0.0);
 
             }
             ok = true;

@@ -377,8 +377,12 @@ void handProfilerThread::setPartnerStop() {
     yDebug("stop time: %f", partnerStop);
 }
 
-void handProfilerThread::setPartnerTime() {
-    this->partnerTime = partnerStop - partnerStart;
+void handProfilerThread::setPartnerTime(double _time) {
+    if(_time == 0.0){
+        this->partnerTime = partnerStop - partnerStart;
+    }else{
+        this->partnerTime = _time;
+    }
     yDebug("sync time: %f", partnerTime);
 }
 
