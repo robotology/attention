@@ -680,6 +680,7 @@ void ZDFThread::run() {
 
                     unsigned char *p_dogonoff_l = (unsigned char *) dl->get_dog_onoff_ipl()->imageData;
                     unsigned char *p_dogonoff_r = (unsigned char *) dr->get_dog_onoff_ipl()->imageData;
+                    int witdhStep = dl-> get_dog_onoff_ipl()->widthStep;
 
                     //yDebug("Sizes Left Dog width= %d, height= %d, step = %d \n", dl->get_dog_onoff_ipl()->width, dl->get_dog_onoff_ipl()->height, dl->get_dog_onoff_ipl()->widthStep);
                     //yDebug("Sizes Right Dog width= %d, height= %d, step = %d  \n", dr->get_dog_onoff_ipl()->width, dr->get_dog_onoff_ipl()->height, dr->get_dog_onoff_ipl()->widthStep);
@@ -688,21 +689,21 @@ void ZDFThread::run() {
 
 
                     //if either l or r textured at this retinal location:
-                    if (p_dogonoff_l[i + j * psb_m] >= bland_dog_thresh ||
-                        p_dogonoff_r[i + j * psb_m] >= bland_dog_thresh) {
+                    if (p_dogonoff_l[i + j * witdhStep] <= bland_dog_thresh ||
+                        p_dogonoff_r[i + j * witdhStep] <= bland_dog_thresh) {
 
                         if (RANK0_NDT1 == 0) {
                             //use RANK:
-                            get_rank(c, (unsigned char *) fov_l_ipl->imageData, psb_m,
+                            get_rank(c, (unsigned char *) fov_l_ipl->imageData, fov_l_ipl->widthStep,
                                      rank1);   //yDebug("got RANK from left\n");
-                            get_rank(c, (unsigned char *) fov_r_ipl->imageData, psb_m,
+                            get_rank(c, (unsigned char *) fov_r_ipl->imageData, fov_r_ipl->widthStep,
                                      rank2);   //yDebug("got RANK from right\n");
                             cmp_res = cmp_rank(rank1, rank2);
                             //yDebug("compared RANKS \n");
                         } else {
                             //use NDT:
-                            get_ndt(c, (unsigned char *) fov_l_ipl->imageData, psb_m, ndt1);
-                            get_ndt(c, (unsigned char *) fov_r_ipl->imageData, psb_m, ndt2);
+                            get_ndt(c, (unsigned char *) fov_l_ipl->imageData, fov_l_ipl->widthStep, ndt1);
+                            get_ndt(c, (unsigned char *) fov_r_ipl->imageData, fov_l_ipl->widthStep, ndt2);
                             cmp_res = cmp_ndt(ndt1, ndt2);
                         }
 
@@ -733,7 +734,7 @@ void ZDFThread::run() {
                     //yDebug("success \n");
 
                     //manufacture NZD prob (other):
-                    o_prob_8u[psb_m * j + i] = 255 -  zd_prob_8u[psb_m * j + i];
+                    o_prob_8u[psb_m * j + i] = (unsigned char) (255 - zd_prob_8u[psb_m * j + i]);
 
                 }
             }
@@ -1103,8 +1104,8 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     srcsize.width = img->width();
     srcsize.height = img->height();
 
-    foveaSize.width = 100; //should be taken from ini file // was 128
-    foveaSize.height = 100; //should be taken from ini file // was 128
+    foveaSize.width = 160; //should be taken from ini file // was 128
+    foveaSize.height = 120; //should be taken from ini file // was 128
 
     tsize.width = 32;  //should be taken from ini file
     tsize.height = 32;  //should be taken from ini file
@@ -1115,8 +1116,8 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     tisize.width = tsize.width + 2 * t_lock_lr;
     tisize.height = tsize.height + 2 * t_lock_ud;
 
-    trsize.width = 289;//tisize.width  - tsize.width  + 1;
-    trsize.height = 209;//tisize.height - tsize.height + 1;
+    trsize.width = (srcsize.width  - tsize.width) + 1; //289;
+    trsize.height = (srcsize.height - tsize.height) + 1; //209;
 
     mid_x = (srcsize.width - foveaSize.width) / 2;
     mid_y = (srcsize.height - foveaSize.height) / 2;
