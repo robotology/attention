@@ -140,7 +140,7 @@ void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_,
 
 
     cv::Mat mat_o;
-	mat_i.convertTo(mat_o, CV_8U, 255.0 / (maxVal - minVal), (-minVal * 255.0 )/ (maxVal - minVal));
+	mat_i.convertTo(mat_o, CV_8U);
 
 
 	/*printf("test data of the _mat \n");
@@ -168,12 +168,14 @@ void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_,
     unsigned char* p = (unsigned char *)im_o->imageData;
 	for (int r = 0; r < im_o->height; r++) {
 		for (int c = 0; c < im_o->width; c++) {
-			*p = mat_o.at<unsigned char >(r, c);
+			*p = mat_o.at<unsigned char>(r, c);
 			p++;
 			//printf(" data inside: %d \n", mat_o.at<char>(r, c));
 		}
 	}
 
+
+    //change to default numbers and modified by amaroyo on 11/02/2016
 
 
 	//cv::imshow("Matrix1", cv::cvarrToMat(im_o));
@@ -323,7 +325,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 
 
     //ippiSub_32f_C1R(tmp2,psb_pad,tmp3,psb_pad,dog,psb_pad,psize);
-    dog_mat   = tmp2_mat - tmp3_mat;
+    dog_mat   = cv::abs(tmp2_mat - tmp3_mat);
     //cvSub(&tmp2_mat, &tmp3_mat, dog_image);
 
 
@@ -394,19 +396,19 @@ void DoG::proc(IplImage *in_, int psb_in_)
     //---------------- off-centre ----------------------------------------------
     //negate: 
     //ippiMulC_32f_C1IR(-1.0,dog,psb_pad,psize);
-    cvMul(dog_image, invert_image, dog_image);
+    //cvMul(dog_image, invert_image, dog_image);
 
 
     //and keep only results above zero:
     //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_off,psb_pad,psize,0.0);
-	cvThreshold(dog_image, dog_off_image, 0.0, 0.0, CV_THRESH_TOZERO);
+	//cvThreshold(dog_image, dog_off_image, 0.0, 0.0, CV_THRESH_TOZERO);
 
     //on+off:
     //ippiAdd_32f_C1R(dog_on,psb_pad,dog_off,psb_pad,dog_onoff,psb_pad,psize);
-    cvAdd(dog_on_image, dog_off_image, dog_onoff_image);
+    //cvAdd(dog_on_image, dog_off_image, dog_onoff_image);
 	
     //TODO this seems not useful #amaroyo 12/02/2016
-	out_dog_onoff = (unsigned char *)dog_onoff_image->imageData;
+	out_dog_onoff = (unsigned char *)dog_on_image->imageData;
     
 
 
@@ -415,8 +417,8 @@ void DoG::proc(IplImage *in_, int psb_in_)
 
     //conv_32f_to_8u(&dog_on   [PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_on,    psb_o, srcsize);
 	//printf("IN ADDRESSES %08X  and %08X \n", dog_on_image, out_dog_on_image);
-	IplImage* inputFirst = remove_borders(dog_on_image);
-	conv_32f_to_8u(inputFirst, 0, out_dog_on_image, 0, srcsize);
+	//IplImage* inputFirst = remove_borders(dog_on_image);
+	//conv_32f_to_8u(inputFirst, 0, out_dog_on_image, 0, srcsize);
 	//printf("OUT ADDRESSES %08X  and %08X \n", inputFirst, out_dog_on_image);
 
 	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
@@ -424,7 +426,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 
     //conv_32f_to_8u(&dog_off  [PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_off,   psb_o, srcsize);
 	//printf("IN ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
-	conv_32f_to_8u(remove_borders(dog_off_image), 0, out_dog_off_image, 0, srcsize);
+	//conv_32f_to_8u(remove_borders(dog_off_image), 0, out_dog_off_image, 0, srcsize);
 	//printf("OUT ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
 
 	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
@@ -432,7 +434,7 @@ void DoG::proc(IplImage *in_, int psb_in_)
 
     //conv_32f_to_8u(&dog_onoff[PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_onoff, psb_o, srcsize);
 	//printf("IN ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
-	conv_32f_to_8u(remove_borders(dog_onoff_image), 0, out_dog_onoff_image, 0, srcsize);
+	conv_32f_to_8u(remove_borders(dog_on_image), 0, out_dog_onoff_image, 0, srcsize);
 
 	//printf("OUT ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
 
