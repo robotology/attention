@@ -84,7 +84,6 @@ MultiClass::~MultiClass()
 void MultiClass::clear()
 {
   // set all the pixels to zero
-  //TODO uncomment this?
   //ippiSet_8u_C1R(0,out,psb,im_size);
   
   int widthStep = outImage->widthStep;
@@ -108,7 +107,7 @@ void MultiClass::generate_permutation(int *buf, int n)
     }
     
     for (i=0; i<n-1; i++) {
-        j = i + (int) (((double)rand()/RAND_MAX)*(n - i));
+        j = i + (int) (((double)rand()/RAND_MAX)*(n - i)); // Possible index overflow to check
         int tmp = buf[i]; buf[i] = buf[j]; buf[j] = tmp;
     }
 }
@@ -121,25 +120,11 @@ void MultiClass::proc( unsigned  char* im_, unsigned char** prob_)
     prob = prob_;
 
 
-	/*For testing, uncomment below the releases #amaroyo 03/03/2016
-	IplImage* aux = cvCreateImage(cvSize(100, 100), IPL_DEPTH_8U, 1);;
-	aux->imageData = prob[0];
-	cv::imshow("Matrix", cv::cvarrToMat(aux));
-	cv::waitKey(1);
-
-	IplImage* aux2 = cvCreateImage(cvSize(100, 100), IPL_DEPTH_8U, 1);;
-	aux2->imageData = prob[1];
-	cv::imshow("Matrix2", cv::cvarrToMat(aux2));
-	cv::waitKey(1);
-	*/
-
-    
     int a;
     int buf_num;
     int label;
     int E_old;
     printf("creating random generator.... \n");
-    unsigned int seed = (unsigned int)time(NULL);
     srand(1);
     int *permutation = new  int[nmaps];
     bool *buf        = new bool[nmaps];
@@ -158,7 +143,7 @@ void MultiClass::proc( unsigned  char* im_, unsigned char** prob_)
     
     buf_num = nmaps;
     
-    for (int iter=0; iter<params->iter_max && buf_num>0; iter++) {
+    for (int iter=0; iter < params->iter_max && buf_num > 0; iter++) {
         if (iter==0 || params->randomize_every_iteration) {
             generate_permutation(permutation, nmaps);
         }
@@ -194,9 +179,6 @@ void MultiClass::proc( unsigned  char* im_, unsigned char** prob_)
     delete [] permutation;
     delete [] buf;
 
-	//
-	//cvReleaseImage(&aux);
-	//cvReleaseImage(&aux2);
 }
 
 int MultiClass::likelihood(Coord c, int d)
@@ -213,7 +195,7 @@ int MultiClass::likelihood(Coord c, int d)
 
 	double op = (double)prob[d][c.y * psb_in + c.x];
 
-	op = op / 225.0;
+	op = op / 255.0;
 
 	int penalty = (int)(param_penalty * (1.0 - op));
 	//printf("%d\n", penalty);
