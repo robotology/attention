@@ -30,7 +30,7 @@
 /** 
   * The neighbourhood structure.
   */
-const struct Coord NEIGHBORS[] = { Coord(1, 0), Coord(0, -1) };
+const struct Coord NEIGHBORS[] = { Coord(1, 0), Coord(0, -1), Coord(-1, 0), Coord(0,1) };
 #define NEIGHBOR_NUM (sizeof(NEIGHBORS) / sizeof(Coord))
       
 /** 
