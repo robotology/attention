@@ -222,7 +222,7 @@ int MultiClass::prior_intensity_smoothness(Coord p, Coord np, int label, int nla
   //Otherwise, if hypothesized different:
   else{
     
-    //Always prefer continuous soloutions,
+    //Always prefer continuous solutions,
     //so immediately penalise hypothetical solutions involving
     //neighbours in different classes, this will help reduce segmented area:
     penalty = params->smoothness_penalty_base;
