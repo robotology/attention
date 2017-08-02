@@ -58,6 +58,8 @@ class MultiClass{
       int    min_area;
       int    max_area;
       int    max_spread;
+      int    fovea_width;
+      int    fovea_height;
       double cog_snap;
       double bland_prob;
 
