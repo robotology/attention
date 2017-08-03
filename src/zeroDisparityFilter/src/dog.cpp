@@ -277,8 +277,12 @@ void DoG::proc(IplImage *in_, int psb_in_) {
     //----------------  DOG filtering -----------------------------------------
     printf("DOG filtering \n");
 
-    cv::Point anchor(0, 0);
+    cv::Point anchor(kern_sz - anchor.x - 1, kern_sz - anchor.y - 1);
     //cv::Mat kern1_mat; removed because already defined
+
+
+    cvFlip(kern1_mat, kern1_mat);
+    cvFlip(kern2_mat, kern2_mat);
 
     //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
     filter2D(in_pad_mat, tmp2_mat, CV_32F, cv::cvarrToMat(kern1_mat));
