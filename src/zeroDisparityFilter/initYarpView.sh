@@ -1,6 +1,9 @@
 #!/bin/bash
 
-#Connect the IcubSim eye to the zeroDisparityMod port
+#Connect the IcubSim/icub eye to the zeroDisparityMod port
+#yarp connect /icub/cam/left/out /zeroDisparityFilterMod/imageLeft:i
+#yarp connect /icub/cam/right/out /zeroDisparityFilterMod/imageRight:i
+
 yarp connect /icubSim/cam/left /zeroDisparityFilterMod/imageLeft:i
 yarp connect /icubSim/cam/right /zeroDisparityFilterMod/imageRight:i
 
@@ -14,7 +17,7 @@ yarpview --name /imageTemp  > /dev/null 2>&1 &
 yarpview --name /leftCamera  > /dev/null 2>&1 & 
 yarpview --name /RightCamera  > /dev/null 2>&1 &
 
-sleep 10
+sleep 5
 
 #Connect to the zeroDisparityFilterMod port
 yarp connect /zeroDisparityFilterMod/imageProb:o /imageProb
@@ -25,6 +28,12 @@ yarp connect /zeroDisparityFilterMod/imageTemp:o /imageTemp
 #Connect zdfControl to zeroDisparityFilter
 yarp connect /zdfControl/command:o /zeroDisparityFilterMod
 
-#Connect iCubSim camera to yarpView
+#Connect iCubSim/iCub camera to yarpView
+#yarp connect /icub/cam/left/out /leftCamera
+#yarp connect /icub/cam/right/out /RightCamera
+
 yarp connect /icubSim/cam/left /leftCamera
 yarp connect /icubSim/cam/right /RightCamera
+
+
+
