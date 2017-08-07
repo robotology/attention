@@ -20,12 +20,10 @@
 
 #include "iCub/zeroDisparityFilterMod.h"
 #include <cassert>
+#include <iCub/dog.h>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "CannotResolve"
-
-
-
 
 using namespace std;
 using namespace yarp::os;
@@ -68,7 +66,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     */
 
     setName(moduleName.c_str());
-    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(40), "what did the user select?").asInt();
+    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(80), "what did the user select?").asInt();
     parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(0),
                                                                         "what did the user select?").asInt();
     parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base", Value(50),
@@ -79,7 +77,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
                                                            "what did the user select?").asInt();
     parameters.smoothness_3sigmaon2 = rf.findGroup("PARAMS").check("smoothness_3sigmaon2", Value(13),
                                                                    "what did the user select?").asInt();
-    parameters.bland_dog_thresh = rf.findGroup("PARAMS").check("bland_dog_thresh", Value(1),
+    parameters.bland_dog_thresh = rf.findGroup("PARAMS").check("bland_dog_thresh", Value(250),
                                                                "what did the user select?").asInt();
     parameters.radial_penalty = rf.findGroup("PARAMS").check("radial_penalty", Value(50),
                                                              "what did the user select?").asInt();
@@ -92,8 +90,10 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob", Value(0.3),
                                                          "what did the user select?").asDouble();
 
-
-
+    parameters.fovea_width = rf.findGroup("PARAMS").check("fovea_size", Value(128),
+                                                         "what did the user select?").asInt();
+    parameters.fovea_height = rf.findGroup("PARAMS").check("fovea_size", Value(128),
+                                                         "what did the user select?").asInt();
 
 
     /*
@@ -512,8 +512,7 @@ void ZDFThread::run() {
             }
 
             if (startProcessing) {
-                //yDebug("START PROCESSING \n");
-
+                yDebug("START PROCESSING \n");
 
                 if (!allocated || img_in_left->width() != insize.width || img_in_left->height() != insize.height) {
                     deallocate();
@@ -543,6 +542,7 @@ void ZDFThread::run() {
                 cvCopy((IplImage *) img_in_right->getIplImage(), r_orig_ipl, NULL);
 
             }
+
             // Test with YUV images instead of grayscale left
             // Extract yuv plane
             //ippiRGBToYUV_8u_AC4R( l_orig, psb4, yuva_orig_l, psb4, srcsize );
@@ -574,16 +574,12 @@ void ZDFThread::run() {
             pyuva_r[1] = second_plane_r; //U Color chroma
             pyuva_r[2] = third_plane_r;  //V Color chroma
 
-
-
-
             //ippiCopy_8u_C1R( first_plane_l, f_psb,  rec_im_ly, psb_in, srcsize);
             //ippiCopy_8u_C1R( first_plane_r, f_psb,  rec_im_ry, psb_in, srcsize);
 
+
             cvCopy(first_plane_l_ipl, rec_im_ly_ipl, NULL);
             cvCopy(first_plane_r_ipl, rec_im_ry_ipl, NULL);
-
-
 
             if (acquire) {
 
@@ -626,9 +622,6 @@ void ZDFThread::run() {
             cvCopy(rec_im_ly_ipl, fov_l_ipl, NULL);
             cvResetImageROI(rec_im_ly_ipl);
 
-
-
-
             //******************************************************************
             //Create right fovea and find right template in right image:
             yDebug("creating right fovea and right template matching \n");
@@ -663,6 +656,7 @@ void ZDFThread::run() {
             o_prob_8u = (unsigned char *) o_prob_8u_ipl->imageData;
             zd_prob_8u = (unsigned char *) zd_prob_8u_ipl->imageData;
 
+            yDebug("Koffsetx: %d, width: %d \n", koffsetx, foveaSize.width);
             yDebug("Koffsety: %d, height: %d \n", koffsety, foveaSize.height);
 
             int data_penalty = params->data_penalty;
@@ -674,23 +668,14 @@ void ZDFThread::run() {
                 for (int i = koffsetx; i < foveaSize.width - koffsetx; i++) {
 
                     c.x = i;
-                    //modification #amaroyo 19/02/16
-                    //char* p_dogonoff = dl->get_dog_onoff(); --this is null
-
+                    int index = i + j * dl-> get_dog_onoff_ipl()->width;
 
                     unsigned char *p_dogonoff_l = (unsigned char *) dl->get_dog_onoff_ipl()->imageData;
                     unsigned char *p_dogonoff_r = (unsigned char *) dr->get_dog_onoff_ipl()->imageData;
-                    int witdhStep = dl-> get_dog_onoff_ipl()->widthStep;
-
-                    //yDebug("Sizes Left Dog width= %d, height= %d, step = %d \n", dl->get_dog_onoff_ipl()->width, dl->get_dog_onoff_ipl()->height, dl->get_dog_onoff_ipl()->widthStep);
-                    //yDebug("Sizes Right Dog width= %d, height= %d, step = %d  \n", dr->get_dog_onoff_ipl()->width, dr->get_dog_onoff_ipl()->height, dr->get_dog_onoff_ipl()->widthStep);
-                    //yDebug("values %d, %d, %d, %d \n", *p_dogonoff_l, *p_dogonoff_r, p_dogonoff_l[i + j*dl->get_psb()], params->data_penalty);
-
-
 
                     //if either l or r textured at this retinal location:
-                    if (p_dogonoff_l[i + j * witdhStep] <= bland_dog_thresh ||
-                        p_dogonoff_r[i + j * witdhStep] <= bland_dog_thresh) {
+                    if (p_dogonoff_l[index] > data_penalty ||
+                        p_dogonoff_r[index] > bland_dog_thresh) {
 
                         if (RANK0_NDT1 == 0) {
                             //use RANK:
@@ -708,11 +693,11 @@ void ZDFThread::run() {
                         }
 
                         //yDebug("preparing zerodisparity probability mono channel \n");
-                        zd_prob_8u[j * psb_m + i] = (unsigned char) (cmp_res * 255.0);
+                        zd_prob_8u[index] = (unsigned char) (cmp_res * 255.0);
                     } else {
                         //yDebug("untextured in both l & r \n");
                         //untextured in both l & r, so set to bland prob (ZD):
-                        zd_prob_8u[j * psb_m + i] = (unsigned char) (params->bland_prob * 255.0);//bland_prob
+                        zd_prob_8u[index] = (unsigned char) (params->bland_prob * 255.0);//bland_prob
                     }
 
                     //RADIAL PENALTY:
@@ -724,17 +709,17 @@ void ZDFThread::run() {
                     //yDebug("Penalty: %d \n", params->radial_penalty);
 
                     rad_pen = (int) ((r / rmax) * params->radial_penalty);
-                    max_rad_pen = zd_prob_8u[j * psb_m + i];
+                    max_rad_pen = zd_prob_8u[index];
                     if (max_rad_pen < rad_pen) {
                         rad_pen = max_rad_pen;
                     }
                     //apply radial penalty
                     //yDebug("applying radial penality...... ");
-                    zd_prob_8u[j * psb_m + i] -= rad_pen;
+                    zd_prob_8u[index] -= rad_pen;
                     //yDebug("success \n");
 
                     //manufacture NZD prob (other):
-                    o_prob_8u[psb_m * j + i] = (unsigned char) (255 - zd_prob_8u[psb_m * j + i]);
+                    o_prob_8u[index] = (unsigned char) (255 - zd_prob_8u[index]);
 
                 }
             }
@@ -781,9 +766,10 @@ void ZDFThread::run() {
                     } else {
                         seg_dog[j * psb_m + i] = dr->get_dog_onoff()[j * psb_m + i];
 
+                        // Gray matching
+                        seg_im[j * psb_m + i] = fov_r[j * psb_m + i];
                         // Set the segmentation match in white
-                        //seg_im[j * psb_m + i] = fov_r[j * psb_m + i]; Gray matching
-                        seg_im[j * psb_m + i] = 255;
+                        //seg_im[j * psb_m + i] = 255;
                     }
                 }
             }
@@ -826,103 +812,122 @@ void ZDFThread::run() {
                 waiting++;
                 //report that we didn't update template:
                 //-----------------------------------------------extract just template
-                if (imageOutTemp.getOutputCount() > 0) {
-                    cout << " sending template " << endl;
-                    int top = -1;
-                    int left = -1;
-                    int right = -1;
-                    int bottom = -1;
+
+                    if (imageOutTemp.getOutputCount() > 0) {
+                        cout << " sending template " << endl;
+                        int top = -1;
+                        int left = -1;
+                        int right = -1;
+                        int bottom = -1;
 
 
-                    for (int j = 0; j < foveaSize.height * psb_m; j++) {
-                        if ((int) seg_im[j] > 0) {
-                            top = j / psb_m;
-                            break;
-                        }
-                    }
-                    for (int j = foveaSize.height * psb_m; j > 0; j--) {
-
-                        if ((int) seg_im[j] > 0) {
-                            bottom = j / psb_m;
-                            break;
-                        }
-                    }
-                    bool Tmpout = false;
-                    for (int i = 0; i < foveaSize.width; i++) {
-                        for (int j = 0; j < foveaSize.height; j++) {
-                            if ((int) seg_im[i + j * psb_m] > 0) {
-                                left = i;
-                                Tmpout = true;
+                        for (int j = 0; j < foveaSize.height * psb_m; j++) {
+                            if ((int) seg_im[j] > 0) {
+                                top = j / psb_m;
                                 break;
                             }
                         }
-                        if (Tmpout)break;
-                    }
-                    Tmpout = false;
-                    for (int i = foveaSize.width; i > 0; i--) {
-                        for (int j = 0; j < foveaSize.height; j++) {
-                            if ((int) seg_im[i + j * psb_m] > 0) {
-                                right = i;
-                                //cout << "right : " << right << endl;
-                                Tmpout = true;
+
+                        for (int j = foveaSize.height * psb_m; j > 0; j--) {
+
+                            if ((int) seg_im[j] > 0) {
+                                bottom = j / psb_m;
                                 break;
                             }
                         }
-                        if (Tmpout)break;
-                    }
-
-                    int u = 0;
-                    int v = 0;
-                    tempSize.width = right - left + 1;
-                    tempSize.height = bottom - top + 1;
-
-                    //tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
-                    tempImg_ipl = cvCreateImage(cvSize(tempSize.width, tempSize.height), IPL_DEPTH_8U, 3);
-                    tempImg = (unsigned char *) tempImg_ipl->imageData;
-                    psbtemp = tempImg_ipl->widthStep;
-
-                    img_out_temp = new ImageOf<PixelBgr>;
-                    img_out_temp->resize(tempSize.width, tempSize.height);
-
-                    for (int j = top; j < bottom + 1; j++) {
-                        for (int i = left; i < right + 1; i++) {
-                            if ((int) seg_im[i + j * psb_m] > 0) {
-                                int x = srcsize.width / 2 - foveaSize.width / 2 + i;
-                                int y = srcsize.height / 2 - foveaSize.height / 2 + j;
-                                tempImg[u * 3 + v * psbtemp] = copyImg[x * 3 + y * psbCopy];
-                                tempImg[u * 3 + v * psbtemp + 1] = copyImg[x * 3 + y * psbCopy + 1];
-                                tempImg[u * 3 + v * psbtemp + 2] = copyImg[x * 3 + y * psbCopy + 2];
-                            } else {
-                                tempImg[u * 3 + v * psbtemp] = 0;
-                                tempImg[u * 3 + v * psbtemp + 1] = 0;
-                                tempImg[u * 3 + v * psbtemp + 2] = 0;
+                        bool Tmpout = false;
+                        for (int i = 0; i < foveaSize.width; i++) {
+                            for (int j = 0; j < foveaSize.height; j++) {
+                                if ((int) seg_im[i + j * psb_m] > 0) {
+                                    left = i;
+                                    Tmpout = true;
+                                    break;
+                                }
                             }
-                            u++;
+                            if (Tmpout)break;
                         }
-                        u = 0;
-                        v++;
+                        Tmpout = false;
+                        for (int i = foveaSize.width; i > 0; i--) {
+                            for (int j = 0; j < foveaSize.height; j++) {
+                                if ((int) seg_im[i + j * psb_m] > 0) {
+                                    right = i;
+                                    Tmpout = true;
+                                    break;
+                                }
+                            }
+                            if (Tmpout)break;
+                        }
+
+                        int u = 0;
+                        int v = 0;
+                        tempSize.width = right - left + 1;
+                        tempSize.height = bottom - top + 1;
+
+                        //tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
+                        tempImg_ipl = cvCreateImage(cvSize(tempSize.width, tempSize.height), IPL_DEPTH_8U, 3);
+                        tempImg = (unsigned char *) tempImg_ipl->imageData;
+                        psbtemp = tempImg_ipl->widthStep;
+
+                        IplImage *original_seg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U,
+                                                                   3);
+                        cvCopy(l_orig_ipl, original_seg_ipl, NULL);
+
+                        int yOneSeg = mid_y + top;
+                        int yTwoSeg = mid_y + ( bottom - top );
+                        int xOneSeg = mid_x + left;
+                        int xTwoSeg = mid_x + ( right -left);
+
+                        cv::Point pt1(xOneSeg, yOneSeg);
+                        cv::Point pt2(xTwoSeg, yTwoSeg);
+
+                        cvRectangle(original_seg_ipl, pt1, pt2, CvScalar(255, 0, 0), 2);
+
+
+                        img_out_temp = new ImageOf<PixelBgr>;
+                        img_out_temp->resize(srcsize.width, srcsize.height);
+
+                        for (int j = top; j < bottom + 1; j++) {
+                            for (int i = left; i < right + 1; i++) {
+                                if ((int) seg_im[i + j * psb_m] > 0) {
+                                    int x = srcsize.width / 2 - foveaSize.width / 2 + i;
+                                    int y = srcsize.height / 2 - foveaSize.height / 2 + j;
+                                    tempImg[u * 3 + v * psbtemp] = copyImg[x * 3 + y * psbCopy];
+                                    tempImg[u * 3 + v * psbtemp + 1] = copyImg[x * 3 + y * psbCopy + 1];
+                                    tempImg[u * 3 + v * psbtemp + 2] = copyImg[x * 3 + y * psbCopy + 2];
+
+                                } else {
+                                    tempImg[u * 3 + v * psbtemp] = 0;
+                                    tempImg[u * 3 + v * psbtemp + 1] = 0;
+                                    tempImg[u * 3 + v * psbtemp + 2] = 0;
+                                }
+                                u++;
+                            }
+                            u = 0;
+                            v++;
+                        }
+
+                        //ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
+
+                        // Display temp_img to YarpPort
+                        yarp::sig::ImageOf<yarp::sig::PixelBgr> *processingRgbImage;
+                        processingRgbImage = &imageOutTemp.prepare();
+                        processingRgbImage->resize(tempImg_ipl->width, tempImg_ipl->height);
+                        IplImage *aux = tempImg_ipl;
+                        processingRgbImage->wrapIplImage(aux); //temp_r_ipl
+                        imageOutTemp.write();
+
+
+
+                        //cvCopy(l_orig_ipl, img_out_temp->getIplImage(), NULL);
+                        yDebug("copied image success \n");
+
+
+                        // HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
+                        img_out_temp = NULL;
+
+
                     }
 
-                    //ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
-
-                    // Display temp_img to YarpPort
-                    yarp::sig::ImageOf<yarp::sig::PixelBgr> *processingRgbImage;
-                    processingRgbImage = &imageOutTemp.prepare();
-                    processingRgbImage->resize(tempImg_ipl->width, tempImg_ipl->height);
-                    IplImage *aux = tempImg_ipl;
-                    processingRgbImage->wrapIplImage(aux); //temp_r_ipl
-                    imageOutTemp.write();
-
-
-
-                    //cvCopy(l_orig_ipl, img_out_temp->getIplImage(), NULL);
-                    yDebug("copied image success \n");
-
-
-                    // HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
-                    img_out_temp = NULL;
-
-                }
 
                 //*******************************************************************
                 //finished extracting
@@ -937,12 +942,27 @@ void ZDFThread::run() {
             }
 
             yDebug("preparing the vector target for the COG \n");
-            Vector &target = cogPort.prepare();
-            target.resize(2);
-            target[0] = cog_x_send;
-            target[1] = cog_y_send;
-            cogPort.write();
 
+            /*Property option;
+            option.put("device","gazecontrollerclient");
+            option.put("remote","/iKinGazeCtrl");
+            option.put("local","/client/gaze");
+            yarp::dev::PolyDriver clientGazeCtrl(option);
+            yarp::dev::IGazeControl *igaze=NULL;
+
+            if (clientGazeCtrl.isValid()) {
+                clientGazeCtrl.view(igaze);
+            }
+
+
+            int camSel=0;   // select the image plane: 0 (left), 1 (right)
+            Vector px(2);   // specify the pixel where to look
+            px[0] = cog_x_send;
+            px[1] = cog_y_send;
+            double z = 10.0;   // distance [m] of the object from the image plane (extended to infinity): yes, you probably need to guess, but it works pretty robustly
+            igaze->lookAtMonoPixel(camSel,px,z);    // look!
+
+             */
 
             //send it all when connections are established
             if (imageOutProb.getOutputCount() > 0) {
@@ -1104,17 +1124,17 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     srcsize.width = img->width();
     srcsize.height = img->height();
 
-    foveaSize.width = 160; //should be taken from ini file // was 128
-    foveaSize.height = 120; //should be taken from ini file // was 128
+    foveaSize.width = params->fovea_width; //should be taken from ini file // was 128
+    foveaSize.height = params->fovea_height; //should be taken from ini file // was 128
 
     tsize.width = 32;  //should be taken from ini file
     tsize.height = 32;  //should be taken from ini file
 
-    t_lock_lr = 32;     //should be taken from ini file
-    t_lock_ud = 32;     //should be taken from ini file
+    //t_lock_lr = 32;     //should be taken from ini file
+    //t_lock_ud = 32;     //should be taken from ini file
 
-    tisize.width = tsize.width + 2 * t_lock_lr;
-    tisize.height = tsize.height + 2 * t_lock_ud;
+    //tisize.width = tsize.width + 2 * t_lock_lr;
+    //tisize.height = tsize.height + 2 * t_lock_ud;
 
     trsize.width = (srcsize.width  - tsize.width) + 1; //289;
     trsize.height = (srcsize.height - tsize.height) + 1; //209;
@@ -1129,7 +1149,6 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     cog_x_send = 0.0;
     cog_y_send = 0.0;
 
-    //TODO RANK and NDT have the same values #amaroyo 19/02/2016
     if (RANK0_NDT1 == 0) {
         koffsetx = RANKX;
         koffsety = RANKY;
