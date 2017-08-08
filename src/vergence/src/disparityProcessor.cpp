@@ -70,12 +70,15 @@ bool disparityProcessor::threadInit(){
 
     if (ctrlType == "ctrlGaze" || ctrlType == "ctrlgaze"){
 
-        Property optGaze("(device gazecontrollerclient)");
+        Property optGaze;
+        optGaze.put("device","gazecontrollerclient");
         optGaze.put("remote","/iKinGazeCtrl");
-        optGaze.put("local","/gaze_client");
+        optGaze.put("local","/client/gaze");
 
-        clientGaze=new PolyDriver;
-        if (!clientGaze->open(optGaze))
+        clientGaze = new PolyDriver(optGaze);
+        igaze = NULL;
+
+        if (!clientGaze->isValid())
         {
             delete clientGaze;    
             return false;
@@ -324,10 +327,10 @@ void disparityProcessor::run(){
             
             if ( histoOutPort.getOutputCount() > 0 ) { 
                 Disp.makeHistogram(histo);
-                histoOutPort.prepare() = histo;	
+                histoOutPort.prepare() = histo;
                 histoOutPort.write();
             }
-            
+
             //angle = fb[8]-(180/M_PI)*atan(disparityVal/(2*fpixel)); // TODO: remove hard coded value
  
             encHead->getEncoders( _head.data() );
