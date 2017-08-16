@@ -777,8 +777,8 @@ int myMain(int argc, char* argv[]) {
     //rf=new ResourceFinder();
     rf.setVerbose(true);
     rf.setDefaultConfigFile("zdfControl.ini"); //overridden by --from parameter
-    rf.setDefaultContext("zdfControl/conf");   //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);
+    rf.setDefaultContext("zdfControl");   //overridden by --context parameter
+    rf.configure(argc, argv);
     
     _options.portName      = rf.check("name", 
                            Value("/zdfControl"), 

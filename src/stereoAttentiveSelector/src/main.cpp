@@ -45,8 +45,8 @@ int main(int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("stereoAttModule.ini"); //overridden by --from parameter
-    rf.setDefaultContext("attentionMechanism/conf");   //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);
+    rf.setDefaultContext("attentionMechanism");   //overridden by --context parameter
+    rf.configure(argc, argv);
  
     module.runModule(rf);
     return 0;

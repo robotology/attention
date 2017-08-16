@@ -63,57 +63,67 @@ void Detector::loop()
         if(c.r > 0)
         {            
            if(isIn(c, face))
-            {
+           {
                 // we found an stable face
-               // if(++counter > certainty)
+                // if(++counter > certainty)
                 {
                     cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,255,0), 3, 8, 0 );
                     cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,255,0), 2, 8, 0 );
                     if(withSaliency){
                         cvCircle(saliency, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(255,255,255), -1, 8, 0 );
                     }
-                    double alfa = 0.15;    
+                    double alfa = alpha;    
                     yarp::sig::Vector uv(2);
                     yarp::sig::Vector posRoot(3);
 
-                    uv[0] = face.x;
-                    uv[1] = face.y;
+
+                    int w2 = (display->width)>>1;
+                    int h2 = (display->height)>>1;
+                    double distance = sqrt((face.x - w2) * (face.x - w2) + (face.y - h2) * (face.y - h2));                    
                     
-                    //yDebug("position %f %f distance %f", face.x, face.y, eyeDist);
-                    bool ret = iGaze->get3DPoint((eye=="left")?0:1, uv, eyeDist, posRoot );
-                    //yDebug("got 3D position %s", posRoot.toString().c_str());
-                    if(ret)
-                    {
-                        //yDebug("get3DPoint sent in...ready to send");
 
-                        yarp::sig::Vector posRootFinal(3);
-                        posRootFinal[0] = alfa * posRoot[0] + (1 - alfa) * prev_x;
-                        posRootFinal[1] = alfa * posRoot[1] + (1 - alfa) * prev_y;
-                        posRootFinal[2] = alfa * posRoot[2] + (1 - alfa) * prev_z;
+                    if(distance > 40.0) {
+                        yInfo("w2 %d h2 %d distance %f", w2, h2, distance);
+                        uv[0] = face.x;
+                        uv[1] = face.y;
+                                        
+                        //yDebug("position %f %f distance %f", face.x, face.y, eyeDist);
+                        bool ret = iGaze->get3DPoint((eye=="left")?0:1, uv, eyeDist, posRoot );
+                        //yDebug("got 3D position %s", posRoot.toString().c_str());
+                        if(ret)
+                            {
+                        
 
-                        prev_x = -eyeDist;
-                        prev_y = posRootFinal[1];
-                        prev_z = posRootFinal[2];
+                                yarp::sig::Vector posRootFinal(3);
+                                posRootFinal[0] = alfa * posRoot[0] + (1 - alfa) * prev_x;
+                                posRootFinal[1] = alfa * posRoot[1] + (1 - alfa) * (prev_y + offsetY);
+                                posRootFinal[2] = alfa * posRoot[2] + (1 - alfa) * (prev_z + offsetZ);
+
+                                prev_x = -eyeDist;
+                                prev_y = posRootFinal[1];
+                                prev_z = posRootFinal[2];
                         
-                        //-------------------------------------
-                        iGaze->lookAtFixationPoint(posRootFinal);
-                        //--------------------------------------
-                        
-                        Bottle &target=targetPort.prepare();
-                        target.clear();
-                        target.addDouble(prev_x);
-                        target.addDouble(prev_y+offsetY);
-                        target.addDouble(prev_z+offsetZ);
-                        for(int i=0; i<rotation.size(); i++){
-                            target.addDouble(rotation[i]);
-                        }
-                        targetPort.write();
+                                //-------------------------------------
+                                iGaze->lookAtFixationPoint(posRootFinal);
+                                //--------------------------------------
+
+                                //yDebug("get3DPoint %f %f %f sent in...ready to send",prev_x, prev_y+offsetY, prev_z+offsetZ);
+                                Bottle &target=targetPort.prepare();
+                                target.clear();
+                                target.addDouble(prev_x);
+                                target.addDouble(prev_y+offsetY);
+                                target.addDouble(prev_z+offsetZ);
+                                for(int i=0; i<rotation.size(); i++){
+                                    target.addDouble(rotation[i]);
+                                }
+                                targetPort.write();
                       
-                        Bottle &cmd=faceExpPort.prepare();
-                        cmd.addVocab(Vocab::encode("set"));
-                        cmd.addVocab(Vocab::encode("all"));
-                        cmd.addVocab(Vocab::encode(faceExpression.c_str()));
-                        faceExpPort.write();
+                                Bottle &cmd=faceExpPort.prepare();
+                                cmd.addVocab(Vocab::encode("set"));
+                                cmd.addVocab(Vocab::encode("all"));
+                                cmd.addVocab(Vocab::encode(faceExpression.c_str()));
+                                faceExpPort.write();
+                            }
                     }
                 }
             }
@@ -199,8 +209,7 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
            c.y = center.y; 
         }
 
-        yInfo("c.x %f c.y %f",c.x, c.y);
-                                            
+        //yInfo("c.x %f c.y %f",c.x, c.y);                                          
         
         /*
         if( nestedCascade.empty() )
@@ -232,6 +241,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     eye = rf.check("eye", Value("left")).asString().c_str();
     faceExpression = rf.check("expression", Value("ang")).asString().c_str();
     eyeDist = fabs(rf.check("eyeDist", Value(0.7)).asDouble());
+    alpha = fabs(rf.check("alpha", Value(0.15)).asDouble());
     certainty = rf.check("certainty", Value(1.0)).asInt();
     offsetZ =  rf.check("offset_z", Value(-0.05)).asDouble();
     offsetY =  rf.check("offset_y", Value(0.0)).asDouble();
@@ -240,6 +250,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     yInfo("eye: %s", eye.c_str());
     yInfo("faceExpression: %s", faceExpression.c_str());
     yInfo("eyeDistance: %f", eyeDist);
+    yInfo("alpha: %f", alpha);
     yInfo("certainty: %d", certainty);
     yInfo("offsetZ: %f", offsetZ);
     yInfo("offsetY: %f", offsetY);
@@ -348,7 +359,7 @@ bool Detector::close()
 {
     iGaze->stopControl();
     iGaze->restoreContext(startup_context_id);
-        
+   
     clientGaze->close();
     imagePort.close();
     outPort.close();

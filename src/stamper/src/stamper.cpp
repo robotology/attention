@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   
   ResourceFinder rf;
   rf.setVerbose();
-  rf.configure("ICUB_ROOT", argc, argv);
+  rf.configure(argc, argv);
   
   // take reference coordinates
   double refX=rf.find("x").asDouble();

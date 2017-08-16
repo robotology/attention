@@ -8,7 +8,7 @@ add_subdirectory  ( audioAttention           )
 add_subdirectory  ( audioInterface           )
 add_subdirectory  ( audioTemplate            )
 
-add_subdirectory  ( headingAudio             )
+#add_subdirectory  ( headingAudio             )
 #add_subdirectory  ( remoteInterface          )
 add_subdirectory  ( mexInterface              )
 add_subdirectory  ( audioFrameExtractor       )

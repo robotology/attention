@@ -101,6 +101,7 @@ private:
     double eyeDist;
 	int certainty;
     int startup_context_id;
+    double alpha;
     double offsetZ;
     double offsetY;
     bool withSaliency;

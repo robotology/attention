@@ -183,7 +183,7 @@ bool wmemoryThread::checkTarget(const yarp::os::Bottle& target){
                 r = list->find("r").asDouble();
                 g = list->find("g").asDouble();
                 b = list->find("b").asDouble();
-                printf("colour: %f,%f,%f \n", r,g,b);
+                printf("colour: %d,%d,%d \n", r,g,b);
                 
                 lifeTimer = list->find("lifeTimer").asDouble();
                 printf("lifeTimer %f \n",lifeTimer);   

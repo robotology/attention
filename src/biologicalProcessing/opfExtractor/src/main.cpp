@@ -36,9 +36,9 @@ int main(int argc, char * argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("cameraTest.ini");    //overridden by --from parameter
-    rf.setDefaultContext("morphoGenApp/conf");    //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);  
+    rf.setDefaultConfigFile("opfExtractor.ini");     //overridden by --from parameter
+    rf.setDefaultContext("biologicalProcessing");    //overridden by --context parameter
+    rf.configure(argc, argv);  
  
     module.runModule(rf);
     return 0;

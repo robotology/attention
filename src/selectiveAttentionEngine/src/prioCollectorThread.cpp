@@ -344,7 +344,7 @@ void prioCollectorThread::run() {
                 
             double xm,ym;
             bool res;
-            printf("calling the earlyFilter %08x %08x  \n", map1_yarp, map2_yarp);
+            //printf("calling the earlyFilter %08x %08x  \n", map1_yarp, map2_yarp);
             res = earlyFilter(map1_yarp, map2_yarp, *linearCombinationImage, xm, ym);
             
             res = false;

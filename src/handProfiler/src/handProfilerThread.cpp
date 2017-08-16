@@ -813,7 +813,6 @@ void handProfilerThread::saveInfo(){                                            
 }
 
 void handProfilerThread::startFromFile(){                                       //move from file
-
     if (partnerTime != 0.0) {
         speedFactor = movementDuration / partnerTime;                           //if partnerTime is set change speedFactor
         yWarning("start from partner time");
@@ -870,21 +869,20 @@ void handProfilerThread::playFromFile(){
         if(playCount%8 == 0){
             if(first){
                 first = false;
-                if(abs(command[0] - playJoints[0]) > 10 || abs(command[1] - playJoints[1]) > 10 || abs(command[2] - playJoints[2]) > 10 || abs(command[3] - playJoints[3]) > 10 || abs(command[4] - playJoints[4]) > 10 || abs(command[5] - playJoints[5]) > 10 || abs(command[6] - playJoints[6]) > 10 || abs(command[7] - playJoints[7]) > 10){
+                if(abs(command[0] - playJoints[0]) > 10 || abs(command[1] - playJoints[1]) > 10 || abs(command[2] - playJoints[2]) > 10 || abs(command[3] - playJoints[3]) > 10 || abs(command[4] - playJoints[4]) > 10 || abs(command[5] - playJoints[5]) > 10 || abs(command[6] - playJoints[6]) > 10 ){
                     if(startPos(0) != 0.0 && startPos(1) != 0.0 && startPos(2) != 0.0){         //go to initial position with cartesian controller
                         yInfo("icart moving to initial position");
                         icart->goToPose(startPos, startOri);
                         icart->waitMotionDone();
                     }
                 }
-
+                
                 encs->getEncoders(encoders.data());                                         // encoder reading from current position
                 command = encoders;
-
+                
                 for (int i = 0; i < njoints; i++) {
                     ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
                 }
-
                 for(int i=0; i<7; i++){
                     if(abs(command[i] - playJoints[i]) > 10){
                         yInfo("idir moving joint %d to initial position", i);
@@ -903,7 +901,7 @@ void handProfilerThread::playFromFile(){
                 }
 
                 yInfo("initial position reached");
-                //Time::delay(2.0);
+                
                 previousTime = playJoints[7];
             }else{
                 for(int i=0; i<7; i++){

@@ -39,8 +39,8 @@ int main(int argc, char * argv[]) {
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("iCubGuiPopulator.ini"); //overridden by --from parameter
-    rf.setDefaultContext("logPolarAttentionSystem/conf");   //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);
+    rf.setDefaultContext("logPolarAttention");   //overridden by --context parameter
+    rf.configure(argc, argv);
  
     module.runModule(rf);
     return 0;
