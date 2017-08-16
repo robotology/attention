@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("repeater.ini");      //overridden by --from parameter
-    rf.setDefaultContext("attention/conf");     //overridden by --context parameter
+    rf.setDefaultContext("attention");     //overridden by --context parameter
     rf.configure(argc, argv);  
     repeaterModule module;
    

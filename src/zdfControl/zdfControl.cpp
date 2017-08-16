@@ -818,7 +818,11 @@ int myMain(int argc, char* argv[]) {
     //rf=new ResourceFinder();
     rf.setVerbose(true);
     rf.setDefaultConfigFile("zdfControl.ini"); //overridden by --from parameter
+<<<<<<< HEAD
     rf.setDefaultContext("zdfControl/conf");   //overridden by --context parameter
+=======
+    rf.setDefaultContext("zdfControl");   //overridden by --context parameter
+>>>>>>> ae3ef4aab80f15d435a65f44e6414160bc440cb0
     rf.configure(argc, argv);
     
     _options.portName      = rf.check("name", 

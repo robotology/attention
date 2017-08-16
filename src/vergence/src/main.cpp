@@ -181,9 +181,9 @@ int main(int argc, char *argv[])
     /* prepare and configure the resource finder */
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("attentionMechanism.ini"); //overridden by --from parameter
-    rf.setDefaultContext("attentionMechanism/conf");   //overridden by --context parameter
-    rf.configure("ICUB_ROOT", argc, argv);
+    rf.setDefaultConfigFile("vergence.ini"); //overridden by --from parameter
+    rf.setDefaultContext("attentionMechanism");   //overridden by --context parameter
+    rf.configure(argc, argv);
      
     module.runModule(rf);
 }

@@ -36,6 +36,7 @@
 /**
 * 16/01/11 : added the cross in the middle of the remapping of fovea in cartesian image                         @author Rea
 * 16/01/11 : representing the trajectory of the projection of fixation point  in the image                      @author Rea
+
 */
 
 
@@ -441,7 +442,7 @@ int main(int argc, char *argv[])
 {
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.configure("ICUB_ROOT",argc,argv);
+    rf.configure(argc,argv);
 
     Network yarp;
     if (!yarp.checkNetwork())

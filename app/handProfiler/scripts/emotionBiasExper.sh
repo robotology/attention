@@ -25,7 +25,7 @@ usage() {
 cat << EOF
 ***************************************************************************************
 DEA SCRIPTING
-Author:  Alessandro Roncone   <alessandro.roncone@iit.it> 
+Author:  Alessandro Roncone   <alessandro.roncone@iit.it>
 
 This script scripts through the commands available for the DeA Kids videos.
 
@@ -91,7 +91,7 @@ go_home_withtable_helper() {
     go_home_withtable_helperL $1
     # echo "ctpq time 1.0 off 0 pos (0.0 0.0 10.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
     go_home_helperH $1
-    go_home_helperT $1	
+    go_home_helperT $1
 }
 
 go_home_helper() {
@@ -370,7 +370,7 @@ closing_remarks() {
     sleep 3.0 && blink && smile
     speak "In bocca al lupo meikers"
     smile
-    greet_with_right_thumb_up   
+    greet_with_right_thumb_up
     smile
 }
 
@@ -436,6 +436,9 @@ palmfaceright(){
 ####################################################################################################################
 #                              Ellipses Trajectories                                                               #
 ####################################################################################################################
+ellipse4fra() {
+    echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta  1.57 1.57 7.85) (axes 0.1 0.1) (rev) (param 0.01 0.33))) " | yarp rpc /handProfiler
+}
 
 handProfile_CVPEllipse01() {
     echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1))) " | yarp rpc /handProfiler
@@ -568,10 +571,14 @@ handLeftP_TTLFront004_emp(){
     echo "GEN TTL (((O -0.25 -0.2 0.1) (A -0.35 -0.2 0.1) (B -0.25 -0.2 0.3) (C -0.25 -0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.012 0.33)))" | yarp rpc /handProfiler
 }
 
+newHandLeftProvide(){
+    echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.37 -0.1 0.1) (B -0.3 -0.1 0.13) (C -0.23 -0.1 0.1) (theta 0.0 1.57 3.14) (axes 0.07 0.03) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
+}
+
 ######################################### left hand halt
 
 handLeftP_TTLHalt001_rev(){
-    echo "GEN TTL (((O -0.25 -0.17 0.1) (A -0.35 -0.17 0.1) (B -0.25 -0.17 0.11) (C -0.1 -0.17 0.1) (theta 0.1 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.005 0.33)))" | yarp rpc /handProfiler
+    echo "GEN TTL (((O -0.25 -0.17 0.1) (A -0.35 -0.17 0.1) (B -0.25 -0.17 0.11) (C -0.1 -0.17 0.1) (theta 0.1 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.003 0.33)))" | yarp rpc /handProfiler
 }
 
 handLeftP_TTLHalt002_emp(){
@@ -672,7 +679,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachA_noHead
         go_home_withtable
     }
-    
+
     reachASequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -686,7 +693,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachB_noHead
         go_home_withtable
     }
-    
+
     reachBSequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -700,7 +707,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachC_noHead
         go_home_withtable
     }
-    
+
     reachCSequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -714,7 +721,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachD_noHead
         go_home_withtable
     }
-    
+
     reachDSequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -732,7 +739,7 @@ handProfile_STARSIM() {
         sleep 1.0 && tiltHead
         sleep 3.0 && smile
         sleep 3.0 && explainExercise
-        sleep 0.5 && reachRisma       
+        sleep 0.5 && reachRisma
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -750,7 +757,7 @@ handProfile_STARSIM() {
         sleep 1.0 && tiltHead_robotic
         sleep 3.0 && smile
         sleep 3.0 && explainExercise
-        sleep 0.5 && reachRisma_robotic       
+        sleep 0.5 && reachRisma_robotic
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -768,7 +775,7 @@ handProfile_STARSIM() {
         sleep 1.0 && go_home_withtable
         sleep 3.0 && smile
         sleep 3.0 && explainExercise
-        sleep 0.5 && reachRisma       
+        sleep 0.5 && reachRisma
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -787,7 +794,7 @@ handProfile_STARSIM() {
         sleep 1.0 && tiltHead
         sleep 3.0 && smile
         sleep 3.0 && explainExercise_beeping
-        sleep 0.5 && reachRisma       
+        sleep 0.5 && reachRisma
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -811,7 +818,7 @@ handProfile_STARSIM() {
         handProfile_TTPLFront001
         sleep 2.0 && handProfile_STAREXE
     }
-    
+
     horizTTPL001() {
         handProfile_TTPLHoriz001
         sleep 2.0 && handProfile_STAREXE
@@ -846,7 +853,7 @@ handProfile_STARSIM() {
         handProfile_TTLEllipse005
         sleep 2.0 && handProfile_STAREXE
     }
-    
+
     ellipseTTL002() {
         handProfile_TTLEllipse002
         sleep 2.0 && handProfile_STAREXE
@@ -867,17 +874,17 @@ handProfile_STARSIM() {
         sleep 2.0 && handProfile_STAREXE
     }
 
- 
+
 
     ############################################################### left arm
-    
+
     provideObject001() {
 	palm4stick
 	handProfile_TTLFront001_rev
         sleep 2.0 && handProfile_STAREXE
     }
 
-    
+
     provideObjectEmp() {
 	palm4stick
 	handProfile_TTLFront004_emp
@@ -895,16 +902,16 @@ handProfile_STARSIM() {
 	handProfile_TTLFront04_rev
         sleep 2.0 && handProfile_STAREXE
     }
-    
+
     halt04(){
 	palmface
 	handProfile_TTLFront001_rev
         sleep 2.0 && handProfile_STAREXE
     }
-   
 
-    ################################################################ right arm 
-    
+
+    ################################################################ right arm
+
     provideObject001Right() {
 	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
 	sleep 2.0
@@ -960,7 +967,7 @@ handProfile_STARSIM() {
 	handRightP_TTLPoint001_rev
         sleep 2.0 && handProfile_STAREXE
     }
-    
+
     pointRight05Emp(){
 	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
 	sleep 2.0
@@ -968,7 +975,7 @@ handProfile_STARSIM() {
 	handRightP_TTLPoint005_emp
         sleep 2.0 && handProfile_STAREXE
     }
-    
+
     pointRight08Const(){
 	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
 	sleep 2.0
@@ -995,8 +1002,8 @@ handProfile_STARSIM() {
         sleep 2.0 && handProfile_STAREXE
     }
 
-    ################################################################ left arm 
-    
+    ################################################################ left arm
+
     provideObject001Left() {
 	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/left_arm/rpc
 	sleep 2.0
@@ -1052,7 +1059,7 @@ handProfile_STARSIM() {
 	handLeftP_TTLPoint001_rev
         sleep 2.0 && handProfile_STAREXE
     }
-    
+
     pointLeft05Emp(){
 	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
 	sleep 2.0
@@ -1060,7 +1067,7 @@ handProfile_STARSIM() {
 	handLeftP_TTLPoint005_emp
         sleep 2.0 && handProfile_STAREXE
     }
-    
+
     pointLeft08Const(){
 	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
 	sleep 2.0
@@ -1133,7 +1140,7 @@ handProfile_STARSIM() {
 	breathers "start"
 
     }
-	
+
     homeRobotic(){
 	breathers "stop"
 	echo "ctpq time 1.5 off 0 pos (-29.5 30.6 0.0 44.5 0.0 0.0 0.0 15.0 44.8 6.2 15.3 5.3 11.9 9.0 17.0 5.0 )" | yarp rpc /ctpservice/right_arm/rpc
@@ -1141,7 +1148,7 @@ handProfile_STARSIM() {
 	sleep 3.0
 	breathers "start"
     }
-    
+
     snakeRobotic(){
 	breathers "stop"
 	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
@@ -1197,7 +1204,7 @@ handProfile_STARSIM() {
 	sleep 3.0
 	breathers "start"
     }
-    
+
     snakeNatural(){
 	breathers "stop"
 	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
@@ -1218,7 +1225,7 @@ handProfile_STARSIM() {
 	breathers "start"
     }
 #############     Repeatings     #####################################
-    
+
     constant005_10() {
         sleep 2.0
         constant005
@@ -1228,7 +1235,7 @@ handProfile_STARSIM() {
         constant005
         sleep 9.0
         constant005
-        sleep 9.0 
+        sleep 9.0
         constant005
         sleep 9.0
         constant005
@@ -1264,7 +1271,7 @@ handProfile_STARSIM() {
         sleep 5.0
         constant01
     }
-    
+
      constant02_10() {
         sleep 2.0
         constant02
@@ -1287,7 +1294,7 @@ handProfile_STARSIM() {
         sleep 4.0
         constant02
     }
-    
+
     synchro02_10() {
         sleep 5.0
         synchro02
@@ -1297,7 +1304,7 @@ handProfile_STARSIM() {
         synchro02
         sleep 5.0
         synchro02
-        sleep 5.0 
+        sleep 5.0
         synchro02
         sleep 5.0
         synchro02
@@ -1356,7 +1363,7 @@ handProfile_STARSIM() {
         sleep 3.0
         synchro04_10
     }
-    
+
      synchro08_10() {
         sleep 5.0
         synchro08
@@ -1403,7 +1410,7 @@ handProfile_STARSIM() {
         synchro12
     }
 
-    
+
 
 #######################################################################################
 # "MAIN" FUNCTION:                                                                    #
@@ -1413,11 +1420,9 @@ echo ""
 
 $1 "$2"
 
-if [[ $# -eq 0 ]] ; then 
+if [[ $# -eq 0 ]] ; then
     echo "No options were passed!"
     echo ""
     usage
     exit 1
 fi
-
-

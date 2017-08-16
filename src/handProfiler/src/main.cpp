@@ -14,13 +14,13 @@
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
 */
-  
+
 /**
  * @file main.cpp
  * @brief main code for the handProfiler module.
  */
 
-#include "iCub/handProfilerModule.h" 
+#include "iCub/handProfilerModule.h"
 
 
 using namespace yarp::os;
@@ -30,16 +30,16 @@ using namespace yarp::sig;
 
 int main(int argc, char * argv[])
 {
-    
+
     Network yarp;
     //YARP_REGISTER_DEVICES(icubmod)
-    handProfilerModule module; 
+    handProfilerModule module;
 
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("handProfiler.ini");      //overridden by --from parameter
-    rf.setDefaultContext("handProfilerApp/conf");              //overridden by --context parameter
-    rf.configure(argc, argv);  
+    rf.setDefaultContext("handProfiler");              //overridden by --context parameter
+    rf.configure(argc, argv);
     yInfo("argc %d", argc);
     for (int i=0; i<argc; i++)
         yInfo("argv %s", argv[i]);
@@ -49,5 +49,3 @@ int main(int argc, char * argv[])
     module.runModule(rf);
     return 0;
 }
-
-

@@ -46,8 +46,14 @@
 #define COMMAND_VOCAB_DOWN   VOCAB4('D','O','W','N')
 #define COMMAND_VOCAB_CURR   VOCAB4('C','U','R','R')
 #define COMMAND_VOCAB_SAVE   VOCAB4('S','A','V','E')        //save action joints in a file
-#define COMMAND_VOCAB_FILE   VOCAB4('F','I','L','E')        //start movement from joints file
+#define COMMAND_VOCAB_FILE   VOCAB4('F','I','L','E')        //
 #define COMMAND_VOCAB_SPEED   VOCAB4('S','P','E','E')        //start movement from joints file
+#define COMMAND_VOCAB_MARK   VOCAB4('M','A','R','K')        //
+#define COMMAND_VOCAB_STOP   VOCAB4('S','T','O','P')        //
+#define COMMAND_VOCAB_SYNC   VOCAB4('S','Y','N','C')        //
+#define COMMAND_VOCAB_REPS   VOCAB4('R','E','P','S')        //
+#define COMMAND_VOCAB_LOAD   VOCAB4('L','O','A','D')        //
+#define COMMAND_VOCAB_TIME   VOCAB4('T','I','M','E')        //
 
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -176,7 +182,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* create the thread and pass pointers to the module parameters */
-    rThread = new handProfilerThread(robotName, configFile);
+    rThread = new handProfilerThread(robotName, configFile, rf);
     rThread->setName(getName().c_str());
     rThread->setTorsoDof(yawDof, rollDof, pitchDof);
     rThread->setGazeTracking(gazeTracking);
@@ -237,9 +243,9 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
 
             reply.addString("GENERATE PROFILES (left hand)");
             reply.addString("GEN CVP  : generate constant velocity profile");
-	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1)))");
+	          reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1)))");
             reply.addString("GEN MJP  : generate minimum jerk profile");
-	    reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 1.57 3.0)))");
+	          reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 1.57 3.0)))");
             reply.addString("GEN TTPL : generate NON two-third power law profile");
             reply.addString("         : (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.1 0.33)))");
             reply.addString("GEN TTL : generate two-third power law profile");
@@ -253,8 +259,13 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("STAR SIM : start simulation (yellow)");
             reply.addString("STAR EXE : start execution  (green)");
             reply.addString("SIM CLR  : simulator cleaning");
-            reply.addString("STAR FILE SPEE value: start execution from file with speed multiplied for the value, if omitted (STAR FILE) default value is 1.0");
+            reply.addString("STAR FILE SPEE #value: start execution from file with speed multiplied for the value, if omitted default value is 1.0");
             reply.addString("SAVE JOI: save joints positions in file");
+            reply.addString("MARK START/STOP: start/stop time interval");
+            reply.addString("SYNC: set time interval decided with MARK START/STOP");
+            reply.addString("REPS #value: set number of repetitions for file execution");
+            reply.addString("LOAD FILE: set the name of the file to load");
+
             ok = true;
         }
         break;
@@ -428,22 +439,26 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             case COMMAND_VOCAB_FILE:
                 {
                     if(command.get(2).asVocab() == COMMAND_VOCAB_SPEED && 0!=rThread) {
-                        if(command.get(3).isDouble()){
+                        if(command.get(3).isDouble() || command.get(3).isInt()){
                             reply.addString("OK");
                             rThread->startJoints(command.get(3).asDouble());
                             ok = true;
                         }else{
+                            // when we have SPEE command but no value
                             reply.addString("OK");
                             rThread->startJoints(1.0);
                             ok = true;
                         }
                     }else{
+                        // when we have no SPEE command
                         if(0!=rThread) {
                             reply.addString("OK");
+
+
                             rThread->startJoints(1.0);
                         }
                         ok = true;
-                    }
+                        }
                 }
             break;
 
@@ -479,6 +494,94 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 break;
             }
 
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_LOAD:
+        rec = true;
+        {
+            if(command.get(1).asVocab() == COMMAND_VOCAB_FILE) {
+                if(0!=rThread) {
+                    reply.addString("OK");
+
+                    rThread->loadFile(command.get(2).asString());
+
+                }
+                ok = true;
+            }
+        }
+        break;
+    case COMMAND_VOCAB_REPS:
+        rec = true;
+        {
+            if(0!=rThread && command.get(1).asInt() != 0) {
+              reply.addString("OK");
+
+              rThread->setRepsNumber(command.get(1).asInt());
+
+            }
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_MARK:
+        {
+            rec = true;
+            switch(command.get(1).asVocab()) {
+
+            case COMMAND_VOCAB_STAR:
+                {
+
+                    if(0!=rThread) {
+                        reply.addString("OK");
+
+                        rThread->setPartnerStart();
+
+                    }
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_STOP:
+                {
+
+                    if(0!=rThread) {
+                        reply.addString("OK");
+
+                        rThread->setPartnerStop();
+
+                    }
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_TIME:
+                {
+
+                    if(0!=rThread && command.get(2).asDouble() != 0) {
+                        reply.addString("OK");
+
+                        rThread->setPartnerTime(command.get(2).asDouble());
+
+                    }
+                    ok = true;
+                }
+            break;
+
+            default:
+                cout << "received an unknown request" << endl;
+                break;
+            }
+
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_SYNC:
+        {
+            rec = true;
+            if(0!=rThread) {
+                reply.addString("OK");
+
+                rThread->setPartnerTime(0.0);
+
+            }
             ok = true;
         }
         break;

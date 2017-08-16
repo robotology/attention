@@ -601,8 +601,14 @@ void plotterThread::setPortionV(int id, short* value) {
     memcpy(iter, value, dimComput * dimComput * sizeof(short));
 }
 
+/**
+ * initialization of the flow computing (deprecated)
+ */
 void plotterThread::initFlowComputer(int index) {
-    printf("setting calculus %x pointer \n", intensImg->getRawImage());
+
+    
+    
+    //printf("setting calculus %x pointer \n", intensImg->getRawImage());
     //ofComputer[index]->setCalculusPointer(gradientImgXCopy->getRawImage());
     //ofComputer[index]->setCalculusPointerY(gradientImgYCopy->getRawImage());
     /*

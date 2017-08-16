@@ -1148,8 +1148,8 @@ int myMain(int argc, char* argv[]) {
     rf=new ResourceFinder();
     rf->setVerbose(true);
     rf->setDefaultConfigFile("selAttentionInterface.ini"); //overridden by --from parameter
-    rf->setDefaultContext("logPolarAttention/conf");   //overridden by --context parameter
-    rf->configure("ICUB_ROOT", argc, argv);
+    rf->setDefaultContext("logPolarAttention");   //overridden by --context parameter
+    rf->configure(argc, argv);
     configure(*rf);
     
     // Parse command line parameters, do this before

@@ -478,10 +478,10 @@ bool selectiveAttentionProcessor::earlyFilter(ImageOf<PixelMono>* map1_yarp, Ima
                 *ptmp = *pmap2Left;
                 *plinearLeft = value;
                 if (value >= threshold) {
-                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
-                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
-                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
-                    printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                    printf("max in motion Left %d  \n", (unsigned char) *pmap2Left); 
+                    //printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                    //printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
+                    //printf("max in motion Left    \n", (unsigned char) *pmap2Left); 
                     *plinearLeft = 255;
                     crossAssign(plinearLeft, 255, rowSize);
                     xm = halfwidth - x;

@@ -89,6 +89,7 @@ protected:
 
     unsigned int counter;
     circle_t face;
+    circle_t face_prev;
     cv::CascadeClassifier cascade;
     //cv::CascadeClassifier nestedCascade;
 
@@ -99,6 +100,8 @@ private:
     std::string faceExpression;
     double eyeDist;
 	int certainty;
+    int startup_context_id;
+    double alpha;
     double offsetZ;
     double offsetY;
     bool withSaliency;
