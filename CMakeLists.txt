@@ -45,6 +45,9 @@ add_definitions(${YARP_DEFINES})
 include(YarpInstallationHelpers)
 
 find_package(Qt3)
+include(FindGTK2)
+
+find_package(GTK)
 find_package(Qt5 COMPONENTS Core Widgets OpenGL Quick Qml Concurrent PrintSupport QUIET)
 
 find_package(OpenCV REQUIRED)
