@@ -21,6 +21,7 @@
  * @brief Implementation of the early stage of vision thread (see chrominanceThread.h).
  */
 
+
 #include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/chrominanceThread.h>
 
@@ -28,6 +29,7 @@
 //#include <sys/time.h>
 
 #include <time.h>
+#include <opencv/cv.hpp>
 
 
 using namespace yarp::os;
@@ -350,9 +352,10 @@ void chrominanceThread::copyScalesOfImages(ImageOf<PixelMono> *I, CvMat **toBeCo
         IplImage* floatImage = cvCreateImage(cvSize(cartIntensImg->width(),cartIntensImg->height()),32,1);
         cvConvertScale((IplImage*)cartIntensImg->getIplImage(),floatImage,1.0/255.0,0.0);
         for(int i=0; i<GABOR_SCALES; ++i){
-            cvCopy(toBeCopiedGauss[i],(IplImage*)gaussUpScaled[i]->getIplImage());
+
+            cvResize(toBeCopiedGauss[i],(IplImage*)gaussUpScaled[i]->getIplImage());
             cvResize(floatImage,(IplImage*)imageAtScale[i]->getIplImage());
-            
+
         }
         cvReleaseImage(&floatImage);
         setFlagForDataReady(true); 
@@ -476,7 +479,7 @@ void chrominanceThread::orientation() {
             imageInCartMonoLogP->zero();
             
             cvConvertScale((IplImage*)tempCSScaleOne->getIplImage(),(IplImage*)imageInCartMonoLogP->getIplImage(),255,0);
-            //lpMono.logpolarToCart(*imageInCartMono,*imageInCartMonoLogP);
+            lpMono.logpolarToCart(*imageInCartMono,*imageInCartMonoLogP);
             cvWaitKey(2);
             
             if(eachOrient == 0){
@@ -528,7 +531,8 @@ void chrominanceThread::orientation() {
             
         }// end of orientations
         lpMono.cartToLogpolar(totalImageLP,totalImage);
-        
+
+
         delete temp2;
         delete imageInCart;
         delete imageInCartMonoLogP;

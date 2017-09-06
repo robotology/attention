@@ -17,105 +17,105 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
+#include <iostream>
 #include "iCub/dog.h"
-#include <stdio.h>
 
 //set up DoG Kernel stuff:
-const int kern_sz  = 7;
+const int kern_sz = 7;
 const int kern_anc = 3;
+const double sigmaXOne = 0.4;
+const double sigmaXtwo = 0.8;
 
 //const Ipp32f kern1[] ={18.0,33.0,49.0,55.0,49.0,33.0,18.0};
 //const Ipp32f kern2[] ={ 5.0,23.0,59.0,82.0,59.0,23.0,5.0 };
-const float kern1[] = {18.0,33.0,49.0,55.0,49.0,33.0,18.0};
-const float kern2[] = { 5.0,23.0,59.0,82.0,59.0,23.0,5.0 };
+const float kern1[] = {18.0, 33.0, 49.0, 55.0, 49.0, 33.0, 18.0};
+const float kern2[] = {5.0, 23.0, 59.0, 82.0, 59.0, 23.0, 5.0};
 
 
-DoG::DoG(defSize srcsize_)
-{   
+DoG::DoG(defSize srcsize_) {
     width = 0, height = 0, psb_o = 0, psb_pad = 0, psb_pad_8u = 0;
     srcsize = srcsize_;
-    width   = srcsize.width;
-    height  = srcsize.height;
+    width = srcsize.width;
+    height = srcsize.height;
 
     //in_pad_8u = ippiMalloc_8u_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad_8u);
-    in_pad_8u_image = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
+    in_pad_8u_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_8U, 1);
 
     //in_pad    = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    in_pad_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height+PAD_BORD*2), IPL_DEPTH_32F, 1);
+    in_pad_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
     //tmp1      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    tmp1_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1);
+    tmp1_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
     //tmp2      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    tmp2_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1); 
+    tmp2_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
     //tmp3      = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    tmp3_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1); 
+    tmp3_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
     //dog       = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1); 
+    dog_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
-	dog_image_8u = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_8U, 1);
+    dog_image_8u = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_8U, 1);
 
     //invert image
-    invert_image = cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1);
+    invert_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
     //dog_on    = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog_on_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1);
-    
+    dog_on_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
+
     //dog_off   = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog_off_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1);
+    dog_off_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
     //dog_onoff = ippiMalloc_32f_C1(width+PAD_BORD*2,height+PAD_BORD*2,&psb_pad);
-    dog_onoff_image =  cvCreateImage(cvSize(width + PAD_BORD*2, height + PAD_BORD*2), IPL_DEPTH_32F, 1);
+    dog_onoff_image = cvCreateImage(cvSize(width + PAD_BORD * 2, height + PAD_BORD * 2), IPL_DEPTH_32F, 1);
 
     //out_dog_on    = ippiMalloc_8u_C1(width,height,&psb_o);
-    out_dog_on_image =  cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
+    out_dog_on_image = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 
     //out_dog_off   = ippiMalloc_8u_C1(width,height,&psb_o);
-    out_dog_off_image =  cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
+    out_dog_off_image = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 
     //out_dog_onoff = ippiMalloc_8u_C1(width,height,&psb_o);
-    out_dog_onoff_image =  cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
+    out_dog_onoff_image = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 
-	dog_aux_32f_small = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 1);
+    dog_aux_32f_small = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 1);
 
-    psize.width  = width  + PAD_BORD * 2;
+    psize.width = width + PAD_BORD * 2;
     psize.height = height + PAD_BORD * 2;
 
     kern1_mat = cvCreateMat(7, 1, CV_32FC1);
-    for (int x = 0; x < 7; x++){
-			cvmSet(kern1_mat, x, 0, kern1[x]);
+    for (int x = 0; x < 7; x++) {
+        cvmSet(kern1_mat, x, 0, kern1[x]);
     }
     kern2_mat = cvCreateMat(1, 7, CV_32FC1);
-    for (int x = 0; x < 7; x++){
-			cvmSet(kern2_mat, 0, x, kern1[x]);
+    for (int x = 0; x < 7; x++) {
+        cvmSet(kern2_mat, 0, x, kern1[x]);
     }
-    
-    cvSet(invert_image, cvScalar(-1,-1,-1), NULL);
-    
+
+    cvSet(invert_image, cvScalar(-1, -1, -1), NULL);
+
 }
 
 
-DoG::~DoG()
-{
+DoG::~DoG() {
     cvReleaseImage(&in_pad_8u_image);     // ippFree(in_pad_8u);
     cvReleaseImage(&in_pad_image);        // ippFree(in_pad);
     cvReleaseImage(&tmp1_image);          // ippFree(tmp1);
     cvReleaseImage(&tmp2_image);          // ippFree(tmp2);
     cvReleaseImage(&tmp3_image);          // ippFree(tmp3);
     cvReleaseImage(&dog_image);           // ippFree(dog);
-	cvReleaseImage(&dog_image_8u);
+    cvReleaseImage(&dog_image_8u);
     cvReleaseImage(&dog_on_image);        // ippFree(dog_on);
     cvReleaseImage(&dog_off_image);       // ippFree(dog_off);
     cvReleaseImage(&dog_onoff_image);     // ippFree(dog_onoff);
     cvReleaseImage(&out_dog_on_image);    // ippFree(out_dog_on);
     cvReleaseImage(&out_dog_off_image);   // ippFree(out_dog_off);
     cvReleaseImage(&out_dog_onoff_image); // ippFree(out_dog_onoff);    
-	cvReleaseImage(&dog_aux_32f_small);
+    cvReleaseImage(&dog_aux_32f_small);
 }
 
-void DoG::conv_32f_to_8u( float *im_i, int p4_,char *im_o, int p1_, defSize srcsize_) {
+void DoG::conv_32f_to_8u(float *im_i, int p4_, char *im_o, int p1_, defSize srcsize_) {
 
     float min = 0.0; //Ipp32f
     float max = 0.0; //Ipp32f
@@ -123,65 +123,45 @@ void DoG::conv_32f_to_8u( float *im_i, int p4_,char *im_o, int p1_, defSize srcs
     //ippiMinMax_32f_C1R( im_i, p4_,srcsize_, &min, &max);
     //if (max == min){max=255.0; min=0.0;}
     //ippiScale_32f8u_C1R(im_i, p4_, im_o, p1_, srcsize_, min, max );    
-} 
+}
 
 void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_) {
-    //float min = 1.0; //Ipp32f
-    //float max = 0.0; //Ipp32f
-	printf("conv32fto8uIpl IN OUT ADDRESS %08X \n", im_o);
+    double minVal, maxVal;
 
-	double minVal, maxVal;
-	
-	//change to default numbers and modified by amaroyo on 11/02/2016
-	cv::Mat mat_i = cv::cvarrToMat(im_i); 
-	minMaxLoc(mat_i, &minVal, &maxVal); //find minimum and maximum intensities
-	cv::Mat mat_o;
-	mat_i.convertTo(mat_o, CV_8U, 255.0 / (maxVal - minVal), -minVal * 255.0 / (maxVal - minVal));
-	printf("min Val of conversion23fto8u : %f, max val of conversion23fto8u: %f \n", minVal, maxVal);
+    //change to default numbers and modified by amaroyo on 11/02/2016
+    cv::Mat mat_i = cv::cvarrToMat(im_i);
+    minMaxLoc(mat_i, &minVal, &maxVal); //find minimum and maximum intensities
 
-	
-	/*printf("test data of the _mat \n");
-	for (int i = 1; i < 11; i++) {
-		for (int j = 1; j < 11; j++) {
-			//p++;
-			printf(" data inside: %d \n", mat_o.at<char>(i, j));
-		}
-	}
-	*/
+    cv::Mat mat_o;
+    mat_i.convertTo(mat_o, CV_8U, maxVal, minVal);
+    cv::equalizeHist(mat_o, mat_o);
 
-	/*
-	cv::imshow("MatrixIN", mat_i);
-	cv::waitKey(1);
-	
-	cv::imshow("MatrixOUT", mat_o);
-	cv::waitKey(1);
-	*/
-	
+    /*
+    printf("min Val before conversion32fto8u : %f, max val before conversion32fto8u: %f \n", minVal, maxVal);
 
-	//cv::imshow("Matrix1", mat_o);
-	//cv::waitKey(0);
-	//*im_o = (IplImage)mat_o;
-	
-	char* p = im_o->imageData;
-	for (int r = 0; r < im_o->height; r++) {
-		for (int c = 0; c < im_o->width; c++) {
-			*p = mat_o.at<char>(r, c);
-			p++;
-			//printf(" data inside: %d \n", mat_o.at<char>(r, c));
-		}
-	}
-	
+    minMaxLoc(mat_o, &minVal, &maxVal); //find minimum and maximum intensities
+    printf("min Val after conversion32fto8u : %f, max val after conversion32fto8u: %f \n", minVal, maxVal);
 
-	//cv::imshow("Matrix1", cv::cvarrToMat(im_o));
-	//cv::waitKey(0);
-	//input: mat_o matrix of 8U, im_o pointer to IplImage of 8U
-	// algorithm copying single matr value into single pixel  data of 8u
-	//for (row =)
+    cv::imshow("Matrix1", mat_o);
+    cv::waitKey(1);
+    */
 
-	
 
-	printf("conv32fto8uIpl OUT ADDRESS %08X \n", im_o);
-	
+    char *p = im_o->imageData;
+    for (int r = 0; r < im_o->height; r++) {
+        for (int c = 0; c < im_o->width; c++) {
+            p[c + r * im_o->widthStep] = mat_o.at<char>(r, c);
+            //printf(" data inside: %d \n",p[r+c*im_o->widthStep]);
+        }
+    }
+
+
+    //change to default numbers and modified by amaroyo on 11/02/2016
+    //input: mat_o matrix of 8U, im_o pointer to IplImage of 8U
+    // algorithm copying single matr value into single pixel  data of 8u
+    //for (row =)
+
+
 }
 
 
@@ -198,40 +178,39 @@ void DoG::conv_8u_to_32f(const IplImage *im_i, int p4_, IplImage *im_o, int p1_,
 }
 
 void DoG::conv_8u_to_32f(const cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_) {
-	printf("conv 8u to 32f matrix \n");
+    printf("conv 8u to 32f matrix \n");
     //float min = 0.0; //Ipp32f
     //float max = 0.0; //Ipp32f
     //cv::Mat mat_i = cvCloneImage(im_i);
     //cv::Mat mat_o = cvCloneImage(im_o);
-	mat_i->convertTo(*mat_o, CV_32F, 1.0 / 255.0);
+    mat_i->convertTo(*mat_o, CV_32F, 1.0 / 255.0);
 
-	double minVal, maxVal;
-	minMaxLoc(*mat_o, &minVal, &maxVal); //find minimum and maximum intensities
-	printf("min Val : %f, max val: %f \n", minVal, maxVal);
+    double minVal, maxVal;
+    minMaxLoc(*mat_o, &minVal, &maxVal); //find minimum and maximum intensities
+    printf("min Val : %f, max val: %f \n", minVal, maxVal);
 
 
 }
 
 void DoG::conv_32f_to_8u(const cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_) {
-	/*printf("conv 32f to 8u matrix \n");
-	float min = 0.0; //Ipp32f
-	float max = 0.0; //Ipp32f
-	//cv::Mat mat_i = cvCloneImage(im_i);
-	//cv::Mat mat_o = cvCloneImage(im_o);
+    /*printf("conv 32f to 8u matrix \n");
+    float min = 0.0; //Ipp32f
+    float max = 0.0; //Ipp32f
+    //cv::Mat mat_i = cvCloneImage(im_i);
+    //cv::Mat mat_o = cvCloneImage(im_o);
 
-	double minVal, maxVal;
-	minMaxLoc(*mat_i, &minVal, &maxVal); //find minimum and maximum intensities
-	mat_i->convertTo(*mat_o, CV_8U, 255.0 / (maxVal - minVal), -minVal * 255.0 / (maxVal - minVal));
+    double minVal, maxVal;
+    minMaxLoc(*mat_i, &minVal, &maxVal); //find minimum and maximum intensities
+    mat_i->convertTo(*mat_o, CV_8U, 255.0 / (maxVal - minVal), -minVal * 255.0 / (maxVal - minVal));
 
-	double minValO, maxValO;
-	minMaxLoc(*mat_o, &minValO, &maxValO); //find minimum and maximum intensities
-	printf("min Val of output : %f, max val of output: %f \n", minValO, maxValO);
-	*/
+    double minValO, maxValO;
+    minMaxLoc(*mat_o, &minValO, &maxValO); //find minimum and maximum intensities
+    printf("min Val of output : %f, max val of output: %f \n", minValO, maxValO);
+    */
 }
 
-void DoG::proc(unsigned char *in_, int psb_in_)
-{
-	//TODO uncomment this?
+void DoG::proc(unsigned char *in_, int psb_in_) {
+    //TODO uncomment this?
     //pad:
     //ippiCopyReplicateBorder_8u_C1R(in_,psb_in_,srcsize,in_pad_8u,psb_pad_8u,psize,PAD_BORD,PAD_BORD);
 
@@ -264,189 +243,204 @@ void DoG::proc(unsigned char *in_, int psb_in_)
 
 }
 
-void DoG::proc(IplImage *in_, int psb_in_)
-{
-    //padding
-    printf("cloning the image for border making, size %d by %d \n", in_->width, in_->height);
-    
-	//IplImage in_ is 8U
-    cv::Mat in_mat = cv::cvarrToMat(in_);
 
+void DoG::procCvMatrix(IplImage *input) {
+
+}
+
+void DoG::proc(IplImage *in_, int psb_in_) {
+    //padding
+    printf("Cloning the image for border making, size %d by %d \n", in_->width, in_->height);
+
+    //IplImage in_ is 8U
+    cv::Mat in_mat = cv::cvarrToMat(in_);
 
 
     cv::Mat in_pad_8u_mat;
     //ippiCopyReplicateBorder_8u_C1R(in_,psb_in_,srcsize,in_pad_8u,psb_pad_8u,psize,PAD_BORD,PAD_BORD);
-    cv::Scalar value = cv::Scalar( 0, 0, 0 );
-	//For testing and distinguish images BORDER_CONSTANT #amaroyo 19/02/2016
-	copyMakeBorder(in_mat, in_pad_8u_mat, PAD_BORD, PAD_BORD, PAD_BORD, PAD_BORD, cv::BORDER_REPLICATE, value);  
+    cv::Scalar value = cv::Scalar(0, 0, 0);
+    //For testing and distinguish images BORDER_CONSTANT #amaroyo 19/02/2016
+    copyMakeBorder(in_mat, in_pad_8u_mat, PAD_BORD, PAD_BORD, PAD_BORD, PAD_BORD, cv::BORDER_REPLICATE, value);
 
-	
+
 
     //convert to 32f: 
     //ippiConvert_8u32f_C1R(in_pad_8u,psb_pad_8u,in_pad,psb_pad,psize);
     cv::Mat in_pad_mat;
-    defSize is; is.width = 0; is.height = 0;
+    defSize is;
+    is.width = 0;
+    is.height = 0;
     conv_8u_to_32f(&in_pad_8u_mat, 0, &in_pad_mat, 0, is);
-	printf("converted the image to 32f success \n");
+    printf("converted the image to 32f success \n");
 
-	
-	//----------------  DOG filtering -----------------------------------------
+
+    //----------------  DOG filtering -----------------------------------------
     printf("DOG filtering \n");
 
-    cv::Point anchor(0, 0);
+    cv::Point anchor(kern_sz - anchor.x - 1, kern_sz - anchor.y - 1);
     //cv::Mat kern1_mat; removed because already defined
-    
+
+
+    cvFlip(kern1_mat, kern1_mat);
+    cvFlip(kern2_mat, kern2_mat);
+
     //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
-    filter2D(in_pad_mat, tmp1_mat, CV_32F, (cv::Mat) kern1_mat, anchor); 
-    
+    filter2D(in_pad_mat, tmp2_mat, CV_32F, cv::cvarrToMat(kern1_mat));
+
     //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp2[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern1,kern_sz,kern_anc);
-    filter2D(tmp1_mat, tmp2_mat, CV_32F, (cv::Mat) kern1_mat, anchor); 
-    
+    //filter2D(tmp1_mat, tmp2_mat, CV_32F,  cv::cvarrToMat(kern1_mat), anchor);
+
 
     //ippiFilterColumn_32f_C1R(&in_pad[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
-    filter2D(in_pad_mat, tmp1_mat, CV_32F, (cv::Mat) kern2_mat, anchor); 
-    
+    filter2D(in_pad_mat, tmp3_mat, CV_32F, cv::cvarrToMat(kern2_mat));
+
 
     //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp3[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
-    filter2D(tmp1_mat, tmp3_mat, CV_32F, (cv::Mat) kern2_mat, anchor); 
+    //filter2D(tmp1_mat, tmp3_mat, CV_32F, cv::cvarrToMat(kern2_mat), anchor);
 
     printf("filtering successfully ended \n");
-	
-	printf("DoG: Substraction \n");
+
+    printf("DoG: Substraction \n");
 
 
     //ippiSub_32f_C1R(tmp2,psb_pad,tmp3,psb_pad,dog,psb_pad,psize);
-    dog_mat   = tmp2_mat - tmp3_mat;
+    dog_mat = cv::abs(tmp2_mat - tmp3_mat);
     //cvSub(&tmp2_mat, &tmp3_mat, dog_image);
 
-	double dog_mat_min, dog_mat_max;
-	minMaxLoc(dog_mat, &dog_mat_min, &dog_mat_max); //find minimum and maximum intensities
-	printf("min Val of DoG : %f, max val of Dog: %f \n", dog_mat_min, dog_mat_max);
 
-	//we do not remove the borders, we need them for later #amaroyo 11/02/2016
-	*dog_image = (IplImage)dog_mat;
-	
-	/* TODO Fix me, this should get floating number from the matrix and copy them to a 32f IplImage. For not
-	   we will use the casting of the matrix - just above. #amaroyo 19/02/2016
-	char* pData = dog_image->imageData;
-	for (int rows = 0; rows < dog_mat.rows; rows++) {
-		for (int cols = 0; cols < dog_mat.cols; cols++) {
-			*pData = dog_mat.at<char>(rows, cols);
-			pData+=4;
-		}
-	}
-	*/
+    double dog_mat_min, dog_mat_max;
+    minMaxLoc(dog_mat, &dog_mat_min, &dog_mat_max); //find minimum and maximum intensities
+    printf("min Val of DoG : %f, max val of Dog: %f \n", dog_mat_min, dog_mat_max);
 
-	/****************************
-	 Debugging and testing
-
-	 //removing borders
-	 cv::Rect imgROI(5, 5, in_->width, in_->height);
-	 cv::Mat croppedImage = dog_mat(imgROI);
-	 cv::Mat copy;
-	 croppedImage.copyTo(copy);
-
-	 *dog_image = (IplImage)copy;
-
-	 //convert 32F copy to 8u mat 
-	cv::Mat copy_8u;
-	conv_32f_to_8u(&copy, 0, &copy_8u, 0, is);
-
-	*dog_image_8u = (IplImage)copy_8u;
-	cv::imshow("Matrix", copy_8u);
-	cv::waitKey(1);
+    //we do not remove the borders, we need them for later #amaroyo 11/02/2016
+    *dog_image = (IplImage) dog_mat;
 
 
-	printf("test data of the _mat \n");
-	for (int i = 1; i < 5; i++) {
-		for (int j = 1; j < 5; j++) {
-			//p++;
-			printf(" data inside: %d \n", copy_8u.at<char>(i, j));
-		}
-	}
+    /*
+    // TODO Fix me, this should get floating number from the matrix and copy them to a 32f IplImage. For not
+    // we will use the casting of the matrix - just above. #amaroyo 19/02/2016
+    unsigned char* pData =  (unsigned char *) dog_image->imageData;
+    for (int rows = 0; rows < dog_mat.rows; rows++) {
+        for (int cols = 0; cols < dog_mat.cols; cols++) {
+            *pData = dog_mat.at<unsigned char>(rows, cols);
+            pData+=4;
+        }
+    }
+    */
 
-	*/
+    /****************************
+     Debugging and testing
+
+     //removing borders
+     cv::Rect imgROI(5, 5, in_->width, in_->height);
+     cv::Mat croppedImage = dog_mat(imgROI);
+     cv::Mat copy;
+     croppedImage.copyTo(copy);
+
+     *dog_image = (IplImage)copy;
+
+     //convert 32F copy to 8u mat
+    cv::Mat copy_8u;
+    conv_32f_to_8u(&copy, 0, &copy_8u, 0, is);
+
+    *dog_image_8u = (IplImage)copy_8u;
+    cv::imshow("Matrix", copy_8u);
+    cv::waitKey(1);
 
 
-    //cvCopy(dog_image, &dog_mat.operator IplImage(),NULL); 
+    printf("test data of the _mat \n");
+    for (int i = 1; i < 5; i++) {
+        for (int j = 1; j < 5; j++) {
+            //p++;
+            printf(" data inside: %d \n", copy_8u.at<char>(i, j));
+        }
+    }
+
+    */
+
+
+    //cvCopy(dog_image, &dog_mat.operator IplImage(),NULL);
     //dog_image = &dog_mat.operator IplImage(); --unnecesary, done before
-	printf("DoG: Substraction success \n");
+    printf("DoG: Substraction success \n");
 
     //---------------  on-centre -----------------------------------------------
     //keep only results above zero:
     //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_on,psb_pad,psize,0.0);
-	printf("sizes: %d == %d and %d == %d \n", dog_image->height, dog_on_image->height, dog_image->width, dog_on_image->width);
-	printf("depths: %d == %d \n", dog_image->depth, dog_on_image->depth);
-	printf("channels: %d == %d \n", dog_image->nChannels, dog_on_image->nChannels);
-	cvThreshold(dog_image, dog_on_image, 0.0, NULL, CV_THRESH_TOZERO); // threshold to Zero; BEFORE: 1.0, CV_THRESH_BINARY, by #amaroyo on 15/02/2016
+    //printf("sizes: %d == %d and %d == %d \n", dog_image->height, dog_on_image->height, dog_image->width, dog_on_image->width);
+    //printf("depths: %d == %d \n", dog_image->depth, dog_on_image->depth);
+    //printf("channels: %d == %d \n", dog_image->nChannels, dog_on_image->nChannels);
+    //cvThreshold(dog_image, dog_on_image, 0.0, 0.0, CV_THRESH_TOZERO); // threshold to Zero; BEFORE: 1.0, CV_THRESH_BINARY, by #amaroyo on 15/02/2016
 
 
     //---------------- off-centre ----------------------------------------------
     //negate: 
     //ippiMulC_32f_C1IR(-1.0,dog,psb_pad,psize);
-    cvMul(dog_image, invert_image, dog_image, 1);
+    //cvMul(dog_image, invert_image, dog_image);
+
 
     //and keep only results above zero:
     //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_off,psb_pad,psize,0.0);
-	cvThreshold(dog_image, dog_off_image, 0.0, NULL, CV_THRESH_TOZERO);
-	
+    //cvThreshold(dog_image, dog_off_image, 0.0, 0.0, CV_THRESH_TOZERO);
+
     //on+off:
     //ippiAdd_32f_C1R(dog_on,psb_pad,dog_off,psb_pad,dog_onoff,psb_pad,psize);
-    cvAdd(dog_on_image, dog_off_image, dog_onoff_image);
-	
+    //cvAdd(dog_on_image, dog_off_image, dog_onoff_image);
+
     //TODO this seems not useful #amaroyo 12/02/2016
-	//out_dog_onoff = dog_onoff_image->imageData; 
-    
+    out_dog_onoff = (unsigned char *) dog_image->imageData;
+
+
 
     //convert to 8u and remove pad:
     printf("converting back to 8u and removing padding \n");
 
     //conv_32f_to_8u(&dog_on   [PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_on,    psb_o, srcsize);
-	//printf("IN ADDRESSES %08X  and %08X \n", dog_on_image, out_dog_on_image);
-	IplImage* inputFirst = remove_borders(dog_on_image);
-	conv_32f_to_8u(inputFirst, 0, out_dog_on_image, 0, srcsize);
-	printf("OUT ADDRESSES %08X  and %08X \n", inputFirst, out_dog_on_image);
+    //printf("IN ADDRESSES %08X  and %08X \n", dog_on_image, out_dog_on_image);
+    //IplImage* inputFirst = remove_borders(dog_on_image);
+    //conv_32f_to_8u(inputFirst, 0, out_dog_on_image, 0, srcsize);
+    //printf("OUT ADDRESSES %08X  and %08X \n", inputFirst, out_dog_on_image);
 
-	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
-	//cv::waitKey(0);
+    //cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
+    //cv::waitKey(0);
 
     //conv_32f_to_8u(&dog_off  [PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_off,   psb_o, srcsize);
-	//printf("IN ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
-	conv_32f_to_8u(remove_borders(dog_off_image), 0, out_dog_off_image, 0, srcsize);
-	printf("OUT ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
+    //printf("IN ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
+    //conv_32f_to_8u(remove_borders(dog_off_image), 0, out_dog_off_image, 0, srcsize);
+    //printf("OUT ADDRESSES %08X  and %08X \n", dog_off_image, out_dog_off_image);
 
-	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
-	//cv::waitKey(0);
+    //cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
+    //cv::waitKey(0);
 
     //conv_32f_to_8u(&dog_onoff[PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_onoff, psb_o, srcsize);
-	//printf("IN ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
-	conv_32f_to_8u(remove_borders(dog_onoff_image), 0, out_dog_onoff_image, 0, srcsize);
-	printf("OUT ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
+    //printf("IN ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
+    conv_32f_to_8u(remove_borders(dog_image), 0, out_dog_onoff_image, 0, srcsize);
 
-	//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
-	//cv::waitKey(0);
+    //printf("OUT ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
+
+    //cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
+    //cv::waitKey(0);
 
     printf("procedure concluded \n");
 
 }
 
 
-IplImage* DoG::remove_borders(const IplImage* input){
+IplImage *DoG::remove_borders(const IplImage *input) {
 
-	printf("removing borders \n");
-	printf("removing borders input address %08X \n", input);
-	
-	cv::Rect imgROI(PAD_BORD, PAD_BORD, srcsize.width, srcsize.height);
-	cv::Mat dog_mat_aux = cv::cvarrToMat(input);
-	cv::Mat croppedImage = dog_mat_aux(imgROI);
-	cv::Mat copy;
-	croppedImage.copyTo(copy);
-	*dog_aux_32f_small = (IplImage)copy;
-	printf("removing borders output address %08X \n", dog_aux_32f_small);
-	printf("removing borders concluded\n");
+    printf("removing borders \n");
+    //printf("removing borders input address %08X \n", input);
+
+    cv::Rect imgROI(PAD_BORD, PAD_BORD, srcsize.width, srcsize.height);
+    cv::Mat dog_mat_aux = cv::cvarrToMat(input);
+    cv::Mat croppedImage = dog_mat_aux(imgROI);
+    cv::Mat copy;
+    croppedImage.copyTo(copy);
+    *dog_aux_32f_small = copy;
+    //printf("removing borders output address %08X \n", dog_aux_32f_small);
+    printf("removing borders concluded\n");
 
 
-	return dog_aux_32f_small;
+    return dog_aux_32f_small;
 }
 
 

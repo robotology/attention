@@ -50,6 +50,7 @@ gint clickDA_CB (GtkWidget *widget, GdkEventButton *event, gpointer data);
 // Menubar CBs
 gint menuFileQuit_CB(GtkWidget *widget, gpointer data);
 gint menuHelpAbout_CB(GtkWidget *widget, gpointer data);
+gint menuSaveParameters_CB(GtkWidget *widget, gpointer data);
 gint menuImageInterval_CB(GtkWidget *widget, gpointer data);
 gint menuFileSingle_CB(GtkWidget *widget, GdkEventExpose *event, gpointer data);
 
@@ -86,6 +87,7 @@ bool openPorts();
 void closePorts();
 bool setUp();
 void cleanExit();
+void saveParametersToFile();
 void printHelp();
 
 //-------------------------------------------------
@@ -117,6 +119,9 @@ struct mOptions
     int             outputEnabled;
     bool            synch;
 };
+
+
+
 typedef struct mOptions pgmOptions;
 
 

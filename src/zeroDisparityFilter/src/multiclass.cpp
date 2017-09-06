@@ -18,11 +18,7 @@
 
 
 #include <stdio.h>
-//#include <unistd.h>
-#include <string.h>
 #include <time.h>
-#include <math.h>
-
 #include "iCub/multiclass.h"
 #include "iCub/energy.h"
 
@@ -33,7 +29,7 @@
   if ALPHA_SINK is defined then interpretation of a cut is as follows:
   SOURCE means initial label
   SINK   means new label \alpha
-  
+
   if ALPHA_SINK is not defined then SOURCE and SINK are swapped
 */
 #ifdef ALPHA_SINK
@@ -68,7 +64,7 @@ MultiClass::MultiClass(defSize im_size_, int psb_in_, int n_, Parameters *_param
 
   //out = ippiMalloc_8u_C1(im_size.width,im_size.height,&psb); 
   outImage = cvCreateImage(cvSize(im_size.width, im_size.height), IPL_DEPTH_8U, 1);
-  out = outImage->imageData;
+  out = (unsigned char *)outImage->imageData;
   psb = outImage->widthStep;
 
   ptr_im = (void**) malloc(im_size.width*im_size.height*sizeof(void*));
@@ -88,7 +84,6 @@ MultiClass::~MultiClass()
 void MultiClass::clear()
 {
   // set all the pixels to zero
-  //TODO uncomment this?
   //ippiSet_8u_C1R(0,out,psb,im_size);
   
   int widthStep = outImage->widthStep;
@@ -96,7 +91,7 @@ void MultiClass::clear()
   int width     = outImage->width;
 
   for( int y=0; y < height; y++ ) { 
-        uchar* ptr = (uchar*) ( outImage->imageData + y * widthStep ); 
+        unsigned char* ptr = (unsigned char*) ( outImage->imageData + y * widthStep );
         for( int x=0; x < width; x++ ) { 
             ptr[x] = 0; //Set red to max (BGR format)
         }
@@ -112,38 +107,24 @@ void MultiClass::generate_permutation(int *buf, int n)
     }
     
     for (i=0; i<n-1; i++) {
-        j = i + (int) (((double)rand()/RAND_MAX)*(n - i));
+        j = i + (int) (((double)rand()/RAND_MAX)*(n - i)); // Possible index overflow to check
         int tmp = buf[i]; buf[i] = buf[j]; buf[j] = tmp;
     }
 }
 
-void MultiClass::proc(char* im_, char** prob_)
+void MultiClass::proc( unsigned  char* im_, unsigned char** prob_)
 {
     printf("multiclass processing \n");
-    
+
     im   =   im_;
     prob = prob_;
 
 
-	/*For testing, uncomment below the releases #amaroyo 03/03/2016
-	IplImage* aux = cvCreateImage(cvSize(100, 100), IPL_DEPTH_8U, 1);;
-	aux->imageData = prob[0];
-	cv::imshow("Matrix", cv::cvarrToMat(aux));
-	cv::waitKey(1);
-
-	IplImage* aux2 = cvCreateImage(cvSize(100, 100), IPL_DEPTH_8U, 1);;
-	aux2->imageData = prob[1];
-	cv::imshow("Matrix2", cv::cvarrToMat(aux2));
-	cv::waitKey(1);
-	*/
-
-    
     int a;
     int buf_num;
     int label;
     int E_old;
     printf("creating random generator.... \n");
-    unsigned int seed = (unsigned int)time(NULL);
     srand(1);
     int *permutation = new  int[nmaps];
     bool *buf        = new bool[nmaps];
@@ -162,7 +143,7 @@ void MultiClass::proc(char* im_, char** prob_)
     
     buf_num = nmaps;
     
-    for (int iter=0; iter<params->iter_max && buf_num>0; iter++) {
+    for (int iter=0; iter < params->iter_max && buf_num > 0; iter++) {
         if (iter==0 || params->randomize_every_iteration) {
             generate_permutation(permutation, nmaps);
         }
@@ -198,9 +179,6 @@ void MultiClass::proc(char* im_, char** prob_)
     delete [] permutation;
     delete [] buf;
 
-	//
-	//cvReleaseImage(&aux);
-	//cvReleaseImage(&aux2);
 }
 
 int MultiClass::likelihood(Coord c, int d)
@@ -212,14 +190,12 @@ int MultiClass::likelihood(Coord c, int d)
     //prob[x][y] is in range{0..255}.
     //int penalty = (int)( params->data_penalty * (1.0 - (prob[d][c.y * psb_in + c.x]/255.0)) );
 
-	
-	
 
 	int param_penalty = params->data_penalty;
 
 	double op = (double)prob[d][c.y * psb_in + c.x];
 
-	op = op / 225.0;
+	op = op / 255.0;
 
 	int penalty = (int)(param_penalty * (1.0 - op));
 	//printf("%d\n", penalty);
@@ -246,7 +222,7 @@ int MultiClass::prior_intensity_smoothness(Coord p, Coord np, int label, int nla
   //Otherwise, if hypothesized different:
   else{
     
-    //Always prefer continuous soloutions,
+    //Always prefer continuous solutions,
     //so immediately penalise hypothetical solutions involving
     //neighbours in different classes, this will help reduce segmented area:
     penalty = params->smoothness_penalty_base;
@@ -256,7 +232,7 @@ int MultiClass::prior_intensity_smoothness(Coord p, Coord np, int label, int nla
     double sigma      = 2.0 * params->smoothness_3sigmaon2/3.0;
     double p_int_edge = 1.0 - exp(-(d_I*d_I)/(2.0*sigma*sigma));
     
-    //If it's likely that it's an intensity edge, 
+    //If it's likely that it's an intensity edge, p_prob
     //return less additional penalty.
     //if it's not much of an edge, return 
     //more additional penalty:

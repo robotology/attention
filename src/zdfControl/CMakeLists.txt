@@ -7,6 +7,12 @@ PROJECT(${KEYWORD})
 FIND_PACKAGE(ICUB)
 FIND_PACKAGE(YARP REQUIRED)
 SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
+include(FindGTK2)
+if (GTK2_FOUND)
+    include_directories(${GTK2_INCLUDE_DIRS})
+    link_directories(${GTK2_LIBRARY_DIRS})
+    link_libraries(${GTK2_LIBRARIES})
+endif (GTK2_FOUND)
 #FIND_PACKAGE(GtkMM REQUIRED)
 #FIND_PACKAGE(GtkPlus REQUIRED)
 
@@ -41,11 +47,10 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 # Set up our main executable.
 ADD_EXECUTABLE(${KEYWORD} ${folder_source} ${folder_header} )
 TARGET_LINK_LIBRARIES( ${KEYWORD} 
-	${YARP_LIBRARIES} 
+	${YARP_LIBRARIES}
 	#${GTKPLUS_LINK_FLAGS} 
 	#${GtkPlus_LIBRARIES}
 	${GTK2_LIBRARIES}
  )	
 
 install(TARGETS ${KEYWORD} DESTINATION bin)
-

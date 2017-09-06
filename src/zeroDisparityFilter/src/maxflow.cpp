@@ -37,7 +37,6 @@
 *
 */
 
-#include <stdio.h>
 #include "iCub/graph.h"
 
 /*

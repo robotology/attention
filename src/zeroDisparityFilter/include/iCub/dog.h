@@ -16,9 +16,10 @@
 #ifndef __DOG_H
 #define __DOG_H
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 //#include <ipp.h>
 
 typedef struct {
@@ -58,13 +59,14 @@ public:
     //void proc(Ipp8u* im, int psb_8u);
     void proc(unsigned char* im, int psb_8u);
     void proc(IplImage* im, int psb_8u);
-    
+    void procCvMatrix(IplImage* im);
+
 
     /** Access to the on-centre output.
      * @return Pointer to the on-centre output image.
      */
     //Ipp8u* get_dog_on(){return out_dog_on;}          //on-centre
-    char* get_dog_on(){return out_dog_on;}    //on-centre
+    unsigned char* get_dog_on(){return out_dog_on;}    //on-centre
 	IplImage* get_dog_on_ipl(){ 
 		//printf("DoG ON ADDRESS %08X  \n", out_dog_on_image);
 		//cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
@@ -75,7 +77,7 @@ public:
      * @return Pointer to the off-centre output image.
      */
     //Ipp8u* get_dog_off(){return out_dog_off;}        //off-centre
-    char* get_dog_off(){return out_dog_off;}  //off-centre
+    unsigned char* get_dog_off(){return out_dog_off;}  //off-centre
 	IplImage* get_dog_off_ipl(){ 
 		//printf("DoG OFF ADDRESS %08X  \n", out_dog_off_image);
 		//cv::imshow("Matrix2", cv::cvarrToMat(out_dog_off_image));
@@ -86,7 +88,7 @@ public:
      * @return Pointer to the on/off-centre output image.
      */
     //Ipp8u* get_dog_onoff(){return out_dog_onoff;}        //absolute difference
-    char* get_dog_onoff(){return out_dog_onoff;}           //absolute difference
+    unsigned char* get_dog_onoff(){return out_dog_onoff;}           //absolute difference
 	IplImage* get_dog_onoff_ipl(){ 
 		//printf("DoG ON OFF ADDRESS %08X  \n", out_dog_onoff_image);
 		//cv::imshow("Matrix3", cv::cvarrToMat(out_dog_onoff_image));
@@ -128,6 +130,7 @@ public:
 
 	IplImage* remove_borders(const IplImage* input);
 
+
 private:
     float *dog;          //Ipp32f
     float *dog_on;       //Ipp32f
@@ -150,9 +153,9 @@ private:
 	IplImage *dog_aux_32f_small;
 
     unsigned char *in_pad_8u;     //Ipp8u
-    char *out_dog_on;             //Ipp8u
-    char *out_dog_off;            //Ipp8u
-    char *out_dog_onoff;          //Ipp8u
+	unsigned char *out_dog_on;             //Ipp8u
+	unsigned char *out_dog_off;            //Ipp8u
+	unsigned char *out_dog_onoff;          //Ipp8u
 
     IplImage *in_pad_8u_image;          //Ipp8u
     IplImage *out_dog_on_image;         //Ipp8u
