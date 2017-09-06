@@ -347,10 +347,6 @@ void earlyVisionThread::filterInputImage() {
         pFilteredInpImg++;
     }
 
-    cvNamedWindow("image");
-    cvShowImage("image",(IplImage*)filteredInputImage->getIplImage());
-    cvWaitKey(0);
-    int a = 0;
 }
 
 
