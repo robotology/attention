@@ -649,7 +649,6 @@ handProfile_STAREXE() {
         constant005
         sleep 9.0
         constant005
-	go_home_withtable
     }
 
     constant01_10() {
@@ -673,7 +672,6 @@ handProfile_STAREXE() {
         constant01
         sleep 5.0
         constant01
-	go_home_withtable
     }
     
      constant02_10() {
@@ -697,7 +695,6 @@ handProfile_STAREXE() {
         constant02
         sleep 4.0
         constant02
-	go_home_withtable
     }
     
     synchro02_10() {
@@ -721,7 +718,6 @@ handProfile_STAREXE() {
         synchro02
         sleep 5.0
         synchro02
-	go_home_withtable
     }
 
     synchro04_10() {
@@ -746,7 +742,6 @@ handProfile_STAREXE() {
         sleep 3.0
         synchro04
 	sleep 3.0
-	go_home_withtable
     }
 
     synchro04_100() {
@@ -816,7 +811,6 @@ handProfile_STAREXE() {
         synchro12
         sleep 1.0
         synchro12
-	go_home_withtable
     }
 
     
