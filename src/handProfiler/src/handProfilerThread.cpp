@@ -262,7 +262,7 @@ bool handProfilerThread::threadInit() {
     idir->getAxes(&njoints);
     //yDebug("njoints = %d", njoints);
 
-    /*
+    
     //initializing gazecontrollerclient
     printf("initialising gazeControllerClient \n");
     Property optionGaze;
@@ -280,6 +280,9 @@ bool handProfilerThread::threadInit() {
     if (clientGazeCtrl->isValid()) {
        clientGazeCtrl->view(igaze);
        igaze->storeContext(&originalContext);
+       igaze->setEyesTrajTime(0.8);
+       igaze->setNeckTrajTime(0.9);
+       
        blockNeckPitchValue = -1;
        if(blockNeckPitchValue != -1) {
            igaze->blockNeckPitch(blockNeckPitchValue);
@@ -290,11 +293,11 @@ bool handProfilerThread::threadInit() {
        }
     }
     else {
-        yInfo("Not Valid clientGazeCtrl");
+        yError("Not Valid clientGazeCtrl");
         igaze = 0;
     }
     yInfo("Success in initialising the gaze");
-    */
+    
 
     string rootNameGui("");
     rootNameGui.append(getName("/gui:o"));
@@ -444,7 +447,9 @@ bool handProfilerThread::resetExecution(){
         fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
         icart->goToPose(xInit,od);
         if(gazetracking) {
-            igaze->lookAtFixationPoint(xInit);
+            yDebug("resetExecution::lookAtFixationPoint");
+            igaze->lookAtFixationPoint(xZero);
+            yDebug("resetExecution::lookAtFixationPoint:success");
         }
 
         // we get the current arm pose in the
@@ -608,10 +613,11 @@ void handProfilerThread::run() {
                     // double trajTime;
                     // icart->getTrajTime(&trajTime);
                     // yDebug("trajTime %f", trajTime);
-                    if(saveOn)
+                    if(saveOn) {
                         saveToArray();
+                    }
 
-                    if(gazetracking && (count%GAZEINTERVAL==0)) {
+                    if(gazetracking && (count%GAZEINTERVAL==0)) {                        
                         igaze->lookAtFixationPoint(xd);
                     }
                 }else if(!success && outputFile.is_open() && saveOn){
