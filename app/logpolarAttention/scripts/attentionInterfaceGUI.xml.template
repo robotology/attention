@@ -95,6 +95,27 @@
 
 <module>
   <name>yarpview</name>
+  <parameters>--name /view/Proba --x 1360 --y 660 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>view Proba</tag>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /view/Dog --x 1360 --y 660 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>view Dog</tag>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /view/Temp --x 1360 --y 660 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>view Template</tag>
+</module>
+
+<module>
+  <name>yarpview</name>
   <parameters>--name /mosaicView --x 1320 --y 0 --RefreshTime 33</parameters>
   <node>icub14</node>
   <tag>mosaicViewer</tag>
@@ -125,7 +146,7 @@
 </connection>
 <connection>
   <from>/zdfControl/command:o</from>
-  <to>/zdfMod</to>
+  <to>/zeroDisparityFilterMod</to>
   <protocol>tcp</protocol>
 </connection>
 <connection>
@@ -168,16 +189,38 @@
   <to>/histoViewer</to>
   <protocol>udp</protocol>
 </connection>
+
 <connection>
   <from>/blobFinder/icub/left_cam/foveaRgbBlob:o</from>
   <to>/foveaViewer</to>
   <protocol>udp</protocol>
 </connection>
+
+
 <connection>
-  <from>/zdfMod/imageSeg:o</from>
+  <from>/zeroDisparityFilterMod/imageSeg:o</from>
   <to>/view/Seg</to>
   <protocol>udp</protocol>
 </connection>
+
+<connection>
+<from>/zeroDisparityFilterMod/imageProb:o</from>
+  <to>/view/Prob</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+<from>/zeroDisparityFilterMod/imageDog:o</from>
+  <to>/view/Dog</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+<from>/zeroDisparityFilterMod/imageTemp:o</from>
+  <to>/view/Temp</to>
+  <protocol>udp</protocol>
+</connection>
+
 <connection>
   <from>/mosaic/icub/image:o</from>
   <to>/mosaicView</to>
