@@ -5,7 +5,7 @@
 set(appname handProfiler)
 #icub_app(${appname})
 
-file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.xml)
+file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.xml ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.sh)
 file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.sh )
 file(GLOB joint_files ${CMAKE_CURRENT_SOURCE_DIR}/joint_files/*.info ${CMAKE_CURRENT_SOURCE_DIR}/joint_files/*.log )
 
