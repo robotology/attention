@@ -50,13 +50,13 @@
 //NDT:
 #define NDTX     2
 #define NDTY     2
-#define NDTSIZE  8 //4 or 8: 4
+#define NDTSIZE  2 //4 or 8: 4
 //RANK:
 #define RANKY    2 //1 or 2
 #define RANKX    2  //1 or 2
 #define RANKSIZE 25  //9 or 25: 9
 
-#define NDTEQ    1 //0
+#define NDTEQ    3 //0
 
 #define COMMAND_VOCAB_IS   VOCAB2('i','s')
 #define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
@@ -79,7 +79,8 @@ private:
     std::string inputNameRight;          //string containing input port name right
     std::string outputNameProb;          //string containing the probability output port name
     std::string outputNameSeg;           //string containing the segmentation output port name
-    std::string outputNameDog;           //string containing the difference of gaussian output port name
+    std::string outputNameDogLeft;           //string containing the difference of gaussian output port name
+    std::string outputNameDogRight;           //string containing the difference of gaussian output port name
     std::string outputNameTemp;          //string containing the segmented template output port name
     std::string outputNameCog;
     std::string inputCheckArbiter;
@@ -94,6 +95,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutProb;     //output port probability image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutSeg;      //output port segmented image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDog;      //output port difference of gaussian image
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDogR;      //output port difference of gaussian image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageOutTemp;     //output port template image
 
     yarp::os::BufferedPort<yarp::sig::Vector> cogPort;
@@ -131,7 +133,7 @@ private:
     unsigned char *tempImg, *copyImg;
     unsigned char *zd_prob_8u, *o_prob_8u;
     IplImage *fov_r_ipl, *zd_prob_8u_ipl, *o_prob_8u_ipl, *tempImg_ipl, *copyImg_ipl;
-
+    IplImage *filtered_r_ipl, *filtered_l_ipl;
     unsigned char **p_prob;                          //Ipp8u **p_prob;
 
     //templates:
@@ -156,6 +158,7 @@ private:
     IplImage *second_plane_l_ipl, *second_plane_r_ipl; //
     unsigned char *third_plane_l, *third_plane_r;       // plane either v or s Ipp8u
     IplImage *third_plane_l_ipl, *third_plane_r_ipl;   //
+
 
     int psb4, f_psb, s_psb, t_psb;
     //Difference of Gaussian:
@@ -228,6 +231,12 @@ public:
     //void getAreaCoGSpread(Ipp8u*im, int p,IppiSize s, int*parea,double*pdx,double*pdy,double*pspread);
     void setName(std::string module);
 
+    void preprocessImageHSV(IplImage *srcImage, IplImage *destImage);
+    void preprocessImageYUV(IplImage *srcImage, IplImage *destImage);
+    void preprocessImageGray(IplImage *srcImage, IplImage *destImage);
+    void filterInputImage(IplImage* input, IplImage* dst);
+
+    void matchTemplate(IplImage* templateImage, IplImage* matchImage,  IplImage* dst);
 
 };
 
