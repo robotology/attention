@@ -586,9 +586,9 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
     ResourceFinder rf;
     rf.setVerbose(true); 
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
-    //int argc = b->size() * 2 + 1;   
+    int argc = b->size() * 2 + 1;   //@JONAS: made the argc variable 11/9/17
 	//fix: 
-	const int argc = 20;
+	//const int argc = 20;
     string stringArray[argc];  
     char* argv[argc];
     stringArray[0].append("./motionProfile");

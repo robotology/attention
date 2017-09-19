@@ -215,8 +215,10 @@ void earlyVisionThread::run() {
                 imagePortOut.prepare() = *(inputImage);
                 imagePortOut.write();
             }
+
             filterInputImage();
-            
+
+
             extender(maxKernelSize);
              //printf("red plus dimension in resize3  %d %d \n", cvRedPlus->width, cvRedPlus->height);
             
@@ -327,7 +329,8 @@ void earlyVisionThread::resize(int width_orig,int height_orig) {
 }
 
 void earlyVisionThread::filterInputImage() {
-    
+
+
     int i;
     const int szInImg = inputImage->getRawImageSize();
     unsigned char * pFilteredInpImg = filteredInputImage->getRawImage();
@@ -336,10 +339,14 @@ void earlyVisionThread::filterInputImage() {
     float lambda = .5f;
     const float ul = 1.0f - lambda;
     for (i = 0; i < szInImg; i++) { // assuming same size
-        *pFilteredInpImg = (unsigned char)(lambda * *pCurr++ + ul * *pFilteredInpImg++ + .5f);
-        
+        //*pFilteredInpImg = (unsigned char)(lambda * *pCurr++ + ul * *pFilteredInpImg++ + .5f);
+
+
+        *pFilteredInpImg = (unsigned char)(lambda * (*pCurr) + ul * (*pFilteredInpImg) + .5f);
+        pCurr++;
+        pFilteredInpImg++;
     }
-    
+
 }
 
 
@@ -370,8 +377,10 @@ void earlyVisionThread::extractPlanes() {
     shift[2] = (uchar*) bluePlane->getRawImage(); 
     shift[3] = (uchar*) yellowPlane->getRawImage();
 
-    YUV[0] = (uchar*) Yplane->getRawImage(); 
-    YUV[1] = (uchar*) Uplane->getRawImage(); 
+
+
+    YUV[0] = (uchar*) Yplane->getRawImage();
+    YUV[1] = (uchar*) Uplane->getRawImage();
     YUV[2] = (uchar*) Vplane->getRawImage();
 
     unXtnYUV[0] = (uchar*) unXtnYplane->getRawImage(); 
@@ -463,8 +472,6 @@ void earlyVisionThread::extractPlanes() {
     if(!edThread->getFlagForThreadProcessing()){
         edThread->copyRelevantPlanes(intensImg);
     }
-    
-    
 
 }
 
@@ -616,8 +623,10 @@ void earlyVisionThread::centerSurrounding(){
                                 //{-2.488,  3.489,  0.000,
                                  //3.596, -1.983, -0.498,
                                 //-3.219,  1.061,  2.563};
-                                
-        
+
+
+
+
         if(true){
                 //performs centre-surround uniqueness analysis on first plane                
                 centerSurr->proc_im_8u( (IplImage*)unXtnYplane->getIplImage(),(IplImage*)_Y.getIplImage());

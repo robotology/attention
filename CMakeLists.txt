@@ -3,7 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.8)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
@@ -45,6 +45,9 @@ add_definitions(${YARP_DEFINES})
 include(YarpInstallationHelpers)
 
 find_package(Qt3)
+include(FindGTK2)
+
+find_package(GTK)
 find_package(Qt5 COMPONENTS Core Widgets OpenGL Quick Qml Concurrent PrintSupport QUIET)
 
 find_package(OpenCV REQUIRED)
