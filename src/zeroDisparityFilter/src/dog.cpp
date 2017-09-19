@@ -23,8 +23,7 @@
 //set up DoG Kernel stuff:
 const int kern_sz = 7;
 const int kern_anc = 3;
-const double sigmaXOne = 0.4;
-const double sigmaXtwo = 0.8;
+
 
 //const Ipp32f kern1[] ={18.0,33.0,49.0,55.0,49.0,33.0,18.0};
 //const Ipp32f kern2[] ={ 5.0,23.0,59.0,82.0,59.0,23.0,5.0 };
@@ -134,7 +133,7 @@ void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_,
 
     cv::Mat mat_o;
     mat_i.convertTo(mat_o, CV_8U, maxVal, minVal);
-    cv::equalizeHist(mat_o, mat_o);
+    //cv::equalizeHist(mat_o, mat_o);
 
     /*
     printf("min Val before conversion32fto8u : %f, max val before conversion32fto8u: %f \n", minVal, maxVal);
@@ -164,18 +163,6 @@ void DoG::conv_32f_to_8u(const IplImage *im_i, int p4_, IplImage *im_o, int p1_,
 
 }
 
-
-void DoG::conv_8u_to_32f(const IplImage *im_i, int p4_, IplImage *im_o, int p1_, defSize srcsize_) {
-    /*float min = 0.0; //Ipp32f
-    float max = 0.0; //Ipp32f
-	printf("conv8uto32fIpl\n");
-	//change to default numbers and modified by amaroyo on 11/02/2016
-	cv::Mat mat_i = cv::cvarrToMat(im_i);
-	cv::Mat mat_o;
-	mat_i.convertTo(mat_o, CV_32F, 1.0 / 255.0);;
-	*im_o = (IplImage)mat_o;
-	*/
-}
 
 void DoG::conv_8u_to_32f(const cv::Mat *mat_i, int p4_, cv::Mat *mat_o, int p1_, defSize srcsize_) {
     printf("conv 8u to 32f matrix \n");
@@ -248,7 +235,39 @@ void DoG::procCvMatrix(IplImage *input) {
 
 }
 
-void DoG::proc(IplImage *in_, int psb_in_) {
+void DoG::procOpenCv(IplImage *in_, double xOne, double xTwo) {
+
+    //IplImage in_ is 8U
+    cv::Mat input_mat = cv::cvarrToMat(in_);
+
+    //convert to 32f: 
+    //ippiConvert_8u32f_C1R(in_pad_8u,psb_pad_8u,in_pad,psb_pad,psize);
+    cv::Mat input_32f_mat;
+    input_mat.convertTo(input_32f_mat, CV_32F);
+
+
+    //----------------  DOG filtering -----------------------------------------
+    printf("DOG filtering \n");
+
+
+    cv::GaussianBlur(input_32f_mat, tmp2_mat, cv::Size(kern_sz,kern_sz), xOne/100, xOne/100);
+    cv::GaussianBlur(input_32f_mat, tmp3_mat, cv::Size(kern_sz,kern_sz), xTwo/100, xTwo/100);
+
+
+    dog_mat = cv::abs(tmp3_mat - tmp2_mat);
+
+    double dog_mat_min, dog_mat_max;
+    minMaxLoc(dog_mat, &dog_mat_min, &dog_mat_max); //find minimum and maximum intensities
+    dog_mat.convertTo(dog_mat,CV_8U,255.0/(dog_mat_max - dog_mat_min), -dog_mat_min * 255.0/(dog_mat_max - dog_mat_min));
+
+    *out_dog_onoff_image = (IplImage) dog_mat;
+
+
+    printf("procedure concluded \n");
+
+}
+
+void DoG::proc(IplImage *in_, int psb_in) {
     //padding
     printf("Cloning the image for border making, size %d by %d \n", in_->width, in_->height);
 
@@ -264,7 +283,7 @@ void DoG::proc(IplImage *in_, int psb_in_) {
 
 
 
-    //convert to 32f: 
+    //convert to 32f:
     //ippiConvert_8u32f_C1R(in_pad_8u,psb_pad_8u,in_pad,psb_pad,psize);
     cv::Mat in_pad_mat;
     defSize is;
@@ -276,6 +295,8 @@ void DoG::proc(IplImage *in_, int psb_in_) {
 
     //----------------  DOG filtering -----------------------------------------
     printf("DOG filtering \n");
+
+
 
     cv::Point anchor(kern_sz - anchor.x - 1, kern_sz - anchor.y - 1);
     //cv::Mat kern1_mat; removed because already defined
@@ -297,6 +318,8 @@ void DoG::proc(IplImage *in_, int psb_in_) {
 
     //ippiFilterRow_32f_C1R(&tmp1[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,&tmp3[PAD_BORD*psb_pad/4+PAD_BORD],psb_pad,srcsize,kern2,kern_sz,kern_anc);
     //filter2D(tmp1_mat, tmp3_mat, CV_32F, cv::cvarrToMat(kern2_mat), anchor);
+
+
 
     printf("filtering successfully ended \n");
 
@@ -373,7 +396,7 @@ void DoG::proc(IplImage *in_, int psb_in_) {
 
 
     //---------------- off-centre ----------------------------------------------
-    //negate: 
+    //negate:
     //ippiMulC_32f_C1IR(-1.0,dog,psb_pad,psize);
     //cvMul(dog_image, invert_image, dog_image);
 
@@ -414,7 +437,7 @@ void DoG::proc(IplImage *in_, int psb_in_) {
     //conv_32f_to_8u(&dog_onoff[PAD_BORD * psb_pad / 4 + PAD_BORD], psb_pad, out_dog_onoff, psb_o, srcsize);
     //printf("IN ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
     conv_32f_to_8u(remove_borders(dog_image), 0, out_dog_onoff_image, 0, srcsize);
-
+    //cvCopy(remove_borders(dog_image), out_dog_onoff_image, NULL);
     //printf("OUT ADDRESSES %08X  and %08X \n", dog_onoff_image, out_dog_onoff_image);
 
     //cv::imshow("Matrix1", cv::cvarrToMat(out_dog_on_image));
