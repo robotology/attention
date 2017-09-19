@@ -221,14 +221,14 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
 
                 case COMMAND_VOCAB_K7: {
                     int w = command.get(2).asInt();
-                    zdfThread->params->sigmaOne = w;
+                    //zdfThread->params->sigmaOne = w;
                     //ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K8: {
                     int w = command.get(2).asInt();
-                    zdfThread->params->sigmaTwo = w;
+                    //zdfThread->params->sigmaTwo = w;
                     //ok = true;
                     break;
                 }
@@ -288,15 +288,15 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                 }
 
                 case COMMAND_VOCAB_K7: {
-                    double w = zdfThread->params->sigmaOne;
-                    reply.addDouble(w);
+                   // double w = zdfThread->params->sigmaOne;
+                    //reply.addDouble(w);
                     //ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K8: {
-                    double w = zdfThread->params->sigmaTwo;
-                    reply.addDouble(w);
+//                    double w = zdfThread->params->sigmaTwo;
+//                    reply.addDouble(w);
                     break;
                     //ok = true;
                 }
@@ -587,8 +587,8 @@ void ZDFThread::run() {
             //Start diffence of gaussian on foveated images
             yDebug("difference of gaussian on foveated images \n");
 
-            dl->procOpenCv(fov_l_ipl, params->sigmaOne, params->sigmaTwo);
-            dr->procOpenCv(fov_r_ipl, params->sigmaOne, params->sigmaTwo);
+            dl->procOpenCv(fov_l_ipl, 17, 2);
+            dr->procOpenCv(fov_r_ipl, 17, 2);
 
 
             //*****************************************************************
@@ -1051,8 +1051,7 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     //print("allocating process started............ \n");
 
     assert (!allocated);
-    params->sigmaOne = 17;
-    params->sigmaTwo = 2;
+
 
     cout << "Received left input image dimensions: " << img->width() << "x" << img->height() << endl;
     cout << "Received right input image dimensions: " << img->width() << "x" << img->height() << endl;
