@@ -1,5 +1,5 @@
 <application>
-	<name>Early Attention Mechanism</name>
+	<name>Attention Early Mechanism</name>
  	<dependencies>
 		<port>/icub/cam/left</port>
 		<port>/logPolarTransform/icub/left_cam/image:o</port>

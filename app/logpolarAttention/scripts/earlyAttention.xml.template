@@ -1,5 +1,5 @@
 <application>
-	<name>Early Attention Mechanism</name>
+	<name>Attention Early Vision Mechanism</name>
  	<dependencies>
 		<port>/icub/cam/left</port>
 		<port>/logPolarTransform/icub/left_cam/image:o</port>
@@ -8,13 +8,13 @@
 		<name>earlyVision</name>
 		<parameters>--name /earlyVision/icub/left_cam</parameters>
 		<tag>earlyvis</tag>
-		<node>/icub-b14</node>
+		<node>icub-b1</node>
 	</module>
 		<module>
 		<name>earlyMotion</name>
 		<parameters>--name /earlyMotion/icub/left_cam</parameters>
 		<tag>earlymot</tag>
-		<node>/icub-b14</node>
+		<node>icub-b1</node>
 	</module>
     <module>
         <name>faceDetector</name>
@@ -27,37 +27,37 @@
 		<name>saliencyBlobFinder</name>
 		<parameters>--from saliencyBlobFinder.ini --context logpolarAttention/conf --config icubEyes.ini</parameters>
 		<tag>blobFinderModule</tag>
-		<node>/icub-b14</node>
+		<node>icub-b1</node>
 	</module>
 	<module>
 		<name>selectiveAttentionEngine</name>
 		<parameters>--from selectiveAttentionLeft.ini --context logpolarAttention/conf </parameters>
 		<tag>earlySelectiveAtt</tag>
-		<node>/icub-b14</node>
+		<node>icub-b1</node>
 	</module>
     <module>
 		<name>mosaic</name>
 		<parameters>--name /inhiMosaic  --config icubEyes.ini</parameters>
 		<tag>inhibitionMosaic</tag>
-		<node>/icub-b15</node>
+		<node>icub-b2</node>
 	</module>
     <module>
 		<name>mosaic</name>
 		<parameters>--name /facilMosaic --config icubEyes.ini </parameters>
 		<tag>facilitationMosaic</tag>
-		<node>/icub-b15</node>
+		<node>icub-b2</node>
 	</module>
 	<module>
 		<name>attentionPrioritiser</name>
         <parameters>--name /attPrioritiser/icub </parameters>
         <tag>prioritiser</tag>
-        <node>/icub-b14</node>
+        <node>icub-b1</node>
     </module>    
     <module>
 		<name>gazeArbiter</name>
         <parameters>--name /gazeArbiter/icub --visualFeedback</parameters>
         <tag>gArbiter</tag>
-        <node>/icub-b14</node>
+        <node>icub-b1</node>
     </module>
 	
    <connection>
