@@ -542,8 +542,8 @@ void ZDFThread::run() {
 
             }
             //Preprocess the input image
-            //filterInputImage(l_orig_ipl, filtered_l_ipl);
-            //filterInputImage(r_orig_ipl, filtered_r_ipl);
+//            filterInputImage(l_orig_ipl, filtered_l_ipl);
+//            filterInputImage(r_orig_ipl, filtered_r_ipl);
             preprocessImageHSV(l_orig_ipl, rec_im_ly_ipl);
             preprocessImageHSV(r_orig_ipl, rec_im_ry_ipl);
 
@@ -672,6 +672,9 @@ void ZDFThread::run() {
             //Do MRF optimization:
             yDebug("performing Markov Random Field optimization \n");
             fov_r = (unsigned char *) fov_r_ipl->imageData;
+
+            filterInputImage(o_prob_8u_ipl, filtered_l_ipl);
+            filterInputImage(zd_prob_8u_ipl, filtered_r_ipl);
 
             p_prob[0] = o_prob_8u;
             p_prob[1] = zd_prob_8u;
@@ -1116,8 +1119,8 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     copyImg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
     psbCopy = copyImg_ipl->widthStep;
 
-    filtered_r_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
-    filtered_l_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
+    filtered_r_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
+    filtered_l_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
 
 
     //l_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
@@ -1461,6 +1464,7 @@ void ZDFThread::preprocessImageYUV(IplImage *srcImage, IplImage *destImage) {
     cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, NULL);
     cvCopy(first_plane_l_ipl, destImage, NULL);
 
+
 }
 
 void ZDFThread::preprocessImageGray(IplImage *srcImage, IplImage *destImage) {
@@ -1472,7 +1476,7 @@ void ZDFThread::filterInputImage(IplImage *input, IplImage *dest) {
     const int szInImg = input->imageSize;
     unsigned char *pFilteredInpImg = (unsigned char *) dest->imageData;
     unsigned char *pCurr = (unsigned char *) input->imageData;
-    float lambda = .1f;
+    float lambda = .05f;
     const float ul = 1.0f - lambda;
     for (i = 0; i < szInImg; i++) { // assuming same size
         *pFilteredInpImg = (unsigned char) (lambda * *pCurr++ + ul * *pFilteredInpImg++ + .5f);
