@@ -9,7 +9,7 @@ PROJECT(${PROJECTNAME})
 FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
 FILE(GLOB folder_header include/iCub/*.h)
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fpermissive")
+#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fpermissive")
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})

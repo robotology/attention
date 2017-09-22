@@ -821,7 +821,7 @@ void ZDFThread::run() {
                     cv::Point pt1(xOneSeg, yOneSeg);
                     cv::Point pt2(xTwoSeg, yTwoSeg);
 
-                    cvRectangle(original_seg_ipl, pt1, pt2, CvScalar(255, 0, 0), 2);
+                    //cvRectangle(original_seg_ipl, pt1, pt2, CvScalar(255, 0, 0), 2);
 
 
                     img_out_temp = new ImageOf<PixelBgr>;
