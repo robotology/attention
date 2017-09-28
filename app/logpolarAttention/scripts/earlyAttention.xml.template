@@ -18,7 +18,7 @@
 	</module>
     <module>
         <name>faceDetector</name>
-        <parameters>--cascade haarcascade_frontalface_alt.xml --eye left --eyeDist 0.5 --expression ang --from face_detector.ini</parameters>
+        <parameters>--cascade haarcascade_frontalface_alt.xml --eye left --eyeDist 0.5 --expression ang --from face_detector.ini --context faceDetector --enable_saliency 1</parameters>
         <node>icub-b1</node>
         <prefix></prefix>
         <geometry>(Pos (x 622) (y 291.9))</geometry>
@@ -168,7 +168,11 @@
      <protocol>tcp</protocol>
    </connection>
 
- 
+    <connection>
+     <from>/faceDetector/saliency/out</from>
+     <to>/selectiveAttentionEngine/icub/left_cam/cart1:i</to>
+     <protocol>tcp</protocol>
+   </connection>
   
 
  
