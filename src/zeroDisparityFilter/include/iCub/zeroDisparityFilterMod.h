@@ -50,13 +50,13 @@
 //NDT:
 #define NDTX     2
 #define NDTY     2
-#define NDTSIZE  2 //4 or 8: 4
+#define NDTSIZE  1 //4 or 8: 4
 //RANK:
 #define RANKY    2 //1 or 2
 #define RANKX    2  //1 or 2
 #define RANKSIZE 25  //9 or 25: 9
 
-#define NDTEQ    3 //0
+#define NDTEQ    1 //0
 
 #define COMMAND_VOCAB_IS   VOCAB2('i','s')
 #define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
