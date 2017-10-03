@@ -82,6 +82,7 @@ private:
     std::string outputNameDogLeft;           //string containing the difference of gaussian output port name
     std::string outputNameDogRight;           //string containing the difference of gaussian output port name
     std::string outputNameTemp;          //string containing the segmented template output port name
+    std::string outputNameTemp2;          //string containing the segmented template output port name
     std::string outputNameCog;
     std::string inputCheckArbiter;
 
@@ -89,6 +90,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *img_out_seg;    //segmentation image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *img_out_dog;    //difference of gaussian image
     yarp::sig::ImageOf<yarp::sig::PixelBgr> *img_out_temp;    //template image
+    yarp::sig::ImageOf<yarp::sig::PixelBgr> *img_out_temp2;    //template image
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageInLeft;      //input port cartesian image left
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageInRight;     //input port cartesian image right
@@ -97,6 +99,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDog;      //output port difference of gaussian image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDogR;      //output port difference of gaussian image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageOutTemp;     //output port template image
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageOutTemp2;     //output port template image
 
     yarp::os::BufferedPort<yarp::sig::Vector> cogPort;
     yarp::os::Port inputCheckStatus;
@@ -187,6 +190,9 @@ private:
     //string containing module name
     std::string moduleName;
 
+    //Get boudning box of the segmented object
+    void getRoundingBoxSegmented(int* top, int* bottom, int *left, int *right, IplImage *segmentedImage);
+
 public:
 
     /**
@@ -236,7 +242,7 @@ public:
     void preprocessImageGray(IplImage *srcImage, IplImage *destImage);
     void filterInputImage(IplImage* input, IplImage* dst);
 
-    void matchTemplate(IplImage* templateImage, IplImage* matchImage,  IplImage* dst);
+    void matchTemplate(IplImage* templateImage, IplImage* inputImage,  IplImage* dst);
 
 };
 

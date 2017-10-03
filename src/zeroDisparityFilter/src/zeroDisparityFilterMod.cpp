@@ -94,7 +94,10 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     parameters.fovea_height = rf.findGroup("PARAMS").check("fovea_size", Value(128),
                                                            "what did the user select?").asInt();
 
-
+    parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(18),
+                                                          "what did the user select?").asDouble();
+    parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(2),
+                                                           "what did the user select?").asDouble();
 
 
     /*
@@ -221,14 +224,14 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
 
                 case COMMAND_VOCAB_K7: {
                     int w = command.get(2).asInt();
-                    //zdfThread->params->sigmaOne = w;
+                    zdfThread->params->sigma1 = w;
                     //ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K8: {
                     int w = command.get(2).asInt();
-                    //zdfThread->params->sigmaTwo = w;
+                    zdfThread->params->sigma2 = w;
                     //ok = true;
                     break;
                 }
@@ -288,17 +291,17 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                 }
 
                 case COMMAND_VOCAB_K7: {
-                   // double w = zdfThread->params->sigmaOne;
-                    //reply.addDouble(w);
+                    double w = zdfThread->params->sigma1;
+                    reply.addDouble(w);
                     //ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K8: {
-//                    double w = zdfThread->params->sigmaTwo;
-//                    reply.addDouble(w);
-                    break;
+                    double w = zdfThread->params->sigma2;
+                    reply.addDouble(w);
                     //ok = true;
+                    break;
                 }
 
                 default: {
@@ -489,6 +492,9 @@ bool ZDFThread::threadInit() {
     outputNameTemp = "/" + moduleName + "/imageTemp:o";
     imageOutTemp.open(outputNameTemp.c_str());
 
+    outputNameTemp2 = "/" + moduleName + "/imageTemp2:o";
+    imageOutTemp2.open(outputNameTemp2.c_str());
+
     outputNameCog = "/" + moduleName + "/cog:o";
     cogPort.open(outputNameCog.c_str());
     yDebug("End of the Thread Initialization");
@@ -542,23 +548,22 @@ void ZDFThread::run() {
 
             }
             //Preprocess the input image
-//            filterInputImage(l_orig_ipl, filtered_l_ipl);
-//            filterInputImage(r_orig_ipl, filtered_r_ipl);
-            preprocessImageHSV(l_orig_ipl, rec_im_ly_ipl);
-            preprocessImageHSV(r_orig_ipl, rec_im_ry_ipl);
+            preprocessImageYUV(l_orig_ipl, rec_im_ly_ipl);
+            preprocessImageYUV(r_orig_ipl, rec_im_ry_ipl);
 
             if (acquire) {
-
                 yDebug("Acquiring : set new Region of Interest \n");
-                cvSetImageROI(rec_im_ly_ipl, cvRect((srcsize.width - tsize.width) / 2,
-                                                    (srcsize.height - tsize.height) / 2,
-                                                    tsize.width, tsize.height));
+                cv::Rect regionInterestRec((srcsize.width - tsize.width) / 2,
+                                           (srcsize.height - tsize.height) / 2,
+                                           tsize.width, tsize.height);
+
+
+                cvSetImageROI(rec_im_ly_ipl, regionInterestRec);
                 cvCopy(rec_im_ly_ipl, template_left_ipl, NULL);
                 cvResetImageROI(rec_im_ly_ipl);
 
-                cvSetImageROI(rec_im_ry_ipl, cvRect((srcsize.width - tsize.width) / 2,
-                                                    (srcsize.height - tsize.height) / 2,
-                                                    tsize.width, tsize.height));
+
+                cvSetImageROI(rec_im_ry_ipl, regionInterestRec);
                 cvCopy(rec_im_ry_ipl, temp_r_ipl, NULL);
                 cvResetImageROI(rec_im_ry_ipl);
 
@@ -567,8 +572,10 @@ void ZDFThread::run() {
             //******************************************************************
             //Create left fovea and find left template in left image
             yDebug("creating left fovea and left template matching \n");
+            cv::Rect foveaRec(mid_x, mid_y, foveaSize.width, foveaSize.height);
 
-            cvSetImageROI(rec_im_ly_ipl, cvRect(mid_x, mid_y, foveaSize.width, foveaSize.height));
+
+            cvSetImageROI(rec_im_ly_ipl, foveaRec);
             cvCopy(rec_im_ly_ipl, fov_l_ipl, NULL);
             cvResetImageROI(rec_im_ly_ipl);
 
@@ -576,19 +583,19 @@ void ZDFThread::run() {
             //Create right fovea and find right template in right image:
             yDebug("creating right fovea and right template matching \n");
 
-//            cvSetImageROI(rec_im_ry_ipl, cvRect(mid_x, mid_y, foveaSize.width, foveaSize.height));
+//            cvSetImageROI(rec_im_ry_ipl, foveaRec);
 //            cvCopy(rec_im_ry_ipl, fov_r_ipl, NULL);
 //            cvResetImageROI(rec_im_ry_ipl);
 
-              matchTemplate(fov_l_ipl, rec_im_ry_ipl, fov_r_ipl);
+            matchTemplate(fov_l_ipl, rec_im_ry_ipl, fov_r_ipl);
 
 
             //*****************************************************************
             //Start diffence of gaussian on foveated images
             yDebug("difference of gaussian on foveated images \n");
 
-            dl->procOpenCv(fov_l_ipl, 17, 2);
-            dr->procOpenCv(fov_r_ipl, 17, 2);
+            dl->procOpenCv(fov_l_ipl, params->sigma1, params->sigma2);
+            dr->procOpenCv(fov_r_ipl, params->sigma1, params->sigma2);
 
 
             //*****************************************************************
@@ -599,9 +606,6 @@ void ZDFThread::run() {
             o_prob_8u = (unsigned char *) o_prob_8u_ipl->imageData;
             zd_prob_8u = (unsigned char *) zd_prob_8u_ipl->imageData;
 
-//            yDebug("Koffsetx: %d, width: %d \n", koffsetx, foveaSize.width);
-//            yDebug("Koffsety: %d, height: %d \n", koffsety, foveaSize.height);
-
             int data_penalty = params->data_penalty;
             int bland_dog_thresh = params->bland_dog_thresh;
 
@@ -609,17 +613,15 @@ void ZDFThread::run() {
             unsigned char *p_dogonoff_r = (unsigned char *) dr->get_dog_onoff_ipl()->imageData;
 
             for (int j = koffsety; j < foveaSize.height - koffsety; j++) {
-
                 c.y = j;
                 for (int i = koffsetx; i < foveaSize.width - koffsetx; i++) {
-
                     c.x = i;
                     int index = i + j * dl->get_dog_onoff_ipl()->width;
 
 
                     //if either l or r textured at this retinal location:
-                    if (p_dogonoff_l[index] > data_penalty ||
-                        p_dogonoff_r[index] > bland_dog_thresh) {
+                    if (p_dogonoff_l[index] >= data_penalty ||
+                        p_dogonoff_r[index] >= bland_dog_thresh) {
 
                         if (RANK0_NDT1 == 0) {
                             //use RANK:
@@ -635,11 +637,8 @@ void ZDFThread::run() {
                             get_ndt(c, (unsigned char *) fov_r_ipl->imageData, fov_l_ipl->widthStep, ndt2);
                             cmp_res = cmp_ndt(ndt1, ndt2);
                         }
-
-                        //yDebug("preparing zerodisparity probability mono channel \n");
                         zd_prob_8u[index] = (unsigned char) (cmp_res * 255.0);
                     } else {
-                        //yDebug("untextured in both l & r \n");
                         //untextured in both l & r, so set to bland prob (ZD):
                         zd_prob_8u[index] = (unsigned char) (params->bland_prob * 255.0);//bland_prob
                     }
@@ -673,9 +672,6 @@ void ZDFThread::run() {
             yDebug("performing Markov Random Field optimization \n");
             fov_r = (unsigned char *) fov_r_ipl->imageData;
 
-            filterInputImage(o_prob_8u_ipl, filtered_l_ipl);
-            filterInputImage(zd_prob_8u_ipl, filtered_r_ipl);
-
             p_prob[0] = o_prob_8u;
             p_prob[1] = zd_prob_8u;
 
@@ -700,7 +696,6 @@ void ZDFThread::run() {
 
             //we have mask and image  (out)   [0/255]
             //construct masked image  (fov_l) [0..255]
-            IplImage *test = dr->get_dog_onoff_ipl();
 
             for (int j = 0; j < foveaSize.height; j++) {
                 for (int i = 0; i < foveaSize.width; i++) {
@@ -710,7 +705,6 @@ void ZDFThread::run() {
                     } else {
 
                         // Gray matching
-                        //seg_dog[j * psb_m + i] = test->imageData[j * test->widthStep + i];
                         seg_im[j * psb_m + i] = fov_r[j * psb_m + i];
                         // Set the segmentation match in white
                         //seg_im[j * psb_m + i] = 255;
@@ -731,10 +725,6 @@ void ZDFThread::run() {
                 cog_x *= params->cog_snap;
                 cog_y *= params->cog_snap;
 
-
-                //floor(val + 0.5) instead of round
-                //ippiCopy_8u_C1R(&fov_l[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_l, psb_t, tsize );
-                //ippiCopy_8u_C1R(&fov_r[( mid_x_m + ( (int) floor ( cog_x + 0.5 ) ) ) + ( mid_y_m + ( ( int ) floor ( cog_y + 0.5) ) ) * psb_m], psb_m, temp_r, psb_t, tsize );
 
                 //We've updated, so reset waiting:
 
@@ -780,10 +770,11 @@ void ZDFThread::run() {
                         }
                     }
                     bool Tmpout = false;
+
+
                     for (int i = 0; i < foveaSize.width; i++) {
                         for (int j = 0; j < foveaSize.height; j++) {
                             if ((int) seg_im[i + j * psb_m] > 0) {
-                                left = i;
                                 Tmpout = true;
                                 break;
                             }
@@ -807,28 +798,36 @@ void ZDFThread::run() {
                     tempSize.width = right - left + 1;
                     tempSize.height = bottom - top + 1;
 
-                    //tempImg = ippiMalloc_8u_C3( tempSize.width, tempSize.height, &psbtemp);
                     tempImg_ipl = cvCreateImage(cvSize(tempSize.width, tempSize.height), IPL_DEPTH_8U, 3);
                     tempImg = (unsigned char *) tempImg_ipl->imageData;
                     psbtemp = tempImg_ipl->widthStep;
 
-                    IplImage *original_seg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U,
-                                                               3);
+                    IplImage *original_seg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
                     cvCopy(l_orig_ipl, original_seg_ipl, NULL);
 
-                    int yOneSeg = mid_y + top;
-                    int yTwoSeg = mid_y + (bottom - top);
-                    int xOneSeg = mid_x + left;
-                    int xTwoSeg = mid_x + (right - left);
+
+                    int topBis, bottomBis, leftBis, rightBis;
+                    getRoundingBoxSegmented(&topBis, &bottomBis, &leftBis, &rightBis, seg_im_ipl);
+
+                    int yOneSeg = mid_y + topBis;
+                    int yTwoSeg = mid_y + bottomBis;
+                    int xOneSeg = mid_x + leftBis;
+                    int xTwoSeg = mid_x + (rightBis);
 
                     cv::Point pt1(xOneSeg, yOneSeg);
                     cv::Point pt2(xTwoSeg, yTwoSeg);
 
+
+                    cv::Rect rRect(pt1, pt2);
                     cvRectangle(original_seg_ipl, pt1, pt2, CvScalar(255, 0, 0), 2);
 
+                    /*
+                    cvSetImageROI(l_orig_ipl, rRect);
+                    IplImage * temp2 =  cvCreateImage(cvSize(rRect.width, rRect.height), IPL_DEPTH_8U,3);
+                    cvCopy(l_orig_ipl, temp2);
+                    cvResetImageROI(l_orig_ipl);
+                    */
 
-                    img_out_temp = new ImageOf<PixelBgr>;
-                    img_out_temp->resize(tempSize.width, tempSize.height);
 
                     for (int j = top; j < bottom + 1; j++) {
                         for (int i = left; i < right + 1; i++) {
@@ -850,8 +849,6 @@ void ZDFThread::run() {
                         v++;
                     }
 
-                    //ippiCopy_8u_C3R( tempImg, psbtemp, img_out_temp->getRawImage(), img_out_temp->getRowSize() , tempSize);
-
                     // Display temp_img to YarpPort
                     yarp::sig::ImageOf<yarp::sig::PixelBgr> *processingRgbImage;
                     processingRgbImage = &imageOutTemp.prepare();
@@ -861,6 +858,12 @@ void ZDFThread::run() {
                     imageOutTemp.write();
 
 
+                    yarp::sig::ImageOf<yarp::sig::PixelBgr> *outtemp2;
+                    outtemp2 = &imageOutTemp2.prepare();
+                    outtemp2->resize(original_seg_ipl->width, original_seg_ipl->height);
+                    aux = original_seg_ipl;
+                    outtemp2->wrapIplImage(aux); //temp_r_ipl
+                    imageOutTemp2.write();
 
                     //cvCopy(l_orig_ipl, img_out_temp->getIplImage(), NULL);
                     yDebug("copied image success \n");
@@ -954,8 +957,6 @@ void ZDFThread::run() {
 
 
                 yarp::sig::ImageOf<yarp::sig::PixelMono> *processingMonoImageR;
-
-
                 processingMonoImageR = &imageOutDogR.prepare();
                 processingMonoImageR->resize(dr->get_dog_onoff_ipl()->width, dr->get_dog_onoff_ipl()->height);
                 //IplImage *aux = seg_dog_ipl;
@@ -1441,11 +1442,18 @@ ZDFThread::getAreaCoGSpread(unsigned char *im_, int psb_, defSize sz_, int *pare
 
 
 // Functions Image processing
+
+/**
+ * @param srcImage
+ * Preprocess srcImage by changing to HSV colorSpace and return the V plane into destImage
+ * @param destImage
+ */
 void ZDFThread::preprocessImageHSV(IplImage *srcImage, IplImage *destImage) {
     IplImage *hsvImage = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
     IplImage *first_plane_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 1);
     IplImage *second_plane_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 1);
     IplImage *third_plane_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 1);
+
 
     cvCvtColor(srcImage, hsvImage, CV_RGB2HSV);
     cvSplit(hsvImage, first_plane_ipl, second_plane_ipl, third_plane_ipl, NULL);
@@ -1458,7 +1466,11 @@ void ZDFThread::preprocessImageHSV(IplImage *srcImage, IplImage *destImage) {
 
 
 }
-
+/**
+ * Preprocess srcImage by changing to YUV colorSpace and return the Y plane into destImage
+ * @param srcImage
+ * @param destImage
+ */
 void ZDFThread::preprocessImageYUV(IplImage *srcImage, IplImage *destImage) {
     cvCvtColor(srcImage, yuva_orig_l_ipl, CV_RGB2YUV);
     cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, NULL);
@@ -1466,11 +1478,21 @@ void ZDFThread::preprocessImageYUV(IplImage *srcImage, IplImage *destImage) {
 
 
 }
-
+/**
+ * Preprocess srcImage by changing to gray colorSpace  into destImage
+ * @param srcImage
+ * @param destImage
+ */
 void ZDFThread::preprocessImageGray(IplImage *srcImage, IplImage *destImage) {
     cvCvtColor(srcImage, destImage, CV_RGB2GRAY);
 }
 
+
+/**
+ * Linear filter
+ * @param input
+ * @param dest
+ */
 void ZDFThread::filterInputImage(IplImage *input, IplImage *dest) {
     int i;
     const int szInImg = input->imageSize;
@@ -1484,18 +1506,24 @@ void ZDFThread::filterInputImage(IplImage *input, IplImage *dest) {
     }
 }
 
-void ZDFThread::matchTemplate(IplImage *templateImage, IplImage *matchImage, IplImage *dstImage) {
+/**
+ * Find in the inputImage the best match of templateImage and save it to dstImage
+ * @param templateImage
+ * @param inputImage
+ * @param dstImage
+ */
+void ZDFThread::matchTemplate(IplImage *templateImage, IplImage *inputImage, IplImage *dstImage) {
 
     /// Create the result matrix
-    cv::Mat img_display = cv::cvarrToMat(matchImage);
+    cv::Mat img_display = cv::cvarrToMat(inputImage);
     cv::Mat result;
-    int result_cols = matchImage->width - templateImage->width + 1;
-    int result_rows = matchImage->height - templateImage->height + 1;
+    int result_cols = inputImage->width - templateImage->width + 1;
+    int result_rows = inputImage->height - templateImage->height + 1;
 
     result.create(result_rows, result_cols, CV_32FC1);
 
     /// Do the Matching and Normalize
-    cv::matchTemplate(cv::cvarrToMat(matchImage), cv::cvarrToMat(templateImage), result, CV_TM_SQDIFF_NORMED);
+    cv::matchTemplate(cv::cvarrToMat(inputImage), cv::cvarrToMat(templateImage), result, CV_TM_SQDIFF_NORMED);
     normalize(result, result, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
 
     /// Localizing the best match with minMaxLoc
@@ -1508,10 +1536,54 @@ void ZDFThread::matchTemplate(IplImage *templateImage, IplImage *matchImage, Ipl
     cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat());
     matchLoc = minLoc;
 
-    cvSetImageROI(matchImage, cvRect(matchLoc.x, matchLoc.y, fov_l_ipl->width, fov_l_ipl->height));
-    cvCopy(matchImage, dstImage, NULL);
-    cvResetImageROI(matchImage);
+    cvSetImageROI(inputImage, cvRect(matchLoc.x, matchLoc.y, fov_l_ipl->width, fov_l_ipl->height));
+    cvCopy(inputImage, dstImage, NULL);
+    cvResetImageROI(inputImage);
 
+}
+
+
+/**
+ * From the segmented image calcul the best rounding box by finding top, bottom, left, right point
+ * @param top
+ * @param bottom
+ * @param left
+ * @param right
+ * @param segmentedImage
+ */
+void ZDFThread::getRoundingBoxSegmented(int *top, int *bottom, int *left, int *right, IplImage *segmentedImage) {
+    const int width = segmentedImage->width;
+    const int height = segmentedImage->height;
+    const unsigned char *ptr_segmentedImage = (unsigned char *) segmentedImage->imageData;
+
+    *top = height;
+    *right = -1;
+    *left = width;
+    *bottom = -1;
+
+    int index = 0;
+    for (int i = 0; i < width; ++i)
+        for (int j = 0; j < height; ++j) {
+            index = i + j * width;
+            if (ptr_segmentedImage[index] > 0) {
+                if (i < *left) {
+                    *left = i;
+                }
+
+                if (j < *top) {
+                    *top = j;
+                }
+
+                if (j > *bottom) {
+                    *bottom = j;
+                }
+
+                if (i > *right) {
+                    *right = i;
+                }
+
+            }
+        }
 }
 
 

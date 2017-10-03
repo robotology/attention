@@ -327,7 +327,7 @@ void DoG::proc(IplImage *in_, int psb_in) {
 
 
     //ippiSub_32f_C1R(tmp2,psb_pad,tmp3,psb_pad,dog,psb_pad,psize);
-    dog_mat = cv::abs(tmp2_mat - tmp3_mat);
+    dog_mat = tmp2_mat - tmp3_mat;
     //cvSub(&tmp2_mat, &tmp3_mat, dog_image);
 
 

@@ -62,7 +62,7 @@ class MultiClass{
       int    fovea_height;
       double cog_snap;
       double bland_prob;
-
+      double sigma1, sigma2;
   };
 	
   /** Constructor.
