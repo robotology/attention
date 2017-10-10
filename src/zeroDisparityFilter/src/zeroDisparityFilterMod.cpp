@@ -495,6 +495,11 @@ bool ZDFThread::threadInit() {
     outputNameTemp2 = "/" + moduleName + "/imageTemp2:o";
     imageOutTemp2.open(outputNameTemp2.c_str());
 
+    outputNameGeometry = "/" + moduleName + "/geometry:o";
+    outputGeometry.open(outputNameGeometry.c_str());
+
+
+
     outputNameCog = "/" + moduleName + "/cog:o";
     cogPort.open(outputNameCog.c_str());
     yDebug("End of the Thread Initialization");
@@ -547,6 +552,8 @@ void ZDFThread::run() {
                 cvCopy((IplImage *) img_in_right->getIplImage(), r_orig_ipl, NULL);
 
             }
+
+
             //Preprocess the input image
             preprocessImageYUV(l_orig_ipl, rec_im_ly_ipl);
             preprocessImageYUV(r_orig_ipl, rec_im_ry_ipl);
@@ -1238,6 +1245,14 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     cmp_res = 0.0;
     area = 0;
     allocated = true;
+
+    tempImg_ipl = cvCreateImage(cvSize(seg_im_ipl->width, seg_im_ipl->height), IPL_DEPTH_8U, 3);
+    tempImg = (unsigned char *) tempImg_ipl->imageData;
+    psbtemp = tempImg_ipl->widthStep;
+    cvSet(tempImg_ipl, cvScalar(0,0,0));
+
+
+
 
     //print("allocating process ended successfully \n \n \n");
 
