@@ -57,7 +57,7 @@
 #define RANKX    2  //1 or 2
 #define RANKSIZE 25  //9 or 25: 9
 
-#define NDTEQ    1 //0
+#define NDTEQ    20 //0
 
 #define COMMAND_VOCAB_IS   VOCAB2('i','s')
 #define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
@@ -170,8 +170,8 @@ private:
 
     int psb4, f_psb, s_psb, t_psb;
     //Difference of Gaussian:
-    //DoG *dl;
-    //DoG *dr;
+    DoG *dl;
+    DoG *dr;
 
 
     int tl_x, tl_y;

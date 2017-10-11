@@ -557,8 +557,8 @@ void ZDFThread::run() {
 
 
             //Preprocess the input image
-            preprocessImageYUV(l_orig_ipl, rec_im_ly_ipl);
-            preprocessImageYUV(r_orig_ipl, rec_im_ry_ipl);
+            preprocessImageHSV(l_orig_ipl, rec_im_ly_ipl);
+            preprocessImageHSV(r_orig_ipl, rec_im_ry_ipl);
 
             if (acquire) {
                 yDebug("Acquiring : set new Region of Interest \n");
@@ -1479,7 +1479,7 @@ void ZDFThread::preprocessImageHSV(IplImage *srcImage, IplImage *destImage) {
 
     cvCvtColor(srcImage, hsvImage, CV_RGB2HSV_FULL);
     cvSplit(hsvImage, first_plane_ipl, second_plane_ipl, third_plane_ipl, NULL);
-    cvCopy(first_plane_ipl, destImage, NULL);
+    cvCopy(third_plane_ipl, destImage, NULL);
 
     cvReleaseImage(&hsvImage);
     cvReleaseImage(&first_plane_ipl);
@@ -1496,7 +1496,7 @@ void ZDFThread::preprocessImageHSV(IplImage *srcImage, IplImage *destImage) {
 void ZDFThread::preprocessImageYUV(IplImage *srcImage, IplImage *destImage) {
     cvCvtColor(srcImage, yuva_orig_l_ipl, CV_RGB2YUV);
     cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, NULL);
-    cvCopy(first_plane_l_ipl, destImage, NULL);
+    cvCopy(third_plane_l_ipl, destImage, NULL);
 
 
 }
