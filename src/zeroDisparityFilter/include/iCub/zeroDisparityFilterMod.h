@@ -42,6 +42,7 @@
 #include "iCub/coord.h"
 #include "iCub/dog.h"
 #include "iCub/multiclass.h"
+#include "iCub/centerSurround.h"
 #include "yarp/os/Time.h"
 #include <yarp/sig/Vector.h>
 
@@ -85,6 +86,7 @@ private:
     std::string outputNameTemp2;          //string containing the segmented template output port name
     std::string outputNameCog;
     std::string inputCheckArbiter;
+    std::string outputNameGeometry;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *img_out_prob;   //probability image
     yarp::sig::ImageOf<yarp::sig::PixelMono> *img_out_seg;    //segmentation image
@@ -100,6 +102,9 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDogR;      //output port difference of gaussian image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageOutTemp;     //output port template image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageOutTemp2;     //output port template image
+
+
+    yarp::os::BufferedPort<yarp::os::Bottle> outputGeometry;    // output 2D position and size of the object
 
     yarp::os::BufferedPort<yarp::sig::Vector> cogPort;
     yarp::os::Port inputCheckStatus;
@@ -165,8 +170,9 @@ private:
 
     int psb4, f_psb, s_psb, t_psb;
     //Difference of Gaussian:
-    DoG *dl;
-    DoG *dr;
+    //DoG *dl;
+    //DoG *dr;
+
 
     int tl_x, tl_y;
     int tr_x, tr_y;
@@ -192,6 +198,8 @@ private:
 
     //Get boudning box of the segmented object
     void getRoundingBoxSegmented(int* top, int* bottom, int *left, int *right, IplImage *segmentedImage);
+
+
 
 public:
 
