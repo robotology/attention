@@ -1,0 +1,170 @@
+<application>
+	<name>Attention Action Mechanism</name>
+ 	<dependencies>
+		<port>/icub/cam/left</port>
+		<port>/logPolarTransform/icub/left_cam/image:o</port>
+	</dependencies>
+	
+    <module>
+		<name>mosaic</name>
+		<parameters>--name /inhiMosaic  --config icubEyes.ini</parameters>
+		<tag>inhibitionMosaic</tag>
+		<node>/icub-b2</node>
+	</module>
+    <module>
+		<name>mosaic</name>
+		<parameters>--name /facilMosaic --config icubEyes.ini </parameters>
+		<tag>facilitationMosaic</tag>
+		<node>/icub-b2</node>
+	</module>
+	<module>
+		<name>attentionPrioritiser</name>
+        <parameters>--name /attPrioritiser/icub </parameters>
+        <tag>prioritiser</tag>
+        <node>/icub-b1</node>
+    </module>    
+    <module>
+		<name>gazeArbiter</name>
+        <parameters>--name /gazeArbiter/icub --visualFeedback</parameters>
+        <tag>gArbiter</tag>
+        <node>/icub-b1</node>
+    </module>
+	
+  
+
+   <connection>
+	<from>/icub/camcalib/left/out</from>
+	<to>/attPrioritiser/icub/periodicTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+   <connection>
+	<from>/icub/camcalib/left/out</from>
+	<to>/attPrioritiser/icub/matchTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/icub/camcalib/left/out</from>
+	<to>/gazeArbiter/icub/periodicTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+   <connection>
+	<from>/icub/camcalib/left/out</from>
+	<to>/gazeArbiter/icub/matchTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+ 
+   
+   <connection>
+	<from>/logPolarTransform/icub/left_cam/image:o</from>
+	<to>/attPrioritiser/icub/sacPlanner/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+    <from>/gazeArbiter/icub/left_cam/inhibition:o</from>
+	<to>/mosaic/icub/left_cam/leftMono:i</to>
+	<protocol>udp</protocol>
+   </connection>
+
+   <connection>
+	<from>/mosaic/icub/left_cam/portion:o</from>
+	<to>/selectiveAttentionEngine/icub/left_cam/inhiCart:i</to>
+	<protocol>udp</protocol>
+   </connection>
+
+   <connection>
+	<from>/attPrioritiser/icub/cmd:o</from>
+	<to>/gazeArbiter/icub/cmd:i</to>
+	<protocol>tcp</protocol>
+   </connection> 
+
+   <connection>
+	<from>/gazeArbiter/icub/status:o</from>
+	<to>/attPrioritiser/icub/cmd:i</to>
+	<protocol>tcp</protocol>
+   </connection> 
+   
+   <connection>
+	<from>/attPrioritiser/icub/feedback:o</from>
+	<to>/selectiveAttentionEngine/icub/left_cam</to>
+	<protocol>tcp</protocol>
+   </connection>
+   
+   <connection>
+	<from>/attPrioritiser/icub/selectiveAtt:o</from>
+	<to>/selectiveAttentionEngine/icub/left_cam</to>
+	<protocol>tcp</protocol>
+   </connection>
+   
+   <connection>
+	<from>/attPrioritiser/icub/earlyVision:o</from>
+	<to>/earlyVision/icub/left_cam</to>
+	<protocol>tcp</protocol>
+   </connection>      
+   
+   <connection>
+     <from>/vergence/cmd:o</from>
+     <to>/attPrioritiser/icub/cmd:i</to>
+     <protocol>tcp</protocol>
+   </connection> 
+   
+   <connection>
+     <from>/attPrioritiser/icub/earlyVision:o</from>
+     <to>/earlyVision/icub/left_cam</to>
+     <protocol>tcp</protocol>
+   </connection>
+   
+   <connection>
+     <from>/attPrioritiser/icub/protoObject:o</from>
+     <to>/blobFinder/icub/left_cam</to>
+     <protocol>tcp</protocol>
+   </connection>
+   
+   <connection>
+     <from>/attPrioritiser/icub/selectiveAtt:o</from>
+     <to>/selectiveAttentionEngine/icub/left_cam</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/highLoop:o</from>
+     <to>/attPrioritiser/icub/cmd:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/desTrack:o</from>
+     <to>/activeSegLeft/fixPoint:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/templatePFTracker/target:o</from>
+     <to>/attPrioritiser/icub/trackPosition:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/direct:o</from>
+     <to>/iKinGazeCtrl/mono:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/face:o</from>
+     <to>/icub/face/raw/in</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/logPolarTransform/icub/left_cam/image:o</from>
+     <to>/attPrioritiser/icub/controller/entImage:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+</application>

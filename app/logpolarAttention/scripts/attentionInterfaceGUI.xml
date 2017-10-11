@@ -95,16 +95,23 @@
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /view/Proba --x 1360 --y 660 --RefreshTime 33</parameters>
+  <parameters>--name /view/Prob --x 1360 --y 660 --RefreshTime 33</parameters>
   <node>icub14</node>
   <tag>view Proba</tag>
 </module>
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /view/Dog --x 1360 --y 660 --RefreshTime 33</parameters>
+  <parameters>--name /view/DogL --x 1360 --y 660 --RefreshTime 33</parameters>
   <node>icub14</node>
-  <tag>view Dog</tag>
+  <tag>view Dog left</tag>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /view/DogR --x 1360 --y 660 --RefreshTime 33</parameters>
+  <node>icub14</node>
+  <tag>view Dog right</tag>
 </module>
 
 <module>
@@ -211,7 +218,13 @@
 
 <connection>
 <from>/zeroDisparityFilterMod/imageDog:o</from>
-  <to>/view/Dog</to>
+  <to>/view/DogL</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+<from>/zeroDisparityFilterMod/imageDogR:o</from>
+  <to>/view/DogR</to>
   <protocol>udp</protocol>
 </connection>
 
