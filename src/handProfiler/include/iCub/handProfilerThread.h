@@ -83,7 +83,10 @@ protected:
     yarp::sig::Vector x;           // vector representating the desired position for the hand
     yarp::sig::Vector o;           // vector representating the desired position for the hand
     yarp::sig::Vector xd;          // vector representating the desired position for the hand
+    yarp::sig::Vector xdHome;      // vector representating the desired position for the hand (HOME)
+    yarp::sig::Vector xdGazeHome;  // vector representating the desired position for the hand (GAZE HOME)
     yarp::sig::Vector od;          // vector representating the desired orientation for the hand
+    yarp::sig::Vector odHome;      // vector representating the desired orientation for the hand (HOME)
     yarp::sig::Vector xdhat;       // vector representating the desired orientation for the hand
     yarp::sig::Vector odhat;       // vector representating the desired orientation for the hand
     yarp::sig::Vector qdhat;       // vector representating the desired orientation for the hand
@@ -121,7 +124,7 @@ protected:
     std::ofstream infoOutputFile;                                 // file in which to save info about the movement
     std::ifstream inputFile;                                      // file to read joint positions from
     std::ifstream infoInputFile;                                  // file to read with info about the movement
-    enum States {none, simulation, execution, file};              // states for the controller
+    enum States {none, simulation, execution, file, home};              // states for the controller
     States state;
     yarp::os::Stamp* timestamp;                                   // timestamp for saving to file
 
@@ -290,7 +293,7 @@ public:
     void saveInfo();
 
     /**
-    *  function that set parameters for starting movement from a file with joint values
+    * @brief function that set parameters for starting movement from a file with joint values
     * @param factor to divide by execution time to speed up or slow down a movement from file
     */
     bool startJoints(double factor);
@@ -299,6 +302,12 @@ public:
     *  function that starts movement from a file with joint values
     */
     void startFromFile();
+
+    /**
+    * @brief function that starts movement from a file with joint values
+    * @return boolean indicating if the resetting was successful
+    */
+    bool startResetting();
 
      /**
     *  function that plays movement from a file with joint values

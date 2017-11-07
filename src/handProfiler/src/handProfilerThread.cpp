@@ -319,16 +319,23 @@ bool handProfilerThread::threadInit() {
     x.resize(3);
     o.resize(4);
     xd.resize(3);
+    xdHome.resize(3);
+    xdGazeHome.resize(3);
     od.resize(4);
+    odHome.resize(4);
     xdhat.resize(3);
     odhat.resize(4);
     qdhat.resize(4);
 
     t0 = Time::now();
     //initialization of the relevant vectors
+    xdHome[0] = -0.298; xdHome[1] = -0.210; xdHome[2] = 0.029;
+    xdGazeHome[0] = -0.5; xdGazeHome[1] = -0.0; xdGazeHome[2] = 0.35;
     //od[0] = -0.096; od[1] = 0.513; od[2] = -0.8528; od[3] = 2.514;
     od[0] = -0.076; od[1] = -0.974; od[2] = 0.213; od[3] = 3.03;
-
+    //0.024206	 0.867429	-0.496971	 2.449946
+    //-0.041466	 0.602459	-0.797072	 2.850305
+    odHome[0] = -0.041; odHome[1] = 0.602; odHome[2] = -0.797; odHome[3] = 2.85;
     yInfo("handProfiler thread correctly started");
 
     return true;
@@ -402,8 +409,6 @@ void  handProfilerThread::rotAxisX(const double& angle) {
     Cnew = mp->getC();
 
     // multiplying the vector by the matrix
-
-
     mp->setA(Anew);
     mp->setB(Bnew);
     mp->setC(Cnew);
@@ -503,6 +508,18 @@ bool handProfilerThread::startSimulation(const bool _reverse){
     firstIteration = true;
     t0 = Time::now();
 	return true;
+}
+bool handProfilerThread::startResetting(){
+    //count = 0;
+    //mp->setReverse(_reverse);
+    idle = true;
+    state = home;
+    bool ret = true;
+    icart-> goToPose(xdHome,odHome);
+    if(gazetracking) {                        
+        igaze->lookAtFixationPoint(xdGazeHome);
+    }
+	return ret;
 }
 
 bool handProfilerThread::saveJoints(){                                  //save to file

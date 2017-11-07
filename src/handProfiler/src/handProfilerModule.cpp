@@ -69,6 +69,7 @@
 #define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
 #define COMMAND_VOCAB_ROT    VOCAB3('R','O','T')
 #define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
+#define COMMAND_VOCAB_RES    VOCAB3('R','E','S')
 #define COMMAND_VOCAB_TTL    VOCAB3('T','T','L')
 #define COMMAND_VOCAB_CUS    VOCAB3('C','U','S')
 #define COMMAND_VOCAB_JOI    VOCAB3('J','O','I')            //save action joints in a file
@@ -258,6 +259,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
             reply.addString("STAR EXE : start execution  (green)");
+            reply.addString("STAR RES : start resetting of the posture");
             reply.addString("SIM CLR  : simulator cleaning");
             reply.addString("STAR FILE SPEE #value: start execution from file with speed multiplied for the value, if omitted default value is 1.0");
             reply.addString("SAVE JOI: save joints positions in file");
@@ -407,7 +409,17 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
         rec = true;
         {
             switch(command.get(1).asVocab()) {
+            case COMMAND_VOCAB_RES:
+                {
+                    bool rev = false;
+                    if(0!=rThread) {
+                        reply.addString("OK");                     
+                        rThread->startResetting();
 
+                    }
+                    ok = true;
+                }
+            break;
             case COMMAND_VOCAB_SIM:
                 {
                     bool rev = false;
