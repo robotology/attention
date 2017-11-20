@@ -66,8 +66,8 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     */
 
     setName(moduleName.c_str());
-    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(80), "what did the user select?").asInt();
-    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(0),
+    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(160), "what did the user select?").asInt();
+    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(1),
                                                                         "what did the user select?").asInt();
     parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base", Value(50),
                                                                       "what did the user select?").asInt();
@@ -99,6 +99,22 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
                                                           "what did the user select?").asDouble();
     parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(2),
                                                            "what did the user select?").asDouble();
+
+
+    //  Disparity choice of algorithm by default NDT
+    parameters.rankOrNDT = rf.findGroup("PARAMS").check("rankOrNDT", Value(1),  "what did the user select?").asBool();
+
+
+    //NDT parameters
+    parameters.ndtX = rf.findGroup("PARAMS").check("ndtX", Value(2),  "what did the user select?").asInt();
+    parameters.ndtY = rf.findGroup("PARAMS").check("ndtY", Value(2),  "what did the user select?").asInt();
+    parameters.ndtSize = rf.findGroup("PARAMS").check("ndtSize", Value(8),  "what did the user select?").asInt();
+    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(0),  "what did the user select?").asInt();
+
+    //RANK parameters
+    parameters.rankX = rf.findGroup("PARAMS").check("rankX", Value(2),  "what did the user select?").asInt();
+    parameters.rankY = rf.findGroup("PARAMS").check("rankY", Value(2),  "what did the user select?").asInt();
+    parameters.rankSize = rf.findGroup("PARAMS").check("rankSize", Value(8),  "what did the user select?").asInt();
 
 
     /*
@@ -397,6 +413,12 @@ ZDFThread::ZDFThread(MultiClass::Parameters *parameters, string workWith) {
     temp_r_ipl = NULL;
 
 
+    ndt1 = (int*)malloc(sizeof(int) * params->ndtSize);
+    ndt2 = (int*)malloc(sizeof(int) * params->ndtSize);
+    rank1 = (int*)malloc(sizeof(int) * params->rankSize);
+    rank2 = (int*)malloc(sizeof(int) * params->rankSize);
+
+
     yInfo("max_iteration: %d", parameters->iter_max);
     yInfo("randomize_iteration: %d", parameters->randomize_every_iteration);
     yInfo("smoothness_penalty_base: %d", parameters->smoothness_penalty_base);
@@ -647,7 +669,7 @@ void ZDFThread::run() {
                     if (p_dogonoff_l[index] > data_penalty ||
                         p_dogonoff_r[index] > bland_dog_thresh) {
 
-                        if (RANK0_NDT1 == 0) {
+                        if (params->rankOrNDT == 0) {
                             //use RANK:
                             get_rank(c, (unsigned char *) fov_l_ipl->imageData, fov_l_ipl->widthStep,
                                      rank1);   //yDebug("got RANK from left\n");
@@ -1113,12 +1135,12 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     cog_x_send = 0.0;
     cog_y_send = 0.0;
 
-    if (RANK0_NDT1 == 0) {
-        koffsetx = RANKX;
-        koffsety = RANKY;
+    if (params->rankOrNDT == 0) {
+        koffsetx = params->rankX;
+        koffsety = params->rankY;
     } else {
-        koffsetx = NDTX;
-        koffsety = NDTY;
+        koffsetx = params->ndtX;
+        koffsety = params->ndtY;
     }
 
     nclasses = 2; // set the number of the classes in the classification
@@ -1273,76 +1295,76 @@ void ZDFThread::get_ndt(Coord c, unsigned char *im, int w, int *list) {
     int ndt_ind = 0;
     n = c + Coord(1, 0);
 
-    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
         list[ndt_ind] = 0;
-    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
         list[ndt_ind] = 1;
     else
         list[ndt_ind] = -1;
 
     ndt_ind++;
     n = c + Coord(0, 1);
-    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
         list[ndt_ind] = 0;
-    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
         list[ndt_ind] = 1;
     else
         list[ndt_ind] = -1;
 
     ndt_ind++;
     n = c + Coord(-1, 0);
-    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
         list[ndt_ind] = 0;
-    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
         list[ndt_ind] = 1;
     else
         list[ndt_ind] = -1;
 
     ndt_ind++;
     n = c + Coord(0, -1);
-    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+    if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
         list[ndt_ind] = 0;
-    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+    else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
         list[ndt_ind] = 1;
     else
         list[ndt_ind] = -1;
 
 
-    if (NDTSIZE > 4) {
+    if (params->ndtSize > 4) {
 
         //diagonals:
         ndt_ind++;
         n = c + Coord(1, 1);
-        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
             list[ndt_ind] = 0;
-        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
             list[ndt_ind] = 1;
         else
             list[ndt_ind] = -1;
 
         ndt_ind++;
         n = c + Coord(1, -1);
-        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
             list[ndt_ind] = 0;
-        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
             list[ndt_ind] = 1;
         else
             list[ndt_ind] = -1;
 
         ndt_ind++;
         n = c + Coord(-1, 1);
-        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
             list[ndt_ind] = 0;
-        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
             list[ndt_ind] = 1;
         else
             list[ndt_ind] = -1;
 
         ndt_ind++;
         n = c + Coord(-1, -1);
-        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= NDTEQ)
+        if (abs(im[n.y * w + n.x] - im[c.y * w + c.x]) <= params->ndtEQ)
             list[ndt_ind] = 0;
-        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > NDTEQ)
+        else if (im[n.y * w + n.x] - im[c.y * w + c.x] > params->ndtEQ)
             list[ndt_ind] = 1;
         else
             list[ndt_ind] = -1;
@@ -1353,12 +1375,12 @@ double ZDFThread::cmp_ndt(int *ndt_l, int *ndt_r) {
 
     int s = 0;
 
-    for (int count = 0; count < NDTSIZE; count++) {
+    for (int count = 0; count < params->ndtSize; count++) {
         if (ndt_l[count] == ndt_r[count]) {
             s++;
         }
     }
-    return ((double) s) / ((double) NDTSIZE);
+    return ((double) s) / ((double) params->ndtSize);
 
 }
 
@@ -1367,8 +1389,8 @@ void ZDFThread::get_rank(Coord c, unsigned char *im, int w, int *list) {
     Coord n;
     int i = 0;
 
-    for (int x = -RANKX; x <= RANKX; x++) {
-        for (int y = -RANKY; y <= RANKY; y++) {
+    for (int x = -params->rankX; x <= params->rankX; x++) {
+        for (int y = -params->rankY; y <= params->rankY; y++) {
 
             n = c + Coord(x, y);
             list[i] = im[n.y * w + n.x];
@@ -1387,8 +1409,8 @@ double ZDFThread::cmp_rank(int *l1, int *l2) {
 
     double tau;//,svar,z,prob;
 
-    for (int j = 0; j < RANKSIZE; j++) {
-        for (int k = j + 1; k < RANKSIZE; k++) {
+    for (int j = 0; j < params->rankSize; j++) {
+        for (int k = j + 1; k < params->rankSize; k++) {
             a1 = l1[j] - l1[k];
             a2 = l2[j] - l2[k];
             aa = a1 * a2;

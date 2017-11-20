@@ -263,7 +263,7 @@ void DoG::procOpenCv(IplImage *in_, double xOne, double xTwo) {
     *out_dog_onoff_image = (IplImage) dog_mat;
 
 
-    printf("procedure concluded \n");
+    printf("proceduree concluded \n");
 
 }
 

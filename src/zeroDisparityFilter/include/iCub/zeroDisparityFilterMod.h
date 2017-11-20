@@ -51,13 +51,13 @@
 //NDT:
 #define NDTX     2
 #define NDTY     2
-#define NDTSIZE  1 //4 or 8: 4
+#define NDTSIZE  8 //4 or 8: 4
 //RANK:
 #define RANKY    2 //1 or 2
 #define RANKX    2  //1 or 2
 #define RANKSIZE 25  //9 or 25: 9
 
-#define NDTEQ    20 //0
+#define NDTEQ    1 //0
 
 #define COMMAND_VOCAB_IS   VOCAB2('i','s')
 #define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
@@ -121,10 +121,10 @@ private:
     int mid_x, mid_y, mid_x_m, mid_y_m, area;
     double cog_x, cog_y, cog_x_send, cog_y_send, spread, cmp_res;
     int koffsetx, koffsety;
-    int ndt1[NDTSIZE];
-    int ndt2[NDTSIZE];
-    int rank1[RANKSIZE];
-    int rank2[RANKSIZE];
+    int *ndt1;
+    int *ndt2;
+    int *rank1;
+    int *rank2;
 
     Coord c;
 
