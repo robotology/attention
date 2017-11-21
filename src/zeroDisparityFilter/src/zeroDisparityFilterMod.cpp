@@ -735,12 +735,12 @@ void ZDFThread::run() {
                         if (Tmpout)break;
                     }
 
-                    int u = 0;
-                    int v = 0;
+
                     tempSize.width = right - left + 1;
                     tempSize.height = bottom - top + 1;
 
-                    tempImg_ipl = cvCreateImage(cvSize(tempSize.width, tempSize.height), IPL_DEPTH_8U, 3);
+                    tempImg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
+                    cvSet(tempImg_ipl, cvScalar(0,0,0));
                     tempImg = (unsigned char *) tempImg_ipl->imageData;
                     psbtemp = tempImg_ipl->widthStep;
 
@@ -770,20 +770,18 @@ void ZDFThread::run() {
                     cvResetImageROI(left_originalImage_ipl);
                     */
 
-
+                    int u = 0;
+                    int v = 0;
                     for (int j = top; j < bottom + 1; j++) {
                         for (int i = left; i < right + 1; i++) {
+
                             if ((int) seg_im[i + j * psb_m] > 0) {
                                 int x = srcsize.width / 2 - foveaSize.width / 2 + i;
                                 int y = srcsize.height / 2 - foveaSize.height / 2 + j;
-                                tempImg[u * 3 + v * psbtemp] = copyImg[x * 3 + y * psbCopy];
-                                tempImg[u * 3 + v * psbtemp + 1] = copyImg[x * 3 + y * psbCopy + 1];
-                                tempImg[u * 3 + v * psbtemp + 2] = copyImg[x * 3 + y * psbCopy + 2];
+                                tempImg[x * 3 + y * psbtemp] = copyImg[x * 3 + y * psbCopy];
+                                tempImg[x * 3 + y * psbtemp + 1] = copyImg[x * 3 + y * psbCopy + 1];
+                                tempImg[x * 3 + y * psbtemp + 2] = copyImg[x * 3 + y * psbCopy + 2];
 
-                            } else {
-                                tempImg[u * 3 + v * psbtemp] = 0;
-                                tempImg[u * 3 + v * psbtemp + 1] = 0;
-                                tempImg[u * 3 + v * psbtemp + 2] = 0;
                             }
                             u++;
                         }
