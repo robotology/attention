@@ -47,7 +47,7 @@ void Detector::loop()
         ImageOf<PixelRgb> &outImage = outPort.prepare(); //get an output image
         outImage = *image;
         display = (IplImage*) outImage.getIplImage();
-        Mat imgMat = display;
+        Mat imgMat = cvarrToMat(display);
         circle_t c;
         detectAndDraw(imgMat, 1.3, c);
 

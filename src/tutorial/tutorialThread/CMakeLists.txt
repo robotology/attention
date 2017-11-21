@@ -14,6 +14,7 @@ INCLUDE_DIRECTORIES(
     ${YARP_INCLUDE_DIRS} 	
     ${ICUB_INCLUDE_DIRS}	
     ${ICUB_CONTRIB_DIRS}
+    ${OpenCV_DIRS}
     ${ATTENTIONLIB_INCLUDE_DIRS}
 )
 
@@ -31,7 +32,7 @@ IF (folder_source)
     )
 
     TARGET_LINK_LIBRARIES(${KEYWORD}        
-
+      ${OpenCV_LIBRARIES}
       ${YARP_LIBRARIES}
       )	
 

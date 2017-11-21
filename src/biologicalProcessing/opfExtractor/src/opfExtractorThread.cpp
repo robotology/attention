@@ -176,7 +176,7 @@ void opfExtractorThread::run() {
 
 bool opfExtractorThread::processing(){
     numberProcessing++;
-    cv::Mat Matrix((IplImage*) inputImage->getIplImage(), false);
+    cv::Mat Matrix(cvarrToMat(inputImage->getIplImage()), false);
     if(!firstProcessing) {
         previousMatrix=currentMatrix.clone();
     }

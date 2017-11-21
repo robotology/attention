@@ -46,6 +46,7 @@
 #include <cvaux.h>
 #include <highgui.h>
 #include <cstring>
+#include <opencv2/video/tracking.hpp>
 
 #define TH1__ 0.5
 #define TH2__ 0.5

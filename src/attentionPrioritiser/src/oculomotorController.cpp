@@ -894,7 +894,7 @@ double oculomotorController::calculateEntropy(yarp::sig::ImageOf<yarp::sig::Pixe
 
 
     //cv::Mat matImage;
-    const cv::Mat mat((const IplImage*) hsv->getIplImage(), true);
+    const cv::Mat mat( cv::cvarrToMat(hsv->getIplImage()), true);
     //cvConvert(hsv->getIplImage(),mat);
     //    matImage.data = (char *)hsv->getIplImage().imageData;
     //nst cv::Mat* cvHsvP = (const cv::Mat*)hsv->getIplImage();

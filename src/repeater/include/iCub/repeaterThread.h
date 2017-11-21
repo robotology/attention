@@ -34,6 +34,7 @@
 #include <fstream>
 #include <time.h>
 #include <cv.h>
+#include <opencv2/imgproc/imgproc.hpp> 
 
 class inputCBPort : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > {
 

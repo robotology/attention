@@ -11,6 +11,7 @@ INCLUDE_DIRECTORIES(
     ${ICUB_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS}
     ${iKin_INCLUDE_DIRS}
+    ${OpenCV_DIRS}
     ${logpolar_INCLUDE_DIRS}
 )
 
@@ -30,6 +31,7 @@ IF (folder_source)
     TARGET_LINK_LIBRARIES( ${KEYWORD} 
       		${YARP_LIBRARIES}
 		${IPP_LIBRARIES}
+                ${OpenCV_LIBRARIES}
 		logpolar
 		#icubmod
 		iKin

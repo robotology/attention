@@ -41,6 +41,7 @@
 #include <cv.h>
 #include <math.h>
 #include <highgui.h>
+#include <opencv2/imgproc/imgproc.hpp> 
 
 //within project includes
 #include <iCub/observer.h>
