@@ -391,8 +391,8 @@ ZDFThread::ZDFThread(MultiClass::Parameters *parameters, string workWith) {
     zd_prob_8u_ipl = NULL;
     o_prob_8u_ipl = NULL;
     tempImg_ipl = NULL;
-    l_orig_ipl = NULL;
-    r_orig_ipl = NULL;
+    left_originalImage_ipl = NULL;
+    right_originalImage_ipl = NULL;
     yuva_orig_l_ipl = NULL;
     yuva_orig_r_ipl = NULL;
     tmp_ipl = NULL;
@@ -443,43 +443,6 @@ ZDFThread::~ZDFThread() {
     //HACK: better call deallocate - it's improved. #amaroyo 04/02/2016
     deallocate();
 
-
-    /*
-    delete dl;
-    delete dr;
-    delete m;
-    cvReleaseImage(&copyImg_ipl);        //ippiFree(copyImg);
-    cvReleaseImage(&l_orig_ipl);         //ippiFree(l_orig);
-    cvReleaseImage(&r_orig_ipl);         //ippiFree(r_orig);
-    cvReleaseImage(&yuva_orig_l_ipl);    //ippiFree(yuva_orig_l);
-    cvReleaseImage(&yuva_orig_r_ipl);    //ippiFree(yuva_orig_r);
-    cvReleaseImage(&tmp_ipl);            //ippiFree(tmp);
-    cvReleaseImage(&first_plane_l_ipl);  //ippiFree(first_plane_l);
-    cvReleaseImage(&second_plane_l_ipl); //ippiFree(second_plane_l);
-    cvReleaseImage(&third_plane_l_ipl);  //ippiFree(third_plane_l);
-    cvReleaseImage(&first_plane_r_ipl);  //ippiFree(first_plane_r);
-    cvReleaseImage(&second_plane_r_ipl); //ippiFree(second_plane_r);
-    cvReleaseImage(&third_plane_r_ipl);  //ippiFree(third_plane_r);
-    free(pyuva_l);
-    free(pyuva_r);
-    cvReleaseImage(&rec_im_ly_ipl);  //ippiFree(rec_im_ly);
-    cvReleaseImage(&rec_im_ry_ipl);  //ippiFree(rec_im_ry);
-    cvReleaseImage(&res_t_ipl);      //ippiFree(res_t);
-    cvReleaseImage(&out_ipl);        //ippiFree(out);
-    cvReleaseImage(&seg_im_ipl);     //ippiFree(seg_im);
-    cvReleaseImage(&seg_dog_ipl);    //ippiFree(seg_dog);
-    cvReleaseImage(&fov_l_ipl);      //ippiFree(fov_l);
-    cvReleaseImage(&fov_r_ipl);      //ippiFree(fov_r);
-    cvReleaseImage(&zd_prob_8u_ipl); //ippiFree(zd_prob_8u);
-    cvReleaseImage(&o_prob_8u_ipl); //ippiFree(o_prob_8u);
-    free(p_prob);
-    cvReleaseImage(&template_left_ipl);     //ippiFree(temp_l);
-    cvReleaseImage(&temp_r_ipl);     //ippiFree(temp_r);
-    delete img_out_prob;
-    delete img_out_seg;
-    delete img_out_dog;
-
-    */
 
 }
 
@@ -567,20 +530,22 @@ void ZDFThread::run() {
                     img_in_right->resize(srcsize.width, srcsize.height);
 
                 }
+
+
                 //Make a copy of the left input Image
                 cvCopy((IplImage *) img_in_left->getIplImage(), copyImg_ipl, NULL);
                 copyImg = (unsigned char *) copyImg_ipl->imageData;
 
                 // Copy left and Right image from input Yarp-port
-                cvCopy((IplImage *) img_in_left->getIplImage(), l_orig_ipl, NULL);
-                cvCopy((IplImage *) img_in_right->getIplImage(), r_orig_ipl, NULL);
+                cvCopy((IplImage *) img_in_left->getIplImage(), left_originalImage_ipl, NULL);
+                cvCopy((IplImage *) img_in_right->getIplImage(), right_originalImage_ipl, NULL);
 
             }
 
 
             //Preprocess the input image
-            preprocessImageHSV(l_orig_ipl, rec_im_ly_ipl);
-            preprocessImageHSV(r_orig_ipl, rec_im_ry_ipl);
+            preprocessImageHSV(left_originalImage_ipl, rec_im_ly_ipl);
+            preprocessImageHSV(right_originalImage_ipl, rec_im_ry_ipl);
 
             if (acquire) {
                 yDebug("Acquiring : set new Region of Interest \n");
@@ -614,11 +579,11 @@ void ZDFThread::run() {
             //Create right fovea and find right template in right image:
             yDebug("creating right fovea and right template matching \n");
 
-//            cvSetImageROI(rec_im_ry_ipl, foveaRec);
-//            cvCopy(rec_im_ry_ipl, fov_r_ipl, NULL);
-//            cvResetImageROI(rec_im_ry_ipl);
+            cvSetImageROI(rec_im_ry_ipl, foveaRec);
+            cvCopy(rec_im_ry_ipl, fov_r_ipl, NULL);
+            cvResetImageROI(rec_im_ry_ipl);
 
-            matchTemplate(fov_l_ipl, rec_im_ry_ipl, fov_r_ipl);
+//            matchTemplate(fov_l_ipl, rec_im_ry_ipl, fov_r_ipl);
 
 
             //*****************************************************************
@@ -642,76 +607,7 @@ void ZDFThread::run() {
             delete centerSurround;
 
 
-
-
-            //*****************************************************************
-            //SPATIAL ZD probability map from fov_l and fov_r:
-            yDebug("computing the spatial ZD probability map from fov_l and fov_r \n");
-
-            //perform RANK or NDT kernel comparison:
-            o_prob_8u = (unsigned char *) o_prob_8u_ipl->imageData;
-            zd_prob_8u = (unsigned char *) zd_prob_8u_ipl->imageData;
-
-            int data_penalty = params->data_penalty;
-            int bland_dog_thresh = params->bland_dog_thresh;
-
-            unsigned char *p_dogonoff_l = (unsigned char *) leftDOG->imageData;
-            unsigned char *p_dogonoff_r = (unsigned char *) rightDOG->imageData;
-
-            for (int j = koffsety; j < foveaSize.height - koffsety; j++) {
-                c.y = j;
-                for (int i = koffsetx; i < foveaSize.width - koffsetx; i++) {
-                    c.x = i;
-                    int index = i + j * leftDOG->width;
-
-
-                    //if either l or r textured at this retinal location:
-                    if (p_dogonoff_l[index] > data_penalty ||
-                        p_dogonoff_r[index] > bland_dog_thresh) {
-
-                        if (params->rankOrNDT == 0) {
-                            //use RANK:
-                            get_rank(c, (unsigned char *) fov_l_ipl->imageData, fov_l_ipl->widthStep,
-                                     rank1);   //yDebug("got RANK from left\n");
-                            get_rank(c, (unsigned char *) fov_r_ipl->imageData, fov_r_ipl->widthStep,
-                                     rank2);   //yDebug("got RANK from right\n");
-                            cmp_res = cmp_rank(rank1, rank2);
-                            //yDebug("compared RANKS \n");
-                        } else {
-                            //use NDT:
-                            get_ndt(c, (unsigned char *) fov_l_ipl->imageData, fov_l_ipl->widthStep, ndt1);
-                            get_ndt(c, (unsigned char *) fov_r_ipl->imageData, fov_l_ipl->widthStep, ndt2);
-                            cmp_res = cmp_ndt(ndt1, ndt2);
-                        }
-                        zd_prob_8u[index] = (unsigned char) (cmp_res * 255.0);
-                    } else {
-                        //untextured in both l & r, so set to bland prob (ZD):
-                        zd_prob_8u[index] = (unsigned char) (params->bland_prob * 255.0);//bland_prob
-                    }
-
-                    //RADIAL PENALTY:
-                    //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
-                    //current radius:
-
-                    r = sqrt((c.x - foveaSize.width / 2.0) * (c.x - foveaSize.width / 2.0) +
-                             (c.y - foveaSize.height / 2.0) * (c.y - foveaSize.height / 2.0));
-
-                    rad_pen = (int) ((r / rmax) * params->radial_penalty);
-                    max_rad_pen = zd_prob_8u[index];
-
-                    if (max_rad_pen < rad_pen) {
-                        rad_pen = max_rad_pen;
-                    }
-
-                    //apply radial penalty
-                    zd_prob_8u[index] -= rad_pen;
-
-                    //manufacture NZD prob (other):
-                    o_prob_8u[index] = (unsigned char) (255 - zd_prob_8u[index]);
-
-                }
-            }
-
+            processDisparityMap(leftDOG, rightDOG);
 
             //*******************************************************************
             //Do MRF optimization:
@@ -793,7 +689,7 @@ void ZDFThread::run() {
                 //report that we didn't update template:
                 //-----------------------------------------------extract just template
 
-                if (imageOutTemp.getOutputCount() > 0) {
+                if (imageOutTemp.getOutputCount() > 0 || imageOutTemp2.getOutputCount() > 0) {
                     cout << " sending template " << endl;
                     int top = -1;
                     int left = -1;
@@ -849,7 +745,7 @@ void ZDFThread::run() {
                     psbtemp = tempImg_ipl->widthStep;
 
                     IplImage *original_seg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
-                    cvCopy(l_orig_ipl, original_seg_ipl, NULL);
+                    cvCopy(left_originalImage_ipl, original_seg_ipl, NULL);
 
 
                     int topBis, bottomBis, leftBis, rightBis;
@@ -868,10 +764,10 @@ void ZDFThread::run() {
                     cvRectangle(original_seg_ipl, pt1, pt2, CvScalar(255, 0, 0), 2);
 
                     /*
-                    cvSetImageROI(l_orig_ipl, rRect);
+                    cvSetImageROI(left_originalImage_ipl, rRect);
                     IplImage * temp2 =  cvCreateImage(cvSize(rRect.width, rRect.height), IPL_DEPTH_8U,3);
-                    cvCopy(l_orig_ipl, temp2);
-                    cvResetImageROI(l_orig_ipl);
+                    cvCopy(left_originalImage_ipl, temp2);
+                    cvResetImageROI(left_originalImage_ipl);
                     */
 
 
@@ -907,12 +803,12 @@ void ZDFThread::run() {
                     }
 
                     if( imageOutTemp2.getOutputCount() > 0) {
-                        yarp::sig::ImageOf<yarp::sig::PixelBgr> *processingRgbImage  = &imageOutTemp2.prepare();
-                        processingRgbImage->resize(original_seg_ipl->width, original_seg_ipl->height);
-                        processingRgbImage->wrapIplImage(original_seg_ipl); //temp_r_ipl
+                        yarp::sig::ImageOf<yarp::sig::PixelBgr> *processingRgbImageBis  = &imageOutTemp2.prepare();
+                        processingRgbImageBis->resize(original_seg_ipl->width, original_seg_ipl->height);
+                        processingRgbImageBis->wrapIplImage(original_seg_ipl); //temp_r_ipl
                         imageOutTemp2.write();
 
-                        //cvCopy(l_orig_ipl, img_out_temp->getIplImage(), NULL);
+                        //cvCopy(left_originalImage_ipl, img_out_temp->getIplImage(), NULL);
                         yDebug("copied image success \n");
 
 
@@ -1047,8 +943,8 @@ void ZDFThread::deallocate() {
 
     if (tempImg_ipl != NULL) cvReleaseImage(&tempImg_ipl);
     if (copyImg_ipl != NULL) cvReleaseImage(&copyImg_ipl);
-    if (l_orig_ipl != NULL) cvReleaseImage(&l_orig_ipl);
-    if (r_orig_ipl != NULL) cvReleaseImage(&r_orig_ipl);
+    if (left_originalImage_ipl != NULL) cvReleaseImage(&left_originalImage_ipl);
+    if (right_originalImage_ipl != NULL) cvReleaseImage(&right_originalImage_ipl);
     if (yuva_orig_l_ipl != NULL) cvReleaseImage(&yuva_orig_l_ipl);
     if (yuva_orig_r_ipl != NULL) cvReleaseImage(&yuva_orig_r_ipl);
     if (tmp_ipl != NULL) cvReleaseImage(&tmp_ipl);
@@ -1157,9 +1053,9 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
 
     //l_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
     //r_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
-    l_orig_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
-    r_orig_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
-    psb4 = l_orig_ipl->widthStep;
+    left_originalImage_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
+    right_originalImage_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
+    psb4 = left_originalImage_ipl->widthStep;
 
     //rec_im_ly   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
     //rec_im_ry   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
@@ -1630,10 +1526,75 @@ void ZDFThread::getRoundingBoxSegmented(int *top, int *bottom, int *left, int *r
         }
 }
 
+void ZDFThread::processDisparityMap(IplImage *leftDOG, IplImage *rightDOG){
+//*****************************************************************
+    //SPATIAL ZD probability map from fov_l and fov_r:
+    yDebug("computing the spatial ZD probability map from fov_l and fov_r \n");
+
+    //perform RANK or NDT kernel comparison:
+    o_prob_8u = (unsigned char *) o_prob_8u_ipl->imageData;
+    zd_prob_8u = (unsigned char *) zd_prob_8u_ipl->imageData;
+
+    int data_penalty = params->data_penalty;
+    int bland_dog_thresh = params->bland_dog_thresh;
+
+    unsigned char *p_dogonoff_l = (unsigned char *) leftDOG->imageData;
+    unsigned char *p_dogonoff_r = (unsigned char *) rightDOG->imageData;
+
+    for (int j = koffsety; j < foveaSize.height - koffsety; j++) {
+        c.y = j;
+        for (int i = koffsetx; i < foveaSize.width - koffsetx; i++) {
+            c.x = i;
+            int index = i + j * leftDOG->width;
 
 
+            //if either l or r textured at this retinal location:
+            if (p_dogonoff_l[index] > data_penalty ||
+                p_dogonoff_r[index] > bland_dog_thresh) {
 
+                if (params->rankOrNDT == 0) {
+                    //use RANK:
+                    get_rank(c, (unsigned char *) fov_l_ipl->imageData, fov_l_ipl->widthStep,
+                             rank1);   //yDebug("got RANK from left\n");
+                    get_rank(c, (unsigned char *) fov_r_ipl->imageData, fov_r_ipl->widthStep,
+                             rank2);   //yDebug("got RANK from right\n");
+                    cmp_res = cmp_rank(rank1, rank2);
+                    //yDebug("compared RANKS \n");
+                } else {
+                    //use NDT:
+                    get_ndt(c, (unsigned char *) fov_l_ipl->imageData, fov_l_ipl->widthStep, ndt1);
+                    get_ndt(c, (unsigned char *) fov_r_ipl->imageData, fov_l_ipl->widthStep, ndt2);
+                    cmp_res = cmp_ndt(ndt1, ndt2);
+                }
+                zd_prob_8u[index] = (unsigned char) (cmp_res * 255.0);
+            } else {
+                //untextured in both l & r, so set to bland prob (ZD):
+                zd_prob_8u[index] = (unsigned char) (params->bland_prob * 255.0);//bland_prob
+            }
 
+            //RADIAL PENALTY:
+            //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
+            //current radius:
+
+            r = sqrt((c.x - foveaSize.width / 2.0) * (c.x - foveaSize.width / 2.0) +
+                     (c.y - foveaSize.height / 2.0) * (c.y - foveaSize.height / 2.0));
+
+            rad_pen = (int) ((r / rmax) * params->radial_penalty);
+            max_rad_pen = zd_prob_8u[index];
+
+            if (max_rad_pen < rad_pen) {
+                rad_pen = max_rad_pen;
+            }
+
+            //apply radial penalty
+            zd_prob_8u[index] -= rad_pen;
+
+            //manufacture NZD prob (other):
+            o_prob_8u[index] = (unsigned char) (255 - zd_prob_8u[index]);
+
+        }
+    }
+}
 
 
 #pragma clang diagnostic pop
