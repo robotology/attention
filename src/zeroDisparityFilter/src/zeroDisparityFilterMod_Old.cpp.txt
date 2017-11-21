@@ -371,8 +371,8 @@ ZDFThread::ZDFThread(MultiClass::Parameters *parameters, string workWith) {
     zd_prob_8u_ipl = NULL;
     o_prob_8u_ipl = NULL;
     tempImg_ipl = NULL;
-    l_orig_ipl = NULL;
-    r_orig_ipl = NULL;
+    left_originalImage_ipl = NULL;
+    right_originalImage_ipl = NULL;
     yuva_orig_l_ipl = NULL;
     yuva_orig_r_ipl = NULL;
     tmp_ipl = NULL;
@@ -423,8 +423,8 @@ ZDFThread::~ZDFThread() {
     delete dr;
     delete m;
     cvReleaseImage(&copyImg_ipl);        //ippiFree(copyImg);
-    cvReleaseImage(&l_orig_ipl);         //ippiFree(l_orig);
-    cvReleaseImage(&r_orig_ipl);         //ippiFree(r_orig);
+    cvReleaseImage(&left_originalImage_ipl);         //ippiFree(l_orig);
+    cvReleaseImage(&right_originalImage_ipl);         //ippiFree(r_orig);
     cvReleaseImage(&yuva_orig_l_ipl);    //ippiFree(yuva_orig_l);
     cvReleaseImage(&yuva_orig_r_ipl);    //ippiFree(yuva_orig_r);
     cvReleaseImage(&tmp_ipl);            //ippiFree(tmp);
@@ -540,10 +540,10 @@ void ZDFThread::run() {
                 copyImg = (unsigned char *) copyImg_ipl->imageData;
 
                 //ippiCopy_8u_C3AC4R( img_in_left->getRawImage(), img_in_left->getRowSize(), l_orig, psb4, srcsize );
-                cvCopy((IplImage *) img_in_left->getIplImage(), l_orig_ipl, NULL);
+                cvCopy((IplImage *) img_in_left->getIplImage(), left_originalImage_ipl, NULL);
 
                 //ippiCopy_8u_C3AC4R( img_in_right->getRawImage(), img_in_right->getRowSize(), r_orig, psb4, srcsize );
-                cvCopy((IplImage *) img_in_right->getIplImage(), r_orig_ipl, NULL);
+                cvCopy((IplImage *) img_in_right->getIplImage(), right_originalImage_ipl, NULL);
 
             }
             /*
@@ -552,7 +552,7 @@ void ZDFThread::run() {
             //ippiRGBToYUV_8u_AC4R( l_orig, psb4, yuva_orig_l, psb4, srcsize );
             //ippiCopy_8u_C4P4R( yuva_orig_l, psb4, pyuva_l, psb, srcsize );
 
-            cvCvtColor(l_orig_ipl, yuva_orig_l_ipl, CV_RGB2HSV);
+            cvCvtColor(left_originalImage_ipl, yuva_orig_l_ipl, CV_RGB2HSV);
             cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, NULL);
 
             first_plane_l = (unsigned char *) first_plane_l_ipl->imageData;
@@ -566,7 +566,7 @@ void ZDFThread::run() {
             //ippiRGBToYUV_8u_AC4R( r_orig, psb4, yuva_orig_r, psb4, srcsize );
             //ippiCopy_8u_C4P4R( yuva_orig_r, psb4, pyuva_r, psb, srcsize );
 
-            cvCvtColor(r_orig_ipl, yuva_orig_r_ipl, CV_RGB2HSV);
+            cvCvtColor(right_originalImage_ipl, yuva_orig_r_ipl, CV_RGB2HSV);
             cvSplit(yuva_orig_r_ipl, first_plane_r_ipl, second_plane_r_ipl, third_plane_r_ipl, NULL);
 
 
@@ -582,8 +582,8 @@ void ZDFThread::run() {
             //ippiCopy_8u_C1R( first_plane_r, f_psb,  rec_im_ry, psb_in, srcsize);
 
 
-            //cvCvtColor(l_orig_ipl,rec_im_ly_ipl, CV_RGB2GRAY);
-            //cvCvtColor(r_orig_ipl,rec_im_ry_ipl, CV_RGB2GRAY);
+            //cvCvtColor(left_originalImage_ipl,rec_im_ly_ipl, CV_RGB2GRAY);
+            //cvCvtColor(right_originalImage_ipl,rec_im_ry_ipl, CV_RGB2GRAY);
 
             //cvAdd(second_plane_l_ipl, third_plane_l_ipl, rec_im_ly_ipl);
             //cvAdd(second_plane_r_ipl, third_plane_r_ipl, rec_im_ry_ipl);
@@ -593,8 +593,8 @@ void ZDFThread::run() {
             cvCopy(second_plane_r_ipl, rec_im_ry_ipl, NULL);
             */
 
-            preprocessImageHSV(l_orig_ipl, rec_im_ly_ipl);
-            preprocessImageHSV(r_orig_ipl, rec_im_ry_ipl);
+            preprocessImageHSV(left_originalImage_ipl, rec_im_ly_ipl);
+            preprocessImageHSV(right_originalImage_ipl, rec_im_ry_ipl);
 
             if (acquire) {
 
@@ -924,7 +924,7 @@ void ZDFThread::run() {
 
                         IplImage *original_seg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U,
                                                                    3);
-                        cvCopy(l_orig_ipl, original_seg_ipl, NULL);
+                        cvCopy(left_originalImage_ipl, original_seg_ipl, NULL);
 
                         int yOneSeg = mid_y + top;
                         int yTwoSeg = mid_y + ( bottom - top );
@@ -972,7 +972,7 @@ void ZDFThread::run() {
 
 
 
-                        //cvCopy(l_orig_ipl, img_out_temp->getIplImage(), NULL);
+                        //cvCopy(left_originalImage_ipl, img_out_temp->getIplImage(), NULL);
                         yDebug("copied image success \n");
 
 
@@ -1125,8 +1125,8 @@ void ZDFThread::deallocate() {
 
     if (tempImg_ipl != NULL) cvReleaseImage(&tempImg_ipl);
     if (copyImg_ipl != NULL) cvReleaseImage(&copyImg_ipl);
-    if (l_orig_ipl != NULL) cvReleaseImage(&l_orig_ipl);
-    if (r_orig_ipl != NULL) cvReleaseImage(&r_orig_ipl);
+    if (left_originalImage_ipl != NULL) cvReleaseImage(&left_originalImage_ipl);
+    if (right_originalImage_ipl != NULL) cvReleaseImage(&right_originalImage_ipl);
     if (yuva_orig_l_ipl != NULL) cvReleaseImage(&yuva_orig_l_ipl);
     if (yuva_orig_r_ipl != NULL) cvReleaseImage(&yuva_orig_r_ipl);
     if (tmp_ipl != NULL) cvReleaseImage(&tmp_ipl);
@@ -1232,9 +1232,9 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
 
     //l_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
     //r_orig      = ippiMalloc_8u_C4( srcsize.width, srcsize.height, &psb4);
-    l_orig_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
-    r_orig_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
-    psb4 = l_orig_ipl->widthStep;
+    left_originalImage_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
+    right_originalImage_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
+    psb4 = left_originalImage_ipl->widthStep;
 
     //rec_im_ly   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);
     //rec_im_ry   = ippiMalloc_8u_C1( srcsize.width, srcsize.height, &psb_in);

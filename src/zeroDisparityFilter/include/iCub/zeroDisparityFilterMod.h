@@ -186,7 +186,7 @@ private:
 
     //test
     unsigned char *l_orig, *r_orig;                   // Ipp8u
-    IplImage *l_orig_ipl, *r_orig_ipl;
+    IplImage *left_originalImage_ipl, *right_originalImage_ipl;
     int psb;
     defRect inroi;
     defSize insize;
@@ -251,6 +251,8 @@ public:
     void filterInputImage(IplImage* input, IplImage* dst);
 
     void matchTemplate(IplImage* templateImage, IplImage* inputImage,  IplImage* dst);
+
+    void processDisparityMap(IplImage *leftDOG, IplImage *rightDOG);
 
 };
 
