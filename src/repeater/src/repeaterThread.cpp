@@ -153,9 +153,9 @@ void repeaterThread::processing() {
     unsigned char* pOut = outputImage->getRawImage();
     int outPadding = outputImage->getPadding();
 
-    cv::Mat inputMatrix(  cv::cvarrToMat(inputImage->getIplImage()),  false);
-    cv::Mat tempMatrix(   cv::cvarrToMat(outputImage->getIplImage()), false);
-    cv::Mat outputMatrix( cv::cvarrToMat(outputImage->getIplImage()), false);
+    cv::Mat inputMatrix(  (IplImage*) inputImage->getIplImage(),  false);
+    cv::Mat tempMatrix(   (IplImage*) outputImage->getIplImage(), false);
+    cv::Mat outputMatrix( (IplImage*) outputImage->getIplImage(), false);
 
     
 
