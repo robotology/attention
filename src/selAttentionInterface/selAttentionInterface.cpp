@@ -826,7 +826,7 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
 
-    label = gtk_label_new ("map1 k1:");
+    label = gtk_label_new ("map1 k1 (Intensity) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
@@ -841,7 +841,7 @@ GtkWidget* createMainWindow(void) {
     
 
 
-    label = gtk_label_new ("map2 k2:");
+    label = gtk_label_new ("map2 k2 (Orientation) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
 
@@ -854,7 +854,7 @@ GtkWidget* createMainWindow(void) {
     g_signal_connect (G_OBJECT (adj2), "value_changed",
                       G_CALLBACK (cb_digits_scale2), NULL);
 
-    label = gtk_label_new ("map3: k3");
+    label = gtk_label_new ("map3 k3 (Chrominance) : ");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
@@ -868,7 +868,7 @@ GtkWidget* createMainWindow(void) {
                       G_CALLBACK (cb_digits_scale3), NULL);
 
 
-    label = gtk_label_new ("map4: k4");
+    label = gtk_label_new ("map4 k4 (Orientation) : ");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
@@ -881,7 +881,7 @@ GtkWidget* createMainWindow(void) {
     g_signal_connect (G_OBJECT (adj4), "value_changed",
                       G_CALLBACK (cb_digits_scale4), NULL);
 
-    label = gtk_label_new ("map5: k5");
+    label = gtk_label_new ("map5 k5 (Edges) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
@@ -894,7 +894,7 @@ GtkWidget* createMainWindow(void) {
     g_signal_connect (G_OBJECT (adj5), "value_changed",
                       G_CALLBACK (cb_digits_scale5), NULL);
 
-    label = gtk_label_new ("map6: k6");
+    label = gtk_label_new ("map6 k6 (Blob) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
     
