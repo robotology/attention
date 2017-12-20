@@ -894,7 +894,7 @@ double oculomotorController::calculateEntropy(yarp::sig::ImageOf<yarp::sig::Pixe
 
 
     //cv::Mat matImage;
-    const cv::Mat mat( cv::cvarrToMat(hsv->getIplImage()), true);
+    const cv::Mat mat( cv::cvarrToMat(hsv->getIplImage()));
     //cvConvert(hsv->getIplImage(),mat);
     //    matImage.data = (char *)hsv->getIplImage().imageData;
     //nst cv::Mat* cvHsvP = (const cv::Mat*)hsv->getIplImage();
@@ -987,7 +987,7 @@ void oculomotorController::run() {
 
         //printf("countSucc %d iter %d readyforAction %d \n",countSucc, iter, ap->readyForActions() );
         if((countSucc < 40) && (iter % 1 == 0) && (ap->readyForActions())) {
-            printf("================================COUNTSUCC %d ================================ \n", countSucc, iter);
+            printf("================================COUNTSUCC %d ================================ \n", countSucc);
             //printf("learning step \n");
             //fprintf(logFile,"%d ",iter);
             learningStep();

@@ -856,7 +856,7 @@ void gazeArbiterThread::run() {
                 if(onDvs){
                     accomplished_flag = false;  
                 }
-                else if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (xo[2] < zmin) || (xo[2] > zmax)) {
+                else if ( (xo[1] > ymax) || (xo[1] < ymin) || /*(xo[0] < xmin) ||*/ (xo[2] < zmin) || (xo[2] > zmax)) {
                     printf("                    OutOfRange ._._._._._.[%f,%f,%f] [%f,%f,%f] [%f,%f,%f] \n",xmin, xo[0], xmax, ymin, xo[1],ymax, zmin, xo[2], zmax);
                     accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
                     Vector px(3);
@@ -869,7 +869,7 @@ void gazeArbiterThread::run() {
                     px[2] = 0;    
                     igaze->lookAtAbsAngles(px);
                     
-                    Time::delay(0.05);
+                    Time::delay(0.5);
                     printf("waiting for motion done \n");
                     u = width  / 2;  //TO DO: check the division! it would be rather better to use shift
                     v = height / 2;  //TO DO: check the division! it would be rather better to use shift
@@ -966,8 +966,9 @@ void gazeArbiterThread::run() {
                             //printf("looking at %f %f %f \n", xo[0], xo[1], xo[2]);
                             
                             
-                            // check for offlimits reached                             
-                            if ( (xo[1] > ymax) || (xo[1] < ymin) || (xo[0] < xmin) || (xo[2] < zmin) || (xo[2] > zmax)) {
+                            // check for offlimits reached 
+                            // @Rea removed check on the distance along x in the iCub frame of reference                            
+                            if ( (xo[1] > ymax) || (xo[1] < ymin) || /*(xo[0] < xmin) ||*/ (xo[2] < zmin) || (xo[2] > zmax)) {
                                 printf("                    OutOfRange ._._._._._.[%f,%f,%f] [%f,%f,%f] [%f,%f,%f] \n",xmin, xo[0], xmax, ymin, xo[1],ymax, zmin, xo[2], zmax);
                                 accomplished_flag = true;  //mono = false;     // setting the mono false to inhibith the control of the visual feedback
                                 Vector px(3);
@@ -1139,15 +1140,16 @@ void gazeArbiterThread::run() {
                 point_prev = point;
                 // introducing the fast tracker in the system, initialising the fast with the output of slow  
                 ptracker->getPoint(point);
+                printf("returned the point");
                 
-                
-                
+                int countTrackingTrials = 0;   // countTrackingTrials controls the number of trials and exits from the while if this passes a threshold. @Rea 4.12.17
                 CvPoint testPoint; testPoint.x = -1; testPoint.y = -1;
-                while ((testPoint.x != point.x) && (testPoint.y != point.y)) {
+                while ((testPoint.x != point.x) && (testPoint.y != point.y) && (countTrackingTrials < 100)) {
+                    countTrackingTrials++;
                     tracker->init(point.x, point.y);
                     tracker->waitInitTracker();
                     tracker->getPoint(testPoint);
-                    //printf("tracking %d %d \n",testPoint.x, testPoint.y );
+                    printf("tracking %d %d %d %d\n",testPoint.x, testPoint.y, point.x, point.y );
                 }                
                 //printf("-1.just initilisated  with the point %d %d \n", point.x , point.y);
 
@@ -2035,9 +2037,10 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"SAC_MONO")) {
             // monocular saccades with visualFeedback
-            printf("MONO SACCADE request \n");
+            
             u = arg->get(1).asInt();
             v = arg->get(2).asInt();
+            printf("MONO SACCADE request %d %d \n", u, v);
             zDistance = arg->get(3).asDouble();
             mutex.wait();
             
