@@ -433,6 +433,11 @@ public:
      * function that returns the value of the parameter kc1
      */
     double getKC1() { return kc1; };
+
+    /**
+     * function that returns the value of the parameter kc1
+     */
+    double getKC2() { return kc2; };
     
     /**
      * function that returns the value of the parameter kmotion
@@ -450,8 +455,8 @@ public:
     void setK1(double p) { k1=p; };
     
     /**
-        * function that sets the value of the parameter k2
-        */
+    * function that sets the value of the parameter k2
+    */
     void setK2(double p) { k2=p; };
     
     /**
