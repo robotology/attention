@@ -111,6 +111,7 @@ public:
     std::string helpMessage =  std::string(getName().c_str()) + 
         " commands are: \n" +  
         "help \n" + 
+        "set gaze [true| false] -> to enable or disable the tracking with iKinGazeCtrl \n"+
         "quit \n";
 
     reply.clear(); 
@@ -120,8 +121,9 @@ public:
         return false;     
     }
     else if (command.get(0).asString()=="help") {
+        reply.addVocab(Vocab::encode("many"));
+        reply.addString(helpMessage);
         std::cout << helpMessage;
-        reply.addString("ok");
     }
     else if ((command.get(0).asString()=="sus") || (command.get(0).asString()=="\"sus\"")) {
         
@@ -131,6 +133,17 @@ public:
     else if (command.get(0).asString()=="res" || command.get(0).asString()=="\"res\"" ) {
         detector->resume();
         reply.addString("ok");
+    }
+
+    else if(command.get(0).asString()=="set"){
+        if(command.get(1).asString()=="gaze"){
+            bool gazeControl = command.get(2).asBool();
+            detector->setGazeControl(gazeControl);
+            reply.addString("ok");        
+
+    
+        }
+    
     }
     
     return true;
