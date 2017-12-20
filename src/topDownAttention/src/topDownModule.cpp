@@ -88,7 +88,7 @@ bool topDownModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* create the thread and pass pointers to the module parameters */
-    rThread = new topDownRateThread(robotName, configFile);
+    rThread = new topDownRateThread(rf, robotName, configFile);
     rThread->setName(getName().c_str());
     //rThread->setInputPortName(inputPortName.c_str());
     
