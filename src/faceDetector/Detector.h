@@ -62,6 +62,7 @@ public:
         face.r = 0;
         prev_x = prev_y = prev_z = 0.0; 
         idle = false;
+        disableGazeControl = false;
         // constructor
     }
 
@@ -77,10 +78,13 @@ public:
     
     void suspend();
 
+    void setGazeControl(bool t_disableGazeControl);
+
 public: 
     yarp::os::ConstString strCascade;
     //yarp::os::ConstString strNestedCascade;
     bool idle;
+    bool disableGazeControl;
 
 protected:
     IplImage* cvImage;

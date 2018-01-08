@@ -120,7 +120,7 @@ void prioCollectorThread::reinitialise(int width, int height){
 
 bool prioCollectorThread::earlyFilter(ImageOf<PixelMono>* map1_yarp, ImageOf<PixelMono>* map2_yarp, ImageOf<PixelMono> linearCombinationImage, double& xm, double&ym) {
     
-    printf("prioCollectorThread::earlyFilter \n");
+    //printf("prioCollectorThread::earlyFilter \n");
 
 
     /*
@@ -294,7 +294,7 @@ void prioCollectorThread::run() {
     while(isStopping() != true){
         
         if((0 != map1_yarp)&& (0 != map2_yarp) && (0 != linearCombinationImage))  {
-            printf("inside the run \n");
+            //printf("inside the run \n");
 
                 //if((tmp == 0)&&(!reinit_flag)){
                 //    continue;

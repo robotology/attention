@@ -67,8 +67,18 @@ void Detector::loop()
                 // we found an stable face
                 // if(++counter > certainty)
                 {
-                    cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,255,0), 3, 8, 0 );
-                    cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,255,0), 2, 8, 0 );
+                    if(disableGazeControl){
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,255,0), 3, 8, 0 );
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,255,0), 2, 8, 0 );
+                    
+                    }
+
+                    else{
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,0,255), 3, 8, 0 );
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,0,255), 2, 8, 0 );
+                    
+                    }
+
                     if(withSaliency){
                         cvCircle(saliency, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(255,255,255), -1, 8, 0 );
                     }
@@ -82,7 +92,7 @@ void Detector::loop()
                     double distance = sqrt((face.x - w2) * (face.x - w2) + (face.y - h2) * (face.y - h2));                    
                     
 
-                    if(distance > 40.0) {
+                    if(distance > 40.0 && disableGazeControl){
                         yInfo("w2 %d h2 %d distance %f", w2, h2, distance);
                         uv[0] = face.x;
                         uv[1] = face.y;
@@ -246,6 +256,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     offsetZ =  rf.check("offset_z", Value(-0.05)).asDouble();
     offsetY =  rf.check("offset_y", Value(0.0)).asDouble();
     withSaliency = rf.check("enable_saliency", Value(0)).asInt();
+    disableGazeControl  = rf.check("gaze_control", Value(0)).asBool();
 
     yInfo("eye: %s", eye.c_str());
     yInfo("faceExpression: %s", faceExpression.c_str());
@@ -290,16 +301,18 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
 
     iGaze->storeContext(&startup_context_id);
     
-    //clientGaze.view(iGaze);
-    iGaze->blockNeckRoll(0.0);
-    //iGaze->setSaccadesStatus(false);
-    iGaze->setSaccadesMode(false);
-    // set trajectory time:
-    iGaze->setNeckTrajTime(0.9);
-    iGaze->setEyesTrajTime(0.2);
-    iGaze->setTrackingMode(true);
-    iGaze->setVORGain(1.3);
-    iGaze->setOCRGain(1.0);
+    
+    // @Rea 29.11.17 : commented this out for SC demo 5.12 to avoid conflicts with PROVISION
+    ////clientGaze.view(iGaze);
+    //iGaze->blockNeckRoll(0.0);
+    ////iGaze->setSaccadesStatus(false);
+    //iGaze->setSaccadesMode(false);
+    //// set trajectory time:
+    //iGaze->setNeckTrajTime(0.9);
+    //iGaze->setEyesTrajTime(0.2);
+    //iGaze->setTrackingMode(true);
+    //iGaze->setVORGain(1.3);
+    //iGaze->setOCRGain(1.0);
                      
 
     //---------------------------------------------------------------
@@ -350,6 +363,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     prev_y = 0.0;
     prev_z = 0.35;
     
+
     yDebug("Initialization completed");
     return ret;
     
@@ -376,5 +390,10 @@ bool Detector::interrupt()
     imagePort.interrupt();
     return true;
 }
+
+void Detector::setGazeControl(bool t_disableGazeControl){
+    disableGazeControl = t_disableGazeControl;
+}
+
 
 

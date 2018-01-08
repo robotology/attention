@@ -32,13 +32,29 @@ using namespace std;
 
 #define THRATE 100 //ms
 
-topDownRateThread::topDownRateThread():RateThread(THRATE) {
-    robot = "icub";        
+topDownRateThread::topDownRateThread(yarp::os::ResourceFinder &rf):RateThread(THRATE) {
+    robot = "icub";
+
+    outputPortBiologicalMotion =  rf.check("outputBiologicalMotion",
+                                          Value("/oneMotionFeatExtractor/gmResult:o"),
+                                          "module name (string)").asString();
+
+    inputPortCartesianMap =  rf.check("inputCartesianMap",
+                                           Value("/selectiveAttentionEngine/icub/left_cam/cart2:i"),
+                                           "module name (string)").asString();
 }
 
-topDownRateThread::topDownRateThread(string _robot, string _configFile):RateThread(THRATE){
+topDownRateThread::topDownRateThread(yarp::os::ResourceFinder &rf, string _robot, string _configFile):RateThread(THRATE){
     robot = _robot;
     configFile = _configFile;
+
+    outputPortBiologicalMotion =  rf.check("outputBiologicalMotion",
+                                           Value("/oneMotionFeatExtractor/gmResult:o"),
+                                           "module name (string)").asString();
+
+    inputPortCartesianMap =  rf.check("inputCartesianMap",
+                                      Value("/selectiveAttentionEngine/icub/left_cam/cart2:i"),
+                                      "module name (string)").asString();
 }
 
 topDownRateThread::~topDownRateThread() {
@@ -47,7 +63,7 @@ topDownRateThread::~topDownRateThread() {
 
 bool topDownRateThread::threadInit() {
     // opening the port for direct input
-    if (!inputPort.open(getName("/image:i").c_str())) {
+    if (!inputPortGazeCtrl.open(getName("/iKinGazeState:i").c_str())) {
         yError("unable to open port to receive input");
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -57,7 +73,11 @@ bool topDownRateThread::threadInit() {
         return false;  // unable to open; let RFModule know so that it won't run
     }
 
+    outputImage = new ImageOf<yarp::sig::PixelRgb>();
+
     yInfo("Initialization of the processing thread correctly ended");
+
+    restartMotion = false;
 
     return true;
 }
@@ -78,21 +98,43 @@ void topDownRateThread::setInputPortName(string InpPort) {
 }
 
 void topDownRateThread::run() {
-    //code here .....
-    if (inputPort.getInputCount()) {
-        inputImage = inputPort.read(true);   //blocking reading for synchr with the input
-        result = processing();
+
+    if (inputPortGazeCtrl.getInputCount()) {
+        Bottle *gazeState = inputPortGazeCtrl.read();   //blocking reading for synchr with the input
+        const string iKinGazeState = gazeState->get(0).asString();
+
+        if( iKinGazeState == "motion-onset"){
+            const bool resultDisconnection = NetworkBase::disconnect(outputPortBiologicalMotion, inputPortCartesianMap);
+
+            if (outputPort.getOutputCount()) {
+                *outputImage = outputPort.prepare();
+                //outputImage->resize(inputImage->width(), inputImage->height());
+                outputImage->zero();
+                outputPort.write();
+
+                restartMotion = true;
+            }
+
+        }
+
+        else if( iKinGazeState == "motion-done"){
+            if (outputPort.getOutputCount()  && restartMotion) {
+                *outputImage = outputPort.prepare();
+                //outputImage->resize(inputImage->width(), inputImage->height());
+                outputImage->zero();
+                outputPort.write();
+
+                restartMotion = false;
+            }
+            const bool resultConnection = NetworkBase::connect(outputPortBiologicalMotion, inputPortCartesianMap);
+
+
+        }
+
+
     }
 
-    if (outputPort.getOutputCount()) {
-        *outputImage = outputPort.prepare();
-        outputImage->resize(inputImage->width(), inputImage->height());
-        // changing the pointer of the prepared area for the outputPort.write()
-        // copy(inputImage, outImage);
-        // outputPort.prepare() = *inputImage; //deprecated
 
-        outputPort.write();
-    }
 
 }
 
@@ -104,9 +146,9 @@ bool topDownRateThread::processing(){
 
 void topDownRateThread::threadRelease() {
     // nothing
-    inputPort.interrupt();
+    inputPortGazeCtrl.interrupt();
     outputPort.interrupt();
-    inputPort.close();
+    inputPortGazeCtrl.close();
     outputPort.close();
 }
 

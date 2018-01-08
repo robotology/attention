@@ -239,7 +239,9 @@ void ZDFThread::run() {
 
 
                 //Make a copy of the left input Image
+
                 cvCopy((IplImage *) img_in_left->getIplImage(), copyImg_ipl, nullptr);
+
                 copyImg = (unsigned char *) copyImg_ipl->imageData;
 
                 // Copy left and Right image from input Yarp-port
@@ -361,8 +363,9 @@ void ZDFThread::run() {
 
             //********************************************************************
             //If nice segmentation:
+//if(area >= params->min_area && area <= params->max_area && spread <= params->max_spread)           
             yDebug("checking for nice segmentation \n");
-            if (area >= params->min_area && area <= params->max_area && spread <= params->max_spread) {
+            if (false) {
                 //don't update templates to image centre any more as we have a nice target
                 acquire = false;
                 //update templates towards segmentation CoG:
@@ -465,7 +468,7 @@ void ZDFThread::run() {
 
 
                     cv::Rect rRect(pt1, pt2);
-                    cvRectangle(original_seg_ipl, pt1, pt2, CvScalar(255, 0, 0), 2);
+                    cvRectangle(original_seg_ipl, pt1, pt2, cvScalar(255, 0, 0), 2);
 
                     /*
                     cvSetImageROI(left_originalImage_ipl, rRect);
