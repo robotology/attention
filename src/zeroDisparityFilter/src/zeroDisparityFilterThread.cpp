@@ -18,7 +18,7 @@
  * Public License for more details
  */
 
-#include "iCub/zeroDisparityFilterMod.h"
+#include "iCub/zeroDisparityFilterThread.h"
 #include <cassert>
 #include <iCub/dog.h>
 
@@ -37,302 +37,6 @@ void showIplImage(const IplImage *image, const string a) {
 }
 
 
-bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
-    /* Process all parameters from both command-line and .ini file */
-
-    /* get the module name which will form the stem of all module port names */
-    moduleName = rf.check("name",
-                          Value("zeroDisparityFilterMod"),
-                          "module name (string)").asString();
-
-    /*
-    Default Ini file values: #amaroyo 03/03/2016
-
-        max_iteration 1
-        randomize_iteration 0
-        smoothness_penalty_base 50
-        smoothness_penalty 600
-        data_penalty 106
-        smoothness_3sigmaon2 13
-        bland_dog_thresh 1
-        radial_penalty 50
-        acquire_wait 25
-        min_area  5000
-        max_area  10000
-        max_spread 50
-        cog_snap 0.3
-        bland_prob 0.3
-
-    */
-
-    setName(moduleName.c_str());
-    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(160), "what did the user select?").asInt();
-    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(1),
-                                                                        "what did the user select?").asInt();
-    parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base", Value(50),
-                                                                      "what did the user select?").asInt();
-    parameters.smoothness_penalty = rf.findGroup("PARAMS").check("smoothness_penalty", Value(600),
-                                                                 "what did the user select?").asInt();
-    parameters.data_penalty = rf.findGroup("PARAMS").check("data_penalty", Value(106),
-                                                           "what did the user select?").asInt();
-    parameters.smoothness_3sigmaon2 = rf.findGroup("PARAMS").check("smoothness_3sigmaon2", Value(13),
-                                                                   "what did the user select?").asInt();
-    parameters.bland_dog_thresh = rf.findGroup("PARAMS").check("bland_dog_thresh", Value(250),
-                                                               "what did the user select?").asInt();
-    parameters.radial_penalty = rf.findGroup("PARAMS").check("radial_penalty", Value(50),
-                                                             "what did the user select?").asInt();
-    parameters.acquire_wait = rf.findGroup("PARAMS").check("acquire_wait", Value(25),
-                                                           "what did the user select?").asInt();
-    parameters.min_area = rf.findGroup("PARAMS").check("min_area", Value(5000), "what did the user select?").asInt();
-    parameters.max_area = rf.findGroup("PARAMS").check("max_area", Value(10000), "what did the user select?").asInt();
-    parameters.max_spread = rf.findGroup("PARAMS").check("max_spread", Value(50), "what did the user select?").asInt();
-    parameters.cog_snap = rf.findGroup("PARAMS").check("cog_snap", Value(0.3), "what did the user select?").asDouble();
-    parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob", Value(0.3),
-                                                         "what did the user select?").asDouble();
-
-    parameters.fovea_width = rf.findGroup("PARAMS").check("fovea_size", Value(128),
-                                                          "what did the user select?").asInt();
-    parameters.fovea_height = rf.findGroup("PARAMS").check("fovea_size", Value(128),
-                                                           "what did the user select?").asInt();
-
-    parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(18),
-                                                          "what did the user select?").asDouble();
-    parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(2),
-                                                           "what did the user select?").asDouble();
-
-
-    //  Disparity choice of algorithm by default NDT
-    parameters.rankOrNDT = rf.findGroup("PARAMS").check("rankOrNDT", Value(1),  "what did the user select?").asBool();
-
-
-    //NDT parameters
-    parameters.ndtX = rf.findGroup("PARAMS").check("ndtX", Value(2),  "what did the user select?").asInt();
-    parameters.ndtY = rf.findGroup("PARAMS").check("ndtY", Value(2),  "what did the user select?").asInt();
-    parameters.ndtSize = rf.findGroup("PARAMS").check("ndtSize", Value(8),  "what did the user select?").asInt();
-    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(0),  "what did the user select?").asInt();
-
-    //RANK parameters
-    parameters.rankX = rf.findGroup("PARAMS").check("rankX", Value(2),  "what did the user select?").asInt();
-    parameters.rankY = rf.findGroup("PARAMS").check("rankY", Value(2),  "what did the user select?").asInt();
-    parameters.rankSize = rf.findGroup("PARAMS").check("rankSize", Value(8),  "what did the user select?").asInt();
-
-
-    /*
-     * attach a port of the same name as the module (prefixed with a /) to the module
-     * so that messages received from the port are redirected to the respond method
-     */
-
-    workWith = rf.check("with", Value("nothing"), "work with arbiter (string)").asString();
-
-
-    handlerName = "/";
-    handlerName += getName();         // use getName() rather than a literal 
-
-    if (!handlerPort.open(handlerName.c_str())) {
-        cout << getName() << ": Unable to open port " << handlerName << endl;
-        return false;
-    }
-
-    attach(handlerPort);               // attach to port
-    //attachTerminal();                // attach to terminal (maybe not such a good thing...)
-
-    /* create the thread and pass pointers to the module parameters */
-    zdfThread = new ZDFThread(&parameters, workWith);
-
-    /*pass the name of the module in order to create ports*/
-    zdfThread->setName(moduleName);
-
-    /* now start the thread to do the work */
-    zdfThread->start(); // this calls threadInit() and it if returns true, it then calls run()
-
-    return true;
-}
-
-/* Called periodically every getPeriod() seconds */
-
-bool zeroDisparityFilterMod::updateModule() {
-    return true;
-}
-
-bool zeroDisparityFilterMod::interruptModule() {
-
-    handlerPort.interrupt();
-    return true;
-}
-
-bool zeroDisparityFilterMod::close() {
-    handlerPort.close();
-    zdfThread->stop();
-    cout << "deleting thread " << endl;
-    delete zdfThread;
-    return true;
-}
-
-double zeroDisparityFilterMod::getPeriod() {
-    return 0.1;
-}
-
-
-bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
-
-    //bool ok = false;
-    //bool rec = false; // is the command recognized?
-
-    // mutex.wait();
-    switch (command.get(0).asVocab()) {
-        case COMMAND_VOCAB_HELP: {
-            //rec = true;
-            string helpMessage = string(getName().c_str()) +
-                                 " commands are: \n" +
-                                 "help \n" +
-                                 "quit \n";
-            reply.clear();
-            //ok = true;
-            break;
-        }
-
-        case COMMAND_VOCAB_SET: {
-            //rec = true;
-            switch (command.get(1).asVocab()) {
-
-                case COMMAND_VOCAB_K1: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->data_penalty = w;
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K2: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->smoothness_penalty_base = w;
-                    //ok = true;
-                    break;
-
-                }
-
-                case COMMAND_VOCAB_K3: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->smoothness_penalty = w;
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K4: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->radial_penalty = w;
-                    //ok = true;
-                    break;
-
-                }
-
-                case COMMAND_VOCAB_K5: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->smoothness_3sigmaon2 = w;
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K6: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->bland_dog_thresh = w;
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K7: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->sigma1 = w;
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K8: {
-                    int w = command.get(2).asInt();
-                    zdfThread->params->sigma2 = w;
-                    //ok = true;
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-        case COMMAND_VOCAB_GET: {
-            //rec = true;
-
-            reply.addVocab(COMMAND_VOCAB_IS);
-            reply.add(command.get(1));
-
-            switch (command.get(1).asVocab()) {
-
-                case COMMAND_VOCAB_K1: {
-                    double w = zdfThread->params->data_penalty;
-                    reply.addDouble(w);
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K2: {
-                    double w = zdfThread->params->smoothness_penalty_base;
-                    reply.addDouble(w);
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K3: {
-                    double w = zdfThread->params->smoothness_penalty;
-                    reply.addDouble(w);
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K4: {
-                    double w = zdfThread->params->radial_penalty;
-                    reply.addDouble(w);
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K5: {
-                    double w = zdfThread->params->smoothness_3sigmaon2;
-                    reply.addDouble(w);
-                    break;
-                    //ok = true;
-                }
-
-                case COMMAND_VOCAB_K6: {
-                    double w = zdfThread->params->bland_dog_thresh;
-                    reply.addDouble(w);
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K7: {
-                    double w = zdfThread->params->sigma1;
-                    reply.addDouble(w);
-                    //ok = true;
-                    break;
-                }
-
-                case COMMAND_VOCAB_K8: {
-                    double w = zdfThread->params->sigma2;
-                    reply.addDouble(w);
-                    //ok = true;
-                    break;
-                }
-
-                default: {
-                    break;
-                }
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
-    return true;
-}
 
 ZDFThread::ZDFThread(MultiClass::Parameters *parameters, string workWith) {
     if (workWith == "arbiter" || workWith == "ARBITER") {
@@ -344,73 +48,73 @@ ZDFThread::ZDFThread(MultiClass::Parameters *parameters, string workWith) {
     }
 
     params = parameters;
-    img_out_prob = NULL;
-    img_out_seg = NULL;
-    img_out_dog = NULL;
-    img_out_temp = NULL;
-    res_t = NULL;
-    out = NULL;
-    seg_im = NULL;
-    seg_dog = NULL;
-    fov_l = NULL;
-    fov_r = NULL;
-    zd_prob_8u = NULL;
-    o_prob_8u = NULL;
-    tempImg = NULL;
-    copyImg = NULL;
-    p_prob = NULL;
+    img_out_prob = nullptr;
+    img_out_seg = nullptr;
+    img_out_dog = nullptr;
+    img_out_temp = nullptr;
+    res_t = nullptr;
+    out = nullptr;
+    seg_im = nullptr;
+    seg_dog = nullptr;
+    fov_l = nullptr;
+    fov_r = nullptr;
+    zd_prob_8u = nullptr;
+    o_prob_8u = nullptr;
+    tempImg = nullptr;
+    copyImg = nullptr;
+    p_prob = nullptr;
     //templates:
-    temp_l = NULL, temp_r = NULL;
+    temp_l = nullptr, temp_r = nullptr;
     //input:
-    rec_im_ly = NULL;
-    rec_im_ry = NULL;
-    yuva_orig_l = NULL;
-    yuva_orig_r = NULL;
-    tmp = NULL;
-    first_plane_l = NULL;
-    second_plane_l = NULL;
-    third_plane_l = NULL;
-    first_plane_r = NULL;
-    second_plane_r = NULL;
-    third_plane_r = NULL;
-    pyuva_l = NULL;
-    pyuva_r = NULL;
+    rec_im_ly = nullptr;
+    rec_im_ry = nullptr;
+    yuva_orig_l = nullptr;
+    yuva_orig_r = nullptr;
+    tmp = nullptr;
+    first_plane_l = nullptr;
+    second_plane_l = nullptr;
+    third_plane_l = nullptr;
+    first_plane_r = nullptr;
+    second_plane_r = nullptr;
+    third_plane_r = nullptr;
+    pyuva_l = nullptr;
+    pyuva_r = nullptr;
     //Difference of Gaussian:
-    dl = NULL;
-    dr = NULL;
-    multiClass = NULL;
-    l_orig = NULL;
-    r_orig = NULL;
+    dl = nullptr;
+    dr = nullptr;
+    multiClass = nullptr;
+    l_orig = nullptr;
+    r_orig = nullptr;
 
     allocated = false;
     startProcessing = false;
 
     //HACK: init images, view deallocate for more info. #amaroyo on 04/02/2016
-    copyImg_ipl = NULL;
-    fov_r_ipl = NULL;
-    zd_prob_8u_ipl = NULL;
-    o_prob_8u_ipl = NULL;
-    tempImg_ipl = NULL;
-    left_originalImage_ipl = NULL;
-    right_originalImage_ipl = NULL;
-    yuva_orig_l_ipl = NULL;
-    yuva_orig_r_ipl = NULL;
-    tmp_ipl = NULL;
-    first_plane_l_ipl = NULL;
-    second_plane_l_ipl = NULL;
-    third_plane_l_ipl = NULL;
-    first_plane_r_ipl = NULL;
-    second_plane_r_ipl = NULL;
-    third_plane_r_ipl = NULL;
-    rec_im_ly_ipl = NULL;
-    rec_im_ry_ipl = NULL;
-    res_t_ipl = NULL;
-    out_ipl = NULL;
-    seg_im_ipl = NULL;
-    seg_dog_ipl = NULL;
-    fov_l_ipl = NULL;
-    template_left_ipl = NULL;
-    temp_r_ipl = NULL;
+    copyImg_ipl = nullptr;
+    fov_r_ipl = nullptr;
+    zd_prob_8u_ipl = nullptr;
+    o_prob_8u_ipl = nullptr;
+    tempImg_ipl = nullptr;
+    left_originalImage_ipl = nullptr;
+    right_originalImage_ipl = nullptr;
+    yuva_orig_l_ipl = nullptr;
+    yuva_orig_r_ipl = nullptr;
+    tmp_ipl = nullptr;
+    first_plane_l_ipl = nullptr;
+    second_plane_l_ipl = nullptr;
+    third_plane_l_ipl = nullptr;
+    first_plane_r_ipl = nullptr;
+    second_plane_r_ipl = nullptr;
+    third_plane_r_ipl = nullptr;
+    rec_im_ly_ipl = nullptr;
+    rec_im_ry_ipl = nullptr;
+    res_t_ipl = nullptr;
+    out_ipl = nullptr;
+    seg_im_ipl = nullptr;
+    seg_dog_ipl = nullptr;
+    fov_l_ipl = nullptr;
+    template_left_ipl = nullptr;
+    temp_r_ipl = nullptr;
 
 
     ndt1 = (int*)malloc(sizeof(int) * params->ndtSize);
@@ -488,6 +192,8 @@ bool ZDFThread::threadInit() {
 
     outputNameCog = "/" + moduleName + "/cog:o";
     cogPort.open(outputNameCog.c_str());
+
+
     yDebug("End of the Thread Initialization");
     return true;
 }
@@ -501,7 +207,7 @@ void ZDFThread::run() {
         ImageOf<PixelBgr> *img_in_right = imageInRight.read(true);
 
 
-        if (img_in_left != NULL && img_in_right != NULL) {
+        if (img_in_left != nullptr && img_in_right != nullptr) {
 
             Bottle check;
             check.clear();
@@ -533,12 +239,12 @@ void ZDFThread::run() {
 
 
                 //Make a copy of the left input Image
-                cvCopy((IplImage *) img_in_left->getIplImage(), copyImg_ipl, NULL);
+                cvCopy((IplImage *) img_in_left->getIplImage(), copyImg_ipl, nullptr);
                 copyImg = (unsigned char *) copyImg_ipl->imageData;
 
                 // Copy left and Right image from input Yarp-port
-                cvCopy((IplImage *) img_in_left->getIplImage(), left_originalImage_ipl, NULL);
-                cvCopy((IplImage *) img_in_right->getIplImage(), right_originalImage_ipl, NULL);
+                cvCopy((IplImage *) img_in_left->getIplImage(), left_originalImage_ipl, nullptr);
+                cvCopy((IplImage *) img_in_right->getIplImage(), right_originalImage_ipl, nullptr);
 
             }
 
@@ -555,12 +261,12 @@ void ZDFThread::run() {
 
 
                 cvSetImageROI(rec_im_ly_ipl, regionInterestRec);
-                cvCopy(rec_im_ly_ipl, template_left_ipl, NULL);
+                cvCopy(rec_im_ly_ipl, template_left_ipl, nullptr);
                 cvResetImageROI(rec_im_ly_ipl);
 
 
                 cvSetImageROI(rec_im_ry_ipl, regionInterestRec);
-                cvCopy(rec_im_ry_ipl, temp_r_ipl, NULL);
+                cvCopy(rec_im_ry_ipl, temp_r_ipl, nullptr);
                 cvResetImageROI(rec_im_ry_ipl);
 
             }
@@ -572,7 +278,7 @@ void ZDFThread::run() {
 
 
             cvSetImageROI(rec_im_ly_ipl, foveaRec);
-            cvCopy(rec_im_ly_ipl, fov_l_ipl, NULL);
+            cvCopy(rec_im_ly_ipl, fov_l_ipl, nullptr);
             cvResetImageROI(rec_im_ly_ipl);
 
             //******************************************************************
@@ -580,7 +286,7 @@ void ZDFThread::run() {
             yDebug("creating right fovea and right template matching \n");
 
             cvSetImageROI(rec_im_ry_ipl, foveaRec);
-            cvCopy(rec_im_ry_ipl, fov_r_ipl, NULL);
+            cvCopy(rec_im_ry_ipl, fov_r_ipl, nullptr);
             cvResetImageROI(rec_im_ry_ipl);
 
 //            matchTemplate(fov_l_ipl, rec_im_ry_ipl, fov_r_ipl);
@@ -594,8 +300,6 @@ void ZDFThread::run() {
             //dr->procOpenCv(fov_r_ipl, params->sigma1, params->sigma2);
 
             CenterSurround *centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, params->sigma1/100);
-
-
 
             IplImage *leftDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
             IplImage *rightDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
@@ -745,7 +449,7 @@ void ZDFThread::run() {
                     psbtemp = tempImg_ipl->widthStep;
 
                     IplImage *original_seg_ipl = cvCreateImage(cvSize(srcsize.width, srcsize.height), IPL_DEPTH_8U, 3);
-                    cvCopy(left_originalImage_ipl, original_seg_ipl, NULL);
+                    cvCopy(left_originalImage_ipl, original_seg_ipl, nullptr);
 
 
                     int topBis, bottomBis, leftBis, rightBis;
@@ -806,12 +510,12 @@ void ZDFThread::run() {
                         processingRgbImageBis->wrapIplImage(original_seg_ipl); //temp_r_ipl
                         imageOutTemp2.write();
 
-                        //cvCopy(left_originalImage_ipl, img_out_temp->getIplImage(), NULL);
+                        //cvCopy(left_originalImage_ipl, img_out_temp->getIplImage(), nullptr);
                         yDebug("copied image success \n");
 
 
                         // HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
-                        img_out_temp = NULL;
+                        img_out_temp = nullptr;
                     }
 
                 }
@@ -836,7 +540,7 @@ void ZDFThread::run() {
             option.put("remote","/iKinGazeCtrl");
             option.put("local","/client/gaze");
             yarp::dev::PolyDriver clientGazeCtrl(option);
-            yarp::dev::IGazeControl *igaze=NULL;
+            yarp::dev::IGazeControl *igaze=nullptr;
 
             if (clientGazeCtrl.isValid()) {
                 clientGazeCtrl.view(igaze);
@@ -924,49 +628,49 @@ void ZDFThread::deallocate() {
 
     yDebug("deallocate process started ..........\n");
 
-    dl = NULL;
-    dr = NULL;
-    multiClass = NULL;
+    dl = nullptr;
+    dr = nullptr;
+    multiClass = nullptr;
     delete dl;
     delete dr;
     delete multiClass;
 
     /* HACK: As the very first step is to deallocate and then allocate, some
        of the variables are not initialized, thus, thr program crashes
-       when it tries to release non existing images. Setting them to NULL
+       when it tries to release non existing images. Setting them to nullptr
        in the constructor and checking them here solves the issue.
        #amaroyo 04/02/2016
 
     */
 
-    if (tempImg_ipl != NULL) cvReleaseImage(&tempImg_ipl);
-    if (copyImg_ipl != NULL) cvReleaseImage(&copyImg_ipl);
-    if (left_originalImage_ipl != NULL) cvReleaseImage(&left_originalImage_ipl);
-    if (right_originalImage_ipl != NULL) cvReleaseImage(&right_originalImage_ipl);
-    if (yuva_orig_l_ipl != NULL) cvReleaseImage(&yuva_orig_l_ipl);
-    if (yuva_orig_r_ipl != NULL) cvReleaseImage(&yuva_orig_r_ipl);
-    if (tmp_ipl != NULL) cvReleaseImage(&tmp_ipl);
-    if (first_plane_l_ipl != NULL) cvReleaseImage(&first_plane_l_ipl);
-    if (second_plane_l_ipl != NULL) cvReleaseImage(&second_plane_l_ipl);
-    if (third_plane_l_ipl != NULL) cvReleaseImage(&third_plane_l_ipl);
-    if (first_plane_r_ipl != NULL) cvReleaseImage(&first_plane_r_ipl);
-    if (second_plane_r_ipl != NULL) cvReleaseImage(&second_plane_r_ipl);
-    if (third_plane_r_ipl != NULL) cvReleaseImage(&third_plane_r_ipl);
+    if (tempImg_ipl != nullptr) cvReleaseImage(&tempImg_ipl);
+    if (copyImg_ipl != nullptr) cvReleaseImage(&copyImg_ipl);
+    if (left_originalImage_ipl != nullptr) cvReleaseImage(&left_originalImage_ipl);
+    if (right_originalImage_ipl != nullptr) cvReleaseImage(&right_originalImage_ipl);
+    if (yuva_orig_l_ipl != nullptr) cvReleaseImage(&yuva_orig_l_ipl);
+    if (yuva_orig_r_ipl != nullptr) cvReleaseImage(&yuva_orig_r_ipl);
+    if (tmp_ipl != nullptr) cvReleaseImage(&tmp_ipl);
+    if (first_plane_l_ipl != nullptr) cvReleaseImage(&first_plane_l_ipl);
+    if (second_plane_l_ipl != nullptr) cvReleaseImage(&second_plane_l_ipl);
+    if (third_plane_l_ipl != nullptr) cvReleaseImage(&third_plane_l_ipl);
+    if (first_plane_r_ipl != nullptr) cvReleaseImage(&first_plane_r_ipl);
+    if (second_plane_r_ipl != nullptr) cvReleaseImage(&second_plane_r_ipl);
+    if (third_plane_r_ipl != nullptr) cvReleaseImage(&third_plane_r_ipl);
     free(pyuva_l);
     free(pyuva_r);
-    if (rec_im_ly_ipl != NULL) cvReleaseImage(&rec_im_ly_ipl);
-    if (rec_im_ry_ipl != NULL) cvReleaseImage(&rec_im_ry_ipl);
-    if (res_t_ipl != NULL) cvReleaseImage(&res_t_ipl);
-    if (out_ipl != NULL) cvReleaseImage(&out_ipl);
-    if (seg_im_ipl != NULL) cvReleaseImage(&seg_im_ipl);
-    if (seg_dog_ipl != NULL) cvReleaseImage(&seg_dog_ipl);
-    if (fov_l_ipl != NULL) cvReleaseImage(&fov_l_ipl);
-    if (fov_r_ipl != NULL) cvReleaseImage(&fov_r_ipl);
-    if (zd_prob_8u_ipl != NULL) cvReleaseImage(&zd_prob_8u_ipl);
-    if (o_prob_8u_ipl != NULL) cvReleaseImage(&o_prob_8u_ipl);
+    if (rec_im_ly_ipl != nullptr) cvReleaseImage(&rec_im_ly_ipl);
+    if (rec_im_ry_ipl != nullptr) cvReleaseImage(&rec_im_ry_ipl);
+    if (res_t_ipl != nullptr) cvReleaseImage(&res_t_ipl);
+    if (out_ipl != nullptr) cvReleaseImage(&out_ipl);
+    if (seg_im_ipl != nullptr) cvReleaseImage(&seg_im_ipl);
+    if (seg_dog_ipl != nullptr) cvReleaseImage(&seg_dog_ipl);
+    if (fov_l_ipl != nullptr) cvReleaseImage(&fov_l_ipl);
+    if (fov_r_ipl != nullptr) cvReleaseImage(&fov_r_ipl);
+    if (zd_prob_8u_ipl != nullptr) cvReleaseImage(&zd_prob_8u_ipl);
+    if (o_prob_8u_ipl != nullptr) cvReleaseImage(&o_prob_8u_ipl);
     free(p_prob);
-    if (template_left_ipl != NULL) cvReleaseImage(&template_left_ipl);
-    if (temp_r_ipl != NULL) cvReleaseImage(&temp_r_ipl);
+    if (template_left_ipl != nullptr) cvReleaseImage(&template_left_ipl);
+    if (temp_r_ipl != nullptr) cvReleaseImage(&temp_r_ipl);
     delete img_out_prob;
     delete img_out_seg;
     delete img_out_dog;
@@ -1394,8 +1098,8 @@ void ZDFThread::preprocessImageHSV(IplImage *srcImage, IplImage *destImage) {
 
 
     cvCvtColor(srcImage, hsvImage, CV_RGB2HSV_FULL);
-    cvSplit(hsvImage, first_plane_ipl, second_plane_ipl, third_plane_ipl, NULL);
-    cvCopy(third_plane_ipl, destImage, NULL);
+    cvSplit(hsvImage, first_plane_ipl, second_plane_ipl, third_plane_ipl, nullptr);
+    cvCopy(third_plane_ipl, destImage, nullptr);
 
     cvReleaseImage(&hsvImage);
     cvReleaseImage(&first_plane_ipl);
@@ -1411,8 +1115,8 @@ void ZDFThread::preprocessImageHSV(IplImage *srcImage, IplImage *destImage) {
  */
 void ZDFThread::preprocessImageYUV(IplImage *srcImage, IplImage *destImage) {
     cvCvtColor(srcImage, yuva_orig_l_ipl, CV_RGB2YUV);
-    cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, NULL);
-    cvCopy(third_plane_l_ipl, destImage, NULL);
+    cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, nullptr);
+    cvCopy(third_plane_l_ipl, destImage, nullptr);
 
 
 }
@@ -1475,7 +1179,7 @@ void ZDFThread::matchTemplate(IplImage *templateImage, IplImage *inputImage, Ipl
     matchLoc = minLoc;
 
     cvSetImageROI(inputImage, cvRect(matchLoc.x, matchLoc.y, fov_l_ipl->width, fov_l_ipl->height));
-    cvCopy(inputImage, dstImage, NULL);
+    cvCopy(inputImage, dstImage, nullptr);
     cvResetImageROI(inputImage);
 
 }
@@ -1547,8 +1251,7 @@ void ZDFThread::processDisparityMap(IplImage *leftDOG, IplImage *rightDOG){
 
 
             //if either l or r textured at this retinal location:
-            if (p_dogonoff_l[index] > data_penalty ||
-                p_dogonoff_r[index] > bland_dog_thresh) {
+            if (p_dogonoff_r[index] > bland_dog_thresh && p_dogonoff_l[index] > bland_dog_thresh ) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:

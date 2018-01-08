@@ -1,7 +1,8 @@
 # Copyright: (C) 2014 RBCS Robotics Brain and Cognitive Science
 # Authors: Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+set (CMAKE_CXX_STANDARD 11)
 SET(PROJECTNAME zeroDisparityFilter)
 PROJECT(${PROJECTNAME})
 

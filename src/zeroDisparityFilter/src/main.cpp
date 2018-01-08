@@ -160,7 +160,7 @@
  */
   
 
-#include "iCub/zeroDisparityFilterMod.h" 
+#include "iCub/zeroDisparityModule.h"
 using namespace yarp::os;
 
 int main(int argc, char * argv[])

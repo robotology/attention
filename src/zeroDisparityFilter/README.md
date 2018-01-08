@@ -36,7 +36,7 @@
 **Outputs : zeroDisparyMap and invertZeroDisparityMap in range [0, 255]**
 
  - On the two Difference of Gaussian calcul probability of zero disparity Map :
- 	- **NDT algorithm** : 
+ 	- ** NDT (neighbourhood descriptor transform) algorithm** :
  		- For every pixels analyze its neighbors  (**NDTSIZE**)
  		- Asign a score on the difference between their values and the current pixel and output a list of  score of size **NDTSIZE**
  		- Compare the two NDT results ( fovea_dog_left, fovea_dog_right) to calcul zero disparity probability Map : Compare one by one the two list and calcul probability with the amount of match between the two list
