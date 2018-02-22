@@ -54,8 +54,8 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     */
 
     setName(moduleName.c_str());
-    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(160), "what did the user select?").asInt();
-    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(1),
+    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(3000), "what did the user select?").asInt();
+    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(0),
                                                                         "what did the user select?").asInt();
     parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base", Value(50),
                                                                       "what did the user select?").asInt();
@@ -83,7 +83,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     parameters.fovea_height = rf.findGroup("PARAMS").check("fovea_size", Value(128),
                                                            "what did the user select?").asInt();
 
-    parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(18),
+    parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(25),
                                                      "what did the user select?").asDouble();
     parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(2),
                                                      "what did the user select?").asDouble();
@@ -94,10 +94,10 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
 
     //NDT parameters
-    parameters.ndtX = rf.findGroup("PARAMS").check("ndtX", Value(2),  "what did the user select?").asInt();
-    parameters.ndtY = rf.findGroup("PARAMS").check("ndtY", Value(2),  "what did the user select?").asInt();
-    parameters.ndtSize = rf.findGroup("PARAMS").check("ndtSize", Value(8),  "what did the user select?").asInt();
-    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(0),  "what did the user select?").asInt();
+    parameters.ndtX = rf.findGroup("PARAMS").check("ndtX", Value(4),  "what did the user select?").asInt();
+    parameters.ndtY = rf.findGroup("PARAMS").check("ndtY", Value(4),  "what did the user select?").asInt();
+    parameters.ndtSize = rf.findGroup("PARAMS").check("ndtSize", Value(14),  "what did the user select?").asInt();
+    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(50),  "what did the user select?").asInt();
 
     //RANK parameters
     parameters.rankX = rf.findGroup("PARAMS").check("rankX", Value(2),  "what did the user select?").asInt();

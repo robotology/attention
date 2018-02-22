@@ -255,6 +255,7 @@ void ZDFThread::run() {
             preprocessImageHSV(left_originalImage_ipl, rec_im_ly_ipl);
             preprocessImageHSV(right_originalImage_ipl, rec_im_ry_ipl);
 
+
             if (acquire) {
                 yDebug("Acquiring : set new Region of Interest \n");
                 cv::Rect regionInterestRec((srcsize.width - tsize.width) / 2,
@@ -298,14 +299,16 @@ void ZDFThread::run() {
             //Start diffence of gaussian on foveated images
             yDebug("difference of gaussian on foveated images \n");
 
-            //dl->procOpenCv(fov_l_ipl, params->sigma1, params->sigma2);
-            //dr->procOpenCv(fov_r_ipl, params->sigma1, params->sigma2);
+            dl->procOpenCv(fov_l_ipl, params->sigma1, params->sigma2);
+            dr->procOpenCv(fov_r_ipl, params->sigma1, params->sigma2);
 
-            CenterSurround *centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, params->sigma1/100);
+            auto centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, params->sigma1/100);
 
             IplImage *leftDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
             IplImage *rightDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
 
+
+//            showIplImage(leftDOG, "test");
 
             centerSurround->proc_im_8u(fov_l_ipl, leftDOG);
             centerSurround->proc_im_8u(fov_r_ipl, rightDOG);
@@ -345,9 +348,14 @@ void ZDFThread::run() {
             //we have mask and image  (out)   [0/255]
             //construct masked image  (fov_l) [0..255]
 
+            double minVal, maxVal;
+            minMaxLoc(cv::cvarrToMat(m_class_ipl), &minVal, &maxVal); //find minimum and maximum intensities
+
+
+            const int classSeg = static_cast<const int>(minVal);
             for (int j = 0; j < foveaSize.height; j++) {
                 for (int i = 0; i < foveaSize.width; i++) {
-                    if (out[i + j * psb_m] == 0) {
+                    if (out[i + j * psb_m] == classSeg) {
                         seg_im[j * psb_m + i] = 0;
                         seg_dog[j * psb_m + i] = 0;
                     } else {
@@ -842,8 +850,8 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     temp_r_ipl = cvCreateImage(cvSize(tsize.width, tsize.height), IPL_DEPTH_8U, 1);
     psb_t = template_left_ipl->widthStep;
 
-//    dl = new DoG(foveaSize);
-//    dr = new DoG(foveaSize);
+    dl = new DoG(foveaSize);
+    dr = new DoG(foveaSize);
 
 
     multiClass = new MultiClass(foveaSize, psb_m, nclasses, params);
@@ -1119,7 +1127,7 @@ void ZDFThread::preprocessImageHSV(IplImage *srcImage, IplImage *destImage) {
 void ZDFThread::preprocessImageYUV(IplImage *srcImage, IplImage *destImage) {
     cvCvtColor(srcImage, yuva_orig_l_ipl, CV_RGB2YUV);
     cvSplit(yuva_orig_l_ipl, first_plane_l_ipl, second_plane_l_ipl, third_plane_l_ipl, nullptr);
-    cvCopy(third_plane_l_ipl, destImage, nullptr);
+    cvCopy(first_plane_l_ipl, destImage, nullptr);
 
 
 }
@@ -1254,7 +1262,7 @@ void ZDFThread::processDisparityMap(IplImage *leftDOG, IplImage *rightDOG){
 
 
             //if either l or r textured at this retinal location:
-            if (p_dogonoff_r[index] > bland_dog_thresh && p_dogonoff_l[index] > bland_dog_thresh ) {
+            if (p_dogonoff_l[index] > bland_dog_thresh && p_dogonoff_r[index] > bland_dog_thresh) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
