@@ -352,7 +352,7 @@ void ZDFThread::run() {
             minMaxLoc(cv::cvarrToMat(m_class_ipl), &minVal, &maxVal); //find minimum and maximum intensities
 
 
-            const int classSeg = static_cast<const int>(minVal);
+            auto classSeg = static_cast<const int>(minVal);
             for (int j = 0; j < foveaSize.height; j++) {
                 for (int i = 0; i < foveaSize.width; i++) {
                     if (out[i + j * psb_m] == classSeg) {
@@ -371,16 +371,16 @@ void ZDFThread::run() {
 
             //********************************************************************
             //If nice segmentation:
-//if(area >= params->min_area && area <= params->max_area && spread <= params->max_spread)           
-            yDebug("checking for nice segmentation \n");
-            if (false) {
+            if(area >= params->min_area && area <= params->max_area && spread <= params->max_spread)
+            {
+                yDebug("checking for nice segmentation \n");
                 //don't update templates to image centre any more as we have a nice target
                 acquire = false;
                 //update templates towards segmentation CoG:
                 yDebug("area:%d spread:%f cogx:%f cogy:%f - UPDATING TEMPLATE\n", area, spread, cog_x, cog_y);
                 //Bring cog of target towards centre of fovea, SNAP GAZE TO OBJECT:
-                cog_x *= params->cog_snap;
-                cog_y *= params->cog_snap;
+//                cog_x *= params->cog_snap;
+//                cog_y *= params->cog_snap;
 
 
                 //We've updated, so reset waiting:
@@ -396,6 +396,16 @@ void ZDFThread::run() {
                 waiting = 0;
                 //report that we-ve updated templates:
                 update = true;
+
+                if(outputGeometry.getOutputCount()){
+                    Bottle geometry = outputGeometry.prepare();
+                    geometry.clear();
+                    geometry.addDouble(cog_x);
+                    geometry.addDouble(cog_y);
+                    outputGeometry.write();
+
+                }
+
             }
                 //Otherwise, just keep previous templates:
             else {
@@ -605,6 +615,8 @@ void ZDFThread::run() {
                 imageOutDogR.write();
 
             }
+
+
 
         }
     }
