@@ -369,9 +369,18 @@ void ZDFThread::run() {
             }
 
 
+            if(outputGeometry.getOutputCount()){
+                 Bottle &geometry = outputGeometry.prepare();
+                 geometry.clear();
+                 geometry.addDouble(cog_x_send);
+                 geometry.addDouble(cog_y_send);
+                 outputGeometry.write();
+
+            }
+
             //********************************************************************
             //If nice segmentation:
-            if(area >= params->min_area && area <= params->max_area && spread <= params->max_spread)
+            if(area >= params->min_area && area <= params->max_area && spread <= params->max_spread && false)
             {
                 yDebug("checking for nice segmentation \n");
                 //don't update templates to image centre any more as we have a nice target
@@ -397,14 +406,6 @@ void ZDFThread::run() {
                 //report that we-ve updated templates:
                 update = true;
 
-                if(outputGeometry.getOutputCount()){
-                    Bottle geometry = outputGeometry.prepare();
-                    geometry.clear();
-                    geometry.addDouble(cog_x);
-                    geometry.addDouble(cog_y);
-                    outputGeometry.write();
-
-                }
 
             }
                 //Otherwise, just keep previous templates:
