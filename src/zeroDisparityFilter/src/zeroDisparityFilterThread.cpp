@@ -369,14 +369,7 @@ void ZDFThread::run() {
             }
 
 
-            if(outputGeometry.getOutputCount()){
-                 Bottle &geometry = outputGeometry.prepare();
-                 geometry.clear();
-                 geometry.addDouble(cog_x_send);
-                 geometry.addDouble(cog_y_send);
-                 outputGeometry.write();
 
-            }
 
             //********************************************************************
             //If nice segmentation:
@@ -540,6 +533,17 @@ void ZDFThread::run() {
                         img_out_temp = nullptr;
                     }
 
+                    if(outputGeometry.getOutputCount()){
+                        Bottle &geometry = outputGeometry.prepare();
+                        geometry.clear();
+                        geometry.addDouble(rRect.tl().x);
+                        geometry.addDouble(rRect.tl().y);
+                        geometry.addDouble(rRect.br().x);
+                        geometry.addDouble(rRect.br().y);
+                        outputGeometry.write();
+
+                    }
+
                 }
 
 
@@ -573,7 +577,7 @@ void ZDFThread::run() {
             Vector px(2);   // specify the pixel where to look
             px[0] = cog_x_send;
             px[1] = cog_y_send;
-            double z = 10.0;   // distance [m] of the object from the image plane (extended to infinity): yes, you probably need to guess, but it works pretty robustly
+            double z = 0.10;   // distance [m] of the object from the image plane (extended to infinity): yes, you probably need to guess, but it works pretty robustly
             igaze->lookAtMonoPixel(camSel,px,z);    // look!
 
              */
