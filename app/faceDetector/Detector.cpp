@@ -23,23 +23,12 @@
 
 using namespace yarp::sig;
 using namespace yarp::os;
-using namespace yarp::dev;
 using namespace std;
 using namespace cv;
 
-void Detector::suspend() {
-    idle = true;
-}
-
-void Detector::resume() {
-    idle = false;
-}
 
 void Detector::loop()
-{   
-
-  if (!idle){
-   
+{    
     ImageOf<PixelRgb> *image = imagePort.read();  // read an image
     if (image != NULL) 
     { 
@@ -47,7 +36,7 @@ void Detector::loop()
         ImageOf<PixelRgb> &outImage = outPort.prepare(); //get an output image
         outImage = *image;
         display = (IplImage*) outImage.getIplImage();
-        Mat imgMat = cvarrToMat(display);
+        Mat imgMat = display;
         circle_t c;
         detectAndDraw(imgMat, 1.3, c);
 
@@ -63,77 +52,40 @@ void Detector::loop()
         if(c.r > 0)
         {            
            if(isIn(c, face))
-           {
+            {
                 // we found an stable face
-                // if(++counter > certainty)
+               // if(++counter > certainty)
                 {
-                    if(disableGazeControl){
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,255,0), 3, 8, 0 );
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,255,0), 2, 8, 0 );
-                    
-                    }
-
-                    else{
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,0,255), 3, 8, 0 );
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,0,255), 2, 8, 0 );
-                    
-                    }
-
-                    if(withSaliency){
+                    cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,255,0), 3, 8, 0 );
+                    cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,255,0), 2, 8, 0 );
+                    if(withSaliency)
                         cvCircle(saliency, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(255,255,255), -1, 8, 0 );
-                    }
-                    double alfa = alpha;    
+                        
                     yarp::sig::Vector uv(2);
-                    yarp::sig::Vector posRoot(3);
-
-
-                    int w2 = (display->width)>>1;
-                    int h2 = (display->height)>>1;
-                    double distance = sqrt((face.x - w2) * (face.x - w2) + (face.y - h2) * (face.y - h2));                    
-                    
-
-                    if(distance > 40.0 && disableGazeControl){
-                        yInfo("w2 %d h2 %d distance %f", w2, h2, distance);
-                        uv[0] = face.x;
-                        uv[1] = face.y;
-                                        
-                        //yDebug("position %f %f distance %f", face.x, face.y, eyeDist);
-                        bool ret = iGaze->get3DPoint((eye=="left")?0:1, uv, eyeDist, posRoot );
-                        //yDebug("got 3D position %s", posRoot.toString().c_str());
-                        if(ret)
-                            {
+                    yarp::sig::Vector posRoot;
+                    uv[0] = face.x;
+                    uv[1] = face.y;
+                    bool ret = iGaze->get3DPoint((eye=="left")?0:1, uv, eyeDist, posRoot );
+                    if(ret)
+                    {
+                        prev_x = -eyeDist;
+                        prev_y = posRoot[1];
+                        prev_z = posRoot[2];
                         
-
-                                yarp::sig::Vector posRootFinal(3);
-                                posRootFinal[0] = alfa * posRoot[0] + (1 - alfa) * prev_x;
-                                posRootFinal[1] = alfa * posRoot[1] + (1 - alfa) * (prev_y + offsetY);
-                                posRootFinal[2] = alfa * posRoot[2] + (1 - alfa) * (prev_z + offsetZ);
-
-                                prev_x = -eyeDist;
-                                prev_y = posRootFinal[1];
-                                prev_z = posRootFinal[2];
-                        
-                                //-------------------------------------
-                                iGaze->lookAtFixationPoint(posRootFinal);
-                                //--------------------------------------
-
-                                //yDebug("get3DPoint %f %f %f sent in...ready to send",prev_x, prev_y+offsetY, prev_z+offsetZ);
-                                Bottle &target=targetPort.prepare();
-                                target.clear();
-                                target.addDouble(prev_x);
-                                target.addDouble(prev_y+offsetY);
-                                target.addDouble(prev_z+offsetZ);
-                                for(int i=0; i<rotation.size(); i++){
-                                    target.addDouble(rotation[i]);
-                                }
-                                targetPort.write();
+                        Bottle &target=targetPort.prepare();
+                        target.clear();
+                        target.addDouble(prev_x);
+                        target.addDouble(prev_y+offsetY);
+                        target.addDouble(prev_z+offsetZ);
+                        for(int i=0; i<rotation.size(); i++)
+                            target.addDouble(rotation[i]);
+                        targetPort.write();
                       
-                                Bottle &cmd=faceExpPort.prepare();
-                                cmd.addVocab(Vocab::encode("set"));
-                                cmd.addVocab(Vocab::encode("all"));
-                                cmd.addVocab(Vocab::encode(faceExpression.c_str()));
-                                faceExpPort.write();
-                            }
+                        Bottle &cmd=faceExpPort.prepare();
+                        cmd.addVocab(Vocab::encode("set"));
+                        cmd.addVocab(Vocab::encode("all"));
+                        cmd.addVocab(Vocab::encode(faceExpression.c_str()));
+                        faceExpPort.write();
                     }
                 }
             }
@@ -145,15 +97,12 @@ void Detector::loop()
          //       cvCircle(display, cvPoint(cvRound(c.x), cvRound(c.y)), cvRound(c.r), CV_RGB(255,0,0), 1, 8, 0 );
            // }
         }
-        else{
+        else
             counter = 0;
-        }
         outPort.write();   
-        if(withSaliency){
+        if(withSaliency)
             saliencyPort.write();
-        }
     }
-  }
 }
 
 
@@ -218,9 +167,6 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
            c.x = center.x;
            c.y = center.y; 
         }
-
-        //yInfo("c.x %f c.y %f",c.x, c.y);                                          
-        
         /*
         if( nestedCascade.empty() )
             continue;
@@ -247,30 +193,13 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
 
 bool Detector::open(yarp::os::ResourceFinder &rf)
 {
-    yDebug("Opening the Detector");
     eye = rf.check("eye", Value("left")).asString().c_str();
     faceExpression = rf.check("expression", Value("ang")).asString().c_str();
-    eyeDist = fabs(rf.check("eyeDist", Value(0.7)).asDouble());
-    alpha = fabs(rf.check("alpha", Value(0.15)).asDouble());
-    certainty = rf.check("certainty", Value(1.0)).asInt();
+    eyeDist = fabs(rf.check("eyeDist", Value(0.3)).asDouble());
+	certainty = rf.check("certainty", Value(1.0)).asInt();
     offsetZ =  rf.check("offset_z", Value(-0.05)).asDouble();
     offsetY =  rf.check("offset_y", Value(0.0)).asDouble();
     withSaliency = rf.check("enable_saliency", Value(0)).asInt();
-    withAttentionSystem = rf.check("with_attention", Value(0)).asBool();
-    disableGazeControl  = rf.check("gaze_control", Value( !withAttentionSystem)).asBool();
-
-
-
-
-    yInfo("eye: %s", eye.c_str());
-    yInfo("faceExpression: %s", faceExpression.c_str());
-    yInfo("eyeDistance: %f", eyeDist);
-    yInfo("alpha: %f", alpha);
-    yInfo("certainty: %d", certainty);
-    yInfo("offsetZ: %f", offsetZ);
-    yInfo("offsetY: %f", offsetY);
-    yInfo("withSaliency: %d", withSaliency);
-    
 
     if(Bottle *rot=rf.find("rotation").asList())
     {
@@ -278,53 +207,18 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
             rotation.push_back(rot->get(i).asDouble());
     }
 
-    //---------------------------------------------------------------
-    yDebug("Opening the connection to the iKinGaze");
-    Property optGaze; //("(device gazecontrollerclient)");
-    optGaze.put("device","gazecontrollerclient");
-    optGaze.put("remote","/iKinGazeCtrl");
-    optGaze.put("local","/faceDetector/gaze");
 
-    
-    clientGaze = new PolyDriver();
-    clientGaze->open(optGaze);
-    iGaze=NULL;
-    
-    //yDebug("polydriver created");
-    //if (!clientGaze->open(optGaze)) {
-    //    yError("Error in connecting the iKinGaze");
-    //    return false;
-    //}
-        
-    yDebug("Connecting to the iKinGaze");
-    if (clientGaze->isValid()) {
-       clientGaze->view(iGaze);
-    }
-    else
+    Property optGaze("(device gazecontrollerclient)");
+    optGaze.put("remote","/iKinGazeCtrl");
+    optGaze.put("local","/faceDetector/gazeClient");
+
+    if (!clientGaze.open(optGaze))
         return false;
 
-    iGaze->storeContext(&startup_context_id);
-    
-    if(!withAttentionSystem){
-        // @Rea 29.11.17 : commented this out for SC demo 5.12 to avoid conflicts with PROVISION
-        ////clientGaze.view(iGaze);
-        iGaze->blockNeckRoll(0.0);
-        ////iGaze->setSaccadesStatus(false);
-        iGaze->setSaccadesMode(false);
-        //// set trajectory time:
-        iGaze->setNeckTrajTime(0.5);
-        iGaze->setEyesTrajTime(0.2);
-        iGaze->setTrackingMode(true);
-        iGaze->setVORGain(1.3);
-        iGaze->setOCRGain(1.0);
-
-    }
-
-    
-   
-                     
-
-    //---------------------------------------------------------------
+    clientGaze.view(iGaze);
+    iGaze->blockNeckRoll(0.0);
+    //iGaze->setSaccadesStatus(false);
+    iGaze->setSaccadesMode(false);
 
     
     if (rf.check("disable_saccade", Value(0)).asInt())
@@ -332,7 +226,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
         //disabling saccade
         printf("\nDisabling saccade...\t");
         yarp::os::Port gazePort;
-        gazePort.open("/faceDetector/gazeInterface:o");
+        gazePort.open("...");
         if( yarp::os::Network::connect(gazePort.getName().c_str(), "/iKinGazeCtrl/rpc"))
         {
             Bottle reply;
@@ -352,7 +246,6 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
         gazePort.close(); 
     }
 
-    yDebug("Looking for cascade in %s", strCascade.c_str());
     bool ret = cascade.load( strCascade.c_str());
     //ret = ret && nestedCascade.load( strNestedCascade.c_str());
     if(!ret)
@@ -368,29 +261,18 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     if(withSaliency){
         ret = ret && saliencyPort.open("/faceDetector/saliency/out");     
     }
-
-    prev_y = 0.0;
-    prev_z = 0.35;
-    
-
-    yDebug("Initialization completed");
     return ret;
-    
 }
 
 bool Detector::close()
 {
-    iGaze->stopControl();
-    iGaze->restoreContext(startup_context_id);
-   
-    clientGaze->close();
+    clientGaze.close();
     imagePort.close();
     outPort.close();
     targetPort.close();
     faceExpPort.close();
-    if(withSaliency) {
+    if(withSaliency)
         saliencyPort.close();
-    }
     return true;
 }
 
@@ -399,10 +281,5 @@ bool Detector::interrupt()
     imagePort.interrupt();
     return true;
 }
-
-void Detector::setGazeControl(bool t_disableGazeControl){
-    disableGazeControl = t_disableGazeControl;
-}
-
 
 

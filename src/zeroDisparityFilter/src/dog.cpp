@@ -380,7 +380,7 @@ void DoG::proc(IplImage *in_, int psb_in) {
     printf("sizes: %d == %d and %d == %d \n", dog_image->height, dog_on_image->height, dog_image->width, dog_on_image->width);
     printf("depths: %d == %d \n", dog_image->depth, dog_on_image->depth);
     printf("channels: %d == %d \n", dog_image->nChannels, dog_on_image->nChannels);
-    cvThreshold(dog_image, dog_on_image, 0.0, 0.0, CV_THRESH_TOZERO); // threshold to Zero; BEFORE: 1.0, CV_THRESH_BINARY, by #amaroyo on 15/02/2016
+    //cvThreshold(dog_image, dog_on_image, 0.0, 0.0, CV_THRESH_TOZERO); // threshold to Zero; BEFORE: 1.0, CV_THRESH_BINARY, by #amaroyo on 15/02/2016
 
 
     //---------------- off-centre ----------------------------------------------
@@ -390,7 +390,7 @@ void DoG::proc(IplImage *in_, int psb_in) {
 
     //and keep only results above zero:
     //ippiThreshold_LT_32f_C1R(dog,psb_pad,dog_off,psb_pad,psize,0.0);
-    cvThreshold(dog_image, dog_off_image, 0.0, 0.0, CV_THRESH_TOZERO);
+    //cvThreshold(dog_image, dog_off_image, 0.0, 0.0, CV_THRESH_TOZERO);
 
     //on+off:
     //ippiAdd_32f_C1R(dog_on,psb_pad,dog_off,psb_pad,dog_onoff,psb_pad,psize);

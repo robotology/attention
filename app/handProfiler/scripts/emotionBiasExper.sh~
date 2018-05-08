@@ -25,7 +25,7 @@ usage() {
 cat << EOF
 ***************************************************************************************
 DEA SCRIPTING
-Author:  Alessandro Roncone   <alessandro.roncone@iit.it>
+Author:  Alessandro Roncone   <alessandro.roncone@iit.it> 
 
 This script scripts through the commands available for the DeA Kids videos.
 
@@ -91,7 +91,7 @@ go_home_withtable_helper() {
     go_home_withtable_helperL $1
     # echo "ctpq time 1.0 off 0 pos (0.0 0.0 10.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
     go_home_helperH $1
-    go_home_helperT $1
+    go_home_helperT $1	
 }
 
 go_home_helper() {
@@ -224,29 +224,13 @@ release_apple() {
     echo "release_apple TODO"
 }
 
-blinkWithEmotions() {
-    echo "set all sur" | yarp rpc /icub/face/emotions/in
-    sleep 0.1
-    echo "set all hap" | yarp rpc /icub/face/emotions/in
-}
-blinkDoubleWithEmotions() {
-    echo "set all sur" | yarp rpc /icub/face/emotions/in
-    sleep 0.1
-    echo "set all hap" | yarp rpc /icub/face/emotions/in
-    sleep 0.1
-    echo "set all sur" | yarp rpc /icub/face/emotions/in
-    sleep 0.1
-    echo "set all hap" | yarp rpc /icub/face/emotions/in
-}
-
-
 mostra_muscoli() {
     breathers "stop"
     echo "ctpq time 1.5 off 0 pos (-27.0 78.0 -37.0 33.0 -79.0 0.0 -4.0 26.0 27.0 0.0 29.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
     echo "ctpq time 1.5 off 0 pos (-27.0 78.0 -37.0 33.0 -79.0 0.0 -4.0 26.0 27.0 0.0 29.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
     echo "ctpq time 1.0 off 0 pos (-27.0 78.0 -37.0 93.0 -79.0 0.0 -4.0 26.0 67.0 0.0 99.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
     echo "ctpq time 1.0 off 0 pos (-27.0 78.0 -37.0 93.0 -79.0 0.0 -4.0 26.0 67.0 0.0 99.0 59.0 117.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
-    # speak "Dei supereroi"
+    speak "Dei supereroi"
     sleep 3.0
     smile
     go_home_helper 2.0
@@ -352,13 +336,13 @@ meteo_bot() {
 saluta() {
     breathers "stop"
     echo "ctpq time 1.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0 -11.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
-    #sleep 2.0 && speak "Salve colleghi."
+    sleep 2.0 && speak "Salve colleghi."
     echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0  25.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
     echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0 -11.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
     echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0  25.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
     echo "ctpq time 0.5 off 0 pos (-60.0 44.0 -2.0 96.0 53.0 -17.0 -11.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
     smile
-    #go_home
+    go_home
     smile
 }
 
@@ -370,7 +354,7 @@ closing_remarks() {
     sleep 3.0 && blink && smile
     speak "In bocca al lupo meikers"
     smile
-    greet_with_right_thumb_up
+    greet_with_right_thumb_up   
     smile
 }
 
@@ -411,34 +395,10 @@ cun() {
 angry() {
     echo "set all ang" | yarp rpc /icub/face/emotions/in
 }
-####################################################################################################################
-#                              Palm orientations                                                                   #
-####################################################################################################################
-palm4stick() {
-    echo "PALM CUS (0.140137 0.654117 -0.743298 2.849317) " | yarp rpc /handProfiler
-}
 
-palm4pass() {
-    echo "PALM CUS (0.2176 0.7718 -0.5977 3.0170) " | yarp rpc /handProfiler
-}
-
-palmup() {
-    echo "PALM CUS (-0.254182	 0.891684	-0.374555	 3.025273) " | yarp rpc /handProfiler
-}
-
-palmface() {
-    echo "PALM CUS (-0.617941	 0.243286	-0.747637	 3.095665) " | yarp rpc /handProfiler
-}
-
-palmfaceright(){
-   echo "PALM CUS (-0.037738	-0.996767	 0.070937	 2.145385)" | yarp rpc /handProfiler
-}
 ####################################################################################################################
 #                              Ellipses Trajectories                                                               #
 ####################################################################################################################
-ellipse4fra() {
-    echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta  1.57 1.57 7.85) (axes 0.1 0.1) (rev) (param 0.01 0.33))) " | yarp rpc /handProfiler
-}
 
 handProfile_CVPEllipse01() {
     echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.2) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.1) (rev) (param 0.1))) " | yarp rpc /handProfiler
@@ -464,26 +424,6 @@ handProfile_TTPLEllipse02() {
     echo "GEN TTPL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.2 0.33)))" | yarp rpc /handProfiler
 }
 
-handProfile_TTLFront001(){
-    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 0.0 1.57 3.14) (axes 0.1 0.1) (param 0.01 0.33)))" | yarp rpc /handProfiler
-}
-
-handProfile_TTLFront002(){
-    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 0.0 1.57 3.14) (axes 0.1 0.1) (param 0.02 0.33)))" | yarp rpc /handProfiler
-}
-
-handProfile_TTLFront001_rev(){
-    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.1) (B -0.25 -0.1 0.2) (C -0.25 -0.1 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
-}
-
-handProfile_TTLFront004_emp(){
-    echo "GEN TTL (((O -0.25 -0.1 0.1) (A -0.35 -0.1 0.05) (B -0.25 -0.1 0.3) (C -0.25 -0.1 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.04 0.33)))" | yarp rpc /handProfiler
-}
-
-handRightP_CVPFront008_emp(){
-    echo "GEN CVP (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.3) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.08)))" | yarp rpc /handProfiler
-}
-
 handProfile_TTLEllipse001() {
     echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
 }
@@ -496,135 +436,8 @@ handProfile_TTLEllipse005() {
     echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.3 -0.0 0.1) (B -0.3 -0.1 0.3) (C -0.3 -0.1 0.0) (theta 0.0 1.57 4.71) (axes 0.1 0.2) (rev) (param 0.05 0.33)))" | yarp rpc /handProfiler
 }
 
-######################################### right hand provide object
-
-handRightP_TTLFront001_rev(){
-    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.2) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
-}
-
-handRightP_CVPFront001_rev(){
-    echo "GEN CVP (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.2) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.09)))" | yarp rpc /handProfiler
-}
-
-handRightP_TTLFront004_emp(){
-    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.35 0.2 0.1) (B -0.25 0.2 0.3) (C -0.25 0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.04 0.33)))" | yarp rpc /handProfiler
-}
-
-######################################### right hand halt
-
-handRightP_TTLHalt001_rev(){
-    echo "GEN TTL (((O -0.25 0.17 0.1) (A -0.35 0.17 0.1) (B -0.25 0.17 0.11) (C -0.1 0.17 0.1) (theta 0.1 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.005 0.33)))" | yarp rpc /handProfiler
-}
-
-handRightP_TTLHalt002_emp(){
-    echo "GEN TTL (((O -0.25 0.17 0.1) (A -0.35 0.17 0.1) (B -0.25 0.17 0.11) (C -0.1 0.17 0.1) (theta 0.05 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.0095 0.33)))" | yarp rpc /handProfiler
-}
-
-handRightP_CVPHalt008_emp(){
-    echo "GEN CVP (((O -0.25 0.17 0.1) (A -0.35 0.17 0.1) (B -0.25 0.17 0.11) (C -0.1 0.17 0.1) (theta 0.05 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.12)))" | yarp rpc /handProfiler
-}
-
-########################################### right hand pointing
-
-handRightP_TTLPoint005_emp(){
-    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.2 0.2 0.1) (B -0.25 0.2 0.25) (C -0.25 0.2 -0.5) (theta 1.2 1.57 4.0) (axes 0.05 0.15) (param 0.013 0.33)))" | yarp rpc /handProfiler
-}
-
-handRightP_CVPPoint008_emp(){
-    echo "GEN CVP (((O -0.25 0.2 0.1) (A -0.35 0.2 -0.1) (B -0.25 0.2 0.1) (C -0.25 0.2 0.0) (theta 0.125 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.1)))" | yarp rpc /handProfiler
-}
-
-handRightP_TTLPoint001_rev(){
-    echo "GEN TTL (((O -0.25 0.2 0.1) (A -0.2 0.2 0.1) (B -0.25 0.2 0.2) (C -0.25 0.2 -0.0) (theta 1.3 1.57 4.0) (axes 0.05 0.1) (param 0.008 0.33)))" | yarp rpc /handProfiler
-}
-
-
-############################################ tests for Placing an object on a table right (todo)
-
-handRightP_TTLTable005_emp(){
-    echo "GEN TTL (((O -0.2 0.2 0.0) (A -0.2 0.2 0.2) (B -0.25 0.2 0.10) (C -0.35 0.2 0.0) (theta 0.3 1.57 2.65) (axes 0.2 0.15) (param 0.005 0.33)))" | yarp rpc /handProfiler
-}
-
-handRightP_TTLTable002(){
-    echo "GEN TTL (((O -0.15 0.2 0.1) (A -0.15 0.2 0.2) (B -0.25 0.2 0.1) (C -0.15 0.2 0.0) (theta 0.0 1.57 1.70) (axes 0.1 0.1) (param 0.007  0.33)))" | yarp rpc /handProfiler
-}
-
-handRightP_CVPTable008_const_strange(){
-    echo "GEN CVP (((O -0.2 0.2 0.0) (A -0.15 0.2 0.1) (B -0.35 0.2 0.1) (C -0.35 0.2 0.0) (theta 0.785 1.57 2.65) (axes 0.1 0.2) (param 0.15)))" | yarp rpc /handProfiler
-}
-
-handRightP_CVPTable008_const(){
-    echo "GEN CVP (((O -0.2 0.2 0.0) (A -0.15 0.2 0.1) (B -0.35 0.2 0.1) (C -0.35 0.2 0.0) (theta 0.785 1.57 2.65) (axes 0.1 0.2) (param 0.15)))" | yarp rpc /handProfiler
-}
-
-######################################### left hand provide object
-
-handLeftP_TTLFront001_rev(){
-    echo "GEN TTL (((O -0.25 -0.2 0.1) (A -0.35 -0.2 0.1) (B -0.25 -0.2 0.2) (C -0.25 -0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
-}
-
-handLeftP_CVPFront001_rev(){
-    echo "GEN CVP (((O -0.25 -0.2 0.1) (A -0.35 -0.2 0.1) (B -0.25 -0.2 0.2) (C -0.25 -0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.1) (rev) (param 0.09)))" | yarp rpc /handProfiler
-}
-
-handLeftP_TTLFront004_emp(){
-    echo "GEN TTL (((O -0.25 -0.2 0.1) (A -0.35 -0.2 0.1) (B -0.25 -0.2 0.3) (C -0.25 -0.2 0.0) (theta 0.707 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.012 0.33)))" | yarp rpc /handProfiler
-}
-
-newHandLeftProvide(){
-    echo "GEN TTL (((O -0.3 -0.1 0.1) (A -0.37 -0.1 0.1) (B -0.3 -0.1 0.13) (C -0.23 -0.1 0.1) (theta 0.0 1.57 3.14) (axes 0.07 0.03) (rev) (param 0.01 0.33)))" | yarp rpc /handProfiler
-}
-
-######################################### left hand halt
-
-handLeftP_TTLHalt001_rev(){
-    echo "GEN TTL (((O -0.25 -0.17 0.1) (A -0.35 -0.17 0.1) (B -0.25 -0.17 0.11) (C -0.1 -0.17 0.1) (theta 0.1 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.003 0.33)))" | yarp rpc /handProfiler
-}
-
-handLeftP_TTLHalt002_emp(){
-    echo "GEN TTL (((O -0.25 -0.17 0.1) (A -0.35 -0.17 0.1) (B -0.25 -0.17 0.11) (C -0.1 -0.17 0.1) (theta 0.05 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.0095 0.33)))" | yarp rpc /handProfiler
-}
-
-handLeftP_CVPHalt008_emp(){
-    echo "GEN CVP (((O -0.25 -0.17 0.1) (A -0.35 -0.17 0.1) (B -0.25 -0.17 0.11) (C -0.1 -0.17 0.1) (theta 0.05 1.57 3.14) (axes 0.1 0.01) (rev) (param 0.12)))" | yarp rpc /handProfiler
-}
-
-########################################### left hand pointing
-
-handLeftP_TTLPoint005_emp(){
-    echo "GEN TTL (((O -0.25 -0.2 0.1) (A -0.2 -0.2 0.1) (B -0.25 -0.2 0.25) (C -0.25 -0.2 -0.5) (theta 1.2 1.57 4.0) (axes 0.05 0.15) (param 0.013 0.33)))" | yarp rpc /handProfiler
-}
-
-handLeftP_CVPPoint008_emp(){
-    echo "GEN CVP (((O -0.25 -0.2 0.1) (A -0.35 -0.2 -0.1) (B -0.25 -0.2 0.1) (C -0.25 -0.2 0.0) (theta 0.125 1.57 3.14) (axes 0.1 0.2) (rev) (param 0.1)))" | yarp rpc /handProfiler
-}
-
-handLeftP_TTLPoint001_rev(){
-    echo "GEN TTL (((O -0.25 -0.2 0.1) (A -0.2 -0.2 0.1) (B -0.25 -0.2 0.2) (C -0.25 -0.2 -0.0) (theta 1.3 1.57 4.0) (axes 0.05 0.1) (param 0.008 0.33)))" | yarp rpc /handProfiler
-}
-
-
-############################################ tests for Placing an object on a table left (todo)
-
-handLeftP_TTLTable005_emp(){
-    echo "GEN TTL (((O -0.2 0.2 0.0) (A -0.2 0.2 0.2) (B -0.25 0.2 0.10) (C -0.35 0.2 0.0) (theta 0.3 1.57 2.65) (axes 0.2 0.15) (param 0.005 0.33)))" | yarp rpc /handProfiler
-}
-
-handLeftP_TTLTable002(){
-    echo "GEN TTL (((O -0.15 -0.14 0.05) (A -0.15 -0.14 0.08) (B -0.30 -0.14 0.05) (C -0.15 -0.14 0.02) (theta 0.0 1.57 1.58) (axes 0.03 0.15) (param 0.008  0.33)))" | yarp rpc /handProfiler
-}
-
-handLeftP_CVPTable008_const_strange(){
-    echo "GEN CVP (((O -0.2 0.2 0.0) (A -0.15 0.2 0.1) (B -0.35 0.2 0.1) (C -0.35 0.2 0.0) (theta 0.785 1.57 2.65) (axes 0.1 0.2) (param 0.15)))" | yarp rpc /handProfiler
-}
-
-handLeftP_CVPTable008_const(){
-    echo "GEN CVP (((O -0.2 0.2 0.0) (A -0.15 0.2 0.1) (B -0.35 0.2 0.1) (C -0.35 0.2 0.0) (theta 0.785 1.57 2.65) (axes 0.1 0.2) (param 0.15)))" | yarp rpc /handProfiler
-}
-
-
 ####################################################################################################################
-#                              Linear Trajectories: Horizontal (left)                                              #
+#                              Linear Trajectories: Horizontal                                                     #
 ####################################################################################################################
 
 handProfile_CVPHoriz005() {
@@ -638,7 +451,6 @@ handProfile_CVPHoriz01() {
 handProfile_CVPHoriz02() {
     echo "GEN CVP (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.2)))" | yarp rpc /handProfiler
 }
-
 
 handProfile_TTPLHoriz02() {
     echo "GEN TTPL (((O -0.3 -0.1 0.1) (A -0.3 -0.05 0.1) (B -0.4 -0.1 0.1) (C -0.3 -0.25 0.1) (theta 0.0 1.57 3.04) (rev) (axes 0.15 0.1) (param 0.2 0.33)))" | yarp rpc /handProfiler
@@ -664,10 +476,6 @@ handProfile_STAREXE() {
     echo "STAR EXE" | yarp rpc /handProfiler
 }
 
-handProfile_STARSIM() {
-    echo "STAR SIM" | yarp rpc /handProfiler
-}
-
 
 #######################################################################################
 #                                COMPLEX PROCEDURES                                   #
@@ -679,7 +487,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachA_noHead
         go_home_withtable
     }
-
+    
     reachASequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -693,7 +501,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachB_noHead
         go_home_withtable
     }
-
+    
     reachBSequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -707,7 +515,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachC_noHead
         go_home_withtable
     }
-
+    
     reachCSequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -721,7 +529,7 @@ handProfile_STARSIM() {
         sleep 3.0 && reachD_noHead
         go_home_withtable
     }
-
+    
     reachDSequence() {
         go_home_withtable
         sleep 2.0 && speak "ragazzi.... prendo un nuovo giocattolo"
@@ -739,7 +547,7 @@ handProfile_STARSIM() {
         sleep 1.0 && tiltHead
         sleep 3.0 && smile
         sleep 3.0 && explainExercise
-        sleep 0.5 && reachRisma
+        sleep 0.5 && reachRisma       
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -757,7 +565,7 @@ handProfile_STARSIM() {
         sleep 1.0 && tiltHead_robotic
         sleep 3.0 && smile
         sleep 3.0 && explainExercise
-        sleep 0.5 && reachRisma_robotic
+        sleep 0.5 && reachRisma_robotic       
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -775,7 +583,7 @@ handProfile_STARSIM() {
         sleep 1.0 && go_home_withtable
         sleep 3.0 && smile
         sleep 3.0 && explainExercise
-        sleep 0.5 && reachRisma
+        sleep 0.5 && reachRisma       
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -794,7 +602,7 @@ handProfile_STARSIM() {
         sleep 1.0 && tiltHead
         sleep 3.0 && smile
         sleep 3.0 && explainExercise_beeping
-        sleep 0.5 && reachRisma
+        sleep 0.5 && reachRisma       
         sleep 3.0 && go_home_withtable
         echo "[info] smile"
         smile
@@ -814,13 +622,8 @@ handProfile_STARSIM() {
         sleep 2.0 && handProfile_STAREXE
     }
 
-    frontTTL001() {
-        handProfile_TTPLFront001
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    horizTTPL001() {
-        handProfile_TTPLHoriz001
+    horizTTPL04() {
+        handProfile_TTPLHoriz04
         sleep 2.0 && handProfile_STAREXE
     }
 
@@ -853,7 +656,7 @@ handProfile_STARSIM() {
         handProfile_TTLEllipse005
         sleep 2.0 && handProfile_STAREXE
     }
-
+    
     ellipseTTL002() {
         handProfile_TTLEllipse002
         sleep 2.0 && handProfile_STAREXE
@@ -872,364 +675,10 @@ handProfile_STARSIM() {
     ellipseCVP01() {
         handProfile_CVPEllipse01
         sleep 2.0 && handProfile_STAREXE
-    }
+    } 
 
-
-
-    ############################################################### left arm
-
-    provideObject001() {
-	palm4stick
-	handProfile_TTLFront001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-
-    provideObjectEmp() {
-	palm4stick
-	handProfile_TTLFront004_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    provideObjectEmp_const(){
-	palm4stick
-	handRightP_CVPFront008_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    invite04() {
-	palmface
-	handProfile_TTLFront04_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    halt04(){
-	palmface
-	handProfile_TTLFront001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-
-    ################################################################ right arm
-
-    provideObject001Right() {
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palm4stick
-	handRightP_TTLFront001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    provideObject001Right_const() {
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palm4stick
-	handRightP_CVPFront001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-     provideObjectEmpRight() {
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palm4stick
-	handRightP_TTLFront004_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    haltRight04(){
-	echo "ctpq time 1.5 off 0 pos (9.5 27.3 -4.2 75.5 40.0 -79.7 -14.8 26.4 26.4 0.0 28.9 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palmfaceright
-	handRightP_TTLHalt001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    haltRight02Emp(){
-	echo "ctpq time 1.5 off 0 pos (9.5 27.3 -4.2 75.5 40.0 -79.7 -14.8 26.4 26.4 0.0 28.9 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palmfaceright
-	handRightP_TTLHalt002_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    haltRight08Const(){
-	echo "ctpq time 1.5 off 0 pos (9.5 27.3 -4.2 75.5 40.0 -79.7 -14.8 26.4 26.4 0.0 28.9 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palmfaceright
-	handRightP_CVPHalt008_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    pointRight04(){
-	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palm4stick
-	handRightP_TTLPoint001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    pointRight05Emp(){
-	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palm4stick
-	handRightP_TTLPoint005_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    pointRight08Const(){
-	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	palm4stick
-	handRightP_CVPPoint008_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    placeTableRight() {
-	palm4stick
-	handRightP_TTLTable002
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    placeTableRightEmp() {
-	palm4stick
-	handRightP_TTLTable005_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    placeTableRightConst() {
-	palm4stick
-	handRightP_CVPTable008_const
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    ################################################################ left arm
-
-    provideObject001Left() {
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palm4stick
-	handLeftP_TTLFront001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    provideObject001Left_const() {
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palm4stick
-	handLeftP_CVPFront001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-     provideObjectEmpLeft() {
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palm4stick
-	handLeftP_TTLFront004_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    haltLeft04(){
-	echo "ctpq time 1.5 off 0 pos (9.5 27.3 -4.2 75.5 40.0 -79.7 -14.8 26.4 26.4 0.0 28.9 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palmface
-	handLeftP_TTLHalt001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    haltLeft02Emp(){
-	echo "ctpq time 1.5 off 0 pos (9.5 27.3 -4.2 75.5 40.0 -79.7 -14.8 26.4 26.4 0.0 28.9 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palmface
-	handLeftP_TTLHalt002_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    haltLeft08Const(){
-	echo "ctpq time 1.5 off 0 pos (9.5 27.3 -4.2 75.5 40.0 -79.7 -14.8 26.4 26.4 0.0 28.9 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palmface
-	handLeftP_CVPHalt008_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    pointLeft04(){
-	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palm4stick
-	handLeftP_TTLPoint001_rev
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    pointLeft05Emp(){
-	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palm4stick
-	handLeftP_TTLPoint005_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    pointLeft08Const(){
-	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	palm4stick
-	handLeftP_CVPPoint008_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    placeTableLeft() {
-	palm4stick
-	handLeftP_TTLTable002
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    placeTableLeftEmp() {
-	palm4stick
-	handLeftP_TTLTable005_emp
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-    placeTableLeftConst() {
-	palm4stick
-	handLeftP_CVPTable008_const
-        sleep 2.0 && handProfile_STAREXE
-    }
-
-########################### CTP tests
-
-    pointRight04Ctp(){
-	breathers "stop"
-    	echo "ctpq time 1.5 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
-	echo "ctpq time 1.5 off 0 pos (-8.4 43.4 13.6 97.3 -21.6 -8.4 24.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-        sleep 3.0
- 	echo "ctpq time 1.5 off 0 pos (-3.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
-	echo "ctpq time 1.5 off 0 pos (-36.9 25.7 23.0 14.5 14.4 -7.3 5.6 26.0 27.0 0.0 29.0 0.0 0.0 87.0 176.0 250.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	breathers "start"
-
-    }
-
-    haltRight04Ctp(){
-	breathers "stop"
-    	echo "ctpq time 1.5 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
-	echo "ctpq time 1.5 off 0 pos (9.5 27.3 -4.2 75.5 40.0 -79.7 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-        sleep 3.0
- 	echo "ctpq time 1.5 off 0 pos (-5.0 0.0 3.0)" | yarp rpc /ctpservice/torso/rpc
-	echo "ctpq time 1.5 off 0 pos (-54.8 33.0 31.5 19.1 40.0 -79.7 -14.8 26.4 26.4 0.0 28.9 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	breathers "start"
-
-    }
-
-    provideObjectRight04Ctp(){
-	breathers "stop"
-    	echo "ctpq time 1.5 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-        sleep 3.0
- 	echo "ctpq time 1.5 off 0 pos (-3.0 0.0 3.0)" | yarp rpc /ctpservice/torso/rpc
-	echo "ctpq time 1.5 off 0 pos (-49.5 62.7 34.6 68.2 -58.8 -7.3 24.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 2.0
-	breathers "start"
-
-    }
-
-    gobackhome(){
-	breathers "stop"
-    	echo "ctpq time 1.5 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
-	echo "ctpq time 1.5 off 0 pos (9.4 27.3 -29.3 103.7 -42 24.1 -14.8 34.0 27.2 0.0 56.0 20.0 83.3 47.7 62.9 130.0)" | yarp rpc /ctpservice/right_arm/rpc
-        sleep 3.0
-	breathers "start"
-
-    }
-
-    homeRobotic(){
-	breathers "stop"
-	echo "ctpq time 1.5 off 0 pos (-29.5 30.6 0.0 44.5 0.0 0.0 0.0 15.0 44.8 6.2 15.3 5.3 11.9 9.0 17.0 5.0 )" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (-29.5 30.6 0.0 44.5 0.0 0.0 0.0 15.0 44.8 6.2 15.3 5.3 11.9 9.0 17.0 5.0 )" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 3.0
-	breathers "start"
-    }
-
-    snakeRobotic(){
-	breathers "stop"
-	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 3.0
-	breathers "start"
-    }
-
-    captchaRobotic(){
-	breathers "stop"
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (0.0 0.0 10.0)" | yarp rpc /ctpservice/torso/rpc
-	sleep 2.0
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 1.0
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 3.0
-	breathers "start"
-    }
-
-    captchaNatural(){
-	breathers "stop"
-	echo "set reb sur" | yarp rpc /icub/face/emotions/in
-	sleep 6.0
-	echo "set all hap" | yarp rpc /icub/face/emotions/in
-	sleep 3.0
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 40.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (0.0 0.0 10.0)" | yarp rpc /ctpservice/torso/rpc
-	sleep 2.0
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 2.0
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 30.0 10.8 20.0 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 1.0
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 0.8 off 0 pos (-28.3 11.2 0.0 49.7 75.6 0.0 0.0 60.0 44.8 6.3 15.3 9.9 10.8 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	sleep 3.0
-	breathers "start"
-    }
-
-    homeNatural(){
-	breathers "stop"
-	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 60.0 68.4 -9.0 53.0 51.0 20.0 19.8 19.8 9.9 14.4 9.9 10.8 10.8)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 60.0 68.4 -9.0 53.0 51.0 20.0 19.8 19.8 9.9 14.4 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	echo "set all hap" | yarp rpc /icub/face/emotions/in
-	sleep 3.0
-	breathers "start"
-    }
-
-    snakeNatural(){
-	breathers "stop"
-	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (-28.3 22.5 16.3 60.0 68.4 -9.0 53.0 51.0 20.0 19.8 19.8 9.9 14.4 9.9 10.8 10.8)" | yarp rpc /ctpservice/left_arm/rpc
-	echo "ctpq time 1.5 off 0 pos (0.0 0.0 10.0)" | yarp rpc /ctpservice/torso/rpc
-	sleep 2.0
-	echo "ctpq time 0.8 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 18.0 42.0 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
-	sleep 0.8
-	echo "ctpq time 0.8 off 0 pos (-28.3 22.5 16.3 54.3 68.4 -9.0 -0.6 46.2 20.0 19.8 19.8 9.9 14.4 9.9 10.8 110.0)" | yarp rpc /ctpservice/right_arm/rpc
-	breathers "start"
-    }
-
-    torsoAvantiIndietro(){
-	breathers "stop"
-	echo "ctpq time 1.5 off 0 pos (0.0 0.0 8.0)" | yarp rpc /ctpservice/torso/rpc
-	sleep 3.0
-	echo "ctpq time 1.5 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
-	breathers "start"
-    }
-
-provaWrite() {
-    echo "ciao alessia" | yarp rpc /countDownInterface/inputSpeakString:i
-}
 #############     Repeatings     #####################################
-
+    
     constant005_10() {
         sleep 2.0
         constant005
@@ -1239,7 +688,7 @@ provaWrite() {
         constant005
         sleep 9.0
         constant005
-        sleep 9.0
+        sleep 9.0 
         constant005
         sleep 9.0
         constant005
@@ -1275,7 +724,7 @@ provaWrite() {
         sleep 5.0
         constant01
     }
-
+    
      constant02_10() {
         sleep 2.0
         constant02
@@ -1298,7 +747,7 @@ provaWrite() {
         sleep 4.0
         constant02
     }
-
+    
     synchro02_10() {
         sleep 5.0
         synchro02
@@ -1308,7 +757,7 @@ provaWrite() {
         synchro02
         sleep 5.0
         synchro02
-        sleep 5.0
+        sleep 5.0 
         synchro02
         sleep 5.0
         synchro02
@@ -1367,7 +816,7 @@ provaWrite() {
         sleep 3.0
         synchro04_10
     }
-
+    
      synchro08_10() {
         sleep 5.0
         synchro08
@@ -1414,7 +863,7 @@ provaWrite() {
         synchro12
     }
 
-
+    
 
 #######################################################################################
 # "MAIN" FUNCTION:                                                                    #
@@ -1424,9 +873,11 @@ echo ""
 
 $1 "$2"
 
-if [[ $# -eq 0 ]] ; then
+if [[ $# -eq 0 ]] ; then 
     echo "No options were passed!"
     echo ""
     usage
     exit 1
 fi
+
+
