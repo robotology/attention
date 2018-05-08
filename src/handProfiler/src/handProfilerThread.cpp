@@ -166,10 +166,10 @@ bool handProfilerThread::threadInit() {
     Property optionCartesian("(device cartesiancontrollerclient)");
     string str("/");
     str.append(robot);
-    str.append("/cartesianController/left_arm");
+    str.append("/cartesianController/right_arm");
     yDebug("remote: %s", str.c_str());
-    optionCartesian.put("remote","/" +  robot + "/cartesianController/left_arm");
-    optionCartesian.put("local","/handProfiler/left_arm");
+    optionCartesian.put("remote","/" +  robot + "/cartesianController/right_arm");
+    optionCartesian.put("local","/handProfiler/right_arm");
 
     if (!client.open(optionCartesian)) {
         yInfo("Client not available. Proceeding to pure imagination action performance ");
@@ -241,7 +241,7 @@ bool handProfilerThread::threadInit() {
     Property optionJoints;
     optionJoints.put("device", "remote_controlboard");
     optionJoints.put("local", "/handProfiler/joints");                 //local port names
-    optionJoints.put("remote", "/"+ robot+"/left_arm");                        //where we connect to
+    optionJoints.put("remote", "/"+ robot+"/right_arm");                        //where we connect to
 
     if (!robotDevice.open(optionJoints)) {
         printf("Device not available.  Here are the known devices:\n");
@@ -907,7 +907,7 @@ void handProfilerThread::playFromFile(){
                     ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
                 }
                 for(int i=0; i<7; i++){
-                    if(abs(command[i] - playJoints[i]) > 10){
+                    if(abs(command[i] - playJoints[i]) > 2){
                         yInfo("idir moving joint %d to initial position", i);
                         double offsetInitial = 0;                                   // put robot in initial position  (adjust position reached with cartesian controller
                         if(command[i] < playJoints[i]){                             // to be more precise according to the first position of .log file)
