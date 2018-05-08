@@ -99,6 +99,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
         printf("--name           : changes the rootname of the module ports \n");
         printf("--robot          : changes the name of the robot where the module interfaces to  \n");
         printf("--name           : rootname for all the connection of the module \n");
+        printf("--part           : selected arm \n");
         printf("--pitchDof       : 0/1 disable/enable the DoF \n");
         printf("--yawDof         : 0/1 disable/enable the DoF \n");
         printf("--rollDof        : 0/1 disable/enable the DoF \n");
@@ -137,6 +138,9 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     int  outputWidth       = rf.check("outputWidth",
                            Value(320),
                            "output image width (int)").asInt();
+   string  part       = rf.check("part",
+                          Value("right_arm"),
+                          "selected part (string)").asString();
     int  outputHeight      = rf.check("outputHeight",
                            Value(240),
                            "output image height (int)").asInt();
@@ -185,6 +189,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     /* create the thread and pass pointers to the module parameters */
     rThread = new handProfilerThread(robotName, configFile, rf);
     rThread->setName(getName().c_str());
+    rThread->setPart(part);
     rThread->setTorsoDof(yawDof, rollDof, pitchDof);
     rThread->setGazeTracking(gazeTracking);
     rThread->setOutputDimension(outputWidth, outputHeight);
@@ -413,7 +418,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 {
                     bool rev = false;
                     if(0!=rThread) {
-                        reply.addString("OK");                     
+                        reply.addString("OK");
                         rThread->startResetting();
 
                     }

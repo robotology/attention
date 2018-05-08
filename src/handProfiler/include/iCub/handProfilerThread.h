@@ -110,6 +110,7 @@ protected:
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
     std::string inputPortName;      // name of input port for incoming events, typically from aexGrabber
+    std::string part;               // robot part to move
 
     yarp::os::ConstString filePath;                               // path of the file found by the resource finder
     yarp::os::ResourceFinder rf;                                  // resource finder
@@ -186,6 +187,11 @@ public:
     * @param str name of the file without extension
     */
     void loadFile(std::string str);
+
+    /**
+     * function that sets the robot arm to move
+     */
+    void setPart(std::string str);
 
     /**
      * function that sets the orientation of the endeffector

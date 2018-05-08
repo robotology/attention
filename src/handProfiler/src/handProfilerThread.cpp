@@ -166,10 +166,10 @@ bool handProfilerThread::threadInit() {
     Property optionCartesian("(device cartesiancontrollerclient)");
     string str("/");
     str.append(robot);
-    str.append("/cartesianController/right_arm");
+    str.append("/cartesianController/"+part);
     yDebug("remote: %s", str.c_str());
-    optionCartesian.put("remote","/" +  robot + "/cartesianController/right_arm");
-    optionCartesian.put("local","/handProfiler/right_arm");
+    optionCartesian.put("remote","/" +  robot + "/cartesianController/"+part);
+    optionCartesian.put("local","/handProfiler/"+part);
 
     if (!client.open(optionCartesian)) {
         yInfo("Client not available. Proceeding to pure imagination action performance ");
@@ -241,7 +241,7 @@ bool handProfilerThread::threadInit() {
     Property optionJoints;
     optionJoints.put("device", "remote_controlboard");
     optionJoints.put("local", "/handProfiler/joints");                 //local port names
-    optionJoints.put("remote", "/"+ robot+"/right_arm");                        //where we connect to
+    optionJoints.put("remote", "/"+ robot + "/" +part);                        //where we connect to
 
     if (!robotDevice.open(optionJoints)) {
         printf("Device not available.  Here are the known devices:\n");
@@ -262,7 +262,7 @@ bool handProfilerThread::threadInit() {
     idir->getAxes(&njoints);
     //yDebug("njoints = %d", njoints);
 
-    
+
     //initializing gazecontrollerclient
     printf("initialising gazeControllerClient \n");
     Property optionGaze;
@@ -282,7 +282,7 @@ bool handProfilerThread::threadInit() {
        igaze->storeContext(&originalContext);
        igaze->setEyesTrajTime(0.8);
        igaze->setNeckTrajTime(0.9);
-       
+
        blockNeckPitchValue = -1;
        if(blockNeckPitchValue != -1) {
            igaze->blockNeckPitch(blockNeckPitchValue);
@@ -297,7 +297,7 @@ bool handProfilerThread::threadInit() {
         igaze = 0;
     }
     yInfo("Success in initialising the gaze");
-    
+
 
     string rootNameGui("");
     rootNameGui.append(getName("/gui:o"));
@@ -344,6 +344,11 @@ bool handProfilerThread::threadInit() {
 void handProfilerThread::setName(string str) {
     this->name=str;
     printf("name: %s", name.c_str());
+}
+
+void handProfilerThread::setPart(string _part) {
+    this->part=_part;
+    yInfo("Selected part: %s", part.c_str());
 }
 
 void handProfilerThread::loadFile(string str) {
@@ -516,7 +521,7 @@ bool handProfilerThread::startResetting(){
     state = home;
     bool ret = true;
     icart-> goToPose(xdHome,odHome);
-    if(gazetracking) {                        
+    if(gazetracking) {
         igaze->lookAtFixationPoint(xdGazeHome);
     }
 	return ret;
@@ -634,7 +639,7 @@ void handProfilerThread::run() {
                         saveToArray();
                     }
 
-                    if(gazetracking && (count%GAZEINTERVAL==0)) {                        
+                    if(gazetracking && (count%GAZEINTERVAL==0)) {
                         igaze->lookAtFixationPoint(xd);
                     }
                 }else if(!success && outputFile.is_open() && saveOn){
@@ -899,10 +904,10 @@ void handProfilerThread::playFromFile(){
                         icart->waitMotionDone();
                     }
                 }
-                
+
                 encs->getEncoders(encoders.data());                                         // encoder reading from current position
                 command = encoders;
-                
+
                 for (int i = 0; i < njoints; i++) {
                     ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
                 }
@@ -924,7 +929,7 @@ void handProfilerThread::playFromFile(){
                 }
 
                 yInfo("initial position reached");
-                
+
                 previousTime = playJoints[7];
             }else{
                 for(int i=0; i<7; i++){
