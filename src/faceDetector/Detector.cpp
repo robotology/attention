@@ -39,7 +39,7 @@ void Detector::loop()
 {   
 
   if (!idle){
-   
+
     ImageOf<PixelRgb> *image = imagePort.read();  // read an image
     if (image != NULL) 
     { 
@@ -57,14 +57,18 @@ void Detector::loop()
             outSaliency.resize(image->width(), image->height());
             outSaliency.zero();           
             saliency = (IplImage*) outSaliency.getIplImage();
-        }            
-   
+        }
+
+        Bottle &faceFoundBottle = foundFacePort.prepare();
+        faceFoundBottle.clear();
+
         // check whether a right size face-bounded circle found
         if(c.r > 0)
         {            
            if(isIn(c, face))
            {
-                // we found an stable face
+               faceFoundBottle.addString("true");
+               // we found an stable face
                 // if(++counter > certainty)
                 {
                     if(disableGazeControl){
@@ -133,6 +137,8 @@ void Detector::loop()
                                 cmd.addVocab(Vocab::encode("all"));
                                 cmd.addVocab(Vocab::encode(faceExpression.c_str()));
                                 faceExpPort.write();
+
+
                             }
                     }
                 }
@@ -146,11 +152,18 @@ void Detector::loop()
            // }
         }
         else{
+            faceFoundBottle.addString("false");
             counter = 0;
         }
-        outPort.write();   
         if(withSaliency){
             saliencyPort.write();
+        }
+
+        outPort.write();
+
+        if((Time::now() - currentTime) > refreshFaceFound){
+            foundFacePort.write();
+            currentTime = Time::now();
         }
     }
   }
@@ -259,7 +272,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     withAttentionSystem = rf.check("with_attention", Value(0)).asBool();
     disableGazeControl  = rf.check("gaze_control", Value( !withAttentionSystem)).asBool();
 
-
+    refreshFaceFound = rf.check("refresh_face_rate", Value( "2.")).asDouble();
 
 
     yInfo("eye: %s", eye.c_str());
@@ -365,14 +378,15 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     ret = ret && outPort.open("/faceDetector/image/out");
     ret = ret && targetPort.open("/faceDetector/gazeXd");
     ret = ret && faceExpPort.open("/faceDetector/face:rpc");  
+    ret = ret && foundFacePort.open("/faceDetector/faceFound:o");
     if(withSaliency){
         ret = ret && saliencyPort.open("/faceDetector/saliency/out");     
     }
 
     prev_y = 0.0;
     prev_z = 0.35;
-    
 
+    currentTime = Time::now();
     yDebug("Initialization completed");
     return ret;
     

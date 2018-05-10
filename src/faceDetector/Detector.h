@@ -50,6 +50,8 @@ class Detector
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > saliencyPort;
     yarp::os::BufferedPort<yarp::os::Bottle> targetPort;
     yarp::os::BufferedPort<yarp::os::Bottle> faceExpPort;
+    yarp::os::BufferedPort<yarp::os::Bottle> foundFacePort;
+
 
 public:
 
@@ -117,7 +119,11 @@ private:
     double prev_x;
     double prev_y;
     double prev_z;
-    
+
+
+    double currentTime;
+    double refreshFaceFound;
+
 };
 
    
