@@ -79,6 +79,7 @@ protected:
     bool idle;                     // flag indicating if the thread is in idle
     bool gazetracking;             // flag indicating whether the gaze should follow hand move
     bool saveOn;                   // flag indicating if saving is enabled or not
+    bool graspOn;                  // flag indicating if grasping is enabled or not
 
     yarp::sig::Vector x;           // vector representating the desired position for the hand
     yarp::sig::Vector o;           // vector representating the desired position for the hand
@@ -239,6 +240,11 @@ public:
     * function that sets the number of repetitions to perform
     */
     void setRepsNumber(int n);
+
+    /**
+    * function that sets the grasp on or off
+    */
+    void setGrasp(bool grasp);
 
      /**
      * function that sets the variable partnerStart

@@ -137,6 +137,7 @@ handProfilerThread::handProfilerThread(string _robot, string _configFile, Resour
     verbosity = true;
     gazetracking = false;
     saveOn = false;
+    graspOn = false;
     speedFactor = 1.0;
     partnerTime = 0;
     infoSamples = 0;
@@ -344,6 +345,12 @@ bool handProfilerThread::threadInit() {
 void handProfilerThread::setName(string str) {
     this->name=str;
     printf("name: %s", name.c_str());
+}
+
+void handProfilerThread::setGrasp(bool grasp) {
+    this->graspOn=grasp;
+    if(grasp) yInfo("Grasping ON");
+    else yInfo("Grasping OFF");
 }
 
 void handProfilerThread::setPart(string _part) {
@@ -800,11 +807,11 @@ void handProfilerThread::saveToArray(){                         //save to file: 
         yError("encoders misreading");
 
     timestamp->update();
-    for(int i=0; i<7; i++){
+    jointsToSave.push_back(timestamp->getTime());
+    for(int i=0; i<njoints; i++){
         jointsToSave.push_back(tempJoints[i]);
         //yDebug("position %d : %f", i, tempJoints[i]);
     }
-    jointsToSave.push_back(timestamp->getTime());
     infoSamples++;
 }
 
@@ -813,7 +820,7 @@ void handProfilerThread::saveToFile(){                         //save to file: r
     outputFile.precision(13);
     if (outputFile.is_open()){
         for(int i=0; i<jointsToSave.length(); i++){
-            if (i%8 == 0 && i != 0)
+            if (i%17 == 0 && i != 0)
                 outputFile << "\n";
             outputFile << jointsToSave[i] << " ";
             //yDebug("position %d : %f", i, jointsToSave[i]);
@@ -873,7 +880,7 @@ void handProfilerThread::startFromFile(){                                       
 
 void handProfilerThread::playFromFile(){
     double jointValue = 0.0;
-    double playJoints[8];
+    double playJoints[17];
     double executionTime = 0;
     double previousTime = 0;
 
@@ -892,12 +899,12 @@ void handProfilerThread::playFromFile(){
 
     while(inputFile >> jointValue){
         done = false;
-        playJoints[playCount%8] = jointValue;
+        playJoints[playCount%17] = jointValue;
         playCount++;
-        if(playCount%8 == 0){
+        if(playCount%17 == 0){
             if(first){
                 first = false;
-                if(abs(command[0] - playJoints[0]) > 10 || abs(command[1] - playJoints[1]) > 10 || abs(command[2] - playJoints[2]) > 10 || abs(command[3] - playJoints[3]) > 10 || abs(command[4] - playJoints[4]) > 10 || abs(command[5] - playJoints[5]) > 10 || abs(command[6] - playJoints[6]) > 10 ){
+                if(abs(command[0] - playJoints[1]) > 10 || abs(command[1] - playJoints[2]) > 10 || abs(command[2] - playJoints[3]) > 10 || abs(command[3] - playJoints[4]) > 10 || abs(command[4] - playJoints[5]) > 10 || abs(command[5] - playJoints[6]) > 10 || abs(command[6] - playJoints[7]) > 10 ){
                     if(startPos(0) != 0.0 && startPos(1) != 0.0 && startPos(2) != 0.0){         //go to initial position with cartesian controller
                         yInfo("icart moving to initial position");
                         icart->goToPose(startPos, startOri);
@@ -908,20 +915,20 @@ void handProfilerThread::playFromFile(){
                 encs->getEncoders(encoders.data());                                         // encoder reading from current position
                 command = encoders;
 
-                for (int i = 0; i < njoints; i++) {
+                for (int i = 0; i < 16; i++) {
                     ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
                 }
-                for(int i=0; i<7; i++){
-                    if(abs(command[i] - playJoints[i]) > 2){
+                for(int i=1; i<17; i++){
+                    if(abs(command[i-1] - playJoints[i]) > 2){
                         yInfo("idir moving joint %d to initial position", i);
                         double offsetInitial = 0;                                   // put robot in initial position  (adjust position reached with cartesian controller
-                        if(command[i] < playJoints[i]){                             // to be more precise according to the first position of .log file)
+                        if(command[i-1] < playJoints[i]){                             // to be more precise according to the first position of .log file)
                             offsetInitial = 0.2;
-                        }else if(command[i] > playJoints[i]){
+                        }else if(command[i-1] > playJoints[i]){
                             offsetInitial = -0.2;
                         }
-                        while(command[i] < playJoints[i]-0.2 || command[i] > playJoints[i]+0.2){
-                            command[i] = command[i] + offsetInitial;
+                        while(command[i-1] < playJoints[i]-0.2 || command[i-1] > playJoints[i]+0.2){
+                            command[i-1] = command[i-1] + offsetInitial;
                             idir->setPositions(command.data());
                             Time::delay(0.01);
                         }
@@ -930,13 +937,13 @@ void handProfilerThread::playFromFile(){
 
                 yInfo("initial position reached");
 
-                previousTime = playJoints[7];
+                previousTime = playJoints[0];
             }else{
-                for(int i=0; i<7; i++){
-                    command[i] = playJoints[i];
+                for(int i=1; i<17; i++){
+                    command[i-1] = playJoints[i];
                 }
-                executionTime = playJoints[7] - previousTime;
-                previousTime = playJoints[7];
+                executionTime = playJoints[0] - previousTime;
+                previousTime = playJoints[0];
                 if(executionTime <= 0.0) {
                     executionTime = 0.05;
                 }
