@@ -547,6 +547,17 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     ok = true;
                 }
             break;
+            case COMMAND_VOCAB_RES:
+                {
+
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->graspReset();
+
+                    }
+                    ok = true;
+                }
+            break;
 
             default:
                 cout << "received an unknown request" << endl;
@@ -808,16 +819,16 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
         break;
     }
     mutex.post();
-
-    if (!rec)
+    if (!rec){
         ok = RFModule::respond(command,reply);
-
+    }
     if (!ok) {
         reply.clear();
         reply.addVocab(COMMAND_VOCAB_FAILED);
     }
-    else
+    else{
         reply.addVocab(COMMAND_VOCAB_OK);
+    }
 
     return ok;
 

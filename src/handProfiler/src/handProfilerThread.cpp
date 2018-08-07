@@ -39,6 +39,12 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace std;
 using namespace profileFactory;
+using namespace fingerFactory;
+
+FingerProfile* factoryFingerProfile(){
+    FingerProfile *fingerProfile = new FingerProfile();
+    return static_cast<FingerProfile*>(fingerProfile);
+}
 
 MotionProfile* factoryCVMotionProfile(const Bottle &param){
     CVMotionProfile *cvmp = new CVMotionProfile(param);
@@ -121,6 +127,7 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
     // of the trajectory (or 70% far from the target)
     cartesianEventParameters.type="motion-ongoing";
     cartesianEventParameters.motionOngoingCheckPoint=0.2;
+
 }
 
 
@@ -337,6 +344,17 @@ bool handProfilerThread::threadInit() {
     //0.024206	 0.867429	-0.496971	 2.449946
     //-0.041466	 0.602459	-0.797072	 2.850305
     odHome[0] = -0.041; odHome[1] = 0.602; odHome[2] = -0.797; odHome[3] = 2.85;
+
+    graspHome.resize(9);
+    graspFinal.resize(9);
+    graspCurrent.resize(9);
+    graspHome[0] = 59.0; graspHome[1] = 20.0; graspHome[2] = 20.0; graspHome[3] = 20.0; graspHome[4] = 10.0; graspHome[5] = 10.0; graspHome[6] = 10.0; graspHome[7] = 10.0; graspHome[8] = 10.0;
+    graspFinal[0] = 45.0; graspFinal[1] = 50.0; graspFinal[2] = 21.0; graspFinal[3] = 50.0; graspFinal[4] = 50.0; graspFinal[5] = 50.0; graspFinal[6] = 50.0; graspFinal[7] = 50.0; graspFinal[8] = 125.0;
+
+    graspNumber = 9;
+    fingerJoints.resize(njoints);
+    fd.resize(9);
+    //fp = factoryFingerProfile();
     yInfo("handProfiler thread correctly started");
 
     return true;
@@ -349,8 +367,14 @@ void handProfilerThread::setName(string str) {
 
 void handProfilerThread::setGrasp(bool grasp) {
     this->graspOn=grasp;
-    if(grasp) yInfo("Grasping ON");
-    else yInfo("Grasping OFF");
+    if(grasp) {
+        yInfo("Grasping ON");
+        for (int i = 7; i < 16; i++) {
+            ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
+        }
+    } else{
+          yInfo("Grasping OFF");
+      }
 }
 
 void handProfilerThread::setPart(string _part) {
@@ -598,12 +622,12 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     }
 
     bool result = true;
-    result = result & resetExecution();
+    //result = result & resetExecution(); //???????
     return result;
 }
 
 void handProfilerThread::run() {
-    double iniziaqui = Time::now();
+    //double iniziaqui = Time::now();
     if(!idle) {
         //yInfo("!idle");
         count++;
@@ -639,6 +663,9 @@ void handProfilerThread::run() {
                 //yDebug("generated target %d", success);
                 if(success){
                     icart-> goToPose(xd,od);
+                    const int graspJoints[] = {7,8,9,10,11,12,13,14,15};
+                    idir->setPositions(graspNumber, graspJoints, fd.data());
+
                     // double trajTime;
                     // icart->getTrajTime(&trajTime);
                     // yDebug("trajTime %f", trajTime);
@@ -714,6 +741,27 @@ void handProfilerThread::run() {
     //yDebug("durata %f", Time::now()-iniziaqui);
 }
 
+void handProfilerThread::graspReset(){
+    encs->getEncoders(fingerJoints.data());
+    const int graspJoints[] = {7,8,9,10,11,12,13,14,15};
+    for(int i = 0; i<8; i++){
+        graspCurrent[i] = fingerJoints[i+7];
+    }
+    //yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
+    for(int i = 0; i<8; i++){
+        while(graspCurrent[i]>graspHome[i]+1 || graspCurrent[i]<graspHome[i]-1){
+            graspCurrent[i] = graspCurrent[i]+((graspHome[i]-graspCurrent[i])/200);
+            idir->setPositions(graspNumber, graspJoints, graspCurrent.data());
+            //yDebug("while2 %d", i);
+        }
+    }
+
+    //yInfo("Grasp reset");
+    //yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
+    encs->getEncoders(fingerJoints.data());
+    //yDebug("%f %f %f %f %f %f %f %f %f",fingerJoints[7],fingerJoints[8],fingerJoints[9],fingerJoints[10],fingerJoints[11],fingerJoints[12],fingerJoints[13],fingerJoints[14],fingerJoints[15]);
+}
+
 void handProfilerThread::printErr() {
     Stamp ts;
     ts.update();
@@ -783,6 +831,8 @@ bool handProfilerThread::generateTarget() {
         return false;
     }
 
+
+
     xd = *_xdpointer;
     //printf("Error %f %f %f \n", xd[0] -_xd[0], xd[1] - _xd[1], xd[2] - _xd[2]);
 
@@ -794,6 +844,18 @@ bool handProfilerThread::generateTarget() {
     //od[0] = 0.29; od[1] = 0.40; od[2] = -0.86; od[3] = 3.09;
     //od[0] = -0.43; od[1] = -0.02; od[2] = -0.90; od[3] = 2.98;
     //od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
+
+    encs->getEncoders(fingerJoints.data());
+
+    if(graspOn){
+        Vector* _fdpointer = fp.compute(fingerJoints);
+        if(_fdpointer == NULL){
+            yError("Finger motion not valid, GRASP OFF");
+            graspOn = false;
+        }else
+        fd = *_fdpointer;
+        yDebug("%f %f %f %f %f %f %f %f %f",fd(0),fd(1),fd(2),fd(3),fd(4),fd(5),fd(6),fd(7),fd(8));
+    }
 
     return true;
 }
@@ -947,7 +1009,7 @@ void handProfilerThread::playFromFile(){
                 if(executionTime <= 0.0) {
                     executionTime = 0.05;
                 }
-                idir->setPositions(command.data());                             // move robot through trajectory
+                idir->setPositions(command.data());                             //move robot through trajectory
                 //yDebug("execution time: %f", executionTime / speedFactor);
                 Time::delay(executionTime / speedFactor);                       // time to wait before reaching next point as read from file and modified with speedFactor
             }

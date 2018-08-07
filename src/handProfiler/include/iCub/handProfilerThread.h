@@ -39,6 +39,7 @@
 #include <stdio.h>
 
 #include <iCub/MotionProfile.h>
+#include <iCub/FingerProfile.h>
 
 class handProfilerThread : public yarp::os::RateThread,  public yarp::dev::CartesianEvent{
 protected:
@@ -62,6 +63,7 @@ protected:
     int sampleNumber;              // number of samples read from file
     int infoSamples;               // numbero of samples save to file
     int repsNumber;                // number of repetitions to perform from file
+    bool graspDone;
     short widthRatio;              // ratio between the input and output image
     short heightRatio;             // ratio between the input and output image
     double t;
@@ -81,6 +83,10 @@ protected:
     bool saveOn;                   // flag indicating if saving is enabled or not
     bool graspOn;                  // flag indicating if grasping is enabled or not
 
+    int graspNumber;
+    yarp::sig::Vector fingerJoints;
+    yarp::sig::Vector fd;
+
     yarp::sig::Vector x;           // vector representating the desired position for the hand
     yarp::sig::Vector o;           // vector representating the desired position for the hand
     yarp::sig::Vector xd;          // vector representating the desired position for the hand
@@ -96,6 +102,9 @@ protected:
     yarp::sig::Vector firstPos;           // vector with first position of hand for save to file
     yarp::sig::Vector firstOri;           // vector with first position of hand for save to file
     yarp::sig::Vector jointsToSave;       // vector with all joints values for save to file
+    yarp::sig::Vector graspHome;          // vector with home joint position for the hand
+    yarp::sig::Vector graspFinal;         // vector with final joint position for the hand
+    yarp::sig::Vector graspCurrent;
 
     yarp::dev::PolyDriver client;
     yarp::dev::PolyDriver robotDevice;
@@ -107,6 +116,7 @@ protected:
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
     profileFactory::MotionProfile *mp;
+    fingerFactory::FingerProfile fp;
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
@@ -266,6 +276,11 @@ public:
     * @param b bottle containing the necessary information for the profile
     */
     bool factory(const std::string type, const yarp::os::Bottle b);
+
+    /**
+    *function that resets the fingers position
+    */
+    void graspReset();
 
     /**
     *   function that reset the execution
