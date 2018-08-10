@@ -174,6 +174,10 @@ class earlyMotionModule:public yarp::os::RFModule {
     yarp::os::Port handlerPort;      // a port to handle messages 
     /* pointer to a new thread to be created and started in configure() and stopped in close() */
     earlyMotionThread *emThread;
+    yarp::os::Semaphore mutex;                  // semaphore for the respond function
+
+
+  unsigned char threshold;
     
 public:
     

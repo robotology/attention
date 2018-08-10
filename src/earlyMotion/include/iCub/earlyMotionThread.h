@@ -112,9 +112,16 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortIn;    // input port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;     // output port   
 
-    const static unsigned char threshold = 200;
+    unsigned char threshold = 12;
+    typedef unsigned  char element;
 
-    //convolve conv;
+ public:
+  unsigned char getThreshold() const;
+ public:
+  void setThreshold(unsigned char threshold);
+ private:
+
+  //convolve conv;
     std::string name;       // rootname of all the ports opened by this thread
     bool resized;           // flag to check if the variables have been already resized
 
@@ -181,6 +188,23 @@ public:
      */
     void temporalStore();
 
+ private:
+  /**
+   * core function that calcul median kernel
+   * @param signal
+   * @param result
+   * @param N
+   */
+  void _medianfilter(const element* signal, element* result, int N);
+
+
+  /**
+   * Median filter with signal as an array of element( in our case define as unsigned char) and with kernelSize N
+   * @param signal
+   * @param result
+   * @param N
+   */
+  void medianfilter(element* signal, element* result, int N);
     
 };
 
