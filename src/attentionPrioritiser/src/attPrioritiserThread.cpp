@@ -382,6 +382,7 @@ bool attPrioritiserThread::threadInit() {
 
     printf("opening the polydriver gaze Controller \n");
     clientGazeCtrl=new PolyDriver();
+    printf("Allocation of PolyDriver done ! \n");
     clientGazeCtrl->open(option);
     igaze=NULL;
 
@@ -789,7 +790,7 @@ void attPrioritiserThread::run() {
         //setFacialExpression("L01");
         
     }
-    else if(timeoutResponse > 10.0) {
+    else if(timeoutResponse > 30.0) {
         printf("TIMEOUT %f \n %d %d %d %d %d %d \n", timeoutResponse,
                // wait response used to know what the system is aspecting as accomplished
                //must reset right after the accomplished is received

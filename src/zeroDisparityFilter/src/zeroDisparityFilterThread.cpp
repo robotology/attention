@@ -30,6 +30,8 @@ using namespace yarp::os;
 using namespace yarp::sig;
 
 
+static IplImage *leftDOG, *rightDOG;
+
 // Display an Ipl* image with openCV
 void showIplImage(const IplImage *image, const string a) {
     cv::imshow(a, cv::cvarrToMat(image));
@@ -240,7 +242,7 @@ void ZDFThread::run() {
 
                 //Make a copy of the left input Image
 
-                cvCopy((IplImage *) img_in_left->getIplImage(), copyImg_ipl, nullptr);
+                cvCopy((IplImage *) img_in_right->getIplImage(), copyImg_ipl, nullptr);
 
                 copyImg = (unsigned char *) copyImg_ipl->imageData;
 
@@ -252,8 +254,8 @@ void ZDFThread::run() {
 
 
             //Preprocess the input image
-            preprocessImageHSV(left_originalImage_ipl, rec_im_ly_ipl);
-            preprocessImageHSV(right_originalImage_ipl, rec_im_ry_ipl);
+            preprocessImageGray(left_originalImage_ipl, rec_im_ly_ipl);
+            preprocessImageGray(right_originalImage_ipl, rec_im_ry_ipl);
 
 
             if (acquire) {
@@ -302,10 +304,10 @@ void ZDFThread::run() {
             dl->procOpenCv(fov_l_ipl, params->sigma1, params->sigma2);
             dr->procOpenCv(fov_r_ipl, params->sigma1, params->sigma2);
 
-            auto centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, params->sigma1/100);
+            auto centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, 4.9);
 
-            IplImage *leftDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
-            IplImage *rightDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
+            leftDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
+            rightDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
 
 
 //            showIplImage(leftDOG, "test");
@@ -1256,7 +1258,7 @@ void ZDFThread::getRoundingBoxSegmented(int *top, int *bottom, int *left, int *r
         }
 }
 
-void ZDFThread::processDisparityMap(IplImage *leftDOG, IplImage *rightDOG){
+void ZDFThread::processDisparityMap(IplImage *t_leftDOG, IplImage *t_rightDOG){
 //*****************************************************************
     //SPATIAL ZD probability map from fov_l and fov_r:
     yDebug("computing the spatial ZD probability map from fov_l and fov_r \n");
@@ -1268,8 +1270,8 @@ void ZDFThread::processDisparityMap(IplImage *leftDOG, IplImage *rightDOG){
     int data_penalty = params->data_penalty;
     int bland_dog_thresh = params->bland_dog_thresh;
 
-    unsigned char *p_dogonoff_l = (unsigned char *) leftDOG->imageData;
-    unsigned char *p_dogonoff_r = (unsigned char *) rightDOG->imageData;
+    unsigned char *p_dogonoff_l = (unsigned char *) t_leftDOG->imageData;
+    unsigned char *p_dogonoff_r = (unsigned char *) t_rightDOG->imageData;
 
     for (int j = koffsety; j < foveaSize.height - koffsety; j++) {
         c.y = j;
@@ -1279,7 +1281,7 @@ void ZDFThread::processDisparityMap(IplImage *leftDOG, IplImage *rightDOG){
 
 
             //if either l or r textured at this retinal location:
-            if (p_dogonoff_l[index] > bland_dog_thresh && p_dogonoff_r[index] > bland_dog_thresh) {
+            if ((abs(rec_im_ry_ipl->imageData[index] - rec_im_ly_ipl->imageData[index] )) <  8 &&   ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:

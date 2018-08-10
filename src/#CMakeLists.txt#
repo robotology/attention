@@ -1,0 +1,68 @@
+# Copyright: (C) 2010 RobotCub Consortium
+# Authors: Francesco Rea, Giorgio Metta
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
+
+cmake_minimum_required(VERSION 2.6)
+
+if(logpolar_FOUND)
+  
+endif(logpolar_FOUND)
+
+
+if(OpenCV_FOUND)
+  #add_subdirectory( eyePathFinder             )
+  add_subdirectory( earlyMotion               )
+  add_subdirectory( earlyVision               )
+  
+  add_subdirectory( ikart                     )
+  add_subdirectory( faceDetector              )
+  add_subdirectory( iCubGuiPopulator          )
+  #add_subdirectory( iKartFollower            )
+  add_subdirectory( eyeInterpreter            )
+  #add_subdirectory( mosaic                    )
+  #add_subdirectory( logOpticFlow              )
+  #add_subdirectory( opticFlowInterface        )
+  #add_subdirectory( opOpticalFlow            )
+  #add_subdirectory( repeater                  )
+  #add_subdirectory( selectiveAttentionEngine  )
+  #add_subdirectory( vergence                  )
+  #add_subdirectory( visualFeatureExtractor   )
+  add_subdirectory( stereoAttentiveSelector   )
+  #add_subdirectory( stamper                   )
+  #add_subdirectory( test                      )
+  #add_subdirectory( tutorial                  )
+  #add_subdirectory( visualFilter             )
+  #add_subdirectory(workingMemory              )   
+  #add_subdirectory( zeroDisparityFilter       )
+  #add_subdirectory( zdfModule                 )
+ add_subdirectory(skinProcessor)
+else(OpenCV_FOUND)
+  message(STATUS "OpenCV not found/selected, skipping modules")
+endif(OpenCV_FOUND)
+
+#graphic user interfaces
+
+#  add_subdirectory( earlyVisionInterface      )
+#  add_subdirectory( salBlobFinderInterface    )
+#  add_subdirectory( selAttentionInterface     )
+#  add_subdirectory( zdfControl                )
+#add_subdirectory(gui/selAttentionGui)
+
+
+if(IPOPT_FOUND)
+   # add_subdirectory( gazeArbiter               )
+   # add_subdirectory( attentionPrioritiser      )
+   # add_subdirectory( saliencyBlobFinder        )
+   # add_subdirectory( handProfiler              )
+    #add_subdirectory( kalmanTest               )
+    #add_subdirectory( predictorTest            )
+else(IPOPT_FOUND)
+    message(STATUS "IPOPT not found/selected, skipping gazeArbiter")
+endif(IPOPT_FOUND)
+
+
+# subdirectories
+#add_subdirectory( biologicalProcessing      )
+#add_subdirectory( audio                     )
+
+

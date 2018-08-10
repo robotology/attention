@@ -52,7 +52,7 @@
  	
  	
 ### Step Four : Markov Random field otpimization ( Energy Minimization )
- **Inputs : probabilityZeroDisparityMap, InvertprobabilityZeroDisparityMap**
+ **Inputs : probabilityZeroDisparityMap**
  **Outputs : image lables/class of segmentation in range [0,1]**
  
   - First the image_class is assign to zero label everywhere

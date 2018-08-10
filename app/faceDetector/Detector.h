@@ -41,7 +41,7 @@ typedef struct __circle_t {
 }circle_t;
 
 
-//YARP_DECLARE_DEVICES(icubmod)
+YARP_DECLARE_DEVICES(icubmod)
 
 class Detector
 {
@@ -50,8 +50,6 @@ class Detector
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > saliencyPort;
     yarp::os::BufferedPort<yarp::os::Bottle> targetPort;
     yarp::os::BufferedPort<yarp::os::Bottle> faceExpPort;
-    yarp::os::BufferedPort<yarp::os::Bottle> foundFacePort;
-
 
 public:
 
@@ -63,9 +61,6 @@ public:
         face.y = 0;
         face.r = 0;
         prev_x = prev_y = prev_z = 0.0; 
-        idle = false;
-        disableGazeControl = false;
-        withAttentionSystem = false;
         // constructor
     }
 
@@ -76,19 +71,10 @@ public:
     void loop(); 
 
     bool interrupt();
-    
-    void resume();
-    
-    void suspend();
-
-    void setGazeControl(bool t_disableGazeControl);
 
 public: 
     yarp::os::ConstString strCascade;
     //yarp::os::ConstString strNestedCascade;
-    bool idle;
-    bool disableGazeControl;
-    bool withAttentionSystem;
 
 protected:
     IplImage* cvImage;
@@ -97,7 +83,6 @@ protected:
 
     unsigned int counter;
     circle_t face;
-    circle_t face_prev;
     cv::CascadeClassifier cascade;
     //cv::CascadeClassifier nestedCascade;
 
@@ -108,22 +93,15 @@ private:
     std::string faceExpression;
     double eyeDist;
 	int certainty;
-    int startup_context_id;
-    double alpha;
     double offsetZ;
     double offsetY;
     bool withSaliency;
     std::vector<double> rotation;
-    yarp::dev::PolyDriver* clientGaze;
+    yarp::dev::PolyDriver clientGaze;
     yarp::dev::IGazeControl *iGaze;
     double prev_x;
     double prev_y;
     double prev_z;
-
-
-    double currentTime;
-    double refreshFaceFound;
-
 };
 
    

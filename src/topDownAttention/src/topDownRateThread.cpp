@@ -114,6 +114,7 @@ void topDownRateThread::run() {
 
                 restartMotion = true;
             }
+            yInfo("Disconnecting biological motion detection to attention mechanism");
 
         }
 
@@ -127,7 +128,7 @@ void topDownRateThread::run() {
                 restartMotion = false;
             }
             const bool resultConnection = NetworkBase::connect(outputPortBiologicalMotion, inputPortCartesianMap);
-
+            yInfo("Reconnecting biological motion detection to attention mechanism");
 
         }
 

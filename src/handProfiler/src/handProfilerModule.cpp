@@ -26,6 +26,7 @@
 #define COMMAND_VOCAB_IS     VOCAB2('i','s')
 #define COMMAND_VOCAB_OK     VOCAB2('o','k')
 #define COMMAND_VOCAB_UP     VOCAB2('U','P')
+#define COMMAND_VOCAB_ON     VOCAB2('O','N')
 
 
 #define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
@@ -47,13 +48,14 @@
 #define COMMAND_VOCAB_CURR   VOCAB4('C','U','R','R')
 #define COMMAND_VOCAB_SAVE   VOCAB4('S','A','V','E')        //save action joints in a file
 #define COMMAND_VOCAB_FILE   VOCAB4('F','I','L','E')        //
-#define COMMAND_VOCAB_SPEED   VOCAB4('S','P','E','E')        //start movement from joints file
-#define COMMAND_VOCAB_MARK   VOCAB4('M','A','R','K')        //
+#define COMMAND_VOCAB_SPEED  VOCAB4('S','P','E','E')        //start movement from joints file
+#define COMMAND_VOCAB_MARK   VOCAB4('M','A','R','K')        //to generate a time interval with start/stop
 #define COMMAND_VOCAB_STOP   VOCAB4('S','T','O','P')        //
-#define COMMAND_VOCAB_SYNC   VOCAB4('S','Y','N','C')        //
-#define COMMAND_VOCAB_REPS   VOCAB4('R','E','P','S')        //
-#define COMMAND_VOCAB_LOAD   VOCAB4('L','O','A','D')        //
+#define COMMAND_VOCAB_SYNC   VOCAB4('S','Y','N','C')        //set the time interval generated with MARK
+#define COMMAND_VOCAB_REPS   VOCAB4('R','E','P','S')        //set the number of repetitions for file movement
+#define COMMAND_VOCAB_LOAD   VOCAB4('L','O','A','D')        //load a file
 #define COMMAND_VOCAB_TIME   VOCAB4('T','I','M','E')        //
+#define COMMAND_VOCAB_GRAS   VOCAB4('G','R','A','S')        //grasp on
 
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -73,6 +75,7 @@
 #define COMMAND_VOCAB_TTL    VOCAB3('T','T','L')
 #define COMMAND_VOCAB_CUS    VOCAB3('C','U','S')
 #define COMMAND_VOCAB_JOI    VOCAB3('J','O','I')            //save action joints in a file
+#define COMMAND_VOCAB_OFF    VOCAB3('O','F','F')
 
 
 
@@ -99,6 +102,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
         printf("--name           : changes the rootname of the module ports \n");
         printf("--robot          : changes the name of the robot where the module interfaces to  \n");
         printf("--name           : rootname for all the connection of the module \n");
+        printf("--part           : selected arm \n");
         printf("--pitchDof       : 0/1 disable/enable the DoF \n");
         printf("--yawDof         : 0/1 disable/enable the DoF \n");
         printf("--rollDof        : 0/1 disable/enable the DoF \n");
@@ -137,6 +141,9 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     int  outputWidth       = rf.check("outputWidth",
                            Value(320),
                            "output image width (int)").asInt();
+   string  part       = rf.check("part",
+                          Value("right_arm"),
+                          "selected part (string)").asString();
     int  outputHeight      = rf.check("outputHeight",
                            Value(240),
                            "output image height (int)").asInt();
@@ -185,6 +192,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
     /* create the thread and pass pointers to the module parameters */
     rThread = new handProfilerThread(robotName, configFile, rf);
     rThread->setName(getName().c_str());
+    rThread->setPart(part);
     rThread->setTorsoDof(yawDof, rollDof, pitchDof);
     rThread->setGazeTracking(gazeTracking);
     rThread->setOutputDimension(outputWidth, outputHeight);
@@ -267,6 +275,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("SYNC: set time interval decided with MARK START/STOP");
             reply.addString("REPS #value: set number of repetitions for file execution");
             reply.addString("LOAD FILE: set the name of the file to load");
+            reply.addString("GRAS ON: turn on grasping");
 
             ok = true;
         }
@@ -413,7 +422,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 {
                     bool rev = false;
                     if(0!=rThread) {
-                        reply.addString("OK");                     
+                        reply.addString("OK");
                         rThread->startResetting();
 
                     }
@@ -495,6 +504,55 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                         reply.addString("OK");
 
                         rThread->saveJoints();
+
+                    }
+                    ok = true;
+                }
+            break;
+
+            default:
+                cout << "received an unknown request" << endl;
+                break;
+            }
+
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_GRAS:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()) {
+
+            case COMMAND_VOCAB_ON:
+                {
+
+                    if(0!=rThread) {
+                        reply.addString("OK");
+
+                        rThread->setGrasp(true);
+
+                    }
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_OFF:
+                {
+
+                    if(0!=rThread) {
+                        reply.addString("OK");
+
+                        rThread->setGrasp(false);
+
+                    }
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_RES:
+                {
+
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->graspReset();
 
                     }
                     ok = true;
@@ -761,16 +819,16 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
         break;
     }
     mutex.post();
-
-    if (!rec)
+    if (!rec){
         ok = RFModule::respond(command,reply);
-
+    }
     if (!ok) {
         reply.clear();
         reply.addVocab(COMMAND_VOCAB_FAILED);
     }
-    else
+    else{
         reply.addVocab(COMMAND_VOCAB_OK);
+    }
 
     return ok;
 
