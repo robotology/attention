@@ -369,7 +369,7 @@ public:
      * function that sets the time interval between two different saccadic events
      * @param interval milliseconds between two different saccadic events
      */
-    void setSaccadicInterval(double interval);
+    void setSaccadicInterval(int interval);
     
     /*
      * function that declares whether to perform saccadic movement with gazeControl
@@ -392,7 +392,7 @@ public:
     /**
      * function that returns the value of the saccadicInterval
      */
-    double getSaccadicInterval() { return saccadicInterval; };
+    int getSaccadicInterval() {return saccadicInterval; };
     
     /**
      * function that returns the z dimension of the saccadic event

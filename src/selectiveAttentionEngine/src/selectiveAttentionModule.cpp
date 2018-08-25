@@ -285,6 +285,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     currentProcessor->start();
     currentProcessor->setHueMap(hueMap);
     currentProcessor->setSatMap(satMap);
+
     printf("\n waiting for connection of the input port \n");
     return true;
 }
@@ -778,8 +779,8 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             }
             break;
             case COMMAND_VOCAB_TIME:{
-                double w = currentProcessor->getSaccadicInterval();               
-                reply.addDouble(w);
+                int w = currentProcessor->getSaccadicInterval();               
+                reply.addInt(w);
                 ok = true;
             }
             break;

@@ -131,7 +131,7 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     counterMotion   = 0;
     maxResponse     = 0;
     startInt=Time::now();
-    saccadeInterv = 3000; //milliseconds    
+    //saccadeInterv = 3000; //milliseconds    
     
 
     // images initialisation
@@ -1309,12 +1309,15 @@ cartSpace:
         // maxresponse: when within the linear combination one region fires
         // the rest is a constant rate firing
 
-        //printf("time diff: %f >? %d \n", diff * 1000, saccadeInterv);
+        //printf("time diff: %f >? %d \n", diff * 1000, saccadicInterval);
         
-        if((diff * 1000 > saccadeInterv)||(idle)||(maxResponse)) {
+        if((diff * 1000 > saccadicInterval)||(idle) && (maxResponse)) {
+            startInt=Time::now();
+
+
             habituationStart = Time::now(); //resetting exponential of habituation
             memset(habituation, 0, height * width * sizeof(float));
-            printf("gazePerforming after %d idle %d maxResponse %d \n", saccadeInterv, idle, maxResponse);
+            printf("gazePerforming after %f idle %d maxResponse %d \n", (diff * 1000), idle, maxResponse);
             if(gazePerform) {
                 Vector px(2);
                 // ratio maps the WTA to an image 320,240 (see definition) because it is what iKinGazeCtrl asks
@@ -1448,7 +1451,7 @@ cartSpace:
                 //}
                 
             } //ifgaze Arbiter
-            startInt=Time::now();
+
         } //if diff
         outPorts();        
     }
@@ -1470,8 +1473,9 @@ void selectiveAttentionProcessor::setYSize(int ySize) {
     ySizeValue=ySize;
 }
 
-void selectiveAttentionProcessor::setSaccadicInterval(double interval) {
-    this->saccadeInterv=interval;
+void selectiveAttentionProcessor::setSaccadicInterval(int interval) {
+
+    this->saccadicInterval=interval;
 }
 
 void selectiveAttentionProcessor::setOverlap(double _overlap) {
