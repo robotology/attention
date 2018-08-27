@@ -127,7 +127,7 @@ void earlyMotionThread::resize(int width_orig,int height_orig) {
 }
 
 void earlyMotionThread::run() {
-    while (isStopping() != true) {
+    while (isStopping() != true && !suspended) {
         count++;
         inputImage = imagePortIn.read(true);
         
@@ -305,9 +305,9 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
             
             //*pout += (unsigned char) floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * row)   / (double)height_orig) - 1));
             *pout += (unsigned char) floor(
-                                           (  sqrt((double)diff10) )
+                                           (  sqrt((double)diff10) + sqrt((double)diff32) )
                                            *
-                                           (exp((1.25 * row)   / (double)height_orig) - 1));
+                                           (exp((2.3 * row)   / (double)height_orig) - 1));
 
             if(*pout > max) {
                 max = *pout;
@@ -337,7 +337,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     }
 
     // Rea & Jonas 10/08/2018 + Add median filter to filter out noises
-    medianfilter(pout,pout, 13);
+    //medianfilter(pout,pout, 3);
 
     //printf("max %d \n", max);
     

@@ -27,6 +27,8 @@
 
 #define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
 #define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
+#define COMMAND_VOCAB_SUS    VOCAB3('s','u','s')
+#define COMMAND_VOCAB_RES    VOCAB3('r','e','s')
 #define COMMAND_VOCAB_THRESSHOLD VOCAB3('t','h', 'r')
 
 #define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
@@ -157,6 +159,26 @@ bool earlyMotionModule::respond(const Bottle &command, Bottle &reply) {
         reply.addInt(emThread->getThreshold());
         ok = true;
       }
+
+    }
+
+    case COMMAND_VOCAB_SUS: {
+      rec = true;
+
+      
+      emThread->setSuspend(true);
+      ok = true;
+      
+
+    }
+
+    case COMMAND_VOCAB_RES: {
+      rec = true;
+
+     
+      emThread->setSuspend(false);
+      ok = true;
+      
 
     }
 

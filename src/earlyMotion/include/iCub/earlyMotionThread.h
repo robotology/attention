@@ -112,6 +112,7 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortIn;    // input port
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;     // output port   
 
+    bool suspended = false;
     unsigned char threshold = 12;
     typedef unsigned  char element;
 
@@ -188,6 +189,8 @@ public:
      */
     void temporalStore();
 
+    void setSuspend(bool sus){ this->suspended = sus;}
+
  private:
   /**
    * core function that calcul median kernel
@@ -205,6 +208,9 @@ public:
    * @param N
    */
   void medianfilter(element* signal, element* result, int N);
+
+
+
     
 };
 
