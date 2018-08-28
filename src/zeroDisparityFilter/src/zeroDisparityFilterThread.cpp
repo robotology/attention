@@ -586,9 +586,10 @@ void ZDFThread::run() {
                 yDebug("Outputing imageProb\n");
 
 
-                yarp::sig::ImageOf<yarp::sig::PixelMono> *processingMonoImage = &imageOutProb.prepare();
-                processingMonoImage->resize(o_prob_8u_ipl->width, o_prob_8u_ipl->height);
-                processingMonoImage->wrapIplImage(o_prob_8u_ipl); //fov_l_ipl
+                yarp::sig::ImageOf<yarp::sig::PixelMono> &probMonoImage = imageOutProb.prepare();
+                probMonoImage.resize(o_prob_8u_ipl->width, o_prob_8u_ipl->height);
+
+                cvCopy(o_prob_8u_ipl, (IplImage *) probMonoImage.getIplImage());
                 imageOutProb.write();
 
             }
@@ -1264,6 +1265,11 @@ void ZDFThread::processDisparityMap(IplImage *t_leftDOG, IplImage *t_rightDOG){
     //SPATIAL ZD probability map from fov_l and fov_r:
     yDebug("computing the spatial ZD probability map from fov_l and fov_r \n");
 
+    cvSet(o_prob_8u_ipl, cv::Scalar(0, 0, 0));
+    cvSet(zd_prob_8u_ipl, cv::Scalar(0, 0, 0));
+
+
+
     //perform RANK or NDT kernel comparison:
     o_prob_8u = (unsigned char *) o_prob_8u_ipl->imageData;
     zd_prob_8u = (unsigned char *) zd_prob_8u_ipl->imageData;
@@ -1282,7 +1288,8 @@ void ZDFThread::processDisparityMap(IplImage *t_leftDOG, IplImage *t_rightDOG){
 
 
             //if either l or r textured at this retinal location:
-            if ((abs(rec_im_ry_ipl->imageData[index] - rec_im_ly_ipl->imageData[index] )) <  20 &&   ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
+
+            if (  ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
@@ -1303,6 +1310,7 @@ void ZDFThread::processDisparityMap(IplImage *t_leftDOG, IplImage *t_rightDOG){
                 //untextured in both l & r, so set to bland prob (ZD):
                 zd_prob_8u[index] = (unsigned char) (params->bland_prob * 255.0);//bland_prob
             }
+
 
             //RADIAL PENALTY:
             //The further from the origin, less likely it's ZD, so reduce zd_prob radially:
