@@ -187,7 +187,7 @@ bool ZDFThread::threadInit() {
     outputNameTemp2 = "/" + moduleName + "/imageTemp2:o";
     imageOutTemp2.open(outputNameTemp2.c_str());
 
-    outputNameGeometry = "/" + moduleName + "/geometry:o";
+    outputNameGeometry = "/" + moduleName + "/ROIcoordinate:o";
     outputGeometry.open(outputNameGeometry.c_str());
 
 
@@ -294,8 +294,6 @@ void ZDFThread::run() {
             cvCopy(rec_im_ry_ipl, fov_r_ipl, nullptr);
             cvResetImageROI(rec_im_ry_ipl);
 
-//            matchTemplate(fov_l_ipl, rec_im_ry_ipl, fov_r_ipl);
-
 
             //*****************************************************************
             //Start diffence of gaussian on foveated images
@@ -304,13 +302,10 @@ void ZDFThread::run() {
             dl->procOpenCv(fov_l_ipl, params->sigma1, params->sigma2);
             dr->procOpenCv(fov_r_ipl, params->sigma1, params->sigma2);
 
-            auto centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, 4.9);
+            auto centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, 7.9);
 
             leftDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
             rightDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
-
-
-//            showIplImage(leftDOG, "test");
 
             centerSurround->proc_im_8u(fov_l_ipl, leftDOG);
             centerSurround->proc_im_8u(fov_r_ipl, rightDOG);
@@ -323,7 +318,7 @@ void ZDFThread::run() {
             //*******************************************************************
             //Do MRF optimization:
             yDebug("performing Markov Random Field optimization \n");
-            fov_r = (unsigned char *) fov_r_ipl->imageData;
+            fov_r = (unsigned char *) fov_l_ipl->imageData;
 
             p_prob[0] = o_prob_8u;
             p_prob[1] = zd_prob_8u;
@@ -370,7 +365,8 @@ void ZDFThread::run() {
                 }
             }
 
-
+            filterInputImage(seg_im_ipl, seg_im_ipl_filtered);
+            seg_im = (unsigned char *) seg_im_ipl_filtered->imageData;
 
 
             //********************************************************************
@@ -521,31 +517,32 @@ void ZDFThread::run() {
 
                     }
 
-                    if( imageOutTemp2.getOutputCount() > 0) {
-                        yarp::sig::ImageOf<yarp::sig::PixelBgr> *processingRgbImageBis  = &imageOutTemp2.prepare();
-                        processingRgbImageBis->resize(original_seg_ipl->width, original_seg_ipl->height);
-                        processingRgbImageBis->wrapIplImage(original_seg_ipl); //temp_r_ipl
-                        imageOutTemp2.write();
+                    if(area >= params->min_area && area <= params->max_area && spread <= params->max_spread) {
+                        if (imageOutTemp2.getOutputCount() > 0) {
+                            yarp::sig::ImageOf <yarp::sig::PixelBgr> *processingRgbImageBis = &imageOutTemp2.prepare();
+                            processingRgbImageBis->resize(original_seg_ipl->width, original_seg_ipl->height);
+                            processingRgbImageBis->wrapIplImage(original_seg_ipl); //temp_r_ipl
+                            imageOutTemp2.write();
 
-                        //cvCopy(left_originalImage_ipl, img_out_temp->getIplImage(), nullptr);
-                        yDebug("copied image success \n");
+                            //cvCopy(left_originalImage_ipl, img_out_temp->getIplImage(), nullptr);
+                            yDebug("copied image success \n");
 
 
-                        // HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
-                        img_out_temp = nullptr;
+                            // HACK: added just to make the deallocation safer. #amaroyo 04/02/2016
+                            img_out_temp = nullptr;
+                        }
+
+                        if (outputGeometry.getOutputCount()) {
+                            Bottle &geometry = outputGeometry.prepare();
+                            geometry.clear();
+                            geometry.addDouble(rRect.tl().x);
+                            geometry.addDouble(rRect.tl().y);
+                            geometry.addDouble(rRect.br().x);
+                            geometry.addDouble(rRect.br().y);
+                            outputGeometry.write();
+
+                        }
                     }
-
-                    if(outputGeometry.getOutputCount()){
-                        Bottle &geometry = outputGeometry.prepare();
-                        geometry.clear();
-                        geometry.addDouble(rRect.tl().x);
-                        geometry.addDouble(rRect.tl().y);
-                        geometry.addDouble(rRect.br().x);
-                        geometry.addDouble(rRect.br().y);
-                        outputGeometry.write();
-
-                    }
-
                 }
 
 
@@ -595,6 +592,8 @@ void ZDFThread::run() {
                 imageOutProb.write();
 
             }
+
+
             if (imageOutSeg.getOutputCount() > 0) {
                 yDebug("Outputing imageSeg\n");
 
@@ -809,11 +808,13 @@ void ZDFThread::allocate(ImageOf<PixelBgr> *img) {
     out_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
     seg_im_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
     seg_dog_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
+    seg_im_ipl_filtered = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
     fov_l_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
     fov_r_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
     zd_prob_8u_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
     o_prob_8u_ipl = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
     psb_m = o_prob_8u_ipl->widthStep;
+
 
     //p_prob    = (Ipp8u**) malloc(sizeof(Ipp8u*)*nclasses);
     p_prob = (unsigned char **) malloc(sizeof(unsigned char *) * nclasses);
@@ -1281,7 +1282,7 @@ void ZDFThread::processDisparityMap(IplImage *t_leftDOG, IplImage *t_rightDOG){
 
 
             //if either l or r textured at this retinal location:
-            if ((abs(rec_im_ry_ipl->imageData[index] - rec_im_ly_ipl->imageData[index] )) <  8 &&   ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
+            if ((abs(rec_im_ry_ipl->imageData[index] - rec_im_ly_ipl->imageData[index] )) <  20 &&   ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
