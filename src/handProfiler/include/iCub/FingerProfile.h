@@ -53,6 +53,7 @@ class FingerProfile {
 private:
 		yarp::sig::Vector graspHome;
 		yarp::sig::Vector graspFinal;
+        yarp::sig::Vector* nextPosition;
 		yarp::os::BufferedPort<yarp::os::Bottle>  dataPort;            // output port to plot event
 
 	void initRange();

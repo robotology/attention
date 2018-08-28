@@ -880,13 +880,13 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
     //int argc = b->size() * 2 + 1;
 	//fix:
-	const int argc = 19;
+	const int argc = 20;
     string stringArray[argc];
     char* argv[argc];
     stringArray[0].append("./motionProfile");
     argv[0] = (char*) stringArray[0].c_str();
-    yDebug("added first %s", argv[0]);
-    yDebug("number of elements %d", b->size());
+    //yDebug("added first %s", argv[0]);
+    //yDebug("number of elements %d", b->size());
 
     for (int j = 0; j < b->size(); j++) {
         Bottle* vector = b->get(j).asList();
@@ -894,20 +894,20 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
         //stringArray[j * 2 + 1].append("A");
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
-        yDebug("%f %f %f",vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        //yDebug("%f %f %f",vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
         sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
 
         stringArray[j * 2 + 2].append(&temp[0]);
-        yDebug("string: %s %s", stringArray[j * 2 + 1].c_str(), stringArray[j * 2 + 2].c_str());
+        //yDebug("string: %s %s", stringArray[j * 2 + 1].c_str(), stringArray[j * 2 + 2].c_str());
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
         argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
-        yDebug("param %d %s",j , argv[j * 2 + 1]);
-        yDebug("value %s", argv[j * 2 + 2]);
+        //yDebug("param %d %s",j , argv[j * 2 + 1]);
+        //yDebug("value %s", argv[j * 2 + 2]);
     }
     yDebug("parsing......");
-    yDebug("argc %d argv %s", b->size(), argv[0]);
+    //yDebug("argc %d argv %s", b->size(), argv[0]);
     for (int j = 0; j < b->size() * 2 + 1; j++) {
-        yDebug("argv %s", argv[j]);
+        //yDebug("argv %s", argv[j]);
     }
     // configuring the resource finder
     yDebug("success %f", rf.configure(b->size() * 2 + 1, argv));
@@ -1189,6 +1189,7 @@ Vector* TwoThirdMotionProfile::compute(double t) {
         (*xprev)[0] = (*xd)[0];
         (*xprev)[1] = (*xd)[1];
         (*xprev)[2] = (*xd)[2];
+
     }
     else if (inRange(theta)) {
         // setting the attribute of the class k(curvature)
@@ -1210,6 +1211,7 @@ Vector* TwoThirdMotionProfile::compute(double t) {
     else {
         return NULL;
     }
+    
 
     Vector distance = (*xd) - xPrev;
     //yInfo("TT:travelled distance x = %f , travelled distance y = %f absolute = %f", distance[1]/(t-tprev), distance[2]/(t-tprev),
@@ -1220,6 +1222,7 @@ Vector* TwoThirdMotionProfile::compute(double t) {
     thetaPrev = theta;
     tprev     = t;
     xPrev = (*xd);
+
     return xd;
 }
 //**********************************************************************************************************************************************
