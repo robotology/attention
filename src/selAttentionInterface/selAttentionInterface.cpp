@@ -841,7 +841,7 @@ GtkWidget* createMainWindow(void) {
     
 
 
-    label = gtk_label_new ("map2 k2 (Orientation) :");
+    label = gtk_label_new ("map2 k2 (EarlyMotion) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
 
