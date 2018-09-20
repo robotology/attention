@@ -56,6 +56,7 @@
 #define COMMAND_VOCAB_LOAD   VOCAB4('L','O','A','D')        //load a file
 #define COMMAND_VOCAB_TIME   VOCAB4('T','I','M','E')        //
 #define COMMAND_VOCAB_GRAS   VOCAB4('G','R','A','S')        //grasp on
+#define COMMAND_VOCAB_PART   VOCAB4('P','A','R','T')        
 
 
 #define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
@@ -142,7 +143,7 @@ bool handProfilerModule::configure(yarp::os::ResourceFinder &rf) {
                            Value(320),
                            "output image width (int)").asInt();
    string  part       = rf.check("part",
-                          Value("right_arm"),
+                          Value(""),
                           "selected part (string)").asString();
     int  outputHeight      = rf.check("outputHeight",
                            Value(240),
@@ -263,7 +264,6 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("PALM CUS : to change the orientation of the palm ");
             reply.addString("PALM CUS (-0.076 -0.974 0.213 3.03) ");
 
-
             reply.addString("START simulation and execute");
             reply.addString("STAR SIM : start simulation (yellow)");
             reply.addString("STAR EXE : start execution  (green)");
@@ -350,6 +350,13 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 {
 
                     reply.addInt(0);
+                    ok = true;
+                }
+                break;
+            case COMMAND_VOCAB_PART:
+                {
+
+                    rThread->getPart();
                     ok = true;
                 }
                 break;

@@ -192,6 +192,11 @@ public:
     * @param str rootname
     */
     void setName(std::string str);
+    
+    /*
+    * function that sends a message to the console indicating the selected arm to move
+    */
+    void getPart();
 
     /*
     * function that loads a file for movement performing

@@ -44,8 +44,8 @@ FingerProfile::FingerProfile()  {
 
     graspHome.resize(9);
     graspFinal.resize(9);
-    graspHome[0] = 59.0; graspHome[1] = 40.0; graspHome[2] = 0.0; graspHome[3] = 0.0; graspHome[4] = 10.0; graspHome[5] = 10.0; graspHome[6] = 10.0; graspHome[7] = 10.0; graspHome[8] = 10.0;
-    graspFinal[0] = 45.0; graspFinal[1] = 50.0; graspFinal[2] = 20.0; graspFinal[3] = 50.0; graspFinal[4] = 50.0; graspFinal[5] = 50.0; graspFinal[6] = 50.0; graspFinal[7] = 50.0; graspFinal[8] = 125.0;
+    graspHome[0] = 40.0; graspHome[1] = 40.0; graspHome[2] = 0.0; graspHome[3] = 0.0; graspHome[4] = 0.0; graspHome[5] = 0.0; graspHome[6] = 0.0; graspHome[7] = 0.0; graspHome[8] = 0.0;
+    graspFinal[0] = 41.0; graspFinal[1] = 50.0; graspFinal[2] = 20.0; graspFinal[3] = 50.0; graspFinal[4] = 50.0; graspFinal[5] = 50.0; graspFinal[6] = 50.0; graspFinal[7] = 50.0; graspFinal[8] = 125.0;
 }
 
 FingerProfile::~FingerProfile() {
@@ -56,13 +56,13 @@ Vector* FingerProfile::compute(Vector target) {
     nextPosition = new Vector(9);
     //(*nextPosition).resize(9);
 
-    if(target[10]<graspFinal[3]){
+    if(target[15]<graspFinal[8]){
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = target[i+7]+((graspFinal[i]-graspHome[i])/50);
-            yWarning("current %f       amount %f        final %f", target[i+7], ((graspFinal[i]-graspHome[i])/200), (*nextPosition)[i]);
+            //yWarning("current %f       amount %f        final %f", target[i+7], ((graspFinal[i]-graspHome[i])/200), (*nextPosition)[i]);
         }
-    yDebug("%f %f %f %f %f %f %f %f %f",(*nextPosition)[0],(*nextPosition)[1],(*nextPosition)[2],(*nextPosition)[3],(*nextPosition)[4],(*nextPosition)[5],(*nextPosition)[6],(*nextPosition)[7],(*nextPosition)[8]);
-        //yInfo("Grasping...");
+    //yDebug("%f %f %f %f %f %f %f %f %f",(*nextPosition)[0],(*nextPosition)[1],(*nextPosition)[2],(*nextPosition)[3],(*nextPosition)[4],(*nextPosition)[5],(*nextPosition)[6],(*nextPosition)[7],(*nextPosition)[8]);
+        yInfo("Grasping...");
     }
 
     return nextPosition;

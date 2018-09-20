@@ -178,6 +178,7 @@ bool handProfilerThread::threadInit() {
     yDebug("remote: %s", str.c_str());
     optionCartesian.put("remote","/" +  robot + "/cartesianController/"+part);
     optionCartesian.put("local","/handProfiler/"+part);
+    optionCartesian.put("writeStrict","on");
 
     if (!client.open(optionCartesian)) {
         yInfo("Client not available. Proceeding to pure imagination action performance ");
@@ -250,6 +251,7 @@ bool handProfilerThread::threadInit() {
     optionJoints.put("device", "remote_controlboard");
     optionJoints.put("local", "/handProfiler/joints");                 //local port names
     optionJoints.put("remote", "/"+ robot + "/" +part);                        //where we connect to
+    optionJoints.put("writeStrict","on");
 
     if (!robotDevice.open(optionJoints)) {
         printf("Device not available.  Here are the known devices:\n");
@@ -348,8 +350,8 @@ bool handProfilerThread::threadInit() {
     graspHome.resize(9);
     graspFinal.resize(9);
     graspCurrent.resize(9);
-    graspHome[0] = 59.0; graspHome[1] = 40.0; graspHome[2] = 0.0; graspHome[3] = 0.0; graspHome[4] = 10.0; graspHome[5] = 10.0; graspHome[6] = 10.0; graspHome[7] = 10.0; graspHome[8] = 10.0;
-    graspFinal[0] = 45.0; graspFinal[1] = 50.0; graspFinal[2] = 20.0; graspFinal[3] = 50.0; graspFinal[4] = 50.0; graspFinal[5] = 50.0; graspFinal[6] = 50.0; graspFinal[7] = 50.0; graspFinal[8] = 125.0;
+    graspHome[0] = 40.0; graspHome[1] = 40.0; graspHome[2] = 0.0; graspHome[3] = 0.0; graspHome[4] = 0.0; graspHome[5] = 0.0; graspHome[6] = 0.0; graspHome[7] = 0.0; graspHome[8] = 0.0;
+    graspFinal[0] = 40.0; graspFinal[1] = 50.0; graspFinal[2] = 20.0; graspFinal[3] = 50.0; graspFinal[4] = 50.0; graspFinal[5] = 50.0; graspFinal[6] = 50.0; graspFinal[7] = 50.0; graspFinal[8] = 125.0;
 
     graspNumber = 9;
     fingerJoints.resize(njoints);
@@ -378,8 +380,16 @@ void handProfilerThread::setGrasp(bool grasp) {
 }
 
 void handProfilerThread::setPart(string _part) {
-    this->part=_part;
-    yInfo("Selected part: %s", part.c_str());
+    if(_part == "left_arm" || _part == "right_arm"){
+        this->part=_part;
+        yInfo("Selected part: %s", part.c_str());
+    }else{
+        yError("Failed to set arm, please restart the module specifying the arm to use");
+    }
+}
+
+void handProfilerThread::getPart() {
+    yInfo("Selected part is: %s", part.c_str());
 }
 
 void handProfilerThread::loadFile(string str) {
@@ -664,7 +674,11 @@ void handProfilerThread::run() {
                 if(success){
                     icart-> goToPose(xd,od);
                     const int graspJoints[] = {7,8,9,10,11,12,13,14,15};
-                    idir->setPositions(graspNumber, graspJoints, fd.data());
+                    //idir->setPositions(graspNumber, graspJoints, fd.data());
+                    //idir->setPosition(11, fd[4]);
+                    //idir->setPosition(12, fd[5]);
+                    //idir->setPosition(13, fd[6]);
+                    //idir->setPosition(14, fd[7]); 
 
                     // double trajTime;
                     // icart->getTrajTime(&trajTime);
@@ -739,6 +753,7 @@ void handProfilerThread::run() {
     //yDebug("before %f", Time::now());
     //Time::delay(1);
     //yDebug("durata %f", Time::now()-iniziaqui);
+    //Time::delay(0.3);
 }
 
 void handProfilerThread::graspReset(){
@@ -747,19 +762,33 @@ void handProfilerThread::graspReset(){
     for(int i = 0; i<9; i++){
         graspCurrent[i] = fingerJoints[i+7];
     }
-    //yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
+    yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
     for(int i = 0; i<9; i++){
         while(graspCurrent[i]>graspHome[i]+1 || graspCurrent[i]<graspHome[i]-1){
-            graspCurrent[i] = graspCurrent[i]+((graspHome[i]-graspCurrent[i])/200);
-            idir->setPositions(graspNumber, graspJoints, graspCurrent.data());
+            graspCurrent[i] = graspCurrent[i]+((graspHome[i]-graspCurrent[i])/300);
+            idir->setPosition(i+7, graspCurrent[i]);
             //yDebug("while2 %d", i);
         }
     }
 
     yInfo("Grasp reset");
-    //yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
+    yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
     encs->getEncoders(fingerJoints.data());
     //yDebug("%f %f %f %f %f %f %f %f %f",fingerJoints[7],fingerJoints[8],fingerJoints[9],fingerJoints[10],fingerJoints[11],fingerJoints[12],fingerJoints[13],fingerJoints[14],fingerJoints[15]);
+
+
+///////////////////////////////////////////////// PROVA CHIUSURA
+// GEN TTL (((O -0.25 -0.15 0.0) (A -0.25 -0.25 0.0) (B -0.25 -0.15 0.05) (C -0.25 -0.05 0.0) (theta 0.0 1.57 3.14) (axes 0.1 0.05) (param 0.01 0.33)))
+
+    /*while(graspCurrent[8]<graspFinal[8]){
+        for(int i = 0; i<9; i++){
+            graspCurrent[i] = graspCurrent[i]+((graspFinal[i]-graspHome[i])/300);
+            //yWarning("current %f       amount %f        final %f", target[i+7], ((graspFinal[i]-graspHome[i])/200), (*nextPosition)[i]);
+        }
+
+        idir->setPositions(graspNumber, graspJoints, graspCurrent.data());
+    }*/
+        
 }
 
 void handProfilerThread::printErr() {
@@ -845,7 +874,7 @@ bool handProfilerThread::generateTarget() {
     //od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
 
     encs->getEncoders(fingerJoints.data());
-
+    yWarning("%f %f %f %f %f %f %f %f %f",fingerJoints(7),fingerJoints(8),fingerJoints(9),fingerJoints(10),fingerJoints(11),fingerJoints(12),fingerJoints(13),fingerJoints(14),fingerJoints(15));
     if(graspOn){
         Vector* _fdpointer = fp.compute(fingerJoints);
         if(_fdpointer == NULL){
