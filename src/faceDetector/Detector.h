@@ -51,6 +51,7 @@ class Detector
     yarp::os::BufferedPort<yarp::os::Bottle> targetPort;
     yarp::os::BufferedPort<yarp::os::Bottle> faceExpPort;
     yarp::os::BufferedPort<yarp::os::Bottle> foundFacePort;
+    yarp::os::BufferedPort<yarp::os::Bottle> faceRectCoordinatePort;
 
 
 public:

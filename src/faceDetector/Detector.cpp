@@ -214,11 +214,19 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
         ,
         Size(30, 30) );
     c.r = 0;
+    Point rectTopLeft, rectBottomRight;
     for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++, i++ )
     {
         Mat smallImgROI;
         vector<Rect> nestedObjects;
         Point center;
+
+        rectTopLeft.x = r->x * scale;
+        rectTopLeft.y = r->y * scale;
+
+        rectBottomRight.x = ( r->x + r->width ) * scale;
+        rectBottomRight.y = ( r->y + r->height ) * scale;
+    
         //Scalar color = colors[i%8];
         int radius;
         center.x = cvRound((r->x + r->width*0.5)*scale);
@@ -255,6 +263,22 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
         }
         */
     }
+
+    if(rectTopLeft.x != 0 && rectTopLeft.y != 0 && rectBottomRight.x != 0 && rectBottomRight.y != 0){
+        Bottle &faceRectCoordinateBottle = faceRectCoordinatePort.prepare();
+        faceRectCoordinateBottle.clear();
+
+        faceRectCoordinateBottle.addVocab(VOCAB3('s','e','t'));
+        faceRectCoordinateBottle.addVocab(VOCAB4('t','r','a','c'));
+        faceRectCoordinateBottle.addInt(rectTopLeft.x);
+        faceRectCoordinateBottle.addInt(rectTopLeft.y);
+
+        faceRectCoordinateBottle.addInt(rectBottomRight.x);
+        faceRectCoordinateBottle.addInt(rectBottomRight.y);
+
+        faceRectCoordinatePort.write();
+    }
+    
 }
 
 
@@ -376,6 +400,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
 
     ret = imagePort.open("/faceDetector/image/in");  // give the port a name
     ret = ret && outPort.open("/faceDetector/image/out");
+    ret = ret && faceRectCoordinatePort.open("/faceDetector/face/rectCoord");
     ret = ret && targetPort.open("/faceDetector/gazeXd");
     ret = ret && faceExpPort.open("/faceDetector/face:rpc");  
     ret = ret && foundFacePort.open("/faceDetector/faceFound:o");

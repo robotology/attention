@@ -1289,7 +1289,7 @@ void ZDFThread::processDisparityMap(IplImage *t_leftDOG, IplImage *t_rightDOG){
 
             //if either l or r textured at this retinal location:
 
-            if (  ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
+            if (   ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
