@@ -374,9 +374,11 @@ void handProfilerThread::setGrasp(bool grasp) {
         for (int i = 7; i < 16; i++) {
             ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
         }
-    } else{
+    }else{
           yInfo("Grasping OFF");
-      }
+    }
+    encs->getEncoders(fingerJoints.data());
+    Time::delay(1.0);
 }
 
 void handProfilerThread::setPart(string _part) {
@@ -497,6 +499,7 @@ bool handProfilerThread::resetExecution(){
         fprintf(stdout,"xd          [m] = %s\n",xInit.toString().c_str());
         fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
         icart->goToPose(xInit,od);
+        Time::delay(3.0);
         if(gazetracking) {
             yDebug("resetExecution::lookAtFixationPoint");
             igaze->lookAtFixationPoint(xZero);
@@ -674,11 +677,11 @@ void handProfilerThread::run() {
                 if(success){
                     icart-> goToPose(xd,od);
                     const int graspJoints[] = {7,8,9,10,11,12,13,14,15};
-                    //idir->setPositions(graspNumber, graspJoints, fd.data());
+                    idir->setPositions(graspNumber, graspJoints, fd.data());
                     //idir->setPosition(11, fd[4]);
                     //idir->setPosition(12, fd[5]);
                     //idir->setPosition(13, fd[6]);
-                    //idir->setPosition(14, fd[7]); 
+                    //idir->setPosition(14, fd[7]);
 
                     // double trajTime;
                     // icart->getTrajTime(&trajTime);
@@ -788,7 +791,7 @@ void handProfilerThread::graspReset(){
 
         idir->setPositions(graspNumber, graspJoints, graspCurrent.data());
     }*/
-        
+
 }
 
 void handProfilerThread::printErr() {
@@ -873,7 +876,7 @@ bool handProfilerThread::generateTarget() {
     //od[0] = -0.43; od[1] = -0.02; od[2] = -0.90; od[3] = 2.98;
     //od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
 
-    encs->getEncoders(fingerJoints.data());
+
     yWarning("%f %f %f %f %f %f %f %f %f",fingerJoints(7),fingerJoints(8),fingerJoints(9),fingerJoints(10),fingerJoints(11),fingerJoints(12),fingerJoints(13),fingerJoints(14),fingerJoints(15));
     if(graspOn){
         Vector* _fdpointer = fp.compute(fingerJoints);
@@ -882,6 +885,9 @@ bool handProfilerThread::generateTarget() {
             graspOn = false;
         }else{
             fd = *_fdpointer;
+            for (int i = 0; i < 9; i++) {
+                fingerJoints[i+7] = fd[i];
+            }
         }
 
         yDebug("%f %f %f %f %f %f %f %f %f",fd(0),fd(1),fd(2),fd(3),fd(4),fd(5),fd(6),fd(7),fd(8));
