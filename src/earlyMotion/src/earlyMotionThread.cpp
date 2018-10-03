@@ -307,7 +307,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
             *pout += (unsigned char) floor(
                                            (  sqrt((double)diff10) + sqrt((double)diff32) )
                                            *
-                                           (exp((2.3 * row)   / (double)height_orig) - 1));
+                                           (exp((2.3 * 150)   / (double)height_orig) - 1));
 
             if(*pout > max) {
                 max = *pout;
@@ -337,7 +337,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     }
 
     // Rea & Jonas 10/08/2018 + Add median filter to filter out noises
-    //medianfilter(pout,pout, 3);
+    medianfilter(pout,pout, 3);
 
     //printf("max %d \n", max);
     
