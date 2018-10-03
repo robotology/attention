@@ -274,39 +274,41 @@ bool handProfilerThread::threadInit() {
 
 
     //initializing gazecontrollerclient
-    printf("initialising gazeControllerClient \n");
-    Property optionGaze;
-    optionGaze.put("device","gazecontrollerclient");
-    optionGaze.put("remote","/iKinGazeCtrl");
-    string localCon("/handProfiler/gaze");
-    localCon.append(getName(""));
-    optionGaze.put("local",localCon.c_str());
-    yInfo("activating the PolyDriver");
+    if(gazetracking){
+        printf("initialising gazeControllerClient \n");
+        Property optionGaze;
+        optionGaze.put("device","gazecontrollerclient");
+        optionGaze.put("remote","/iKinGazeCtrl");
+        string localCon("/handProfiler/gaze");
+        localCon.append(getName(""));
+        optionGaze.put("local",localCon.c_str());
+        yInfo("activating the PolyDriver");
 
-    clientGazeCtrl = new PolyDriver();
-    clientGazeCtrl->open(optionGaze);
-    igaze = NULL;
+        clientGazeCtrl = new PolyDriver();
+        clientGazeCtrl->open(optionGaze);
+        igaze = NULL;
 
-    if (clientGazeCtrl->isValid()) {
-       clientGazeCtrl->view(igaze);
-       igaze->storeContext(&originalContext);
-       igaze->setEyesTrajTime(0.8);
-       igaze->setNeckTrajTime(0.9);
+        if (clientGazeCtrl->isValid()) {
+           clientGazeCtrl->view(igaze);
+           igaze->storeContext(&originalContext);
+           igaze->setEyesTrajTime(0.8);
+           igaze->setNeckTrajTime(0.9);
 
-       blockNeckPitchValue = -1;
-       if(blockNeckPitchValue != -1) {
-           igaze->blockNeckPitch(blockNeckPitchValue);
-           yInfo("pitch fixed at %d \n",blockNeckPitchValue);
-       }
-       else {
-           yInfo("pitch free to change\n");
-       }
+           blockNeckPitchValue = -1;
+           if(blockNeckPitchValue != -1) {
+               igaze->blockNeckPitch(blockNeckPitchValue);
+               yInfo("pitch fixed at %d \n",blockNeckPitchValue);
+           }
+           else {
+               yInfo("pitch free to change\n");
+           }
+        }
+        else {
+            yError("Not Valid clientGazeCtrl");
+            igaze = 0;
+        }
+        yInfo("Success in initialising the gaze");
     }
-    else {
-        yError("Not Valid clientGazeCtrl");
-        igaze = 0;
-    }
-    yInfo("Success in initialising the gaze");
 
 
     string rootNameGui("");
@@ -1012,12 +1014,13 @@ void handProfilerThread::playFromFile(){
                         yInfo("icart moving to initial position");
                         icart->goToPose(startPos, startOri);
                         icart->waitMotionDone();
+                       // Time::delay(2.0); 
+                        
                     }
                 }
 
                 encs->getEncoders(encoders.data());                                         // encoder reading from current position
                 command = encoders;
-
                 for (int i = 0; i < 16; i++) {
                     ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
                 }
