@@ -499,7 +499,8 @@ bool handProfilerThread::resetExecution(){
         fprintf(stdout,"xd          [m] = %s\n",xInit.toString().c_str());
         fprintf(stdout,"od        [rad] = %s\n",od.toString().c_str());
         icart->goToPose(xInit,od);
-        Time::delay(3.0);
+        //icart->waitMotionDone();
+        Time::delay(1.0);
         if(gazetracking) {
             yDebug("resetExecution::lookAtFixationPoint");
             igaze->lookAtFixationPoint(xZero);
@@ -509,7 +510,7 @@ bool handProfilerThread::resetExecution(){
         // we get the current arm pose in the
         // operational space
         icart->getPose(x,o);
-
+        Time::delay(1.0);
         // we get the final destination of the arm
         // as found by the solver: it differs a bit
         // from the desired pose according to the tolerances
@@ -877,7 +878,11 @@ bool handProfilerThread::generateTarget() {
     //od[0] = -0.06; od[1] = -0.87; od[2] = 0.49; od[3] = 2.97;
 
 
-    yWarning("%f %f %f %f %f %f %f %f %f",fingerJoints(7),fingerJoints(8),fingerJoints(9),fingerJoints(10),fingerJoints(11),fingerJoints(12),fingerJoints(13),fingerJoints(14),fingerJoints(15));
+    //yWarning("%f %f %f %f %f %f %f %f %f",fingerJoints(7),fingerJoints(8),fingerJoints(9),fingerJoints(10),fingerJoints(11),fingerJoints(12),fingerJoints(13),fingerJoints(14),fingerJoints(15));
+    if(fingerJoints[15]>graspFinal[8]){                   //end of grasping
+        graspOn = 0;
+        //yWarning("Grasp OFF, grasp finished");
+    }
     if(graspOn){
         Vector* _fdpointer = fp.compute(fingerJoints);
         if(_fdpointer == NULL){
@@ -890,7 +895,7 @@ bool handProfilerThread::generateTarget() {
             }
         }
 
-        yDebug("%f %f %f %f %f %f %f %f %f",fd(0),fd(1),fd(2),fd(3),fd(4),fd(5),fd(6),fd(7),fd(8));
+        //yDebug("%f %f %f %f %f %f %f %f %f",fd(0),fd(1),fd(2),fd(3),fd(4),fd(5),fd(6),fd(7),fd(8));
     }
 
     return true;

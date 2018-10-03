@@ -58,7 +58,7 @@ Vector* FingerProfile::compute(Vector target) {
 
     if(target[15]<graspFinal[8]){
         for(int i = 0; i<9; i++){
-            (*nextPosition)[i] = target[i+7]+((graspFinal[i]-graspHome[i])/50);
+            (*nextPosition)[i] = target[i+7]+((graspFinal[i]-graspHome[i])/100);
             //yWarning("current %f       amount %f        final %f", target[i+7], ((graspFinal[i]-graspHome[i])/200), (*nextPosition)[i]);
         }
     //yDebug("%f %f %f %f %f %f %f %f %f",(*nextPosition)[0],(*nextPosition)[1],(*nextPosition)[2],(*nextPosition)[3],(*nextPosition)[4],(*nextPosition)[5],(*nextPosition)[6],(*nextPosition)[7],(*nextPosition)[8]);
