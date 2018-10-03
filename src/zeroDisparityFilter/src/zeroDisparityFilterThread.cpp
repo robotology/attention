@@ -302,7 +302,7 @@ void ZDFThread::run() {
             dl->procOpenCv(fov_l_ipl, params->sigma1, params->sigma2);
             dr->procOpenCv(fov_r_ipl, params->sigma1, params->sigma2);
 
-            auto centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, 7.9);
+            auto centerSurround = new CenterSurround(fov_l_ipl->width, fov_l_ipl->height, 5.9);
 
             leftDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
             rightDOG = cvCreateImage(cvSize(foveaSize.width, foveaSize.height), IPL_DEPTH_8U, 1);
@@ -312,8 +312,9 @@ void ZDFThread::run() {
 
             delete centerSurround;
 
-
-            processDisparityMap(leftDOG, rightDOG);
+            //leftDOG = dl->get_dog_onoff_ipl();
+            //leftDOG = dl->get_dog_onoff_ipl();
+            processDisparityMap(dl->get_dog_onoff_ipl(), dr->get_dog_onoff_ipl());
 
             //*******************************************************************
             //Do MRF optimization:
@@ -406,7 +407,7 @@ void ZDFThread::run() {
                 //report that we didn't update template:
                 //-----------------------------------------------extract just template
 
-                if (imageOutTemp.getOutputCount() > 0 || imageOutTemp2.getOutputCount() > 0) {
+                if (imageOutTemp.getOutputCount() > 0 || outputGeometry.getOutputCount() > 0) {
                     cout << " sending template " << endl;
                     int top = -1;
                     int left = -1;
@@ -1289,7 +1290,8 @@ void ZDFThread::processDisparityMap(IplImage *t_leftDOG, IplImage *t_rightDOG){
 
             //if either l or r textured at this retinal location:
 
-            if (   ( t_leftDOG->imageData[index] > bland_dog_thresh && t_rightDOG->imageData[index] > bland_dog_thresh)) {
+            if (   ( t_leftDOG->imageData[index] > 0   && t_rightDOG->imageData[index] > 0 ) && 
+                   (leftDOG->imageData[index] > bland_dog_thresh   || rightDOG->imageData[index] > bland_dog_thresh ) ) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
