@@ -51,16 +51,21 @@ namespace fingerFactory {
 
 class FingerProfile {
 private:
-		yarp::sig::Vector graspHome;
-		yarp::sig::Vector graspFinal;
-        yarp::sig::Vector* nextPosition;
-		yarp::os::BufferedPort<yarp::os::Bottle>  dataPort;            // output port to plot event
-
+   
+    yarp::os::BufferedPort<yarp::os::Bottle>  dataPort;            // output port to plot event
+    
 	void initRange();
 
 
 protected:
-
+    yarp::sig::Vector graspHome;
+    yarp::sig::Vector graspVia;
+    yarp::sig::Vector graspFinal;
+    yarp::sig::Vector* nextPosition;
+    double graspHomeTime;
+    double graspViaTime;
+    double graspFinalTime;
+    
 public:
     /**
     * constructor default
@@ -79,13 +84,91 @@ public:
     ~FingerProfile();
 
     /**
-     * computing the vector location
+     * function that set the time when the grasp should start
+     * @param time time in second when
      */
-    yarp::sig::Vector* compute(yarp::sig::Vector target);
+    void setHomeTime(double time) { graspHomeTime = time;};
+
+    /**
+     * function that set the time when the via point should be visited
+     * @param time time in second when
+     */
+    void setViaTime(double time) { graspViaTime = time;};
+
+    /**
+     * function that set the time when the grasp should finish
+     * @param time time in second when
+     */
+    void setFinalTime(double time) { graspFinalTime = time;};
+    
+
+    /**
+     * computing the vector location
+     * @return the vector representing the next position
+     */
+    virtual yarp::sig::Vector* compute(yarp::sig::Vector target) = 0;
 };
 
 
+/**
+* motion profile with constant velocity
+*/
+class CVFingerProfile : public FingerProfile {
+protected:
+    
+    //double velocity;          // desired tangential velocity
 
+public:
+    CVFingerProfile();
+    ~CVFingerProfile();
+    //CVFingerProfile(const CVFingerProfile &cvmp);
+    //CVFingerProfile(const yarp::os::Bottle &b);
+  
+    //CVFingerProfile &operator=(const CVFingerProfile &cvmp);
+    //bool operator==(const CVFingerProfile &cvmp);
+    //bool operator==(const FingerProfile &mp) {return operator==(dynamic_cast<const CVFingerProfile&>(mp));}    
+
+    /**
+    * function that sets the desired tangential velocity of the endEffector
+    */
+    //void setVelocity(const double vel) {tanVelocity = vel;};
+    //void preComputation(const double t, const double theta);	
+    yarp::sig::Vector* compute(yarp::sig::Vector target);
+};
+
+    //************************************************************************************************
+
+/**
+* motion profile with constant velocity and a via point
+*/
+class CVVFingerProfile : public FingerProfile {
+protected:
+    
+    //double velocity;          // desired tangential velocity
+
+public:
+    CVVFingerProfile();
+    ~CVVFingerProfile();
+    //CVFingerProfile(const CVFingerProfile &cvmp);
+    //CVFingerProfile(const yarp::os::Bottle &b);
+  
+    //CVFingerProfile &operator=(const CVFingerProfile &cvmp);
+    //bool operator==(const CVFingerProfile &cvmp);
+    //bool operator==(const FingerProfile &mp) {return operator==(dynamic_cast<const CVFingerProfile&>(mp));}    
+
+    /**
+    * function that sets the desired tangential velocity of the endEffector
+    */
+    //void setVelocity(const double vel) {tanVelocity = vel;};
+
+    
+    //void preComputation(const double t, const double theta);
+
+    
+    yarp::sig::Vector* compute(yarp::sig::Vector target, double t);
+};
+    
+    
 }
 #endif  //_FINGER_PROFILE_H_PROFILE_THREAD_H_
 

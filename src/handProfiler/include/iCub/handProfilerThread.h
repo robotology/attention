@@ -116,7 +116,7 @@ protected:
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze
     yarp::dev::PolyDriver* clientGazeCtrl;          // polydriver for the gaze controller
     profileFactory::MotionProfile *mp;
-    fingerFactory::FingerProfile fp;
+    fingerFactory::FingerProfile *fp;
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set

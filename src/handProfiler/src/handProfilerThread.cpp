@@ -41,10 +41,21 @@ using namespace std;
 using namespace profileFactory;
 using namespace fingerFactory;
 
-FingerProfile* factoryFingerProfile(){
-    FingerProfile *fingerProfile = new FingerProfile();
+
+//******************** factories for fingers ***************************************
+
+FingerProfile* factoryCVFingerProfile(){
+    CVFingerProfile *fingerProfile = new CVFingerProfile();
     return static_cast<FingerProfile*>(fingerProfile);
 }
+
+FingerProfile* factoryCVVFingerProfile(){
+    CVFingerProfile *fingerProfile = new CVFingerProfile();
+    return static_cast<FingerProfile*>(fingerProfile);
+}
+
+
+//********************* factories for motion profiles ***********************************
 
 MotionProfile* factoryCVMotionProfile(const Bottle &param){
     CVMotionProfile *cvmp = new CVMotionProfile(param);
@@ -358,7 +369,7 @@ bool handProfilerThread::threadInit() {
     graspNumber = 9;
     fingerJoints.resize(njoints);
     fd.resize(9);
-    //fp = factoryFingerProfile();
+    fp = factoryCVFingerProfile();
     yInfo("handProfiler thread correctly started");
 
     return true;
@@ -638,7 +649,7 @@ bool handProfilerThread::factory(const string type, const Bottle finalB){
     }
 
     bool result = true;
-    result = result & resetExecution(); //???????
+    result = result & resetExecution(); 
     return result;
 }
 
@@ -679,16 +690,18 @@ void handProfilerThread::run() {
                 //yDebug("generated target %d", success);
                 if(success){
                     icart-> goToPose(xd,od);
-                    const int graspJoints[] = {7,8,9,10,11,12,13,14,15};
-                    idir->setPositions(graspNumber, graspJoints, fd.data());
-                    //idir->setPosition(11, fd[4]);
-                    //idir->setPosition(12, fd[5]);
-                    //idir->setPosition(13, fd[6]);
-                    //idir->setPosition(14, fd[7]);
+                    if(graspOn){
+                        const int graspJoints[] = {7,8,9,10,11,12,13,14,15};
+                        idir->setPositions(graspNumber, graspJoints, fd.data());
+                        //idir->setPosition(11, fd[4]);
+                        //idir->setPosition(12, fd[5]);
+                        //idir->setPosition(13, fd[6]);
+                        //idir->setPosition(14, fd[7]);
 
-                    // double trajTime;
-                    // icart->getTrajTime(&trajTime);
-                    // yDebug("trajTime %f", trajTime);
+                        // double trajTime;
+                        // icart->getTrajTime(&trajTime);
+                        // yDebug("trajTime %f", trajTime);
+                    }
                     if(saveOn) {
                         saveToArray();
                     }
@@ -771,9 +784,10 @@ void handProfilerThread::graspReset(){
     yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
     for(int i = 0; i<9; i++){
         while(graspCurrent[i]>graspHome[i]+1 || graspCurrent[i]<graspHome[i]-1){
-            graspCurrent[i] = graspCurrent[i]+((graspHome[i]-graspCurrent[i])/300);
+            graspCurrent[i] = graspCurrent[i]+((graspHome[i]-graspCurrent[i])/25);
             idir->setPosition(i+7, graspCurrent[i]);
             //yDebug("while2 %d", i);
+            Time::delay(0.01);
         }
     }
 
@@ -886,12 +900,16 @@ bool handProfilerThread::generateTarget() {
         //yWarning("Grasp OFF, grasp finished");
     }
     if(graspOn){
-        Vector* _fdpointer = fp.compute(fingerJoints);
-        if(_fdpointer == NULL){
+        yDebug("before compute");
+        Vector* _fdpointer = fp->compute(fingerJoints);
+        yDebug("before compute");
+        //Vector* _fdpointer = fp->compute(t, fingerJoints);
+        if(_fdpointer == NULL) {
             yError("Finger motion not valid, GRASP OFF");
             graspOn = false;
-        }else{
-            fd = *_fdpointer;
+        }
+        else {
+            fd = *_fdpointer;  // TODO: check if this copy is necessary
             for (int i = 0; i < 9; i++) {
                 fingerJoints[i+7] = fd[i];
             }
@@ -1027,6 +1045,7 @@ void handProfilerThread::playFromFile(){
                 for(int i=1; i<17; i++){
                     if(abs(command[i-1] - playJoints[i]) > 2){
                         yInfo("idir moving joint %d to initial position", i);
+                        yInfo("from    %f    to   %f", command[i-1], playJoints[i]); 
                         double offsetInitial = 0;                                   // put robot in initial position  (adjust position reached with cartesian controller
                         if(command[i-1] < playJoints[i]){                             // to be more precise according to the first position of .log file)
                             offsetInitial = 0.2;
