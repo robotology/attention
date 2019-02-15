@@ -56,7 +56,8 @@ earlyMotionThread::~earlyMotionThread() {
     delete inputExtImage;
     delete inputImageFiltered;
     delete inputImage;
-    delete motion;    
+    delete motion;
+    delete outPhase;
 }
 
 bool earlyMotionThread::threadInit() {
@@ -67,6 +68,11 @@ bool earlyMotionThread::threadInit() {
     }
 
     if (!motionPort.open(getName("/motion:o").c_str())) {
+        cout << ": unable to open port "  << endl;
+        return false;  // unable to open; let RFModule know so that it won't run
+    }
+
+    if (!phasePort.open(getName("/phase:o").c_str())) {
         cout << ": unable to open port "  << endl;
         return false;  // unable to open; let RFModule know so that it won't run
     }
@@ -105,8 +111,10 @@ void earlyMotionThread::resize(int width_orig,int height_orig) {
 
     // resizing plane images
     motion->resize(width_orig, height_orig);
-
-
+    outPhase = new ImageOf<PixelMono>;
+    outPhase->resize(width_orig, height_orig);
+    outPhase ->zero();
+        
     imageT1 = new ImageOf<PixelMono>;
     imageT1->resize(width_orig, height_orig);
     imageT1->zero();
@@ -147,17 +155,24 @@ void earlyMotionThread::run() {
             if((motionPort.getOutputCount())) {
                 ImageOf<PixelMono>& out = motionPort.prepare();
                 out.resize(width_orig, height_orig);
-                out.zero();
-
-                
+                out.zero();     
+           
                 // extend logpolar input image
                 //extender(inputImage, maxKernelSize);
-                
                 //extractPlanes();
-                
+              
                 temporalSubtraction(&out);
-
                 motionPort.write();
+
+                // section computing the phase active only if outport connected
+                if (phasePort.getOutputCount()) {
+                    ImageOf<PixelMono>& outPhase = phasePort.prepare();
+                    outPhase.resize(width_orig, height_orig);
+                    outPhase.zero();
+                    phaseSelection(&out, &outPhase);
+                    phasePort.write();
+                }
+                                
             }            
             if(count % 1 == 0) {
                 temporalStore();
@@ -230,7 +245,8 @@ void  earlyMotionThread::_medianfilter(const element* signal, element* result, i
         element window[5];
         for (int j = 0; j < 5; ++j)
             window[j] = signal[i - 2 + j];
-        //   Order elements (only half of them)
+
+        //Order elements (only half of them)
         for (int j = 0; j < 3; ++j)
         {
             //   Find position of minimum element
@@ -278,6 +294,68 @@ void  earlyMotionThread::medianfilter(element* signal, element* result, int N)
     delete[] extension;
 }
 
+void earlyMotionThread::phaseSelection(ImageOf<PixelMono>* inputImage, ImageOf<PixelMono>* outputImage) {
+    unsigned char* pin_origin  = inputImage->getRawImage();
+    unsigned char* pout_origin = outputImage->getRawImage();
+    unsigned char* pin;
+    unsigned char* pout;
+    int padding = inputImage->getPadding();
+    int rowsize = inputImage->getRowSize();
+    
+    
+    //yDebug("width_orig:%d height_orig %d", width_orig, height_orig);
+    
+    double sum;
+    int counter;
+    int tot = 10;
+    int blocksizex = 32;
+    for (int blocky = 0; blocky < 10; blocky++) {
+        for (int blockx = 0; blockx < 10; blockx++) {
+            sum = 0;
+            counter = 0;
+            pin  = pin_origin  + blocky * 24 * 320 + blockx * 32;
+            pout = pout_origin + blocky * 24 * 320 + blockx * 32;
+            for(int row = 0; row < 24; row++) {
+                for(int col = 0; col < 32 ; col++) {
+                    sum += *pin; counter++;
+                    
+                    //*pout = *pin;
+                    pout++;
+                    pin++;
+                }
+                pin      = pin  + padding + 320 - 32; //blocksizex * (tot - 1);
+                pout     = pout + padding + 320 - 32; //blocksizex * (tot - 1);
+            }
+            // preparing pixel-wise image
+            pin  = pin_origin  + blocky * 24 * 320 + blockx * 32;
+            pout = pout_origin + blocky * 24 * 320 + blockx * 32;
+            for(int row = 0; row < 24; row++) {
+                for(int col = 0; col < 32 ; col++) {
+                    
+                    unsigned char value = (unsigned char) floor(sum/counter);
+                    //thresholding value
+                    if(value > 100) {
+                        *pout = 255;
+                        double prev_ts = ts[blocky][blockx].getTime();
+                        ts[blocky][blockx].update();
+                        double curr_ts = ts[blocky][blockx].getTime();
+                        double diff = curr_ts - prev_ts;
+                        if (diff > 0.01) {
+                            yInfo("diff[%d, %d] %f: %f > %f", blocky, blockx, diff, curr_ts,  prev_ts);
+                        }
+                    }
+                    else{
+                        *pout = 0;
+                    }
+                    pout++;
+                    pin++;
+                }
+                pin      = pin  + padding + 320 - 32; //blocksizex * (tot - 1);
+                pout     = pout + padding + 320 - 32; //blocksizex * (tot - 1);
+            }
+        }
+    }
+}
 
 void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     int padding = inputImage->getPadding();
@@ -302,25 +380,33 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
             diff30 = (*pin      - *pimageT3) * (*pin      - *pimageT3);
             diff40 = (*pin      - *pimageT4) * (*pin      - *pimageT4);
 
-            
+            // response no row-dependent
+            *pout += (unsigned char) floor(sqrt(diff10 + diff32 ) * (exp( (2.3 * width_orig)   / (double)height_orig) - 1));
+            // response row-dependent
             //*pout += (unsigned char) floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * row)   / (double)height_orig) - 1));
-            *pout += (unsigned char) floor(
-                                           (  sqrt((double)diff10) + sqrt((double)diff32) )
-                                           *
-                                           (exp((2.3 * 150)   / (double)height_orig) - 1));
+
+
+            //*pout += (unsigned char) floor(
+            //                               (  sqrt((double)diff10) + sqrt((double)diff32) )
+            //                               *
+            //                               (exp(2.3 * 40  / (double) height_orig) - 1));
+                                           //(exp((2.3 * 150)   / (double) height_orig) - 1));
 
             if(*pout > max) {
                 max = *pout;
             }
-            
+
+            //thresholding
+            /*
             if(*pout >= threshold){
-//               printf("255 \n");
                *pout = 255;
                *(pout + 1) = 255;
                *(pout - 1) = 255;
                *(pout - rowsize) = 255;
                *(pout + rowsize) = 255;
-            }                     
+            }
+            */
+            
             pout++;
             pin++;
             pimageT1++;
@@ -337,9 +423,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     }
 
     // Rea & Jonas 10/08/2018 + Add median filter to filter out noises
-    medianfilter(pout,pout, 3);
-
-    //printf("max %d \n", max);
+    //medianfilter(pout,pout, 15);
     
     //ImageOf<PixelFloat>* imageTmp = new ImageOf<PixelFloat>;
     //imageTmp->resize(width_orig,height_orig);
@@ -370,17 +454,20 @@ void earlyMotionThread::threadRelease() {
 
 void earlyMotionThread::onStop() {
     imagePortIn.interrupt();
+    phasePort.interrupt();
+    motionPort.interrupt();
     //imagePortOut.interrupt();
     //imagePortExt.interrupt();
-    
+    phasePort.close();
     motionPort.close();
     //imagePortExt.close();
-
     imagePortIn.close();
 }
+
 void earlyMotionThread::setThreshold(unsigned char threshold) {
     earlyMotionThread::threshold = threshold;
 }
+
 unsigned char earlyMotionThread::getThreshold() const {
     return threshold;
 }

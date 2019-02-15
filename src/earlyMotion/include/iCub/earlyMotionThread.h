@@ -98,6 +98,7 @@ private:
     float lambda;                       // costant for the temporal filter
    
     yarp::sig::ImageOf<yarp::sig::PixelMono> *inputImage;           // input image
+    yarp::sig::ImageOf<yarp::sig::PixelMono> *outPhase;             // output image of phase
     yarp::sig::ImageOf<yarp::sig::PixelMono> *inputImageFiltered;   // time filtered input image
     yarp::sig::ImageOf<yarp::sig::PixelRgb>  *inputExtImage;        // extended input image
         
@@ -110,16 +111,19 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *motion;                // edges of colour opponency maps 
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imagePortIn;    // input port
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;     // output port   
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;     // output port
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > phasePort;      // output port *phase)
 
+    yarp::os::Stamp ts[10][10];
+    
     bool suspended = false;
     unsigned char threshold = 12;
     typedef unsigned  char element;
 
  public:
-  unsigned char getThreshold() const;
+    unsigned char getThreshold() const;
  public:
-  void setThreshold(unsigned char threshold);
+    void setThreshold(unsigned char threshold);
  private:
 
   //convolve conv;
@@ -209,7 +213,13 @@ public:
    */
   void medianfilter(element* signal, element* result, int N);
 
-
+    /**
+   * Function that selects areas of the image that are synchronous and in-phase
+   * @param signal
+   * @param result
+   * @param N
+   */
+    void phaseSelection(yarp::sig::ImageOf<yarp::sig::PixelMono>* in, yarp::sig::ImageOf<yarp::sig::PixelMono>* out);
 
     
 };
