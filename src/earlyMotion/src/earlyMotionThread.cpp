@@ -301,7 +301,23 @@ void earlyMotionThread::phaseSelection(ImageOf<PixelMono>* inputImage, ImageOf<P
     unsigned char* pout;
     int padding = inputImage->getPadding();
     int rowsize = inputImage->getRowSize();
-    
+
+    /*
+    printf("Copying YARP image to an OpenCV/IPL image\n");
+    IplImage *cvImage = cvCreateImage(cvSize(outputImage->width(),  
+                                             ->height()), 
+                                      IPL_DEPTH_8U, 3 );
+    cvCvtColor((IplImage*)outputImage.getIplImage(), cvImage, CV_RGB2BGR);
+    printf("Showing OpenCV/IPL image\n");
+    cvNamedWindow("test",1);
+    cvShowImage("test",cvImage);
+    printf("Taking image back into YARP...\n");
+    ImageOf<PixelBgr> yarpReturnImage;
+    yarpReturnImage.wrapIplImage(cvImage);
+    yarp::sig::file::write(yarpReturnImage,"test.ppm");
+    printf("Saving YARP image to test.ppm\n");
+    */
+
     
     //yDebug("width_orig:%d height_orig %d", width_orig, height_orig);
     
@@ -340,8 +356,17 @@ void earlyMotionThread::phaseSelection(ImageOf<PixelMono>* inputImage, ImageOf<P
                         ts[blocky][blockx].update();
                         double curr_ts = ts[blocky][blockx].getTime();
                         double diff = curr_ts - prev_ts;
+                        // thresholding frequencies 
                         if (diff > 0.01) {
                             yInfo("diff[%d, %d] %f: %f > %f", blocky, blockx, diff, curr_ts,  prev_ts);
+                            // 1Hz frequency
+                            if ((diff > 0.9) && (diff < 1.1)) {
+                                ts1Hz[blocky][blockx].update();
+                            }
+                            //5hz frequency
+                            //10hz frequency
+                            //20hz frequency
+                            
                         }
                     }
                     else{

@@ -115,6 +115,10 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > phasePort;      // output port *phase)
 
     yarp::os::Stamp ts[10][10];
+    yarp::os::Stamp ts1Hz[10][10];
+    yarp::os::Stamp ts5Hz[10][10];
+    yarp::os::Stamp ts10Hz[10][10];
+    yarp::os::Stamp ts20Hz[10][10];
     
     bool suspended = false;
     unsigned char threshold = 12;
