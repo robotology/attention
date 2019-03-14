@@ -106,7 +106,7 @@ public:
      * computing the vector location
      * @return the vector representing the next position
      */
-    virtual yarp::sig::Vector* compute(yarp::sig::Vector target) = 0;
+    virtual yarp::sig::Vector* compute(yarp::sig::Vector target, double t) = 0;
 };
 
 
@@ -133,7 +133,7 @@ public:
     */
     //void setVelocity(const double vel) {tanVelocity = vel;};
     //void preComputation(const double t, const double theta);	
-    yarp::sig::Vector* compute(yarp::sig::Vector target);
+    yarp::sig::Vector* compute(yarp::sig::Vector target, double t);
 };
 
     //************************************************************************************************

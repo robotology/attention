@@ -50,7 +50,7 @@ FingerProfile* factoryCVFingerProfile(){
 }
 
 FingerProfile* factoryCVVFingerProfile(){
-    CVFingerProfile *fingerProfile = new CVFingerProfile();
+    CVVFingerProfile *fingerProfile = new CVVFingerProfile();
     return static_cast<FingerProfile*>(fingerProfile);
 }
 
@@ -369,7 +369,7 @@ bool handProfilerThread::threadInit() {
     graspNumber = 9;
     fingerJoints.resize(njoints);
     fd.resize(9);
-    fp = factoryCVFingerProfile();
+    fp = factoryCVVFingerProfile();
     yInfo("handProfiler thread correctly started");
 
     return true;
@@ -784,15 +784,15 @@ void handProfilerThread::graspReset(){
     yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
     for(int i = 0; i<9; i++){
         while(graspCurrent[i]>graspHome[i]+1 || graspCurrent[i]<graspHome[i]-1){
-            graspCurrent[i] = graspCurrent[i]+((graspHome[i]-graspCurrent[i])/25);
+            graspCurrent[i] = graspCurrent[i]+((graspHome[i]-graspCurrent[i])/3);
             idir->setPosition(i+7, graspCurrent[i]);
             //yDebug("while2 %d", i);
             Time::delay(0.01);
         }
     }
 
-    yInfo("Grasp reset");
-    yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
+    yInfo("Grasp resetted");
+    //yDebug("%f %f %f %f %f %f %f %f %f",graspCurrent[0],graspCurrent[1],graspCurrent[2],graspCurrent[3],graspCurrent[4],graspCurrent[5],graspCurrent[6],graspCurrent[7],graspCurrent[8]);
     encs->getEncoders(fingerJoints.data());
     //yDebug("%f %f %f %f %f %f %f %f %f",fingerJoints[7],fingerJoints[8],fingerJoints[9],fingerJoints[10],fingerJoints[11],fingerJoints[12],fingerJoints[13],fingerJoints[14],fingerJoints[15]);
 
@@ -900,10 +900,7 @@ bool handProfilerThread::generateTarget() {
         //yWarning("Grasp OFF, grasp finished");
     }
     if(graspOn){
-        yDebug("before compute");
-        Vector* _fdpointer = fp->compute(fingerJoints);
-        yDebug("before compute");
-        //Vector* _fdpointer = fp->compute(t, fingerJoints);
+        Vector* _fdpointer = fp->compute(fingerJoints, t-t0);
         if(_fdpointer == NULL) {
             yError("Finger motion not valid, GRASP OFF");
             graspOn = false;
@@ -1061,6 +1058,8 @@ void handProfilerThread::playFromFile(){
                 }
 
                 yInfo("initial position reached");
+
+                Time::delay(2.0); //julia
 
                 previousTime = playJoints[0];
             }else{

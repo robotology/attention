@@ -311,12 +311,12 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
 	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
     //int argc = b->size() * 2 + 1;
 	// fix:
-	const int argc = 17;
+	const int argc = 20;
     string stringArray[argc];
     char* argv[argc];
     stringArray[0].append("./motionProfile");
     argv[0] = (char*) stringArray[0].c_str();
-    yDebug("added first %s", argv[0]);
+    //yDebug("added first %s", argv[0]);
 
     for (int j = 0; j < b->size(); j++) {
         Bottle* vector = b->get(j).asList();
@@ -329,14 +329,14 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
         stringArray[j * 2 + 2].append(&temp[0]);
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
         argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
-        yDebug("param %d %s", j, argv[j * 2 + 1]);
-        yDebug("value %s", argv[j * 2 + 2]);
+        //yDebug("param %d %s", j, argv[j * 2 + 1]);
+        //yDebug("value %s", argv[j * 2 + 2]);
     }
     yDebug("parsing ");
     yDebug("%s",argv[0] );
     yDebug("%s, %s",argv[1], argv[2] );
     // configuring the resource finder
-    rf.configure(argc, argv);
+    rf.configure(b->size() * 2 + 1, argv);
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF
     Vector Ovector(3);
@@ -906,9 +906,9 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
     }
     yDebug("parsing......");
     //yDebug("argc %d argv %s", b->size(), argv[0]);
-    for (int j = 0; j < b->size() * 2 + 1; j++) {
+    //for (int j = 0; j < b->size() * 2 + 1; j++) {
         //yDebug("argv %s", argv[j]);
-    }
+    //}
     // configuring the resource finder
     yDebug("success %f", rf.configure(b->size() * 2 + 1, argv));
 
