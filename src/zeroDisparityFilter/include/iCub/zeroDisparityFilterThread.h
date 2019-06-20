@@ -60,8 +60,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutSeg;      //output port segmented image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDog;      //output port difference of gaussian image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDogR;      //output port difference of gaussian image
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageOutTemp;     //output port template image
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > imageOutTemp2;     //output port template image
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutSaliency;     //output port template image
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageOutTemplateRGB;     //output port template image
 
 
     yarp::os::BufferedPort<yarp::os::Bottle> outputGeometry;    // output 2D position and size of the object
@@ -113,6 +113,13 @@ private:
     IplImage *rec_im_ly_ipl;
     unsigned char *rec_im_ry;                             //Ipp8u
     IplImage *rec_im_ry_ipl;
+
+    //input:x
+    unsigned char *rec_im_ly_YUV;                             //Ipp8u
+    IplImage *rec_im_ly_ipl_YUV;
+    unsigned char *rec_im_ry_YUV;                             //Ipp8u
+    IplImage *rec_im_ry_ipl_YUV;
+
     IplImage *maskMsize;
     unsigned char *yuva_orig_l, *yuva_orig_r;         // yuv+a image Ipp8u
     IplImage *yuva_orig_l_ipl, *yuva_orig_r_ipl;     //
@@ -152,6 +159,8 @@ private:
     defSize insize;
     defSize tempSize;
     int BufferSize;
+
+    typedef unsigned  char element;
 
     //string containing module name
     std::string moduleName;
@@ -213,6 +222,10 @@ public:
     void matchTemplate(IplImage* templateImage, IplImage* inputImage,  IplImage* dst);
 
     void processDisparityMap(IplImage *leftDOG, IplImage *rightDOG);
+
+    void medianfilter(element* signal, element* result, int N);
+
+    void _medianfilter(const element* signal, element* result, int N);
 
 };
 #endif //ZERODISPARITYFILTER_ZERODISPARITYTHREAD_H

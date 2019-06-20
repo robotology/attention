@@ -29,22 +29,24 @@
 #include "iCub/zeroDisparityFilterThread.h"
 
 
-#define COMMAND_VOCAB_IS   VOCAB2('i','s')
-#define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_SET  VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET  VOCAB3('g','e','t')
-#define COMMAND_VOCAB_K1   VOCAB2('k','1') //data penalty
-#define COMMAND_VOCAB_K2   VOCAB2('k','2') //smoothness penalty base
-#define COMMAND_VOCAB_K3   VOCAB2('k','3') //smoothness penalty
-#define COMMAND_VOCAB_K4   VOCAB2('k','4') //radial penalty
-#define COMMAND_VOCAB_K5   VOCAB2('k','5') //smoothness 3sigmaon2
-#define COMMAND_VOCAB_K6   VOCAB2('k','6') //bland dog thresh
-#define COMMAND_VOCAB_K7   VOCAB2('k','7') //bland prob
-#define COMMAND_VOCAB_K8   VOCAB2('k','8') //max spread
-
-
-
 class zeroDisparityFilterMod : public yarp::os::RFModule {
+
+    enum {
+        COMMAND_VOCAB_IS = yarp::os::createVocab('i', 's'),
+        COMMAND_VOCAB_HELP = yarp::os::createVocab('h', 'e', 'l', 'p'),
+        COMMAND_VOCAB_SET = yarp::os::createVocab('s', 'e', 't'),
+        COMMAND_VOCAB_GET = yarp::os::createVocab('g', 'e', 't'),
+        COMMAND_VOCAB_K1 = yarp::os::createVocab('k', '1'), //data penalty
+        COMMAND_VOCAB_K2 = yarp::os::createVocab('k', '2'), //smoothness penalty base
+        COMMAND_VOCAB_K3 = yarp::os::createVocab('k', '3'), //smoothness penalty
+        COMMAND_VOCAB_K4 = yarp::os::createVocab('k', '4'),//radial penalty
+        COMMAND_VOCAB_K5 = yarp::os::createVocab('k', '5'), //smoothness 3sigmaon2
+        COMMAND_VOCAB_K6 = yarp::os::createVocab('k', '6'), //bland dog thresh
+        COMMAND_VOCAB_K7 = yarp::os::createVocab('k', '7'), //bland prob
+        COMMAND_VOCAB_K8 = yarp::os::createVocab('k', '8') //max spread
+    };
+
+
     /* module parameters */
     std::string moduleName;
     std::string handlerName;

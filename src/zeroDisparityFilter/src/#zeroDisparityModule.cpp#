@@ -1,4 +1,4 @@
-// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+/ -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
@@ -19,7 +19,7 @@
  */
 
 #include "../include/iCub/zeroDisparityModule.h"
-#include <iostream>
+
 
 using namespace std;
 using namespace yarp::os;
@@ -83,7 +83,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     parameters.fovea_height = rf.findGroup("PARAMS").check("fovea_size", Value(128),
                                                            "what did the user select?").asInt();
 
-    parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(0.5),
+    parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(25),
                                                      "what did the user select?").asDouble();
     parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(2),
                                                      "what did the user select?").asDouble();

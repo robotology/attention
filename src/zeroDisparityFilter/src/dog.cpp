@@ -21,7 +21,7 @@
 #include "iCub/dog.h"
 
 //set up DoG Kernel stuff:
-const int kern_sz = 7;
+const int kern_sz = 5;
 const int kern_anc = 3;
 
 
@@ -250,8 +250,8 @@ void DoG::procOpenCv(IplImage *in_, double xOne, double xTwo) {
     printf("DOG filtering \n");
 
 
-    cv::GaussianBlur(input_32f_mat, tmp2_mat, cv::Size(kern_sz,kern_sz), xOne/100, xOne/100);
-    cv::GaussianBlur(input_32f_mat, tmp3_mat, cv::Size(kern_sz,kern_sz), xTwo/100, xTwo/100);
+    cv::GaussianBlur(input_32f_mat, tmp2_mat, cv::Size(kern_sz,kern_sz), xOne, xOne);
+    cv::GaussianBlur(input_32f_mat, tmp3_mat, cv::Size(kern_sz,kern_sz), xTwo, xTwo);
 
 
     dog_mat = cv::abs(tmp3_mat - tmp2_mat);
