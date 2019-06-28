@@ -26,7 +26,7 @@
 #include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/earlyMotionThread.h>
 #include <cstring>
-#include <cv.h>
+//#include <cv.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace yarp::os;
@@ -406,32 +406,30 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
             diff40 = (*pin      - *pimageT4) * (*pin      - *pimageT4);
 
             // response no row-dependent
-            *pout += (unsigned char) floor(sqrt(diff10 + diff32 ) * (exp( (2.3 * width_orig)   / (double)height_orig) - 1));
+            *pout += (unsigned char) floor(sqrt(diff10 + diff32 + diff21 ) * (exp( (2.3 * 100)   / (double)height_orig) - 1));
             // response row-dependent
-            //*pout += (unsigned char) floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * row)   / (double)height_orig) - 1));
+//            *pout += (unsigned char) floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * 100)   / (double)height_orig) - 1));
 
 
-            //*pout += (unsigned char) floor(
-            //                               (  sqrt((double)diff10) + sqrt((double)diff32) )
-            //                               *
-            //                               (exp(2.3 * 40  / (double) height_orig) - 1));
-                                           //(exp((2.3 * 150)   / (double) height_orig) - 1));
-
-            if(*pout > max) {
-                max = *pout;
-            }
+//            *pout += (unsigned char) floor(
+//                                           (  sqrt((double)diff10) + sqrt((double)diff32) )
+//                                           *
+//                                           (exp(2.3 * 100  / (double) height_orig) - 1));
+////                                           (exp((2.3 * 150)   / (double) height_orig) - 1));
+//
+//            if(*pout > max) {
+//                max = *pout;
+//            }
 
             //thresholding
-            /*
             if(*pout >= threshold){
-               *pout = 255;
-               *(pout + 1) = 255;
-               *(pout - 1) = 255;
-               *(pout - rowsize) = 255;
-               *(pout + rowsize) = 255;
+               *pout = 200;
+//               *(pout + 1) = 255;
+//               *(pout - 1) = 255;
+//               *(pout - (rowsize)) = 255;
+//               *(pout + rowsize) = 255;
             }
-            */
-            
+
             pout++;
             pin++;
             pimageT1++;
@@ -448,7 +446,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
     }
 
     // Rea & Jonas 10/08/2018 + Add median filter to filter out noises
-    //medianfilter(pout,pout, 15);
+    medianfilter(pout,pout, 15);
     
     //ImageOf<PixelFloat>* imageTmp = new ImageOf<PixelFloat>;
     //imageTmp->resize(width_orig,height_orig);

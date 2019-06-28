@@ -42,10 +42,10 @@
 #include <iCub/logPolar.h>
 
 #include <iCub/convolve.h>
-#include <iCub/config.h>
 #include <iCub/centerSurround.h>
 #include <iCub/chrominanceThread.h>
 #include <iCub/edgesThread.h>
+#include <iCub/config.h>
 
 
 #define MONO_PIXEL_SIZE 1

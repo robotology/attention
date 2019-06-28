@@ -30,6 +30,7 @@
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
+#include <yarp/os/Semaphore.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/PolyDriver.h>

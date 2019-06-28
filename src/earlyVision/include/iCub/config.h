@@ -34,7 +34,9 @@
 #define ONE_BY_ROOT_THREE 0.577350269
 #define NO_DEBUG_OPENCV //DEBUG_OPENCV //
 
-#define maxKernelSize 5
+
+// Change maxKernelSize to 0 bug from logPolar borderCreate function
+#define maxKernelSize 0
 #define ROW_SIZE 252
 #define COL_SIZE 152
 #define CART_ROW_SIZE 320

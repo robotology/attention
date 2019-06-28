@@ -50,7 +50,7 @@ edgesThread::edgesThread():RateThread(RATE_OF_EDGES_THREAD) {
 
     sobelIsNormalized = 0;
     sobelLimits[0] = 0;
-    sobelLimits[1] = 2.0;    
+    sobelLimits[1] = 2.0;
 
     dImgIn   = 0;
     dImgOut  = 0;
@@ -139,7 +139,7 @@ void edgesThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
         }        
 
         // deep-copy
-        memcpy( (uchar*)intensityImage->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());        
+        memcpy( (uchar*)intensityImage->getRawImage(),(uchar*)I->getRawImage(), I->getRawImageSize());
     
         /*
         // CAUTION:shallow copy
@@ -155,7 +155,6 @@ void edgesThread::edgesExtract() {
     
     ImageOf<PixelMono>& edgesPortImage = edges.prepare();
     edgesPortImage.resize(widthUnXnt,heightUnXnt);
-
     setFlagForThreadProcessing(true);
 
 #ifdef WITH_CUDA   
@@ -208,11 +207,14 @@ void edgesThread::edgesExtract() {
 #else
     // X derivative 
     tmpMonoSobelImage1->zero();
+
     sobel2DXConvolution->convolve2D(intensityImage,tmpMonoSobelImage1);
     
     // Y derivative
-    tmpMonoSobelImage2->zero();     // This can be removed 
-    sobel2DYConvolution->convolve2D(intensityImage,tmpMonoSobelImage2);     
+    tmpMonoSobelImage2->zero();     // This can be removed
+    sobel2DYConvolution->convolve2D(intensityImage,tmpMonoSobelImage2);
+
+
 #endif
     setFlagForThreadProcessing(false);    
 
@@ -234,7 +236,9 @@ void edgesThread::edgesExtract() {
     float normalizingRatio = 255.0/(sobelLimits[0]-sobelLimits[1]);
     for (int row = 0; row < this->heightUnXnt; row++) {
         for (int col = 0; col < this->widthUnXnt; col++) {
-            
+
+
+
             double rg = sqrt((*ptrHorz ) * (*ptrHorz ) + (*ptrVert ) * (*ptrVert ))*0.707106781;
             
             if(sobelIsNormalized < SOBEL_FLICKER){
@@ -246,6 +250,10 @@ void edgesThread::edgesExtract() {
             else {
                 *pedges = (uchar)(normalizingRatio*(rg-sobelLimits[1]));
             }
+
+            if(row < 5 || col < 5 || row > this->heightUnXnt - 5  || col > this->widthUnXnt - 5  ){
+                *pedges = 0;
+            }
             
             pedges++;
             ptrHorz++; ptrVert++;
@@ -255,7 +263,7 @@ void edgesThread::edgesExtract() {
         pedges += pad_edges;
         ptrHorz += padHorz ;
         ptrVert += padVert ;        
-    } 
+    }
 
     sobelIsNormalized++;
 

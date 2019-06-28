@@ -471,8 +471,8 @@ bool ZDFThread::threadInit() {
     inputNameRight = "/" + moduleName + "/imageRight:i";
     imageInRight.open(inputNameRight.c_str());
 
-    inputCheckArbiter = "/" + moduleName + "/status:i";
-    inputCheckStatus.open(inputCheckArbiter.c_str());
+    inputNameFixationPoint = "/" + moduleName + "/status:i";
+    inputCheckStatus.open(inputNameFixationPoint.c_str());
 
     outputNameProb = "/" + moduleName + "/imageProb:o";
     imageOutProb.open(outputNameProb.c_str());

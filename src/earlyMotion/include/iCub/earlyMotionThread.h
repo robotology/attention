@@ -121,7 +121,7 @@ private:
     yarp::os::Stamp ts20Hz[10][10];
     
     bool suspended = false;
-    unsigned char threshold = 12;
+    unsigned char threshold = 60;
     typedef unsigned  char element;
 
  public:

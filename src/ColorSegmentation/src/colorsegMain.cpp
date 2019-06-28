@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
 	if (!yarp.checkNetwork())
         return -1;
 
+	yarp.init();
 	colorsegModule colorseg;
 
 	ResourceFinder rf;

@@ -10,13 +10,15 @@ using namespace yarp::sig;
 using namespace Darwin::colorseg;
 
 
-const string colorsegModule::CMD_LIST[] = {"help", "start", "stop", "exit"};
+const string colorsegModule::CMD_LIST[] = {"help", "start", "stop", "sus", "res", "exit"};
 
 const string colorsegModule::CMD_DESC[] = {"Gives the available command list and description",
                                            "Start colorsegThread",
                                            "Stop colorsegThread",
+                                           "Suspend colorsegThread",
+                                           "Resume colorsegThread",
                                            "Quit module"};
-const unsigned int colorsegModule::CMD_SIZE = 4;
+const unsigned int colorsegModule::CMD_SIZE = 6;
 
 
 bool colorsegModule::identifyCmd(Bottle cmdBot, colorsegCommands &cmd) {
@@ -112,7 +114,18 @@ bool colorsegModule::respond(const Bottle &command, Bottle &reply) {
 
         case stop:
             tThread->stop();
+            this->stopModule();
             reply.addString("--> Thread stopped");
+            break;
+
+        case sus:
+            tThread->suspend();
+            reply.addString("--> Thread suspended");
+            break;
+
+        case res:
+            tThread->resume();
+            reply.addString("--> Thread resumed");
             break;
 
         case exit:

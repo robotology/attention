@@ -23,7 +23,7 @@ private:
 	static const string CMD_LIST[];
 	static const string CMD_DESC[];
 	static const unsigned int CMD_SIZE;
-	typedef enum {help,start,stop,exit} colorsegCommands;
+	typedef enum {help,start,stop, sus, res, exit} colorsegCommands;
 
 	// tThread is the main thread (i.e. a vision recog application)
 	// rpcPort is used to communicate with the module using a rpc protocol

@@ -205,14 +205,14 @@ void earlyVisionThread::run() {
         
         
         
-        if (inputImage != NULL) {
+        if (inputImage != nullptr) {
             if (!resized) {
                 resize(inputImage->width(), inputImage->height());
                 filteredInputImage->zero(); 
                 resized = true;
             }
-            if((inputImage!=0)&&(imagePortOut.getOutputCount())) {
-                imagePortOut.prepare() = *(inputImage);
+            if((inputImage!= nullptr)&&(imagePortOut.getOutputCount())) {
+                imagePortOut.prepare() = *(extendedInputImage);
                 imagePortOut.write();
             }
 
@@ -332,6 +332,9 @@ void earlyVisionThread::filterInputImage() {
 
 
     int i;
+    const int w = inputImage->width();
+    const int h = inputImage->height();
+    const int pixelSize = inputImage->getPixelSize();
     const int szInImg = inputImage->getRawImageSize();
     unsigned char * pFilteredInpImg = filteredInputImage->getRawImage();
     unsigned char * pCurr = inputImage->getRawImage();

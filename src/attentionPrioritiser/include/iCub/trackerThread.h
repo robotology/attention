@@ -176,12 +176,12 @@ public:
                 ImageOf<PixelMono> &tmp = imgMonoPrev;    // image containing the template
 
                 // specify the searching area
-                search_roi.x=(std::max)(0,(std::min)(img.width()-search_roi.width,point.x-(search_roi.width>>1)));
-                search_roi.y=(std::max)(0,(std::min)(img.height()-search_roi.height,point.y-(search_roi.height>>1)));
+                search_roi.x=(std::max)(0,(std::min)((int) (img.width()-search_roi.width), point.x-(search_roi.width>>1)));
+                search_roi.y=(std::max)(0,(std::min)((int) (img.height()-search_roi.height), point.y-(search_roi.height>>1)));
 
                 // specify the template area
-                template_roi.x=(std::max)(0,(std::min)(tmp.width()-template_roi.width,point.x-(template_roi.width>>1)));
-                template_roi.y=(std::max)(0,(std::min)(tmp.height()-template_roi.height,point.y-(template_roi.height>>1)));
+                template_roi.x=(std::max)(0,(std::min)((int) (tmp.width()-template_roi.width), point.x-(template_roi.width>>1)));
+                template_roi.y=(std::max)(0,(std::min)((int) (tmp.height()-template_roi.height), point.y-(template_roi.height>>1)));
 
                 // perform tracking with template matching
                 float ftmp;

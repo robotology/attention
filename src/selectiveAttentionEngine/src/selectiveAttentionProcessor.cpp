@@ -30,6 +30,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <cstdio>
+#include "../include/iCub/selectiveAttentionProcessor.h"
 
 
 using namespace yarp::os;
@@ -153,7 +154,7 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     map6_yarp        = new ImageOf <PixelMono>; // blob
     motion_yarp      = new ImageOf <PixelMono>; // motion
     cart1_yarp       = new ImageOf <PixelMono>; // 1st cartesian image
-    cart2_yarp       = new ImageOf <PixelMono>; // 1st cartesian image
+    cart2_yarp       = new ImageOf <PixelMono>; // 2nd cartesian image
     faceMask         = new ImageOf <PixelMono>; // 2nd cartesian image
     habituationImage = new ImageOf <PixelMono>; // habituation map
     
@@ -930,7 +931,7 @@ void selectiveAttentionProcessor::run(){
                                                     + *pmap2 * (k2/sumK) 
                                                     + *pmap3 * (k3/sumK) 
                                                     + *pmap4 * (k4/sumK) 
-                                                    + *pface * (k5/sumK) 
+                                                    + *pmap5 * (k5/sumK)   //+ *pface * (k5/sumK)
                                                     + *pmap6 * (k6/sumK)));
                     value=(unsigned char)ceil(combinValue);
                 }

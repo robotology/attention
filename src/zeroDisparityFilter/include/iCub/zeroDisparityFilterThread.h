@@ -45,7 +45,7 @@ private:
     std::string outputNameTemp;          //string containing the segmented template output port name
     std::string outputNameTemp2;          //string containing the segmented template output port name
     std::string outputNameCog;
-    std::string inputCheckArbiter;
+    std::string inputNameFixationPoint;
     std::string outputNameGeometry;
 
     yarp::sig::ImageOf<yarp::sig::PixelMono> *img_out_prob;   //probability image
@@ -67,17 +67,15 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> outputGeometry;    // output 2D position and size of the object
 
     yarp::os::BufferedPort<yarp::sig::Vector> cogPort;
-    yarp::os::Port inputCheckStatus;
+    yarp::os::BufferedPort<yarp::os::Bottle> inputFixationPoint;
 
     bool allocated; // flag to check if the variables have been already allocated
     bool withArbiter;
     bool startProcessing;
-    int psb_in, t_lock_lr, t_lock_ud;
     //Sizes:
     defSize srcsize, foveaSize, tsize, tisize, trsize; //ippi variables containing all different sizes
     //Vars:
-    int sx, sy;
-    float max_v, max_t;              //Ipp32f
+
     int mid_x, mid_y, mid_x_m, mid_y_m, area;
     double cog_x, cog_y, cog_x_send, cog_y_send, spread, cmp_res;
     int koffsetx, koffsety;
@@ -85,85 +83,67 @@ private:
     int *ndt2;
     int *rank1;
     int *rank2;
-
+    int fixationPointX, fixationPointY;
     Coord c;
 
-    int psb_m, psb_t, psb_rest, psb_resv, psb_trgb, psbtemp, psbCopy;
-    int nclasses, dpix_y;
+    int psb_m;
+    int nclasses;
 
-    float *res_t;                                    //Ipp32f
     IplImage *res_t_ipl;
     //Ipp8u *out, *seg_im, *seg_dog, *fov_l, *fov_r, *zd_prob_8u, *o_prob_8u, *tempImg, *copyImg;
     unsigned char * out;
     unsigned char * seg_im, *seg_dog;
     IplImage *out_ipl, *seg_im_ipl, *seg_im_ipl_filtered, *seg_dog_ipl, *fov_l_ipl;
     unsigned char *fov_r, *fov_l;
-    unsigned char *tempImg, *copyImg;
     unsigned char *zd_prob_8u, *o_prob_8u;
-    IplImage *fov_r_ipl, *zd_prob_8u_ipl, *o_prob_8u_ipl, *tempImg_ipl, *copyImg_ipl;
+    IplImage *fov_r_ipl, *zd_prob_8u_ipl, *o_prob_8u_ipl, *tempImg_ipl, *copyImg_ipl, *template_original_size;
     IplImage *filtered_r_ipl, *filtered_l_ipl;
     unsigned char **p_prob;                          //Ipp8u **p_prob;
 
     //templates:
-    unsigned char *temp_l, *temp_r;              //Ipp8u *temp_l, *temp_r;
     IplImage *template_left_ipl, *temp_r_ipl;
 
     //input:x
-    unsigned char *rec_im_ly;                             //Ipp8u
     IplImage *rec_im_ly_ipl;
-    unsigned char *rec_im_ry;                             //Ipp8u
     IplImage *rec_im_ry_ipl;
 
     //input:x
-    unsigned char *rec_im_ly_YUV;                             //Ipp8u
     IplImage *rec_im_ly_ipl_YUV;
-    unsigned char *rec_im_ry_YUV;                             //Ipp8u
     IplImage *rec_im_ry_ipl_YUV;
 
-    IplImage *maskMsize;
-    unsigned char *yuva_orig_l, *yuva_orig_r;         // yuv+a image Ipp8u
     IplImage *yuva_orig_l_ipl, *yuva_orig_r_ipl;     //
     unsigned char **pyuva_l, **pyuva_r;                   // yuv+a image used to extract y, u and v plane Ipp8u
-    IplImage *pyuva_l_ipl, *pyuva_r_ipl;
-    unsigned char *tmp;                                   //Ipp8u
     IplImage *tmp_ipl;
-    unsigned char *first_plane_l, *first_plane_r;       // plane either y or h Ipp8u
     IplImage *first_plane_l_ipl, *first_plane_r_ipl;   //
-    unsigned char *second_plane_l, *second_plane_r;         // plane either u or v Ipp8u
     IplImage *second_plane_l_ipl, *second_plane_r_ipl; //
-    unsigned char *third_plane_l, *third_plane_r;       // plane either v or s Ipp8u
     IplImage *third_plane_l_ipl, *third_plane_r_ipl;   //
 
 
-    int psb4, f_psb, s_psb, t_psb;
     //Difference of Gaussian:
     DoG *dl;
     DoG *dr;
 
 
-    int tl_x, tl_y;
-    int tr_x, tr_y;
+
     int waiting;
     bool update, acquire;
     int rad_pen, max_rad_pen;
-    double r, rmax, r_deg, l_deg, t_deg, posx, posy, posz, z_;
+    double r, rmax,_;
 
     int width, height;
     double scale;
 
     //test
-    unsigned char *l_orig, *r_orig;                   // Ipp8u
     IplImage *left_originalImage_ipl, *right_originalImage_ipl;
-    int psb;
     defRect inroi;
     defSize insize;
-    defSize tempSize;
-    int BufferSize;
 
     typedef unsigned  char element;
 
     //string containing module name
     std::string moduleName;
+
+
 
     //Get boudning box of the segmented object
     void getRoundingBoxSegmented(int* top, int* bottom, int *left, int *right, IplImage *segmentedImage);
@@ -226,6 +206,9 @@ public:
     void medianfilter(element* signal, element* result, int N);
 
     void _medianfilter(const element* signal, element* result, int N);
+
+
+    bool getFixationPoint(yarp::os::Bottle *receiveFixationBottle);
 
 };
 #endif //ZERODISPARITYFILTER_ZERODISPARITYTHREAD_H

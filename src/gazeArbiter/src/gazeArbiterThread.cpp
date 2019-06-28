@@ -640,13 +640,13 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing, Vector& fixCoord) {
     
     // find the 3D position from the 2D projection,
     // knowing the distance z from the camera
-    Vector xe = yarp::math::operator *(*invPrjL, x);
+    Vector xe = operator*(*invPrjL, x);
     xe[3]=1.0;  // impose homogeneous coordinates                
     
     // update position wrt the root frame
     Matrix eyeH = eyeL->getH(q);
     //printf(" %f %f %f ", eyeH(0,0), eyeH(0,1), eyeH(0,2));
-    Vector xo = yarp::math::operator *(eyeH,xe);
+    Vector xo = operator*(eyeH,xe);
     Vector x1(3), x2(3);
 
     printf("object %f,%f,%f \n",xo[0],xo[1],xo[2]);
@@ -810,7 +810,7 @@ void gazeArbiterThread::run() {
                 // find the 3D position from the 2D projection,
                 // knowing the distance z from the camera
                 //printf( "%s \n", invPrj->toString().c_str());
-                Vector xe = yarp::math::operator *(*invPrj, x);
+                Vector xe = operator *(*invPrj, x);
                 xe[3] = 1.0;  // impose homogeneous coordinates 
                 //printf("imposing homogeneous coordinates \n");
                 
@@ -829,7 +829,7 @@ void gazeArbiterThread::run() {
                     qw[7]=0.0 * iCub::ctrl::CTRL_DEG2RAD;
                 
                     double ver = head[5];
-                    xo = yarp::math::operator *(eye->getH(qw),xe);
+                    xo = operator *(eye->getH(qw),xe);
                     //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
                 }
                 else {    
@@ -846,12 +846,12 @@ void gazeArbiterThread::run() {
                     q[7]=head[4]  * ratio;
                     double ver = head[5];
 
-                    xo = yarp::math::operator *(eye->getH(q),xe);
+                    xo = operator *(eye->getH(q),xe);
                     //printf("0:%f 1:%f 2:%f 3:%f 4:%f 5:%f 6:%f 7:%f \n", q[0],q[1],q[2],q[3],q[4],q[5],q[6],q[7]);
                 }
                 
                 // update position wrt the root frame
-                //Vector xo = yarp::math::operator *(eye->getH(q),xe);
+                //Vector xo = operator *(eye->getH(q),xe);
                 printf("fixation point estimated %f %f %f \n",xo[0], xo[1], xo[2]);
                 
 

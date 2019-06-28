@@ -88,7 +88,7 @@ void colorsegThread::init_onsize(int width_, int height_)
 
 void colorsegThread::run()
 {
-    while(this->isRunning()){
+    while(this->isRunning() and !this->isSuspended()){
         ImageOf<PixelRgb> *img_in = cam_in.read();
         if ( img_in == NULL ) return;
         runSem.wait();
@@ -128,7 +128,7 @@ void colorsegThread::run()
 //	printf("Finding connected components.\n");
         for ( int i=0; i<width; i++ ) K[i] = 0; // Set column 0 to background
         for ( int j=0; j<height; j++ ) K[j*width] = 0; // Set row 0 to background
-        unsigned ncomponents = connected_components(K,width,height,minsize,J);
+        unsigned int ncomponents = connected_components(K,width,height,minsize,J);
 //	printf("No. of components (excl. background) = %i\n",ncomponents);
 
 //	printf("Computing bounding boxes.\n");
@@ -149,20 +149,24 @@ void colorsegThread::run()
         cam_out.prepare() = *img_in;
         cam_out.write();
 
+
+        Bottle list_color_labels;
+        list_color_labels.clear();
         Bottle bot;
-        bot.clear();
-        bot.addInt(ncomponents); // number of bounding boxes
+//        list_color_labels.addInt(ncomponents); // number of bounding boxes
         for ( int i=0; i<ncomponents; i++ ){
             for (int j =0; j < 4; ++j){
-                bot.addInt(bbox[i]);
+                bot.addInt(bbox[5*i + j]);
             }
 
-            bot.addString(colorMapLabels->get(bbox[4]).asString());
-        }
-        if(ncomponents){
-            output.write(bot);
+            bot.addString(colorMapLabels->get(bbox[i * 5 + 4]).asString());
+            list_color_labels.addList().read(bot);
+            bot.clear();
 
         }
+        output.write(list_color_labels);
+
+
 
 //	printf("\n");
         runSem.post();
