@@ -63,6 +63,7 @@ class MultiClass{
       double cog_snap;
       double bland_prob;
       double sigma1, sigma2;
+      int offsetVertical;
 
       // Boolean to choose which algorithm to use for computing the disparity map  : 0 => RANK, 1 => NDT
       bool rankOrNDT;

@@ -295,15 +295,16 @@ void ZDFThread::run() {
             //Create left fovea and find left template in left image
             yDebug("creating left fovea and left template matching \n");
             cv::Rect foveaRec(mid_x, mid_y, foveaSize.width, foveaSize.height);
+            cv::Rect foveaRecWithOffset(mid_x, mid_y - params->offsetVertical, foveaSize.width, foveaSize.height);
 
 
             preprocessImageHSV(left_originalImage_ipl, filtered_l_ipl);
             preprocessImageHSV(right_originalImage_ipl, filtered_r_ipl);
             cvSetImageROI(filtered_l_ipl, foveaRec);
-            cvSetImageROI(filtered_r_ipl, foveaRec);
+            cvSetImageROI(filtered_r_ipl, foveaRecWithOffset);
 
             cvSetImageROI(rec_im_ly_ipl, foveaRec);
-            cvSetImageROI(rec_im_ly_ipl_YUV, foveaRec);
+            cvSetImageROI(rec_im_ly_ipl_YUV, foveaRecWithOffset);
             cvCopy(rec_im_ly_ipl, fov_l_ipl, nullptr);
             cvResetImageROI(rec_im_ly_ipl);
 
@@ -313,7 +314,7 @@ void ZDFThread::run() {
 
             cvSetImageROI(rec_im_ry_ipl, foveaRec);
 
-            cvSetImageROI(rec_im_ry_ipl_YUV, foveaRec);
+            cvSetImageROI(rec_im_ry_ipl_YUV, foveaRecWithOffset);
             cvCopy(rec_im_ry_ipl, fov_r_ipl, nullptr);
             cvResetImageROI(rec_im_ry_ipl);
 

@@ -105,6 +105,10 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     parameters.rankSize = rf.findGroup("PARAMS").check("rankSize", Value(8),  "what did the user select?").asInt();
 
 
+    // Adjustement of cameras alignement
+    parameters.offsetVertical = rf.findGroup("PARAMS").check("sigma2", Value(5),
+                                                             "what did the user select?").asInt();
+
     /*
      * attach a port of the same name as the module (prefixed with a /) to the module
      * so that messages received from the port are redirected to the respond method
