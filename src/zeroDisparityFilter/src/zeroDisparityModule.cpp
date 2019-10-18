@@ -106,7 +106,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Adjustement of cameras alignement
-    parameters.offsetVertical = rf.findGroup("PARAMS").check("sigma2", Value(5),
+    parameters.offsetVertical = rf.findGroup("PARAMS").check("offsetY", Value(4),
                                                              "what did the user select?").asInt();
 
     /*

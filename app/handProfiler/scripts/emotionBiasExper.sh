@@ -1415,6 +1415,102 @@ provaWrite() {
     }
 
 
+#############     demo for shootings     #####################################
+
+handoverRightLeft(){
+	
+	#right
+	echo "LOAD FILE goToEndGentle" | yarp rpc /handProfiler
+	sleep 1.0
+	echo "ctpq time 1.5 off 0 pos (15.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -25.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1.5
+	echo "STAR FILE SPEE 5.0" | yarp rpc /handProfiler
+	sleep 3.0
+	#echo "LOAD FILE goToStartGentle" | yarp rpc /handProfiler
+	#sleep 1.0
+	#echo "STAR FILE SPEE 1.0" | yarp rpc /handProfiler
+	
+	#sleep 8.0 
+	#echo "ctpq time 1.5 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
+	#sleep 3.0
+
+	#left
+	#echo "LOAD FILE goToEndGentle" | yarp rpc /handProfiler
+	#sleep 1.0
+	
+	echo "ctpq time 0.7 off 0 pos (20.0 0.0 20.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1.0
+	echo "ctpq time 1.5 off 0 pos (-30.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -10.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1.5
+	#echo "STAR FILE SPEE 5.0" | yarp rpc /handProfiler
+	#sleep 5.0
+	
+
+	
+    }
+
+handoverLoop(){
+	
+	#right
+	echo "LOAD FILE goToEndGentle" | yarp rpc /handProfiler
+	sleep 1.0
+	echo "ctpq time 1.5 off 0 pos (15.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -25.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1.5
+	echo "STAR FILE SPEE 5.0" | yarp rpc /handProfiler
+	sleep 3.0
+	
+	
+	echo "ctpq time 0.7 off 0 pos (20.0 0.0 20.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1.0
+	echo "ctpq time 1.5 off 0 pos (-30.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -10.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 3.5
+
+	echo "ctpq time 1.0 off 0 pos (20.0 0.0 -43.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.5
+	echo "ctpq time 1.5 off 0 pos (15.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -25.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 3.5
+	
+	echo "ctpq time 0.7 off 0 pos (20.0 0.0 20.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1.0
+	echo "ctpq time 1.5 off 0 pos (-30.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -10.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 3.5
+
+	echo "ctpq time 1.0 off 0 pos (20.0 0.0 -43.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.5
+	echo "ctpq time 1.5 off 0 pos (15.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -25.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 3.5
+	
+	echo "ctpq time 0.7 off 0 pos (20.0 0.0 20.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1.0
+	echo "ctpq time 1.5 off 0 pos (-30.0 0.0 5.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.5 off 0 pos (20.0 0.0 -10.0 0.0 0.0 5.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 3.5
+
+	
+	
+    }
+
+handoverHome(){
+	
+	#right
+	echo "LOAD FILE goToStartGentle" | yarp rpc /handProfiler
+	sleep 1.0
+	echo "ctpq time 1.1 off 0 pos (0.0 0.0 0.0)" | yarp rpc /ctpservice/torso/rpc
+	echo "ctpq time 1.0 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 2.0
+	echo "STAR FILE SPEE 1.0" | yarp rpc /handProfiler
+	sleep 3.0
+
+
+	
+    }
 
 #######################################################################################
 # "MAIN" FUNCTION:                                                                    #

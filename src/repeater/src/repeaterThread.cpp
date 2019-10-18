@@ -148,20 +148,18 @@ void repeaterThread::adjustHSV(cv::Mat& outputMatrix, cv::Mat tempMatrix) {
 }
 
 void repeaterThread::processing() {
-                double inizio = Time::now();
+    double inizio = Time::now();
     outputImage->resize(outputWidth, outputHeight);
     unsigned char* pOut = outputImage->getRawImage();
     int outPadding = outputImage->getPadding();
+    cv::Mat inputMatrix = cv::cvarrToMat((IplImage*) inputImage->getIplImage());
+    cv::Mat tempMatrix = cv::cvarrToMat((IplImage*) outputImage->getIplImage());
+    cv::Mat outputMatrix = cv::cvarrToMat((IplImage*) outputImage->getIplImage());
 
-    cv::Mat inputMatrix(  (IplImage*) inputImage->getIplImage(),  false);
-    cv::Mat tempMatrix(   (IplImage*) outputImage->getIplImage(), false);
-    cv::Mat outputMatrix( (IplImage*) outputImage->getIplImage(), false);
 
-    
-
-                double fine = Time::now(); 
-                // yDebug("processing init %f \n", fine-inizio);
-                inizio = fine;  
+    double fine = Time::now(); 
+    // yDebug("processing init %f \n", fine-inizio);
+    inizio = fine;  
                 
     // ----------------- downsample OpencV ----------------------------------
     //resize image with specific interpolation strategy
@@ -169,23 +167,23 @@ void repeaterThread::processing() {
     //INTER_NN - a nearest-neighbor interpolation
     //INTER_LINEAR - a bilinear interpolation (used by default)
     //INTER_AREA - resampling using pixel area relation. It may be a preferred method for image decimation, 
-    //INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood
     //INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
     cv::resize(inputMatrix,outputMatrix,outputMatrix.size(), 0, 0, CV_INTER_NN);
 
     //adjusting the desired paramters 
-    if (deltaSat != 0) adjustHSV(outputMatrix, tempMatrix);
+    if (deltaSat != 0) 
+        adjustHSV(outputMatrix, tempMatrix);
 
     //---- preparing the IPL image for the final copy ---------------
     IplImage tempIpl = (IplImage) outputMatrix;
     char* pMatrix     = tempIpl.imageData;
     int matrixPadding = tempIpl.widthStep - tempIpl.width * 3;
     //making a copy of it
-    for (int r = 0; r < outputHeight; r ++) {
+    for (int r = 0; r < outputHeight; r++) {
         for(int c = 0 ; c < outputWidth; c++) {             
             *pOut++ = *pMatrix++;
             *pOut++ = *pMatrix++;
-            *pOut++ = *pMatrix++;            
+            *pOut++ = *pMatrix++;
         }
         pOut     += outPadding;
         pMatrix  += matrixPadding;

@@ -100,6 +100,8 @@ private:
     IplImage *filtered_r_ipl, *filtered_l_ipl;
     unsigned char **p_prob;                          //Ipp8u **p_prob;
 
+    IplImage *hsvImg,*first_plane_ipl,*second_plane_ipl,*third_plane_ipl;
+
     //templates:
     IplImage *template_left_ipl, *temp_r_ipl;
 
@@ -195,13 +197,18 @@ public:
     void setName(std::string module);
 
     void preprocessImageHSV(IplImage *srcImage, IplImage *destImage);
+
+    cv::Mat getLBPMat(IplImage *srcImage);
+
     void preprocessImageYUV(IplImage *srcImage, IplImage *destImage);
     void preprocessImageGray(IplImage *srcImage, IplImage *destImage);
     void filterInputImage(IplImage* input, IplImage* dst);
 
     void matchTemplate(IplImage* templateImage, IplImage* inputImage,  IplImage* dst);
 
-    void processDisparityMap(IplImage *leftDOG, IplImage *rightDOG);
+    void processDisparityMapTexture(cv::Mat &leftMat, cv::Mat &rightMat);
+
+    void processDisparityMap(IplImage* t_leftDOG, IplImage* t_rightDOG);
 
     void medianfilter(element* signal, element* result, int N);
 

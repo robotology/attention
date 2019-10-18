@@ -48,7 +48,7 @@
 
 #include <iCub/convolve.h> 
 
-#define ngs 4
+#define ngs 3
 #define N_LANCZOS 7     // 'a' for LANCZOS
 #define _PI_CS 3.14159265358979
 	

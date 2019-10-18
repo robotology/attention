@@ -29,7 +29,7 @@
 #include <iostream>
 
 #include <iCub/iKin/iKinFwd.h>
-#include <yarp/math/Math.h>
+#include <yarp/math/api.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath> 

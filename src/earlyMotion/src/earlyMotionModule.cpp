@@ -88,9 +88,9 @@ bool earlyMotionModule::configure(yarp::os::ResourceFinder &rf) {
   /* now start the thread to do the work */
   emThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
-  threshold = (unsigned char) rf.check("threshold",
-                                       Value(12),
-                                       "Threshold value for white value(int)").asInt();
+  //threshold = (unsigned char) rf.check("threshold",
+  //                                     Value(12),
+  //                                     "Threshold value for white value(int)").asInt();
 
   return true;       // let the RFModule know everything went well
   // so that it will then run the module

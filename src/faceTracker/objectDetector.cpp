@@ -77,7 +77,10 @@ public:
         }
         attach(handlerPort);                  // attach to port
 
-        return detector->open(rf);
+        detector->open(rf);
+        detector->start();
+        
+        return true;
     }
 
     double getPeriod()
@@ -87,7 +90,7 @@ public:
     
     bool updateModule()
     { 
-        detector->loop();
+        //detector->loop();
         return true; 
     }
 

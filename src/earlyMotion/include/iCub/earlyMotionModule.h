@@ -147,7 +147,7 @@
 #include <iostream>
 #include <string>
 
-
+#include <yarp/os/all.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>

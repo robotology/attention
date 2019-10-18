@@ -5,6 +5,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(KEYWORD "saliencyBlobFinder")
 PROJECT(${KEYWORD})
 
+
+find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(logpolar REQUIRED)
 #search for includes
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include

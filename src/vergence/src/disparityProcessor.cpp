@@ -429,8 +429,9 @@ void disparityProcessor::computeRay(__kinType k, Vector& v, int x, int y){
 		v(0) = F * ep (0, 0) - dx * ep (0, 1) - dy * ep (0, 2);
 		v(1) = F * ep (1, 0) - dx * ep (1, 1) - dy * ep (1, 2);
 		v(2) = F * ep (2, 0) - dx * ep (2, 1) - dy * ep (2, 2);
+        
 
-		v = yarp::math::operator* (v, 1.0/sqrt( dot (v,v) ) );
+		v = operator*(v, 1.0/sqrt( dot (v,v) ) );
 	}
 	else
 	if (k == KIN_LEFT_PERI)
@@ -451,7 +452,7 @@ void disparityProcessor::computeRay(__kinType k, Vector& v, int x, int y){
 		v(1) = F * ep (1, 0) - dx * ep (1, 1) - dy * ep (1, 2);
 		v(2) = F * ep (2, 0) - dx * ep (2, 1) - dy * ep (2, 2);
 		
-		v = yarp::math::operator* (v, 1.0/sqrt( dot (v,v) ) );
+		v = operator* (v, 1.0/sqrt( dot (v,v) ) );
 	}
 	else
 	if (k == KIN_RIGHT)
@@ -469,7 +470,7 @@ void disparityProcessor::computeRay(__kinType k, Vector& v, int x, int y){
 		v(1) = F * ep (1, 0) - dx * ep (1, 1) - dy * ep (1, 2);
 		v(2) = F * ep (2, 0) - dx * ep (2, 1) - dy * ep (2, 2);
 
-		v = yarp::math::operator* (v, 1.0/sqrt( dot (v,v) ) );
+		v = operator* (v, 1.0/sqrt( dot (v,v) ) );
 	}
 	else
 	if (k == KIN_RIGHT_PERI)
@@ -490,7 +491,7 @@ void disparityProcessor::computeRay(__kinType k, Vector& v, int x, int y){
 		v(1) = F * ep (1, 0) - dx * ep (1, 1) - dy * ep (1, 2);
 		v(2) = F * ep (2, 0) - dx * ep (2, 1) - dy * ep (2, 2);
 
-		v = yarp::math::operator* (v, 1.0/sqrt( dot (v,v) ) );
+		v = operator* (v, 1.0/sqrt( dot (v,v) ) );
 	}
 	else
 		v = 0;
