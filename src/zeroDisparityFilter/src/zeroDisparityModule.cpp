@@ -54,8 +54,8 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     */
 
     setName(moduleName.c_str());
-    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(3000), "what did the user select?").asInt();
-    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(0),
+    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration", Value(6000), "what did the user select?").asInt();
+    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration", Value(1),
                                                                         "what did the user select?").asInt();
     parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base", Value(50),
                                                                       "what did the user select?").asInt();
@@ -72,7 +72,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     parameters.acquire_wait = rf.findGroup("PARAMS").check("acquire_wait", Value(25),
                                                            "what did the user select?").asInt();
     parameters.min_area = rf.findGroup("PARAMS").check("min_area", Value(5000), "what did the user select?").asInt();
-    parameters.max_area = rf.findGroup("PARAMS").check("max_area", Value(10000), "what did the user select?").asInt();
+    parameters.max_area = rf.findGroup("PARAMS").check("max_area", Value(8000), "what did the user select?").asInt();
     parameters.max_spread = rf.findGroup("PARAMS").check("max_spread", Value(50), "what did the user select?").asInt();
     parameters.cog_snap = rf.findGroup("PARAMS").check("cog_snap", Value(0.3), "what did the user select?").asDouble();
     parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob", Value(0.3),
@@ -85,19 +85,23 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
     parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(0.5),
                                                      "what did the user select?").asDouble();
-    parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(2),
+    parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(3),
                                                      "what did the user select?").asDouble();
+    parameters.src_width = rf.findGroup("PARAMS").check("src_width", Value(320),
+                                                        "what did the user select?").asInt();
 
+    parameters.src_height = rf.findGroup("PARAMS").check("src_width", Value(240),
+                                                         "what did the user select?").asInt();
 
     //  Disparity choice of algorithm by default NDT
     parameters.rankOrNDT = rf.findGroup("PARAMS").check("rankOrNDT", Value(1),  "what did the user select?").asBool();
 
 
     //NDT parameters
-    parameters.ndtX = rf.findGroup("PARAMS").check("ndtX", Value(4),  "what did the user select?").asInt();
-    parameters.ndtY = rf.findGroup("PARAMS").check("ndtY", Value(4),  "what did the user select?").asInt();
-    parameters.ndtSize = rf.findGroup("PARAMS").check("ndtSize", Value(14),  "what did the user select?").asInt();
-    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(50),  "what did the user select?").asInt();
+    parameters.ndtX = rf.findGroup("PARAMS").check("ndtX", Value(2),  "what did the user select?").asInt();
+    parameters.ndtY = rf.findGroup("PARAMS").check("ndtY", Value(2),  "what did the user select?").asInt();
+    parameters.ndtSize = rf.findGroup("PARAMS").check("ndtSize", Value(8),  "what did the user select?").asInt();
+    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(150),  "what did the user select?").asInt();
 
     //RANK parameters
     parameters.rankX = rf.findGroup("PARAMS").check("rankX", Value(2),  "what did the user select?").asInt();
@@ -106,7 +110,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Adjustement of cameras alignement
-    parameters.offsetVertical = rf.findGroup("PARAMS").check("offsetY", Value(4),
+    parameters.offsetVertical = rf.findGroup("PARAMS").check("sigma2", Value(5),
                                                              "what did the user select?").asInt();
 
     /*
@@ -129,7 +133,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     //attachTerminal();                // attach to terminal (maybe not such a good thing...)
 
     /* create the thread and pass pointers to the module parameters */
-    zdfThread = new ZDFThread(&parameters, workWith);
+    zdfThread = new ZDFThread(&parameters);
 
     /*pass the name of the module in order to create ports*/
     zdfThread->setName(moduleName);
@@ -155,8 +159,6 @@ bool zeroDisparityFilterMod::interruptModule() {
 bool zeroDisparityFilterMod::close() {
     handlerPort.close();
     zdfThread->stop();
-    cout << "deleting thread " << endl;
-    delete zdfThread;
     return true;
 }
 
@@ -167,37 +169,37 @@ double zeroDisparityFilterMod::getPeriod() {
 
 bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
 
-    //bool ok = false;
-    //bool rec = false; // is the command recognized?
+    bool ok = false;
+    bool rec = false; // is the command recognized?
 
     // mutex.wait();
     switch (command.get(0).asVocab()) {
         case COMMAND_VOCAB_HELP: {
-            //rec = true;
+            rec = true;
             string helpMessage = string(getName().c_str()) +
                                  " commands are: \n" +
                                  "help \n" +
                                  "quit \n";
             reply.clear();
-            //ok = true;
+            ok = true;
             break;
         }
 
         case COMMAND_VOCAB_SET: {
-            //rec = true;
+            rec = true;
             switch (command.get(1).asVocab()) {
 
                 case COMMAND_VOCAB_K1: {
                     int w = command.get(2).asInt();
                     zdfThread->params->data_penalty = w;
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K2: {
                     int w = command.get(2).asInt();
                     zdfThread->params->smoothness_penalty_base = w;
-                    //ok = true;
+                    ok = true;
                     break;
 
                 }
@@ -205,14 +207,14 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                 case COMMAND_VOCAB_K3: {
                     int w = command.get(2).asInt();
                     zdfThread->params->smoothness_penalty = w;
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K4: {
                     int w = command.get(2).asInt();
                     zdfThread->params->radial_penalty = w;
-                    //ok = true;
+                    ok = true;
                     break;
 
                 }
@@ -220,28 +222,28 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                 case COMMAND_VOCAB_K5: {
                     int w = command.get(2).asInt();
                     zdfThread->params->smoothness_3sigmaon2 = w;
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K6: {
                     int w = command.get(2).asInt();
                     zdfThread->params->bland_dog_thresh = w;
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K7: {
                     int w = command.get(2).asInt();
                     zdfThread->params->sigma1 = w;
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K8: {
                     int w = command.get(2).asInt();
                     zdfThread->params->sigma2 = w;
-                    //ok = true;
+                    ok = true;
                     break;
                 }
                 default:
@@ -250,7 +252,7 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
             break;
         }
         case COMMAND_VOCAB_GET: {
-            //rec = true;
+            rec = true;
 
             reply.addVocab(COMMAND_VOCAB_IS);
             reply.add(command.get(1));
@@ -260,42 +262,42 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                 case COMMAND_VOCAB_K1: {
                     double w = zdfThread->params->data_penalty;
                     reply.addDouble(w);
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K2: {
                     double w = zdfThread->params->smoothness_penalty_base;
                     reply.addDouble(w);
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K3: {
                     double w = zdfThread->params->smoothness_penalty;
                     reply.addDouble(w);
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K4: {
                     double w = zdfThread->params->radial_penalty;
                     reply.addDouble(w);
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
                 case COMMAND_VOCAB_K5: {
                     double w = zdfThread->params->smoothness_3sigmaon2;
                     reply.addDouble(w);
+                    ok = true;
                     break;
-                    //ok = true;
                 }
 
                 case COMMAND_VOCAB_K6: {
                     double w = zdfThread->params->bland_dog_thresh;
                     reply.addDouble(w);
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
@@ -309,7 +311,7 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                 case COMMAND_VOCAB_K8: {
                     double w = zdfThread->params->sigma2;
                     reply.addDouble(w);
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
@@ -323,5 +325,15 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
             break;
     }
 
-    return true;
+    if (!rec)
+        ok = RFModule::respond(command, reply);
+
+    if (!ok) {
+        reply.clear();
+        reply.addVocab(COMMAND_VOCAB_FAILED);
+    } else
+        reply.addVocab(COMMAND_VOCAB_OK);
+
+    return ok;
+
 }

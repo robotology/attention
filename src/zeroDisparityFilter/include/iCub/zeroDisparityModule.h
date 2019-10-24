@@ -26,7 +26,8 @@
 #ifndef ZERODISPARITYFILTER_ZERODISPARITYMODULE_H
 #define ZERODISPARITYFILTER_ZERODISPARITYMODULE_H
 
-#include "iCub/zeroDisparityFilterThread.h"
+#include <iCub/zdfThread.h>
+#include <yarp/os/RFModule.h>
 
 
 class zeroDisparityFilterMod : public yarp::os::RFModule {
@@ -43,7 +44,9 @@ class zeroDisparityFilterMod : public yarp::os::RFModule {
         COMMAND_VOCAB_K5 = yarp::os::createVocab('k', '5'), //smoothness 3sigmaon2
         COMMAND_VOCAB_K6 = yarp::os::createVocab('k', '6'), //bland dog thresh
         COMMAND_VOCAB_K7 = yarp::os::createVocab('k', '7'), //bland prob
-        COMMAND_VOCAB_K8 = yarp::os::createVocab('k', '8') //max spread
+        COMMAND_VOCAB_K8 = yarp::os::createVocab('k', '8'), //max spread
+        COMMAND_VOCAB_FAILED = yarp::os::createVocab('f', 'a' , 'i', 'l'), //max spread
+        COMMAND_VOCAB_OK = yarp::os::createVocab('o', 'k') //max spread
     };
 
 

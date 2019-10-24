@@ -24,6 +24,7 @@ INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
+    /usr/local/src/robot/yarp/src/libYARP_cv/include
 	${ICUB_INCLUDE_DIRS}
 	${OPENCV_INCLUDE_DIR} 
 )
