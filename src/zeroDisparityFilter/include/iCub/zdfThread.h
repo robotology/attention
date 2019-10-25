@@ -130,7 +130,7 @@ private:
 
     double cmp_ndt(int *l1, int *l2);
 
-    void processDisparityMap(unsigned char* img_one, unsigned char* img_two);
+    void processDisparityMap(const unsigned char* img_one, const unsigned char* img_two);
 
     void parametersInit();
 

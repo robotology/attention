@@ -6,6 +6,7 @@
 #include <yarp/os/Log.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <iCub/lbp.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -138,8 +139,21 @@ void ZDFThread::run() {
             YUV_left = yuv_planes[2];
 
 
+            DOG_left = getDOG(YUV_left);
+            DOG_right = getDOG(YUV_right);
+
+
+
             cannyBlobDetection(left_fovea, DOG_left);
             cannyBlobDetection(right_fovea, DOG_right);
+
+
+            cv::imshow("right", DOG_right);
+            cv::imshow("left", DOG_left);
+
+            cvWaitKey(1);
+
+
 
 
             processDisparityMap(DOG_right.data, DOG_left.data);
@@ -278,9 +292,6 @@ void ZDFThread::run() {
 
             }
 
-
-
-
         }
 
 
@@ -304,14 +315,6 @@ cv::Mat ZDFThread::getDOG(const cv::Mat& input_mat) {
     minMaxLoc(dog_mat, &dog_mat_min, &dog_mat_max); //find minimum and maximum intensities
     dog_mat.convertTo(dog_mat,CV_8U,255.0/(dog_mat_max - dog_mat_min), -dog_mat_min * 255.0/(dog_mat_max - dog_mat_min));
 
-
-
-    const int dilation_size = 2;
-    const cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
-                                             cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
-                                             cv::Point( dilation_size, dilation_size ) );
-
-    cv::dilate(dog_mat,dog_mat, element);
 
     return dog_mat;
 }
@@ -349,7 +352,7 @@ ZDFThread::ZDFThread(MultiClass::Parameters *parameters) {
 
 }
 
-void ZDFThread::processDisparityMap(unsigned char* img_left_DOG, unsigned char* img_right_DOG) {
+void ZDFThread::processDisparityMap(const unsigned char* img_left_DOG, const unsigned char* img_right_DOG) {
 //*****************************************************************
 
     prob_mat =  cv::Mat(((int)fovea_rect.height), ((int)fovea_rect.height), CV_8UC1, cv::Scalar(0));
@@ -361,8 +364,6 @@ void ZDFThread::processDisparityMap(unsigned char* img_left_DOG, unsigned char* 
     auto *o_prob_8u =  prob_mat.data;
     auto *zd_prob_8u = zd_prob_mat.data;
 
-    const int data_penalty = params->data_penalty;
-    const int bland_dog_thresh = params->bland_dog_thresh;
 
     double cmp_res;
     const double rmax = sqrt((fovea_rect.width / 2.0) * (fovea_rect.width / 2.0)
@@ -377,7 +378,7 @@ void ZDFThread::processDisparityMap(unsigned char* img_left_DOG, unsigned char* 
             
             //if either l or r textured at this retinal location:
 
-            if ((img_left_DOG[index] >  bland_dog_thresh || img_right_DOG[index] > bland_dog_thresh) ) {
+            if ((img_left_DOG[index] >  0 && img_right_DOG[index] > 0) ) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
@@ -389,8 +390,8 @@ void ZDFThread::processDisparityMap(unsigned char* img_left_DOG, unsigned char* 
                     //yDebug("compared RANKS \n");
                 } else {
                     //use NDT:
-                    get_ndt(c, YUV_right.data, YUV_right.step, buffer1);
-                    get_ndt(c,  YUV_left.data, YUV_left.step, buffer2);
+                    get_ndt(c, right_fovea.data, right_fovea.step, buffer1);
+                    get_ndt(c,  left_fovea.data, left_fovea.step, buffer2);
                     cmp_res = cmp_ndt(buffer1, buffer2);
                 }
                 zd_prob_8u[index] = (unsigned char) (cmp_res * 255.0);
@@ -675,24 +676,19 @@ void ZDFThread::getRoundingBoxSegmented(int *top, int *bottom, int *left, int *r
         }
 }
 
-void ZDFThread::cannyBlobDetection(cv::Mat &input, cv::Mat &output) {
-    cv::GaussianBlur(input,   input,         // input image                     // output image
-                     cv::Size(5, 5),                        // smoothing window width and height in pixels
-                     1.5);                                // sigma value, determines how much the image will be blurred
-
-    cv::Canny(input,            // input image
-              output,                    // output image
-              30,                        // low threshold
-              90, 3, true);
+void ZDFThread::cannyBlobDetection(cv::Mat &input, cv::Mat &mat_DOG) {
 
 
+    std::vector<std::vector<cv::Point> > cnt;
+    std::vector<cv::Vec4i> hrch;
 
-    const int dilation_size = 2;
-    const cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
-                                                   cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
-                                                   cv::Point( dilation_size, dilation_size ) );
-    cv::dilate(output,output, element);
-    cv::dilate(output,output, element);
+
+    cv::Mat threshold_mask;
+    cv::threshold(mat_DOG, threshold_mask, params->bland_dog_thresh,  255, cv::THRESH_BINARY);
+    cv::bitwise_and(mat_DOG, threshold_mask, mat_DOG);
+    findContours( mat_DOG, cnt, hrch, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_TC89_L1 );
+    cv::fillPoly( mat_DOG, cnt, 255);
+
 }
 
 
