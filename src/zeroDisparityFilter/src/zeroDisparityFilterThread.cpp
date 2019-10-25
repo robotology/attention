@@ -139,8 +139,8 @@ void ZDFThread::run() {
             YUV_left = yuv_planes[2];
 
 
-            DOG_left = getDOG(YUV_left);
-            DOG_right = getDOG(YUV_right);
+            DOG_left = getDOG(left_fovea);
+            DOG_right = getDOG(right_fovea);
 
 
 
@@ -148,10 +148,7 @@ void ZDFThread::run() {
             cannyBlobDetection(right_fovea, DOG_right);
 
 
-            cv::imshow("right", DOG_right);
-            cv::imshow("left", DOG_left);
 
-            cvWaitKey(1);
 
 
 
@@ -378,7 +375,7 @@ void ZDFThread::processDisparityMap(const unsigned char* img_left_DOG, const uns
             
             //if either l or r textured at this retinal location:
 
-            if ((img_left_DOG[index] >  0 && img_right_DOG[index] > 0) ) {
+            if ((img_left_DOG[index] >  0 || img_right_DOG[index] > 0) ) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
@@ -390,8 +387,8 @@ void ZDFThread::processDisparityMap(const unsigned char* img_left_DOG, const uns
                     //yDebug("compared RANKS \n");
                 } else {
                     //use NDT:
-                    get_ndt(c, right_fovea.data, right_fovea.step, buffer1);
-                    get_ndt(c,  left_fovea.data, left_fovea.step, buffer2);
+                    get_ndt(c, YUV_right.data, YUV_right.step, buffer1);
+                    get_ndt(c,  YUV_left.data, YUV_left.step, buffer2);
                     cmp_res = cmp_ndt(buffer1, buffer2);
                 }
                 zd_prob_8u[index] = (unsigned char) (cmp_res * 255.0);
@@ -688,6 +685,12 @@ void ZDFThread::cannyBlobDetection(cv::Mat &input, cv::Mat &mat_DOG) {
     cv::bitwise_and(mat_DOG, threshold_mask, mat_DOG);
     findContours( mat_DOG, cnt, hrch, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_TC89_L1 );
     cv::fillPoly( mat_DOG, cnt, 255);
+
+    const int dilation_size = 1;
+    const cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
+                                                   cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                                   cv::Point( dilation_size, dilation_size ) );
+    cv::dilate(mat_DOG,mat_DOG, element);
 
 }
 
