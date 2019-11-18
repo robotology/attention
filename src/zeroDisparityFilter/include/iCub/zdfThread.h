@@ -34,6 +34,11 @@
 #include <yarp/os/BufferedPort.h>
 #include "iCub/multiclass.h"
 #include <iCub/centerSurround.h>
+#include <cv.hpp>
+#include "opencv2/core/core.hpp"
+#include "opencv2/calib3d/calib3d.hpp"
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 
 class ZDFThread : public yarp::os::Thread {
@@ -60,7 +65,9 @@ public:
 
     void onStop() override;
 
+    bool isSus() const;
 
+    void setSus(bool sus);
 
 private:
 
@@ -84,6 +91,7 @@ private:
     // Images for processing
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageInLeft;      //input port cartesian image left
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageInRight;     //input port cartesian image right
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageInDisp;     //input port cartesian image right
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutProb;     //output port probability image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutSeg;      //output port segmented image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDogL;      //output port difference of gaussian image
@@ -97,6 +105,7 @@ private:
     //Difference of Gaussian
     cv::Mat DOG_left, DOG_right;
 
+
     // Pyramid of gaussian
     IplImage *left_pyramid_DOG, *right_pyramid_DOG;
     CenterSurround *centerSurround;
@@ -105,7 +114,11 @@ private:
     cv::Rect2d fovea_rect, foveaRecWithOffset;
     cv::Mat left_fovea, right_fovea, YUV_left, YUV_right;
 
+    bool sus;
 
+
+
+private:
 
     // segmentation variables
     cv::Mat prob_mat, zd_prob_mat, seg_image, seg_DOG;
@@ -115,7 +128,8 @@ private:
     MultiClass *multiClass;
     unsigned char** p_prob;
     defSize fovea_size;
-    cv::Mat templateRGB;
+    cv::Mat segmentedRGB, segTemplate ;
+
 
 
     cv::Mat getDOG(const cv::Mat& in);
@@ -141,6 +155,8 @@ private:
     void getRoundingBoxSegmented(int *top, int *bottom, int *left, int *right, cv::Mat *segmentedImage);
 
     void cannyBlobDetection(cv::Mat &input, cv::Mat &output);
+
+    void threshold_mask(cv::Mat &input);
 
 
 

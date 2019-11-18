@@ -101,7 +101,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
     parameters.ndtX = rf.findGroup("PARAMS").check("ndtX", Value(2),  "what did the user select?").asInt();
     parameters.ndtY = rf.findGroup("PARAMS").check("ndtY", Value(2),  "what did the user select?").asInt();
     parameters.ndtSize = rf.findGroup("PARAMS").check("ndtSize", Value(8),  "what did the user select?").asInt();
-    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(150),  "what did the user select?").asInt();
+    parameters.ndtEQ = rf.findGroup("PARAMS").check("ndtEQ", Value(50),  "what did the user select?").asInt();
 
     //RANK parameters
     parameters.rankX = rf.findGroup("PARAMS").check("rankX", Value(2),  "what did the user select?").asInt();
@@ -110,7 +110,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Adjustement of cameras alignement
-    parameters.offsetVertical = rf.findGroup("PARAMS").check("sigma2", Value(5),
+    parameters.offsetVertical = rf.findGroup("PARAMS").check("offsetVertical", Value(5),
                                                              "what did the user select?").asInt();
 
     /*
@@ -184,6 +184,22 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
             ok = true;
             break;
         }
+
+        case COMMAND_VOCAB_SUS:
+            rec = true;
+
+            zdfThread->setSus(true);
+            ok =true;
+            break;
+
+
+        case COMMAND_VOCAB_RUN:
+            rec = true;
+
+            zdfThread->setSus(false);
+            ok =true;
+            break;
+
 
         case COMMAND_VOCAB_SET: {
             rec = true;
@@ -304,7 +320,7 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                 case COMMAND_VOCAB_K7: {
                     double w = zdfThread->params->sigma1;
                     reply.addDouble(w);
-                    //ok = true;
+                    ok = true;
                     break;
                 }
 
