@@ -15,37 +15,16 @@
   * Public License for more details
 */
 
-#ifndef _ATTENTION_PERIODIC_H_
-#define _ATTENTION_PERIODIC_H_
-
-#include <stdio.h>
-#include <string>
-#include <yarp/os/PeriodicThread.h>
-#include <yarp/os/Time.h>
-#include <yarp/os/Thread.h>
-#include <yarp/os/Vocab.h>
-#include <yarp/os/Network.h>
-#include <yarp/os/all.h>
 #include "iCub/state.h"
-using namespace yarp::os;
-using namespace std;
 
+state::state(string stateName, int stateNum){
+    this->stateNum = stateNum;
+    this->stateName = stateName;
+}
+string state::getName(){
+    return stateName;
+}
 
-class topDownAttentionPeriodic : public PeriodicThread {
-public:
-    Network yarp;
-    RpcClient port;
-    int msgCount;
-    string client_name;
-    string server_name;
-    state** attentionStates;
-
-    topDownAttentionPeriodic(double p,string client_name, string server_name);
-    bool threadInit();
-    void afterStart(bool s);
-    void run();
-    void threadRelease();
-    void sendAttentionToPort();
-};
-
-#endif
+int state::getNum(){
+    return stateNum;
+}

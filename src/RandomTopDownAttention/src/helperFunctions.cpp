@@ -17,25 +17,26 @@
 
 #include "iCub/helperFunctions.h"
 
+
 void helperFunctions::printBottle(Bottle& bottle){
     for (int i=0; i<bottle.size(); i++) {
-        printf("[%d]: ", i);
+        yInfo("[%d]: ", i);
         Value& element = bottle.get(i);
         switch (element.getCode()) {
         case BOTTLE_TAG_INT32:
-            printf("int %d\n", element.asInt32());
+            yInfo("int %d\n", element.asInt32());
             break;
         case BOTTLE_TAG_FLOAT64:
-            printf("float %g\n", element.asFloat64());
+            yInfo("float %g\n", element.asFloat64());
             break;
         case BOTTLE_TAG_STRING:
-            printf("string \"%s\"\n", element.asString().c_str());
+            yInfo("string \"%s\"\n", element.asString().c_str());
             break;
         case BOTTLE_TAG_BLOB:
-            printf("binary blob of length %zd\n", element.asBlobLength());
+            yInfo("binary blob of length %zd\n", element.asBlobLength());
             break;
         case BOTTLE_TAG_VOCAB:
-            printf("vocab [%s]\n", Vocab::decode(element.asVocab()).c_str());
+            yInfo("vocab [%s]\n", Vocab::decode(element.asVocab()).c_str());
             break;
         default:
             if (element.isList()) {
@@ -48,4 +49,12 @@ void helperFunctions::printBottle(Bottle& bottle){
             break;
         }
     }
+}
+
+Bottle helperFunctions::createSetVocabBottle(NetInt32 vocab ,double value){
+  Bottle cmd;
+  cmd.addVocab(COMMAND_VOCAB_SET);
+  cmd.addVocab(vocab);
+  cmd.addDouble(value);
+  return cmd;
 }

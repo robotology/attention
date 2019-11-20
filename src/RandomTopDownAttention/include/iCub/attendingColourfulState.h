@@ -15,37 +15,14 @@
   * Public License for more details
 */
 
-#ifndef _ATTENTION_PERIODIC_H_
-#define _ATTENTION_PERIODIC_H_
-
-#include <stdio.h>
-#include <string>
-#include <yarp/os/PeriodicThread.h>
-#include <yarp/os/Time.h>
-#include <yarp/os/Thread.h>
-#include <yarp/os/Vocab.h>
-#include <yarp/os/Network.h>
-#include <yarp/os/all.h>
-#include "iCub/state.h"
-using namespace yarp::os;
+#ifndef _STATE_ATTENDING_COLOURFUL_H_
+#define _STATE_ATTENDING_COLOURFUL_H_
+#include "state.h"
 using namespace std;
 
-
-class topDownAttentionPeriodic : public PeriodicThread {
+class attendingColourfulState :public state{
 public:
-    Network yarp;
-    RpcClient port;
-    int msgCount;
-    string client_name;
-    string server_name;
-    state** attentionStates;
-
-    topDownAttentionPeriodic(double p,string client_name, string server_name);
-    bool threadInit();
-    void afterStart(bool s);
-    void run();
-    void threadRelease();
-    void sendAttentionToPort();
+    attendingColourfulState();
+    Bottle getSettings();
 };
-
 #endif
