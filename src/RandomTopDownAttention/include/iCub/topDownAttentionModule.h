@@ -49,16 +49,12 @@ class topDownAttentionModule : public RFModule {
 public:
 
     bool configure(ResourceFinder &rf);
-
     bool interruptModule();
-
     bool close();
-
     bool respond(const Bottle& command, Bottle& reply);
-
     double getPeriod();
-
     bool updateModule();
+
 };
 
 #endif

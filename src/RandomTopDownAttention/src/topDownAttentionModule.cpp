@@ -21,19 +21,18 @@ bool topDownAttentionModule::configure(ResourceFinder &rf) {
 
     serverName=rf.find("server").asString();
     clientName=rf.find("client").asString();
+    setName("topDownAttentionModule");
 
-    setName("periodicAttentionModule");
 
-    //
-    // handlerPortName =  "";
-    // handlerPortName += getName();         // use getName() rather than a literal
-    //
-    // if (!handlerPort.open(handlerPortName.c_str())) {
-    //     cout << getName() << ": Unable to open port " << handlerPortName << endl;
-    //     return false;
-    // }
-    //
-    // attach(handlerPort);                  // attach to port
+    handlerPortName =  "/";
+    handlerPortName += getName();
+
+    if (!handlerPort.open(handlerPortName.c_str())) {
+        yError("%s : Unable to open port %s \n ", getName().c_str() ,handlerPortName.c_str());
+        return false;
+    }
+
+    attach(handlerPort);
 
     pThread = new topDownAttentionPeriodic(5,clientName, serverName);
 
@@ -43,18 +42,16 @@ bool topDownAttentionModule::configure(ResourceFinder &rf) {
        cout << getName() << ": Problem in starting the thread "  << endl;
     }
     cout << getName() << ": starting the thread "  << endl;
-    return true ;       // let the RFModule know everything went well
-                        // so that it will then run the module
+    return true ;
 }
 
 bool topDownAttentionModule::interruptModule() {
-    //handlerPort.interrupt();
+    handlerPort.interrupt();
     return true;
 }
 
 bool topDownAttentionModule::close() {
-    //handlerPort.close();
-    /* stop the thread */
+    handlerPort.close();
     yDebug("stopping the thread \n");
     pThread->stop();
     return true;

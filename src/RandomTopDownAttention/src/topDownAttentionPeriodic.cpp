@@ -51,7 +51,7 @@ topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string client_name, 
 void topDownAttentionPeriodic::afterStart(bool s)
 {
     if (s)
-        yError("Thread started successfully\n");
+        yInfo("Thread started successfully\n");
     else
         yError("Thread did not start\n");
 }
