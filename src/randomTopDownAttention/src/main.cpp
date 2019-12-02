@@ -17,21 +17,19 @@
 
 #include "iCub/topDownAttentionModule.h"
 int main(int argc, char *argv[]) {
-    if (argc<3) {
-        fprintf(stderr, "Please supply (1) a port name for the client\n");
-        fprintf(stderr, "              (2) a port name for the server\n");
-        return 1;
-    }
 
+    //initialize yarp network
     Network yarp;
     topDownAttentionModule module;
 
+    /* prepare and configure the resource finder */
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("periodicAttiontionModule.ini");    //overridden by --from parameter
-    rf.setDefaultContext("periodicAttiontion");    //overridden by --context parameter
+    rf.setDefaultConfigFile("randomTopDownAttention.ini");    //overridden by --from parameter
+    rf.setDefaultContext("randomTopDownAttention");    //overridden by --context parameter
     rf.configure(argc, argv);
 
+    /* run the module: runModule() calls configure first and, if successful, it then runs */
     module.runModule(rf);
     return 0;
 }

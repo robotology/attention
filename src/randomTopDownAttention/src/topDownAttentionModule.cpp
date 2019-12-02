@@ -20,29 +20,35 @@
 bool topDownAttentionModule::configure(ResourceFinder &rf) {
 
 
-    // clientName=rf.find("client").asString();
+    //initialize the name of the module from the parameter (name) or use the default if name isn't supported (/randomTopDownAttention)
     moduleName = rf.check("name",
                             Value("/randomTopDownAttention"),
                             "module name (string)").asString();
     setName(moduleName.c_str());
 
-
+    //set the handlerPortName to module name. any msg to this port will be redirected to respond method
     handlerPortName =  "";
     handlerPortName += getName();
 
+    //open handler port. fail the process if handle port failed to be opened
     if (!handlerPort.open(handlerPortName.c_str())) {
         yError("%s : Unable to open port %s \n ", getName().c_str() ,handlerPortName.c_str());
         return false;
     }
 
+    //attach the handler port to the module
     attach(handlerPort);
 
+    //initialize the thread with X seconds and pass the module name.
+    //the module name is used to initialize the name of the ports opened in the thread.
     pThread = new topDownAttentionPeriodic(5,moduleName);
 
+    //start thr thread. fail the process if the thread failed to be started
     bool ok = pThread->start();
     if(!ok)
     {
        cout << getName() << ": Problem in starting the thread "  << endl;
+       return false;
     }
     cout << getName() << ": starting the thread "  << endl;
     return true ;
@@ -54,6 +60,7 @@ bool topDownAttentionModule::interruptModule() {
 }
 
 bool topDownAttentionModule::close() {
+    //close the handlerPort and stop the thread
     handlerPort.close();
     yDebug("stopping the thread \n");
     pThread->stop();

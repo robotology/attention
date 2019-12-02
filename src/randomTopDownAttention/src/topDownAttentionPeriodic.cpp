@@ -27,16 +27,15 @@
 #include <ctime>
 using namespace std;
 
-
-
-
-
-
-
+//the constructor function
 topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string moduleName):PeriodicThread(p){
-    msgCount=0;
+    //set the module name
     this->moduleName = moduleName;
+
+    //initialize the output port name with moduleName/cmd
     this->clientName = moduleName+"/cmd";
+
+    //create a new state array of pointers of 6 states and create instances from each state
     attentionStates = new state*[6];
     attentionStates[0] = new attendingColourfulState();
     attentionStates[1] = new attendingMovementState();
@@ -44,6 +43,8 @@ topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string moduleName):P
     attentionStates[3] = new attendingAudioState();
     attentionStates[4] = new attendingIntensityState();
     attentionStates[5] = new attendingObjectState();
+
+    //initialize the randomisation function
     srand(time(NULL));
 
 }
@@ -72,15 +73,24 @@ void topDownAttentionPeriodic::threadRelease()
 }
 
 void topDownAttentionPeriodic::sendAttentionToPort(){
+    //this function is called each periodically
+
+    //this to make sure that the port is connected
     if (port.getOutputCount()==0) {
         printf("No Connection to  %s\n", clientName.c_str());
     } else {
+        // if the port is connected, create a bottle output command
         Bottle cmd;
+
+        //then randommly pich a number between 0 and 5
         int randomNum = (rand()%6);
+
+        //get the command of this the state which has an index of the generated random number in the state array
         cmd = attentionStates[randomNum]->getSettings();
         yInfo("Sending message... ");
         helperFunctions::printBottle(cmd);
         Bottle response;
+        //send the command, recieve the responce, and print the responce 
         port.write(cmd,response);
         yInfo("Got response: %s\n", response.toString().c_str());
     }
