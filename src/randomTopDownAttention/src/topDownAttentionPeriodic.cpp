@@ -33,10 +33,10 @@ using namespace std;
 
 
 
-topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string client_name, string server_name):PeriodicThread(p){
+topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string moduleName):PeriodicThread(p){
     msgCount=0;
-    this->client_name = client_name;
-    this->server_name = server_name;
+    this->moduleName = moduleName;
+    this->clientName = moduleName+"/cmd";
     attentionStates = new state*[6];
     attentionStates[0] = new attendingColourfulState();
     attentionStates[1] = new attendingMovementState();
@@ -58,7 +58,7 @@ void topDownAttentionPeriodic::afterStart(bool s)
 
 bool topDownAttentionPeriodic::threadInit()
 {
-  port.open(client_name);
+  port.open(clientName);
   yInfo("Starting thread\n");
   return true;
 }
@@ -68,13 +68,12 @@ void topDownAttentionPeriodic::run()
 }
 void topDownAttentionPeriodic::threadRelease()
 {
-    yInfo("Goodbye from thread1\n");
+    yInfo("Goodbye from thread\n");
 }
 
 void topDownAttentionPeriodic::sendAttentionToPort(){
     if (port.getOutputCount()==0) {
-        printf("Trying to connect to %s\n", server_name.c_str());
-        yarp.connect(client_name,server_name);
+        printf("No Connection to  %s\n", clientName.c_str());
     } else {
         Bottle cmd;
         int randomNum = (rand()%6);

@@ -38,8 +38,7 @@ using namespace std;
 
 class topDownAttentionModule : public RFModule {
 
-    string serverName;
-    string clientName;
+    string moduleName;
 
     string handlerPortName;
     Port handlerPort;

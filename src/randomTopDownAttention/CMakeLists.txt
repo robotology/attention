@@ -2,11 +2,9 @@
 # Authors: Omar Eldardeer
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-SET(KEYWORD "topDownAttention")
+SET(KEYWORD "randomTopDownAttention")
 PROJECT(${KEYWORD})
 cmake_minimum_required(VERSION 2.6)
-
-find_package(YARP REQUIRED)
 
 
 set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)

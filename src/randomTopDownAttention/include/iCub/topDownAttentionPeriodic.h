@@ -36,11 +36,11 @@ public:
     Network yarp;
     RpcClient port;
     int msgCount;
-    string client_name;
-    string server_name;
+    string moduleName;
+    string clientName;
     state** attentionStates;
 
-    topDownAttentionPeriodic(double p,string client_name, string server_name);
+    topDownAttentionPeriodic(double p,string moduleName);
     bool threadInit();
     void afterStart(bool s);
     void run();

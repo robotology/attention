@@ -15,11 +15,11 @@
   * Public License for more details
 */
 
-#include "iCub/attendingIntensityState.h"
+#include "iCub/attendingColourfulState.h"
 #include "iCub/helperFunctions.h"
 
-attendingIntensityState::attendingIntensityState():state("attendingIntensityState",5){}
+attendingColourfulState::attendingColourfulState():state("attendingColourfulState",1){}
 
-Bottle attendingIntensityState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,5);
+Bottle attendingColourfulState::getSettings(){
+    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.1);
 }

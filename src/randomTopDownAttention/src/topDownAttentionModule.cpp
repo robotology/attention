@@ -19,12 +19,15 @@
 
 bool topDownAttentionModule::configure(ResourceFinder &rf) {
 
-    serverName=rf.find("server").asString();
-    clientName=rf.find("client").asString();
-    setName("topDownAttentionModule");
+
+    // clientName=rf.find("client").asString();
+    moduleName = rf.check("name",
+                            Value("/randomTopDownAttention"),
+                            "module name (string)").asString();
+    setName(moduleName.c_str());
 
 
-    handlerPortName =  "/";
+    handlerPortName =  "";
     handlerPortName += getName();
 
     if (!handlerPort.open(handlerPortName.c_str())) {
@@ -34,7 +37,7 @@ bool topDownAttentionModule::configure(ResourceFinder &rf) {
 
     attach(handlerPort);
 
-    pThread = new topDownAttentionPeriodic(5,clientName, serverName);
+    pThread = new topDownAttentionPeriodic(5,moduleName);
 
     bool ok = pThread->start();
     if(!ok)
@@ -70,7 +73,7 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
         return false;
     }
     else if (command.get(0).asString()=="help") {
-        cout << helpMessage;
+        yInfo(helpMessage.c_str());
         reply.addString("ok");
     }
 
@@ -86,5 +89,5 @@ bool topDownAttentionModule::updateModule()
 double topDownAttentionModule::getPeriod()
 {
     /* module periodicity (seconds), called implicitly by myModule */
-    return 1;
+    return 5;
 }

@@ -15,11 +15,11 @@
   * Public License for more details
 */
 
-#include "iCub/attendingAudioState.h"
+#include "iCub/attendingIntensityState.h"
 #include "iCub/helperFunctions.h"
 
-attendingAudioState::attendingAudioState():state("attendingAudioState",4){}
+attendingIntensityState::attendingIntensityState():state("attendingIntensityState",5){}
 
-Bottle attendingAudioState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,4);
+Bottle attendingIntensityState::getSettings(){
+    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.5);
 }

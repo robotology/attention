@@ -21,5 +21,5 @@
 attendingObjectState::attendingObjectState():state("attendingObjectState",6){}
 
 Bottle attendingObjectState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,6);
+    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.6);
 }

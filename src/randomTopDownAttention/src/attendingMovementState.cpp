@@ -15,11 +15,11 @@
   * Public License for more details
 */
 
-#include "iCub/attendingFacesState.h"
+#include "iCub/attendingMovementState.h"
 #include "iCub/helperFunctions.h"
 
-attendingFacesState::attendingFacesState():state("attendingFacesState",3){}
+attendingMovementState::attendingMovementState():state("attendingMovementState",2){}
 
-Bottle attendingFacesState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,3);
+Bottle attendingMovementState::getSettings(){
+    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.2);
 }
