@@ -30,7 +30,7 @@
 /** 
   * The neighbourhood structure.
   */
-const struct Coord NEIGHBORS[] = { Coord(1, 0), Coord(0, -1), Coord(-1, 0), Coord(0,1) };
+const struct Coord NEIGHBORS[] = { Coord(1, 0), Coord(0, -1), Coord(-1, 0), Coord(0,1), Coord(-1, -1), Coord(-1, 1), Coord(1, 1), Coord(1,-1) };
 #define NEIGHBOR_NUM (sizeof(NEIGHBORS) / sizeof(Coord))
       
 /** 
@@ -54,13 +54,13 @@ class MultiClass{
       int    data_penalty;
       int    bland_dog_thresh; 
       int    radial_penalty; 
-      int    acquire_wait;
+      bool    stereoDisparity;
       int    min_area;
       int    max_area;
       int    max_spread;
       int    fovea_width;
       int    fovea_height;
-      double cog_snap;
+      int disp_threshold;
       double bland_prob;
       double sigma1, sigma2;
       int offsetVertical;

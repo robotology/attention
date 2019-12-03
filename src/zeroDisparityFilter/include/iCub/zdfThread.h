@@ -35,6 +35,9 @@
 #include "iCub/multiclass.h"
 #include <iCub/centerSurround.h>
 #include <cv.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/video.hpp>
 #include "opencv2/core/core.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 #include <opencv2/highgui/highgui.hpp>
@@ -91,7 +94,7 @@ private:
     // Images for processing
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageInLeft;      //input port cartesian image left
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageInRight;     //input port cartesian image right
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageInDisp;     //input port cartesian image right
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imageInMask;     //input port cartesian image right
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutProb;     //output port probability image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutSeg;      //output port segmented image
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imageOutDogL;      //output port difference of gaussian image
@@ -121,7 +124,8 @@ private:
 private:
 
     // segmentation variables
-    cv::Mat prob_mat, zd_prob_mat, seg_image, seg_DOG;
+    cv::Mat prob_mat, zd_prob_mat, seg_image, seg_mask;
+
     int koffsetx, koffsety;
     Coord c;
     int *buffer1, *buffer2;
@@ -130,10 +134,11 @@ private:
     defSize fovea_size;
     cv::Mat segmentedRGB, segTemplate ;
 
-
-
     cv::Mat getDOG(const cv::Mat& in);
 
+    cv::Ptr<cv::BackgroundSubtractor> pBackSub;
+
+    void getPyramidGaussian(cv::Mat &src, cv::Mat& dst, int nbLevels);
 
     //void get_rank(Coord c,Ipp8u *im, int w, int*list);
     void get_rank(Coord c, unsigned char *im, int w, int *list);
@@ -156,7 +161,7 @@ private:
 
     void cannyBlobDetection(cv::Mat &input, cv::Mat &output);
 
-    void threshold_mask(cv::Mat &input);
+    void threshold_mask(cv::Mat &input, cv::Mat &segImg);
 
 
 

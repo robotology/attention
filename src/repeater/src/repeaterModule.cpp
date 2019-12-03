@@ -90,6 +90,10 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
                            Value(240), 
                            "output image height (int)").asInt();
 
+    verticalOffset = rf.check("verticalOffset", 
+                           Value(-1), 
+                           "vertical offset rectification (double)").asDouble();
+
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
@@ -120,6 +124,10 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
     rThread->setOutputDimension(outputWidth, outputHeight);
     //rThread->setInputPortName(inputPortName.c_str());
     
+
+    if(verticalOffset > 0){
+        rThread->setVerticalOffset(verticalOffset);
+    }
     /* now start the thread to do the work */
     rThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 

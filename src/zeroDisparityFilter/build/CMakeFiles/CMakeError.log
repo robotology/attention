@@ -1,0 +1,110 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_39d39/fast"
+/usr/bin/make -f CMakeFiles/cmTC_39d39.dir/build.make CMakeFiles/cmTC_39d39.dir/build
+make[1]: Entering directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_39d39.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIC    -o CMakeFiles/cmTC_39d39.dir/CheckSymbolExists.c.o   -c /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_39d39
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_39d39.dir/link.txt --verbose=1
+/usr/bin/cc -fPIC     -rdynamic CMakeFiles/cmTC_39d39.dir/CheckSymbolExists.c.o  -o cmTC_39d39 
+CMakeFiles/cmTC_39d39.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_39d39.dir/build.make:97: recipe for target 'cmTC_39d39' failed
+make[1]: *** [cmTC_39d39] Error 1
+make[1]: Leaving directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_39d39/fast' failed
+make: *** [cmTC_39d39/fast] Error 2
+
+File /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_508b6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_508b6.dir/build.make CMakeFiles/cmTC_508b6.dir/build
+make[1]: Entering directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_508b6.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_508b6.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_508b6
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_508b6.dir/link.txt --verbose=1
+/usr/bin/cc -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_508b6.dir/CheckFunctionExists.c.o  -o cmTC_508b6 -lpthreads 
+/usr/bin/x86_64-linux-gnu-ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_508b6.dir/build.make:97: recipe for target 'cmTC_508b6' failed
+make[1]: *** [cmTC_508b6] Error 1
+make[1]: Leaving directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_508b6/fast' failed
+make: *** [cmTC_508b6/fast] Error 2
+
+
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_ed22d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ed22d.dir/build.make CMakeFiles/cmTC_ed22d.dir/build
+make[1]: Entering directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_ed22d.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -fPIC    -o CMakeFiles/cmTC_ed22d.dir/CheckSymbolExists.c.o   -c /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_ed22d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ed22d.dir/link.txt --verbose=1
+/usr/bin/cc -fPIC     -rdynamic CMakeFiles/cmTC_ed22d.dir/CheckSymbolExists.c.o  -o cmTC_ed22d 
+CMakeFiles/cmTC_ed22d.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_ed22d.dir/build.make:97: recipe for target 'cmTC_ed22d' failed
+make[1]: *** [cmTC_ed22d] Error 1
+make[1]: Leaving directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_ed22d/fast' failed
+make: *** [cmTC_ed22d/fast] Error 2
+
+File /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d6e7d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d6e7d.dir/build.make CMakeFiles/cmTC_d6e7d.dir/build
+make[1]: Entering directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d6e7d.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_d6e7d.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_d6e7d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d6e7d.dir/link.txt --verbose=1
+/usr/bin/cc -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_d6e7d.dir/CheckFunctionExists.c.o  -o cmTC_d6e7d -lpthreads 
+/usr/bin/x86_64-linux-gnu-ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_d6e7d.dir/build.make:97: recipe for target 'cmTC_d6e7d' failed
+make[1]: *** [cmTC_d6e7d] Error 1
+make[1]: Leaving directory '/usr/local/src/robot/attention/src/zeroDisparityFilter/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_d6e7d/fast' failed
+make: *** [cmTC_d6e7d/fast] Error 2
+
+

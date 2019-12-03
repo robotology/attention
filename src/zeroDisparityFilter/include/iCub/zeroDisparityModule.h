@@ -45,6 +45,7 @@ class zeroDisparityFilterMod : public yarp::os::RFModule {
         COMMAND_VOCAB_K6 = yarp::os::createVocab('k', '6'), //bland dog thresh
         COMMAND_VOCAB_K7 = yarp::os::createVocab('k', '7'), //bland prob
         COMMAND_VOCAB_K8 = yarp::os::createVocab('k', '8'), //max spread
+        COMMAND_VOCAB_K9 = yarp::os::createVocab('k', '9'), //max spread
         COMMAND_VOCAB_FAILED = yarp::os::createVocab('f', 'a' , 'i', 'l'), //max spread
         COMMAND_VOCAB_OK = yarp::os::createVocab('o', 'k'), //max spread
         COMMAND_VOCAB_SUS = yarp::os::createVocab('s', 'u' , 's'), //max spread

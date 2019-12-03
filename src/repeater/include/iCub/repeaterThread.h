@@ -75,6 +75,7 @@ private:
     short heightRatio;             // ratio between the input and output image
     double timeEnd;                //
     double timeStart;              //
+    double verticalOffset;
 
     std::string robot;              // name of the robot
     std::string configFile;         // name of the configFile where the parameter of the camera are set
@@ -165,6 +166,8 @@ public:
     void setHuePush(int value) { deltaHue = value; gainHue = 1; };
     void setBriPush(int value) { deltaBri = value; gainBri = 1; };
     void setSatPush(int value) { deltaSat = value; gainSat = 1; };
+
+    void setVerticalOffset(double value) { verticalOffset = value;};
 };
 
 #endif  //_REPEATER_THREAD_H_

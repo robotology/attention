@@ -69,12 +69,11 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
                                                                "what did the user select?").asInt();
     parameters.radial_penalty = rf.findGroup("PARAMS").check("radial_penalty", Value(50),
                                                              "what did the user select?").asInt();
-    parameters.acquire_wait = rf.findGroup("PARAMS").check("acquire_wait", Value(25),
-                                                           "what did the user select?").asInt();
+    parameters.stereoDisparity = rf.findGroup("PARAMS").check("stereoDisparity", Value(false),
+                                                           "what did the user select?").asBool();
     parameters.min_area = rf.findGroup("PARAMS").check("min_area", Value(5000), "what did the user select?").asInt();
     parameters.max_area = rf.findGroup("PARAMS").check("max_area", Value(8000), "what did the user select?").asInt();
     parameters.max_spread = rf.findGroup("PARAMS").check("max_spread", Value(50), "what did the user select?").asInt();
-    parameters.cog_snap = rf.findGroup("PARAMS").check("cog_snap", Value(0.3), "what did the user select?").asDouble();
     parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob", Value(0.3),
                                                          "what did the user select?").asDouble();
 
@@ -85,7 +84,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
     parameters.sigma1 = rf.findGroup("PARAMS").check("sigma1", Value(0.5),
                                                      "what did the user select?").asDouble();
-    parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(3),
+    parameters.sigma2 = rf.findGroup("PARAMS").check("sigma2", Value(2),
                                                      "what did the user select?").asDouble();
     parameters.src_width = rf.findGroup("PARAMS").check("src_width", Value(320),
                                                         "what did the user select?").asInt();
@@ -110,9 +109,10 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Adjustement of cameras alignement
-    parameters.offsetVertical = rf.findGroup("PARAMS").check("offsetVertical", Value(5),
-                                                             "what did the user select?").asInt();
-
+    parameters.offsetVertical = rf.findGroup("PARAMS").check("offsetVertical", Value(8),
+                                                              "what did the user select?").asInt();
+    parameters.disp_threshold =  rf.findGroup("PARAMS").check("disparityThreshold", Value(15),
+                                                              "what did the user select?").asInt();
     /*
      * attach a port of the same name as the module (prefixed with a /) to the module
      * so that messages received from the port are redirected to the respond method
@@ -137,6 +137,7 @@ bool zeroDisparityFilterMod::configure(yarp::os::ResourceFinder &rf) {
 
     /*pass the name of the module in order to create ports*/
     zdfThread->setName(moduleName);
+
 
     /* now start the thread to do the work */
     zdfThread->start(); // this calls threadInit() and it if returns true, it then calls run()
@@ -262,6 +263,13 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
                     ok = true;
                     break;
                 }
+
+                case COMMAND_VOCAB_K9: {
+                    int w = command.get(2).asInt();
+                    zdfThread->params->disp_threshold = w;
+                    ok = true;
+                    break;
+                }
                 default:
                     break;
             }
@@ -326,6 +334,13 @@ bool zeroDisparityFilterMod::respond(const Bottle &command, Bottle &reply) {
 
                 case COMMAND_VOCAB_K8: {
                     double w = zdfThread->params->sigma2;
+                    reply.addDouble(w);
+                    ok = true;
+                    break;
+                }
+
+                case COMMAND_VOCAB_K9: {
+                    double w = zdfThread->params->disp_threshold;
                     reply.addDouble(w);
                     ok = true;
                     break;

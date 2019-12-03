@@ -90,6 +90,10 @@ void colorsegThread::run()
 {
     while(this->isRunning() and !this->isSuspended()){
         ImageOf<PixelRgb> *img_in = cam_in.read();
+        ImageOf<PixelRgb> img_in2;
+        img_in2.resize(img_in->width(), img_in->height());
+        img_in2.zero();
+
         if ( img_in == NULL ) return;
         runSem.wait();
         if ( q == NULL ) {
@@ -113,17 +117,17 @@ void colorsegThread::run()
                 if ( f[i]<fmin ) fmin=f[i];
                 if ( f[i]>fmax ) fmax=f[i];
             }
-            printf("fmean=%g fdiff=%g\n",(fmin+fmax)/2,fmax-fmin);*/
+//            printf("fmean=%g fdiff=%g\n",(fmin+fmax)/2,fmax-fmin);*/
         }
         extract_labeling(q,nK,width*height,K);
 
 //	printf("Segmentation done. Label histogram=[");
-        int *hist = new int[nK];
-        for ( int k=0; k<nK; k++ ) hist[k]=0;
-        for ( int i=0; i<width*height; i++ ) hist[K[i]]++;
-//	for ( int k=0; k<nK; k++ ) printf("%i ",hist[k]);
-//	printf("]\n");
-        delete[] hist;
+//        int *hist = new int[nK];
+//        for ( int k=0; k<nK; k++ ) hist[k]=0;
+//        for ( int i=0; i<width*height; i++ ) hist[K[i]]++;
+////	for ( int k=0; k<nK; k++ ) printf("%i ",hist[k]);
+////	printf("]\n");
+//        delete[] hist;
 
 //	printf("Finding connected components.\n");
         for ( int i=0; i<width; i++ ) K[i] = 0; // Set column 0 to background
@@ -141,12 +145,13 @@ void colorsegThread::run()
             for ( int j=b[2]; j<=b[3]; j++ ) K[b[0]+width*j] = K[b[1]+width*j] = b[4];
         }
 
+        unsigned char *I2 = img_in2.getRawImage();
         // Apply color map and send image to output.
         for ( int t=0; t<width*height; t++ ) {
-            unsigned char Kt = K[t], *It = I + 3*t;
+            unsigned char Kt = K[t], *It = I2 + 3*t;
             for ( int c=0; c<3; c++ ) if ( Kt>0 ) It[c] = colormap[3*Kt+c];
         }
-        cam_out.prepare() = *img_in;
+        cam_out.prepare() = img_in2;
         cam_out.write();
 
 

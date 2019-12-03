@@ -10,13 +10,26 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace cv;
 
-const int kern_sz = 13;
+const int kern_sz = 5;
 
+const Scalar blueLow(0,0,65);
+const Scalar blueHigh(120,255,127);
+
+const Scalar redLow(0,144,0);
+const Scalar redHigh(255,255,173);
+
+const Scalar yellowLow(0,85,156);
+const Scalar yellowHigh(180,255,175);
+
+
+const Scalar greenLow(0,0,110);
+const Scalar greenHigh(255,117,189);
 
 void ZDFThread::parametersInit() {
 
-    const int x_topLeft = (params->src_width / 2) - (params->fovea_width / 2);
+    const int x_topLeft = 128;
     const int y_topLeft = (params->src_height / 2) - (params->fovea_height / 2);
     fovea_rect = cv::Rect2d(x_topLeft, y_topLeft, params->fovea_width, params->fovea_height);
     foveaRecWithOffset = cv::Rect2d(x_topLeft, y_topLeft - params->offsetVertical, params->fovea_width,
@@ -54,6 +67,7 @@ void ZDFThread::parametersInit() {
 
     sus = false;
 
+    pBackSub = cv::createBackgroundSubtractorMOG2();
 
 }
 
@@ -67,7 +81,7 @@ bool ZDFThread::threadInit() {
     inputNameRight = "/" + moduleName + "/imageRight:i";
     imageInRight.open(inputNameRight);
 
-    imageInDisp.open("/" + moduleName + "/imageDisp:i");
+    imageInMask.open("/" + moduleName + "/imageMask:i");
 
 
     outputNameProb = "/" + moduleName + "/imageProb:o";
@@ -109,7 +123,7 @@ void ZDFThread::run() {
 
         ImageOf<PixelRgb> *img_in_left = imageInLeft.read(true);
         ImageOf<PixelRgb> *img_in_right = imageInRight.read(true);
-        ImageOf<PixelMono > *img_in_disp = imageInDisp.read(false);
+        ImageOf<PixelRgb > *img_in_mask = imageInMask.read(params->stereoDisparity);
 
 
         if (img_in_left != nullptr && img_in_right != nullptr  && !sus) {
@@ -119,35 +133,40 @@ void ZDFThread::run() {
 
 
 
-
-
             // define the region of interest to mimick fovea
             cv::Mat left_img_roi = left_mat_img(fovea_rect);
             cv::Mat right_img_roi = right_mat_img(foveaRecWithOffset);
 
 
-            // Preprocess images
-            cv::cvtColor(right_img_roi, right_fovea, cv::COLOR_BGR2GRAY);
-            cv::cvtColor(left_img_roi, left_fovea, cv::COLOR_BGR2GRAY);
 
-            cv::cvtColor(right_img_roi, YUV_right, cv::COLOR_BGR2HSV);
-            cv::cvtColor(left_img_roi, YUV_left, cv::COLOR_BGR2HSV);
+
+
+            // Preprocess images
+            cv::cvtColor(right_img_roi, right_fovea, cv::COLOR_RGB2GRAY);
+            cv::cvtColor(left_img_roi, left_fovea, cv::COLOR_RGB2GRAY);
+
+
+            cv::cvtColor(right_img_roi, YUV_right, cv::COLOR_RGB2HSV);
+            cv::cvtColor(left_img_roi, YUV_left, cv::COLOR_RGB2HSV);
 
             vector<cv::Mat> yuv_planes(3);
             cv::split(YUV_right, yuv_planes);
-            YUV_right = yuv_planes[2];
+            YUV_right = yuv_planes[0];
+
 
             cv::split(YUV_left, yuv_planes);
-            YUV_left = yuv_planes[2];
-
-
-            DOG_left = getDOG(YUV_right);
-            DOG_right = getDOG(YUV_left);
+            YUV_left = yuv_planes[0];
 
 
 
-//            cannyBlobDetection(left_fovea, DOG_left);
-//            cannyBlobDetection(right_fovea, DOG_right);
+
+
+            getPyramidGaussian(right_fovea, DOG_right, 3);
+            getPyramidGaussian(left_fovea, DOG_left, 3);
+
+            cannyBlobDetection(DOG_left, DOG_left);
+            cannyBlobDetection(DOG_right, DOG_right);
+
 
 
             processDisparityMap(DOG_right.data, DOG_left.data);
@@ -161,13 +180,7 @@ void ZDFThread::run() {
 
             cv::Mat mat_class = cv::cvarrToMat(multiClass->get_class_ipl());
 
-            if(img_in_disp != nullptr){
-                cv::Mat mask;
-                cv::Mat disp_mat_img = yarp::cv::toCvMat(*img_in_disp);
-                cv::threshold(disp_mat_img, mask, 5, 255, CV_THRESH_BINARY);
-                cv::bitwise_and(mat_class, mask, mat_class);
 
-            }
 
             const unsigned char *out = mat_class.data;
 
@@ -180,7 +193,6 @@ void ZDFThread::run() {
 
 
             seg_image = cv::Mat::zeros(params->fovea_width, params->fovea_height, CV_8UC1);
-
 
             unsigned char *seg_im = seg_image.data;
 
@@ -208,16 +220,44 @@ void ZDFThread::run() {
                 }
             }
 
-            medianfilter(seg_im,seg_im, 9);
 
-            const int mid_x = (left_mat_img.cols - fovea_size.width) / 2;
+
+
+
+            const int mid_x = 128;
             const int mid_y = (left_mat_img.rows - fovea_size.height) / 2;
 
+            int topBis, bottomBis, leftBis, rightBis, numberPixelSegmented;
+
+            medianfilter(seg_im,seg_im, 8);
+
+
+            if(img_in_mask != nullptr){
+                seg_mask = cv::Mat::zeros(params->fovea_width, params->fovea_height, CV_8UC1);
+                cv::Mat mask = cv::Mat::zeros(params->fovea_width, params->fovea_height, CV_8UC1);;
+                cv::Mat mask_mat_img = yarp::cv::toCvMat(*img_in_mask);
+                mask_mat_img = mask_mat_img(fovea_rect);
+                cvtColor(mask_mat_img, mask_mat_img, COLOR_RGB2GRAY);
+                cv::threshold(mask_mat_img, mask,  0, 255, CV_THRESH_BINARY);
+
+
+                seg_image.copyTo(seg_mask, mask);
+//                bitwise_or(seg_image,mask, seg_mask);
+                getRoundingBoxSegmented(&topBis, &bottomBis, &leftBis, &rightBis, &seg_mask);
+                medianfilter(seg_mask.data,seg_mask.data, 3);
+                numberPixelSegmented = cv::countNonZero(seg_mask);
 
 
 
-            int topBis, bottomBis, leftBis, rightBis;
-            getRoundingBoxSegmented(&topBis, &bottomBis, &leftBis, &rightBis, &seg_image);
+            }
+
+            else{
+                getRoundingBoxSegmented(&topBis, &bottomBis, &leftBis, &rightBis, &seg_image);
+                numberPixelSegmented = cv::countNonZero(seg_image);
+
+            }
+
+
 
 
 
@@ -226,48 +266,14 @@ void ZDFThread::run() {
             const int xOneSeg = mid_x + leftBis;
             const int xTwoSeg = mid_x + rightBis;
 
-            const cv::Point pt1(xOneSeg - 10, yOneSeg - 10);
-            const cv::Point pt2(xTwoSeg + 10, yTwoSeg + 10);
-
-            const cv::Point pt1Bis(leftBis, topBis);
-            const cv::Point pt2Bis(rightBis, bottomBis);
-
+            const cv::Point pt1(xOneSeg , yOneSeg );
+            const cv::Point pt2(xTwoSeg , yTwoSeg);
 
 
             cv::Rect rRect(pt1, pt2);
-//            cv::Rect rRectBis(pt1Bis, pt2Bis);
-//            if(rRectBis.width < left_img_roi.cols){
-//                cv::Mat bgdModel, fgdModel, mask;
-//                cv::grabCut(left_img_roi, mask,  rRectBis, bgdModel, fgdModel, 10, cv::GC_INIT_WITH_RECT);
-//
-//                if(!fgdModel.empty() && !bgdModel.empty()) {
-//
-//                    cv::compare(mask, cv::GC_PR_FGD, mask, cv::CMP_EQ);
-//                    cv::Mat foreground(left_img_roi.size(), CV_8UC3, cv::Scalar(0, 0, 0));
-//                    left_img_roi.copyTo(foreground, mask);
-//                    cv::cvtColor(foreground, foreground, cv::COLOR_BGR2GRAY);
-//                    getRoundingBoxSegmented(&topBis, &bottomBis, &leftBis, &rightBis, &foreground);
-//
-//
-//                    const cv::Point pt1Final(mid_x + leftBis, mid_y + topBis);
-//                    const cv::Point pt2Final(mid_x + rightBis, mid_y + bottomBis);
-//
-//                    cv::Rect rRectFinal(pt1Final, pt2Final);
-//
-//                    if(rRectFinal.width > 0){
-//                        cv::imshow("test", left_mat_img(rRectFinal));
-//                        cv::waitKey(1);
-//
-//                    }
-//
-//                }
-//
-//            }
 
 
-
-            const int numberPixelSegmented = cv::countNonZero(seg_image);
-            if(numberPixelSegmented < params->max_area && numberPixelSegmented > 0) {
+            if(numberPixelSegmented < params->max_area && numberPixelSegmented > params->min_area) {
 
 
                 if(rRect.width > 0 ){
@@ -311,14 +317,7 @@ void ZDFThread::run() {
 
             }
 
-
-
-
-
-
         }
-
-
 
         //send it all when connections are established
         if (imageOutProb.getOutputCount() > 0) {
@@ -333,7 +332,7 @@ void ZDFThread::run() {
         if (imageOutSeg.getOutputCount() > 0) {
 
             yarp::sig::ImageOf<yarp::sig::PixelMono> &processingMonoImage = imageOutSeg.prepare();
-            processingMonoImage = yarp::cv::fromCvMat<yarp::sig::PixelMono>(seg_image);
+            processingMonoImage = yarp::cv::fromCvMat<yarp::sig::PixelMono>(seg_mask.empty()?seg_image:seg_mask);
             imageOutSeg.write();
 
         }
@@ -353,6 +352,7 @@ void ZDFThread::run() {
             imageOutDogR.write();
 
         }
+
 
 
     }
@@ -380,13 +380,6 @@ cv::Mat ZDFThread::getDOG(const cv::Mat &input_mat) {
 
 
 
-
-//    const int dilation_size = 1;
-//    const cv::Mat element = getStructuringElement(cv::MORPH_RECT,
-//                                                  cv::Size(2 * dilation_size + 1, 2 * dilation_size + 1),
-//                                                  cv::Point(dilation_size, dilation_size));
-//
-//    cv::dilate(dog_mat, dog_mat, element);
 
 
     return dog_mat;
@@ -449,7 +442,8 @@ void ZDFThread::processDisparityMap(const unsigned char *img_left_DOG, const uns
 
             //if either l or r textured at this retinal location:
 
-            if ((img_left_DOG[index] >= params->bland_dog_thresh && img_right_DOG[index] >= params->bland_dog_thresh)) {
+            if ((img_left_DOG[index] > params->bland_dog_thresh && img_right_DOG[index] > params->bland_dog_thresh
+            )) {
 
                 if (params->rankOrNDT == 0) {
                     //use RANK:
@@ -495,7 +489,6 @@ void ZDFThread::processDisparityMap(const unsigned char *img_left_DOG, const uns
         }
     }
 
-    medianfilter(o_prob_8u, o_prob_8u, 3);
 
 
 }
@@ -597,6 +590,31 @@ double ZDFThread::cmp_ndt(int *ndt_l, int *ndt_r) {
 
 }
 
+void ZDFThread::getPyramidGaussian(Mat &src, Mat &dst, int nbLevels) {
+    Mat low_reso, tmp;
+    Mat pyramid_edges[nbLevels];
+
+    tmp = src;
+
+    for(int i=0; i< nbLevels; i++) {
+        pyrDown(tmp, low_reso);
+        tmp = low_reso.clone();
+
+        low_reso = getDOG(low_reso);
+        pyramid_edges[i] = low_reso;
+    }
+
+    low_reso = pyramid_edges[nbLevels-1];
+
+    for(int i= nbLevels - 1; i > 0; i--) {
+        pyrUp(low_reso, tmp);
+        low_reso =  pyramid_edges[i-1]  - tmp  ;
+    }
+
+    pyrUp(low_reso, dst);
+
+
+}
 
 void ZDFThread::get_rank(Coord coord, unsigned char *im, int w, int *list) {
     Coord n;
@@ -749,21 +767,25 @@ void ZDFThread::getRoundingBoxSegmented(int *top, int *bottom, int *left, int *r
 
 void ZDFThread::cannyBlobDetection(cv::Mat &input, cv::Mat &mat_DOG) {
 
-//    const int dilation_size = 2;
-//    const cv::Mat element = getStructuringElement(cv::MORPH_CROSS,
-//                                                  cv::Size(2 * dilation_size + 1, 2 * dilation_size + 1),
-//                                                  cv::Point(dilation_size, dilation_size));
-//    cv::dilate(mat_DOG, mat_DOG, element);
 
 
-    medianfilter(mat_DOG.data, mat_DOG.data, 9);
 
+    const int dilation_size = 2;
+    const cv::Mat element = getStructuringElement(cv::MORPH_ELLIPSE,
+                                                  cv::Size(2 * dilation_size + 1, 2 * dilation_size + 1),
+                                                  cv::Point(dilation_size, dilation_size));
+
+
+    cv::dilate(input, input, element);
+//    cv::threshold(input, input,  params->bland_dog_thresh, 255, CV_THRESH_BINARY);
+//
 //    std::vector<std::vector<cv::Point> > cnt;
 //    std::vector<cv::Vec4i> hrch;
 //
 //
-//    findContours(mat_DOG, cnt, hrch, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+//    findContours(input, cnt, hrch, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 //    cv::fillPoly(mat_DOG, cnt, 255);
+
 
 
 
@@ -779,26 +801,31 @@ void ZDFThread::setSus(bool sus) {
     ZDFThread::sus = sus;
 }
 
-void ZDFThread::threshold_mask(cv::Mat &input) {
+void ZDFThread::threshold_mask(cv::Mat &input, cv::Mat &segImg) {
 
-    cv::Mat hsv, yuv, split_hsv[3], split_yuv[3], result, copy;
-
-
-    cv::cvtColor(input, hsv , cv::COLOR_BGR2HSV);
-    cv::cvtColor(input, yuv , cv::COLOR_BGR2YUV);
-
-    cv::split(hsv, split_hsv);
-    cv::split(yuv, split_yuv);
-
-    cv::threshold(split_hsv[2], hsv, params->bland_dog_thresh, 255, cv::THRESH_BINARY_INV);
-    cv::threshold(split_yuv[2], yuv, params->bland_dog_thresh, 255, cv::THRESH_BINARY_INV);
-
-    cv::bitwise_or(hsv, yuv, result);
-    input.copyTo(copy, result);
+    cv::Mat lab, maskR, maskB, maskG, maskY, result, copy;
 
 
-    input = copy.clone();
+    cv::cvtColor(input, lab , cv::COLOR_BGR2Lab);
+    blur(lab,lab, Size(3,3));
+
+    inRange(lab, blueLow, blueHigh, maskB);
+    inRange(lab, redLow, redHigh, maskR);
+    inRange(lab, yellowLow, yellowHigh, maskY);
+    inRange(lab, greenLow, greenHigh, maskG);
+
+    result = maskB + maskR + maskG + maskY;
+
+
+    imshow("test", result);
+    waitKey(1);
+    segImg.copyTo(copy, result);
+
+    segImg = copy.clone();
+
+
 
 }
+
 
 

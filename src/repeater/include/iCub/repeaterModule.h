@@ -165,6 +165,7 @@ class repeaterModule:public yarp::os::RFModule {
     yarp::os::Port handlerPort;              // a port to handle messages 
     /*  */
     repeaterThread *rThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
+    double verticalOffset;
 
 public:
     /**

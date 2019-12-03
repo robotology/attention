@@ -188,16 +188,16 @@ int MultiClass::likelihood(Coord c, int d)
     //return low penalty if likely.
     
     //prob[x][y] is in range{0..255}.
-    //int penalty = (int)( params->data_penalty * (1.0 - (prob[d][c.y * psb_in + c.x]/255.0)) );
+    int penalty = (int)( params->data_penalty * (1.0 - (prob[d][c.y * psb_in + c.x]/255.0)) );
 
 
-	int param_penalty = params->data_penalty;
+//	int param_penalty = params->data_penalty;
 
-	double op = (double)prob[d][c.y * psb_in + c.x];
-
-	op = op / 255.0;
-
-	int penalty = (int)(param_penalty * (1.0 - op));
+//	double op = (double)prob[d][c.y * psb_in + c.x];
+//
+//	op = op / 255.0;
+//
+//	int penalty = (int)(param_penalty * (1.0 - op));
 	//printf("%d\n", penalty);
 
 
