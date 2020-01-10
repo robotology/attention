@@ -1,10 +1,10 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/* 
+/*
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Vadim Tikhanoff
  * email:   vadim.tikhanoff@iit.it
- * website: www.robotcub.org 
+ * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -29,7 +29,7 @@
 #include <yarp/os/Bottle.h>
 #include <yarp/os/BufferedPort.h>
 //=============================================================================
-// GTK Includes 
+// GTK Includes
 //=============================================================================
 #include <gtk/gtk.h>
 #include "viewerResources.h"
@@ -93,15 +93,15 @@ void printHelp();
 //-------------------------------------------------
 // Global Variables
 //-------------------------------------------------
-// main window 
+// main window
 GtkObject *adj1, *adj2,*adj3, *adj4,*adj5, *adj6;
 GtkObject *adj11, *adj12,*adj13, *adj14,*adj15, *adj16;
 GtkObject *adjMotion;
-yarp::os::Semaphore mutex;
+yarp::os::Semaphore _mutex;
 int c=0;
 
 //-------------------------------------------------
-// Program Options 
+// Program Options
 //-------------------------------------------------
 struct mOptions
 {

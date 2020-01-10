@@ -1,6 +1,6 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/* 
+/*
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Vadim Tikhanoff
  * email:   vadim.tikhanoff@iit.it
@@ -20,8 +20,8 @@
 
 #include "zdfControl.h"
 #include <yarp/os/ResourceFinder.h>
-#include <yarp/os/Property.h> 
-#include <yarp/os/Network.h> 
+#include <yarp/os/Property.h>
+#include <yarp/os/Network.h>
 #include <yarp/os/BufferedPort.h>
 
 
@@ -55,7 +55,7 @@ std::string* command;   //reference to the string refering to the last command t
 
 int _frameN;            //Frame Number
 bool _savingSet;        //Save Set of Images mode
-// 
+//
 //yarp::os::BufferedPort<yarp::os::Bottle> *_pOutPort=0; //Output Point Port
 Port* _pOutPort=0;
 yarp::os::Bottle _outBottle;//Output Bottle Container
@@ -100,11 +100,11 @@ static void deleteObjects() {
 // Main Window Callbacks
 //-------------------------------------------------
 /**
-* usual callback function 
+* usual callback function
 */
 static void callback( GtkWidget *widget,gpointer   data ){
     printf ("Hello again - %s was pressed \n", (char *) data);
-    
+
     if(!strcmp((char *)data,"OpencvSobel")){
         printf("OpencvSobel");
         command->assign("set ocv");
@@ -230,7 +230,7 @@ gint timeout_update_CB(gpointer data) {
     g_free(msg);
     //displayFpsData.getStats(av, min, max);
     //displayFpsData.reset();
-    
+
     //periodToFreq(av, min, max, avHz, minHz, maxHz);
 
     //msg=g_strdup_printf("Display: %.1f (min:%.1f max:%.1f) fps", avHz, minHz, maxHz);
@@ -252,9 +252,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj1),value);
-                    mutex.post();
+                    _mutex.post();
                 }
         case 2: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
@@ -265,9 +265,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj2),value);
-                    mutex.post();
+                    _mutex.post();
                 }
         case 3: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
@@ -278,9 +278,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj3),value);
-                    mutex.post();
+                    _mutex.post();
                 }
         case 4: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
@@ -291,9 +291,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj4),value);
-                    mutex.post();
+                    _mutex.post();
                 }
         case 5: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
@@ -304,11 +304,11 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj5),value);
-                    mutex.post();
+                    _mutex.post();
                 }
-        case 6: {  
+        case 6: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
                     bot.addVocab(COMMAND_VOCAB_GET);
@@ -317,9 +317,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj6),value);
-                    mutex.post();
+                    _mutex.post();
                 }
 
         default: {
@@ -334,7 +334,7 @@ gboolean delete_event( GtkWidget *widget, GdkEvent *event, gpointer data ) {
     // GTK will emit the "destroy" signal. Returning TRUE means
     // you don't want the window to be destroyed.
     // This is useful for popping up 'are you sure you want to quit?'
-    // type dialogs. 
+    // type dialogs.
     cleanExit();
     return TRUE;
 }
@@ -344,7 +344,7 @@ gint expose_CB (GtkWidget *widget, GdkEventExpose *event, gpointer data) {
 }
 
 static gboolean configure_event( GtkWidget *widget, GdkEventConfigure *event ) {
-   _resources.configure(widget, 
+   _resources.configure(widget,
         widget->allocation.width,
         widget->allocation.height);
   return TRUE;
@@ -361,7 +361,7 @@ gint menuSaveParameters_CB(GtkWidget *widget, gpointer data) {
 
 gint menuHelpAbout_CB(GtkWidget *widget, gpointer data) {
 #if GTK_CHECK_VERSION(2,6,0)
-    const gchar *authors[] = 
+    const gchar *authors[] =
         {
             "Yarp developers",
             NULL
@@ -402,12 +402,12 @@ gint menuHelpAbout_CB(GtkWidget *widget, gpointer data) {
 }
 
 gint menuFileSingle_CB(GtkWidget *widget, GdkEventExpose *event, gpointer data) {
-    if ( gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM(widget)) ) 
+    if ( gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM(widget)) )
         {
             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(fileSetItem), FALSE);
             gtk_widget_show_all (saveSingleDialog);
-        } 
-    else 
+        }
+    else
         {
             gtk_widget_hide (saveSingleDialog);
         }
@@ -434,7 +434,7 @@ GtkWidget* createMenubar(void) {
     GtkWidget *menubar;
 
     menubar =  gtk_menu_bar_new ();
-    GtkWidget *menuSeparator;	
+    GtkWidget *menuSeparator;
     // Submenus Items on menubar
     saveParametersItem = gtk_menu_item_new_with_label ("Save");
     fileItem = gtk_menu_item_new_with_label ("File");
@@ -447,7 +447,7 @@ GtkWidget* createMenubar(void) {
     fileQuitItem = gtk_menu_item_new_with_label ("Quit");
     gtk_menu_append( GTK_MENU(fileMenu), fileQuitItem);
     gtk_signal_connect( GTK_OBJECT(fileQuitItem), "activate", GTK_SIGNAL_FUNC(menuFileQuit_CB), mainWindow);
-    
+
     // Submenu: Help
     helpMenu = gtk_menu_new();
     gtk_menu_append( GTK_MENU(helpMenu), menuSeparator);
@@ -516,23 +516,23 @@ static void scale_set_default_values( GtkScale *scale ) {
 void updateStatusbar(GtkWidget *statusbar, gchar *msg) {
     GtkStatusbar *sb=GTK_STATUSBAR (statusbar);
 
-    gtk_statusbar_pop (sb, 0); // clear any previous message, underflow is allowed 
+    gtk_statusbar_pop (sb, 0); // clear any previous message, underflow is allowed
     gtk_statusbar_push (sb, 0, msg);
 }
 
 //-------------------------------------------------
-// Main Window 
+// Main Window
 //-------------------------------------------------
 GtkWidget* createMainWindow(void) {
-    
-    
+
+
     GtkRequisition actualSize;
     GtkWidget* window;
-    
+
     //gtk_init (&argc, &argv);
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title (GTK_WINDOW (window), "zdfControl");
-    gtk_window_set_default_size(GTK_WINDOW (window), 205, 300); 
+    gtk_window_set_default_size(GTK_WINDOW (window), 205, 300);
     gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
     g_signal_connect (G_OBJECT (window), "destroy",
                       G_CALLBACK (gtk_main_quit),
@@ -563,8 +563,8 @@ GtkWidget* createMainWindow(void) {
             gtk_widget_set_events (da, gtk_widget_get_events (da) | GDK_BUTTON_PRESS_MASK);
         }*/
     //gtk_box_pack_start(GTK_BOX(box), da, TRUE, TRUE, 0);
-    
-    
+
+
     //Toolbox area
     //creates the area as collection of port processes sequence
     box2 = gtk_vbox_new (FALSE, 0); // parameters (gboolean homogeneous_space, gint spacing);
@@ -575,17 +575,17 @@ GtkWidget* createMainWindow(void) {
     gtk_container_set_border_width (GTK_CONTAINER (boxButtons), 0);
     boxSliders = gtk_hbox_new (TRUE, 0); // parameters (gboolean homogeneous_space, gint spacing);
     gtk_container_set_border_width (GTK_CONTAINER (boxSliders), 0);
-    
+
     //-----SCALE section
 //    GtkWidget *scrollbar;
 //    GtkWidget *separator;
     GtkWidget *label;
     //GtkWidget *scale;
-    
-    
+
+
     GtkWidget *hscale, *vscale;
 
-    // value, lower, upper, step_increment, page_increment, page_size 
+    // value, lower, upper, step_increment, page_increment, page_size
     adj1 = gtk_adjustment_new (0.0, 0.0, 1.0, 0.01, 1.0, 1.0);
     vscale = gtk_vscale_new (GTK_ADJUSTMENT (adj1));
     scale_set_default_values (GTK_SCALE (vscale));
@@ -615,7 +615,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("data penalty:");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj1 = gtk_adjustment_new (1.0, 0.0,500.0,1.0, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj1));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -641,7 +641,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("smoothness penalty");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj3 = gtk_adjustment_new (0.5, 0.0,1000.0,1.0, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj3));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -655,7 +655,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("radial penalty");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj4 = gtk_adjustment_new (0.1, 0.0,500.0,1.0, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj4));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -668,7 +668,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("smoothness 3sigmaon2");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj5 = gtk_adjustment_new (0.1, 0.0,500.0,1.0, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj5));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -681,7 +681,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("bland dog thresh");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj6 = gtk_adjustment_new (0.5, 0.0,255.0,1.0, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj6));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -694,7 +694,7 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box3), box5, FALSE, FALSE, 0);
     gtk_widget_show (box5);
 
- 
+
     //gtk_container_add (GTK_CONTAINER (box2), boxSliders);
     gtk_box_pack_start(GTK_BOX(box), box2,FALSE,FALSE, 10);
     // StatusBar for main window
@@ -716,15 +716,15 @@ GtkWidget* createMainWindow(void) {
 void configure(yarp::os::ResourceFinder rf){
     /* Process all parameters from both command-line and .ini file */
     /* get the module name which will form the stem of all module port names */
-    _options.portName      = rf.check("name", 
-                           Value("/zdfControl"), 
+    _options.portName      = rf.check("name",
+                           Value("/zdfControl"),
                            "module name (string)").asString();
-  
-    _options.posX      = rf.check("x", 
-                           Value(100), 
+
+    _options.posX      = rf.check("x",
+                           Value(100),
                            "module pos x (int)").asInt();
-    _options.posY      = rf.check("y", 
-                           Value(100), 
+    _options.posY      = rf.check("y",
+                           Value(100),
                            "module pos y (int)").asInt();
 
 }
@@ -760,7 +760,7 @@ void closePorts() {
     bool ok = true;
     if  (ok)
         printf("Port unregistration succeed!\n");
-    else 
+    else
         printf("ERROR: Port unregistration failed.\n");
     delete _pOutPort;
     _pOutPort = NULL;
@@ -771,7 +771,7 @@ void cleanExit() {
     if (timeout_ID!=0)
         g_source_remove (timeout_ID);
     timeout_ID = 0;
-    
+
     g_source_remove(timeout_update_ID);
     timeout_update_ID=0;
 
@@ -822,21 +822,21 @@ int myMain(int argc, char* argv[]) {
     rf.setDefaultContext("zdfControl");   //overridden by --context parameter
 
     rf.configure(argc, argv);
-    
-    _options.portName      = rf.check("name", 
-                           Value("/zdfControl"), 
+
+    _options.portName      = rf.check("name",
+                           Value("/zdfControl"),
                            "module name (string)").asString();
-  
-    _options.posX      = rf.check("x", 
-                           Value(100), 
+
+    _options.posX      = rf.check("x",
+                           Value(100),
                            "module pos x (int)").asInt();
-    _options.posY      = rf.check("y", 
-                           Value(100), 
+    _options.posY      = rf.check("y",
+                           Value(100),
                            "module pos y (int)").asInt();
     //configure(rf);
-    
+
     // Parse command line parameters, do this before
-    // calling gtk_init(argc, argv) otherwise weird things 
+    // calling gtk_init(argc, argv) otherwise weird things
     // happens
     if (!openPorts())
         goto exitRoutine;
@@ -847,7 +847,7 @@ int myMain(int argc, char* argv[]) {
 
     // create a new window
     mainWindow = createMainWindow();
-    
+
     // Non Modal Dialogs
 #if GTK_CHECK_VERSION(2,6,0)
     //saveSingleDialog = createSaveSingleDialog();
@@ -909,4 +909,3 @@ void printHelp() {
     g_print("zdfControl usage:\n");
     g_print("--name: input port name (default: /zdfControl)\n");
 }
-
