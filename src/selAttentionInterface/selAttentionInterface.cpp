@@ -1,10 +1,10 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/* 
+/*
  * Copyright (C) 2009 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Authors: Rea Francesco
  * email:   francesco.rea@iit.it
- * website: www.robotcub.org 
+ * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -20,8 +20,8 @@
 
 #include "selAttentionInterface.h"
 
-#include <yarp/os/Property.h> 
-#include <yarp/os/Network.h> 
+#include <yarp/os/Property.h>
+#include <yarp/os/Network.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/ResourceFinder.h>
 
@@ -63,7 +63,7 @@ std::string* command;   //reference to the string refering to the last command t
 
 int _frameN;            //Frame Number
 bool _savingSet;        //Save Set of Images mode
-// 
+//
 //yarp::os::BufferedPort<yarp::os::Bottle> *_pOutPort=0; //Output Point Port
 Port* _pOutPort=0;
 yarp::os::Bottle _outBottle;//Output Bottle Container
@@ -108,11 +108,11 @@ static void deleteObjects() {
 // Main Window Callbacks
 //-------------------------------------------------
 /**
-* usual callback function 
+* usual callback function
 */
 static void callback( GtkWidget *widget,gpointer   data ){
     printf ("Hello again - %s was pressed \n", (char *) data);
-    
+
     if(!strcmp((char *)data,"OpencvSobel")){
         printf("OpencvSobel");
         command->assign("set ocv");
@@ -142,7 +142,7 @@ static void callback( GtkWidget *widget,gpointer   data ){
 // Call Backs
 //-------------------------------------------------
 static void cb_digits_scale( GtkAdjustment *adj ) {
-   
+
     if (_pOutPort!=NULL) {
         Bottle in;
         yarp::os::Bottle bot; //= _pOutPort->prepare();
@@ -156,7 +156,7 @@ static void cb_digits_scale( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scale2( GtkAdjustment *adj ) {
-   
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -170,7 +170,7 @@ static void cb_digits_scale2( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scale3( GtkAdjustment *adj ) {
-    
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -184,7 +184,7 @@ static void cb_digits_scale3( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scale4( GtkAdjustment *adj ) {
-    
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -198,7 +198,7 @@ static void cb_digits_scale4( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scale5( GtkAdjustment *adj ) {
-    
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -212,7 +212,7 @@ static void cb_digits_scale5( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scale6( GtkAdjustment *adj ) {
-    
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -226,7 +226,7 @@ static void cb_digits_scale6( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scale11( GtkAdjustment *adj ) {
-    
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -240,7 +240,7 @@ static void cb_digits_scale11( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scale12( GtkAdjustment *adj ) {
-    
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -254,7 +254,7 @@ static void cb_digits_scale12( GtkAdjustment *adj ) {
 }
 
 static void cb_digits_scaleMotion( GtkAdjustment *adj ) {
-    
+
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
@@ -279,7 +279,7 @@ gint timeout_update_CB(gpointer data) {
     g_free(msg);
     //displayFpsData.getStats(av, min, max);
     //displayFpsData.reset();
-    
+
     //periodToFreq(av, min, max, avHz, minHz, maxHz);
 
     //msg=g_strdup_printf("Display: %.1f (min:%.1f max:%.1f) fps", avHz, minHz, maxHz);
@@ -302,9 +302,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    //mutex.wait();
+                    //_mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adjMotion),value);
-                    //mutex.post();
+                    //_mutex.post();
             }
         }
         break;
@@ -318,9 +318,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj1),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -334,9 +334,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj2),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -350,9 +350,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj3),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -366,9 +366,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj4),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -382,9 +382,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj5),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -398,9 +398,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj6),value);
-                    mutex.post();
+                    _mutex.post();
            }
         }
         break;
@@ -414,9 +414,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj11),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -430,9 +430,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj12),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -446,9 +446,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj13),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -462,9 +462,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj14),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -478,9 +478,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj15),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -494,9 +494,9 @@ gint timeout_CB (gpointer data) {
                     Bottle in;
                     _pOutPort->write(bot,in);
                     double value=in.get(2).asDouble();
-                    mutex.wait();
+                    _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj16),value);
-                    mutex.post();
+                    _mutex.post();
             }
         }
         break;
@@ -513,7 +513,7 @@ gboolean delete_event( GtkWidget *widget, GdkEvent *event, gpointer data ) {
     // GTK will emit the "destroy" signal. Returning TRUE means
     // you don't want the window to be destroyed.
     // This is useful for popping up 'are you sure you want to quit?'
-    // type dialogs. 
+    // type dialogs.
     cleanExit();
     return TRUE;
 }
@@ -523,7 +523,7 @@ gint expose_CB (GtkWidget *widget, GdkEventExpose *event, gpointer data) {
 }
 
 static gboolean configure_event( GtkWidget *widget, GdkEventConfigure *event ) {
-   _resources.configure(widget, 
+   _resources.configure(widget,
         widget->allocation.width,
         widget->allocation.height);
   return TRUE;
@@ -535,7 +535,7 @@ gint menuFileQuit_CB(GtkWidget *widget, gpointer data) {
 
 gint menuHelpAbout_CB(GtkWidget *widget, gpointer data) {
 #if GTK_CHECK_VERSION(2,6,0)
-    const gchar *authors[] = 
+    const gchar *authors[] =
         {
             "Yarp developers",
             NULL
@@ -576,12 +576,12 @@ gint menuHelpAbout_CB(GtkWidget *widget, gpointer data) {
 }
 
 gint menuFileSingle_CB(GtkWidget *widget, GdkEventExpose *event, gpointer data) {
-    if ( gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM(widget)) ) 
+    if ( gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM(widget)) )
         {
             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(fileSetItem), FALSE);
             gtk_widget_show_all (saveSingleDialog);
-        } 
-    else 
+        }
+    else
         {
             gtk_widget_hide (saveSingleDialog);
         }
@@ -623,9 +623,9 @@ GtkWidget* createSaveSingleDialog(void) {
     gtk_widget_set_size_request (GTK_WIDGET(button), 150,50);
     gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 16); // parameters (GtkBox *box, GtkWidget *child, gboolean expand, gboolean fill, guint padding);
     gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dialog)->vbox), hbox, FALSE, FALSE, 8); // parameters (GtkBox *box, GtkWidget *child, gboolean expand, gboolean fill, guint padding);
-    
+
     //gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
-    
+
     return dialog;
 }
 
@@ -649,11 +649,11 @@ GtkWidget* createMenubar(void) {
     GtkWidget *menubar;
 
     menubar =  gtk_menu_bar_new ();
-    GtkWidget *menuSeparator;	
+    GtkWidget *menuSeparator;
     // Submenus Items on menubar
     fileItem = gtk_menu_item_new_with_label ("File");
     helpItem = gtk_menu_item_new_with_label ("Help");
-    // Submenu: File 
+    // Submenu: File
     fileMenu = gtk_menu_new();
     fileSingleItem = gtk_check_menu_item_new_with_label ("Save single image..");
     gtk_menu_append( GTK_MENU(fileMenu), fileSingleItem);
@@ -665,14 +665,14 @@ GtkWidget* createMenubar(void) {
     fileQuitItem = gtk_menu_item_new_with_label ("Quit");
     gtk_menu_append( GTK_MENU(fileMenu), fileQuitItem);
     gtk_signal_connect( GTK_OBJECT(fileQuitItem), "activate", GTK_SIGNAL_FUNC(menuFileQuit_CB), mainWindow);
-    // Submenu: Image  
+    // Submenu: Image
     imageMenu = gtk_menu_new();
-    
+
     menuSeparator = gtk_separator_menu_item_new();
     gtk_menu_append( GTK_MENU(imageMenu), menuSeparator);
     menuSeparator = gtk_separator_menu_item_new();
     gtk_menu_append( GTK_MENU(imageMenu), menuSeparator);
-    
+
     // Submenu: Help
     helpMenu = gtk_menu_new();
     helpAboutItem = gtk_menu_item_new_with_label ("About..");
@@ -685,7 +685,7 @@ GtkWidget* createMenubar(void) {
     gtk_menu_bar_append(GTK_MENU_BAR(menubar), fileItem);
     gtk_menu_item_set_right_justified (GTK_MENU_ITEM (helpItem), TRUE);
     gtk_menu_bar_append(GTK_MENU_BAR(menubar), helpItem);
-  
+
     return menubar;
 }
 
@@ -730,23 +730,23 @@ static void scale_set_default_values( GtkScale *scale ) {
 void updateStatusbar(GtkWidget *statusbar, gchar *msg) {
     GtkStatusbar *sb=GTK_STATUSBAR (statusbar);
 
-    gtk_statusbar_pop (sb, 0); // clear any previous message, underflow is allowed 
+    gtk_statusbar_pop (sb, 0); // clear any previous message, underflow is allowed
     gtk_statusbar_push (sb, 0, msg);
 }
 
 //-------------------------------------------------
-// Main Window 
+// Main Window
 //-------------------------------------------------
 GtkWidget* createMainWindow(void) {
-    
-    
+
+
     GtkRequisition actualSize;
     GtkWidget* window;
-    
+
     //gtk_init (&argc, &argv);
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title (GTK_WINDOW (window), "selectiveAttentionInterface");
-    gtk_window_set_default_size(GTK_WINDOW (window), 205, 300); 
+    gtk_window_set_default_size(GTK_WINDOW (window), 205, 300);
     gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
     g_signal_connect (G_OBJECT (window), "destroy",
                       G_CALLBACK (gtk_main_quit),
@@ -777,8 +777,8 @@ GtkWidget* createMainWindow(void) {
             gtk_widget_set_events (da, gtk_widget_get_events (da) | GDK_BUTTON_PRESS_MASK);
         }*/
     //gtk_box_pack_start(GTK_BOX(box), da, TRUE, TRUE, 0);
-    
-    
+
+
     //Toolbox area
     //creates the area as collection of port processes sequence
     box2 = gtk_vbox_new (FALSE, 0); // parameters (gboolean homogeneous_space, gint spacing);
@@ -789,17 +789,17 @@ GtkWidget* createMainWindow(void) {
     gtk_container_set_border_width (GTK_CONTAINER (boxButtons), 0);
     boxSliders = gtk_hbox_new (TRUE, 0); // parameters (gboolean homogeneous_space, gint spacing);
     gtk_container_set_border_width (GTK_CONTAINER (boxSliders), 0);
-    
+
     //-----SCALE section
     GtkWidget *scrollbar;
     GtkWidget *separator;
     GtkWidget *label;
     //GtkWidget *scale;
-    
-    
+
+
     GtkWidget *hscale, *vscale;
 
-    // value, lower, upper, step_increment, page_increment, page_size 
+    // value, lower, upper, step_increment, page_increment, page_size
     adj1 = gtk_adjustment_new (0.0, 0.0, 0.5, 0.01, 1.0, 1.0);
     vscale = gtk_vscale_new (GTK_ADJUSTMENT (adj1));
     scale_set_default_values (GTK_SCALE (vscale));
@@ -829,7 +829,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map1 k1 (Intensity) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj1 = gtk_adjustment_new (0.5, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj1));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -838,7 +838,7 @@ GtkWidget* createMainWindow(void) {
     gtk_widget_show (hscale);
     g_signal_connect (G_OBJECT (adj1), "value_changed",
                       G_CALLBACK (cb_digits_scale), NULL);
-    
+
 
 
     label = gtk_label_new ("map2 k2 (EarlyMotion) :");
@@ -857,7 +857,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map3 k3 (Chrominance) : ");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj3 = gtk_adjustment_new (0.1, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj3));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -871,7 +871,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map4 k4 (Orientation) : ");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj4 = gtk_adjustment_new (0.1, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj4));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -884,7 +884,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map5 k5 (Edges) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj5 = gtk_adjustment_new (0.1, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj5));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -897,7 +897,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map6 k6 (Blob) :");
     gtk_box_pack_start (GTK_BOX (box5), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj6 = gtk_adjustment_new (1.0, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj6));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -925,7 +925,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map1 k1:");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj11 = gtk_adjustment_new (1.0, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj11));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -935,7 +935,7 @@ GtkWidget* createMainWindow(void) {
     g_signal_connect (G_OBJECT (adj11), "value_changed",
                       G_CALLBACK (cb_digits_scale11), NULL);
 
-    
+
     label = gtk_label_new ("map2 k2:");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
@@ -953,7 +953,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map3: k3");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj13 = gtk_adjustment_new (0.5, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj13));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -967,7 +967,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map4: k4");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj14 = gtk_adjustment_new (0.1, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj14));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -980,7 +980,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map5: k5");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj15 = gtk_adjustment_new (0.1, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj15));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -993,7 +993,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("map6: k6");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adj16 = gtk_adjustment_new (0.5, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj16));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -1002,7 +1002,7 @@ GtkWidget* createMainWindow(void) {
     gtk_widget_show (hscale);
     g_signal_connect (G_OBJECT (adj16), "value_changed",
                       G_CALLBACK (cb_digits_scale16), NULL);
-    */  
+    */
 
     gtk_box_pack_start (GTK_BOX (box3), box6, FALSE, FALSE, 0);
     gtk_widget_show (box6);
@@ -1016,15 +1016,15 @@ GtkWidget* createMainWindow(void) {
 
     scrollbar = gtk_hscrollbar_new (GTK_ADJUSTMENT (adj1));
     // Notice how this causes the scales to always be updated
-    // continuously when the scrollbar is moved 
-    //gtk_range_set_update_policy (GTK_RANGE (scrollbar), 
+    // continuously when the scrollbar is moved
+    //gtk_range_set_update_policy (GTK_RANGE (scrollbar),
     //                             GTK_UPDATE_CONTINUOUS);
     //gtk_box_pack_start (GTK_BOX (box3), scrollbar, TRUE, TRUE, 0);
     //gtk_widget_show (scrollbar;)
 
     //-----Check Buttons
     box4=  gtk_vbox_new (FALSE, 0);
-    
+
     gtk_box_pack_start (GTK_BOX (box3), box4, TRUE, TRUE, 0);
     gtk_widget_show (box4);
 
@@ -1043,7 +1043,7 @@ GtkWidget* createMainWindow(void) {
     label = gtk_label_new ("coefficient motion");
     gtk_box_pack_start (GTK_BOX (box2), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
-    
+
     adjMotion = gtk_adjustment_new (0.3, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adjMotion));
     gtk_widget_set_size_request (GTK_WIDGET (hscale), 200, -1);
@@ -1052,7 +1052,7 @@ GtkWidget* createMainWindow(void) {
     gtk_widget_show (hscale);
     g_signal_connect (G_OBJECT (adjMotion), "value_changed",
                       G_CALLBACK (cb_digits_scaleMotion), NULL);
-    
+
     separator = gtk_hseparator_new ();
     gtk_box_pack_start (GTK_BOX (box2), separator, FALSE, TRUE, 10);
     gtk_widget_show (separator);
@@ -1079,14 +1079,14 @@ GtkWidget* createMainWindow(void) {
 void configure(yarp::os::ResourceFinder rf){
     /* Process all parameters from both command-line and .ini file */
     /* get the module name which will form the stem of all module port names */
-    _options.portName      = rf.check("name", 
-                           Value("/selectiveAttentionInterface"), 
+    _options.portName      = rf.check("name",
+                           Value("/selectiveAttentionInterface"),
                            "module name (string)").asString();
-    _options.posX      = rf.check("x", 
-                           Value(100), 
+    _options.posX      = rf.check("x",
+                           Value(100),
                            "module pos x (int)").asInt();
-    _options.posY      = rf.check("y", 
-                           Value(100), 
+    _options.posY      = rf.check("y",
+                           Value(100),
                            "module pos y (int)").asInt();
 
 }
@@ -1122,7 +1122,7 @@ void closePorts() {
     bool ok = true;
     if  (ok)
         printf("Port unregistration succeed!\n");
-    else 
+    else
         printf("ERROR: Port unregistration failed.\n");
     delete _pOutPort;
     _pOutPort = NULL;
@@ -1133,7 +1133,7 @@ void cleanExit() {
     if (timeout_ID!=0)
         g_source_remove (timeout_ID);
     timeout_ID = 0;
-    
+
     g_source_remove(timeout_update_ID);
     timeout_update_ID=0;
 
@@ -1148,7 +1148,7 @@ void cleanExit() {
 int myMain(int argc, char* argv[]) {
     yarp::os::Network yarp;
 
-    
+
     //initialize threads in gtk, copied almost verbatim from
     // http://library.gnome.org/devel/gdk/unstable/gdk-Threads.htm
     //g_thread_init (NULL);
@@ -1166,9 +1166,9 @@ int myMain(int argc, char* argv[]) {
     rf->setDefaultContext("logPolarAttention");   //overridden by --context parameter
     rf->configure(argc, argv);
     configure(*rf);
-    
+
     // Parse command line parameters, do this before
-    // calling gtk_init(argc, argv) otherwise weird things 
+    // calling gtk_init(argc, argv) otherwise weird things
     // happens
     if (!openPorts())
         goto exitRoutine;
@@ -1179,7 +1179,7 @@ int myMain(int argc, char* argv[]) {
 
     // create a new window
     mainWindow = createMainWindow();
-    
+
     // Non Modal Dialogs
 #if GTK_CHECK_VERSION(2,6,0)
     saveSingleDialog = createSaveSingleDialog();
@@ -1241,4 +1241,3 @@ void printHelp() {
     g_print("selAttentionInterface usage:\n");
     g_print("--name: input port name (default: /selAttentionInterface)\n");
 }
-
