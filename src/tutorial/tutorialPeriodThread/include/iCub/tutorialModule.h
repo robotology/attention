@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
-  * Copyright (C)2013  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Francesco Rea
-  * email: francesco.reak@iit.it
+  * Copyright (C)2020  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Carlo Mazzola
+  * email: carlo.mazzola@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -76,7 +76,7 @@
  *  <b>Input ports</b>
  *
  *  - \c /tutorialRateThread \n
- *    This port is used to change the parameters of the tutorialRateThread at run time or stop the tutorialRateThread. \n
+ *    This port is used to change the parameters of the tutorialPeriodThread at run time or stop the tutorialPeriodThread. \n
  *    The following commands are available
  * 
  *  -  \c help \n
@@ -87,14 +87,14 @@
  *    The port can be used by other tutorialRateThreads but also interactively by a user through the yarp rpc directive, viz.: \c yarp \c rpc \c /tutorialRateThread
  *    This opens a connection from a terminal to the port and allows the user to then type in commands and receive replies.
  *       
- *  - \c /tutorialRateThread/image:i \n
+ *  - \c /tutorialPeriodThread/image:i \n
  *
  * <b>Output ports</b>
  *
- *  - \c /tutorialRateThread \n
+ *  - \c /tutorialPeriodThread \n
  *    see above
  *
- *  - \c /tutorialRateThread/image:o \n
+ *  - \c /tutorialPeriodThread/image:o \n
  *
  * <b>Port types</b>
  *
@@ -125,18 +125,17 @@
  * 
  * <tt>tutorialRateThread --name tutorialRateThread --context tutorialRateThread/conf --from tutorialRateThread.ini --robot icub</tt>
  *
- * \author Rea Francesco
+ * \author Mazzola Carlo
  *
- * Copyright (C) 2011 RobotCub Consortium\n
+ * Copyright (C) 2020 RobotCub Consortium\n
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
- * This file can be edited at \c $ATTENTION_ROOT/src/tutorial/tutorialRateThread/include/iCub/tutorialRateThread.h
+ * This file can be edited at \c $ATTENTION_ROOT/src/tutorial/tutorialRateThread/include/iCub/tutorialPeriodThread.h
  * 
  */
 
 
 #include <iostream>
 #include <string>
-
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/os/RFModule.h>
@@ -146,7 +145,7 @@
 #include <iCub/attention/commandDictionary.h>
 
 //within project includes  
-#include <iCub/tutorialRatethread.h>
+#include <iCub/tutorialPeriodThread.h>
 
 class tutorialModule:public yarp::os::RFModule {
     
@@ -160,7 +159,7 @@ class tutorialModule:public yarp::os::RFModule {
     
     yarp::os::Port handlerPort;              // a port to handle messages 
     /*  */
-    tutorialRatethread *rThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
+    tutorialPeriodThread *pThread;             // pointer to a new thread to be created and started in configure() and stopped in close()
 
 public:
     /**
