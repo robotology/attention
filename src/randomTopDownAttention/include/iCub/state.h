@@ -29,6 +29,7 @@ public:
     state(string stateName, int stateNum);
     string getName();
     int getNum();
-    virtual Bottle getSettings() = 0;
+    virtual Bottle* getSettings() = 0;
+    virtual int getSettingsSize() = 0;
 };
 #endif

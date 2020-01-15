@@ -17,12 +17,12 @@
 
 #include <iCub/topDownAttentionPeriodic.h>
 #include "iCub/helperFunctions.h"
-#include "iCub/attendingColourfulState.h"
-#include "iCub/attendingMovementState.h"
-#include "iCub/attendingFacesState.h"
-#include "iCub/attendingAudioState.h"
-#include "iCub/attendingIntensityState.h"
-#include "iCub/attendingObjectState.h"
+#include "iCub/stateBlobOnly.h"
+#include "iCub/stateChrominanceOnly.h"
+#include "iCub/stateIntensityOnly.h"
+#include "iCub/stateMotionOnly.h"
+#include "iCub/stateOrientationOnly.h"
+#include "iCub/stateEdgesOnly.h"
 #include <cstdlib>
 #include <ctime>
 using namespace std;
@@ -37,12 +37,12 @@ topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string moduleName):P
 
     //create a new state array of pointers of 6 states and create instances from each state
     attentionStates = new state*[6];
-    attentionStates[0] = new attendingColourfulState();
-    attentionStates[1] = new attendingMovementState();
-    attentionStates[2] = new attendingFacesState();
-    attentionStates[3] = new attendingAudioState();
-    attentionStates[4] = new attendingIntensityState();
-    attentionStates[5] = new attendingObjectState();
+    attentionStates[0] = new stateIntensityOnly();
+    attentionStates[1] = new stateMotionOnly();
+    attentionStates[2] = new stateChrominanceOnly();
+    attentionStates[3] = new stateOrientationOnly();
+    attentionStates[4] = new stateEdgesOnly();
+    attentionStates[5] = new stateBlobOnly();
 
     //initialize the randomisation function
     srand(time(NULL));
@@ -86,12 +86,69 @@ void topDownAttentionPeriodic::sendAttentionToPort(){
         int randomNum = (rand()%6);
 
         //get the command of this the state which has an index of the generated random number in the state array
-        cmd = attentionStates[randomNum]->getSettings();
-        yInfo("Sending message... ");
-        helperFunctions::printBottle(cmd);
-        Bottle response;
-        //send the command, recieve the responce, and print the responce 
-        port.write(cmd,response);
-        yInfo("Got response: %s\n", response.toString().c_str());
+        Bottle* allCmds = attentionStates[randomNum]->getSettings();
+        for(int i =0; i< attentionStates[randomNum]->getSettingsSize(); i++){
+            cmd = allCmds[i];
+            yInfo("Sending message... ");
+            helperFunctions::printBottle(cmd);
+            Bottle response;
+            //send the command, recieve the responce, and print the responce
+            port.write(cmd,response);
+            yInfo("Got response: %s\n", response.toString().c_str());
+        }
     }
+}
+
+topDownAttentionPeriodic::~topDownAttentionPeriodic(){
+    for(int i=0; i<6; i++){
+        delete attentionStates[i];
+    }
+    delete [] attentionStates;
+}
+topDownAttentionPeriodic::topDownAttentionPeriodic(topDownAttentionPeriodic& topDownPeriodObject):PeriodicThread(topDownPeriodObject.getPeriod()){
+    //set the module name
+    this->moduleName = topDownPeriodObject.moduleName;
+
+    //initialize the output port name with moduleName/cmd
+    this->clientName = topDownPeriodObject.moduleName;
+
+    //create a new state array of pointers of 6 states and create instances from each state
+    attentionStates = new state*[6];
+    attentionStates[0] = new stateIntensityOnly();
+    attentionStates[1] = new stateMotionOnly();
+    attentionStates[2] = new stateChrominanceOnly();
+    attentionStates[3] = new stateOrientationOnly();
+    attentionStates[4] = new stateEdgesOnly();
+    attentionStates[5] = new stateBlobOnly();
+
+    //initialize the randomisation function
+    srand(time(NULL));
+}
+topDownAttentionPeriodic& topDownAttentionPeriodic::operator=(const topDownAttentionPeriodic& topDownPeriodObject){
+    this->setPeriod(topDownPeriodObject.getPeriod());
+    //set the module name
+    this->moduleName = topDownPeriodObject.moduleName;
+
+    //initialize the output port name with moduleName/cmd
+    this->clientName = topDownPeriodObject.moduleName;
+
+    if(attentionStates){
+        for(int i=0; i<6; i++){
+            if(attentionStates[i])
+                delete attentionStates[i];
+        }
+        delete [] attentionStates;
+    }
+    //create a new state array of pointers of 6 states and create instances from each state
+    attentionStates = new state*[6];
+    attentionStates[0] = new stateIntensityOnly();
+    attentionStates[1] = new stateMotionOnly();
+    attentionStates[2] = new stateChrominanceOnly();
+    attentionStates[3] = new stateOrientationOnly();
+    attentionStates[4] = new stateEdgesOnly();
+    attentionStates[5] = new stateBlobOnly();
+
+    //initialize the randomisation function
+    srand(time(NULL));
+    return *this;
 }
