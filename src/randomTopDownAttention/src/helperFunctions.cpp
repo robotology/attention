@@ -19,6 +19,8 @@
 
 
 void helperFunctions::printBottle(Bottle& bottle){
+    //this function prints in details the bottle object (msg from to ports)
+    // it is used to make sure that the msg is created proparly without any errors
     for (int i=0; i<bottle.size(); i++) {
         yInfo("[%d]: ", i);
         Value& element = bottle.get(i);
@@ -51,10 +53,12 @@ void helperFunctions::printBottle(Bottle& bottle){
     }
 }
 
+
 Bottle helperFunctions::createSetVocabBottle(NetInt32 vocab ,double value){
-  Bottle cmd;
-  cmd.addVocab(COMMAND_VOCAB_SET);
-  cmd.addVocab(vocab);
-  cmd.addDouble(value);
-  return cmd;
+    //this function creates a set commad vocab command
+    Bottle cmd;
+    cmd.addVocab(COMMAND_VOCAB_SET);
+    cmd.addVocab(vocab);
+    cmd.addDouble(value);
+    return cmd;
 }

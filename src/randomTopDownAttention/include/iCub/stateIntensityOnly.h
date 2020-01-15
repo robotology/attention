@@ -15,14 +15,15 @@
   * Public License for more details
 */
 
-#ifndef _STATE_ATTENDING_COLOURFUL_H_
-#define _STATE_ATTENDING_COLOURFUL_H_
+#ifndef _STATE_INTENSITY_ONLY_H
+#define _STATE_INTENSITY_ONLY_H
 #include "state.h"
 using namespace std;
 
-class attendingColourfulState :public state{
+class stateIntensityOnly :public state{
 public:
-    attendingColourfulState();
-    Bottle getSettings();
+    stateIntensityOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
 };
 #endif

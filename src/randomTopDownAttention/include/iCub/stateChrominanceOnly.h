@@ -15,14 +15,15 @@
   * Public License for more details
 */
 
-#ifndef _ATTENDINF_INTENSITY_STATE_H_
-#define _ATTENDINF_INTENSITY_STATE_H_
+#ifndef _STATE_CHROMINANCE_ONLY_H_
+#define _STATE_CHROMINANCE_ONLY_H_
 #include "state.h"
 using namespace std;
 
-class attendingIntensityState :public state{
+class stateChrominanceOnly :public state{
 public:
-    attendingIntensityState();
-    Bottle getSettings();
+    stateChrominanceOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
 };
 #endif

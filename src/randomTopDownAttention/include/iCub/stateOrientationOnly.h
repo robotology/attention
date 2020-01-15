@@ -15,14 +15,15 @@
   * Public License for more details
 */
 
-#ifndef _ATTENDING_MOVEMENT_STATE_H_
-#define _ATTENDING_MOVEMENT_STATE_H_
+#ifndef _STATE_ORIENTATION_ONLY_H_
+#define _STATE_ORIENTATION_ONLY_H_
 #include "state.h"
 using namespace std;
 
-class attendingMovementState :public state{
+class stateOrientationOnly :public state{
 public:
-    attendingMovementState();
-    Bottle getSettings();
+    stateOrientationOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
 };
 #endif

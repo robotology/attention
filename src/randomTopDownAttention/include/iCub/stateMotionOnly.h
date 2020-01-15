@@ -15,11 +15,15 @@
   * Public License for more details
 */
 
-#include "iCub/attendingMovementState.h"
-#include "iCub/helperFunctions.h"
+#ifndef _STATE_MOTION_ONLE_H_
+#define _STATE_MOTION_ONLE_H_
+#include "state.h"
+using namespace std;
 
-attendingMovementState::attendingMovementState():state("attendingMovementState",2){}
-
-Bottle attendingMovementState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.2);
-}
+class stateMotionOnly :public state{
+public:
+    stateMotionOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
+};
+#endif

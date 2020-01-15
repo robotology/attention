@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
-  * Copyright (C)2013  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Francesco Rea
-  * email: francesco.reak@iit.it
+  * Copyright (C)2020  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Carlo Mazzola
+  * email: carlo.mazzola@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -22,7 +22,7 @@
  * @brief Implementation of the eventDriven thread (see tutorialRatethread.h).
  */
 
-#include <iCub/tutorialRatethread.h>
+#include <iCub/tutorialPeriodThread.h>
 #include <cstring>
 
 using namespace yarp::dev;
@@ -30,22 +30,22 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-#define THRATE 100 //ms
+#define THPERIOD 0.1 //s
 
-tutorialRatethread::tutorialRatethread():RateThread(THRATE) {
+tutorialPeriodThread::tutorialPeriodThread():PeriodicThread(THPERIOD) {
     robot = "icub";        
 }
 
-tutorialRatethread::tutorialRatethread(string _robot, string _configFile):RateThread(THRATE){
+tutorialPeriodThread::tutorialPeriodThread(string _robot, string _configFile):PeriodicThread(THPERIOD){
     robot = _robot;
     configFile = _configFile;
 }
 
-tutorialRatethread::~tutorialRatethread() {
+tutorialPeriodThread::~tutorialPeriodThread() {
     // do nothing
 }
 
-bool tutorialRatethread::threadInit() {
+bool tutorialPeriodThread::threadInit() {
     // opening the port for direct input
     if (!inputPort.open(getName("/image:i").c_str())) {
         yError("unable to open port to receive input");
@@ -62,47 +62,48 @@ bool tutorialRatethread::threadInit() {
     return true;
 }
 
-void tutorialRatethread::setName(string str) {
+void tutorialPeriodThread::setName(string str) {
     this->name=str;
 }
 
 
-std::string tutorialRatethread::getName(const char* p) {
+std::string tutorialPeriodThread::getName(const char* p) {
     string str(name);
     str.append(p);
     return str;
 }
 
-void tutorialRatethread::setInputPortName(string InpPort) {
+void tutorialPeriodThread::setInputPortName(string InpPort) {
     
 }
 
-void tutorialRatethread::run() {    
+void tutorialPeriodThread::run() {    
     //code here .....
     if (inputPort.getInputCount()) {
         inputImage = inputPort.read(true);   //blocking reading for synchr with the input
         result = processing();
+        yInfo("test");
     }
 
     if (outputPort.getOutputCount()) {
-        *outputImage = outputPort.prepare();
-        outputImage->resize(inputImage->width(), inputImage->height());
+        //*outputImage = outputPort.prepare();
+        //outputImage->resize(inputImage->width(), inputImage->height());
+        //outputImage->resize(600,400);
         // changing the pointer of the prepared area for the outputPort.write()
-        // copy(inputImage, outImage);
-        // outputPort.prepare() = *inputImage; //deprecated
-
+        //copy(inputImage, outImage);
+        outputPort.prepare() = *inputImage; //deprecated
         outputPort.write();
     }
 
 }
 
-bool tutorialRatethread::processing(){
+bool tutorialPeriodThread::processing(){
     // here goes the processing...
     return true;
 }
 
 
-void tutorialRatethread::threadRelease() {
+void tutorialPeriodThread::threadRelease() {
     // nothing
     inputPort.interrupt();
     outputPort.interrupt();
