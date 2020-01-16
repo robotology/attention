@@ -15,14 +15,15 @@
   * Public License for more details
 */
 
-#ifndef _ATTENDING_FACES_STATE_H_
-#define _ATTENDING_FACES_STATE_H_
+#ifndef _STATE_BLOB_ONLY_H_
+#define _STATE_BLOB_ONLY_H_
 #include "state.h"
 using namespace std;
 
-class attendingFacesState :public state{
+class stateBlobOnly :public state{
 public:
-    attendingFacesState();
-    Bottle getSettings();
+    stateBlobOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
 };
 #endif

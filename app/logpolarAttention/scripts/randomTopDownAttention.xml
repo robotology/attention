@@ -4,37 +4,6 @@
         <port>selectiveAttentionEngine</port>
     </dependencies>
 
-    <module>
-        <name>iCub_SIM</name>
-        <parameters></parameters>
-        <node>Com1</node>
-        <stdio>Com1</stdio>
-        <tag>simulator</tag>
-    </module>
-
-
-    <module>
-        <name>logpolarTransform</name>
-        <parameters>--name logpolarTransform</parameters>
-        <node>Com1</node>
-    </module>
-
-
-    <module>
-		<name>earlyVision</name>
-		<parameters>--name /earlyVision</parameters>
-		<tag>earlyvis</tag>
-		<node>Com1</node>
-	</module>
-
-
-    <module>
-        <name>selectiveAttentionEngine</name>
-        <parameters>--name /selectiveAttentionEngine</parameters>
-        <tag>randSelectiveAtt</tag>
-        <node>Com1</node>
-    </module>
-
 
     <module>
         <name>randomTopDownAttention</name>
@@ -42,111 +11,10 @@
         <node>Com1</node>
     </module>
 
-
-    <module>
-        <name>selAttentionInterface</name>
-        <parameters>--name /selectiveAttentionInterface --x 1480 --y 0</parameters>
-        <tag>selectiveAttInterfaceLeft</tag>
-        <node>Com1</node>
-    </module>
-
-
-
-
-
-    <module>
-        <name>yarpview</name>
-        <parameters>--name /attentionCartesianView</parameters>
-        <node>Com1</node>
-    </module>
-
-    <module>
-        <name>yarpview</name>
-        <parameters>--name /logpolarView</parameters>
-        <node>Com1</node>
-    </module>
-
-    <module>
-        <name>yarpview</name>
-        <parameters>--name /earlyVisionCenIntenView</parameters>
-        <node>Com1</node>
-    </module>
-
-
-
-
-
-
-    <connection>
-        <from>/icubSim/cam/left</from>
-        <to>/logpolarTransform/image:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/logpolarTransform/image:o</from>
-        <to>/earlyVision/imageRGB:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-
-
-    <connection>
-        <from>/earlyVision/edges/edges:o</from>
-        <to>/selectiveAttentionEngine/edges:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/earlyVision/centSurrIntensity:o</from>
-        <to>/selectiveAttentionEngine/intensity:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/earlyVision/chrominance:o</from>
-        <to>/selectiveAttentionEngine/chrominance:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/earlyVision/chrome/sumOrientations:o</from>
-        <to>/selectiveAttentionEngine/orientation:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-
-
     <connection>
         <from>/randomTopDownAttention/cmd</from>
         <to>/selectiveAttentionEngine</to>
         <protocol>tcp</protocol>
     </connection>
-
-    <connection>
-        <from>/selectiveAttentionInterface/command:o</from>
-        <to>/selectiveAttentionEngine</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-
-    <connection>
-        <from>/selectiveAttentionEngine/cartesian:o</from>
-        <to>/attentionCartesianView</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/earlyVision/centSurrIntensity:o</from>
-        <to>/earlyVisionCenIntenView</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/logpolarTransform/image:o</from>
-        <to>/logpolarView</to>
-        <protocol>tcp</protocol>
-    </connection>
-
 
 </application>

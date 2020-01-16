@@ -15,11 +15,22 @@
   * Public License for more details
 */
 
-#include "iCub/attendingAudioState.h"
+#include "iCub/stateIntensityOnly.h"
 #include "iCub/helperFunctions.h"
 
-attendingAudioState::attendingAudioState():state("attendingAudioState",4){}
+stateIntensityOnly::stateIntensityOnly():state("stateIntensityOnly",1){}
 
-Bottle attendingAudioState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.4);
+Bottle* stateIntensityOnly::getSettings(){
+    Bottle* settings = new Bottle[6];
+    settings[0] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,1);
+    settings[1] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K2,0);
+    settings[2] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K3,0);
+    settings[3] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K4,0);
+    settings[4] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K5,0);
+    settings[5] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K6,0);
+    return settings;
+}
+
+int stateIntensityOnly::getSettingsSize(){
+    return 6;
 }

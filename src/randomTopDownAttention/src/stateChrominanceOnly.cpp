@@ -15,11 +15,22 @@
   * Public License for more details
 */
 
-#include "iCub/attendingObjectState.h"
+#include "iCub/stateChrominanceOnly.h"
 #include "iCub/helperFunctions.h"
 
-attendingObjectState::attendingObjectState():state("attendingObjectState",6){}
+stateChrominanceOnly::stateChrominanceOnly():state("stateChrominanceOnly",3){}
 
-Bottle attendingObjectState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.6);
+Bottle* stateChrominanceOnly::getSettings(){
+    Bottle* settings = new Bottle[6];
+    settings[0] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0);
+    settings[1] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K2,0);
+    settings[2] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K3,1);
+    settings[3] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K4,0);
+    settings[4] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K5,0);
+    settings[5] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K6,0);
+    return settings;
+}
+
+int stateChrominanceOnly::getSettingsSize(){
+    return 6;
 }

@@ -15,11 +15,22 @@
   * Public License for more details
 */
 
-#include "iCub/attendingFacesState.h"
+#include "iCub/stateEdgesOnly.h"
 #include "iCub/helperFunctions.h"
 
-attendingFacesState::attendingFacesState():state("attendingFacesState",3){}
+stateEdgesOnly::stateEdgesOnly():state("stateEdgesOnly",5){}
 
-Bottle attendingFacesState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.3);
+Bottle* stateEdgesOnly::getSettings(){
+    Bottle* settings = new Bottle[6];
+    settings[0] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0);
+    settings[1] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K2,0);
+    settings[2] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K3,0);
+    settings[3] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K4,0);
+    settings[4] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K5,1);
+    settings[5] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K6,0);
+    return settings;
+}
+
+int stateEdgesOnly::getSettingsSize(){
+    return 6;
 }

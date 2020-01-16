@@ -15,11 +15,22 @@
   * Public License for more details
 */
 
-#include "iCub/attendingColourfulState.h"
+#include "iCub/stateMotionOnly.h"
 #include "iCub/helperFunctions.h"
 
-attendingColourfulState::attendingColourfulState():state("attendingColourfulState",1){}
+stateMotionOnly::stateMotionOnly():state("stateMotionOnly",2){}
 
-Bottle attendingColourfulState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.1);
+Bottle* stateMotionOnly::getSettings(){
+    Bottle* settings = new Bottle[6];
+    settings[0] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0);
+    settings[1] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K2,1);
+    settings[2] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K3,0);
+    settings[3] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K4,0);
+    settings[4] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K5,0);
+    settings[5] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K6,0);
+    return settings;
+}
+
+int stateMotionOnly::getSettingsSize(){
+    return 6;
 }

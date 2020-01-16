@@ -33,19 +33,23 @@ using namespace std;
 
 class topDownAttentionPeriodic : public PeriodicThread {
 public:
+    topDownAttentionPeriodic(double p,string moduleName);
+    topDownAttentionPeriodic(topDownAttentionPeriodic& topDownPeriodObject);
+    topDownAttentionPeriodic& operator=(const topDownAttentionPeriodic& topDownPeriodObject);
+    ~topDownAttentionPeriodic();
+    bool threadInit();
+    void afterStart(bool s);
+    void run();
+    void threadRelease();
+    void sendAttentionToPort();
+
+private:
     Network yarp;
     RpcClient port;
     int msgCount;
     string moduleName;
     string clientName;
     state** attentionStates;
-
-    topDownAttentionPeriodic(double p,string moduleName);
-    bool threadInit();
-    void afterStart(bool s);
-    void run();
-    void threadRelease();
-    void sendAttentionToPort();
 };
 
 #endif

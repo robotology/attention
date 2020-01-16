@@ -15,14 +15,15 @@
   * Public License for more details
 */
 
-#ifndef _ATTENDING_AUDIO_STATE_H_
-#define _ATTENDING_AUDIO_STATE_H_
+#ifndef _STATE_EDGES_ONLY_H_
+#define _STATE_EDGES_ONLY_H_
 #include "state.h"
 using namespace std;
 
-class attendingAudioState :public state{
+class stateEdgesOnly :public state{
 public:
-    attendingAudioState();
-    Bottle getSettings();
+    stateEdgesOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
 };
 #endif
