@@ -23,16 +23,16 @@
 #include "iCub/earlyMotionModule.h"
 
 // general command vocab's
-#define COMMAND_VOCAB_OK     VOCAB2('o','k')
+const int32_t COMMAND_VOCAB_OK     = yarp::os::createVocab('o','k');
 
-#define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
-#define COMMAND_VOCAB_SUS    VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RES    VOCAB3('r','e','s')
-#define COMMAND_VOCAB_THRESSHOLD VOCAB3('t','h', 'r')
+const int32_t COMMAND_VOCAB_SET    = yarp::os::createVocab('s','e','t');
+const int32_t COMMAND_VOCAB_GET    = yarp::os::createVocab('g','e','t');
+const int32_t COMMAND_VOCAB_SUS    = yarp::os::createVocab('s','u','s');
+const int32_t COMMAND_VOCAB_RES    = yarp::os::createVocab('r','e','s');
+const int32_t COMMAND_VOCAB_THRESSHOLD = yarp::os::createVocab('t','h', 'r');
 
-#define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+const int32_t COMMAND_VOCAB_HELP   = yarp::os::createVocab('h','e','l','p');
+const int32_t COMMAND_VOCAB_FAILED = yarp::os::createVocab('f','a','i','l');
 
 using namespace yarp::os;
 using namespace yarp::sig;
