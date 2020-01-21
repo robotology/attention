@@ -2981,8 +2981,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if (feedbackProtoObject.getOutputCount()){
                    Bottle requestProto, replyProto;
                    requestProto.clear(); replyProto.clear();
-                   requestProto.addVocab(VOCAB3('g','e','t')); 
-                   requestProto.addVocab(VOCAB4('f','r','g','b'));
+                   requestProto.addVocab(yarp::os::createVocab('g','e','t'));
+                   requestProto.addVocab(yarp::os::createVocab('f','r','g','b'));
                    feedbackProtoObject.write(requestProto, replyProto); 
                    printf("returned from proto %s \n", replyProto.toString().c_str());
                    r = replyProto.get(0).asInt();
@@ -2993,7 +2993,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 //adding novel position to the working memory
                 Bottle request, reply;
                 request.clear(); reply.clear();
-                request.addVocab(VOCAB3('a','d','d'));
+                request.addVocab(yarp::os::createVocab('a','d','d'));
                 Bottle& listAttr=request.addList();
                 
                 Bottle& sublistX = listAttr.addList();
