@@ -175,27 +175,27 @@
 #include <iCub/blobFinderThread.h>
 
 // general command vocab's
-#define COMMAND_VOCAB_IS     VOCAB2('i','s')
-#define COMMAND_VOCAB_OK     VOCAB2('o','k')
+const int32_t COMMAND_VOCAB_IS     = yarp::os::createVocab('i','s');
+const int32_t COMMAND_VOCAB_OK     = yarp::os::createVocab('o','k');
 
-#define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
-#define COMMAND_VOCAB_TGRE   VOCAB4('t','g','r','e')
-#define COMMAND_VOCAB_TBLU   VOCAB4('t','b','l','u')
-#define COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_FGRE   VOCAB4('f','g','r','e')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_FRGB   VOCAB4('f','r','g','b')       // request of fovea blob color (rgb)
+const int32_t COMMAND_VOCAB_HELP   = yarp::os::createVocab('h','e','l','p');
+const int32_t COMMAND_VOCAB_FAILED = yarp::os::createVocab('f','a','i','l');
+const int32_t COMMAND_VOCAB_TRED   = yarp::os::createVocab('t','r','e','d');
+const int32_t COMMAND_VOCAB_TGRE   = yarp::os::createVocab('t','g','r','e');
+const int32_t COMMAND_VOCAB_TBLU   = yarp::os::createVocab('t','b','l','u');
+const int32_t COMMAND_VOCAB_FRED   = yarp::os::createVocab('f','r','e','d');       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FBLU   = yarp::os::createVocab('f','b','l','u');       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FGRE   = yarp::os::createVocab('f','g','r','e');       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FRGB   = yarp::os::createVocab('f','r','g','b');       // request of fovea blob color (rgb)
 
 
-#define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
-#define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
-#define COMMAND_VOCAB_MBA    VOCAB3('m','B','A')           // minimum dimension of the bounding area
-#define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
-#define COMMAND_VOCAB_WTD    VOCAB3('w','t','d')
-#define COMMAND_VOCAB_WBU    VOCAB3('w','b','u')
+const int32_t COMMAND_VOCAB_MAXDB  = yarp::os::createVocab('M','d','b');           // maximum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MINDB  = yarp::os::createVocab('m','d','b');           // minimum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MBA    = yarp::os::createVocab('m','B','A');           // minimum dimension of the bounding area
+const int32_t COMMAND_VOCAB_SET    = yarp::os::createVocab('s','e','t');
+const int32_t COMMAND_VOCAB_GET    = yarp::os::createVocab('g','e','t');
+const int32_t COMMAND_VOCAB_WTD    = yarp::os::createVocab('w','t','d');
+const int32_t COMMAND_VOCAB_WBU    = yarp::os::createVocab('w','b','u');
 
 /*
  * @brief: module interfacing with the user
