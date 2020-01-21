@@ -1424,7 +1424,7 @@ void gazeArbiterThread::run() {
         // sending the egoMotion velocity as Feedback
         if(egoMotionFeedback.getOutputCount()) {
             Bottle query;
-            query.addVocab(VOCAB3('E','G','O'));
+            query.addVocab(yarp::os::createVocab('E','G','O'));
             query.addDouble(uVel);
             query.addDouble(vVel);
             Bottle response;
@@ -1506,7 +1506,7 @@ void gazeArbiterThread::run() {
         // sending the egoMotion velocity null as feedback of SM_ACC
         if(egoMotionFeedback.getOutputCount()) {
             Bottle query;
-            query.addVocab(VOCAB3('E','G','O'));
+            query.addVocab(yarp::os::createVocab('E','G','O'));
             query.addDouble(0);
             query.addDouble(0);
             Bottle response;
