@@ -1527,8 +1527,8 @@ bool selectiveAttentionProcessor::outPorts(){
         else if((dif>2)&&(dif<30+2)){
             //setting coefficients
             commandBottle.clear();
-            commandBottle.addVocab(VOCAB3('s','e','t'));
-            commandBottle.addVocab(VOCAB3('k','t','d'));
+            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
+            commandBottle.addVocab(yarp::os::createVocab('k','t','d'));
             salienceTD=salienceTD+0.1;
         
             //if(salienceTD>0.99)
@@ -1537,8 +1537,8 @@ bool selectiveAttentionProcessor::outPorts(){
             commandBottle.addDouble((double)salienceTD);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(VOCAB3('s','e','t'));
-            commandBottle.addVocab(VOCAB3('k','b','u'));
+            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
+            commandBottle.addVocab(yarp::os::createVocab('k','b','u'));
             salienceBU=salienceBU-0.1;
             
             //if(salienceBU<=0)
@@ -1550,32 +1550,32 @@ bool selectiveAttentionProcessor::outPorts(){
         }
         else{
             printf("salienceBU \n");
-            commandBottle.addVocab(VOCAB3('s','e','t'));
-            commandBottle.addVocab(VOCAB3('k','t','d'));
+            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
+            commandBottle.addVocab(yarp::os::createVocab('k','t','d'));
             salienceTD=0.0;
             commandBottle.addDouble((double)salienceTD);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(VOCAB3('s','e','t'));
-            commandBottle.addVocab(VOCAB3('k','b','u'));
+            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
+            commandBottle.addVocab(yarp::os::createVocab('k','b','u'));
             salienceBU=1.0;
             commandBottle.addDouble((double)salienceBU);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(VOCAB3('s','e','t'));
-            commandBottle.addVocab(VOCAB3('r','i','n'));
+            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
+            commandBottle.addVocab(yarp::os::createVocab('r','i','n'));
             commandBottle.addDouble((double)targetRed);
             //commandBottle.addDouble(255.0);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(VOCAB3('s','e','t'));
-            commandBottle.addVocab(VOCAB3('g','i','n'));
+            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
+            commandBottle.addVocab(yarp::os::createVocab('g','i','n'));
             commandBottle.addDouble((double)targetGreen);
             //commandBottle.addDouble(0.0);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(VOCAB3('s','e','t'));
-            commandBottle.addVocab(VOCAB3('b','i','n'));
+            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
+            commandBottle.addVocab(yarp::os::createVocab('b','i','n'));
             commandBottle.addDouble((double)targetBlue);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
@@ -1685,7 +1685,7 @@ void selectiveAttentionProcessor::magnoCellularSuppression(bool on) {
         // express saccade can be inhibit as well
         Bottle& commandBottle = magnoCellFeedback.prepare();
         commandBottle.clear();
-        commandBottle.addVocab(VOCAB3('s','u','s'));
+        commandBottle.addVocab(yarp::os::createVocab('s','u','s'));
         magnoCellFeedback.write();
     }
     else {
@@ -1694,7 +1694,7 @@ void selectiveAttentionProcessor::magnoCellularSuppression(bool on) {
         
         Bottle& commandBottle = magnoCellFeedback.prepare();
         commandBottle.clear();
-        commandBottle.addVocab(VOCAB3('r','e','s'));
+        commandBottle.addVocab(yarp::os::createVocab('r','e','s'));
         magnoCellFeedback.write();
     }
 }
