@@ -34,20 +34,20 @@ using namespace cv;
 
 ///// dictionary
 
-#define VOCAB_TORSO_UPRIGHT              VOCAB3('t','u','r')
-#define VOCAB_TORSO_UPLEFT               VOCAB3('t','u','l')
-#define VOCAB_TORSO_DOWNRIGHT            VOCAB3('t','d','r')
-#define VOCAB_TORSO_DOWNLEFT             VOCAB3('t','d','l')
-#define VOCAB_RIGHTARM_UPRIGHT           VOCAB3('r','u','r')
-#define VOCAB_RIGHTARM_UPLEFT            VOCAB3('r','u','l')
-#define VOCAB_RIGHTARM_FORERIGHT         VOCAB3('r','f','r')
-#define VOCAB_RIGHTARM_FORELEFT          VOCAB3('r','f','l')
-#define VOCAB_RIGHTARM_HAND              VOCAB2('r','h')
-#define VOCAB_LEFTARM_UPRIGHT            VOCAB3('l','u','r')
-#define VOCAB_LEFTARM_UPLEFT             VOCAB3('l','u','l')
-#define VOCAB_LEFTARM_FORERIGHT          VOCAB3('l','f','r')
-#define VOCAB_LEFTARM_FORELEFT           VOCAB3('l','f','l')
-#define VOCAB_LEFTARM_HAND              VOCAB2('l','h')
+const int32_t VOCAB_TORSO_UPRIGHT               = yarp::os::createVocab('t','u','r');
+const int32_t VOCAB_TORSO_UPLEFT                = yarp::os::createVocab('t','u','l');
+const int32_t VOCAB_TORSO_DOWNRIGHT             = yarp::os::createVocab('t','d','r');
+const int32_t VOCAB_TORSO_DOWNLEFT              = yarp::os::createVocab('t','d','l');
+const int32_t VOCAB_RIGHTARM_UPRIGHT            = yarp::os::createVocab('r','u','r');
+const int32_t VOCAB_RIGHTARM_UPLEFT             = yarp::os::createVocab('r','u','l');
+const int32_t VOCAB_RIGHTARM_FORERIGHT          = yarp::os::createVocab('r','f','r');
+const int32_t VOCAB_RIGHTARM_FORELEFT           = yarp::os::createVocab('r','f','l');
+const int32_t VOCAB_RIGHTARM_HAND               = yarp::os::createVocab('r','h');
+const int32_t VOCAB_LEFTARM_UPRIGHT             = yarp::os::createVocab('l','u','r');
+const int32_t VOCAB_LEFTARM_UPLEFT              = yarp::os::createVocab('l','u','l');
+const int32_t VOCAB_LEFTARM_FORERIGHT           = yarp::os::createVocab('l','f','r');
+const int32_t VOCAB_LEFTARM_FORELEFT            = yarp::os::createVocab('l','f','l');
+const int32_t VOCAB_LEFTARM_HAND                = yarp::os::createVocab('l','h');
 
 //////
 
