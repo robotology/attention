@@ -157,28 +157,28 @@
 //defining Vocabs
 #ifndef _VOCAB_EARLY_VISION
 #define _VOCAB_EARLY_VISION
-#define COMMAND_VOCAB_SET           VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET           VOCAB3('g','e','t')
-#define COMMAND_VOCAB_SUSPEND       VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME        VOCAB3('r','e','s')
-#define COMMAND_VOCAB_HOR           VOCAB3('h','o','r')
-#define COMMAND_VOCAB_VER           VOCAB3('v','e','r')
-#define COMMAND_VOCAB_45            VOCAB3('o','4','5')
+const int32_t COMMAND_VOCAB_SET           = yarp::os::createVocab('s','e','t');
+const int32_t COMMAND_VOCAB_GET           = yarp::os::createVocab('g','e','t');
+const int32_t COMMAND_VOCAB_SUSPEND       = yarp::os::createVocab('s','u','s');
+const int32_t COMMAND_VOCAB_RESUME        = yarp::os::createVocab('r','e','s');
+const int32_t COMMAND_VOCAB_HOR           = yarp::os::createVocab('h','o','r');
+const int32_t COMMAND_VOCAB_VER           = yarp::os::createVocab('v','e','r');
+const int32_t COMMAND_VOCAB_45            = yarp::os::createVocab('o','4','5');
 
-#define COMMAND_VOCAB_HELP          VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_QUIT          VOCAB4('q','u','i','t')
-#define COMMAND_VOCAB_FAILED        VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_M45           VOCAB4('o','M','4','5')
-#define COMMAND_VOCAB_GHOR          VOCAB4('g','h','o','r')
-#define COMMAND_VOCAB_GVER          VOCAB4('g','v','e','r')
-#define COMMAND_VOCAB_BHOR          VOCAB4('b','h','o','r')
-#define COMMAND_VOCAB_BVER          VOCAB4('b','v','e','r')
+const int32_t COMMAND_VOCAB_HELP          = yarp::os::createVocab('h','e','l','p');
+const int32_t COMMAND_VOCAB_QUIT          = yarp::os::createVocab('q','u','i','t');
+const int32_t COMMAND_VOCAB_FAILED        = yarp::os::createVocab('f','a','i','l');
+const int32_t COMMAND_VOCAB_M45           = yarp::os::createVocab('o','M','4','5');
+const int32_t COMMAND_VOCAB_GHOR          = yarp::os::createVocab('g','h','o','r');
+const int32_t COMMAND_VOCAB_GVER          = yarp::os::createVocab('g','v','e','r');
+const int32_t COMMAND_VOCAB_BHOR          = yarp::os::createVocab('b','h','o','r');
+const int32_t COMMAND_VOCAB_BVER          = yarp::os::createVocab('b','v','e','r');
 
-#define COMMAND_VOCAB_OK            VOCAB2('o','k')
-#define COMMAND_VOCAB_BRIGHT        VOCAB3('b','r','t')
-#define COMMAND_VOCAB_WEIGHT        VOCAB1('w')
-#define COMMAND_VOCAB_CHROME_THREAD VOCAB3('c','h','r')
-#define COMMAND_VOCAB_EDGES_THREAD  VOCAB3('e','d','g')
+const int32_t COMMAND_VOCAB_OK            = yarp::os::createVocab('o','k');
+const int32_t COMMAND_VOCAB_BRIGHT        = yarp::os::createVocab('b','r','t');
+const int32_t COMMAND_VOCAB_WEIGHT        = yarp::os::createVocab('w');
+const int32_t COMMAND_VOCAB_CHROME_THREAD = yarp::os::createVocab('c','h','r');
+const int32_t COMMAND_VOCAB_EDGES_THREAD  = yarp::os::createVocab('e','d','g');
 
 #endif
 
