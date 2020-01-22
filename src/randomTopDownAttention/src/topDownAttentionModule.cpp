@@ -87,46 +87,14 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
 
 
 
-
-    else if (command.get(0).asString()=="Orientation") {
-        pThread->setOrientationMode();
-        reply.addString("Orientation");
-    }
-    else if (command.get(0).asString()=="Motion") {
-        pThread->setMotionMode();
-        reply.addString("Motion");
-    }
-    else if (command.get(0).asString()=="Edges") {
-        pThread->setEdgesMode();
-        reply.addString("Edges");
-    }
-    else if (command.get(0).asString()=="Chrominance") {
-        pThread->setChrominanceMode();
-        reply.addString("Chrominance");
-    }
-    else if (command.get(0).asString()=="Intensity") {
-        pThread->setIntensityMode();
-        reply.addString("Intensity");
-    }
-    else if (command.get(0).asString()=="Blob") {
-        pThread->setBlobMode();
-        reply.addString("Blob");
-    }
-    else if (command.get(0).asString()=="Random") {
-        pThread->setRandomMode();
-        reply.addString("Random");
-    }
-
-
-
-
-
     switch (command.get(0).asVocab()){
         case COMMAND_VOCAB_MODE_BLOB:
             pThread->setBlobMode();
             reply.addString("Blob");
             break;
         case COMMAND_VOCAB_MODE_MOTION:
+            pThread->setMotionMode();
+            reply.addString("Motion");
             break;
         case COMMAND_VOCAB_MODE_CHROMINANCE:
             pThread->setChrominanceMode();
