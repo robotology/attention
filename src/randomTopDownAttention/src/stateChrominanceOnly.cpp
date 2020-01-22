@@ -17,7 +17,8 @@
 */
 
 #include "iCub/stateChrominanceOnly.h"
-#include "iCub/helperFunctions.h"
+using namespace attention::dictionary;
+using namespace std;
 
 stateChrominanceOnly::stateChrominanceOnly():state("stateChrominanceOnly",3){}
 

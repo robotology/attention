@@ -17,7 +17,8 @@
 */
 
 #include "iCub/stateIntensityOnly.h"
-#include "iCub/helperFunctions.h"
+using namespace attention::dictionary;
+using namespace std;
 
 stateIntensityOnly::stateIntensityOnly():state("stateIntensityOnly",1){}
 

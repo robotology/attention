@@ -19,7 +19,7 @@
 #ifndef _STATE_EDGES_ONLY_H_
 #define _STATE_EDGES_ONLY_H_
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
 
 class stateEdgesOnly :public state{
 public:

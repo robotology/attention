@@ -19,7 +19,7 @@
 #ifndef _STATE_INTENSITY_ONLY_H
 #define _STATE_INTENSITY_ONLY_H
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
 
 class stateIntensityOnly :public state{
 public:

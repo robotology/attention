@@ -19,7 +19,7 @@
 #ifndef _STATE_MOTION_ONLE_H_
 #define _STATE_MOTION_ONLE_H_
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
 
 class stateMotionOnly :public state{
 public:

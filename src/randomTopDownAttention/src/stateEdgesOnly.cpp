@@ -17,7 +17,8 @@
 */
 
 #include "iCub/stateEdgesOnly.h"
-#include "iCub/helperFunctions.h"
+using namespace attention::dictionary;
+using namespace std;
 
 stateEdgesOnly::stateEdgesOnly():state("stateEdgesOnly",5){}
 

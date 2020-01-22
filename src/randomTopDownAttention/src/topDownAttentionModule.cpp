@@ -15,9 +15,8 @@
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
 */
-
-#include <iCub/helperFunctions.h>
 #include "iCub/topDownAttentionModule.h"
+using namespace attention::dictionary;
 
 bool topDownAttentionModule::configure(ResourceFinder &rf) {
 
