@@ -73,7 +73,9 @@ void topDownAttentionPeriodic::run()
 }
 void topDownAttentionPeriodic::threadRelease()
 {
-    yInfo("Goodbye from thread\n");
+    yDebug("Releasing the thread \n");
+    port.interrupt();
+    port.close();
 }
 
 
