@@ -50,6 +50,16 @@ const int32_t COMMAND_VOCAB_KC5  = yarp::os::createVocab('k','c','5');
 const int32_t COMMAND_VOCAB_KC6  = yarp::os::createVocab('k','c','6');
 const int32_t COMMAND_VOCAB_KMOT  = yarp::os::createVocab('k','m','o','t');
 
+
+const int32_t COMMAND_VOCAB_MODE_BLOB          = yarp::os::createVocab('M','B');
+const int32_t COMMAND_VOCAB_MODE_CHROMINANCE   = yarp::os::createVocab('M','C');
+const int32_t COMMAND_VOCAB_MODE_INTENSITY     = yarp::os::createVocab('M','I');
+const int32_t COMMAND_VOCAB_MODE_MOTION        = yarp::os::createVocab('M','M');
+const int32_t COMMAND_VOCAB_MODE_ORIENTATION   = yarp::os::createVocab('M','O');
+const int32_t COMMAND_VOCAB_MODE_EDGES         = yarp::os::createVocab('M','E');
+const int32_t COMMAND_VOCAB_MODE_RANDOM        = yarp::os::createVocab('M','R');
+
+
 class helperFunctions{
 public:
     static void printBottle(Bottle& bottle);

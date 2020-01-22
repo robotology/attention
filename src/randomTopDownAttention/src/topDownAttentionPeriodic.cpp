@@ -45,6 +45,8 @@ topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string moduleName):P
     attentionStates[4] = new stateEdgesOnly();
     attentionStates[5] = new stateBlobOnly();
 
+    randomMode = true;
+
     //initialize the randomisation function
     srand(time(NULL));
 
@@ -66,39 +68,14 @@ bool topDownAttentionPeriodic::threadInit()
 }
 void topDownAttentionPeriodic::run()
 {
-    sendAttentionToPort();
+    if(randomMode)
+        sendAttentionToPort(ATTENTION_MODES::RANDOM);
 }
 void topDownAttentionPeriodic::threadRelease()
 {
     yInfo("Goodbye from thread\n");
 }
 
-void topDownAttentionPeriodic::sendAttentionToPort(){
-    //this function is called each periodically
-
-    //this to make sure that the port is connected
-    if (port.getOutputCount()==0) {
-        printf("No Connection to  %s\n", clientName.c_str());
-    } else {
-        // if the port is connected, create a bottle output command
-        Bottle cmd;
-
-        //then randommly pich a number between 0 and 5
-        int randomNum = (rand()%6);
-
-        //get the command of this the state which has an index of the generated random number in the state array
-        Bottle* allCmds = attentionStates[randomNum]->getSettings();
-        for(int i =0; i< attentionStates[randomNum]->getSettingsSize(); i++){
-            cmd = allCmds[i];
-            yInfo("Sending message... ");
-            helperFunctions::printBottle(cmd);
-            Bottle response;
-            //send the command, recieve the responce, and print the responce
-            port.write(cmd,response);
-            yInfo("Got response: %s\n", response.toString().c_str());
-        }
-    }
-}
 
 topDownAttentionPeriodic::~topDownAttentionPeriodic(){
     for(int i=0; i<6; i++){
@@ -121,6 +98,8 @@ topDownAttentionPeriodic::topDownAttentionPeriodic(topDownAttentionPeriodic& top
     attentionStates[3] = new stateOrientationOnly();
     attentionStates[4] = new stateEdgesOnly();
     attentionStates[5] = new stateBlobOnly();
+
+    randomMode = topDownPeriodObject.randomMode;
 
     //initialize the randomisation function
     srand(time(NULL));
@@ -149,7 +128,91 @@ topDownAttentionPeriodic& topDownAttentionPeriodic::operator=(const topDownAtten
     attentionStates[4] = new stateEdgesOnly();
     attentionStates[5] = new stateBlobOnly();
 
+    randomMode = topDownPeriodObject.randomMode;
     //initialize the randomisation function
     srand(time(NULL));
     return *this;
+}
+
+
+
+void topDownAttentionPeriodic::sendAttentionToPort(ATTENTION_MODES mode) {
+    //this to make sure that the port is connected
+    if (port.getOutputCount()==0) {
+        printf("No Connection to  %s\n", clientName.c_str());
+    } else {
+        // if the port is connected, create a bottle output command
+        Bottle cmd;
+        int modeIdx = (rand()%6);
+        switch (mode){
+            case ATTENTION_MODES::RANDOM:
+                break;
+            case ATTENTION_MODES::INTENSITY:
+                modeIdx = 0;
+                break;
+            case ATTENTION_MODES::MOTION:
+                modeIdx = 1;
+                break;
+            case ATTENTION_MODES::CHROMINANCE:
+                modeIdx = 2;
+                break;
+            case ATTENTION_MODES::ORIENTATION:
+                modeIdx = 3;
+                break;
+            case ATTENTION_MODES::EDGES:
+                modeIdx = 4;
+                break;
+            case ATTENTION_MODES::BLOB:
+                modeIdx = 5;
+                break;
+
+        }
+
+        //get the command of this the state which has an index of the generated random number in the state array
+        Bottle* allCmds = attentionStates[modeIdx]->getSettings();
+        for(int i =0; i< attentionStates[modeIdx]->getSettingsSize(); i++){
+            cmd = allCmds[i];
+            yInfo("Sending message... ");
+            helperFunctions::printBottle(cmd);
+            Bottle response;
+            //send the command, receive the response, and print the response
+            port.write(cmd,response);
+            yInfo("Got response: %s\n", response.toString().c_str());
+        }
+    }
+}
+
+
+void topDownAttentionPeriodic::setRandomMode() {
+    randomMode = true;
+}
+
+void topDownAttentionPeriodic::setBlobMode() {
+    randomMode = false;
+    sendAttentionToPort(ATTENTION_MODES::BLOB);
+}
+
+void topDownAttentionPeriodic::setIntensityMode() {
+    randomMode = false;
+    sendAttentionToPort(ATTENTION_MODES::INTENSITY);
+}
+
+void topDownAttentionPeriodic::setChrominanceMode() {
+    randomMode = false;
+    sendAttentionToPort(ATTENTION_MODES::CHROMINANCE);
+}
+
+void topDownAttentionPeriodic::setEdgesMode() {
+    randomMode = false;
+    sendAttentionToPort(ATTENTION_MODES::EDGES);
+}
+
+void topDownAttentionPeriodic::setMotionMode() {
+    randomMode = false;
+    sendAttentionToPort(ATTENTION_MODES::MOTION);
+}
+
+void topDownAttentionPeriodic::setOrientationMode() {
+    randomMode = false;
+    sendAttentionToPort(ATTENTION_MODES::ORIENTATION);
 }
