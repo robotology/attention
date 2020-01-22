@@ -68,8 +68,7 @@ bool topDownAttentionPeriodic::threadInit()
 }
 void topDownAttentionPeriodic::run()
 {
-    if(randomMode)
-        sendAttentionToPort(ATTENTION_MODES::RANDOM);
+    sendAttentionToPort(ATTENTION_MODES::RANDOM);
 }
 void topDownAttentionPeriodic::threadRelease()
 {
@@ -187,34 +186,48 @@ void topDownAttentionPeriodic::sendAttentionToPort(ATTENTION_MODES mode) {
 
 void topDownAttentionPeriodic::setRandomMode() {
     randomMode = true;
+    if(isSuspended())
+        resume();
 }
 
 void topDownAttentionPeriodic::setBlobMode() {
     randomMode = false;
+    if(!isSuspended())
+        suspend();
     sendAttentionToPort(ATTENTION_MODES::BLOB);
 }
 
 void topDownAttentionPeriodic::setIntensityMode() {
     randomMode = false;
+    if(!isSuspended())
+        suspend();
     sendAttentionToPort(ATTENTION_MODES::INTENSITY);
 }
 
 void topDownAttentionPeriodic::setChrominanceMode() {
     randomMode = false;
+    if(!isSuspended())
+        suspend();
     sendAttentionToPort(ATTENTION_MODES::CHROMINANCE);
 }
 
 void topDownAttentionPeriodic::setEdgesMode() {
     randomMode = false;
+    if(!isSuspended())
+        suspend();
     sendAttentionToPort(ATTENTION_MODES::EDGES);
 }
 
 void topDownAttentionPeriodic::setMotionMode() {
     randomMode = false;
+    if(!isSuspended())
+        suspend();
     sendAttentionToPort(ATTENTION_MODES::MOTION);
 }
 
 void topDownAttentionPeriodic::setOrientationMode() {
     randomMode = false;
+    if(!isSuspended())
+        suspend();
     sendAttentionToPort(ATTENTION_MODES::ORIENTATION);
 }
