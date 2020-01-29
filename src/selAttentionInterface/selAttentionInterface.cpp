@@ -922,9 +922,10 @@ GtkWidget* createMainWindow(void) {
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
 
-    label = gtk_label_new ("map1 k1:");
+    label = gtk_label_new ("map1 k1 (Bio Motion):");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
+
 
     adj11 = gtk_adjustment_new (1.0, 0.0,1.0,0.01, 0.0, 0.0);
     hscale = gtk_hscale_new (GTK_ADJUSTMENT (adj11));
@@ -936,7 +937,7 @@ GtkWidget* createMainWindow(void) {
                       G_CALLBACK (cb_digits_scale11), NULL);
 
 
-    label = gtk_label_new ("map2 k2:");
+    label = gtk_label_new ("map2 k2 (Face Detection):");
     gtk_box_pack_start (GTK_BOX (box6), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
 
