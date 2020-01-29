@@ -38,13 +38,14 @@ namespace dictionary
         const int32_t COMMAND_VOCAB_TV                 = yarp::os::createVocab('t','v');
         const int32_t COMMAND_VOCAB_LK                 = yarp::os::createVocab('l','k');
 
-        const int32_t COMMAND_VOCAB_MODE_BLOB          = yarp::os::createVocab('M','B');
-        const int32_t COMMAND_VOCAB_MODE_CHROMINANCE   = yarp::os::createVocab('M','C');
-        const int32_t COMMAND_VOCAB_MODE_INTENSITY     = yarp::os::createVocab('M','I');
-        const int32_t COMMAND_VOCAB_MODE_MOTION        = yarp::os::createVocab('M','M');
-        const int32_t COMMAND_VOCAB_MODE_ORIENTATION   = yarp::os::createVocab('M','O');
-        const int32_t COMMAND_VOCAB_MODE_EDGES         = yarp::os::createVocab('M','E');
-        const int32_t COMMAND_VOCAB_MODE_RANDOM        = yarp::os::createVocab('M','R');
+        const int32_t COMMAND_VOCAB_MODE               = yarp::os::createVocab('M','O','D','E');
+        const int32_t COMMAND_VOCAB_BLOB               = yarp::os::createVocab('B','L','O');
+        const int32_t COMMAND_VOCAB_CHROMINANCE        = yarp::os::createVocab('C','H','R');
+        const int32_t COMMAND_VOCAB_INTENSITY          = yarp::os::createVocab('I','N','T');
+        const int32_t COMMAND_VOCAB_MOTION             = yarp::os::createVocab('M','O','T');
+        const int32_t COMMAND_VOCAB_ORIENTATION        = yarp::os::createVocab('O','R','I');
+        const int32_t COMMAND_VOCAB_EDGES              = yarp::os::createVocab('E','D','G');
+        const int32_t COMMAND_VOCAB_RANDOM             = yarp::os::createVocab('R','A','N');
 
 
 

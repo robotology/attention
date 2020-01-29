@@ -88,37 +88,39 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
 
 
     switch (command.get(0).asVocab()){
-        case COMMAND_VOCAB_MODE_BLOB:
-            pThread->setBlobMode();
-            reply.addString("Blob");
+        case COMMAND_VOCAB_MODE:
+            switch (command.get(1).asVocab()){
+                case COMMAND_VOCAB_BLOB:
+                    pThread->setBlobMode();
+                    reply.addString("Blob");
+                    break;
+                case COMMAND_VOCAB_MOTION:
+                    pThread->setMotionMode();
+                    reply.addString("Motion");
+                    break;
+                case COMMAND_VOCAB_CHROMINANCE:
+                    pThread->setChrominanceMode();
+                    reply.addString("Chrominance");
+                    break;
+                case COMMAND_VOCAB_INTENSITY:
+                    pThread->setIntensityMode();
+                    reply.addString("Intensity");
+                    break;
+                case COMMAND_VOCAB_EDGES:
+                    pThread->setEdgesMode();
+                    reply.addString("Edges");
+                    break;
+                case COMMAND_VOCAB_ORIENTATION:
+                    pThread->setOrientationMode();
+                    reply.addString("Orientation");
+                    break;
+                case COMMAND_VOCAB_RANDOM:
+                    pThread->setRandomMode();
+                    reply.addString("Random");
+                    break;
+            }
             break;
-        case COMMAND_VOCAB_MODE_MOTION:
-            pThread->setMotionMode();
-            reply.addString("Motion");
-            break;
-        case COMMAND_VOCAB_MODE_CHROMINANCE:
-            pThread->setChrominanceMode();
-            reply.addString("Chrominance");
-            break;
-        case COMMAND_VOCAB_MODE_INTENSITY:
-            pThread->setIntensityMode();
-            reply.addString("Intensity");
-            break;
-        case COMMAND_VOCAB_MODE_EDGES:
-            pThread->setEdgesMode();
-            reply.addString("Edges");
-            break;
-        case COMMAND_VOCAB_MODE_ORIENTATION:
-            pThread->setOrientationMode();
-            reply.addString("Orientation");
-            break;
-        case COMMAND_VOCAB_MODE_RANDOM:
-            pThread->setRandomMode();
-            reply.addString("Random");
-            break;
-
     }
-
     return true;
 }
 
