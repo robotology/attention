@@ -17,7 +17,8 @@
 */
 
 #include "iCub/stateOrientationOnly.h"
-#include "iCub/helperFunctions.h"
+using namespace attention::dictionary;
+using namespace std;
 
 stateOrientationOnly::stateOrientationOnly():state("stateOrientationOnly",4){}
 

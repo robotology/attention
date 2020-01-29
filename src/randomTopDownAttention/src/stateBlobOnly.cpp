@@ -17,7 +17,8 @@
 */
 
 #include "iCub/stateBlobOnly.h"
-#include "iCub/helperFunctions.h"
+using namespace attention::dictionary;
+using namespace std;
 
 stateBlobOnly::stateBlobOnly():state("stateBlobOnly",6){}
 

@@ -31,6 +31,8 @@
 using namespace yarp::os;
 using namespace std;
 
+enum class ATTENTION_MODES{RANDOM,INTENSITY,MOTION,CHROMINANCE,ORIENTATION,EDGES,BLOB};
+
 
 class topDownAttentionPeriodic : public PeriodicThread {
 public:
@@ -42,7 +44,14 @@ public:
     void afterStart(bool s);
     void run();
     void threadRelease();
-    void sendAttentionToPort();
+
+    void setRandomMode();
+    void setBlobMode();
+    void setIntensityMode();
+    void setChrominanceMode();
+    void setEdgesMode();
+    void setMotionMode();
+    void setOrientationMode();
 
 private:
     Network yarp;
@@ -51,6 +60,11 @@ private:
     string moduleName;
     string clientName;
     state** attentionStates;
+    bool randomMode;
+
+
+    void sendAttentionToPort(ATTENTION_MODES mode);
+
 };
 
 #endif

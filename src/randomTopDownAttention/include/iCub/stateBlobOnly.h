@@ -19,7 +19,8 @@
 #ifndef _STATE_BLOB_ONLY_H_
 #define _STATE_BLOB_ONLY_H_
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
+
 
 class stateBlobOnly :public state{
 public:

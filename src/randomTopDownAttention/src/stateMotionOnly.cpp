@@ -17,7 +17,8 @@
 */
 
 #include "iCub/stateMotionOnly.h"
-#include "iCub/helperFunctions.h"
+using namespace attention::dictionary;
+using namespace std;
 
 stateMotionOnly::stateMotionOnly():state("stateMotionOnly",2){}
 

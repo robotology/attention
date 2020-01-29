@@ -19,7 +19,7 @@
 #ifndef _STATE_ORIENTATION_ONLY_H_
 #define _STATE_ORIENTATION_ONLY_H_
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
 
 class stateOrientationOnly :public state{
 public:

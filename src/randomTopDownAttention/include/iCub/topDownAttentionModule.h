@@ -30,6 +30,7 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/Log.h>
+#include <iCub/attention/commandDictionary.h>
 
 //within project includes
 #include <iCub/topDownAttentionPeriodic.h>
@@ -40,7 +41,6 @@ using namespace std;
 class topDownAttentionModule : public RFModule {
 
     string moduleName;
-
     string handlerPortName;
     Port handlerPort;
 

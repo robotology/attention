@@ -19,7 +19,7 @@
 #ifndef _STATE_CHROMINANCE_ONLY_H_
 #define _STATE_CHROMINANCE_ONLY_H_
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
 
 class stateChrominanceOnly :public state{
 public:
