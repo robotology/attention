@@ -155,6 +155,7 @@ selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThr
     motion_yarp      = new ImageOf <PixelMono>; // motion
     cart1_yarp       = new ImageOf <PixelMono>; // 1st cartesian image
     cart2_yarp       = new ImageOf <PixelMono>; // 2nd cartesian image
+    cart3_yarp       = new ImageOf <PixelMono>; // 3rd cartesian image
     faceMask         = new ImageOf <PixelMono>; // 2nd cartesian image
     habituationImage = new ImageOf <PixelMono>; // habituation map
     
@@ -180,6 +181,7 @@ selectiveAttentionProcessor::~selectiveAttentionProcessor(){
     delete motion_yarp;
     delete cart1_yarp;
     delete cart2_yarp;
+    delete cart3_yarp;
     delete faceMask;
 
     delete tmp;
@@ -233,6 +235,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     motion_yarp            = new ImageOf<PixelMono>;
     cart1_yarp             = new ImageOf<PixelMono>;
     cart2_yarp             = new ImageOf<PixelMono>;
+    cart3_yarp             = new ImageOf<PixelMono>;
     inhicart_yarp          = new ImageOf<PixelMono>;
     habituationImage       = new ImageOf<PixelMono>;
     linearCombinationPrev  = new ImageOf<PixelMono>;
@@ -243,6 +246,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     motion_yarp->resize(xSizeValue,ySizeValue);
     cart1_yarp->resize(xSizeValue,ySizeValue);
     cart2_yarp->resize(xSizeValue,ySizeValue);
+    cart3_yarp->resize(xSizeValue,ySizeValue);
     inhicart_yarp->resize(xSizeValue,ySizeValue);
     habituationImage->resize(xSizeValue,ySizeValue);
     linearCombinationPrev->resize(xSizeValue,ySizeValue);
@@ -251,6 +255,7 @@ void selectiveAttentionProcessor::reinitialise(int width, int height){
     motion_yarp->zero();     
     cart1_yarp->zero();
     cart2_yarp->zero();
+    cart3_yarp->zero();
     inhicart_yarp->zero();
     habituationImage->zero();  
     linearCombinationImage->zero();
@@ -298,6 +303,7 @@ bool selectiveAttentionProcessor::threadInit(){
 
     cart1Port.open(             getName("/cart1:i").c_str());
     cart2Port.open(             getName("/cart2:i").c_str());
+    cart3Port.open(             getName("/cart3:i").c_str());
     motionPort.open(            getName("/motionCart:i").c_str());
 
     inhiCartPort.open(          getName("/inhiCart:i").c_str());
@@ -680,7 +686,7 @@ void selectiveAttentionProcessor::run(){
 
         //added kmotion and any coeff.for cartesian map to produce a perfect balance within clues 
         //kc2 = 0;
-        double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1 + kc2;  
+        double sumK = k1 + k2 + k3 + k4 + k5 + k6 + kmotion + kc1 + kc2 + kc3;
         unsigned char  maxValue    = 0;
         unsigned char* pmap1Left   = map1_yarp->getRawImage();
         unsigned char* pmap1Right  = map1_yarp->getRawImage(); 
@@ -890,6 +896,13 @@ void selectiveAttentionProcessor::run(){
             tmp = cart2Port.read(false);
             if(tmp!= 0) {             
                 copy_8u_C1R(tmp,cart2_yarp);
+                //idle=false;
+            }
+        }
+        if((cart3Port.getInputCount())&&(kc3!=0)) {
+            tmp = cart3Port.read(false);
+            if(tmp!= 0) {
+                copy_8u_C1R(tmp,cart3_yarp);
                 //idle=false;
             }
         }
@@ -1105,6 +1118,7 @@ cartSpace:
         unsigned char* pInter    = intermCartOut->getRawImage();
         unsigned char* pcart1    = cart1_yarp->getRawImage();
         unsigned char* pcart2    = cart2_yarp->getRawImage();
+        unsigned char* pcart3    = cart3_yarp->getRawImage();
         unsigned char* pinhicart = inhicart_yarp->getRawImage();
         unsigned char* pmotion   = motion_yarp->getRawImage();
         int paddingInterm        = intermCartOut->getPadding(); //padding of the colour image
@@ -1119,7 +1133,7 @@ cartSpace:
         maxResponse = false;
         for(int y=0; (y < ySizeValue) && (!maxResponse); y++) {
             for(int x=0; (x < xSizeValue) && (!maxResponse); x++) {
-                double combinValue = (double) (*pcart1 * (kc1/sumK) + *pcart2 * (kc2/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
+                double combinValue = (double) (*pcart1 * (kc1/sumK) + *pcart2 * (kc2/sumK) + *pcart3 * (kc3/sumK) + *pInter * ((k1 + k2 + k3 + k4 + k5 + k6)/sumK) + *pmotion * (kmotion/sumK));
                 //double combinValue   = (double)  *pInter;
                 //if(combinValue >= 255.0) {
                 //    printf("maxResponse for combinValue \n");
@@ -1167,6 +1181,7 @@ cartSpace:
                 }
                 pcart1++;
                 pcart2++;
+                pcart3++;
                 pmotion++;
                 pinhicart++;
             }
@@ -1174,6 +1189,7 @@ cartSpace:
             pInter    += paddingInterm;
             pcart1    += paddingCartesian;
             pcart2    += paddingCartesian;
+            pcart3    += paddingCartesian;
             pmotion   += paddingCartesian;
             pinhicart += paddingCartesian;
         }
@@ -1714,6 +1730,8 @@ void selectiveAttentionProcessor::interrupt(){
     map6Port.interrupt();
 
     cart1Port.interrupt();
+    cart2Port.interrupt();
+    cart3Port.interrupt();
     inhiCartPort.interrupt();
     inhiPort.interrupt();
     motionPort.interrupt();
@@ -1745,6 +1763,8 @@ void selectiveAttentionProcessor::threadRelease(){
     map6Port.close();
 
     cart1Port.close();
+    cart2Port.close();
+    cart3Port.close();
     inhiCartPort.close();
     inhiPort.close();
     motionPort.close();

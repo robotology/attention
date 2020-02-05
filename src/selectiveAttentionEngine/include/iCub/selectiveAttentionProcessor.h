@@ -73,7 +73,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map6Port;                 // input port for the 6th saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > motionPort;               // input port for the flow motion
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart1Port;                // input port for the 1st cartesian saliency map
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart2Port;                // input port for the 1st cartesian saliency map
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart2Port;                // input port for the 2nd cartesian saliency map
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > cart3Port;                // input port for the 3rd cartesian saliency map
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > linearCombinationPort;    // output port that represent the linear combination of different maps
     
@@ -163,6 +164,7 @@ private:
     double kmotion;     // coefficient of the linear combination of the motion
     double kc1;         // coeffiencient for the linear combination of the 1 cartesian maps
     double kc2;         // coeffiencient for the linear combination of the 2 cartesian maps
+    double kc3;         // coeffiencient for the linear combination of the 3 cartesian maps
 
     yarp::sig::ImageOf<yarp::sig::PixelMono>* habituationImage; // mono image for habituation process
     float* habituation; // mono image for habituation process
@@ -181,8 +183,9 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono>* map5_yarp;        // saliency map coming from the 5th source
     yarp::sig::ImageOf<yarp::sig::PixelMono>* map6_yarp;        // saliency map coming from the 6th source
     yarp::sig::ImageOf<yarp::sig::PixelMono>* motion_yarp;      // saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       // saliency map coming from the 6th source
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart2_yarp;       // saliency map coming from the 6th source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart1_yarp;       // saliency map coming from the 1st Cartesian source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart2_yarp;       // saliency map coming from the 2nd Cartesian source
+    yarp::sig::ImageOf<yarp::sig::PixelMono>* cart3_yarp;       // saliency map coming from the 3rd Cartesian source
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhicart_yarp;    // cartesian input of the inhibition of return
     yarp::sig::ImageOf<yarp::sig::PixelMono>* facilit_yarp;     // cartesian image of the facilitation paradigm
     yarp::sig::ImageOf<yarp::sig::PixelMono>* inhi_yarp;        // logpolar input of the inhibition of return
@@ -438,6 +441,11 @@ public:
      * function that returns the value of the parameter kc1
      */
     double getKC2() { return kc2; };
+
+    /**
+    * function that returns the value of the parameter kc1
+    */
+    double getKC3() { return kc3; };
     
     /**
      * function that returns the value of the parameter kmotion
@@ -513,6 +521,11 @@ public:
      * function that sets the value of the parameter kc2
      */
     void setKC2(double p) { kc2 = p; };
+
+    /**
+    * function that sets the value of the parameter kc2
+    */
+    void setKC3(double p) { kc3 = p; };
     
     /**
      * function that sets the value of the parameter kMotion
