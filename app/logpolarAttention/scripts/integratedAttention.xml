@@ -1,5 +1,5 @@
 <application>
-    <name>Random Top Down Attention</name>
+    <name>Integrated Attention</name>
     <dependencies>
         <port>selectiveAttentionEngine</port>
     </dependencies>
@@ -15,6 +15,18 @@
         <from>/randomTopDownAttention/cmd</from>
         <to>/selectiveAttentionEngine</to>
         <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/faceDetector/image/out</from>
+        <to>/selectiveAttentionEngine/icub/left_cam/cart1:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/oneMerger/maskBio:o</from>
+     	<to>/selectiveAttentionEngine/icub/left_cam/cart2:i</to>
+     	<protocol>tcp</protocol>
     </connection>
 
 </application>
