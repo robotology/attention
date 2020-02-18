@@ -47,6 +47,9 @@ namespace dictionary
         const int32_t COMMAND_VOCAB_EDGES              = yarp::os::createVocab('E','D','G');
         const int32_t COMMAND_VOCAB_RANDOM             = yarp::os::createVocab('R','A','N');
 
+        const int32_t COMMAND_VOCAB_FACE                = yarp::os::createVocab('F','A','C','E');
+        const int32_t COMMAND_VOCAB_BIO_MOTION          = yarp::os::createVocab('B','M','O','T');
+        const int32_t COMMAND_VOCAB_AUDIO               = yarp::os::createVocab('A','U','D','I');
 
 
         const int32_t COMMAND_VOCAB_RED                = yarp::os::createVocab('r','e','d');

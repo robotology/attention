@@ -114,11 +114,25 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
                     pThread->setOrientationMode();
                     reply.addString("Orientation");
                     break;
-                case COMMAND_VOCAB_RANDOM:
-                    pThread->setRandomMode();
-                    reply.addString("Random");
+                case COMMAND_VOCAB_FACE:
+                    pThread->setFaceMode();
+                    reply.addString("Face");
+                    break;
+                case COMMAND_VOCAB_BIO_MOTION:
+                    pThread->setBioMotioMode();
+                    reply.addString("BIO_MOTION");
+                    break;
+                case COMMAND_VOCAB_AUDIO:
+                    pThread->setAudioMode();
+                    reply.addString("AUDIO");
+                    break;
+                default:
+                    reply.addString("MODE IS UNDEFINED");
                     break;
             }
+            break;
+        default:
+            reply.addString("COMMAND IS UNDEFINED");
             break;
     }
     return true;
