@@ -24,6 +24,7 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
     this->moduleName = moduleName;
     inputPortName = getName("/map:i");
     outputPortName = getName("/map:o");
+    outputImgPortName = getName("/img:o");
 }
 
 egocentricAudioCropperThread::~egocentricAudioCropperThread(){
@@ -51,6 +52,11 @@ bool egocentricAudioCropperThread::threadInit() {
         return false;
     }
 
+    if (!outputImgPort.open(outputImgPortName.c_str())) {
+        yError("Unable to open port to send output image.");
+        return false;
+    }
+
     yInfo("Initialization of the processing thread correctly ended.");
 
     return true;
@@ -64,10 +70,14 @@ void egocentricAudioCropperThread::run() {
         if (mat != NULL) {
             yDebug("matrix is not null");
             if (outputPort.getOutputCount()) {
-                yMatrix resizedMat = mat->submatrix(1,50,1,50);
+                yMatrix resizedMat = mat->submatrix(1,1,1,50);
                 outputPort.prepare() = resizedMat;
                 outputPort.write();
-                //-- Process the output
+                if (outputImgPort.getOutputCount()){
+                    outputImg = &outputImgPort.prepare();
+                    outputImg->resize(resizedMat.cols(),resizedMat.rows());
+                    outputImgPort.write();
+                }
             }
         }
     }
@@ -78,10 +88,12 @@ void egocentricAudioCropperThread::threadRelease() {
     //-- Stop all threads.
     inputPort.interrupt();
     outputPort.interrupt();
+    outputImgPort.interrupt();
 
     //-- Close the threads.
     inputPort.close();
     outputPort.close();
+    outputImgPort.close();
 }
 
 

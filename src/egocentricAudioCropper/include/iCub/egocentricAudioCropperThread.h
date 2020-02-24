@@ -31,6 +31,7 @@ using namespace yarp::os;
 using namespace std;
 
 typedef yarp::sig::Matrix yMatrix;
+typedef yarp::sig::ImageOf<yarp::sig::PixelMono>  yImgPixelMono;
 class egocentricAudioCropperThread : public PeriodicThread {
 public:
     egocentricAudioCropperThread(string moduleName = "egocentricAudioCropper");
@@ -47,10 +48,14 @@ private:
     string moduleName;
     string inputPortName;
     string outputPortName;
+    string outputImgPortName;
 
+
+    yImgPixelMono* outputImg;
 
     BufferedPort<yMatrix>  inputPort;
     BufferedPort<yMatrix>  outputPort;
+    BufferedPort<yImgPixelMono> outputImgPort;
 
 };
 #endif //ATTENTION_EGOCENTRIC_AUDIO_CROPPER_THREAD_H
