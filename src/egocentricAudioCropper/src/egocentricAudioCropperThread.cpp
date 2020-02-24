@@ -67,15 +67,28 @@ void egocentricAudioCropperThread::run() {
 
         yMatrix* mat = inputPort.read(false);   //blocking reading for synchr with the input
 
+        int val = 50;
         if (mat != NULL) {
             yDebug("matrix is not null");
             if (outputPort.getOutputCount()) {
-                yMatrix resizedMat = mat->submatrix(1,1,1,50);
+                yMatrix resizedMat = mat->submatrix(1,1,1,val);
                 outputPort.prepare() = resizedMat;
                 outputPort.write();
                 if (outputImgPort.getOutputCount()){
                     outputImg = &outputImgPort.prepare();
                     outputImg->resize(resizedMat.cols(),resizedMat.rows());
+                    unsigned char* rowImage = outputImg->getRawImage();
+                    int maxIdx = 0;
+                    for (int i = 1; i<val;i++){
+                        if(rowImage[i]>rowImage[maxIdx])
+                            maxIdx = i;
+                    }
+                    for (int i = 0; i<val;i++){
+                        if(i!=maxIdx)
+                            rowImage[i] = 0;
+                        else
+                            rowImage[i] = 255;
+                    }
                     outputImgPort.write();
                 }
             }
