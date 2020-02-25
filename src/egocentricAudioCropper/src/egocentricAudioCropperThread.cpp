@@ -46,6 +46,10 @@ bool egocentricAudioCropperThread::threadInit() {
         yError("Unable to open port to receive input.");
         return false;
     }
+    if (!inputGazeAnglesPort.open(getName("/gazeAngles:i").c_str())) {
+        yError("Unable to open port for receiving robot head angle.");
+        return false;
+    }
 
     if (!outputPort.open(outputPortName.c_str())) {
         yError("Unable to open port to send output.");
@@ -67,11 +71,17 @@ void egocentricAudioCropperThread::run() {
 
         yMatrix* mat = inputPort.read(false);   //blocking reading for synchr with the input
 
-        int val = 50;
+        azimuthAngle = 0.0;
+        if (inputGazeAnglesPort.getInputCount()) {
+            gazeAnglesBottle = inputGazeAnglesPort.read(true);
+            azimuthAngle += gazeAnglesBottle->get(0).asDouble();
+        }
+
+        int val = 10;
         if (mat != NULL) {
             yDebug("matrix is not null");
             if (outputPort.getOutputCount()) {
-                yMatrix resizedMat = mat->submatrix(1,1,1,val);
+                yMatrix resizedMat = mat->submatrix(1,1,179-(int)azimuthAngle-val,179-(int)azimuthAngle+val);
                 outputPort.prepare() = resizedMat;
                 outputPort.write();
                 if (outputImgPort.getOutputCount()){
@@ -79,7 +89,7 @@ void egocentricAudioCropperThread::run() {
                     outputImg->resize(resizedMat.cols(),resizedMat.rows());
                     unsigned char* rowImage = outputImg->getRawImage();
                     int maxIdx = 0;
-                    for (int i = 1; i<val;i++){
+                    for (int i = 1; i<2*val+1;i++){
                         if(rowImage[i]>rowImage[maxIdx])
                             maxIdx = i;
                     }
@@ -99,11 +109,13 @@ void egocentricAudioCropperThread::run() {
 void egocentricAudioCropperThread::threadRelease() {
 
     //-- Stop all threads.
+    inputGazeAnglesPort.interrupt();
     inputPort.interrupt();
     outputPort.interrupt();
     outputImgPort.interrupt();
 
     //-- Close the threads.
+    inputGazeAnglesPort.close();
     inputPort.close();
     outputPort.close();
     outputImgPort.close();

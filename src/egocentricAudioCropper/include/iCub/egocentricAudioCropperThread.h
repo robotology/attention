@@ -49,10 +49,12 @@ private:
     string inputPortName;
     string outputPortName;
     string outputImgPortName;
-
+    double azimuthAngle;
 
     yImgPixelMono* outputImg;
+    Bottle* gazeAnglesBottle;
 
+    BufferedPort<Bottle>  inputGazeAnglesPort;;
     BufferedPort<yMatrix>  inputPort;
     BufferedPort<yMatrix>  outputPort;
     BufferedPort<yImgPixelMono> outputImgPort;
