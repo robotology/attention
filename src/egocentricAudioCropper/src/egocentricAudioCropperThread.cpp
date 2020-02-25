@@ -93,7 +93,7 @@ void egocentricAudioCropperThread::run() {
                         if(rowImage[i]>rowImage[maxIdx])
                             maxIdx = i;
                     }
-                    for (int i = 0; i<val;i++){
+                    for (int i = 0; i<2*val+1;i++){
                         if(i!=maxIdx)
                             rowImage[i] = 0;
                         else
