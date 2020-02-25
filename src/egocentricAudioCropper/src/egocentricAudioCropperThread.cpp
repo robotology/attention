@@ -25,6 +25,12 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
     inputPortName = getName("/map:i");
     outputPortName = getName("/map:o");
     outputImgPortName = getName("/img:o");
+    cameraWidth = 320;
+    cameraFocalLength = 200;
+    cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
+    string temp = "AOV "+ to_string(cameraAOV);
+    printf(temp.c_str());
+    cameraSideAOV = cameraAOV/2;
 }
 
 egocentricAudioCropperThread::~egocentricAudioCropperThread(){
@@ -77,11 +83,10 @@ void egocentricAudioCropperThread::run() {
             azimuthAngle += gazeAnglesBottle->get(0).asDouble();
         }
 
-        int val = 10;
         if (mat != NULL) {
             yDebug("matrix is not null");
             if (outputPort.getOutputCount()) {
-                yMatrix resizedMat = mat->submatrix(1,1,179-(int)azimuthAngle-val,179-(int)azimuthAngle+val);
+                yMatrix resizedMat = mat->submatrix(1,1,179-azimuthAngle-cameraSideAOV,179-azimuthAngle+cameraSideAOV);
                 outputPort.prepare() = resizedMat;
                 outputPort.write();
                 if (outputImgPort.getOutputCount()){
@@ -89,11 +94,11 @@ void egocentricAudioCropperThread::run() {
                     outputImg->resize(resizedMat.cols(),resizedMat.rows());
                     unsigned char* rowImage = outputImg->getRawImage();
                     int maxIdx = 0;
-                    for (int i = 1; i<2*val+1;i++){
+                    for (int i = 1; i<2*cameraSideAOV+1;i++){
                         if(rowImage[i]>rowImage[maxIdx])
                             maxIdx = i;
                     }
-                    for (int i = 0; i<2*val+1;i++){
+                    for (int i = 0; i<2*cameraSideAOV+1;i++){
                         if(i!=maxIdx)
                             rowImage[i] = 0;
                         else

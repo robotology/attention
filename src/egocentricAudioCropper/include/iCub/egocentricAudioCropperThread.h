@@ -19,6 +19,7 @@
 #define ATTENTION_EGOCENTRIC_AUDIO_CROPPER_THREAD_H
 
 #include <stdio.h>
+#include <cmath>
 #include <string>
 #include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Time.h>
@@ -50,6 +51,10 @@ private:
     string outputPortName;
     string outputImgPortName;
     double azimuthAngle;
+    double cameraWidth;
+    double cameraFocalLength;
+    double cameraAOV;
+    int cameraSideAOV;
 
     yImgPixelMono* outputImg;
     Bottle* gazeAnglesBottle;
