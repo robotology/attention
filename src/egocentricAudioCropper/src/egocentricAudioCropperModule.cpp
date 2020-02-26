@@ -43,10 +43,13 @@ bool egocentricAudioCropperModule::configure(ResourceFinder &rf) {
     //initialize the thread with X seconds and pass the module name.
     //the module name is used to initialize the name of the ports opened in the thread.
     pThread = new egocentricAudioCropperThread(moduleName);
+    if (!pThread->configure(rf)){
+        yInfo("Problem in configuring the thread ");
+        return false;
+    }
 
     //start thr thread. fail the process if the thread failed to be started
-    bool ok = pThread->start();
-    if(!ok)
+    if(!pThread->start())
     {
         yInfo("Problem in starting the thread ");
         return false;

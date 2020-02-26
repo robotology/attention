@@ -25,19 +25,23 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
     inputPortName = getName("/map:i");
     outputPortName = getName("/map:o");
     outputImgPortName = getName("/img:o");
-    cameraWidth = 320;
-    cameraFocalLength = 200;
-    cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
-    string temp = "AOV "+ to_string(cameraAOV);
-    printf(temp.c_str());
-    cameraSideAOV = cameraAOV/2;
+
 }
 
 egocentricAudioCropperThread::~egocentricAudioCropperThread(){
 
 }
 bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
+    cameraWidth = rf.findGroup("cameraParams").check("cameraWidth",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
+    cameraFocalLength= rf.findGroup("cameraParams").check("cameraFocalLength",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
 
+    cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
+    string temp = "AOV "+ to_string(cameraAOV);
+    printf(temp.c_str());
+
+    cameraSideAOV = cameraAOV/2;
+
+    return true;
 }
 
 
