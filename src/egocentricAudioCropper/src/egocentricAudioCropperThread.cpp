@@ -32,13 +32,29 @@ egocentricAudioCropperThread::~egocentricAudioCropperThread(){
 
 }
 bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
-    cameraWidth = rf.findGroup("cameraParams").check("cameraWidth",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
-    cameraFocalLength= rf.findGroup("cameraParams").check("cameraFocalLength",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
 
+    cameraFileName = rf.findGroup("cameraParams").check("fileName",    yarp::os::Value("icubEyes.ini"), "the file name of the camera parameters (string)").asString();
+    cameraSide = rf.findGroup("cameraParams").check("side",    yarp::os::Value("left"), "the side  of the used camera (string)").asString();
+    cameraContextName  = rf.findGroup("cameraParams").check("context",    yarp::os::Value("logpolarAttention"), "the context  of the  camera file (string)").asString();
+
+
+    ResourceFinder iCubEyesRF;
+    iCubEyesRF.setVerbose(true);
+    iCubEyesRF.setDefaultConfigFile(cameraFileName);
+    iCubEyesRF.setDefaultContext(cameraContextName);
+    iCubEyesRF.configure(0, nullptr);
+
+
+    if (cameraSide == "right"){
+        cameraWidth = rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
+        cameraFocalLength= rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
+
+    }
+    else{
+        cameraWidth = rf.findGroup("CAMERA_CALIBRATION_LEFT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
+        cameraFocalLength= rf.findGroup("CAMERA_CALIBRATION_LEFT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
+    }
     cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
-    string temp = "AOV "+ to_string(cameraAOV);
-    printf(temp.c_str());
-
     cameraSideAOV = cameraAOV/2;
 
     return true;

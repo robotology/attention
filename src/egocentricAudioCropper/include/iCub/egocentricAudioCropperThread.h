@@ -50,6 +50,12 @@ private:
     string inputPortName;
     string outputPortName;
     string outputImgPortName;
+
+
+    //Parameters
+    string cameraFileName;
+    string cameraContextName;
+    string cameraSide;
     double azimuthAngle;
     double cameraWidth;
     double cameraFocalLength;
