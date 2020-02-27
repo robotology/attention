@@ -48,6 +48,7 @@ private:
     RpcClient port;
     string moduleName;
     string inputPortName;
+    string inputGazeAnglesPortName;
     string outputPortName;
     string outputImgPortName;
 
@@ -61,6 +62,7 @@ private:
     double cameraFocalLength;
     double cameraAOV;
     int cameraSideAOV;
+    int azimuthIndex;
 
     yImgPixelMono* outputImg;
     Bottle* gazeAnglesBottle;

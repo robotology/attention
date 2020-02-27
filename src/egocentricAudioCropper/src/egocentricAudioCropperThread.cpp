@@ -23,8 +23,9 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
 
     this->moduleName = moduleName;
     inputPortName = getName("/map:i");
+    inputGazeAnglesPortName = getName("/gazeAngles:i");
     outputPortName = getName("/map:o");
-    outputImgPortName = getName("/img:o");
+    outputImgPortName = getName("/cartImg:o");
 
 }
 
@@ -36,6 +37,7 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     cameraFileName = rf.findGroup("cameraParams").check("fileName",    yarp::os::Value("icubEyes.ini"), "the file name of the camera parameters (string)").asString();
     cameraSide = rf.findGroup("cameraParams").check("side",    yarp::os::Value("left"), "the side  of the used camera (string)").asString();
     cameraContextName  = rf.findGroup("cameraParams").check("context",    yarp::os::Value("logpolarAttention"), "the context  of the  camera file (string)").asString();
+    azimuthIndex =  rf.findGroup("cameraParams").check("azimuthIndex",    yarp::os::Value(0), "the index of the  azimuth angle in the angles input port (int)").asInt();
 
 
     ResourceFinder iCubEyesRF;
@@ -72,7 +74,7 @@ bool egocentricAudioCropperThread::threadInit() {
         yError("Unable to open port to receive input.");
         return false;
     }
-    if (!inputGazeAnglesPort.open(getName("/gazeAngles:i").c_str())) {
+    if (!inputGazeAnglesPort.open(inputGazeAnglesPortName.c_str())) {
         yError("Unable to open port for receiving robot head angle.");
         return false;
     }
@@ -100,7 +102,7 @@ void egocentricAudioCropperThread::run() {
         azimuthAngle = 0.0;
         if (inputGazeAnglesPort.getInputCount()) {
             gazeAnglesBottle = inputGazeAnglesPort.read(true);
-            azimuthAngle += gazeAnglesBottle->get(0).asDouble();
+            azimuthAngle += gazeAnglesBottle->get(azimuthIndex).asDouble();
         }
 
         if (mat != NULL) {

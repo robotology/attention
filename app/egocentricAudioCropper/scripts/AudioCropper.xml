@@ -47,7 +47,7 @@
     </connection>
 
     <connection>
-        <from>/egocentricAudioCropper/img:o</from>
+        <from>/egocentricAudioCropper/cartImg:o</from>
         <to>/cartEgocentricAngleView</to>
         <protocol>tcp</protocol>
     </connection>
@@ -60,3 +60,4 @@
     </connection>
 
 </application>
+
