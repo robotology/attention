@@ -51,6 +51,7 @@ private:
     string inputGazeAnglesPortName;
     string outputPortName;
     string outputImgPortName;
+    string outputScaledImgPortName;
 
 
     //Parameters
@@ -59,18 +60,21 @@ private:
     string cameraSide;
     double azimuthAngle;
     double cameraWidth;
+    double cameraHeight;
     double cameraFocalLength;
     double cameraAOV;
     int cameraSideAOV;
     int azimuthIndex;
 
     yImgPixelMono* outputImg;
+    yImgPixelMono* outputScaledImg;
     Bottle* gazeAnglesBottle;
 
     BufferedPort<Bottle>  inputGazeAnglesPort;;
     BufferedPort<yMatrix>  inputPort;
     BufferedPort<yMatrix>  outputPort;
     BufferedPort<yImgPixelMono> outputImgPort;
+    BufferedPort<yImgPixelMono> outputScaledImgPort;
 
 };
 #endif //ATTENTION_EGOCENTRIC_AUDIO_CROPPER_THREAD_H

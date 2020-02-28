@@ -26,6 +26,7 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
     inputGazeAnglesPortName = getName("/gazeAngles:i");
     outputPortName = getName("/map:o");
     outputImgPortName = getName("/cartImg:o");
+    outputScaledImgPortName = getName("/cartScaledImg:o");
 
 }
 
@@ -50,11 +51,14 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     if (cameraSide == "right"){
         cameraWidth = rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
         cameraFocalLength= rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
+        cameraHeight = rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
 
     }
     else{
         cameraWidth = rf.findGroup("CAMERA_CALIBRATION_LEFT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
         cameraFocalLength= rf.findGroup("CAMERA_CALIBRATION_LEFT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
+        cameraHeight = rf.findGroup("CAMERA_CALIBRATION_LEFT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
+
     }
     cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
     cameraSideAOV = cameraAOV/2;
@@ -86,6 +90,10 @@ bool egocentricAudioCropperThread::threadInit() {
 
     if (!outputImgPort.open(outputImgPortName.c_str())) {
         yError("Unable to open port to send output image.");
+        return false;
+    }
+    if (!outputScaledImgPort.open(outputScaledImgPortName.c_str())) {
+        yError("Unable to open port to send scaled output image.");
         return false;
     }
 
@@ -126,8 +134,14 @@ void egocentricAudioCropperThread::run() {
                         else
                             rowImage[i] = 255;
                     }
+                    if (outputScaledImgPort.getOutputCount()){
+                        outputScaledImg = &outputScaledImgPort.prepare();
+                        outputScaledImg->copy(*outputImg,cameraWidth,cameraHeight);
+                        outputScaledImgPort.write();
+                    }
                     outputImgPort.write();
                 }
+
             }
         }
     }

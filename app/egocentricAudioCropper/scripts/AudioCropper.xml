@@ -25,6 +25,11 @@
          <node>icub</node>
      </module>
 
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /cartEgocentricAngleScaledView</parameters>
+        <node>icub</node>
+    </module>
 
 
     <connection>
@@ -52,12 +57,18 @@
         <protocol>tcp</protocol>
     </connection>
 
+    <connection>
+        <from>/egocentricAudioCropper/cartScaledImg:o</from>
+        <to>/cartEgocentricAngleScaledView</to>
+        <protocol>tcp</protocol>
+    </connection>
 
     <connection>
         <from>/bayesianProbabilityEdocentricAngleVisualiser/img:o</from>
         <to>/bayesianProbabilityEgocentricAngleView</to>
         <protocol>tcp</protocol>
     </connection>
+
 
 </application>
 
