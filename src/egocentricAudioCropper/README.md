@@ -1,18 +1,21 @@
 # Egocentric Audio Cropper (egocentricAudioCropper)
 
-This module is cutting the 360° baysian angles probability of the audio egocentric angle probability as well as a cartasian map which defines the angle with the maximum probability.  
+This module is cutting the 360° bayesian alocentric angles probability of the audio to egocentric angle probability as well as a cartesian map which defines the angle with the maximum egocentric probability.  
+
 
 ### Input Ports
 ---
 The module has two input ports. their names has a prefix with the module name. The defaultValue of the module name is ```/egocentricAudioCropper``` 
 The ports are as follows: 
-| Port         | Port name           | Port Type  |
+
+| Port                                 | Port name                              | Port Type       
 | -----------------------------------  |:------------------------------------:  | :----------------:|
-| 360° baysian angles probability      |```/<module name>/map:i```              | yarp::sig::Matrix |
+| 360° bayesian angles probability      |```/<module name>/map:i```              | yarp::sig::Matrix |
 | Robot's head angles                  | ```/<module name>/gazeAngles:i```      | yarp::os::Bottle  |
 
-* 360° baysian angles probability : this port recieves a matrix object with size 1*360 which represent the angles from -180 to 180 around the center of the robot. each value represents the probability of the. This matrix can be recieved from the module [audioPreprocessor](https://github.com/TataLab/iCubAudioAttention/blob/master/modules/audioPreprocessor/doc/README.md) which is part of [Tatalab/iCubAudioAttention reposatory](https://github.com/TataLab/iCubAudioAttention)
-* Robot's head angles: this port should recieve the angles of the head of the robot as a bottle. We are only concerning about azimuth angle of the eyes. The index of this angle should be specified in the configuration file as a parameters section. This angles can be recieved from the module [iKenGazeCtrl](http://www.icub.org/software_documentation/group__iKinGazeCtrl.html) which is part of [robotology/icub-main reposatory ](https://github.com/robotology/icub-main) this value is used to transfer the allocentric angle probability to egocentric prespective with a limited field equal to the current vision field of the robot.
+* 360° bayesian angles probability : this port receives a matrix object with size 1*360 which represent the angles from -180 to 180 around the center of the robot. each value represents the probability of the. This matrix can be recieved from the module [audioPreprocessor](https://github.com/TataLab/iCubAudioAttention/blob/master/modules/audioPreprocessor/doc/README.md) which is part of [Tatalab/iCubAudioAttention ](https://github.com/TataLab/iCubAudioAttention) repository
+* Robot's head angles: this port should receive the angles of the head of the robot as a bottle. We are only concerning about azimuth angle of the eyes. The index of this angle should be specified in the configuration file as a parameters section. This angles can be recieved from the module [iKenGazeCtrl](http://www.icub.org/software_documentation/group__iKinGazeCtrl.html) which is part of [robotology/icub-main  ](https://github.com/robotology/icub-main)  repository this value is used to transfer the allocentric angle probability to egocentric perspective with a limited field equal to the current vision field of the robot.
+
 
 
 
@@ -26,25 +29,34 @@ The module has 2 output ports as follows:
 
 | Port                                                    | Port name                                  | Port Type  |
 | ------------------------------------------------------  |:-----------------------------------:  | :----------------:|
-| Egocentric baysian angles probability                   |```/<module name>/map:o```             | yarp::sig::Matrix |
-| Cartasian egocentric audio map ( maximum probability )  | ```/<module name>/cartImg:o```         | yarp::sig::ImageOf<yarp::sig::PixelMono>  |
+| Egocentric bayesian angles probability                   |```/<module name>/map:o```             | yarp::sig::Matrix |
+| Cart. egocentric audio map   | ```/<module name>/cartImg:o```         | yarp::sig::ImageOf< yarp::sig::PixelMono >  |
 
+* Egocentric bayesian angles probability  is a sub matrix from the alocentric audio map (the main input of the module) which is based on the gaze angle and the angle of view. 
+* Cart. egocentric audio map: is an Mono color image with size (1, AOV). AOV: angle of view of the camera used in the robot. The values of the image are all black except one value with white color which represent the highest angle probability of the audio.
 
 ## Module running Configuration  
-The configuration file 
+The configuration defines the running parameters of the module as follow: 
 
 ### Running Parameters: 
 ---
-You can speciy the context and the config file using the following command. By default, the context is egocentricAudioCropper and the name of the config file is egocentricAudioCropper.ini
+You can specify the context and the config file using the following command. By default, the context is egocentricAudioCropper and the name of the config file is egocentricAudioCropper.ini
 ```bash
 egocentricAudioCropper --context <parameter> --from <parameter>.ini
 ```
-#### config file
+
+
+You can specify the name of the module using this command
+```bash
+egocentricAudioCropper --name /<module name>
+```
+#### Config file
+
 ---
-In the congiguration file you need to specify 4 values in a group with name: cameraParams 
+In the configuration file you need to specify 4 values in a group with name: cameraParams 
 
 | Parameter         | description          |  Type  |
-| -----------------------------------  |:------------------------------------:  | :----------------:|
+| -----------------------------------  |:------------------------------------  | :----------------:|
 | ```fileName```    |the name of the config file of the camera parameters (*.ini)  | string |
 | ```side```        |the camera used in the vision modules (left) or (right) | string |
 | ```context```     |the name of the context of the camera parameters  | string |
@@ -95,3 +107,26 @@ QL ( 0.000000	 0.000000	 0.000000	-0.000220	-0.000292	 0.000068	-0.000003	 0.006
 QR ( 0.000000	 0.000000	 0.000000	-0.000220	-0.000292	 0.000068	-0.000003	-0.008767)
 ```
 
+#### Copy rights
+---
+
+  * Copyright (C)2020  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author: Omar Eldardeer
+  * email: omar.eldardeer@iit.it
+  * Permission is granted to copy, distribute, and/or modify this program
+  * under the terms of the GNU General Public License, version 2 or any
+  * later version published by the Free Software Foundation.
+  *
+  * A copy of the license can be found at
+  * http://www.robotcub.org/icub/license/gpl.txt
+  *
+  * This program is distributed in the hope that it will be useful, but
+  * WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  * Public License for more details
+
+
+#### Bug issues reporting
+---
+* Create a [new issue](https://github.com/robotology/attention/issues/new) 
+* Email the author ```omar.eldardeer@iit.it```
