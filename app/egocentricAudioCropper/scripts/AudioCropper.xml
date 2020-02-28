@@ -1,0 +1,63 @@
+<application>
+    <name>Audio Cropper</name>
+
+    <module>
+        <name>egocentricAudioCropper</name>
+        <parameters>--name /egocentricAudioCropper</parameters>
+        <node>icub</node>
+    </module>
+
+    <module>
+        <name>frequencyVisualisation</name>
+        <parameters>--name /bayesianProbabilityEdocentricAngleVisualiser --grid vert --gain 100</parameters>
+        <node>icub</node>
+    </module>
+
+   <module>
+        <name>yarpview</name>
+        <parameters>--name /bayesianProbabilityEgocentricAngleView</parameters>
+        <node>icub</node>
+    </module>
+
+    <module>
+         <name>yarpview</name>
+         <parameters>--name /cartEgocentricAngleView</parameters>
+         <node>icub</node>
+     </module>
+
+
+
+    <connection>
+        <from>/audioBayesianMap/bayesianProbabilityAngle:o</from>
+        <to>/egocentricAudioCropper/map:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/iKinGazeCtrl/angles:o</from>
+        <to>/egocentricAudioCropper/gazeAngles:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+    <connection>
+        <from>/egocentricAudioCropper/map:o</from>
+        <to>/bayesianProbabilityEdocentricAngleVisualiser/map:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/egocentricAudioCropper/cartImg:o</from>
+        <to>/cartEgocentricAngleView</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+    <connection>
+        <from>/bayesianProbabilityEdocentricAngleVisualiser/img:o</from>
+        <to>/bayesianProbabilityEgocentricAngleView</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+</application>
+
