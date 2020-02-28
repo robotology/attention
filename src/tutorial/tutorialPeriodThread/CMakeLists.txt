@@ -1,8 +1,8 @@
-# Copyright (C) 2013 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-# Authors: Francesco Rea
+# Copyright (C) 2020 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+# Authors: Carlo Mazzola
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-SET(KEYWORD "tutorialRatethread")
+SET(KEYWORD "tutorialPeriodThread")
 PROJECT(${KEYWORD})
 cmake_minimum_required(VERSION 2.6)
 

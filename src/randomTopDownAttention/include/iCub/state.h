@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -29,6 +30,7 @@ public:
     state(string stateName, int stateNum);
     string getName();
     int getNum();
-    virtual Bottle getSettings() = 0;
+    virtual Bottle* getSettings() = 0;
+    virtual int getSettingsSize() = 0;
 };
 #endif

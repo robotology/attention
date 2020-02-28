@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -15,14 +16,15 @@
   * Public License for more details
 */
 
-#ifndef _ATTENDINF_INTENSITY_STATE_H_
-#define _ATTENDINF_INTENSITY_STATE_H_
+#ifndef _STATE_MOTION_ONLE_H_
+#define _STATE_MOTION_ONLE_H_
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
 
-class attendingIntensityState :public state{
+class stateMotionOnly :public state{
 public:
-    attendingIntensityState();
-    Bottle getSettings();
+    stateMotionOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
 };
 #endif

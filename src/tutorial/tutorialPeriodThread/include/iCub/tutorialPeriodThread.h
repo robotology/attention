@@ -2,8 +2,8 @@
 
 /*
   * Copyright (C)2013  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Francesco Rea
-  * email: francesco.reak@iit.it
+  * Author:Carlo Mazzola
+  * email: carlo.mazzola@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -18,25 +18,25 @@
 */
 
 /**
- * @file tutorialThread.h
+ * @file tutorialPeriodThread.h
  * @brief Definition of a thread that receives an RGN image from input port and sends it to the output port.
  */
 
 
-#ifndef _TUTORIAL_RATETHREAD_H_
-#define _TUTORIAL_RATETHREAD_H_
+#ifndef _TUTORIAL_PERIODTHREAD_H_
+#define _TUTORIAL_PERIODTHREAD_H_
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Log.h>
 #include <iostream>
 #include <fstream>
 #include <time.h>
 
 
-class tutorialRatethread : public yarp::os::RateThread {
+class tutorialPeriodThread : public yarp::os::PeriodicThread {
 private:
     bool result;                    //result of the processing
 
@@ -56,18 +56,18 @@ public:
     /**
     * constructor default
     */
-    tutorialRatethread();
+    tutorialPeriodThread();
 
     /**
     * constructor 
     * @param robotname name of the robot
     */
-    tutorialRatethread(std::string robotname,std::string configFile);
+    tutorialPeriodThread(std::string robotname,std::string configFile);
 
     /**
      * destructor
      */
-    ~tutorialRatethread();
+    ~tutorialPeriodThread();
 
     /**
     *  initialises the thread

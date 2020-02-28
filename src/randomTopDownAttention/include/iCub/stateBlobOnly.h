@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -15,14 +16,16 @@
   * Public License for more details
 */
 
-#ifndef _STATE_ATTENDING_COLOURFUL_H_
-#define _STATE_ATTENDING_COLOURFUL_H_
+#ifndef _STATE_BLOB_ONLY_H_
+#define _STATE_BLOB_ONLY_H_
 #include "state.h"
-using namespace std;
+#include "iCub/helperFunctions.h"
 
-class attendingColourfulState :public state{
+
+class stateBlobOnly :public state{
 public:
-    attendingColourfulState();
-    Bottle getSettings();
+    stateBlobOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
 };
 #endif

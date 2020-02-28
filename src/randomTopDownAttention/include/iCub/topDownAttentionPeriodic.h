@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -30,22 +31,40 @@
 using namespace yarp::os;
 using namespace std;
 
+enum class ATTENTION_MODES{RANDOM,INTENSITY,MOTION,CHROMINANCE,ORIENTATION,EDGES,BLOB};
+
 
 class topDownAttentionPeriodic : public PeriodicThread {
 public:
+    topDownAttentionPeriodic(double p,string moduleName);
+    topDownAttentionPeriodic(topDownAttentionPeriodic& topDownPeriodObject);
+    topDownAttentionPeriodic& operator=(const topDownAttentionPeriodic& topDownPeriodObject);
+    ~topDownAttentionPeriodic();
+    bool threadInit();
+    void afterStart(bool s);
+    void run();
+    void threadRelease();
+
+    void setRandomMode();
+    void setBlobMode();
+    void setIntensityMode();
+    void setChrominanceMode();
+    void setEdgesMode();
+    void setMotionMode();
+    void setOrientationMode();
+
+private:
     Network yarp;
     RpcClient port;
     int msgCount;
     string moduleName;
     string clientName;
     state** attentionStates;
+    bool randomMode;
 
-    topDownAttentionPeriodic(double p,string moduleName);
-    bool threadInit();
-    void afterStart(bool s);
-    void run();
-    void threadRelease();
-    void sendAttentionToPort();
+
+    void sendAttentionToPort(ATTENTION_MODES mode);
+
 };
 
 #endif

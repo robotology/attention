@@ -16,21 +16,23 @@
   * Public License for more details
 */
 
-#include "iCub/topDownAttentionModule.h"
-int main(int argc, char *argv[]) {
+#include "iCub/stateBlobOnly.h"
+using namespace attention::dictionary;
+using namespace std;
 
-    //initialize yarp network
-    Network yarp;
-    topDownAttentionModule module;
+stateBlobOnly::stateBlobOnly():state("stateBlobOnly",6){}
 
-    /* prepare and configure the resource finder */
-    ResourceFinder rf;
-    rf.setVerbose(true);
-    rf.setDefaultConfigFile("randomTopDownAttention.ini");    //overridden by --from parameter
-    rf.setDefaultContext("randomTopDownAttention");    //overridden by --context parameter
-    rf.configure(argc, argv);
+Bottle* stateBlobOnly::getSettings(){
+    Bottle* settings = new Bottle[6];
+    settings[0] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0);
+    settings[1] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K2,0);
+    settings[2] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K3,0);
+    settings[3] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K4,0);
+    settings[4] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K5,0);
+    settings[5] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K6,1);
+    return settings;
+}
 
-    /* run the module: runModule() calls configure first and, if successful, it then runs */
-    module.runModule(rf);
-    return 0;
+int stateBlobOnly::getSettingsSize(){
+    return 6;
 }

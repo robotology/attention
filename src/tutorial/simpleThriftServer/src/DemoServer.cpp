@@ -1,5 +1,6 @@
 #include <yarp/os/all.h>
 #include <Demo.h>
+#include <iostream>
 
 class DemoServer : public Demo
 {

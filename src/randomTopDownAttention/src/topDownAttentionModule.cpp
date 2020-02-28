@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -14,8 +15,8 @@
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
 */
-
 #include "iCub/topDownAttentionModule.h"
+using namespace attention::dictionary;
 
 bool topDownAttentionModule::configure(ResourceFinder &rf) {
 
@@ -82,6 +83,40 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
     else if (command.get(0).asString()=="help") {
         yInfo(helpMessage.c_str());
         reply.addString("ok");
+    }
+
+
+
+    switch (command.get(0).asVocab()){
+        case COMMAND_VOCAB_MODE_BLOB:
+            pThread->setBlobMode();
+            reply.addString("Blob");
+            break;
+        case COMMAND_VOCAB_MODE_MOTION:
+            pThread->setMotionMode();
+            reply.addString("Motion");
+            break;
+        case COMMAND_VOCAB_MODE_CHROMINANCE:
+            pThread->setChrominanceMode();
+            reply.addString("Chrominance");
+            break;
+        case COMMAND_VOCAB_MODE_INTENSITY:
+            pThread->setIntensityMode();
+            reply.addString("Intensity");
+            break;
+        case COMMAND_VOCAB_MODE_EDGES:
+            pThread->setEdgesMode();
+            reply.addString("Edges");
+            break;
+        case COMMAND_VOCAB_MODE_ORIENTATION:
+            pThread->setOrientationMode();
+            reply.addString("Orientation");
+            break;
+        case COMMAND_VOCAB_MODE_RANDOM:
+            pThread->setRandomMode();
+            reply.addString("Random");
+            break;
+
     }
 
     return true;

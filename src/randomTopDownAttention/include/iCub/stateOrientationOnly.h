@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -15,11 +16,15 @@
   * Public License for more details
 */
 
-#include "iCub/attendingIntensityState.h"
+#ifndef _STATE_ORIENTATION_ONLY_H_
+#define _STATE_ORIENTATION_ONLY_H_
+#include "state.h"
 #include "iCub/helperFunctions.h"
 
-attendingIntensityState::attendingIntensityState():state("attendingIntensityState",5){}
-
-Bottle attendingIntensityState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.5);
-}
+class stateOrientationOnly :public state{
+public:
+    stateOrientationOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
+};
+#endif

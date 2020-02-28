@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -15,11 +16,15 @@
   * Public License for more details
 */
 
-#include "iCub/attendingMovementState.h"
+#ifndef _STATE_CHROMINANCE_ONLY_H_
+#define _STATE_CHROMINANCE_ONLY_H_
+#include "state.h"
 #include "iCub/helperFunctions.h"
 
-attendingMovementState::attendingMovementState():state("attendingMovementState",2){}
-
-Bottle attendingMovementState::getSettings(){
-    return helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,0.2);
-}
+class stateChrominanceOnly :public state{
+public:
+    stateChrominanceOnly();
+    Bottle* getSettings();
+    int getSettingsSize();
+};
+#endif

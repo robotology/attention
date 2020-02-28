@@ -1,3 +1,4 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
   * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
@@ -17,6 +18,7 @@
 
 #include "iCub/helperFunctions.h"
 
+using namespace attention::dictionary;
 
 void helperFunctions::printBottle(Bottle& bottle){
     //this function prints in details the bottle object (msg from to ports)

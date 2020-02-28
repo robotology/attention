@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /*
-  * Copyright (C)2013  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
-  * Author:Francesco Rea
-  * email: francesco.reak@iit.it
+  * Copyright (C)2020  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Author:Carlo Mazzola
+  * email: carlo.mazzola@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
   * under the terms of the GNU General Public License, version 2 or any
   * later version published by the Free Software Foundation.
@@ -88,12 +88,12 @@ bool tutorialModule::configure(yarp::os::ResourceFinder &rf) {
 
 
     /* create the thread and pass pointers to the module parameters */
-    rThread = new tutorialRatethread(robotName, configFile);
-    rThread->setName(getName().c_str());
-    //rThread->setInputPortName(inputPortName.c_str());
+    pThread = new tutorialPeriodThread(robotName, configFile);
+    pThread->setName(getName().c_str());
+    //pThread->setInputPortName(inputPortName.c_str());
     
     /* now start the thread to do the work */
-    rThread->start(); // this calls threadInit() and it if returns true, it then calls run()
+    pThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
     return true ;       // let the RFModule know everything went well
                         // so that it will then run the module
@@ -108,7 +108,7 @@ bool tutorialModule::close() {
     handlerPort.close();
     /* stop the thread */
     yDebug("stopping the thread \n");
-    rThread->stop();
+    pThread->stop();
     return true;
 }
 
