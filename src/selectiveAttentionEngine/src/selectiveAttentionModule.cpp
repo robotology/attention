@@ -248,10 +248,15 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
                            Value(0.0), 
                            "coefficient map cartesian1 (double)").asDouble();
 
-    /* parses the value of the coefficient map cartesian 1 */
+    /* parses the value of the coefficient map cartesian 2 */
     kc2       = rf.check("kc2", 
                            Value(0.0), 
                            "coefficient map cartesian2 (double)").asDouble();
+
+    /* parses the value of the coefficient map cartesian 3 */
+    kc3       = rf.check("kc3",
+                         Value(0.0),
+                         "coefficient map cartesian3 (double)").asDouble();
 
     /*
      *checking if the earlyResponse stages are activated
@@ -281,6 +286,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     
     currentProcessor->setKC1(kc1);
     currentProcessor->setKC2(kc2);
+    currentProcessor->setKC3(kc3);
     currentProcessor->setRobotName(robotName);
     currentProcessor->start();
     currentProcessor->setHueMap(hueMap);
@@ -429,6 +435,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                 currentProcessor->setK6(1.0);
                 currentProcessor->setKC1(0.0);
                 currentProcessor->setKC2(0.0);
+                currentProcessor->setKC3(0.0);
                 return true;
             }
             else if(!strcmp(str2.c_str(),"mot")) {
@@ -441,6 +448,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                 currentProcessor->setK6(0.0);
                 currentProcessor->setKC1(0.0);
                 currentProcessor->setKC2(0.0);
+                currentProcessor->setKC3(0.0);
                 return true;
             }
         }
@@ -470,6 +478,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             reply.addString("set k6 <double> \t: setting of linear combination coefficient (map6)  ");
             reply.addString("set kc1 <double> \t: setting of linear combination coefficient (mapc1)  ");
             reply.addString("set kc2 <double> \t: setting of linear combination coefficient (mapc2)  ");
+            reply.addString("set kc3 <double> \t: setting of linear combination coefficient (mapc3)  ");
             reply.addString("set kmot <double> \t: setting of linear combination coefficient (flow motion)  ");
             reply.addString("set bu <double> \t: setting of weight of the bottom-up contribution  ");
             reply.addString("set td <double> \t: setting of weight of the top-down contribution  ");
@@ -487,6 +496,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             reply.addString("get k6 <double> \t: getting of linear combination coefficient (map6)  ");
             reply.addString("get kc1 <double> \t: getting of linear combination coefficient (mapc1)  ");
             reply.addString("get kc2 <double> \t: getting of linear combination coefficient (mapc2)  ");
+            reply.addString("get kc3 <double> \t: getting of linear combination coefficient (mapc3)  ");
             reply.addString("get kmot <double> \t: getting of linear combination coefficient (flow motion)  ");
 
             reply.addString(" ");
@@ -657,6 +667,13 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                 ok = true;
             }
             break;
+            case COMMAND_VOCAB_KC3:{
+                double w = command.get(2).asDouble();
+                if(currentProcessor!=0)
+                    currentProcessor->setKC3(w);
+                ok = true;
+            }
+            break;
             case COMMAND_VOCAB_DEF:{
                 if(currentProcessor!=0) {
                     currentProcessor->setKMotion(0.2);
@@ -668,6 +685,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                     currentProcessor->setK6(0.1);
                     currentProcessor->setKC1(0.0);
                     currentProcessor->setKC2(0.0);
+                    currentProcessor->setKC3(0.0);
                 }
                 ok = true;
             }
@@ -690,6 +708,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                     currentProcessor->setK6(0.0);
                     currentProcessor->setKC1(0.0);
                     currentProcessor->setKC2(0.0);
+                    currentProcessor->setKC3(0.0);
                 }
                 ok = true;
             }
@@ -838,14 +857,14 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                 reply.addDouble(w);
                 ok = true;
             }
-            /*
             break;
             case COMMAND_VOCAB_KC3:{
-                double w = currentProcessor->kc3;
+                double w = currentProcessor->getKC3();
                 reply.addDouble(w);
                 ok = true;
             }
             break;
+            /*
             case COMMAND_VOCAB_KC4:{
                 double w = currentProcessor->kc4;
                 reply.addDouble(w);

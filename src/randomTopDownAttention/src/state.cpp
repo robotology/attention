@@ -17,15 +17,66 @@
 */
 
 #include "iCub/state.h"
+using namespace attention::dictionary;
 
-state::state(string stateName, int stateNum){
-    this->stateNum = stateNum;
+map<ATTENTION_MODES,int> modesIndMap{{ATTENTION_MODES::RANDOM,-1},
+                                            {ATTENTION_MODES::INTENSITY,0},
+                                            {ATTENTION_MODES::MOTION,1},
+                                            {ATTENTION_MODES::CHROMINANCE,2},
+                                            {ATTENTION_MODES::ORIENTATION,3},
+                                            {ATTENTION_MODES::EDGES,4},
+                                            {ATTENTION_MODES::BLOB,5},
+                                            {ATTENTION_MODES::FACE,6},
+                                            {ATTENTION_MODES::BIO_MOTION,7},
+                                            {ATTENTION_MODES::AUDIO,8}};
+
+map<std::string ,std::string> statesCoefMap = {{"INTENSITY","k1"},
+                                                      {"MOTION","k2"},
+                                                      {"CHROMINANCE","k3"},
+                                                      {"ORIENTATION","k4"},
+                                                      {"EDGES","k5"},
+                                                      {"BLOB","k6"},
+                                                      {"FACE","kc1"},
+                                                      {"BIO_MOTION","kc2"},
+                                                      {"AUDIO","kc3"}};
+
+state::state(string stateName){
     this->stateName = stateName;
+
+    map<string,string>::iterator statesCoefMapIterator;
+    statesCoefMapIterator = statesCoefMap.find(stateName);
+    if(statesCoefMapIterator != statesCoefMap.end())
+        setCoefValByCoef(statesCoefMapIterator->second,1);
 }
-string state::getName(){
+string state::getName()const{
     return stateName;
 }
+bool state::setCoefValByState(string mapName, double val){
+    map<string,string>::iterator statesCoefMapIterator;
+    statesCoefMapIterator = statesCoefMap.find(mapName);
+    if(statesCoefMapIterator == statesCoefMap.end())
+        return false;
+    coefValueMap.at(statesCoefMapIterator->second) = val;
+    return true;
+}
+void state::setCoefValByCoef(string coefName, double val){
+    coefValueMap.at(coefName) = val;
+}
 
-int state::getNum(){
-    return stateNum;
+Bottle* state::getSettings() const{
+    Bottle* settings = new Bottle[9];
+    settings[0] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K1,coefValueMap.at("k1"));
+    settings[1] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K2,coefValueMap.at("k2"));
+    settings[2] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K3,coefValueMap.at("k3"));
+    settings[3] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K4,coefValueMap.at("k4"));
+    settings[4] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K5,coefValueMap.at("k5"));
+    settings[5] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_K6,coefValueMap.at("k6"));
+    settings[6] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_KC1,coefValueMap.at("kc1"));
+    settings[7] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_KC2,coefValueMap.at("kc2"));
+    settings[8] = helperFunctions::createSetVocabBottle(COMMAND_VOCAB_KC3,coefValueMap.at("kc3"));
+    return settings;
+}
+
+int state::getSettingsSize() const{
+    return 9;
 }
