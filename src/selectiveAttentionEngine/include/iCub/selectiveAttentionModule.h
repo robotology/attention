@@ -83,6 +83,7 @@
 #define COMMAND_VOCAB_TD    VOCAB2('t','d')
 #define COMMAND_VOCAB_KC1   VOCAB3('k','c','1')
 #define COMMAND_VOCAB_KC2   VOCAB3('k','c','2')
+#define COMMAND_VOCAB_KC3   VOCAB3('k','c','3')
 #define COMMAND_VOCAB_KMOT  VOCAB4('k','m','o','t')
 #define COMMAND_VOCAB_DEF   VOCAB3('d','e','f')
 #define COMMAND_VOCAB_MOT   VOCAB3('m','o','t')
@@ -254,6 +255,7 @@ private:
     double kMotion;             // coefficient map Motion
     double kc1;                 // coefficient map cartesian1
     double kc2;                 // coefficient map cartesian2
+    double kc3;                 // coefficient map cartesian3
 
     yarp::os::Port cmdPort;     // command port of the module
     int ct;                     // counter of the module

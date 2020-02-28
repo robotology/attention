@@ -21,6 +21,8 @@
 
 #include <stdio.h>
 #include <string>
+#include <array>
+#include <array>
 #include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Thread.h>
@@ -31,15 +33,12 @@
 using namespace yarp::os;
 using namespace std;
 
-enum class ATTENTION_MODES{RANDOM,INTENSITY,MOTION,CHROMINANCE,ORIENTATION,EDGES,BLOB};
+
 
 
 class topDownAttentionPeriodic : public PeriodicThread {
 public:
     topDownAttentionPeriodic(double p,string moduleName);
-    topDownAttentionPeriodic(topDownAttentionPeriodic& topDownPeriodObject);
-    topDownAttentionPeriodic& operator=(const topDownAttentionPeriodic& topDownPeriodObject);
-    ~topDownAttentionPeriodic();
     bool threadInit();
     void afterStart(bool s);
     void run();
@@ -52,6 +51,9 @@ public:
     void setEdgesMode();
     void setMotionMode();
     void setOrientationMode();
+    void setFaceMode();
+    void setBioMotioMode();
+    void setAudioMode();
 
 private:
     Network yarp;
@@ -59,7 +61,7 @@ private:
     int msgCount;
     string moduleName;
     string clientName;
-    state** attentionStates;
+    array<state,9> attentionStates;
     bool randomMode;
 
 

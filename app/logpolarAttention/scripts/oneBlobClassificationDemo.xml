@@ -1,0 +1,105 @@
+<application>
+
+	<name>BioDetector One Blob Classification</name>	
+
+	<module>
+		<name>oneMotionFeatExtractor</name>
+		<parameters>--name /oneMotionFeatExtractor --threshold1Level 0.5 --threshold2Level 0.7 --threshold3Level 0.6 --inhibitionDelay 4.0  </parameters>
+		<node>/icub14</node>
+	</module>
+	<module>
+		<name>comparison_linearClassifierModule</name>
+		<parameters>--name linearClassifier</parameters>
+		<node>/icub14</node>
+	</module>
+
+	<module>
+	  <name>oneMerger</name>
+	</module>
+	  
+	<module>
+	  <name>minimaFinder</name>
+	</module>
+
+	<module>
+		<name>yarpview</name>
+		<parameters>--name /inputView --x 0 --y 10 --w 460 --h 420</parameters>
+		<node>/icub16</node>
+	</module>
+
+	<module>
+		<name>yarpview</name>
+		<parameters>--name /opfView --x 640 --y 0  --w 427 --h 320 --compact</parameters>
+		<node>/icub16</node>
+	</module>
+	<module>
+		<name>yarpview</name>
+		<parameters>--name /gradientMaskView --x 0 --y 10  --w 427 --h 320 --compact</parameters>
+		<node>/icub16</node>
+	</module>
+	<module>
+	  <name>yarpview</name>
+	  <parameters>--name /maskViewColored --x 640 --y 405  --w 427 --h 320 --compact</parameters>
+	  <node>/icub16</node>
+	</module>
+	<module>
+	  <name>yarpview</name>
+	  <parameters>--name /maskBioView --x 10 --y 660  --w 427 --h 320 --compact</parameters>
+	  <node>/icub16</node>
+	  </module>>
+
+	
+
+
+
+   <connection>
+  	<from>/icub/camcalib/left/out</from>
+  	<to>/oneMotionFeatExtractor/image:i</to>
+  	<protocol>mjpeg</protocol>
+    </connection>
+   <connection>
+  	<from>/oneMotionFeatExtractor/descrResult:o</from>
+  	<to>/linearClassifier/features:i</to>
+  	<protocol>shmem</protocol>
+    </connection>
+
+   <connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/inputView</to>
+        <protocol>mjpeg</protocol>
+   </connection>
+   <connection>
+        <from>/oneMotionFeatExtractor/colorResult:o</from>
+        <to>/opfView</to>
+	    <protocol>mjpeg</protocol>
+   </connection>
+   <connection>
+        <from>/oneMotionFeatExtractor/gmResult:o</from>
+        <to>/gradientMaskView </to>
+        <protocol>mjpeg</protocol>
+   </connection>
+   <connection>
+     <from>/oneMotionFeatExtractor/gmResult:o</from>
+     <to>/oneMerger/mask:i</to>
+     <protocol>mjpeg</protocol>
+   </connection>
+   <connection>
+     <from> /linearClassifier/classification:o</from>
+     <to> /oneMerger/label:i</to>
+   </connection>
+   <connection>
+     <from>/oneMerger/maskColored:o</from>
+     <to>/maskViewColored</to>
+   </connection>
+   <connection>
+     <from>/oneMerger/maskBio:o</from>
+     <to>/maskBioView</to>
+   </connection>
+   <connection>
+     <from>/oneMerger/maskBio:o</from>
+     <to>/selectiveAttentionEngine/icub/left_cam/cart2:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+   
+   
+</application>

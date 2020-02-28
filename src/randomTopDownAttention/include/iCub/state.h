@@ -19,18 +19,40 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 #include <string>
+#include <map>
 #include <yarp/os/all.h>
+#include "iCub/helperFunctions.h"
 using namespace yarp::os;
 using namespace std;
 
+
+
+enum class ATTENTION_MODES{RANDOM,INTENSITY,MOTION,CHROMINANCE,ORIENTATION,EDGES,BLOB,FACE,BIO_MOTION,AUDIO};
+
+extern map<ATTENTION_MODES,int> modesIndMap;
+extern map<std::string ,std::string> statesCoefMap;
+
+
 class state{
+private:
+     map<string,double> coefValueMap{{"k1",0},
+                                    {"k2",0},
+                                    {"k3",0},
+                                    {"k4",0},
+                                    {"k5",0},
+                                    {"k6",0},
+                                    {"kc1",0},
+                                    {"kc2",0},
+                                    {"kc3",0}};
+
+    void setCoefValByCoef(string coefName, double val);
 public:
     string stateName;
-    int stateNum;
-    state(string stateName, int stateNum);
-    string getName();
-    int getNum();
-    virtual Bottle* getSettings() = 0;
-    virtual int getSettingsSize() = 0;
+    state(string stateName = "NO_NAME");
+    bool setCoefValByState(string mapName, double val);
+    double gerCoefVal(string mapName) const;
+    string getName() const;
+    Bottle* getSettings() const;
+    int getSettingsSize() const;
 };
 #endif
