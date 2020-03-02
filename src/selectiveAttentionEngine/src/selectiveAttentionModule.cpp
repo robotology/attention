@@ -318,12 +318,12 @@ bool selectiveAttentionModule::close() {
 void selectiveAttentionModule::setOptions(yarp::os::Property opt){
     //options	=opt;
     // definition of the name of the module
-    ConstString name=opt.find("name").asString();
+    std::string name=opt.find("name").asString();
     if(name!=""){
         printf("|||  Module named as :%s \n", name.c_str());
         this->setName(name.c_str());
     }
-    ConstString value=opt.find("mode").asString();
+    std::string value=opt.find("mode").asString();
     if(value!=""){
        
     }
@@ -413,7 +413,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     bool ok = false;
     bool rec = false; // is the command recognized?
 
-    ConstString str=command.get(0).asString();
+    std::string str=command.get(0).asString();
     if(!strcmp(str.c_str(),"sus")) {
         currentProcessor->suspend();
         return true;
@@ -423,7 +423,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
         return true;
     }
     else if(!strcmp(str.c_str(),"set")) {
-        ConstString str2=command.get(0).asString();
+        std::string str2=command.get(0).asString();
         if(!strcmp(str2.c_str(),"def")) {
             if(currentProcessor!=0) {
                 currentProcessor->setKMotion(0.2);

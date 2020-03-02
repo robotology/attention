@@ -1803,7 +1803,7 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
     if (arg != 0) {
         printf("selectiveAttentionProcessor::update:bottle: %s \n", arg->toString().c_str());
         int size = arg->size();
-        ConstString name = arg->get(0).asString();
+        std::string name = arg->get(0).asString();
         printf("counterMotion %d \n", counterMotion);
         if(counterMotion > MAXCOUNTERMOTION) {
             if(!strcmp(name.c_str(),"MOT")) {
