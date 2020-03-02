@@ -84,14 +84,14 @@ void populatorThread::run() {
         list.clear();
         
         //asking for the list of all the object in the objectsPropertiesCollector
-        writer.addVocab(VOCAB3('a','s','k'));
+        writer.addVocab(createVocab('a','s','k'));
         Bottle& listAttr=writer.addList();
         listAttr.addString("all");
         //writer.append(listAttr);
         databasePort.write(writer,reader);
         //int v = reader.pop().asVocab();
         cout<<"reader:"<<reader.toString()<<endl;
-        if(reader.get(0).asVocab()==VOCAB3('a','c','k')) {
+        if(reader.get(0).asVocab()==createVocab('a','c','k')) {
             cout<<"reader:"<<reader.toString()<<" size:"<<reader.size()<<endl;
             if(reader.size()<=1) {
                 printf("No Objects Found \n");
@@ -110,7 +110,7 @@ void populatorThread::run() {
                 int id = list->get(j++).asInt();
                 cout<<id<<", ";
                 writer2.clear(); reader2.clear();
-                writer2.addVocab(VOCAB3('g','e','t'));
+                writer2.addVocab(createVocab('g','e','t'));
                 Bottle& listAttr=writer2.addList();
                 //listAttr.addList(listAttr);
                 Bottle& listId=listAttr.addList();
@@ -118,7 +118,7 @@ void populatorThread::run() {
                 listId.addInt(id);
                 cout<<writer2.toString()<<endl;
                 databasePort.write(writer2,reader2);
-                if(reader2.get(0).asVocab()==VOCAB3('a','c','k')) {
+                if(reader2.get(0).asVocab()==createVocab('a','c','k')) {
                     //cout << "reader:" << reader2.toString() << endl;
                     Bottle* list = reader2.get(1).asList();
                     //cout << "list:" << list->toString() << endl;
