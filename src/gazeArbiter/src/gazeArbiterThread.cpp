@@ -2014,7 +2014,7 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
     if (arg != 0) {
         //printf("bottle: %s ", arg->toString().c_str());
         int size = arg->size();
-        ConstString name = arg->get(0).asString();
+        std::string name = arg->get(0).asString();
         if(!strcmp(name.c_str(),"STOP")) {
             printf("STOP request!!!!!! \n");
             timeout = 100;
