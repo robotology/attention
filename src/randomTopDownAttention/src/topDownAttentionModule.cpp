@@ -81,8 +81,7 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
         return false;
     }
     else if (command.get(0).asString()=="help") {
-        yInfo(helpMessage.c_str());
-        reply.addString("ok");
+        reply.addString(helpMessage);
     }
 
 
