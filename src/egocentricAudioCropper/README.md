@@ -25,15 +25,17 @@ The ports are as follows:
 
 ### Outpot Ports 
 ---
-The module has 2 output ports as follows: 
+The module has 3 output ports as follows: 
 
 | Port                                                    | Port name                                  | Port Type  |
 | ------------------------------------------------------  |:-----------------------------------:  | :----------------:|
 | Egocentric bayesian angles probability                   |```/<module name>/map:o```             | yarp::sig::Matrix |
 | Cart. egocentric audio map   | ```/<module name>/cartImg:o```         | yarp::sig::ImageOf< yarp::sig::PixelMono >  |
+| Scaled Cart. egocentric audio map   | ```/<module name>/cartImg:o```         | yarp::sig::ImageOf< yarp::sig::PixelMono >  |
 
 * Egocentric bayesian angles probability  is a sub matrix from the alocentric audio map (the main input of the module) which is based on the gaze angle and the angle of view. 
 * Cart. egocentric audio map: is an Mono color image with size (1, AOV). AOV: angle of view of the camera used in the robot. The values of the image are all black except one value with white color which represent the highest angle probability of the audio.
+* Scaled output with the size of the camera (camera width, camera height) from the config file. default values are (320*240)
 
 ## Module running Configuration  
 The configuration defines the running parameters of the module as follow: 
