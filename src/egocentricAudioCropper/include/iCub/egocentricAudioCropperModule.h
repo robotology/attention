@@ -1,6 +1,6 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 /*
-  * Copyright (C)2019  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+  * Copyright (C)2020  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
   * Author: Omar Eldardeer
   * email: omar.eldardeer@iit.it
   * Permission is granted to copy, distribute, and/or modify this program
@@ -15,10 +15,8 @@
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
 */
-
-
-#ifndef _ATTENTION_Module_H_
-#define _ATTENTION_Module_H_
+#ifndef ATTENTION_EGOCENTRIC_AUDIO_CROPPER_MODULE_H
+#define ATTENTION_EGOCENTRIC_AUDIO_CROPPER_MODULE_H
 
 #include <yarp/os/all.h>
 #include <iostream>
@@ -33,18 +31,18 @@
 #include <iCub/attention/commandDictionary.h>
 
 //within project includes
-#include <iCub/topDownAttentionPeriodic.h>
+#include <iCub/egocentricAudioCropperThread.h>
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-class topDownAttentionModule : public RFModule {
+class egocentricAudioCropperModule : public RFModule {
 
     string moduleName;
     string handlerPortName;
     Port handlerPort;
 
-    topDownAttentionPeriodic *pThread;
+    egocentricAudioCropperThread *pThread;
 
 public:
 
@@ -57,4 +55,4 @@ public:
 
 };
 
-#endif
+#endif //ATTENTION_EGOCENTRIC_AUDIO_CROPPER_MODULE_H

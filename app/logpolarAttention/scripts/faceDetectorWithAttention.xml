@@ -1,0 +1,94 @@
+<application>
+    <name>faceDetectorApplicationWithAttention</name>
+    <version>1.0</version>
+    <authors>
+        <author email="francesco.rea@ii.it">Francesco Rea</author>
+    </authors>
+    
+    <module>
+        <name>faceDetector</name>
+        <parameters>--context faceDetector --with_attention true</parameters>
+        <node>icub-b1</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 395.219) (y 30.4384))</geometry>
+    </module>
+
+
+
+    <module>
+        <name>repeater</name>
+        <parameters>--name /icub/camcalibresize/left --outputWidth 320 --outputHeight 240</parameters>  
+        <node>pc104</node>
+        <tag>camsample_left</tag>
+    </module> 
+
+
+
+
+    <module>
+        <name>iCubBreather</name>
+        <parameters>--name iCubBreatherRA --part right_arm --autostart</parameters>
+        <node>icub16</node>
+    </module>
+    <module>
+        <name>iCubBlinker</name>
+        <parameters>--autostart</parameters>
+        <node>icub16</node>
+    </module> 
+    <module>
+        <name>iCubBreather</name>
+        <parameters>--name iCubBreatherLA --part left_arm --autostart</parameters>
+        <node>icub16</node>
+    </module>
+    
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /faceDetectorView --out /faceDetectorView/out --x 320 --y 0 --RefreshTime 10</parameters>
+        <node>icub16</node>
+        <prefix></prefix>
+    </module>
+    <module>
+        <name>yarpdatadumper</name>
+        <parameters>--name faces --type image --downsample 50</parameters>
+        <node>icub14</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 88.0016) (y 7.01699))</geometry>
+    </module>
+    <connection>
+        <from>/faceDetectorView/out</from>
+        <to>/faceTracker/topdown:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+
+
+<connection>
+  <output>/icub/cam/left</output>
+  <input>/icub/camcalibresize/left/in</input>
+  <protocol>shmem</protocol>
+</connection>
+
+<connection>
+    <from external="true">/icub/camcalibresize/left/out</from>
+    <to external="true">/faceDetector/image/in</to>
+    <protocol>udp</protocol>
+    <geometry>(Pos ((x -1) (y -1)) ((x 122.5) (y 50)) ((x 526.494) (y 88.0502))  )</geometry>
+</connection>
+
+
+
+
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to external="true">/faceDetector/image/in</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 122.5) (y 50)) ((x 526.494) (y 88.0502))  )</geometry>
+    </connection>
+
+    <connection>
+        <from external="true">/faceDetector/image/out</from>
+        <to external="true">/faceDetectorView</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x -1) (y -1)) ((x 154.49) (y 94.9798)) ((x 501.498) (y 130))  )</geometry>
+    </connection>
+</application>

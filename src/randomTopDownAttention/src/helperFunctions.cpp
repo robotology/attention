@@ -18,6 +18,7 @@
 
 #include "iCub/helperFunctions.h"
 
+using namespace attention::dictionary;
 
 void helperFunctions::printBottle(Bottle& bottle){
     //this function prints in details the bottle object (msg from to ports)

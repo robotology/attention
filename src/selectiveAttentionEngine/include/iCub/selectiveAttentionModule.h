@@ -83,6 +83,7 @@ const int32_t COMMAND_VOCAB_BU    = yarp::os::createVocab('b','u');
 const int32_t COMMAND_VOCAB_TD    = yarp::os::createVocab('t','d');
 const int32_t COMMAND_VOCAB_KC1   = yarp::os::createVocab('k','c','1');
 const int32_t COMMAND_VOCAB_KC2   = yarp::os::createVocab('k','c','2');
+const int32_t COMMAND_VOCAB_KC3   = yarp::os::createVocab('k','c','3');
 const int32_t COMMAND_VOCAB_KMOT  = yarp::os::createVocab('k','m','o','t');
 const int32_t COMMAND_VOCAB_DEF   = yarp::os::createVocab('d','e','f');
 const int32_t COMMAND_VOCAB_MOT   = yarp::os::createVocab('m','o','t');
@@ -254,6 +255,7 @@ private:
     double kMotion;             // coefficient map Motion
     double kc1;                 // coefficient map cartesian1
     double kc2;                 // coefficient map cartesian2
+    double kc3;                 // coefficient map cartesian3
 
     yarp::os::Port cmdPort;     // command port of the module
     int ct;                     // counter of the module

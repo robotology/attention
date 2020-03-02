@@ -18,12 +18,6 @@
 
 #include <iCub/topDownAttentionPeriodic.h>
 #include "iCub/helperFunctions.h"
-#include "iCub/stateBlobOnly.h"
-#include "iCub/stateChrominanceOnly.h"
-#include "iCub/stateIntensityOnly.h"
-#include "iCub/stateMotionOnly.h"
-#include "iCub/stateOrientationOnly.h"
-#include "iCub/stateEdgesOnly.h"
 #include <cstdlib>
 #include <ctime>
 using namespace std;
@@ -37,13 +31,17 @@ topDownAttentionPeriodic::topDownAttentionPeriodic(double p,string moduleName):P
     this->clientName = moduleName+"/cmd";
 
     //create a new state array of pointers of 6 states and create instances from each state
-    attentionStates = new state*[6];
-    attentionStates[0] = new stateIntensityOnly();
-    attentionStates[1] = new stateMotionOnly();
-    attentionStates[2] = new stateChrominanceOnly();
-    attentionStates[3] = new stateOrientationOnly();
-    attentionStates[4] = new stateEdgesOnly();
-    attentionStates[5] = new stateBlobOnly();
+    attentionStates[0] = state("INTENSITY");
+    attentionStates[1] = state("MOTION");
+    attentionStates[2] = state("CHROMINANCE");
+    attentionStates[3] = state("ORIENTATION");
+    attentionStates[4] = state("EDGES");
+    attentionStates[5] = state("BLOB");
+    attentionStates[6] = state("FACE");
+    attentionStates[7] = state("BIO_MOTION");
+    attentionStates[8] = state("AUDIO");
+
+    randomMode = true;
 
     //initialize the randomisation function
     srand(time(NULL));
@@ -66,90 +64,109 @@ bool topDownAttentionPeriodic::threadInit()
 }
 void topDownAttentionPeriodic::run()
 {
-    sendAttentionToPort();
+    sendAttentionToPort(ATTENTION_MODES::RANDOM);
 }
 void topDownAttentionPeriodic::threadRelease()
 {
-    yInfo("Goodbye from thread\n");
+    yDebug("Releasing the thread \n");
+    port.interrupt();
+    port.close();
 }
 
-void topDownAttentionPeriodic::sendAttentionToPort(){
-    //this function is called each periodically
 
+
+
+void topDownAttentionPeriodic::sendAttentionToPort(ATTENTION_MODES mode) {
     //this to make sure that the port is connected
     if (port.getOutputCount()==0) {
         printf("No Connection to  %s\n", clientName.c_str());
     } else {
         // if the port is connected, create a bottle output command
         Bottle cmd;
-
-        //then randommly pich a number between 0 and 5
-        int randomNum = (rand()%6);
+        int modeIdx = (rand()%attentionStates.size());
+        if(mode != ATTENTION_MODES::RANDOM)
+            modeIdx = modesIndMap.at(mode);
 
         //get the command of this the state which has an index of the generated random number in the state array
-        Bottle* allCmds = attentionStates[randomNum]->getSettings();
-        for(int i =0; i< attentionStates[randomNum]->getSettingsSize(); i++){
+        Bottle* allCmds = attentionStates[modeIdx].getSettings();
+        for(int i =0; i< attentionStates[modeIdx].getSettingsSize(); i++){
             cmd = allCmds[i];
             yInfo("Sending message... ");
             helperFunctions::printBottle(cmd);
             Bottle response;
-            //send the command, recieve the responce, and print the responce
+            //send the command, receive the response, and print the response
             port.write(cmd,response);
             yInfo("Got response: %s\n", response.toString().c_str());
         }
     }
 }
 
-topDownAttentionPeriodic::~topDownAttentionPeriodic(){
-    for(int i=0; i<6; i++){
-        delete attentionStates[i];
-    }
-    delete [] attentionStates;
+
+void topDownAttentionPeriodic::setRandomMode() {
+    randomMode = true;
+    if(isSuspended())
+        resume();
 }
-topDownAttentionPeriodic::topDownAttentionPeriodic(topDownAttentionPeriodic& topDownPeriodObject):PeriodicThread(topDownPeriodObject.getPeriod()){
-    //set the module name
-    this->moduleName = topDownPeriodObject.moduleName;
 
-    //initialize the output port name with moduleName/cmd
-    this->clientName = topDownPeriodObject.moduleName;
-
-    //create a new state array of pointers of 6 states and create instances from each state
-    attentionStates = new state*[6];
-    attentionStates[0] = new stateIntensityOnly();
-    attentionStates[1] = new stateMotionOnly();
-    attentionStates[2] = new stateChrominanceOnly();
-    attentionStates[3] = new stateOrientationOnly();
-    attentionStates[4] = new stateEdgesOnly();
-    attentionStates[5] = new stateBlobOnly();
-
-    //initialize the randomisation function
-    srand(time(NULL));
+void topDownAttentionPeriodic::setBlobMode() {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::BLOB);
 }
-topDownAttentionPeriodic& topDownAttentionPeriodic::operator=(const topDownAttentionPeriodic& topDownPeriodObject){
-    this->setPeriod(topDownPeriodObject.getPeriod());
-    //set the module name
-    this->moduleName = topDownPeriodObject.moduleName;
 
-    //initialize the output port name with moduleName/cmd
-    this->clientName = topDownPeriodObject.moduleName;
+void topDownAttentionPeriodic::setIntensityMode() {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::INTENSITY);
+}
 
-    if(attentionStates){
-        for(int i=0; i<6; i++){
-            if(attentionStates[i])
-                delete attentionStates[i];
-        }
-        delete [] attentionStates;
-    }
-    //create a new state array of pointers of 6 states and create instances from each state
-    attentionStates = new state*[6];
-    attentionStates[0] = new stateIntensityOnly();
-    attentionStates[1] = new stateMotionOnly();
-    attentionStates[2] = new stateChrominanceOnly();
-    attentionStates[3] = new stateOrientationOnly();
-    attentionStates[4] = new stateEdgesOnly();
-    attentionStates[5] = new stateBlobOnly();
+void topDownAttentionPeriodic::setChrominanceMode() {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::CHROMINANCE);
+}
 
-    //initialize the randomisation function
-    srand(time(NULL));
-    return *this;
+void topDownAttentionPeriodic::setEdgesMode() {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::EDGES);
+}
+
+void topDownAttentionPeriodic::setMotionMode() {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::MOTION);
+}
+
+void topDownAttentionPeriodic::setOrientationMode() {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::ORIENTATION);
+}
+
+void topDownAttentionPeriodic::setFaceMode() {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::FACE);
+}
+
+void topDownAttentionPeriodic::setBioMotioMode()  {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::BIO_MOTION);
+}
+
+void topDownAttentionPeriodic::setAudioMode()  {
+    randomMode = false;
+    if(!isSuspended())
+        suspend();
+    sendAttentionToPort(ATTENTION_MODES::AUDIO);
 }

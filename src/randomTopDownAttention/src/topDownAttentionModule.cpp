@@ -15,8 +15,8 @@
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
   * Public License for more details
 */
-
 #include "iCub/topDownAttentionModule.h"
+using namespace attention::dictionary;
 
 bool topDownAttentionModule::configure(ResourceFinder &rf) {
 
@@ -85,6 +85,56 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
         reply.addString("ok");
     }
 
+
+
+    switch (command.get(0).asVocab()){
+        case COMMAND_VOCAB_MODE:
+            switch (command.get(1).asVocab()){
+                case COMMAND_VOCAB_BLOB:
+                    pThread->setBlobMode();
+                    reply.addString("Blob");
+                    break;
+                case COMMAND_VOCAB_MOTION:
+                    pThread->setMotionMode();
+                    reply.addString("Motion");
+                    break;
+                case COMMAND_VOCAB_CHROMINANCE:
+                    pThread->setChrominanceMode();
+                    reply.addString("Chrominance");
+                    break;
+                case COMMAND_VOCAB_INTENSITY:
+                    pThread->setIntensityMode();
+                    reply.addString("Intensity");
+                    break;
+                case COMMAND_VOCAB_EDGES:
+                    pThread->setEdgesMode();
+                    reply.addString("Edges");
+                    break;
+                case COMMAND_VOCAB_ORIENTATION:
+                    pThread->setOrientationMode();
+                    reply.addString("Orientation");
+                    break;
+                case COMMAND_VOCAB_FACE:
+                    pThread->setFaceMode();
+                    reply.addString("Face");
+                    break;
+                case COMMAND_VOCAB_BIO_MOTION:
+                    pThread->setBioMotioMode();
+                    reply.addString("BIO_MOTION");
+                    break;
+                case COMMAND_VOCAB_AUDIO:
+                    pThread->setAudioMode();
+                    reply.addString("AUDIO");
+                    break;
+                default:
+                    reply.addString("MODE IS UNDEFINED");
+                    break;
+            }
+            break;
+        default:
+            reply.addString("COMMAND IS UNDEFINED");
+            break;
+    }
     return true;
 }
 
