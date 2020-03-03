@@ -96,7 +96,7 @@ bool trajectoryPredictor::threadInit() {
     evalQueue::iterator it;
     evalThread* tmp;
     it = eQueue->begin();
-    printf("got the pointer to the evalThread %08x \n", (*it));
+    //printf("got the pointer to the evalThread %08x \n",  (*it));
    
     //Vector xCheck = (*it)->getX();
     //printf(" xCheck = \n %s \n", xCheck.toString().c_str());
@@ -145,7 +145,7 @@ bool trajectoryPredictor::threadInit() {
     eval->init(z0,x0,P0);
     printf("genPred model A \n %s \n",mB    ->getA().toString().c_str());
     printf("lin acc model A \n %s \n",modelB->getA().toString().c_str());
-    printf("just initialised genPredModel %08X \n",&eval);
+    // printf("just initialised genPredModel %08X \n",&eval);
     eval->start();
     eQueue->push_back(eval);
 
@@ -180,7 +180,7 @@ bool trajectoryPredictor::threadInit() {
     eval->init(z0a,x0a,P0a);
     printf("genPred model A \n %s \n",mA    ->getA().toString().c_str());
     printf("lin acc model A \n %s \n",modelA->getA().toString().c_str());
-    printf("just initialised genPredModel %08X \n",&eval);
+    // printf("just initialised genPredModel %08X \n",&eval);
     eval->start();
     eQueue->push_back(eval); 
     
@@ -218,7 +218,7 @@ bool trajectoryPredictor::threadInit() {
         }      
     }
 
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+     printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     genPredModel* mC = dynamic_cast<genPredModel*>(modelC);
     eval = new evalThread(*mC);
     eval->init(z0c,x0c,P0c);
@@ -226,8 +226,8 @@ bool trajectoryPredictor::threadInit() {
     eQueue->push_back(eval); 
     
     //------------------------------------------------------------------------------
-    
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.5,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -237,8 +237,8 @@ bool trajectoryPredictor::threadInit() {
     eQueue->push_back(eval); 
     
     //------------------------------------------------------------------------------
-    
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.5,0.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -249,7 +249,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.5,1.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -261,7 +261,7 @@ bool trajectoryPredictor::threadInit() {
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n",(int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.4,0.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -272,7 +272,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.4,1.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -283,7 +283,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.4,1.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -294,7 +294,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.4,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -306,7 +306,7 @@ bool trajectoryPredictor::threadInit() {
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
 
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n",(int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.3,0.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -317,7 +317,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.3,1.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -328,7 +328,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.3,1.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -339,7 +339,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.3,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -351,7 +351,7 @@ bool trajectoryPredictor::threadInit() {
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
 
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.2,0.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -362,7 +362,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.2,1.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -373,7 +373,7 @@ bool trajectoryPredictor::threadInit() {
     
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.2,1.5);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -384,7 +384,7 @@ bool trajectoryPredictor::threadInit() {
 
     //------------------------------------------------------------------------------
     
-    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", eQueue->size());
+    printf("----------------------------------- \n MinJerk Model : initialisation of model %d \n", (int) eQueue->size());
     modelC = new minJerkModel();
     modelC->init(0.2,2.0);
     mC = dynamic_cast<genPredModel*>(modelC);
@@ -477,7 +477,7 @@ Vector trajectoryPredictor::projectOnPlane(int a, int b, int c , int d, int u, i
 
 
 bool trajectoryPredictor::estimateVelocity(int x, int y, double& Vx, double& Vy, double& xPos, double& yPos, double& zPos, double& time, double& distance) {
-    printf(" trajectoryPredictor::estimateVelocity in pos.%d,%d  \n", Vx, Vy);
+    printf(" trajectoryPredictor::estimateVelocity in pos.%f,%f  \n", Vx, Vy);
     
     CvPoint p_curr, p_prev;
 
