@@ -95,7 +95,7 @@ void iKartFollowerThread::readTargetInfo(FILE* targetFile) {
         for (int i = 0; i < 4; i++) {
             numRead = fscanf(targetFile, "%f", &x);
             if(numRead != -1) {
-                printf("%f %f \n",numRead,x);
+                printf("%d %f \n",numRead,x);
                 val[countVal] = (double) x;
             }
             else {
