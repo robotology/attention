@@ -123,7 +123,7 @@ protected:
     std::string inputPortName;      // name of input port for incoming events, typically from aexGrabber
     std::string part;               // robot part to move
 
-    yarp::os::ConstString filePath;                               // path of the file found by the resource finder
+    std::string filePath;                               // path of the file found by the resource finder
     yarp::os::ResourceFinder rf;                                  // resource finder
     yarp::os::BufferedPort<yarp::os::Bottle>  guiPort;            // output port to plot event
     yarp::os::BufferedPort<yarp::os::Bottle>  xdPort;             // output port to plot event
