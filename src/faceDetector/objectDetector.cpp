@@ -45,12 +45,12 @@ public:
 
     bool configure(ResourceFinder &rf)
     {
-        ConstString cascade;
-        ConstString nestedCascade;
-        ConstString nameOfFile =  rf.check("cascade", Value("haarcascade_frontalface_alt.xml")).asString().c_str(); 
+        std::string cascade;
+        std::string nestedCascade;
+        std::string nameOfFile =  rf.check("cascade", Value("haarcascade_frontalface_alt.xml")).asString().c_str();
         yInfo("name of file: %s", nameOfFile.c_str());
-         
-        ConstString filePath = rf.findPath(nameOfFile.c_str()).c_str();
+
+        std::string filePath = rf.findPath(nameOfFile.c_str()).c_str();
 
         if(filePath == "") /*|| !rf.check("nested-cascade")*/
         {        

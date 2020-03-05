@@ -88,7 +88,7 @@ void DisparityTool::AllocateVectors() {
     if (_count != NULL)
         delete [] _count;
 
-    char File_Name [256];
+    char File_Name [316];
     FILE * fin;
     int n;
     int cSize = (int)_min((double)_img.Size_X_Orig, (double)_img.Size_Y_Orig);

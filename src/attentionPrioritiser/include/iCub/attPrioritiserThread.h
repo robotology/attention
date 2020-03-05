@@ -26,48 +26,6 @@
 #ifndef _ATT_PRIORITISER_THREAD_H_
 #define _ATT_PRIORITISER_THREAD_H_
 
-#define COMMAND_VOCAB_K1                 VOCAB2('k','1')
-#define COMMAND_VOCAB_K2                 VOCAB2('k','2')
-#define COMMAND_VOCAB_K3                 VOCAB2('k','3')
-#define COMMAND_VOCAB_K4                 VOCAB2('k','4')
-#define COMMAND_VOCAB_K5                 VOCAB2('k','5')
-#define COMMAND_VOCAB_K6                 VOCAB2('k','6')
-#define COMMAND_VOCAB_BU                 VOCAB2('b','u')
-#define COMMAND_VOCAB_P0                 VOCAB2('p','0')
-
-#define COMMAND_VOCAB_45                 VOCAB3('o','4','5')
-#define COMMAND_VOCAB_P45                VOCAB3('p','4','5')
-#define COMMAND_VOCAB_N45                VOCAB3('n','4','5')
-#define COMMAND_VOCAB_M45                VOCAB3('M','4','5')
-#define COMMAND_VOCAB_P90                VOCAB3('p','9','0')
-#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
-#define COMMAND_VOCAB_INH                VOCAB3('i','n','h')
-#define COMMAND_VOCAB_ACT                VOCAB3('a','c','t')
-
-#define COMMAND_VOCAB_PRED               VOCAB4('p','r','e','d')
-#define COMMAND_VOCAB_STAT               VOCAB4('s','t','a','t')
-#define COMMAND_VOCAB_NINH               VOCAB4('n','i','n','h')
-#define COMMAND_VOCAB_NULL               VOCAB4('n','u','l','l')
-#define COMMAND_VOCAB_TIME               VOCAB4('t','i','m','e')
-#define COMMAND_VOCAB_TRED               VOCAB4('t','r','e','d')
-#define COMMAND_VOCAB_TBLU               VOCAB4('t','b','l','u')
-#define COMMAND_VOCAB_TGRE               VOCAB4('t','g','r','e')
-#define COMMAND_VOCAB_FRGB               VOCAB4('f','r','g','b')
-
-#define COMMAND_VOCAB_RED                VOCAB3('r','e','d')
-#define COMMAND_VOCAB_GRE                VOCAB3('g','r','e')
-#define COMMAND_VOCAB_BLU                VOCAB3('b','l','u')
-#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
-#define COMMAND_VOCAB_WTD                VOCAB3('w','t','d')
-#define COMMAND_VOCAB_WBU                VOCAB3('w','b','u')
-#define COMMAND_VOCAB_RGB                VOCAB3('r','g','b')
-#define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
-#define COMMAND_VOCAB_ORI                VOCAB3('o','r','i')
-#define COMMAND_VOCAB_MAXDB              VOCAB3('M','d','b')           // maximum dimension of the blob drawn
-#define COMMAND_VOCAB_MINDB              VOCAB3('m','d','b')           // minimum dimension of the blob drawn
-
-
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Bottle.h>
@@ -100,6 +58,48 @@
 
 #define NUMSTATES 7 // number of states in the attPrioritiser
                     // any state corresponds to an action for the oculomotorController
+
+const int32_t COMMAND_VOCAB_K1                 = yarp::os::createVocab('k','1');
+const int32_t COMMAND_VOCAB_K2                 = yarp::os::createVocab('k','2');
+const int32_t COMMAND_VOCAB_K3                 = yarp::os::createVocab('k','3');
+const int32_t COMMAND_VOCAB_K4                 = yarp::os::createVocab('k','4');
+const int32_t COMMAND_VOCAB_K5                 = yarp::os::createVocab('k','5');
+const int32_t COMMAND_VOCAB_K6                 = yarp::os::createVocab('k','6');
+const int32_t COMMAND_VOCAB_BU                 = yarp::os::createVocab('b','u');
+const int32_t COMMAND_VOCAB_P0                 = yarp::os::createVocab('p','0');
+
+const int32_t COMMAND_VOCAB_45                 = yarp::os::createVocab('o','4','5');
+const int32_t COMMAND_VOCAB_P45                = yarp::os::createVocab('p','4','5');
+const int32_t COMMAND_VOCAB_N45                = yarp::os::createVocab('n','4','5');
+const int32_t COMMAND_VOCAB_M45                = yarp::os::createVocab('M','4','5');
+const int32_t COMMAND_VOCAB_P90                = yarp::os::createVocab('p','9','0');
+const int32_t COMMAND_VOCAB_SUSPEND            = yarp::os::createVocab('s','u','s');
+const int32_t COMMAND_VOCAB_RESUME             = yarp::os::createVocab('r','e','s');
+const int32_t COMMAND_VOCAB_INH                = yarp::os::createVocab('i','n','h');
+const int32_t COMMAND_VOCAB_ACT                = yarp::os::createVocab('a','c','t');
+
+const int32_t COMMAND_VOCAB_PRED               = yarp::os::createVocab('p','r','e','d');
+const int32_t COMMAND_VOCAB_STAT               = yarp::os::createVocab('s','t','a','t');
+const int32_t COMMAND_VOCAB_NINH               = yarp::os::createVocab('n','i','n','h');
+const int32_t COMMAND_VOCAB_NULL               = yarp::os::createVocab('n','u','l','l');
+const int32_t COMMAND_VOCAB_TIME               = yarp::os::createVocab('t','i','m','e');
+const int32_t COMMAND_VOCAB_TRED               = yarp::os::createVocab('t','r','e','d');
+const int32_t COMMAND_VOCAB_TBLU               = yarp::os::createVocab('t','b','l','u');
+const int32_t COMMAND_VOCAB_TGRE               = yarp::os::createVocab('t','g','r','e');
+const int32_t COMMAND_VOCAB_FRGB               = yarp::os::createVocab('f','r','g','b');
+
+const int32_t COMMAND_VOCAB_RED                = yarp::os::createVocab('r','e','d');
+const int32_t COMMAND_VOCAB_GRE                = yarp::os::createVocab('g','r','e');
+const int32_t COMMAND_VOCAB_BLU                = yarp::os::createVocab('b','l','u');
+const int32_t COMMAND_VOCAB_SET                = yarp::os::createVocab('s','e','t');
+const int32_t COMMAND_VOCAB_WTD                = yarp::os::createVocab('w','t','d');
+const int32_t COMMAND_VOCAB_WBU                = yarp::os::createVocab('w','b','u');
+const int32_t COMMAND_VOCAB_RGB                = yarp::os::createVocab('r','g','b');
+const int32_t COMMAND_VOCAB_GET                = yarp::os::createVocab('g','e','t');
+const int32_t COMMAND_VOCAB_ORI                = yarp::os::createVocab('o','r','i');
+const int32_t COMMAND_VOCAB_MAXDB              = yarp::os::createVocab('M','d','b');           // maximum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MINDB              = yarp::os::createVocab('m','d','b');           // minimum dimension of the blob drawn
+
 
 /**
 * thread that given a series of collected commands executes the most prioritised command, calling

@@ -33,7 +33,7 @@ using namespace yarp::sig;
 int main(int argc, char * argv[]) {
     Network yarp;
     
-    Time::turboBoost();
+    //Time::turboBoost();  //Commented  because of deprecation (Omar Eldardeer)
     populatorModule module; 
 
     ResourceFinder rf;

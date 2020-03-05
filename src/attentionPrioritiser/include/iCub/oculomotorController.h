@@ -215,11 +215,11 @@ private:
     int width, height;         // image dimension
     std::string name;          // rootname of all the ports opened by this thread
 
-    yarp::os::ConstString logFilePath     ;
-    yarp::os::ConstString rewardFilePath  ;
-    yarp::os::ConstString psaFilePath     ;    
-    yarp::os::ConstString qualityFilePath ; 
-    yarp::os::ConstString logStatePath    ; 
+    std::string logFilePath     ;
+    std::string rewardFilePath  ;
+    std::string psaFilePath     ;
+    std::string qualityFilePath ;
+    std::string logStatePath    ;
     
     yarp::os::Semaphore mutexStateTransition;                   // semaphore for controlling the state transition
 
@@ -340,7 +340,7 @@ public:
      * function that sets the logFile path
      * @param rf reference to the resource finder assigned in the module
      */
-    void setLogFile(yarp::os::ConstString str) {
+    void setLogFile(std::string str) {
         logFilePath = str;
     };
 
@@ -348,7 +348,7 @@ public:
      * function that sets the logState path
      * @param rf reference to the resource finder assigned in the module
      */
-    void setLogState(yarp::os::ConstString str) {
+    void setLogState(std::string str) {
         logStatePath = str;
     };
 
@@ -364,7 +364,7 @@ public:
      * function that sets the psaFile path
      * @param rf reference to the resource finder assigned in the module
      */
-    void setPsaFile(yarp::os::ConstString str) {
+    void setPsaFile(std::string str) {
         psaFilePath = str;
     };
 
@@ -372,7 +372,7 @@ public:
      * function that sets the psaFile path
      * @param rf reference to the resource finder assigned in the module
      */
-    void setRewardFile(yarp::os::ConstString str) {
+    void setRewardFile(std::string str) {
         rewardFilePath = str;
     };
 
@@ -380,7 +380,7 @@ public:
      * function that sets the psaFile path
      * @param rf reference to the resource finder assigned in the module
      */
-    void setQualityFile(yarp::os::ConstString str) {
+    void setQualityFile(std::string str) {
         qualityFilePath = str;
     };
 

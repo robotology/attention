@@ -108,7 +108,7 @@ public:
     void threadRelease();
 
 public: 
-    yarp::os::ConstString strCascade;
+    std::string strCascade;
     //yarp::os::ConstString strNestedCascade;
     bool idle;
     bool disableGazeControl;

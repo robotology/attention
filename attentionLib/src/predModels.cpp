@@ -75,7 +75,7 @@ linVelModel::linVelModel() {
     type = "constVelocity";
     rowA = 2;
     colA = 2;
-    printf("initialisation matrix A,B,H with main dimension %d \n", rowA, colA);
+    printf("initialisation matrix A,B,H with main dimension %d *  %d \n", rowA, colA);
     Matrix _A(2,2);
     Matrix _B(2,1);
     Matrix _H(2,2);

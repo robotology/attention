@@ -268,8 +268,8 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
         Bottle &faceRectCoordinateBottle = faceRectCoordinatePort.prepare();
         faceRectCoordinateBottle.clear();
 
-        faceRectCoordinateBottle.addVocab(VOCAB3('s','e','t'));
-        faceRectCoordinateBottle.addVocab(VOCAB4('t','r','a','c'));
+        faceRectCoordinateBottle.addVocab( yarp::os::createVocab('s','e','t'));
+        faceRectCoordinateBottle.addVocab( yarp::os::createVocab('t','r','a','c'));
         faceRectCoordinateBottle.addInt(rectTopLeft.x);
         faceRectCoordinateBottle.addInt(rectTopLeft.y);
 

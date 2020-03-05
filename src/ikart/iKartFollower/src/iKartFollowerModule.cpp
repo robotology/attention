@@ -28,13 +28,13 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-#define COMMAND_VOCAB_OK  VOCAB2('o', 'k')
-#define COMMAND_VOCAB_RESUME  VOCAB3('r', 'e', 's')
-#define COMMAND_VOCAB_FIX     VOCAB3('f', 'i', 'x')
-#define COMMAND_VOCAB_STOP    VOCAB4('s', 't', 'o', 'p')
-#define COMMAND_VOCAB_SUSPEND VOCAB4('s', 'u', 's', 'p')
-#define COMMAND_VOCAB_FAILED  VOCAB4('f', 'a', 'i', 'l')
-#define COMMAND_VOCAB_HELP    VOCAB4('h', 'e', 'l', 'p')
+const int32_t COMMAND_VOCAB_OK  = yarp::os::createVocab('o', 'k');
+const int32_t COMMAND_VOCAB_RESUME  = yarp::os::createVocab('r', 'e', 's');
+const int32_t COMMAND_VOCAB_FIX     = yarp::os::createVocab('f', 'i', 'x');
+const int32_t COMMAND_VOCAB_STOP    = yarp::os::createVocab('s', 't', 'o', 'p');
+const int32_t COMMAND_VOCAB_SUSPEND = yarp::os::createVocab('s', 'u', 's', 'p');
+const int32_t COMMAND_VOCAB_FAILED  = yarp::os::createVocab('f', 'a', 'i', 'l');
+const int32_t COMMAND_VOCAB_HELP    = yarp::os::createVocab('h', 'e', 'l', 'p');
 
 
 

@@ -23,60 +23,60 @@
 #include "iCub/handProfilerModule.h"
 
 // general command vocab's
-#define COMMAND_VOCAB_IS     VOCAB2('i','s')
-#define COMMAND_VOCAB_OK     VOCAB2('o','k')
-#define COMMAND_VOCAB_UP     VOCAB2('U','P')
-#define COMMAND_VOCAB_ON     VOCAB2('O','N')
+const int32_t  COMMAND_VOCAB_IS      = yarp::os::createVocab('i','s');
+const int32_t  COMMAND_VOCAB_OK      = yarp::os::createVocab('o','k');
+const int32_t  COMMAND_VOCAB_UP      = yarp::os::createVocab('U','P');
+const int32_t  COMMAND_VOCAB_ON      = yarp::os::createVocab('O','N');
 
 
-#define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
-#define COMMAND_VOCAB_TGRE   VOCAB4('t','g','r','e')
-#define COMMAND_VOCAB_TBLU   VOCAB4('t','b','l','u')
-#define COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_MINJ   VOCAB4('m','i','n','j')
-#define COMMAND_VOCAB_TTPL   VOCAB4('T','T','P','L')
-#define COMMAND_VOCAB_MANY   VOCAB4('m','a','n','y')
-#define COMMAND_VOCAB_XAXI   VOCAB4('X','A','X','I')
-#define COMMAND_VOCAB_YAXI   VOCAB4('Y','A','X','I')
-#define COMMAND_VOCAB_ZAXI   VOCAB4('Z','A','X','I')
-#define COMMAND_VOCAB_STAR   VOCAB4('S','T','A','R')
-#define COMMAND_VOCAB_PALM   VOCAB4('P','A','L','M')
-#define COMMAND_VOCAB_DOWN   VOCAB4('D','O','W','N')
-#define COMMAND_VOCAB_CURR   VOCAB4('C','U','R','R')
-#define COMMAND_VOCAB_SAVE   VOCAB4('S','A','V','E')        //save action joints in a file
-#define COMMAND_VOCAB_FILE   VOCAB4('F','I','L','E')        //
-#define COMMAND_VOCAB_SPEED  VOCAB4('S','P','E','E')        //start movement from joints file
-#define COMMAND_VOCAB_MARK   VOCAB4('M','A','R','K')        //to generate a time interval with start/stop
-#define COMMAND_VOCAB_STOP   VOCAB4('S','T','O','P')        //
-#define COMMAND_VOCAB_SYNC   VOCAB4('S','Y','N','C')        //set the time interval generated with MARK
-#define COMMAND_VOCAB_REPS   VOCAB4('R','E','P','S')        //set the number of repetitions for file movement
-#define COMMAND_VOCAB_LOAD   VOCAB4('L','O','A','D')        //load a file
-#define COMMAND_VOCAB_TIME   VOCAB4('T','I','M','E')        //
-#define COMMAND_VOCAB_GRAS   VOCAB4('G','R','A','S')        //grasp on
-#define COMMAND_VOCAB_PART   VOCAB4('P','A','R','T')        
+const int32_t  COMMAND_VOCAB_HELP    = yarp::os::createVocab('h','e','l','p');
+const int32_t  COMMAND_VOCAB_FAILED  = yarp::os::createVocab('f','a','i','l');
+const int32_t  COMMAND_VOCAB_TRED    = yarp::os::createVocab('t','r','e','d');
+const int32_t  COMMAND_VOCAB_TGRE    = yarp::os::createVocab('t','g','r','e');
+const int32_t  COMMAND_VOCAB_TBLU    = yarp::os::createVocab('t','b','l','u');
+const int32_t  COMMAND_VOCAB_FRED    = yarp::os::createVocab('f','r','e','d');       // request of fovea blob color (red)
+const int32_t  COMMAND_VOCAB_FBLU    = yarp::os::createVocab('f','b','l','u');       // request of fovea blob color (red)
+const int32_t  COMMAND_VOCAB_MINJ    = yarp::os::createVocab('m','i','n','j');
+const int32_t  COMMAND_VOCAB_TTPL    = yarp::os::createVocab('T','T','P','L');
+const int32_t  COMMAND_VOCAB_MANY    = yarp::os::createVocab('m','a','n','y');
+const int32_t  COMMAND_VOCAB_XAXI    = yarp::os::createVocab('X','A','X','I');
+const int32_t  COMMAND_VOCAB_YAXI    = yarp::os::createVocab('Y','A','X','I');
+const int32_t  COMMAND_VOCAB_ZAXI    = yarp::os::createVocab('Z','A','X','I');
+const int32_t  COMMAND_VOCAB_STAR    = yarp::os::createVocab('S','T','A','R');
+const int32_t  COMMAND_VOCAB_PALM    = yarp::os::createVocab('P','A','L','M');
+const int32_t  COMMAND_VOCAB_DOWN    = yarp::os::createVocab('D','O','W','N');
+const int32_t  COMMAND_VOCAB_CURR    = yarp::os::createVocab('C','U','R','R');
+const int32_t  COMMAND_VOCAB_SAVE    = yarp::os::createVocab('S','A','V','E');        //save action joints in a file
+const int32_t  COMMAND_VOCAB_FILE    = yarp::os::createVocab('F','I','L','E');        //
+const int32_t  COMMAND_VOCAB_SPEED   = yarp::os::createVocab('S','P','E','E');        //start movement from joints file
+const int32_t  COMMAND_VOCAB_MARK    = yarp::os::createVocab('M','A','R','K');        //to generate a time interval with start/stop
+const int32_t  COMMAND_VOCAB_STOP    = yarp::os::createVocab('S','T','O','P');        //
+const int32_t  COMMAND_VOCAB_SYNC    = yarp::os::createVocab('S','Y','N','C');        //set the time interval generated with MARK
+const int32_t  COMMAND_VOCAB_REPS    = yarp::os::createVocab('R','E','P','S');        //set the number of repetitions for file movement
+const int32_t  COMMAND_VOCAB_LOAD    = yarp::os::createVocab('L','O','A','D');        //load a file
+const int32_t  COMMAND_VOCAB_TIME    = yarp::os::createVocab('T','I','M','E');        //
+const int32_t  COMMAND_VOCAB_GRAS    = yarp::os::createVocab('G','R','A','S');        //grasp on
+const int32_t  COMMAND_VOCAB_PART    = yarp::os::createVocab('P','A','R','T');
 
 
-#define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
-#define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
-#define COMMAND_VOCAB_MBA    VOCAB3('m','B','A')           // minimum dimension of the bounding area
-#define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
-#define COMMAND_VOCAB_GEN    VOCAB3('G','E','N')
-#define COMMAND_VOCAB_CON    VOCAB3('C','V','P')
-#define COMMAND_VOCAB_MJP    VOCAB3('M','J','P')
-#define COMMAND_VOCAB_SIM    VOCAB3('S','I','M')
-#define COMMAND_VOCAB_CLR    VOCAB3('C','L','R')
-#define COMMAND_VOCAB_EXE    VOCAB3('E','X','E')
-#define COMMAND_VOCAB_ROT    VOCAB3('R','O','T')
-#define COMMAND_VOCAB_REV    VOCAB3('R','E','V')
-#define COMMAND_VOCAB_RES    VOCAB3('R','E','S')
-#define COMMAND_VOCAB_TTL    VOCAB3('T','T','L')
-#define COMMAND_VOCAB_CUS    VOCAB3('C','U','S')
-#define COMMAND_VOCAB_JOI    VOCAB3('J','O','I')            //save action joints in a file
-#define COMMAND_VOCAB_OFF    VOCAB3('O','F','F')
+const int32_t  COMMAND_VOCAB_MAXDB   = yarp::os::createVocab('M','d','b');           // maximum dimension of the blob drawn
+const int32_t  COMMAND_VOCAB_MINDB   = yarp::os::createVocab('m','d','b');           // minimum dimension of the blob drawn
+const int32_t  COMMAND_VOCAB_MBA     = yarp::os::createVocab('m','B','A');           // minimum dimension of the bounding area
+const int32_t  COMMAND_VOCAB_SET     = yarp::os::createVocab('s','e','t');
+const int32_t  COMMAND_VOCAB_GET     = yarp::os::createVocab('g','e','t');
+const int32_t  COMMAND_VOCAB_GEN     = yarp::os::createVocab('G','E','N');
+const int32_t  COMMAND_VOCAB_CON     = yarp::os::createVocab('C','V','P');
+const int32_t  COMMAND_VOCAB_MJP     = yarp::os::createVocab('M','J','P');
+const int32_t  COMMAND_VOCAB_SIM     = yarp::os::createVocab('S','I','M');
+const int32_t  COMMAND_VOCAB_CLR     = yarp::os::createVocab('C','L','R');
+const int32_t  COMMAND_VOCAB_EXE     = yarp::os::createVocab('E','X','E');
+const int32_t  COMMAND_VOCAB_ROT     = yarp::os::createVocab('R','O','T');
+const int32_t  COMMAND_VOCAB_REV     = yarp::os::createVocab('R','E','V');
+const int32_t  COMMAND_VOCAB_RES     = yarp::os::createVocab('R','E','S');
+const int32_t  COMMAND_VOCAB_TTL     = yarp::os::createVocab('T','T','L');
+const int32_t  COMMAND_VOCAB_CUS     = yarp::os::createVocab('C','U','S');
+const int32_t  COMMAND_VOCAB_JOI     = yarp::os::createVocab('J','O','I');            //save action joints in a file
+const int32_t  COMMAND_VOCAB_OFF     = yarp::os::createVocab('O','F','F');
 
 
 

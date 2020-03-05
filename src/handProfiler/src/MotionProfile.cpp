@@ -910,7 +910,7 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
         //yDebug("argv %s", argv[j]);
     //}
     // configuring the resource finder
-    yDebug("success %f", rf.configure(b->size() * 2 + 1, argv));
+    yDebug("success %d", rf.configure(b->size() * 2 + 1, argv));
 
     yInfo("resorceFinder: %s",rf.toString().c_str());
     // visiting the parameters using the RF

@@ -517,13 +517,13 @@ void attPrioritiserThread::addCollectionEvalThread() {
     evalQueue::iterator it;
     it = eQueue->begin();
     while (it != eQueue->end()) {
-        printf("attPrioritiserThread::addCollectionEvalThread: adding eval Thread %08X \n", *it);
+        //printf("attPrioritiserThread::addCollectionEvalThread: adding eval Thread %08X \n", *it);
         trajPredictor->addEvalThread(*it);
         Vector x = (*it)->getX();
         printf("attPrioritiserThread::addCollectionEvalThread: x = \n %s \n", x.toString().c_str());
         it++;
     }
-    printf("attPrioritiserThread::addCollectionEvalThread:saved %d eventPredictors \n", eQueue->size());
+    printf("attPrioritiserThread::addCollectionEvalThread:saved %d eventPredictors \n", (int) eQueue->size());
 }
 
 void attPrioritiserThread::interrupt() {
@@ -2126,7 +2126,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
     if (arg != 0) {
         //printf("bottle: %s \n", arg->toString().c_str());
         int size = arg->size();
-        ConstString name = arg->get(0).asString();
+        string name = arg->get(0).asString();
 
 
  //============================================================================        
@@ -2238,7 +2238,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     printf("Footprint still active \n");
                     printf("Footprint color  : %d-%d-%d \n", feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
                     printf("Footprint orient : %d-%d-%d-%d \n", feedbackOri0, feedbackOri45, feedbackOri90, feedbackOriM45);
-                    printf("Footprint chrominance: %d \n");
+                    printf("Footprint chrominance:  \n");
 
                     //comparing with fovea current information
                     Bottle rep;
@@ -2981,8 +2981,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 if (feedbackProtoObject.getOutputCount()){
                    Bottle requestProto, replyProto;
                    requestProto.clear(); replyProto.clear();
-                   requestProto.addVocab(VOCAB3('g','e','t')); 
-                   requestProto.addVocab(VOCAB4('f','r','g','b'));
+                   requestProto.addVocab(yarp::os::createVocab('g','e','t'));
+                   requestProto.addVocab(yarp::os::createVocab('f','r','g','b'));
                    feedbackProtoObject.write(requestProto, replyProto); 
                    printf("returned from proto %s \n", replyProto.toString().c_str());
                    r = replyProto.get(0).asInt();
@@ -2993,7 +2993,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 //adding novel position to the working memory
                 Bottle request, reply;
                 request.clear(); reply.clear();
-                request.addVocab(VOCAB3('a','d','d'));
+                request.addVocab(yarp::os::createVocab('a','d','d'));
                 Bottle& listAttr=request.addList();
                 
                 Bottle& sublistX = listAttr.addList();

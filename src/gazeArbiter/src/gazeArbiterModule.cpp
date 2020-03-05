@@ -242,7 +242,7 @@ bool gazeArbiterModule::configure(yarp::os::ResourceFinder &rf) {
    
 
     // fixating pitch
-    ConstString blockPitch   = rf.check("blockPitch", 
+    std::string blockPitch   = rf.check("blockPitch",
                            Value("ON"), 
                            "fixing the pitch to a desired angle").asString();
     bool pitchFlag;

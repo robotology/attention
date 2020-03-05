@@ -29,23 +29,23 @@ using namespace yarp::sig;
 using namespace std;
 
 // general command vocab's
-#define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_SET                VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
-#define COMMAND_VOCAB_RUN                VOCAB3('r','u','n')
-#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
-#define COMMAND_VOCAB_FIX                VOCAB3('f','i','x')
-#define COMMAND_VOCAB_IS                 VOCAB2('i','s')
-#define COMMAND_VOCAB_OK                 VOCAB2('o','k')
-#define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_SEEK               VOCAB4('s','e','e','k')
-#define COMMAND_VOCAB_CENT               VOCAB4('c','e','n','t')
-#define COMMAND_VOCAB_STOP               VOCAB4('s','t','o','p')
-#define COMMAND_VOCAB_PUSH               VOCAB4('p','u','s','h')
-#define COMMAND_VOCAB_SAT                VOCAB3('s','a','t')
-#define COMMAND_VOCAB_HUE                VOCAB3('h','u','e')
-#define COMMAND_VOCAB_BRI                VOCAB3('b','r','i')
+const int32_t COMMAND_VOCAB_HELP               = yarp::os::createVocab('h','e','l','p');
+const int32_t COMMAND_VOCAB_SET                = yarp::os::createVocab('s','e','t');
+const int32_t COMMAND_VOCAB_GET                = yarp::os::createVocab('g','e','t');
+const int32_t COMMAND_VOCAB_RUN                = yarp::os::createVocab('r','u','n');
+const int32_t COMMAND_VOCAB_SUSPEND            = yarp::os::createVocab('s','u','s');
+const int32_t COMMAND_VOCAB_RESUME             = yarp::os::createVocab('r','e','s');
+const int32_t COMMAND_VOCAB_FIX                = yarp::os::createVocab('f','i','x');
+const int32_t COMMAND_VOCAB_IS                 = yarp::os::createVocab('i','s');
+const int32_t COMMAND_VOCAB_OK                 = yarp::os::createVocab('o','k');
+const int32_t COMMAND_VOCAB_FAILED             = yarp::os::createVocab('f','a','i','l');
+const int32_t COMMAND_VOCAB_SEEK               = yarp::os::createVocab('s','e','e','k');
+const int32_t COMMAND_VOCAB_CENT               = yarp::os::createVocab('c','e','n','t');
+const int32_t COMMAND_VOCAB_STOP               = yarp::os::createVocab('s','t','o','p');
+const int32_t COMMAND_VOCAB_PUSH               = yarp::os::createVocab('p','u','s','h');
+const int32_t COMMAND_VOCAB_SAT                = yarp::os::createVocab('s','a','t');
+const int32_t COMMAND_VOCAB_HUE                = yarp::os::createVocab('h','u','e');
+const int32_t COMMAND_VOCAB_BRI                = yarp::os::createVocab('b','r','i');
 
 /* 
  * Configure method. Receive a previously initialized
