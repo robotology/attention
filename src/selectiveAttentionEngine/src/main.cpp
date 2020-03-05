@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 
     //initialise Yarp Network
     Network yarp;
-    Time::turboBoost();
+    //Time::turboBoost();//Commented  because of deprecation (Omar Eldardeer)
     selectiveAttentionModule module; 
 
     //YARP_REGISTER_DEVICES(icubmod)

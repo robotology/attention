@@ -110,7 +110,7 @@ protected:
     yarp::dev::PolyDriver robotDevice;
     yarp::dev::IPositionDirect *idir;               // Position DIrect for movement from file
     yarp::dev::IEncoders *encs;                     // to read encoders values
-    yarp::dev::IControlMode2 *ictrl;                // to set control mode of the joints
+    yarp::dev::IControlMode *ictrl;                // to set control mode of the joints
     yarp::dev::ICartesianControl *icart;            // cartesian controller to generate and move
     yarp::dev::CartesianEvent *ce;
     yarp::dev::IGazeControl *igaze;                 // Ikin controller of the gaze

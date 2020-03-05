@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     //YARP_REGISTER_DEVICES(icubmod)
 
     Network yarp;
-    Time::turboBoost();
+    //Time::turboBoost();//Commented  because of deprecation (Omar Eldardeer)
 
     saliencyBlobFinderModule module; 
 

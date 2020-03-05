@@ -36,7 +36,7 @@ int main(int argc, char * argv[])
 {
     Network yarp;
     //YARP_REGISTER_DEVICES(icubmod)
-    Time::turboBoost();
+    //Time::turboBoost();//Commented  because of deprecation (Omar Eldardeer)
     gazeArbiterModule module; 
 
     ResourceFinder rf;

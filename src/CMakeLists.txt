@@ -76,7 +76,6 @@ endif(IPOPT_FOUND)
 
 
 # subdirectories
-add_subdirectory( biologicalProcessing      )
 #add_subdirectory( audio                     )
 
 
