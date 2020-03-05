@@ -10,25 +10,21 @@
 # If we include them here, sub-projects can be configured a bit faster.
 # Only a few demo projects are included so far.
 
-#FIND_PACKAGE(ICUB) 
+#FIND_PACKAGE(ICUB)
 #SET(CMAKE_MODULE_PATH ${ICUB_MODULE_PATH} ${CMAKE_MODULE_PATH})
 
 #include(iCubHelpers)
 
 # default prefix for applications
 #SET(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}"  CACHE PATH "Application path prefix")
-#add_subdirectory ( audiovisualAttention )				
+#add_subdirectory ( audiovisualAttention )
 add_subdirectory ( biologicalProcessing )
 add_subdirectory ( logpolarAttention    )
 add_subdirectory ( handProfiler         )
 add_subdirectory ( zdfApplication       )
-add_subdirectory ( egocentricAudioCropper       )
 #add_subdirectory(protoObjectVisualAttention)
 #add_subdirectory(dumpApplication)
 
 
 ## make all applications show up as single target
 #icub_app_all()
-
-
-
