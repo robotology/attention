@@ -42,7 +42,7 @@ The configuration defines the running parameters of the module as follow:
 
 ### Running Parameters: 
 ---
-You can specify the context and the config file using the following command. By default, the context is egocentricAudioCropper and the name of the config file is egocentricAudioCropper.ini
+You can specify the context and the config file using the following command. By default, the context is logpolarAttention and the name of the config file is egocentricAudioCropper.ini
 ```bash
 egocentricAudioCropper --context <parameter> --from <parameter>.ini
 ```
