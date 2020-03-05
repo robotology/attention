@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("egocentricAudioCropper.ini");    //overridden by --from parameter
-    rf.setDefaultContext("egocentricAudioCropper");    //overridden by --context parameter
+    rf.setDefaultContext("logpolarAttention");    //overridden by --context parameter
     rf.configure(argc, argv);
 
     /* run the module: runModule() calls configure first and, if successful, it then runs */

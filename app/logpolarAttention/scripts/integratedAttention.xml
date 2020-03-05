@@ -1,32 +1,103 @@
 <application>
-    <name>Integrated Attention</name>
-    <dependencies>
-        <port>selectiveAttentionEngine</port>
-    </dependencies>
+  <name>Integrated Attention</name>
+  <dependencies>
+    <port>selectiveAttentionEngine</port>
+  </dependencies>
 
 
-    <module>
-        <name>randomTopDownAttention</name>
-        <parameters>--name /randomTopDownAttention</parameters>
-        <node>Com1</node>
-    </module>
+  <module>
+    <name>randomTopDownAttention</name>
+    <parameters>--name /randomTopDownAttention</parameters>
+    <node>Com1</node>
+  </module>
 
-    <connection>
-        <from>/randomTopDownAttention/cmd</from>
-        <to>/selectiveAttentionEngine</to>
-        <protocol>tcp</protocol>
-    </connection>
 
-    <connection>
-        <from>/faceDetector/image/out</from>
-        <to>/selectiveAttentionEngine/icub/left_cam/cart1:i</to>
-        <protocol>tcp</protocol>
-    </connection>
+  <module>
+    <name>egocentricAudioCropper</name>
+    <parameters>--name /egocentricAudioCropper</parameters>
+    <node>icub</node>
+  </module>
 
-    <connection>
-        <from>/oneMerger/maskBio:o</from>
-     	<to>/selectiveAttentionEngine/icub/left_cam/cart2:i</to>
-     	<protocol>tcp</protocol>
-    </connection>
+  <module>
+    <name>frequencyVisualisation</name>
+    <parameters>--name /bayesianProbabilityEdocentricAngleVisualiser --grid vert --gain 100</parameters>
+    <node>icub</node>
+  </module>
 
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /bayesianProbabilityEgocentricAngleView</parameters>
+    <node>icub</node>
+  </module>
+
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /cartEgocentricAngleView</parameters>
+    <node>icub</node>
+  </module>
+
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /cartEgocentricAngleScaledView</parameters>
+    <node>icub</node>
+  </module>
+
+
+  <connection>
+    <from>/randomTopDownAttention/cmd</from>
+    <to>/selectiveAttentionEngine</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/faceDetector/image/out</from>
+    <to>/selectiveAttentionEngine/icub/left_cam/cart1:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/oneMerger/maskBio:o</from>
+    <to>/selectiveAttentionEngine/icub/left_cam/cart2:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+
+  <connection>
+    <from>/audioBayesianMap/bayesianProbabilityAngle:o</from>
+    <to>/egocentricAudioCropper/map:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/iKinGazeCtrl/angles:o</from>
+    <to>/egocentricAudioCropper/gazeAngles:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+  <connection>
+    <from>/egocentricAudioCropper/map:o</from>
+    <to>/bayesianProbabilityEdocentricAngleVisualiser/map:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/egocentricAudioCropper/cartImg:o</from>
+    <to>/cartEgocentricAngleView</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/egocentricAudioCropper/cartScaledImg:o</from>
+    <to>/cartEgocentricAngleScaledView</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/bayesianProbabilityEdocentricAngleVisualiser/img:o</from>
+    <to>/bayesianProbabilityEgocentricAngleView</to>
+    <protocol>tcp</protocol>
+  </connection>
+  
 </application>
