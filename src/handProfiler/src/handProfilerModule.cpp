@@ -276,6 +276,8 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("REPS #value: set number of repetitions for file execution");
             reply.addString("LOAD FILE: set the name of the file to load");
             reply.addString("GRAS ON: turn on grasping");
+            reply.addString("GRAS RES: reset the open hand");
+            reply.addString("movimento JULIA   GEN TTL (((O -0.3 -0.15 0.05) (A -0.3 -0.3 0.05) (B -0.3 -0.15 0.1) (C -0.3 -0.0 0.05) (theta 0.0 1.57 3.14) (axes 0.15 0.05) (param 0.01 0.33)))");
 
             ok = true;
         }
