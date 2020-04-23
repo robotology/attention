@@ -5,7 +5,11 @@
 SET(KEYWORD "attentionManager")
 PROJECT(${KEYWORD})
 cmake_minimum_required(VERSION 2.6)
-find_package(YARP REQUIRED)
+
+find_package(ICUBcontrib REQUIRED)
+find_package(YARP REQUIRED os dev sig cv math)
+find_package(OpenCV REQUIRED)
+
 set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)
 
 INCLUDE_DIRECTORIES(
@@ -13,6 +17,7 @@ INCLUDE_DIRECTORIES(
     ${YARP_INCLUDE_DIRS}
     ${ICUB_INCLUDE_DIRS}
     ${ICUB_CONTRIB_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
     ${ATTENTIONLIB_INCLUDE_DIRS}
 )
 
@@ -30,7 +35,7 @@ IF (folder_source)
     )
 
     TARGET_LINK_LIBRARIES(${KEYWORD}
-
+      ${OpenCV_LIBRARIES}
       ${YARP_LIBRARIES}
       )
 
