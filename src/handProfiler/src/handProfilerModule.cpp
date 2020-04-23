@@ -56,6 +56,7 @@
 #define COMMAND_VOCAB_LOAD   VOCAB4('L','O','A','D')        //load a file
 #define COMMAND_VOCAB_TIME   VOCAB4('T','I','M','E')        //
 #define COMMAND_VOCAB_GRAS   VOCAB4('G','R','A','S')        //grasp on
+#define COMMAND_VOCAB_GRAS   VOCAB4('G','R','A','Z')        //grazp on (temporary function for customizable grazping)
 #define COMMAND_VOCAB_PART   VOCAB4('P','A','R','T')        
 
 
@@ -531,13 +532,71 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
         rec = true;
         {
             switch(command.get(1).asVocab()) {
+            case COMMAND_VOCAB_ON:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");                     
+                        rThread->setGrasp(true);
+                    }
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_OFF:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->setGrasp(false);
+                    }
+                    ok = true;
+                }
+            break;
+            case COMMAND_VOCAB_RES:
+                {
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        rThread->graspReset();
+                    }
+                    ok = true;
+                }
+            break;
+            default:
+                cout << "received an unknown request" << endl;
+                break;
+            }
+            ok = true;
+        }
+        break;
+    case COMMAND_VOCAB_GRAZ:
+        rec = true;
+        {
+            switch(command.get(1).asVocab()) {
+            case COMMAND_VOCAB_CVV:
+                {
+                    yInfo("activating grasp costant velocity with VIAPOINT")
+                    if(0!=rThread) {
+                        reply.addString("OK");
+                        //GRAZ CVV (((sphere) (0.3 0.3 0.3)))
 
+                        if(command.size() == 2) {
+                            Bottle* finalB = command.get(1).asList();
+                            yDebug("bottle in threadInit %s", finalB->toString().c_str());
+                            if(rThread->factory("CVV", *finalB)) {
+                                yInfo("fingerfactory:constant velocity viaPoint");
+                                //reply.addString("OK");
+                                ok = true;
+                            }
+                        }
+                        rThread->setGrasp(true);
+                    }
+                    ok = true;
+                }
+            break;
             case COMMAND_VOCAB_ON:
                 {
 
                     if(0!=rThread) {
                         reply.addString("OK");
-
+                        
                         rThread->setGrasp(true);
 
                     }

@@ -36,7 +36,7 @@ FingerProfile::FingerProfile()  {
 
     
     //////////Fabio open port for data gathering
-    //string velName("");
+    //string velName("");`
     //velName.append(getName("/vel:o"));
     if(!dataPort.open("/FingerProfile/data:o")) {
           yError("dataPort is not open with success. Check for conflicts");
