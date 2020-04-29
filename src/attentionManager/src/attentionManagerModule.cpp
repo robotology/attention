@@ -77,8 +77,8 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
     string helpMessage =  string(getName().c_str()) +
                           " commands are: \n " +
                           "help \n " +
-                          "[RES] to resume process  \n " +
-                          "[SUS] to suspend process \n " +
+                          "[res] to resume process  \n " +
+                          "[sus] to suspend process \n " +
                           "quit \n ";
     reply.clear();
 
@@ -90,11 +90,11 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
         reply.addString(helpMessage);
     }
     else if (command.get(0).asVocab()==COMMAND_VOCAB_RESUME){
-        reply.addString("Resume Command Received");
+        reply.addVocab(COMMAND_VOCAB_OK);
         pThread->resetAttentionState();
     }
     else if (command.get(0).asVocab()==COMMAND_VOCAB_SUSPEND){
-        reply.addString("Suspend Command Received");
+        reply.addVocab(COMMAND_VOCAB_OK);
         pThread->suspendAttentionState();
     }else{
         reply.addString("undefined Command " + helpMessage );
