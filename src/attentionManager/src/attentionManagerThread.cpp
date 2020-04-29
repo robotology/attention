@@ -26,8 +26,8 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
     //initialize names
     this->moduleName = moduleName;
     combinedImagePortName = getName("/combinedImage:i");
-    getCartesianCoordinatesPortName = getName("/getCartesianCoordinates:oi");
-    pointActionPortName = getName("/pointAction:oi");
+    hotPointPortName = getName("/hotPoint:o");
+
 
     //initialize data
     //combinedImage = nullptr;
@@ -36,9 +36,6 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
 
     //initialize processing variables
     attentionProcessState = ATTENTION_PROCESS_STATE::PROCESSING;
-    float xCartOfMax = 0;
-    float yCartOfMax = 0;
-    float zCartOfMax = 0;
 
 }
 
@@ -64,14 +61,8 @@ bool attentionManagerThread::threadInit() {
         yError("Unable to open /combinedImage:i port ");
         return false;
     }
-
-    if (!getCartesianCoordinatesPort.open(getCartesianCoordinatesPortName.c_str())) {
-        yError("Unable to open /getCartesianCoordinate:oi port ");
-        return false;
-    }
-
-    if (!pointActionPort.open(pointActionPortName.c_str())) {
-        yError("Unable to open /pointAction:oi port ");
+    if (!hotPointPort.open(hotPointPortName.c_str())) {
+        yError("Unable to open /hotPoint:o port ");
         return false;
     }
 
@@ -81,8 +72,6 @@ bool attentionManagerThread::threadInit() {
 }
 void attentionManagerThread::run() {
 
-
-
     if (attentionProcessState == ATTENTION_PROCESS_STATE::PROCESSING){
         if(combinedImagePort.getInputCount()){
 
@@ -91,8 +80,9 @@ void attentionManagerThread::run() {
                 combinedImageMat = toCvMat(*combinedImage);
                 cv::minMaxLoc( combinedImageMat, &minValue, &maxValue, &idxOfMin, &idxOfMax );
                 if(maxValue > thresholdVal){
-                    yInfo(to_string(maxValue).c_str());
-                    expectCartesian3dLocation(idxOfMax.x,idxOfMax.y,xCartOfMax,yCartOfMax,zCartOfMax);
+                    if(!sendMaxPointToLinker(idxOfMax)){
+                        yDebug("max point port not connected to any output");
+                    }
                 }
             }
         }
@@ -104,14 +94,12 @@ void attentionManagerThread::threadRelease() {
 
     //-- Stop all threads.
     combinedImagePort.interrupt();
-    getCartesianCoordinatesPort.interrupt();
-    pointActionPort.interrupt();
+    hotPointPort.interrupt();
 
 
     //-- Close the threads.
     combinedImagePort.close();
-    getCartesianCoordinatesPort.close();
-    pointActionPort.close();
+    hotPointPort.close();
 
 }
 
@@ -122,58 +110,26 @@ string attentionManagerThread::getName(const char* p) const{
     return str;
 }
 
-bool attentionManagerThread::expectCartesian3dLocation(int u,int v,float &x,float &y, float &z) {
-    if(getCartesianCoordinatesPort.getOutputCount()){
-        Bottle command;
-        Bottle reply;
-        command.addVocab(CMD_GET);
-        command.addVocab(GET_S2C);
-        Bottle &target = command.addList();
-        target.addString("left");
-        target.addInt(u);
-        target.addInt(v);
-        getCartesianCoordinatesPort.write(command,reply);
-        if(reply.get(0).asList()->size() == 3){
-            x = reply.get(0).asList()->get(0).asFloat64();
-            y = reply.get(0).asList()->get(0).asFloat64();
-            z = reply.get(0).asList()->get(0).asFloat64();
-            string responced = "responce: "
-                               + to_string(reply.get(0).asList()->get(0).asFloat64())  +  "  "
-                               + to_string(reply.get(0).asList()->get(1).asFloat64())  +  "  "
-                               + to_string(reply.get(0).asList()->get(2).asFloat64());
-            yInfo(responced.c_str());
-            return true;
-        }else{
-            yInfo("No ACK");
-        }
+bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint) {
+    if(hotPointPort.getOutputCount()){
+        Bottle msg;
+        Bottle& coordinatesList = msg.addList();
+        coordinatesList.addInt(maxPoint.x);
+        coordinatesList.addInt(maxPoint.y);
+        hotPointPort.prepare() = msg;
+        hotPointPort.write();
+        return true;
     }
     return false;
 }
 
-bool attentionManagerThread::pointToCartesian3dLocation(float x, float y, float z) {
-    if(pointActionPort.getOutputCount()){
-        Bottle command;
-        Bottle reply;
-        command.addVocab(CMD_POINT);
-        Bottle &target = command.addList();
-        target.addString("cartesian");
-        target.addFloat64(x);
-        target.addFloat64(y);
-        target.addFloat64(z);
-
-        pointActionPort.write(command,reply);
-        if(reply.get(0).asVocab()==ACK)
-            return true;
-    }
-    return false;
+void attentionManagerThread::resetAttentionState() {
+    attentionProcessState = ATTENTION_PROCESS_STATE::PROCESSING;
 }
 
-bool attentionManagerThread::isInsideTheBoard(float x, float y, float z) {
-    return false;
-}
+void attentionManagerThread::suspendAttentionState() {
+    attentionProcessState = ATTENTION_PROCESS_STATE::SUSPENDED;
 
-bool attentionManagerThread::refineLocation(float &x, float &y, float &z) {
-    return false;
 }
 
 

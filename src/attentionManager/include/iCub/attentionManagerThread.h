@@ -17,23 +17,12 @@
 #include <yarp/os/all.h>
 #include <yarp/cv/Cv.h>
 
-//To Bo Transferred to library
-#define ACK                         yarp::os::createVocab('a','c','k')
-#define NACK                        yarp::os::createVocab('n','a','c','k')
-#define CMD_POINT                   yarp::os::createVocab('p','o','i','n')
-#define GET_S2C                     yarp::os::createVocab('s','2','c')
-#define CMD_GET                     yarp::os::createVocab('g','e','t')
-
-
-
-
-
 
 using namespace yarp::os;
 using namespace std;
 
 
-enum class ATTENTION_PROCESS_STATE{PROCESSING,STOPPING_GAZE,STARTING_ACTION,EXECUTING_ACTION,COMPUTING_RESULTS,RESETTING};
+enum class ATTENTION_PROCESS_STATE{PROCESSING,SUSPENDED};
 typedef yarp::sig::ImageOf<yarp::sig::PixelMono>  yImgPixelMono;
 
 class attentionManagerThread : public PeriodicThread {
@@ -45,6 +34,8 @@ public:
     void run();
     void threadRelease();
     string getName(const char* p) const;
+    void resetAttentionState();
+    void suspendAttentionState();
 
 private:
     Network yarp;
@@ -52,14 +43,15 @@ private:
     //Names
     string moduleName;
     string combinedImagePortName;
-    string getCartesianCoordinatesPortName;
-    string pointActionPortName;
+    string hotPointPortName;
+
 
 
     //Input Ports
     BufferedPort<yImgPixelMono> combinedImagePort;
-    RpcClient getCartesianCoordinatesPort;
-    RpcClient pointActionPort;
+    BufferedPort<Bottle> hotPointPort;
+
+
 
 
     //Data
@@ -77,20 +69,13 @@ private:
     cv::Point idxOfMax;
     cv::Point idxOfMin;
 
-    float xCartOfMax;
-    float yCartOfMax;
-    float zCartOfMax;
 
     ATTENTION_PROCESS_STATE attentionProcessState;
 
 
 
     //processing functions
-    bool expectCartesian3dLocation(int u,int v,float &x,float &y, float &z);
-    bool isInsideTheBoard(float x,float y,float z);
-    bool refineLocation(float &x,float &y, float &z);
-    bool pointToCartesian3dLocation(float x,float y,float z);
-
+    bool sendMaxPointToLinker(cv::Point maxPoint);
 
 
 };

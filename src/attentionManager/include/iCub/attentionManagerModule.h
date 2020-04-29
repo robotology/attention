@@ -40,11 +40,6 @@ using namespace std;
 
 class attentionManagerModule : public RFModule {
 
-    string moduleName;
-    string handlerPortName;
-    Port handlerPort;
-
-    attentionManagerThread *pThread;
 
 public:
 
@@ -54,6 +49,13 @@ public:
     bool respond(const Bottle& command, Bottle& reply);
     double getPeriod();
     bool updateModule();
+
+private:
+    string moduleName;
+    string handlerPortName;
+    Port handlerPort;
+
+    attentionManagerThread *pThread;
 
 };
 

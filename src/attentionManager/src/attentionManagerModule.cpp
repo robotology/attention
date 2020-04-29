@@ -75,9 +75,11 @@ bool attentionManagerModule::close() {
 bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
 {
     string helpMessage =  string(getName().c_str()) +
-                          " commands are: \n" +
-                          "help \n" +
-                          "quit \n";
+                          " commands are: \n " +
+                          "help \n " +
+                          "[RES] to resume process  \n " +
+                          "[SUS] to suspend process \n " +
+                          "quit \n ";
     reply.clear();
 
     if (command.get(0).asString()=="quit") {
@@ -87,7 +89,16 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
     else if (command.get(0).asString()=="help") {
         reply.addString(helpMessage);
     }
-
+    else if (command.get(0).asVocab()==COMMAND_VOCAB_RESUME){
+        reply.addString("Resume Command Received");
+        pThread->resetAttentionState();
+    }
+    else if (command.get(0).asVocab()==COMMAND_VOCAB_SUSPEND){
+        reply.addString("Suspend Command Received");
+        pThread->suspendAttentionState();
+    }else{
+        reply.addString("undefined Command " + helpMessage );
+    }
     return true;
 }
 
