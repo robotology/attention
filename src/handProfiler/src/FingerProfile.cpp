@@ -36,7 +36,7 @@ FingerProfile::FingerProfile()  {
 
     
     //////////Fabio open port for data gathering
-    //string velName("");
+    //string velName("");`
     //velName.append(getName("/vel:o"));
     if(!dataPort.open("/FingerProfile/data:o")) {
           yError("dataPort is not open with success. Check for conflicts");
@@ -75,19 +75,19 @@ FingerProfile::FingerProfile()  {
     graspHome[7] = 0.0;
     graspHome[8] = 0.0;
     graspVia[0] = 40.0;
-    graspVia[1] = 45.0;
-    graspVia[2] = 5.0;
-    graspVia[3] = 10.0;
-    graspVia[4] = 15.0;
+    graspVia[1] = 50.0;
+    graspVia[2] = 10.0;
+    graspVia[3] = 20.0;
+    graspVia[4] = 40.0;
     graspVia[5] = 7.5;
     graspVia[6] = 55.0;
     graspVia[7] = 165.0;
     graspVia[8] = 232.0;
     graspFinal[0] = 41.0;
-    graspFinal[1] = 50.0;
-    graspFinal[2] = 10.0;
-    graspFinal[3] = 20.0;
-    graspFinal[4] = 30.0;
+    graspFinal[1] = 60.0;
+    graspFinal[2] = 20.0;
+    graspFinal[3] = 30.0;
+    graspFinal[4] = 80.0;
     graspFinal[5] = 15.0;
     graspFinal[6] = 55.0;
     graspFinal[7] = 165.0;
@@ -172,8 +172,8 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
     double speed2Via   = 300;
     double speed2Final = 300;
     graspHomeTime = 0.01; 
-    graspViaTime = 0.4;
-    graspFinalTime = 0.8;
+    graspViaTime = 0.3;
+    graspFinalTime = 0.6;
 
     yWarning("tempo %f", t);
 
