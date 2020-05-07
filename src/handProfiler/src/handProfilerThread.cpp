@@ -360,6 +360,7 @@ bool handProfilerThread::threadInit() {
     //-0.041466	 0.602459	-0.797072	 2.850305
     odHome[0] = -0.041; odHome[1] = 0.602; odHome[2] = -0.797; odHome[3] = 2.85;
 
+    //setting grasping reset home for movement that are independent from the fingerProfile
     graspHome.resize(9);
     graspFinal.resize(9);
     graspCurrent.resize(9);
@@ -369,7 +370,14 @@ bool handProfilerThread::threadInit() {
     graspNumber = 9;
     fingerJoints.resize(njoints);
     fd.resize(9);
-    fp = factoryCVVFingerProfile();
+    if(graspOn){
+        yInfo("grasping already activated");
+        fp = factoryCVVFingerProfile();
+    }
+    else{
+        yInfo("grasping not active during initialization");
+        fp = NULL;
+    }
     yInfo("handProfiler thread correctly started");
 
     return true;
@@ -384,11 +392,19 @@ void handProfilerThread::setGrasp(bool grasp) {
     this->graspOn=grasp;
     if(grasp) {
         yInfo("Grasping ON");
+        //checking and instantiating the fp oject correctly
+        if (fp==NULL) {
+            //fp was not initialized in the threadInit
+            fp = factoryCVVFingerProfile();
+        }
+
         for (int i = 7; i < 16; i++) {
             ictrl->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
         }
     }else{
-          yInfo("Grasping OFF");
+        yInfo("Grasping OFF");
+        //setting the pointer to the finger class fp to null
+        fp = NULL;
     }
     encs->getEncoders(fingerJoints.data());
     Time::delay(1.0);
@@ -606,7 +622,21 @@ bool handProfilerThread::startJoints(double factor = 1.0){              //move f
 	return true;
 }
 
+bool handProfilerThread::fingerfactory(const string type, const Bottle finalB){
+    if (!strcmp(type.c_str(),"CVV")) {
+        fp = factoryCVVFingerProfile();
+        yDebug("returned from CVV factory");
+        if (fp == NULL){
+            yError("finger factory returned error");
+            return false;
+        }
+    }   
+    else{
+        yError("Error.Type is unknown.");
+        return false;
+    }
 
+}
 
 bool handProfilerThread::factory(const string type, const Bottle finalB){
 
