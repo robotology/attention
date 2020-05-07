@@ -1512,6 +1512,380 @@ handoverHome(){
 	
     }
 
+#################### sisi, nono #######################
+
+sisiHome(){
+
+	echo "ctpq time 0.3 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 1
+}
+
+sisi(){
+	
+
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	#sleep 0.25
+
+	
+    }
+
+sisiOne(){
+	
+	echo "sh" | yarp write ... /iSpeak
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	#sleep 0.25
+
+	
+    }
+
+sisiTwo(){
+	
+	echo "hi" | yarp write ... /iSpeak
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	#sleep 0.25
+
+	
+    }
+
+nono(){
+
+	echo "ctpq time 0.20 off 0 pos (-0.0 0.0 -4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (-0.0 0.0 -4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	#sleep 0.25
+	
+    }
+
+nonoOne(){
+
+	echo "bh" | yarp write ... /iSpeak
+	echo "ctpq time 0.20 off 0 pos (-0.0 0.0 -4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (-0.0 0.0 -4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	#sleep 0.25
+	
+    }
+
+nonoTwo(){
+
+	echo "hi" | yarp write ... /iSpeak
+	echo "ctpq time 0.20 off 0 pos (-0.0 0.0 -4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (-0.0 0.0 -4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.20
+	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	#sleep 0.25
+	
+    }
+
+controlOne(){
+	
+	echo "sh" | yarp write ... /iSpeak
+}
+
+controlTwo(){
+	
+	echo "hi" | yarp write ... /iSpeak
+}
+
+nodBlockOneSi(){
+
+	sisi
+	sisi
+	sisi
+	
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiTwo	
+}
+
+nodBlockTwoSi(){
+
+	sisi
+	sisi
+	sisi
+	
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo
+	sisi
+	sisi
+	sisi
+	sisiOne
+	sisi
+	sisi
+	sisi
+	sisiTwo	
+}
+
+
+
+nodBlockOneNo(){
+
+	nono
+	nono
+	nono
+	
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoOne
+	nono
+	nono
+	nono
+	nonoTwo
+	nono
+	nono
+	nono
+	nonoTwo	
+}
+
+
 #######################################################################################
 # "MAIN" FUNCTION:                                                                    #
 #######################################################################################
