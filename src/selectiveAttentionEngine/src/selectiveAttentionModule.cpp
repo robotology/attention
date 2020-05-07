@@ -416,10 +416,12 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     std::string str=command.get(0).asString();
     if(!strcmp(str.c_str(),"sus")) {
         currentProcessor->suspend();
+        reply.addVocab(COMMAND_VOCAB_OK);
         return true;
     }
     else if(!strcmp(str.c_str(),"res")) {
         currentProcessor->resume();
+        reply.addVocab(COMMAND_VOCAB_OK);
         return true;
     }
     else if(!strcmp(str.c_str(),"set")) {
