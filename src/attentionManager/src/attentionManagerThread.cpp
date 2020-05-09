@@ -16,8 +16,10 @@
   * Public License for more details
 */
 #include "iCub/attentionManagerThread.h"
+
 using namespace yarp::sig;
 using namespace yarp::cv;
+using namespace attention::dictionary;
 
 #define THPERIOD 0.01
 
@@ -27,15 +29,14 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
     this->moduleName = moduleName;
     combinedImagePortName = getName("/combinedImage:i");
     hotPointPortName = getName("/hotPoint:o");
+    engineControlPortName =  getName("/engineControl:oi");
 
 
     //initialize data
-    //combinedImage = nullptr;
     combinedImage = new ImageOf<PixelMono>;
 
 
     //initialize processing variables
-    attentionProcessState = ATTENTION_PROCESS_STATE::PROCESSING;
 
 }
 
@@ -66,28 +67,28 @@ bool attentionManagerThread::threadInit() {
         return false;
     }
 
+    if (!engineControlPort.open(engineControlPortName.c_str())) {
+        yError("Unable to open /engineControl:oi port ");
+        return false;
+    }
+
     yInfo("Initialization of the processing thread correctly ended.");
 
     return true;
 }
 void attentionManagerThread::run() {
-
-    if (attentionProcessState == ATTENTION_PROCESS_STATE::PROCESSING){
-        if(combinedImagePort.getInputCount()){
-
-            combinedImage = combinedImagePort.read(true);
-            if(combinedImage!=NULL){
-                combinedImageMat = toCvMat(*combinedImage);
-                cv::minMaxLoc( combinedImageMat, &minValue, &maxValue, &idxOfMin, &idxOfMax );
-                if(maxValue > thresholdVal){
-                    if(!sendMaxPointToLinker(idxOfMax)){
-                        yDebug("max point port not connected to any output");
-                    }
+    if(combinedImagePort.getInputCount()){
+        combinedImage = combinedImagePort.read(true);
+        if(combinedImage!=NULL){
+            combinedImageMat = toCvMat(*combinedImage);
+            cv::minMaxLoc( combinedImageMat, &minValue, &maxValue, &idxOfMin, &idxOfMax );
+            if(maxValue > thresholdVal){
+                if(!sendMaxPointToLinker(idxOfMax)){
+                    yDebug("max point port not connected to any output");
                 }
             }
         }
     }
-
 }
 
 void attentionManagerThread::threadRelease() {
@@ -95,11 +96,13 @@ void attentionManagerThread::threadRelease() {
     //-- Stop all threads.
     combinedImagePort.interrupt();
     hotPointPort.interrupt();
+    engineControlPort.interrupt();
 
 
     //-- Close the threads.
     combinedImagePort.close();
     hotPointPort.close();
+    engineControlPort.close();
 
 }
 
@@ -124,12 +127,45 @@ bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint) {
 }
 
 void attentionManagerThread::resetAttentionState() {
-    attentionProcessState = ATTENTION_PROCESS_STATE::PROCESSING;
+    resume();
+    resumeEngine();
 }
 
 void attentionManagerThread::suspendAttentionState() {
-    attentionProcessState = ATTENTION_PROCESS_STATE::SUSPENDED;
+    suspendEngine();
+    suspend();
+}
 
+bool attentionManagerThread::suspendEngine() {
+    if(engineControlPort.getOutputCount()){
+        Bottle command;
+        Bottle reply;
+        command.addVocab(COMMAND_VOCAB_SUSPEND);
+        engineControlPort.write(command,reply);
+        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+            return true;
+    }
+    return false;
+}
+
+bool attentionManagerThread::resumeEngine() {
+    if(engineControlPort.getOutputCount()){
+        Bottle command;
+        Bottle reply;
+        command.addVocab(COMMAND_VOCAB_RESUME);
+        engineControlPort.write(command,reply);
+        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+            return true;
+    }
+    return false;
+}
+
+void attentionManagerThread::setThreshold(int val) {
+    thresholdVal = val;
+}
+
+int attentionManagerThread::getThreshold() {
+    return thresholdVal;
 }
 
 

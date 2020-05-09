@@ -16,6 +16,7 @@
   * Public License for more details
 */
 #include "iCub/attentionManagerModule.h"
+
 using namespace attention::dictionary;
 
 bool attentionManagerModule::configure(ResourceFinder &rf) {
@@ -88,17 +89,48 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
     }
     else if (command.get(0).asString()=="help") {
         reply.addString(helpMessage);
+        return true;
     }
-    else if (command.get(0).asVocab()==COMMAND_VOCAB_RESUME){
-        reply.addVocab(COMMAND_VOCAB_OK);
-        pThread->resetAttentionState();
+
+    bool ok = false;
+
+    switch (command.get(0).asVocab()) {
+        case COMMAND_VOCAB_SUSPEND:
+            pThread->suspendAttentionState();
+            reply.addVocab(COMMAND_VOCAB_OK);
+            ok = true;
+            break;
+        case COMMAND_VOCAB_RESUME:
+            pThread->resetAttentionState();
+            reply.addVocab(COMMAND_VOCAB_OK);
+            ok = true;
+            break;
+        case COMMAND_VOCAB_SET:
+            if(command.size()==3){
+                switch (command.get(1).asVocab()){
+                    case COMMAND_VOCAB_THRESHOLD:
+                        pThread->setThreshold(command.get(2).asInt());
+                        reply.addVocab(COMMAND_VOCAB_OK);
+                        ok = true;
+                        break;
+                }
+            }
+            break;
+        case COMMAND_VOCAB_GET:
+            if(command.size()==2){
+                switch (command.get(1).asVocab()){
+                    case COMMAND_VOCAB_THRESHOLD:
+                        reply.addInt(pThread->getThreshold());
+                        ok = true;
+                        break;
+                }
+            }
+            break;
     }
-    else if (command.get(0).asVocab()==COMMAND_VOCAB_SUSPEND){
-        reply.addVocab(COMMAND_VOCAB_OK);
-        pThread->suspendAttentionState();
-    }else{
+
+    if(!ok)
         reply.addString("undefined Command " + helpMessage );
-    }
+
     return true;
 }
 

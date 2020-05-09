@@ -17,15 +17,16 @@
 #include <yarp/os/all.h>
 #include <yarp/cv/Cv.h>
 
+#include <iCub/attention/commandDictionary.h>
 
 using namespace yarp::os;
 using namespace std;
 
 
-enum class ATTENTION_PROCESS_STATE{PROCESSING,SUSPENDED};
 typedef yarp::sig::ImageOf<yarp::sig::PixelMono>  yImgPixelMono;
 
 class attentionManagerThread : public PeriodicThread {
+
 public:
     attentionManagerThread(string moduleName = "attentionManager");
     ~attentionManagerThread();
@@ -36,6 +37,8 @@ public:
     string getName(const char* p) const;
     void resetAttentionState();
     void suspendAttentionState();
+    void setThreshold(int val);
+    int getThreshold();
 
 private:
     Network yarp;
@@ -44,14 +47,18 @@ private:
     string moduleName;
     string combinedImagePortName;
     string hotPointPortName;
+    string engineControlPortName;
 
 
 
     //Input Ports
     BufferedPort<yImgPixelMono> combinedImagePort;
+
+    //output Ports
     BufferedPort<Bottle> hotPointPort;
 
-
+    //rpcPorts
+    RpcClient engineControlPort;
 
 
     //Data
@@ -70,12 +77,11 @@ private:
     cv::Point idxOfMin;
 
 
-    ATTENTION_PROCESS_STATE attentionProcessState;
-
-
 
     //processing functions
     bool sendMaxPointToLinker(cv::Point maxPoint);
+    bool suspendEngine();
+    bool resumeEngine();
 
 
 };
