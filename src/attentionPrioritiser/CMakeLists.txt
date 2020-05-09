@@ -6,7 +6,7 @@ SET(KEYWORD "attentionPrioritiser")
 PROJECT(${KEYWORD})
 
 message ("logpolar_INCLUDE_DIRS : ${logpolar_INCLUDE_DIRS};")
-
+message ("YARP_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ")
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
