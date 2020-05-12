@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 2.6)
 
 if(OpenCV_FOUND)
-  add_subdirectory( mosaic  )
+  #add_subdirectory( mosaic  )
 else(OpenCV_FOUND)
   message(STATUS "OpenCV not found/selected, skipping modules")
 endif(OpenCV_FOUND)
