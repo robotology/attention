@@ -64,6 +64,7 @@ namespace attention
         const int32_t COMMAND_VOCAB_ORI                 = yarp::os::createVocab('o','r','i');
         const int32_t COMMAND_VOCAB_VIS                 = yarp::os::createVocab('v','i','s');
         const int32_t COMMAND_VOCAB_OFF                 = yarp::os::createVocab('o','f','f');
+        const int32_t COMMAND_VOCAB_THRESHOLD           = yarp::os::createVocab('T','H','R');
 
         const int32_t COMMAND_VOCAB_FACE                = yarp::os::createVocab('F','A','C','E');
         const int32_t COMMAND_VOCAB_BIO_MOTION          = yarp::os::createVocab('B','M','O','T');

@@ -8,38 +8,55 @@
   <module>
     <name>randomTopDownAttention</name>
     <parameters>--name /randomTopDownAttention</parameters>
-    <node>Com1</node>
+    <node>localhost</node>
   </module>
 
 
   <module>
     <name>egocentricAudioCropper</name>
     <parameters>--name /egocentricAudioCropper</parameters>
-    <node>icub</node>
+    <node>localhost</node>
   </module>
 
   <module>
     <name>frequencyVisualisation</name>
     <parameters>--name /bayesianProbabilityEdocentricAngleVisualiser --grid vert --gain 100</parameters>
-    <node>icub</node>
+    <node>localhost</node>
   </module>
+
+
+
+  <module>
+    <name>attentionManager</name>
+    <parameters>--name /attentionManager</parameters>
+    <node>localhost</node>
+  </module>
+
+
+  <module>
+    <name>attentionActionLinker</name>
+    <parameters>--name /attentionActionLinker</parameters>
+    <node>localhost</node>
+  </module>
+
+
 
   <module>
     <name>yarpview</name>
     <parameters>--name /bayesianProbabilityEgocentricAngleView</parameters>
-    <node>icub</node>
+    <node>localhost</node>
   </module>
 
   <module>
     <name>yarpview</name>
     <parameters>--name /cartEgocentricAngleView</parameters>
-    <node>icub</node>
+    <node>localhost</node>
   </module>
 
   <module>
     <name>yarpview</name>
     <parameters>--name /cartEgocentricAngleScaledView</parameters>
-    <node>icub</node>
+    <node>localhost</node>
   </module>
 
 
@@ -99,5 +116,53 @@
     <to>/bayesianProbabilityEgocentricAngleView</to>
     <protocol>tcp</protocol>
   </connection>
-  
+
+
+
+
+<!--AttentionManager Connections -->
+
+  <connection>
+    <from>/selectiveAttentionEngine/icub/left_cam/combination:o</from>
+    <to>/attentionManager/combinedImage:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/attentionManager/hotPoint:o</from>
+    <to>/attentionActionLinker/hotPoint:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/attentionManager/engineControl:oi</from>
+    <to>/selectiveAttentionEngine</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+<!--AttentionActionLinker Connections -->
+
+    <connection>
+      <from>/attentionActionLinker/managerCmd:oi</from>
+      <to>/attentionManager</to>
+      <protocol>tcp</protocol>
+    </connection>
+
+
+    <connection>
+      <from>/attentionActionLinker/getCartesianCoordinates:oi</from>
+      <to>/actionsRenderingEngine/get:io</to>
+      <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/attentionActionLinker/pointAction:oi</from>
+      <to>/actionsRenderingEngine/cmd:io</to>
+      <protocol>tcp</protocol>
+    </connection>
+
+
+
+
 </application>
