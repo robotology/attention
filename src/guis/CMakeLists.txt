@@ -5,10 +5,8 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-
-
-if(OpenCV_FOUND)
-  add_subdirectory( egocentricAudioCropper  )
-else(OpenCV_FOUND)
-  message(STATUS "OpenCV not found/selected, skipping modules")
-endif(OpenCV_FOUND)
+if(ENABLE_GTK2)
+  add_subdirectory( selAttentionInterface     )
+else(ENABLE_GTK2)
+    message(STATUS "ENABLE_GTK2 not found/selected, skipping modules")
+endif(ENABLE_GTK2)
