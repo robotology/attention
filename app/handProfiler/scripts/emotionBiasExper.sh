@@ -1523,15 +1523,15 @@ sisiHome(){
 sisi(){
 	
 
-	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
-	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
-	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.25
+	echo "ctpq time 0.20 off 0 pos (1.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	#sleep 0.25
 
 	
@@ -1540,16 +1540,16 @@ sisi(){
 sisiOne(){
 	
 	echo "sh" | yarp write ... /iSpeak
-	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
-	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
-	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
-	#sleep 0.25
+	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.25
+	echo "ctpq time 0.20 off 0 pos (1.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+
 
 	
     }
@@ -1557,16 +1557,15 @@ sisiOne(){
 sisiTwo(){
 	
 	echo "hi" | yarp write ... /iSpeak
+	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	sleep 0.2
 	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (-4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
-	sleep 0.20
-	echo "ctpq time 0.20 off 0 pos (4.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
-	sleep 0.20
-	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
-	#sleep 0.25
+	sleep 0.25
+	echo "ctpq time 0.20 off 0 pos (1.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 
 	
     }
@@ -1581,7 +1580,7 @@ nono(){
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
-	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	#sleep 0.25
 	
     }
@@ -1597,7 +1596,7 @@ nonoOne(){
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
-	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	#sleep 0.25
 	
     }
@@ -1613,7 +1612,7 @@ nonoTwo(){
 	sleep 0.20
 	echo "ctpq time 0.20 off 0 pos (0.0 0.0 4.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	sleep 0.20
-	#echo "ctpq time 0.25 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
+	echo "ctpq time 0.20 off 0 pos (0.0 0.0 0.0 0.0 0.0 0.0)" | yarp rpc /ctpservice/head/rpc
 	#sleep 0.25
 	
     }

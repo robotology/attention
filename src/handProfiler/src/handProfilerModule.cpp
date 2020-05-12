@@ -78,6 +78,8 @@ const int32_t  COMMAND_VOCAB_CUS     = yarp::os::createVocab('C','U','S');
 const int32_t  COMMAND_VOCAB_JOI     = yarp::os::createVocab('J','O','I');            //save action joints in a file
 const int32_t  COMMAND_VOCAB_OFF     = yarp::os::createVocab('O','F','F');
 
+const int32_t  COMMAND_VOCAB_GRAZ     = yarp::os::createVocab('G','R','A','Z');
+const int32_t  COMMAND_VOCAB_CVV      = yarp::os::createVocab('C','V','V');
 
 
 using namespace yarp::os;
@@ -571,7 +573,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             switch(command.get(1).asVocab()) {
             case COMMAND_VOCAB_CVV:
                 {
-                    yInfo("activating grasp costant velocity with VIAPOINT")
+                    yInfo("activating grasp costant velocity with VIAPOINT");
                     if(0!=rThread) {
                         reply.addString("OK");
                         //GRAZ CVV (((sphere) (0.3 0.3 0.3)))

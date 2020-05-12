@@ -281,7 +281,7 @@ public:
     * @param b bottle containing the necessary information for the profile
     */
     bool factory(const std::string type, const yarp::os::Bottle b);
-
+    bool fingerfactory(const std::string type, const yarp::os::Bottle b);
     /**
     *function that resets the fingers position
     */
