@@ -79,7 +79,7 @@ private:
 
 
     //processing functions
-    bool sendMaxPointToLinker(cv::Point maxPoint);
+    bool sendMaxPointToLinker(cv::Point maxPoint, int val);
     bool suspendEngine();
     bool resumeEngine();
 
