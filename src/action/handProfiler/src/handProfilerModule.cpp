@@ -279,6 +279,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("LOAD FILE: set the name of the file to load");
             reply.addString("GRAS ON: turn on grasping");
             reply.addString("GRAS RES: reset the open hand");
+            reply.addString("GRAZ CVV (params): constant velocity grasping");
             reply.addString("movimento JULIA   GEN TTL (((O -0.3 -0.15 0.05) (A -0.3 -0.3 0.05) (B -0.3 -0.15 0.1) (C -0.3 -0.0 0.05) (theta 0.0 1.57 3.14) (axes 0.15 0.05) (param 0.01 0.33)))");
 
             ok = true;
@@ -578,13 +579,16 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                         reply.addString("OK");
                         //GRAZ CVV (((sphere) (0.3 0.3 0.3)))
 
-                        if(command.size() == 2) {
-                            Bottle* finalB = command.get(1).asList();
+                        if(command.size() == 3) {
+                            Bottle* finalB = command.get(2).asList();
                             yDebug("bottle in threadInit %s", finalB->toString().c_str());
-                            if(rThread->factory("CVV", *finalB)) {
+                            if(rThread->fingerfactory("CVV", *finalB)) {
                                 yInfo("fingerfactory:constant velocity viaPoint");
                                 //reply.addString("OK");
                                 ok = true;
+                            }
+                            else{
+                                yError("finger factory error");
                             }
                         }
                         rThread->setGrasp(true);
