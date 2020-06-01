@@ -83,7 +83,7 @@ void attentionManagerThread::run() {
             combinedImageMat = toCvMat(*combinedImage);
             cv::minMaxLoc( combinedImageMat, &minValue, &maxValue, &idxOfMin, &idxOfMax );
             if(maxValue > thresholdVal){
-                if(!sendMaxPointToLinker(idxOfMax)){
+                if(!sendMaxPointToLinker(idxOfMax,maxValue)){
                     yDebug("max point port not connected to any output");
                 }
             }
@@ -113,12 +113,13 @@ string attentionManagerThread::getName(const char* p) const{
     return str;
 }
 
-bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint) {
+bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val) {
     if(hotPointPort.getOutputCount()){
         Bottle msg;
         Bottle& coordinatesList = msg.addList();
         coordinatesList.addInt(maxPoint.x);
         coordinatesList.addInt(maxPoint.y);
+        msg.addInt(val);
         hotPointPort.prepare() = msg;
         hotPointPort.write();
         return true;

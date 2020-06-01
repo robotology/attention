@@ -623,6 +623,7 @@ bool handProfilerThread::startJoints(double factor = 1.0){              //move f
 }
 
 bool handProfilerThread::fingerfactory(const string type, const Bottle finalB){
+    yDebug("finalB: %s", finalB.toString().c_str()); 
     if (!strcmp(type.c_str(),"CVV")) {
         fp = factoryCVVFingerProfile();
         yDebug("returned from CVV factory");
@@ -635,6 +636,8 @@ bool handProfilerThread::fingerfactory(const string type, const Bottle finalB){
         yError("Error.Type is unknown.");
         return false;
     }
+
+    return true;
 
 }
 

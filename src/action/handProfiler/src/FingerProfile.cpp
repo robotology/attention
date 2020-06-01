@@ -183,21 +183,21 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = target[i+7];
         }
-        yDebug("fase 1 %f ", t);
+        //yDebug("fase 1 %f ", t);
     }
     else if ((graspHomeTime < t) && ( t < graspViaTime)) {
         // after the beginning and before the viaPoint
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = target[i+7]+((graspVia[i]-graspHome[i])/speed2Via);
         }
-        yWarning("fase 2 %f ", t);
+        //yWarning("fase 2 %f ", t);
     }
     else if ((graspViaTime < t)  && ( t < graspFinalTime)) {
         // after the viaPoint and before the end of the grasping
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = target[i+7]+((graspFinal[i]-graspVia[i])/speed2Final);
         }
-        yInfo("fase 3 %f ", t);
+        //yInfo("fase 3 %f ", t);
     }
     else{
         // after the end of the grasping
@@ -206,7 +206,7 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = graspFinal[i];
         }
-        yError("fase 4 %f ", t);
+        //yError("fase 4 %f ", t);
     }
     
     return nextPosition;
