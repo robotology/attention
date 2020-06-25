@@ -31,13 +31,27 @@ The module has one input ports. their names has a prefix with the module name. T
 * The output form is a list which has the x and y values and then the integer value of this pixel. example: ```(100  30) 130 ```
   
 
-###  rpc client ports  ---  
+###  rpc client ports 
 The module has 1  rpc client ports as follows:   
   
 | Port                                                    | Port name                             | 
 | ------------------------------------------------------  |:-----------------------------------:  | 
-| selectinve attention engine controller             |```/<module name>/engineControl:oi```             |
+| selectinve attention engine controller             |```/<module name>//engineControl:oi```             |
 
+
+
+
+###  rpc port's commands
+  
+  
+| command                                                    | Form | effect                             | 
+| ----------------------------  |:-----------------------------------:  | :--------------------:  | 
+| help             |string         | print the help msg
+| quit             |string         | stop the module
+| [sus]             |vocab          | suspend all attention process
+| [res]             |vocab          | resume all attention process
+| [set]  [THR]   < number >         |vocab  vocab int        | change the threshold
+| [get]  [THR]          |vocab  vocab         | return the threshold
 
   
 ## Module running Configuration The configuration defines the running parameters of the module as follow:   
