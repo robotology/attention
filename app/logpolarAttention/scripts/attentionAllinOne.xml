@@ -51,7 +51,7 @@
         <parameters>--name /attPrioritiser/icub </parameters>
         <tag>prioritiser</tag>
         <node>icubsrv</node>
-    </module>    
+    </module>
     <module>
 	<name>gazeArbiter</name>
         <parameters>--name /gazeArbiter/icub --visualFeedback</parameters>
@@ -113,6 +113,12 @@
   <node>icubsrv</node>
 </module>
 
+<module>
+  <name>actionsRenderingEngine</name>
+  <parameters></parameters>
+  <node>icubsrv</node>
+</module>
+
 
 
   <module>
@@ -137,7 +143,7 @@
 
 
 
-    
+
 
 <connection>
   <from>/icub/camcalib/left/out</from>
@@ -153,7 +159,7 @@
 	<to>/earlyVision/icub/left_cam/imageRGB:i</to>
 	<protocol>tcp</protocol>
    </connection>
-    
+
 
 
    <connection>
@@ -162,7 +168,7 @@
      <protocol>tcp</protocol>
    </connection>
 
-   
+
 
    <connection>
 	<from>/earlyVision/icub/left_cam/centSurrIntensity:o</from>
@@ -200,7 +206,7 @@
 	<protocol>tcp</protocol>
    </connection>
 
-   
+
 
    <connection>
 	<from>/selectiveAttentionEngine/icub/left_cam/cmd:o</from>
@@ -208,7 +214,7 @@
 	<protocol>tcp</protocol>
    </connection>
 
-   
+
 
 
 
@@ -235,56 +241,56 @@
 	<to>/gazeArbiter/icub/matchTracker/img:i</to>
 	<protocol>tcp</protocol>
    </connection>
- 
-   
+
+
    <connection>
 	<from>/logPolarTransform/icub/left_cam/image:o</from>
 	<to>/attPrioritiser/icub/sacPlanner/img:i</to>
 	<protocol>tcp</protocol>
    </connection>
 
-   
 
-  
+
+
 
    <connection>
 	<from>/attPrioritiser/icub/cmd:o</from>
 	<to>/gazeArbiter/icub/cmd:i</to>
 	<protocol>tcp</protocol>
-   </connection> 
+   </connection>
 
    <connection>
 	<from>/gazeArbiter/icub/status:o</from>
 	<to>/attPrioritiser/icub/cmd:i</to>
 	<protocol>tcp</protocol>
-   </connection> 
-   
+   </connection>
+
    <connection>
 	<from>/attPrioritiser/icub/feedback:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam</to>
 	<protocol>tcp</protocol>
    </connection>
-   
+
    <connection>
 	<from>/attPrioritiser/icub/selectiveAtt:o</from>
 	<to>/selectiveAttentionEngine/icub/left_cam</to>
 	<protocol>tcp</protocol>
    </connection>
-   
+
    <connection>
 	<from>/attPrioritiser/icub/earlyVision:o</from>
 	<to>/earlyVision/icub/left_cam</to>
 	<protocol>tcp</protocol>
-   </connection>      
-   
-   
-   
+   </connection>
+
+
+
    <connection>
      <from>/attPrioritiser/icub/earlyVision:o</from>
      <to>/earlyVision/icub/left_cam</to>
      <protocol>tcp</protocol>
    </connection>
-   
+
 
    <connection>
      <from>/attPrioritiser/icub/selectiveAtt:o</from>
@@ -298,7 +304,7 @@
      <protocol>tcp</protocol>
    </connection>
 
-  
+
 
    <connection>
      <from>/attPrioritiser/icub/direct:o</from>
