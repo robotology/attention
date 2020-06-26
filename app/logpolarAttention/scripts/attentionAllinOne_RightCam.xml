@@ -1,0 +1,453 @@
+<application>
+    <name>Attention All in One Right Cam</name>
+
+
+
+    <module>
+       <name>logpolarTransform</name>
+       <parameters>--name logPolarTransform/icub/right_cam --xsize 320 --ysize 240 --direction CARTESIAN2LOGPOLAR</parameters>
+       <node>icubsrv</node>
+       <tag>rightLogPolarTransform</tag>
+    </module>
+
+
+
+
+	<module>
+		<name>earlyVision</name>
+		<parameters>--name /earlyVision/icub/right_cam</parameters>
+		<tag>earlyvis</tag>
+		<node>icubsrv</node>
+	</module>
+	<module>
+		<name>earlyMotion</name>
+		<parameters>--name /earlyMotion/icub/right_cam</parameters>
+		<tag>earlymot</tag>
+		<node>icubsrv</node>
+	</module>
+	<module>
+		<name>selectiveAttentionEngine</name>
+		<parameters>--from selectiveAttentionRight.ini --context logpolarAttention --name /selectiveAttentionEngine/icub/right_cam </parameters>
+		<tag>earlySelectiveAtt</tag>
+		<node>icubsrv</node>
+	</module>
+
+
+
+<module>
+  <name>selAttentionInterface</name>
+  <parameters>--name /selectiveAttentionInterface/icub/right_cam --x 1480 --y 0</parameters>
+  <tag>selectiveAttInterfaceright</tag>
+  <node>icubsrv</node>
+</module>
+
+
+
+
+
+
+    <module>
+	<name>attentionPrioritiser</name>
+        <parameters>--name /attPrioritiser/icub </parameters>
+        <tag>prioritiser</tag>
+        <node>icubsrv</node>
+    </module>
+    <module>
+	<name>gazeArbiter</name>
+        <parameters>--name /gazeArbiter/icub --visualFeedback</parameters>
+        <tag>gArbiter</tag>
+        <node>icubsrv</node>
+    </module>
+
+
+
+  <module>
+    <name>randomTopDownAttention</name>
+    <parameters>--name /randomTopDownAttention</parameters>
+    <node>icubsrv</node>
+  </module>
+
+
+  <module>
+    <name>egocentricAudioCropper</name>
+    <parameters>--name /egocentricAudioCropper</parameters>
+    <node>icubsrv</node>
+  </module>
+
+  <module>
+    <name>frequencyVisualisation</name>
+    <parameters>--name /bayesianProbabilityEdocentricAngleVisualiser --grid vert --gain 100</parameters>
+    <node>icubsrv</node>
+  </module>
+
+
+
+  <module>
+    <name>attentionManager</name>
+    <parameters>--name /attentionManager</parameters>
+    <node>icubsrv</node>
+  </module>
+
+
+  <module>
+    <name>attentionActionLinker</name>
+    <parameters>--name /attentionActionLinker</parameters>
+    <node>icubsrv</node>
+  </module>
+
+
+
+
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /icub/right_cam/attentionCartesian --x 000 --y 340 --RefreshTime 33</parameters>
+  <tag>attCartright</tag>
+  <node>icubsrv</node>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /icub/right_cam/combinationView --x 340 --y 340 --RefreshTime 33</parameters>
+  <tag>combViewright</tag>
+  <node>icubsrv</node>
+</module>
+
+<module>
+  <name>actionsRenderingEngine</name>
+  <parameters></parameters>
+  <node>icubsrv</node>
+</module>
+
+
+
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /bayesianProbabilityEgocentricAngleView</parameters>
+    <node>icubsrv</node>
+  </module>
+
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /cartEgocentricAngleView</parameters>
+    <node>icubsrv</node>
+  </module>
+
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /cartEgocentricAngleScaledView</parameters>
+    <node>icubsrv</node>
+  </module>
+
+
+
+
+
+
+
+<connection>
+  <from>/icub/camcalib/right/out</from>
+  <to>/logPolarTransform/icub/right_cam/image:i</to>
+  <protocol>udp</protocol>
+</connection>
+
+
+
+
+<connection>
+    <from>/logPolarTransform/icub/right_cam/image:o</from>
+	<to>/earlyVision/icub/right_cam/imageRGB:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+
+   <connection>
+     <from>/selectiveAttentionEngine/icub/right_cam/magnoCells:o</from>
+     <to>/earlyMotion/icub/right_cam</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+
+
+   <connection>
+	<from>/earlyVision/icub/right_cam/centSurrIntensity:o</from>
+	<to>/selectiveAttentionEngine/icub/right_cam/intensity:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/logPolarTransform/icub/right_cam/image:o</from>
+	<to>/earlyMotion/icub/right_cam/image:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/earlyMotion/icub/right_cam/motion:o</from>
+	<to>/selectiveAttentionEngine/icub/right_cam/motion:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/earlyVision/icub/right_cam/chrominance:o</from>
+	<to>/selectiveAttentionEngine/icub/right_cam/chrominance:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/earlyVision/icub/right_cam/chrome/sumOrientations:o</from>
+	<to>/selectiveAttentionEngine/icub/right_cam/orientation:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/earlyVision/icub/right_cam/edges/edges:o</from>
+	<to>/selectiveAttentionEngine/icub/right_cam/edges:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+
+   <connection>
+	<from>/selectiveAttentionEngine/icub/right_cam/cmd:o</from>
+	<to>/attPrioritiser/icub/cmd:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+
+
+
+
+
+
+   <connection>
+	<from>/icub/camcalib/right/out</from>
+	<to>/attPrioritiser/icub/periodicTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+   <connection>
+	<from>/icub/camcalib/right/out</from>
+	<to>/attPrioritiser/icub/matchTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+   <connection>
+	<from>/icub/camcalib/right/out</from>
+	<to>/gazeArbiter/icub/periodicTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+   <connection>
+	<from>/icub/camcalib/right/out</from>
+	<to>/gazeArbiter/icub/matchTracker/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+   <connection>
+	<from>/logPolarTransform/icub/right_cam/image:o</from>
+	<to>/attPrioritiser/icub/sacPlanner/img:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+
+
+
+   <connection>
+	<from>/attPrioritiser/icub/cmd:o</from>
+	<to>/gazeArbiter/icub/cmd:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/gazeArbiter/icub/status:o</from>
+	<to>/attPrioritiser/icub/cmd:i</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/attPrioritiser/icub/feedback:o</from>
+	<to>/selectiveAttentionEngine/icub/right_cam</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/attPrioritiser/icub/selectiveAtt:o</from>
+	<to>/selectiveAttentionEngine/icub/right_cam</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+	<from>/attPrioritiser/icub/earlyVision:o</from>
+	<to>/earlyVision/icub/right_cam</to>
+	<protocol>tcp</protocol>
+   </connection>
+
+
+
+   <connection>
+     <from>/attPrioritiser/icub/earlyVision:o</from>
+     <to>/earlyVision/icub/right_cam</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+
+   <connection>
+     <from>/attPrioritiser/icub/selectiveAtt:o</from>
+     <to>/selectiveAttentionEngine/icub/right_cam</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/highLoop:o</from>
+     <to>/attPrioritiser/icub/cmd:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+
+
+   <connection>
+     <from>/attPrioritiser/icub/direct:o</from>
+     <to>/iKinGazeCtrl/mono:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/attPrioritiser/icub/face:o</from>
+     <to>/icub/face/raw/in</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+   <connection>
+     <from>/logPolarTransform/icub/right_cam/image:o</from>
+     <to>/attPrioritiser/icub/controller/entImage:i</to>
+     <protocol>tcp</protocol>
+   </connection>
+
+
+
+<connection>
+  <from>/selectiveAttentionInterface/icub/right_cam/command:o</from>
+  <to>/selectiveAttentionEngine/icub/right_cam</to>
+  <protocol>tcp</protocol>
+</connection>
+<connection>
+  <from>/selectiveAttentionEngine/icub/right_cam/cartesian:o</from>
+  <to>/icub/right_cam/attentionCartesian</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/selectiveAttentionEngine/icub/right_cam/combination:o</from>
+  <to>/icub/right_cam/combinationView</to>
+  <protocol>udp</protocol>
+</connection>
+
+<!-- Integrated Attention Connections-->
+
+  <connection>
+    <from>/randomTopDownAttention/cmd</from>
+    <to>/selectiveAttentionEngine/icub/right_cam</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/faceDetector/image/out</from>
+    <to>/selectiveAttentionEngine/icub/right_cam/cart1:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/oneMerger/maskBio:o</from>
+    <to>/selectiveAttentionEngine/icub/right_cam/cart2:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+
+  <connection>
+    <from>/audioBayesianMap/bayesianProbabilityAngle:o</from>
+    <to>/egocentricAudioCropper/map:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/iKinGazeCtrl/angles:o</from>
+    <to>/egocentricAudioCropper/gazeAngles:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+  <connection>
+    <from>/egocentricAudioCropper/map:o</from>
+    <to>/bayesianProbabilityEdocentricAngleVisualiser/map:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/egocentricAudioCropper/cartImg:o</from>
+    <to>/cartEgocentricAngleView</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/egocentricAudioCropper/cartScaledImg:o</from>
+    <to>/cartEgocentricAngleScaledView</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/bayesianProbabilityEdocentricAngleVisualiser/img:o</from>
+    <to>/bayesianProbabilityEgocentricAngleView</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+
+
+
+<!--AttentionManager Connections -->
+
+  <connection>
+    <from>/selectiveAttentionEngine/icub/right_cam/combination:o</from>
+    <to>/attentionManager/combinedImage:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/attentionManager/hotPoint:o</from>
+    <to>/attentionActionLinker/hotPoint:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/attentionManager/engineControl:oi</from>
+    <to>/selectiveAttentionEngine/icub/right_cam</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+<!--AttentionActionLinker Connections -->
+
+    <connection>
+      <from>/attentionActionLinker/managerCmd:oi</from>
+      <to>/attentionManager</to>
+      <protocol>tcp</protocol>
+    </connection>
+
+
+    <connection>
+      <from>/attentionActionLinker/getCartesianCoordinates:oi</from>
+      <to>/actionsRenderingEngine/get:io</to>
+      <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+      <from>/attentionActionLinker/pointAction:oi</from>
+      <to>/actionsRenderingEngine/cmd:io</to>
+      <protocol>tcp</protocol>
+    </connection>
+
+
+
+
+</application>
