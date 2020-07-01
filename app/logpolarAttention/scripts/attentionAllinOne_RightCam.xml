@@ -443,7 +443,7 @@
 
     <connection>
       <from>/attentionActionLinker/getCartesianCoordinates:oi</from>
-      <to>/actionsRenderingEngine/get:io</to>
+      <to>/iKinGazeCtrl/rpc</to>
       <protocol>tcp</protocol>
     </connection>
 

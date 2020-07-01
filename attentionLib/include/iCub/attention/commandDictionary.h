@@ -30,6 +30,9 @@ namespace attention
 
         const int32_t COMMAND_VOCAB_WEIGHT              = yarp::os::createVocab('w');
 
+        const int32_t COMMAND_VOCAB_3D                  = yarp::os::createVocab('3','D');
+        const int32_t COMMAND_VOCAB_PROJ                = yarp::os::createVocab('p','r','o','j');
+        const int32_t COMMAND_VOCAB_ACK                = yarp::os::createVocab('a','c','k');
         const int32_t COMMAND_VOCAB_ON                  = yarp::os::createVocab('o','n');
         const int32_t COMMAND_VOCAB_IS                  = yarp::os::createVocab('i','s');
         const int32_t COMMAND_VOCAB_OK                  = yarp::os::createVocab('o','k');
@@ -38,6 +41,7 @@ namespace attention
         const int32_t COMMAND_VOCAB_TV                  = yarp::os::createVocab('t','v');
         const int32_t COMMAND_VOCAB_LK                  = yarp::os::createVocab('l','k');
         const int32_t COMMAND_VOCAB_ERROR               = yarp::os::createVocab('E','R','R');
+        
 
         const int32_t COMMAND_VOCAB_MODE               = yarp::os::createVocab('M','O','D','E');
         const int32_t COMMAND_VOCAB_BLOB               = yarp::os::createVocab('B','L','O');
