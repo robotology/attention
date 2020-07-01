@@ -135,37 +135,28 @@ bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val) {
 }
 
 bool attentionManagerThread::resetAttentionState() {
-    if(resumeEngine()){
-        if(resumeArbiter()){
-            resume();
-            yInfo("Process resumed");
-            return true;
-        }
-        else{
-            yError("Couldn't resume the gaze arbiter");
-        }
-    }
-    else{
+    bool engineState = resumeEngine(); 
+    bool arbiterState = resumeArbiter();
+    resume();
+    if(!engineState)
         yError("Couldn't resume the engine");
-    }
-    return false;
+
+    if(!arbiterState)
+        yError("Couldn't resume the gaze arbiter");
+    
+    return (engineState && arbiterState);
 }
 
 bool attentionManagerThread::suspendAttentionState() {
-    if(suspendEngine()){
-        if(suspendArbiter()){
-            suspend();
-            yInfo("Process suspended");
-            return true;
-        }
-        else{
-            yError("Couldn't suspend the gaze arbiter");
-        }
-    }
-    else{
+
+    bool engineState = suspendEngine(); 
+    bool arbiterState = suspendArbiter();
+    suspend();
+    if(!engineState)
         yError("Couldn't suspend the engine");
-    }
-    return false;
+    if(!arbiterState)
+        yError("Couldn't suspend the gaze arbiter");
+    return (engineState && arbiterState);
 }
 
 bool attentionManagerThread::suspendEngine() {
