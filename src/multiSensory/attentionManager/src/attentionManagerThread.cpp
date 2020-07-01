@@ -102,12 +102,14 @@ void attentionManagerThread::threadRelease() {
     combinedImagePort.interrupt();
     hotPointPort.interrupt();
     engineControlPort.interrupt();
+    gazeArbiterControlPort.interrupt();
 
 
     //-- Close the threads.
     combinedImagePort.close();
     hotPointPort.close();
     engineControlPort.close();
+    gazeArbiterControlPort.close();
 
 }
 
