@@ -96,15 +96,25 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
 
     switch (command.get(0).asVocab()) {
         case COMMAND_VOCAB_SUSPEND:
-            pThread->suspendAttentionState();
-            reply.addVocab(COMMAND_VOCAB_OK);
-            ok = true;
-            break;
+            if(pThread->suspendAttentionState()){
+                reply.addVocab(COMMAND_VOCAB_OK);
+                ok = true;
+                break;
+            }  else{
+                reply.addVocab(COMMAND_VOCAB_ERROR);
+                ok = true;
+                break;
+            }
         case COMMAND_VOCAB_RESUME:
-            pThread->resetAttentionState();
-            reply.addVocab(COMMAND_VOCAB_OK);
-            ok = true;
-            break;
+            if(pThread->resetAttentionState()){
+                reply.addVocab(COMMAND_VOCAB_OK);
+                ok = true;
+                break;
+            }  else{
+                reply.addVocab(COMMAND_VOCAB_ERROR);
+                ok = true;
+                break;
+            }
         case COMMAND_VOCAB_SET:
             if(command.size()==3){
                 switch (command.get(1).asVocab()){

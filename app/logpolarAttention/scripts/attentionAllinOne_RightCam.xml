@@ -425,6 +425,12 @@
     <protocol>tcp</protocol>
   </connection>
 
+  <connection>
+    <from>/attentionManager/gazeArbiterControl:oi</from>
+    <to>/gazeArbiter/icub</to>
+    <protocol>tcp</protocol>
+  </connection>
+
 
 <!--AttentionActionLinker Connections -->
 

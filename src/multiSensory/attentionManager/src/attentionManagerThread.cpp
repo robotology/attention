@@ -30,6 +30,7 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
     combinedImagePortName = getName("/combinedImage:i");
     hotPointPortName = getName("/hotPoint:o");
     engineControlPortName =  getName("/engineControl:oi");
+    gazeArbiterControlPortName = getName("/gazeArbiterControl:oi");
 
 
     //initialize data
@@ -69,6 +70,10 @@ bool attentionManagerThread::threadInit() {
 
     if (!engineControlPort.open(engineControlPortName.c_str())) {
         yError("Unable to open /engineControl:oi port ");
+        return false;
+    }
+    if (!gazeArbiterControlPort.open(gazeArbiterControlPortName.c_str())) {
+        yError("Unable to open /gazeArbiterControl:oi port ");
         return false;
     }
 
@@ -127,14 +132,38 @@ bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val) {
     return false;
 }
 
-void attentionManagerThread::resetAttentionState() {
-    resume();
-    resumeEngine();
+bool attentionManagerThread::resetAttentionState() {
+    if(resumeEngine()){
+        if(resumeArbiter()){
+            resume();
+            yInfo("Process resumed");
+            return true;
+        }
+        else{
+            yError("Couldn't resume the gaze arbiter");
+        }
+    }
+    else{
+        yError("Couldn't resume the engine");
+    }
+    return false;
 }
 
-void attentionManagerThread::suspendAttentionState() {
-    suspendEngine();
-    suspend();
+bool attentionManagerThread::suspendAttentionState() {
+    if(suspendEngine()){
+        if(suspendArbiter()){
+            suspend();
+            yInfo("Process suspended");
+            return true;
+        }
+        else{
+            yError("Couldn't suspend the gaze arbiter");
+        }
+    }
+    else{
+        yError("Couldn't suspend the engine");
+    }
+    return false;
 }
 
 bool attentionManagerThread::suspendEngine() {
@@ -155,6 +184,30 @@ bool attentionManagerThread::resumeEngine() {
         Bottle reply;
         command.addVocab(COMMAND_VOCAB_RESUME);
         engineControlPort.write(command,reply);
+        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+            return true;
+    }
+    return false;
+}
+
+bool attentionManagerThread::suspendArbiter() {
+    if(gazeArbiterControlPort.getOutputCount()){
+        Bottle command;
+        Bottle reply;
+        command.addVocab(COMMAND_VOCAB_SUSPEND);
+        gazeArbiterControlPort.write(command,reply);
+        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+            return true;
+    }
+    return false;
+}
+
+bool attentionManagerThread::resumeArbiter() {
+    if(gazeArbiterControlPort.getOutputCount()){
+        Bottle command;
+        Bottle reply;
+        command.addVocab(COMMAND_VOCAB_RESUME);
+        gazeArbiterControlPort.write(command,reply);
         if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
             return true;
     }

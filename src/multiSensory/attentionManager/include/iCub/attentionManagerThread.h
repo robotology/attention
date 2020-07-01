@@ -35,8 +35,8 @@ public:
     void run();
     void threadRelease();
     string getName(const char* p) const;
-    void resetAttentionState();
-    void suspendAttentionState();
+    bool resetAttentionState();
+    bool suspendAttentionState();
     void setThreshold(int val);
     int getThreshold();
 
@@ -48,6 +48,7 @@ private:
     string combinedImagePortName;
     string hotPointPortName;
     string engineControlPortName;
+    string gazeArbiterControlPortName;
 
 
 
@@ -59,6 +60,7 @@ private:
 
     //rpcPorts
     RpcClient engineControlPort;
+    RpcClient gazeArbiterControlPort;
 
 
     //Data
@@ -82,6 +84,8 @@ private:
     bool sendMaxPointToLinker(cv::Point maxPoint, int val);
     bool suspendEngine();
     bool resumeEngine();
+    bool suspendArbiter();
+    bool resumeArbiter();
 
 
 };
