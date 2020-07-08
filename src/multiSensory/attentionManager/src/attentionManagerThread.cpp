@@ -34,7 +34,7 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
 
 
     //initialize data
-    combinedImage = new ImageOf<PixelMono>;
+    combinedImage = new ImageOf<PixelRgb>;
 
 
     //initialize processing variables

@@ -23,7 +23,7 @@ using namespace yarp::os;
 using namespace std;
 
 
-typedef yarp::sig::ImageOf<yarp::sig::PixelMono>  yImgPixelMono;
+typedef yarp::sig::ImageOf<yarp::sig::PixelRgb>  yImgPixelRGB;
 
 class attentionManagerThread : public PeriodicThread {
 
@@ -53,7 +53,7 @@ private:
 
 
     //Input Ports
-    BufferedPort<yImgPixelMono> combinedImagePort;
+    BufferedPort<yImgPixelRGB> combinedImagePort;
 
     //output Ports
     BufferedPort<Bottle> hotPointPort;
@@ -64,7 +64,7 @@ private:
 
 
     //Data
-    yImgPixelMono *combinedImage;
+    yImgPixelRGB *combinedImage;
     cv::Mat combinedImageMat;
 
 
