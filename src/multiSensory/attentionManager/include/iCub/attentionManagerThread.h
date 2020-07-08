@@ -66,6 +66,7 @@ private:
     //Data
     yImgPixelRGB *combinedImage;
     cv::Mat combinedImageMat;
+    cv::Mat combinedImageMatGrayScale;
 
 
     //Parameters
