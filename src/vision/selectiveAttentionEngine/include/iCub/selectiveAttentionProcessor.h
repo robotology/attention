@@ -65,6 +65,7 @@ private:
     
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > thImagePort;              // port for the output the WTA
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb > > imageCartOut;             // port for sending cartesian image result
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb > > imageCartOutNoLines;             // port for sending cartesian image result
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map1Port;                 // input port for the 1st saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map2Port;                 // input port for the 2nd saliency map
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > map3Port;                 // input port for the 3rd saliency map

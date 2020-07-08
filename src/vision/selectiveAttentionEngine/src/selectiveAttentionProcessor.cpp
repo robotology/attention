@@ -315,6 +315,7 @@ bool selectiveAttentionProcessor::threadInit(){
     outputCmdPort.open(         getName("/cmd:o").c_str());
     feedbackPort.open(          getName("/feedback:o").c_str());
     imageCartOut.open(          getName("/cartesian:o").c_str());
+    imageCartOutNoLines.open(   getName("/cartesianPlain:o").c_str());
     thImagePort.open(           getName("/wta:o").c_str());
     portionRequestPort.open(    getName("/portionRequest:o").c_str());
     testPort.open(              getName("/test:o").c_str());
@@ -1042,6 +1043,7 @@ cartSpace:
             plinear += padding;
         }
         ImageOf<PixelRgb>  &outputCartImage = imageCartOut.prepare();  // preparing the cartesian output for combination
+        ImageOf<PixelRgb>  &outputCartImage_plain = imageCartOutNoLines.prepare();  // preparing the cartesian output for combination
         ImageOf<PixelMono> &threshCartImage = thImagePort.prepare();   // preparing the cartesian output for WTA
         ImageOf<PixelMono> &inhiCartImage   = inhiCartPort.prepare();  // preparing the cartesian image for inhibith a portion of the saliency map            
         
@@ -1049,6 +1051,7 @@ cartSpace:
         int outputXSize = xSizeValue;
         int outputYSize = ySizeValue;
         outputCartImage.resize(outputXSize,outputYSize);
+        outputCartImage_plain.resize(outputXSize,outputYSize);
         threshCartImage.resize(outputXSize,outputYSize);
         threshCartImage.zero();
         //printf("outputing cartesian image dimension %d,%d-> %d,%d \n", width,height , intermCartOut->width() , intermCartOut->height());
@@ -1195,7 +1198,7 @@ cartSpace:
         }
            
         if(!maxResponse) {                
-            pImage = outputCartImage.getRawImage();                
+            pImage = outputCartImage.getRawImage();
             float distance = 0;
             bool foundmax=false;
             //looking for the max value 
@@ -1243,6 +1246,7 @@ cartSpace:
         //representation of red lines where the WTA point is
         //representation of the vertical line
         pImage = outputCartImage.getRawImage();
+        outputCartImage_plain.copy(outputCartImage);
         pImage += (int)round(xm) * 3;
         for(int i = 0 ; i < ySizeValue ; i++) {
             *pImage = 255; pImage++;
@@ -1516,6 +1520,9 @@ bool selectiveAttentionProcessor::outPorts(){
     if(imageCartOut.getOutputCount()){
         imageCartOut.write();
     }
+    if(imageCartOutNoLines.getOutputCount()){
+        imageCartOutNoLines.write();
+    }
     if(thImagePort.getOutputCount()) {
         thImagePort.write();
     }
@@ -1775,6 +1782,7 @@ void selectiveAttentionProcessor::threadRelease(){
     outputCmdPort.close();
     thImagePort.close();
     imageCartOut.close();
+    imageCartOutNoLines.close();
     vergenceCmdPort.close();
     portionRequestPort.close();
     magnoCellFeedback.close();
