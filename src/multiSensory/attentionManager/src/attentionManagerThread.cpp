@@ -86,7 +86,7 @@ void attentionManagerThread::run() {
         combinedImage = combinedImagePort.read(true);
         if(combinedImage!=NULL){
             combinedImageMat = toCvMat(*combinedImage);
-            cv::cvtColor(combinedImageMat,combinedImageMatGrayScale,CV_RGB2BGR);
+            cv::cvtColor(combinedImageMat,combinedImageMatGrayScale,CV_BGR2GRAY);
             cv::minMaxLoc( combinedImageMatGrayScale, &minValue, &maxValue, &idxOfMin, &idxOfMax );
             if(maxValue > thresholdVal){
                 if(!sendMaxPointToLinker(idxOfMax,maxValue)){

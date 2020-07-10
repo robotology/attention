@@ -408,7 +408,7 @@
 <!--AttentionManager Connections -->
 
   <connection>
-    <from>/selectiveAttentionEngine/icub/right_cam/combination:o</from>
+    <from>/selectiveAttentionEngine/icub/right_cam/cartesianPlain:o</from>
     <to>/attentionManager/combinedImage:i</to>
     <protocol>tcp</protocol>
   </connection>
