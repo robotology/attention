@@ -103,13 +103,13 @@ void attentionManagerThread::run() {
                     pImage++;
                 }
             }
-            float meanVal = accumulate(imageMatrix.begin(),imageMatrix.end(),0.0)/320.0*240.0;
+            float meanVal = accumulate(imageMatrix.begin(),imageMatrix.end(),0.0)/(float)imageMatrix.size();
             for(auto & pix: imageMatrix){
                 sumImageMatrixMinusMeanSqared  += pow(((float)pix-meanVal),2) ;
             }
             float var = sumImageMatrixMinusMeanSqared/(float)imageMatrix.size();
             float imageStd = sqrt(var);
-            yInfo("Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-2s = %0.3f",meanVal,imageStd,var,maxValue-meanVal-2*imageStd);
+            yInfo("Max= %d  Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-3s = %0.3f",maxValue,meanVal,imageStd,var,maxValue-meanVal-3*imageStd);
             if(maxValue > thresholdVal){
                 if(!sendMaxPointToLinker(idxOfMax,maxValue)){
                     yDebug("max point port not connected to any output");
