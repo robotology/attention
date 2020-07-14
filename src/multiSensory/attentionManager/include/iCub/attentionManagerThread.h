@@ -16,7 +16,8 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/all.h>
 #include <yarp/cv/Cv.h>
-
+#include <vector>
+#include <numeric>
 #include <iCub/attention/commandDictionary.h>
 
 using namespace yarp::os;

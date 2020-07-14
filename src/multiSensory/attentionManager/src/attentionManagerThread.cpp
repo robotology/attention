@@ -86,12 +86,16 @@ void attentionManagerThread::run() {
         combinedImage = combinedImagePort.read(true);
         if(combinedImage!=NULL){
             unsigned char* pImage = combinedImage->getRawImage();
-            maxValue = 0;           
+            maxValue = 0;
+            vector<unsigned char> imageMatrix;
+            float sumImageMatrixMinusMeanSqared = 0;
             for(int y = 0;y<240;y++){
                 for(int x = 0;x<320;x++){
                     pImage++;
                     pImage++;
+                    imageMatrix.push_back(*pImage);
                     if(*pImage > maxValue){
+
                         maxValue = *pImage;
                         idxOfMax.x = x;
                         idxOfMax.y = y;
@@ -99,6 +103,13 @@ void attentionManagerThread::run() {
                     pImage++;
                 }
             }
+            float meanVal = accumulate(imageMatrix.begin(),imageMatrix.end(),0.0)/320.0*240.0;
+            for(auto & pix: imageMatrix){
+                sumImageMatrixMinusMeanSqared  += pow(((float)pix-meanVal),2) ;
+            }
+            float var = sumImageMatrixMinusMeanSqared/(float)imageMatrix.size();
+            float imageStd = sqrt(var);
+            yInfo("Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-2s = %0.3f",meanVal,imageStd,var,maxValue-meanVal-2*imageStd);
             if(maxValue > thresholdVal){
                 if(!sendMaxPointToLinker(idxOfMax,maxValue)){
                     yDebug("max point port not connected to any output");
