@@ -108,7 +108,7 @@
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /icub/right_cam/combinationView --x 340 --y 340 --RefreshTime 33</parameters>
+  <parameters>--name /icub/right_cam/cartesianPlanView --x 340 --y 340 --RefreshTime 33</parameters>
   <tag>combViewright</tag>
   <node>icubsrv</node>
 </module>
@@ -337,8 +337,8 @@
   <protocol>udp</protocol>
 </connection>
 <connection>
-  <from>/selectiveAttentionEngine/icub/right_cam/combination:o</from>
-  <to>/icub/right_cam/combinationView</to>
+  <from>/selectiveAttentionEngine/icub/right_cam/cartesianPlain:o</from>
+  <to>/icub/right_cam/cartesianPlainView</to>
   <protocol>udp</protocol>
 </connection>
 
