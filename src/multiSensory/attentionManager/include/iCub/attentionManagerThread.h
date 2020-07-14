@@ -65,8 +65,7 @@ private:
 
     //Data
     yImgPixelRGB *combinedImage;
-    cv::Mat combinedImageMat;
-    cv::Mat combinedImageMatGrayScale;
+
 
 
     //Parameters
@@ -74,10 +73,8 @@ private:
 
 
     //Processing Variables
-    double maxValue;
-    double minValue;
+    unsigned char maxValue;
     cv::Point idxOfMax;
-    cv::Point idxOfMin;
 
 
 
