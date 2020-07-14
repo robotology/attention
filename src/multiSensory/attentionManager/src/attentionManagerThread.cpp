@@ -86,16 +86,16 @@ void attentionManagerThread::run() {
         combinedImage = combinedImagePort.read(true);
         if(combinedImage!=NULL){
             unsigned char* pImage = combinedImage->getRawImage();
-            maxValue = *pImage;
+            maxValue = 0;           
             for(int y = 0;y<240;y++){
                 for(int x = 0;x<320;x++){
+                    pImage++;
+                    pImage++;
                     if(*pImage > maxValue){
                         maxValue = *pImage;
                         idxOfMax.x = x;
                         idxOfMax.y = y;
                     }
-                    pImage++;
-                    pImage++;
                     pImage++;
                 }
             }
