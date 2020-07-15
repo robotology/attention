@@ -27,6 +27,7 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
     outputPortName = getName("/map:o");
     outputImgPortName = getName("/cartImg:o");
     outputScaledImgPortName = getName("/cartScaledImg:o");
+    azimuthAngle = 0.0;
 
 }
 
@@ -105,18 +106,27 @@ void egocentricAudioCropperThread::run() {
 
     if (inputPort.getInputCount()) {
 
-        yMatrix* mat = inputPort.read(false);   //blocking reading for synchr with the input
+        yMatrix* mat = inputPort.read(true);   //blocking reading for synchr with the input
 
-        azimuthAngle = 0.0;
         if (inputGazeAnglesPort.getInputCount()) {
-            gazeAnglesBottle = inputGazeAnglesPort.read(true);
-            azimuthAngle += gazeAnglesBottle->get(azimuthIndex).asDouble();
+            gazeAnglesBottle = inputGazeAnglesPort.read(false);
+            azimuthAngle = gazeAnglesBottle->get(azimuthIndex).asDouble();
         }
 
         if (mat != NULL) {
             yDebug("matrix is not null");
             if (outputPort.getOutputCount()) {
-                yMatrix resizedMat = mat->submatrix(1,1,179-azimuthAngle-cameraSideAOV,179-azimuthAngle+cameraSideAOV);
+                double * pMat = mat->data();
+                yMatrix resizedMat;
+                resizedMat.resize(1,cameraAOV);
+                double *pResizedMat = resizedMat.data();
+                pMat += (int) (179-azimuthAngle-cameraSideAOV);
+                for(int i=0;i<cameraAOV;i++){
+                    *pResizedMat = *pMat;
+                    pMat ++;
+                    pResizedMat ++;
+                }
+               // yMatrix resizedMat = mat->submatrix(1,1,179-azimuthAngle-cameraSideAOV,179-azimuthAngle+cameraSideAOV);
                 outputPort.prepare() = resizedMat;
                 outputPort.write();
                 if (outputImgPort.getOutputCount()){
