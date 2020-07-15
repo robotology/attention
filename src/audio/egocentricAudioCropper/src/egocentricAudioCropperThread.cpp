@@ -121,10 +121,17 @@ void egocentricAudioCropperThread::run() {
                 resizedMat.resize(1,cameraAOV);
                 double *pResizedMat = resizedMat.data();
                 pMat += (int) (179-azimuthAngle-cameraSideAOV);
+                int maxIdx = 0;
+                double maxValue = 0;
                 for(int i=0;i<cameraAOV;i++){
                     *pResizedMat = *pMat;
+                    if(*pMat > maxValue){
+                        maxValue = *pMat;
+                        maxIdx = i;
+                    }
                     pMat ++;
                     pResizedMat ++;
+
                 }
                // yMatrix resizedMat = mat->submatrix(1,1,179-azimuthAngle-cameraSideAOV,179-azimuthAngle+cameraSideAOV);
                 outputPort.prepare() = resizedMat;
@@ -133,12 +140,7 @@ void egocentricAudioCropperThread::run() {
                     outputImg = &outputImgPort.prepare();
                     outputImg->resize(resizedMat.cols(),resizedMat.rows());
                     unsigned char* rowImage = outputImg->getRawImage();
-                    int maxIdx = 0;
-                    for (int i = 1; i<2*cameraSideAOV+1;i++){
-                        if(rowImage[i]>rowImage[maxIdx])
-                            maxIdx = i;
-                    }
-                    for (int i = 0; i<2*cameraSideAOV+1;i++){
+                    for (int i = 0; i<cameraAOV;i++){
                         if(i!=maxIdx)
                             rowImage[i] = 0;
                         else
