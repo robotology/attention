@@ -38,8 +38,8 @@ public:
     string getName(const char* p) const;
     bool resetAttentionState();
     bool suspendAttentionState();
-    void setThreshold(int val);
-    int getThreshold();
+    void setThreshold(const int32_t type,float val);
+    float getThreshold(const int32_t type);
 
 private:
     Network yarp;
@@ -71,10 +71,16 @@ private:
 
     //Parameters
     int max_thresholdVal;
+    float mean_thresholdVal;
+    float std_thresholdVal;
+    float threeSigma_thresholdVal;;
 
 
     //Processing Variables
     unsigned char maxValue;
+    float meanVal;
+    float stdVal;
+    float threeSigmaVal;
     cv::Point idxOfMax;
 
 

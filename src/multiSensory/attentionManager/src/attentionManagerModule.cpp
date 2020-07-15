@@ -116,10 +116,10 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
                 break;
             }
         case COMMAND_VOCAB_SET:
-            if(command.size()==3){
+            if(command.size()==4){
                 switch (command.get(1).asVocab()){
                     case COMMAND_VOCAB_THRESHOLD:
-                        pThread->setThreshold(command.get(2).asInt());
+                        pThread->setThreshold(command.get(2).asVocab(),command.get(3).asFloat64());
                         reply.addVocab(COMMAND_VOCAB_OK);
                         ok = true;
                         break;
@@ -130,7 +130,7 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
             if(command.size()==2){
                 switch (command.get(1).asVocab()){
                     case COMMAND_VOCAB_THRESHOLD:
-                        reply.addInt(pThread->getThreshold());
+                        reply.addFloat64(pThread->getThreshold(command.get(2).asVocab()));
                         ok = true;
                         break;
                 }

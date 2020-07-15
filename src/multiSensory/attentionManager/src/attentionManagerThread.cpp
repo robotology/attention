@@ -47,7 +47,20 @@ attentionManagerThread::~attentionManagerThread(){
 
 
 bool attentionManagerThread::configure(yarp::os::ResourceFinder &rf){
-    max_thresholdVal = rf.findGroup("processingParam").check("max_threshold",    yarp::os::Value(200), "the threshold value to execute the action").asDouble();
+    max_thresholdVal = rf.findGroup("processingParam").check("max_threshold",    yarp::os::Value(200), "the max threshold value to execute the action").asDouble();
+    mean_thresholdVal = rf.findGroup("processingParam").check("mean_threshold", yarp::os::Value(0), "the mean threshold value to execute the action").asFloat64();
+    std_thresholdVal = rf.findGroup("processingParam").check("std_threshold",    yarp::os::Value(5), "the std threshold value to execute the action").asFloat64();
+    threeSigma_thresholdVal = rf.findGroup("processingParam").check("three_sigma_threshold",    yarp::os::Value(95), "the 3 sigma threshold value to execute the action").asFloat64();
+
+
+    yInfo( " " );
+    yInfo( "\t               [processingParam]               "                              );
+    yInfo( "\t ============================================ "                               );
+    yInfo( "\t max_threshold                : %.3f m",       max_thresholdVal               );
+    yInfo("\t mean_threshold                : %.3f m", mean_thresholdVal               );
+    yInfo( "\t std_threshold                : %.3f m",       std_thresholdVal               );
+    yInfo( "\t three_sigma_threshold        : %.3f m",       threeSigma_thresholdVal        );
+    yInfo( " " );
     return true;
 }
 
@@ -103,14 +116,15 @@ void attentionManagerThread::run() {
                     pImage++;
                 }
             }
-            float meanVal = accumulate(imageMatrix.begin(),imageMatrix.end(),0.0)/(float)imageMatrix.size();
+            meanVal = accumulate(imageMatrix.begin(),imageMatrix.end(),0.0)/(float)imageMatrix.size();
             for(auto & pix: imageMatrix){
                 sumImageMatrixMinusMeanSqared  += pow(((float)pix-meanVal),2) ;
             }
             float var = sumImageMatrixMinusMeanSqared/(float)imageMatrix.size();
-            float imageStd = sqrt(var);
-            yInfo("Max= %d  Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-3s = %0.3f",maxValue,meanVal,imageStd,var,maxValue-meanVal-3*imageStd);
-            if(maxValue > max_thresholdVal){
+            stdVal= sqrt(var);
+            threeSigmaVal =maxValue-meanVal-3*stdVal;
+            yInfo("Max= %d  Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-3s = %0.3f",maxValue,meanVal,stdVal,var,threeSigmaVal);
+            if((maxValue >= max_thresholdVal) && (meanVal <= mean_thresholdVal) && (stdVal >= std_thresholdVal) && (threeSigmaVal >= threeSigma_thresholdVal)){
                 if(!sendMaxPointToLinker(idxOfMax,maxValue)){
                     yDebug("max point port not connected to any output");
                 }
@@ -230,12 +244,40 @@ bool attentionManagerThread::resumeArbiter() {
     return false;
 }
 
-void attentionManagerThread::setThreshold(int val) {
-    max_thresholdVal = val;
+void attentionManagerThread::setThreshold(const int32_t type,float val){
+    switch (type){
+        case COMMAND_VOCAB_MAX:
+            max_thresholdVal = val;
+            break;
+        case COMMAND_VOCAB_MEAN:
+            mean_thresholdVal = val;
+            break;
+        case COMMAND_VOCAB_STD:
+            std_thresholdVal =val;
+            break;
+        case COMMAND_VOCAB_3SIGMA:
+            threeSigma_thresholdVal = val;
+            break;
+        default:
+            yError("wrong threshold type");
+            break;
+        }
 }
 
-int attentionManagerThread::getThreshold() {
-    return max_thresholdVal;
+float attentionManagerThread::getThreshold(const int32_t type) {
+    switch (type){
+        case COMMAND_VOCAB_MAX:
+            return max_thresholdVal;
+        case COMMAND_VOCAB_MEAN:
+            return mean_thresholdVal;
+        case COMMAND_VOCAB_STD:
+            return std_thresholdVal;
+        case COMMAND_VOCAB_3SIGMA:
+            return threeSigma_thresholdVal;
+        default:
+            yError("wrong threshold type");
+            return -1;
+    }
 }
 
 

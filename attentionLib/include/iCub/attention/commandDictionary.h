@@ -41,7 +41,11 @@ namespace attention
         const int32_t COMMAND_VOCAB_TV                  = yarp::os::createVocab('t','v');
         const int32_t COMMAND_VOCAB_LK                  = yarp::os::createVocab('l','k');
         const int32_t COMMAND_VOCAB_ERROR               = yarp::os::createVocab('E','R','R');
-        
+
+        const int32_t COMMAND_VOCAB_MAX                 = yarp::os::createVocab('m','a','x');
+        const int32_t COMMAND_VOCAB_MEAN                = yarp::os::createVocab('m','e','a','n');
+        const int32_t COMMAND_VOCAB_STD                 = yarp::os::createVocab('s','t','d');
+        const int32_t COMMAND_VOCAB_3SIGMA              = yarp::os::createVocab('3','s');
 
         const int32_t COMMAND_VOCAB_MODE               = yarp::os::createVocab('M','O','D','E');
         const int32_t COMMAND_VOCAB_BLOB               = yarp::os::createVocab('B','L','O');
