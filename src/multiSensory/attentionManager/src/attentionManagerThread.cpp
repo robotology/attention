@@ -47,7 +47,7 @@ attentionManagerThread::~attentionManagerThread(){
 
 
 bool attentionManagerThread::configure(yarp::os::ResourceFinder &rf){
-    thresholdVal = rf.findGroup("processingParam").check("threshold",    yarp::os::Value(200), "the threshold value to execute the action").asDouble();
+    max_thresholdVal = rf.findGroup("processingParam").check("max_threshold",    yarp::os::Value(200), "the threshold value to execute the action").asDouble();
     return true;
 }
 
@@ -110,7 +110,7 @@ void attentionManagerThread::run() {
             float var = sumImageMatrixMinusMeanSqared/(float)imageMatrix.size();
             float imageStd = sqrt(var);
             yInfo("Max= %d  Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-3s = %0.3f",maxValue,meanVal,imageStd,var,maxValue-meanVal-3*imageStd);
-            if(maxValue > thresholdVal){
+            if(maxValue > max_thresholdVal){
                 if(!sendMaxPointToLinker(idxOfMax,maxValue)){
                     yDebug("max point port not connected to any output");
                 }
@@ -231,11 +231,11 @@ bool attentionManagerThread::resumeArbiter() {
 }
 
 void attentionManagerThread::setThreshold(int val) {
-    thresholdVal = val;
+    max_thresholdVal = val;
 }
 
 int attentionManagerThread::getThreshold() {
-    return thresholdVal;
+    return max_thresholdVal;
 }
 
 

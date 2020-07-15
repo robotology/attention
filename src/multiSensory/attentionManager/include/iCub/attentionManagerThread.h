@@ -70,7 +70,7 @@ private:
 
 
     //Parameters
-    int thresholdVal;
+    int max_thresholdVal;
 
 
     //Processing Variables
