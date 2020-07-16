@@ -66,6 +66,8 @@ private:
     int cameraSideAOV;
     int azimuthIndex;
 
+    float conversionGain;
+
     yImgPixelMono* outputImg;
     yImgPixelMono* outputScaledImg;
     Bottle* gazeAnglesBottle;

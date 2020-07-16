@@ -41,6 +41,8 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     cameraContextName  = rf.findGroup("cameraParams").check("context",    yarp::os::Value("logpolarAttention"), "the context  of the  camera file (string)").asString();
     azimuthIndex =  rf.findGroup("cameraParams").check("azimuthIndex",    yarp::os::Value(0), "the index of the  azimuth angle in the angles input port (int)").asInt();
 
+    conversionGain =  rf.findGroup("maximisation").check("conversionGain",    yarp::os::Value(-1.0), "the coversion gain").asFloat64();
+
 
     ResourceFinder iCubEyesRF;
     iCubEyesRF.setVerbose(true);
@@ -120,13 +122,18 @@ void egocentricAudioCropperThread::run() {
                 resizedMat.resize(1,cameraAOV);
                 double *pResizedMat = resizedMat.data();
                 pMat += (int) (179-azimuthAngle-cameraSideAOV);
-                int maxIdx = 0;
+                int maxStartIdx = 0;
+                int maxCount = 0;
                 double maxValue = 0;
                 for(int i=0;i<cameraAOV;i++){
                     *pResizedMat = *pMat;
                     if(*pMat > maxValue){
                         maxValue = *pMat;
-                        maxIdx = i;
+                        maxStartIdx = i;
+                        maxCount = 1;
+                    }
+                    else if(*pMat == maxValue){
+                        maxCount ++;
                     }
                     pMat ++;
                     pResizedMat ++;
@@ -140,10 +147,17 @@ void egocentricAudioCropperThread::run() {
                     outputImg->resize(resizedMat.cols(),resizedMat.rows());
                     unsigned char* rowImage = outputImg->getRawImage();
                     for (int i = 0; i<cameraAOV;i++){
-                        if(i!=maxIdx)
+                        if(i>= maxStartIdx && i<maxStartIdx + maxCount){
+                            if(conversionGain >0)
+                                rowImage[i] = maxValue*conversionGain*255.0;
+                            else{
+                                rowImage[i] = 255.0;
+                            }
+                        }
+                        else{
                             rowImage[i] = 0;
-                        else
-                            rowImage[i] = maxValue*255.0;
+                        }
+
                     }
                     if (outputScaledImgPort.getOutputCount()){
                         outputScaledImg = &outputScaledImgPort.prepare();
