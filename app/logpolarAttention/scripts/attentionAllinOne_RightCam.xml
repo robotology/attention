@@ -146,6 +146,13 @@
     <node>icubsrv</node>
   </module>
 
+	
+
+<module>
+	<name>yarpdatadumper </name>
+	<parameters> --name /robotHotPointStates --dir /omar/lightboardExperimentData/hotPointStatus</parameters>
+	<node>icubsrv</node>
+</module>
 
 
 
@@ -473,6 +480,11 @@
       <protocol>tcp</protocol>
     </connection>
 
+      <connection>
+		<from>/attentionManager/hotPoint:o</from>
+		<to>/robotHotPointStatus</to>
+		<protocol>tcp</protocol>
+	</connection>
 
 
 

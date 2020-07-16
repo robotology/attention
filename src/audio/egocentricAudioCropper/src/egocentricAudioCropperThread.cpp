@@ -146,8 +146,8 @@ void egocentricAudioCropperThread::run() {
                     outputImg = &outputImgPort.prepare();
                     outputImg->resize(resizedMat.cols(),resizedMat.rows());
                     unsigned char* rowImage = outputImg->getRawImage();
-                    for (int i = 0; i<cameraAOV;i++){
-                        if(i>= maxStartIdx && i<maxStartIdx + maxCount){
+                    for (int i = cameraAOV-1; i>=0;i--){
+                        if((cameraAOV-i-1)>= maxStartIdx && (cameraAOV-i-1)<maxStartIdx + maxCount){
                             if(conversionGain >0)
                                 rowImage[i] = maxValue*conversionGain*255.0;
                             else{
