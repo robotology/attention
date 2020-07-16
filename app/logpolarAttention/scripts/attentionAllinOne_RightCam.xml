@@ -108,7 +108,14 @@
 
 <module>
   <name>yarpview</name>
-  <parameters>--name /icub/right_cam/cartesianPlanView --x 340 --y 340 --RefreshTime 33</parameters>
+  <parameters>--name /icub/right_cam/cartesianPlainView --x 340 --y 340 --RefreshTime 33</parameters>
+  <tag>cartPlainViewright</tag>
+  <node>icubsrv</node>
+</module>
+
+<module>
+  <name>yarpview</name>
+  <parameters>--name /icub/right_cam/combinationView --x 340 --y 340 --RefreshTime 33</parameters>
   <tag>combViewright</tag>
   <node>icubsrv</node>
 </module>
@@ -342,6 +349,13 @@
   <protocol>udp</protocol>
 </connection>
 
+<connection>
+  <from>/selectiveAttentionEngine/icub/right_cam/combination:o</from>
+  <to>/icub/right_cam/combinationView</to>
+  <protocol>udp</protocol>
+</connection>
+
+
 <!-- Integrated Attention Connections-->
 
   <connection>
@@ -392,6 +406,12 @@
   <connection>
     <from>/egocentricAudioCropper/cartScaledImg:o</from>
     <to>/cartEgocentricAngleScaledView</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/egocentricAudioCropper/cartScaledImg:o</from>
+    <to>/selectiveAttentionEngine/icub/right_cam/cart3:i </to>
     <protocol>tcp</protocol>
   </connection>
 

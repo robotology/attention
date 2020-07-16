@@ -114,7 +114,6 @@ void egocentricAudioCropperThread::run() {
         }
 
         if (mat != NULL) {
-            yDebug("matrix is not null");
             if (outputPort.getOutputCount()) {
                 double * pMat = mat->data();
                 yMatrix resizedMat;
@@ -133,7 +132,7 @@ void egocentricAudioCropperThread::run() {
                     pResizedMat ++;
 
                 }
-               // yMatrix resizedMat = mat->submatrix(1,1,179-azimuthAngle-cameraSideAOV,179-azimuthAngle+cameraSideAOV);
+                yInfo("max Value = %lf",maxValue);
                 outputPort.prepare() = resizedMat;
                 outputPort.write();
                 if (outputImgPort.getOutputCount()){
@@ -144,7 +143,7 @@ void egocentricAudioCropperThread::run() {
                         if(i!=maxIdx)
                             rowImage[i] = 0;
                         else
-                            rowImage[i] = 255;
+                            rowImage[i] = maxValue*255.0;
                     }
                     if (outputScaledImgPort.getOutputCount()){
                         outputScaledImg = &outputScaledImgPort.prepare();
