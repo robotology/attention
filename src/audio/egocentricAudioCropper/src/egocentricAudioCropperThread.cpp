@@ -42,6 +42,7 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     azimuthIndex =  rf.findGroup("cameraParams").check("azimuthIndex",    yarp::os::Value(0), "the index of the  azimuth angle in the angles input port (int)").asInt();
 
     conversionGain =  rf.findGroup("maximisation").check("conversionGain",    yarp::os::Value(-1.0), "the coversion gain").asFloat64();
+    thresholdMaxProb =  rf.findGroup("maximisation").check("threshold",    yarp::os::Value(0.0066), "threshold to draw strap").asFloat64();
 
 
     ResourceFinder iCubEyesRF;
@@ -147,7 +148,7 @@ void egocentricAudioCropperThread::run() {
                     outputImg->resize(resizedMat.cols(),resizedMat.rows());
                     unsigned char* rowImage = outputImg->getRawImage();
                     for (int i = cameraAOV-1; i>=0;i--){
-                        if((cameraAOV-i-1)>= maxStartIdx && (cameraAOV-i-1)<maxStartIdx + maxCount){
+                        if(maxValue >= thresholdMaxProb && (cameraAOV-i-1)>= maxStartIdx && (cameraAOV-i-1)< (maxStartIdx + maxCount)){
                             if(conversionGain >0)
                                 rowImage[i] = maxValue*conversionGain*255.0;
                             else{

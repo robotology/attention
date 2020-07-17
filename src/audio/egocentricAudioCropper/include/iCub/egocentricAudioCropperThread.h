@@ -67,6 +67,7 @@ private:
     int azimuthIndex;
 
     float conversionGain;
+    float thresholdMaxProb;
 
     yImgPixelMono* outputImg;
     yImgPixelMono* outputScaledImg;
