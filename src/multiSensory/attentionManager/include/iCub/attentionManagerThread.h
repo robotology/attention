@@ -50,6 +50,7 @@ private:
     string hotPointPortName;
     string engineControlPortName;
     string gazeArbiterControlPortName;
+    string sceneAnalysisPortName;
 
 
 
@@ -58,6 +59,7 @@ private:
 
     //output Ports
     BufferedPort<Bottle> hotPointPort;
+    BufferedPort<Bottle> sceneAnalysisPort;
 
     //rpcPorts
     RpcClient engineControlPort;
@@ -91,7 +93,7 @@ private:
     bool resumeEngine();
     bool suspendArbiter();
     bool resumeArbiter();
-
+    bool publishAnalysis();
 
 };
 #endif //ATTENTION_ATTENTIONMANAGERTHREAD_H

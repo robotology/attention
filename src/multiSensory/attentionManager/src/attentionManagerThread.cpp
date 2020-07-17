@@ -31,7 +31,7 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
     hotPointPortName = getName("/hotPoint:o");
     engineControlPortName =  getName("/engineControl:oi");
     gazeArbiterControlPortName = getName("/gazeArbiterControl:oi");
-
+    sceneAnalysisPortName = getName("/sceneAnalysis:o");
 
     //initialize data
     combinedImage = new ImageOf<PixelRgb>;
@@ -89,6 +89,10 @@ bool attentionManagerThread::threadInit() {
         yError("Unable to open /gazeArbiterControl:oi port ");
         return false;
     }
+    if (!sceneAnalysisPort.open(sceneAnalysisPortName.c_str())) {
+        yError("Unable to open /sceneAnalysis:o port ");
+        return false;
+    }
 
     yInfo("Initialization of the processing thread correctly ended.");
 
@@ -123,6 +127,7 @@ void attentionManagerThread::run() {
             float var = sumImageMatrixMinusMeanSqared/(float)imageMatrix.size();
             stdVal= sqrt(var);
             threeSigmaVal =maxValue-meanVal-3*stdVal;
+            publishAnalysis();
             yInfo("Max= %d  Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-3s = %0.3f",maxValue,meanVal,stdVal,var,threeSigmaVal);
             if((maxValue >= max_thresholdVal) && (meanVal <= mean_thresholdVal) && (stdVal >= std_thresholdVal) && (threeSigmaVal >= threeSigma_thresholdVal)){
                 if(!sendMaxPointToLinker(idxOfMax,maxValue)){
@@ -140,6 +145,7 @@ void attentionManagerThread::threadRelease() {
     hotPointPort.interrupt();
     engineControlPort.interrupt();
     gazeArbiterControlPort.interrupt();
+    sceneAnalysisPort.interrupt();
 
 
     //-- Close the threads.
@@ -147,6 +153,7 @@ void attentionManagerThread::threadRelease() {
     hotPointPort.close();
     engineControlPort.close();
     gazeArbiterControlPort.close();
+    sceneAnalysisPort.close();
 
 }
 
@@ -279,5 +286,22 @@ float attentionManagerThread::getThreshold(const int32_t type) {
             return -1;
     }
 }
+
+bool attentionManagerThread::publishAnalysis() {
+    if(sceneAnalysisPort.getOutputCount()){
+        Bottle msg;
+        msg.addInt(maxValue);
+        msg.addFloat64(meanVal);
+        msg.addFloat64(stdVal);
+        msg.addFloat64(threeSigmaVal);
+        msg.addInt(idxOfMax.x);
+        msg.addInt(idxOfMax.y);
+        sceneAnalysisPort.prepare() = msg;
+        sceneAnalysisPort.write();
+        return true;
+    }
+    return false;
+}
+
 
 

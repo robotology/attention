@@ -150,13 +150,24 @@
 
 <module>
 	<name>yarpdatadumper </name>
-	<parameters> --name /robotHotPointStates --dir /omar/lightboardExperimentData/hotPointStatus</parameters>
+	<parameters> --name /robotHotPointStatesDumper --dir /omar/lightboardExperimentData/hotPointStates</parameters>
 	<node>icubsrv</node>
 </module>
 
 
 
 
+    <module>
+        <name>yarpdatadumper </name>
+        <parameters> --name /robotSceneAnalysisDumper --dir /omar/lightboardExperimentData/sceneAnalysis</parameters>
+        <node>icubsrv</node>
+    </module>
+
+    <module>
+        <name>yarpdatadumper </name>
+        <parameters> --name /robotCartHotPointDumper --dir /omar/lightboardExperimentData/cartHotPointStates</parameters>
+        <node>icubsrv</node>
+    </module>
 
 
 <connection>
@@ -482,9 +493,21 @@
 
       <connection>
 		<from>/attentionManager/hotPoint:o</from>
-		<to>/robotHotPointStatus</to>
+		<to>/robotHotPointStatesDumper</to>
 		<protocol>tcp</protocol>
 	</connection>
+
+    <connection>
+        <from>/attentionManager/sceneAnalysis:o</from>
+        <to>/robotSceneAnalysisDumper</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/attentionActionLinker/cartHotPoints:o</from>
+        <to>/robotCartHotPointDumper</to>
+        <protocol>tcp</protocol>
+    </connection>
 
 
 
