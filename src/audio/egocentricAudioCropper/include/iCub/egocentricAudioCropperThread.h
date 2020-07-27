@@ -52,6 +52,7 @@ private:
     string outputPortName;
     string outputImgPortName;
     string outputScaledImgPortName;
+    string maxAngleStatePortName;
 
 
     //Parameters
@@ -78,6 +79,8 @@ private:
     BufferedPort<yMatrix>  outputPort;
     BufferedPort<yImgPixelMono> outputImgPort;
     BufferedPort<yImgPixelMono> outputScaledImgPort;
+    BufferedPort<Bottle> maxAngleStatePort;
 
+    bool publishMaxAngleState(double maxVal,int egoMAxAngle,int aloMaxAngle,double azimuthAngle);
 };
 #endif //ATTENTION_EGOCENTRIC_AUDIO_CROPPER_THREAD_H

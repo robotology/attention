@@ -27,6 +27,7 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
     outputPortName = getName("/map:o");
     outputImgPortName = getName("/cartImg:o");
     outputScaledImgPortName = getName("/cartScaledImg:o");
+    maxAngleStatePortName = getName("/maxAngleState:o");
     azimuthAngle = 0.0;
 
 }
@@ -100,6 +101,10 @@ bool egocentricAudioCropperThread::threadInit() {
         yError("Unable to open port to send scaled output image.");
         return false;
     }
+    if(!maxAngleStatePort.open(maxAngleStatePortName.c_str())){
+        yError("Unable to open port /maxAngleState:o");
+        return false;
+    }
 
     yInfo("Initialization of the processing thread correctly ended.");
 
@@ -140,6 +145,7 @@ void egocentricAudioCropperThread::run() {
                     pResizedMat ++;
 
                 }
+                publishMaxAngleState(maxValue,maxStartIdx,maxStartIdx - (int) (azimuthAngle+cameraSideAOV),azimuthAngle);
                 yInfo("max Value = %lf",maxValue);
                 outputPort.prepare() = resizedMat;
                 outputPort.write();
@@ -180,12 +186,16 @@ void egocentricAudioCropperThread::threadRelease() {
     inputPort.interrupt();
     outputPort.interrupt();
     outputImgPort.interrupt();
+    outputScaledImgPort.interrupt();
+    maxAngleStatePort.interrupt();
 
     //-- Close the threads.
     inputGazeAnglesPort.close();
     inputPort.close();
     outputPort.close();
     outputImgPort.close();
+    outputScaledImgPort.close();
+    maxAngleStatePort.close();
 }
 
 
@@ -193,4 +203,18 @@ string egocentricAudioCropperThread::getName(const char* p) const{
     string str(moduleName);
     str.append(p);
     return str;
+}
+
+bool egocentricAudioCropperThread::publishMaxAngleState(double maxVal,int egoMAxAngle,int aloMaxAngle, double azimuthAngle) {
+    if(maxAngleStatePort.getOutputCount()){
+        Bottle msg;
+        msg.addDouble(maxVal);
+        msg.addInt(egoMAxAngle);
+        msg.addInt(aloMaxAngle);
+        msg.addDouble(azimuthAngle);
+        maxAngleStatePort.prepare() = msg;
+        maxAngleStatePort.write();
+        return true;
+    }
+    return false;
 }

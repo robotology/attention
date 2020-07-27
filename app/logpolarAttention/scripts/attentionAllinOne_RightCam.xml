@@ -146,7 +146,7 @@
     <node>icubsrv</node>
   </module>
 
-	
+
     <module>
         <name>yarpdatadumper </name>
         <parameters> --name /robotCameraDumper --type image --dir /omar/lightboardExperimentData/robotCamera</parameters>
@@ -155,7 +155,13 @@
 
     <module>
         <name>yarpdatadumper </name>
-        <parameters> --name /robotCartHotPointDumper --dir /omar/lightboardExperimentData/cartHotPointStates</parameters>
+        <parameters> --name /robotCartHotPointDumper --dir /omar/lightboardExperimentData/robotCartHotPointDumper</parameters>
+        <node>icubsrv</node>
+    </module>
+
+    <module>
+        <name>yarpdatadumper </name>
+        <parameters> --name /robotAudioAngleState --dir /omar/lightboardExperimentData/robotAudioAngleState</parameters>
         <node>icubsrv</node>
     </module>
 
@@ -490,6 +496,12 @@
     <connection>
         <from>/attentionActionLinker/cartHotPoints:o</from>
         <to>/robotCartHotPointDumper</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+  <connection>
+        <from>/egocentricAudioCropper/maxAngleState:o</from>
+        <to>/robotAudioAngleState</to>
         <protocol>tcp</protocol>
     </connection>
 
