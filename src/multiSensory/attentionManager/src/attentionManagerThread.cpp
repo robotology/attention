@@ -130,7 +130,7 @@ void attentionManagerThread::run() {
             publishAnalysis();
             yInfo("Max= %d  Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-3s = %0.3f",maxValue,meanVal,stdVal,var,threeSigmaVal);
             if((maxValue >= max_thresholdVal) && (meanVal <= mean_thresholdVal) && (stdVal >= std_thresholdVal) && (threeSigmaVal >= threeSigma_thresholdVal)){
-                if(!sendMaxPointToLinker(idxOfMax,maxValue)){
+                if(!sendMaxPointToLinker(idxOfMax,maxValue,meanVal,stdVal)){
                     yDebug("max point port not connected to any output");
                 }
             }
@@ -164,13 +164,15 @@ string attentionManagerThread::getName(const char* p) const{
     return str;
 }
 
-bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val) {
+bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val,float imgMean,float imgStd){
     if(hotPointPort.getOutputCount()){
         Bottle msg;
         Bottle& coordinatesList = msg.addList();
         coordinatesList.addInt(maxPoint.x);
         coordinatesList.addInt(maxPoint.y);
         msg.addInt(val);
+        msg.addFloat64(imgMean);
+        msg.addFloat64(imgStd);
         hotPointPort.prepare() = msg;
         hotPointPort.write();
         return true;

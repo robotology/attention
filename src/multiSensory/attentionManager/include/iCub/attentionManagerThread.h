@@ -88,7 +88,7 @@ private:
 
 
     //processing functions
-    bool sendMaxPointToLinker(cv::Point maxPoint, int val);
+    bool sendMaxPointToLinker(cv::Point maxPoint, int val,float imgMean,float imgStd);
     bool suspendEngine();
     bool resumeEngine();
     bool suspendArbiter();

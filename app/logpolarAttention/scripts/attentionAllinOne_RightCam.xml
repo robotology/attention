@@ -147,19 +147,9 @@
   </module>
 
 	
-
-<module>
-	<name>yarpdatadumper </name>
-	<parameters> --name /robotHotPointStatesDumper --dir /omar/lightboardExperimentData/hotPointStates</parameters>
-	<node>icubsrv</node>
-</module>
-
-
-
-
     <module>
         <name>yarpdatadumper </name>
-        <parameters> --name /robotSceneAnalysisDumper --dir /omar/lightboardExperimentData/sceneAnalysis</parameters>
+        <parameters> --name /robotCameraDumper --type image --dir /omar/lightboardExperimentData/robotCamera</parameters>
         <node>icubsrv</node>
     </module>
 
@@ -491,15 +481,9 @@
       <protocol>tcp</protocol>
     </connection>
 
-      <connection>
-		<from>/attentionManager/hotPoint:o</from>
-		<to>/robotHotPointStatesDumper</to>
-		<protocol>tcp</protocol>
-	</connection>
-
     <connection>
-        <from>/attentionManager/sceneAnalysis:o</from>
-        <to>/robotSceneAnalysisDumper</to>
+        <from>/icub/camcalib/right/out</from>
+        <to>/robotCameraDumper</to>
         <protocol>tcp</protocol>
     </connection>
 
