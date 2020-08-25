@@ -157,8 +157,13 @@ Vector* CVFingerProfile::compute(Vector target, double t) {
 //*********************************************************************************************
 
 CVVFingerProfile::CVVFingerProfile(){
+    type = "CVV";
     nextPosition = new Vector(9);
+}
 
+CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
+    type = "CVV";
+    nextPosition = new Vector(9);
 }
 
 CVVFingerProfile::~CVVFingerProfile(){
@@ -169,11 +174,11 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
     
     nextPosition = new Vector(9);
     //nextPosition->clear(); // check if this is necessary
-    double speed2Via   = 300;
-    double speed2Final = 300;
-    graspHomeTime = 0.01; 
-    graspViaTime = 0.3;
-    graspFinalTime = 0.6;
+    double speed2Via   = 300;// speed/changing rate of position till the via
+    double speed2Final = 300;// speed/changing rate of position till the end
+    graspHomeTime  = 0.01;   // time necessary to inizialize the home position
+    graspViaTime   = 0.3;    // time necessary to reach the viapoint position
+    graspFinalTime = 0.6;    // time necessary to reach the end position
 
     yWarning("tempo %f", t);
 
@@ -208,6 +213,5 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
         }
         //yError("fase 4 %f ", t);
     }
-    
     return nextPosition;
 }

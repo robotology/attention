@@ -52,8 +52,12 @@ FingerProfile* factoryCVFingerProfile(){
 FingerProfile* factoryCVVFingerProfile(){
     CVVFingerProfile *fingerProfile = new CVVFingerProfile();
     return static_cast<FingerProfile*>(fingerProfile);
-}
+    }
 
+FingerProfile* factoryCVVFingerProfile(const Bottle &param){
+    CVVFingerProfile *fingerProfile = new CVVFingerProfile();
+    return static_cast<FingerProfile*>(fingerProfile);
+}
 
 //********************* factories for motion profiles ***********************************
 

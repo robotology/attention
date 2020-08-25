@@ -577,7 +577,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     yInfo("activating grasp costant velocity with VIAPOINT");
                     if(0!=rThread) {
                         reply.addString("OK");
-                        //GRAZ CVV (((sphere) (0.3 0.3 0.3)))
+                        //GRAZ CVV (((0.2 0.2 0.2) (0.3 0.3 0.3)))
 
                         if(command.size() == 3) {
                             Bottle* finalB = command.get(2).asList();
@@ -600,8 +600,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                 {
 
                     if(0!=rThread) {
-                        reply.addString("OK");
-                        
+                        reply.addString("OK");                        
                         rThread->setGrasp(true);
 
                     }

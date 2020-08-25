@@ -2,7 +2,7 @@
 # Authors: Francesco Rea, Giorgio Metta
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-SET(KEYWORD "handProfiler")
+SET(KEYWORD "eeProfiler")
 PROJECT(${KEYWORD})
 
 #search for includes

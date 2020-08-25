@@ -58,13 +58,14 @@ private:
 
 
 protected:
-    yarp::sig::Vector graspHome;
-    yarp::sig::Vector graspVia;
-    yarp::sig::Vector graspFinal;
+    yarp::sig::Vector graspHome;               // home grasping finger position
+    yarp::sig::Vector graspVia;                // via point graspiong finger position
+    yarp::sig::Vector graspFinal;              // final grasping finger position
     yarp::sig::Vector* nextPosition;
-    double graspHomeTime;
-    double graspViaTime;
-    double graspFinalTime;
+    double graspHomeTime;                       // timing of the home point in the grasping
+    double graspViaTime;                        // timing of the via point in the grasping
+    double graspFinalTime;                      // timing of final grasping
+    std::string type;                           // vocab representing the type of the FingerProfile
     
 public:
     /**
@@ -121,8 +122,8 @@ protected:
 public:
     CVFingerProfile();
     ~CVFingerProfile();
-    //CVFingerProfile(const CVFingerProfile &cvmp);
-    //CVFingerProfile(const yarp::os::Bottle &b);
+    CVFingerProfile(const CVFingerProfile &cvmp);
+    CVFingerProfile(const yarp::os::Bottle &b);
   
     //CVFingerProfile &operator=(const CVFingerProfile &cvmp);
     //bool operator==(const CVFingerProfile &cvmp);
@@ -149,8 +150,8 @@ protected:
 public:
     CVVFingerProfile();
     ~CVVFingerProfile();
-    //CVFingerProfile(const CVFingerProfile &cvmp);
-    //CVFingerProfile(const yarp::os::Bottle &b);
+    CVVFingerProfile(const CVFingerProfile &cvmp);
+    CVVFingerProfile(const yarp::os::Bottle &b);
   
     //CVFingerProfile &operator=(const CVFingerProfile &cvmp);
     //bool operator==(const CVFingerProfile &cvmp);

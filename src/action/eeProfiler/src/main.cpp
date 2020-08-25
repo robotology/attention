@@ -30,11 +30,8 @@ using namespace yarp::sig;
 
 int main(int argc, char * argv[])
 {
-
     Network yarp;
-    //YARP_REGISTER_DEVICES(icubmod)
     handProfilerModule module;
-
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("handProfiler.ini");      //overridden by --from parameter
