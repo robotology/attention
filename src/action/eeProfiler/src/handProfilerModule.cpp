@@ -280,6 +280,8 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("GRAS ON: turn on grasping");
             reply.addString("GRAS RES: reset the open hand");
             reply.addString("GRAZ CVV (params): constant velocity grasping");
+            reply.addString("GRAZ CVV (((t 0.2 0.2 0.2) (p 0.3 0.3 0.3))) : power grasp");
+            reply.addString("GRAZ CVV ((type pitch) (time 0.2 0.2 0.2) (param 0.3 0.3 0.3)) : pitch grasp");
             reply.addString("movimento JULIA   GEN TTL (((O -0.3 -0.15 0.05) (A -0.3 -0.3 0.05) (B -0.3 -0.15 0.1) (C -0.3 -0.0 0.05) (theta 0.0 1.57 3.14) (axes 0.15 0.05) (param 0.01 0.33)))");
 
             ok = true;
@@ -577,7 +579,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
                     yInfo("activating grasp costant velocity with VIAPOINT");
                     if(0!=rThread) {
                         reply.addString("OK");
-                        //GRAZ CVV (((0.2 0.2 0.2) (0.3 0.3 0.3)))
+                        //GRAZ CVV ((power) (0.2 0.2 0.2) (0.3 0.3 0.3))
 
                         if(command.size() == 3) {
                             Bottle* finalB = command.get(2).asList();

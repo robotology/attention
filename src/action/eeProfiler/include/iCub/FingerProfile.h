@@ -101,7 +101,18 @@ public:
      * @param time time in second when
      */
     void setFinalTime(double time) { graspFinalTime = time;};
-    
+
+    /**
+     * function that sets the timing of the grasping in one go
+     * @param time vector that containes start, via, and final time
+     */
+    void setTiming(yarp::sig::Vector time) {};
+
+    /**
+     * function that sets the parameters of the grasping in one go
+     * @param parameters parameters of the grasping
+     */
+    void setParameters(yarp::sig::Vector parameters) {};
 
     /**
      * computing the vector location

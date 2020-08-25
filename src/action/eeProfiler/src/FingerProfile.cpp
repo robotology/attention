@@ -30,6 +30,19 @@ using namespace yarp::math;
 using namespace std;
 using namespace fingerFactory;
 
+inline void extractVector(const string str, Vector& res) {
+    std::string temp;
+	size_t i = 0, start = 0, end;
+	do {
+		end = str.find_first_of (' ', start );
+		temp = str.substr( start, end );
+			res[i] = ( atof ( temp.c_str ( ) ) );
+			++i;
+		start = end + 1;
+	} while ( start );
+}
+
+
 //**************************************************************************************************************
 
 FingerProfile::FingerProfile()  {
@@ -64,7 +77,7 @@ FingerProfile::FingerProfile()  {
     graspFinal[7] = 50.0;
     graspFinal[8] = 125.0;*/
 
-    //small
+    //pitch
     graspHome[0] = 40.0;
     graspHome[1] = 40.0;
     graspHome[2] = 0.0;
@@ -93,7 +106,7 @@ FingerProfile::FingerProfile()  {
     graspFinal[7] = 165.0;
     graspFinal[8] = 232.0;
     
-    //BIG
+    //power
     /*graspHome[0] = 40.0;
     graspHome[1] = 40.0;
     graspHome[2] = 0.0;
@@ -164,6 +177,82 @@ CVVFingerProfile::CVVFingerProfile(){
 CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
     type = "CVV";
     nextPosition = new Vector(9);
+
+
+    Bottle* b = bInit.get(0).asList();
+    ResourceFinder rf;
+    rf.setVerbose(true);
+	//fix: max size would be 8 * 2 + 1; round it to 20 @amaroyo 18/01/2016
+    //int argc = b->size() * 2 + 1;
+	// fix:
+	const int argc = 20;
+    string stringArray[argc];
+    char* argv[argc];
+    stringArray[0].append("./motionProfile");
+    argv[0] = (char*) stringArray[0].c_str();
+    //yDebug("added first %s", argv[0]);
+
+    for (int j = 0; j < b->size(); j++) {
+        Bottle* vector = b->get(j).asList();
+        stringArray[j * 2 + 1].append("--");
+        //stringArray[j * 2 + 1].append("A");
+        stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
+        char temp[50];
+        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        yDebug("stringArray %s", stringArray[j * 2 + 1].c_str());
+        stringArray[j * 2 + 2].append(&temp[0]);
+        argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
+        argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
+        //yDebug("param %d %s", j, argv[j * 2 + 1]);
+        //yDebug("value %s", argv[j * 2 + 2]);
+    }
+    yDebug("parsing ");
+    yDebug("%s",argv[0] );
+    yDebug("%s, %s",argv[1], argv[2] );
+    // configuring the resource finder
+    rf.configure(b->size() * 2 + 1, argv);
+    yInfo("resorceFinder: %s",rf.toString().c_str());
+    // visiting the parameters using the RF
+    Vector tvector(3);
+    Vector pvector(3);
+
+    string typeString = rf.check("type",
+                           Value("pitch"),
+                           "type grasp (string)").asString();
+    
+    string tstring = rf.check("time",
+                           Value("0.2 0.2 0.2"),
+                           "time t (string)").asString();
+    extractVector(tstring, tvector);
+    yDebug("got t value %s", tvector.toString().c_str());
+    string pstring = rf.check("param",
+                           Value("0.3 0.3 0.3"),
+                           "param p (string)").asString();
+    extractVector(pstring, pvector);
+    yDebug("got p value %s", pvector.toString().c_str());
+    
+
+    if(b->size() == 2){
+        //extracing the features from the bottle
+        //((ta,tb,tc) (pa,pb,pc))
+        Bottle* tVector = b->get(0).asList();
+        Vector tVec(3);
+        tVec[0] = tVector->get(1).asDouble();
+        tVec[1] = tVector->get(2).asDouble();
+        tVec[2] = tVector->get(3).asDouble();
+        yDebug("bottlet:%s", tVec.toString().c_str());
+
+        Bottle* pVector = b->get(1).asList();
+        Vector pVec(3);
+        pVec[0] = pVector->get(1).asDouble();
+        pVec[1] = pVector->get(2).asDouble();
+        pVec[2] = pVector->get(3).asDouble();
+        yDebug("bottlep:%s", pVec.toString().c_str());
+
+        
+    }
+    setTiming(tvector);
+    setParameters(pvector); 
 }
 
 CVVFingerProfile::~CVVFingerProfile(){
