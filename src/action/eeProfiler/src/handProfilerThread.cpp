@@ -55,7 +55,7 @@ FingerProfile* factoryCVVFingerProfile(){
     }
 
 FingerProfile* factoryCVVFingerProfile(const Bottle &param){
-    CVVFingerProfile *fingerProfile = new CVVFingerProfile();
+    CVVFingerProfile *fingerProfile = new CVVFingerProfile(param);
     return static_cast<FingerProfile*>(fingerProfile);
 }
 
@@ -627,9 +627,9 @@ bool handProfilerThread::startJoints(double factor = 1.0){              //move f
 }
 
 bool handProfilerThread::fingerfactory(const string type, const Bottle finalB){
-    yDebug("finalB: %s", finalB.toString().c_str()); 
+    yDebug("finalB in fingerFactory: %s", finalB.toString().c_str()); 
     if (!strcmp(type.c_str(),"CVV")) {
-        fp = factoryCVVFingerProfile();
+        fp = factoryCVVFingerProfile(finalB);
         yDebug("returned from CVV factory");
         if (fp == NULL){
             yError("finger factory returned error");

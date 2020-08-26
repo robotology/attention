@@ -217,8 +217,9 @@ bool handProfilerModule::close() {
     handlerPort.close();
     /* stop the thread */
     printf("stopping the thread \n");
-    rThread->stop();
-    delete rThread;
+    rThread->stop();    
+    //delete rThread;
+    printf("success in stopping the thread");
     return true;
 }
 
@@ -281,7 +282,7 @@ bool handProfilerModule::respond(const Bottle& command, Bottle& reply)
             reply.addString("GRAS RES: reset the open hand");
             reply.addString("GRAZ CVV (params): constant velocity grasping");
             reply.addString("GRAZ CVV (((t 0.2 0.2 0.2) (p 0.3 0.3 0.3))) : power grasp");
-            reply.addString("GRAZ CVV ((type pitch) (time 0.2 0.2 0.2) (param 0.3 0.3 0.3)) : pitch grasp");
+            reply.addString("GRAZ CVV (((pitch 0.1) (time 0.2 0.2 0.2) (param 0.3 0.3 0.3))) : pitch grasp");
             reply.addString("movimento JULIA   GEN TTL (((O -0.3 -0.15 0.05) (A -0.3 -0.3 0.05) (B -0.3 -0.15 0.1) (C -0.3 -0.0 0.05) (theta 0.0 1.57 3.14) (axes 0.15 0.05) (param 0.01 0.33)))");
 
             ok = true;

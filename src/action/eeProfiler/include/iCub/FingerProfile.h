@@ -61,11 +61,19 @@ protected:
     yarp::sig::Vector graspHome;               // home grasping finger position
     yarp::sig::Vector graspVia;                // via point graspiong finger position
     yarp::sig::Vector graspFinal;              // final grasping finger position
+    yarp::sig::Vector graspHomePitch;          // home grasping finger position
+    yarp::sig::Vector graspViaPitch;           // via point graspiong finger position
+    yarp::sig::Vector graspFinalPitch;         // final grasping finger position
     yarp::sig::Vector* nextPosition;
     double graspHomeTime;                       // timing of the home point in the grasping
     double graspViaTime;                        // timing of the via point in the grasping
     double graspFinalTime;                      // timing of final grasping
+    
+    double speed2Via;                           // speed/changing rate of position till the via
+    double speed2Final;                         // speed/changing rate of position till the end
+    double speedAfterFinal;                     // speed/changing rate of position after the end
     std::string type;                           // vocab representing the type of the FingerProfile
+    
     
 public:
     /**
@@ -104,15 +112,31 @@ public:
 
     /**
      * function that sets the timing of the grasping in one go
-     * @param time vector that containes start, via, and final time
+     * @param time time [sec] vector that containes start, via, and final time
      */
-    void setTiming(yarp::sig::Vector time) {};
+    void setTiming(yarp::sig::Vector time) {
+        graspHomeTime  = 0.01;  //time[0]; 
+        graspViaTime   = 0.30;  //time[1];
+        graspFinalTime = 0.60;  //time[2];
+        yInfo("grasping timing %f %f %f",graspHomeTime,graspViaTime,graspFinalTime);
+    };
 
     /**
      * function that sets the parameters of the grasping in one go
      * @param parameters parameters of the grasping
      */
-    void setParameters(yarp::sig::Vector parameters) {};
+    void setParameters(yarp::sig::Vector parameters) {
+        speed2Via       = 300.0; //parameters[0];
+        speed2Final     = 300.0; //parameters[1];
+        speedAfterFinal = 300.0; //parameters[2];
+        yInfo("finger speed %f %f %f",speed2Via,speed2Final,speedAfterFinal);
+    };
+    
+    /**
+     * function that sets the parameters of the grasping in one go
+     * @param parameters parameters of the grasping
+     */
+    void setType(std::string str) { type=str; };
 
     /**
      * computing the vector location

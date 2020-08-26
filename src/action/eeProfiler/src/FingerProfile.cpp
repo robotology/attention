@@ -58,6 +58,9 @@ FingerProfile::FingerProfile()  {
     graspHome.resize(9);
     graspVia.resize(9);
     graspFinal.resize(9);
+    graspHomePitch.resize(9);
+    graspViaPitch.resize(9);
+    graspFinalPitch.resize(9);
     /*graspHome[0] = 40.0;
     graspHome[1] = 40.0;
     graspHome[2] = 0.0;
@@ -78,33 +81,36 @@ FingerProfile::FingerProfile()  {
     graspFinal[8] = 125.0;*/
 
     //pitch
-    graspHome[0] = 40.0;
-    graspHome[1] = 40.0;
-    graspHome[2] = 0.0;
-    graspHome[3] = 0.0;
-    graspHome[4] = 0.0;
-    graspHome[5] = 0.0;
-    graspHome[6] = 0.0;
-    graspHome[7] = 0.0;
-    graspHome[8] = 0.0;
-    graspVia[0] = 40.0;
-    graspVia[1] = 50.0;
-    graspVia[2] = 10.0;
-    graspVia[3] = 20.0;
-    graspVia[4] = 40.0;
-    graspVia[5] = 7.5;
-    graspVia[6] = 55.0;
-    graspVia[7] = 165.0;
-    graspVia[8] = 232.0;
-    graspFinal[0] = 41.0;
-    graspFinal[1] = 60.0;
-    graspFinal[2] = 20.0;
-    graspFinal[3] = 30.0;
-    graspFinal[4] = 80.0;
-    graspFinal[5] = 15.0;
-    graspFinal[6] = 55.0;
-    graspFinal[7] = 165.0;
-    graspFinal[8] = 232.0;
+    graspHomePitch[0] = 40.0;
+    graspHomePitch[1] = 40.0;
+    graspHomePitch[2] = 0.0;
+    graspHomePitch[3] = 0.0;
+    graspHomePitch[4] = 0.0;
+    graspHomePitch[5] = 0.0;
+    graspHomePitch[6] = 0.0;
+    graspHomePitch[7] = 0.0;
+    graspHomePitch[8] = 0.0;
+    graspViaPitch[0] = 40.0;
+    graspViaPitch[1] = 50.0;
+    graspViaPitch[2] = 10.0;
+    graspViaPitch[3] = 20.0;
+    graspViaPitch[4] = 40.0;
+    graspViaPitch[5] = 7.5;
+    graspViaPitch[6] = 55.0;
+    graspViaPitch[7] = 165.0;
+    graspViaPitch[8] = 232.0;
+    graspFinalPitch[0] = 41.0;
+    graspFinalPitch[1] = 60.0;
+    graspFinalPitch[2] = 20.0;
+    graspFinalPitch[3] = 30.0;
+    graspFinalPitch[4] = 80.0;
+    graspFinalPitch[5] = 15.0;
+    graspFinalPitch[6] = 55.0;
+    graspFinalPitch[7] = 165.0;
+    graspFinalPitch[8] = 232.0;
+    graspHome = graspHomePitch;
+    graspVia  = graspViaPitch;
+    graspFinal= graspFinalPitch;
     
     //power
     /*graspHome[0] = 40.0;
@@ -203,8 +209,8 @@ CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
         stringArray[j * 2 + 2].append(&temp[0]);
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
         argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
-        //yDebug("param %d %s", j, argv[j * 2 + 1]);
-        //yDebug("value %s", argv[j * 2 + 2]);
+        yDebug("param %d %s", j, argv[j * 2 + 1]);
+        yDebug("value %s", argv[j * 2 + 2]);
     }
     yDebug("parsing ");
     yDebug("%s",argv[0] );
@@ -215,11 +221,12 @@ CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
     // visiting the parameters using the RF
     Vector tvector(3);
     Vector pvector(3);
-
-    string typeString = rf.check("type",
-                           Value("pitch"),
-                           "type grasp (string)").asString();
+    Vector pitchVector(3);
     
+    string pitchString = rf.check("pitch",
+                           Value("0.1 0.1 0.1"),
+                           "pitch grasp (string)").asString();
+    extractVector(pitchString, pitchVector);
     string tstring = rf.check("time",
                            Value("0.2 0.2 0.2"),
                            "time t (string)").asString();
@@ -230,7 +237,6 @@ CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
                            "param p (string)").asString();
     extractVector(pstring, pvector);
     yDebug("got p value %s", pvector.toString().c_str());
-    
 
     if(b->size() == 2){
         //extracing the features from the bottle
@@ -251,8 +257,13 @@ CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
 
         
     }
+    if(true) {
+       setType("pitch");
+    }
     setTiming(tvector);
-    setParameters(pvector); 
+    setParameters(pvector);
+    
+       
 }
 
 CVVFingerProfile::~CVVFingerProfile(){
@@ -263,11 +274,11 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
     
     nextPosition = new Vector(9);
     //nextPosition->clear(); // check if this is necessary
-    double speed2Via   = 300;// speed/changing rate of position till the via
-    double speed2Final = 300;// speed/changing rate of position till the end
-    graspHomeTime  = 0.01;   // time necessary to inizialize the home position
-    graspViaTime   = 0.3;    // time necessary to reach the viapoint position
-    graspFinalTime = 0.6;    // time necessary to reach the end position
+    //double speed2Via   = 300;
+    //double speed2Final = 300;
+    //graspHomeTime  = 0.01;   // time necessary to inizialize the home position
+    //graspViaTime   = 0.3;    // time necessary to reach the viapoint position
+    //graspFinalTime = 0.6;    // time necessary to reach the end position
 
     yWarning("tempo %f", t);
 
@@ -277,21 +288,18 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = target[i+7];
         }
-        //yDebug("fase 1 %f ", t);
     }
     else if ((graspHomeTime < t) && ( t < graspViaTime)) {
         // after the beginning and before the viaPoint
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = target[i+7]+((graspVia[i]-graspHome[i])/speed2Via);
         }
-        //yWarning("fase 2 %f ", t);
     }
     else if ((graspViaTime < t)  && ( t < graspFinalTime)) {
         // after the viaPoint and before the end of the grasping
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = target[i+7]+((graspFinal[i]-graspVia[i])/speed2Final);
         }
-        //yInfo("fase 3 %f ", t);
     }
     else{
         // after the end of the grasping
@@ -300,7 +308,6 @@ Vector* CVVFingerProfile::compute(Vector target, double t) {
         for(int i = 0; i<9; i++){
             (*nextPosition)[i] = graspFinal[i];
         }
-        //yError("fase 4 %f ", t);
     }
     return nextPosition;
 }
