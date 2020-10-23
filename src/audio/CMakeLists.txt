@@ -5,10 +5,11 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-
+add_subdirectory( allocentricAudioPriorAdder)
 
 if(OpenCV_FOUND)
   add_subdirectory( egocentricAudioCropper  )
+  
 else(OpenCV_FOUND)
   message(STATUS "OpenCV not found/selected, skipping modules")
 endif(OpenCV_FOUND)
