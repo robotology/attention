@@ -124,12 +124,12 @@ void allocentricAudioPriorAdderThread::run() {
         double sumTemp = 0;
         for(int i = 0;i<priorAnglesCount;i++){
             for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
-                sumTemp += probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i+j)];
+                sumTemp += probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i)+j];
             }
         }
         for(int i = 0;i<priorAnglesCount;i++){
             for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
-                angleMapMatrix[0][priorAnglesIdxList.at(i+j)]  = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i+j)]/sumTemp;
+                angleMapMatrix[0][priorAnglesIdxList.at(i)+j]  = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i)+j]/sumTemp;
             }
         }
 
