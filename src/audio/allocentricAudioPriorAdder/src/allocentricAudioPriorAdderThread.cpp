@@ -48,12 +48,14 @@ bool allocentricAudioPriorAdderThread::configure(yarp::os::ResourceFinder &rf){
     priorAngles  = rf.findGroup("anglePriors").findGroup("anglesIdx").tail();
     saliencyGain = rf.findGroup("saliencyTransformation").check("saliencyGain",    yarp::os::Value(1), "the threshold of the total raw power (double)").asDouble();
 
-
+    
 
     priorAnglesCount = priorAngles.size();
     for(int i = 0; i< priorAnglesCount;i++){
         priorAnglesIdxList.push_back(priorAngles.get(i).asInt()+180);
     }
+
+    rawPowerTotal = 0;
 
     probabilityAngleMapMatrix.resize(1,360);
     probabilityAngleMapMatrix.zero();
@@ -71,8 +73,8 @@ bool allocentricAudioPriorAdderThread::configure(yarp::os::ResourceFinder &rf){
     saliencyPowerNormalizedAngeMatrix.resize(1, 360);
     saliencyPowerNormalizedAngeMatrix.zero();
 
-    saliencyPowerNormalizedAngelImg->resize(1, 360);
-    saliencyPowerNormalizedAngelImg->zero();
+    
+    yInfo("Configuration parameters done");
 
     return true;
 }
