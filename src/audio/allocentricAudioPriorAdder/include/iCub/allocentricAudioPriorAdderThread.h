@@ -35,6 +35,9 @@ using namespace std;
 typedef yarp::sig::Matrix yMatrix;
 typedef yarp::os::BufferedPort< yMatrix > yMatrixBuffer;
 
+typedef yarp::sig::ImageOf<yarp::sig::PixelMono>  yImgPixelMono;
+typedef yarp::os::BufferedPort<yImgPixelMono> yImgPixelMonoBuffer;
+
 class allocentricAudioPriorAdderThread : public PeriodicThread {
 public:
     allocentricAudioPriorAdderThread(string moduleName = "allocentricAudioPriorAdder");
@@ -59,21 +62,30 @@ private:
     int priorAnglesCount;
     vector<int> priorAnglesIdxList;
 
+    double saliencyGain;
+
     //Port Name
     string inputProbabilityAngleMapPortName ;
     string inputRawPowerPortName            ;
-    string outputAngleMapPortName           ;
+    string outputNormalizedAngleMapPortName ;
+    string outputCutAngleMapPortName ;
+    string outputSaliencyAngleMapPortName;
 
 
     yMatrix probabilityAngleMapMatrix;
     yMatrix rawPowerMatrix;
-    yMatrix angleMapMatrix;
+    yMatrix normalizedAngleMapMatrix;
+    yMatrix cutAngleMapMatrix;
+    yMatrix saliencyPowerNormalizedAngeMatrix;
+    yImgPixelMono* saliencyPowerNormalizedAngelImg;
 
     double rawPowerTotal;
 
     yMatrixBuffer  inputProbabilityAngleMapPort;
     yMatrixBuffer  inputRawPowerPort;
-    yMatrixBuffer  outputAngleMapPort;
+    yMatrixBuffer  outputNormalizedAngleMapPort;
+    yMatrixBuffer  outputCutAngleMapPort;
+    yImgPixelMonoBuffer outputSaliencyPowerNormalizedAngelPort;
 
     void publishOutPorts();
 };
