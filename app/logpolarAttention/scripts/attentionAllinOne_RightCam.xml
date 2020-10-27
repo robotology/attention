@@ -61,12 +61,7 @@
 
 
 
-  <module>
-    <name>randomTopDownAttention</name>
-    <parameters>--name /randomTopDownAttention</parameters>
-    <node>icubsrv</node>
-  </module>
-
+  
 
   <module>
     <name>egocentricAudioCropper</name>
@@ -120,11 +115,6 @@
   <node>icub13</node>
 </module>
 
-<module>
-  <name>actionsRenderingEngine</name>
-  <parameters></parameters>
-  <node>icubsrv</node>
-</module>
 
 
 
@@ -372,11 +362,6 @@
 
 <!-- Integrated Attention Connections-->
 
-  <connection>
-    <from>/randomTopDownAttention/cmd</from>
-    <to>/selectiveAttentionEngine/icub/right_cam</to>
-    <protocol>tcp</protocol>
-  </connection>
 
   <connection>
     <from>/faceDetector/image/out</from>
@@ -481,12 +466,7 @@
       <protocol>tcp</protocol>
     </connection>
 
-    <connection>
-      <from>/attentionActionLinker/pointAction:oi</from>
-      <to>/actionsRenderingEngine/cmd:io</to>
-      <protocol>tcp</protocol>
-    </connection>
-
+   
     <connection>
         <from>/icub/camcalib/right/out</from>
         <to>/robotCameraDumper</to>

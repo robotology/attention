@@ -146,6 +146,7 @@ void allocentricAudioPriorAdderThread::run() {
     }
 
 
+
     double sumTemp = 0;
     for(int i = 0;i<priorAnglesCount;i++){
         for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
@@ -165,7 +166,6 @@ void allocentricAudioPriorAdderThread::run() {
             }
         }
     }
-
 
     publishOutPorts();
 }
