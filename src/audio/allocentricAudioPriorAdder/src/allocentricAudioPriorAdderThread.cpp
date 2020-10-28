@@ -188,12 +188,12 @@ void allocentricAudioPriorAdderThread::publishOutPorts() {
 
     if (outputSaliencyPowerNormalizedAngelPort.getOutputCount()) {
         saliencyPowerNormalizedAngelImg = &outputSaliencyPowerNormalizedAngelPort.prepare();
-        saliencyPowerNormalizedAngelImg->resize(1,360);
+        saliencyPowerNormalizedAngelImg->resize(360,1);
         saliencyPowerNormalizedAngelImg->zero();
         unsigned char* rowImage = saliencyPowerNormalizedAngelImg->getRawImage();
         for(int i = 0;i<priorAnglesCount;i++){
             for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
-                rowImage[priorAnglesIdxList.at(i) + j]  = saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j] ;
+                rowImage[priorAnglesIdxList.at(i) + j]  = (unsigned char) saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j] ;
             }
         }
         outputSaliencyPowerNormalizedAngelPort.write();
