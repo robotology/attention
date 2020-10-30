@@ -62,6 +62,7 @@ private:
     int priorAnglesCount;
     vector<int> priorAnglesIdxList;
 
+
     double saliencyGain;
 
     //Port Name
@@ -79,6 +80,7 @@ private:
     yMatrix saliencyPowerNormalizedAngeMatrix;
     yImgPixelMono* saliencyPowerNormalizedAngelImg;
 
+    vector<double> avgProbabilitiesList;
     double rawPowerTotal;
 
     yMatrixBuffer  inputProbabilityAngleMapPort;

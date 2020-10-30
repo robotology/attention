@@ -53,6 +53,7 @@ bool allocentricAudioPriorAdderThread::configure(yarp::os::ResourceFinder &rf){
     priorAnglesCount = priorAngles.size();
     for(int i = 0; i< priorAnglesCount;i++){
         priorAnglesIdxList.push_back(priorAngles.get(i).asInt()+180);
+        avgProbabilitiesList.push_back(0);
     }
 
     rawPowerTotal = 0;
@@ -151,7 +152,9 @@ void allocentricAudioPriorAdderThread::run() {
 
     double sumTemp = 0;
     for(int i = 0;i<priorAnglesCount;i++){
+        avgProbabilitiesList[i] = 0;
         for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
+            avgProbabilitiesList[i] += probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j];
             sumTemp += probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j] ;
         }
     }
@@ -159,7 +162,7 @@ void allocentricAudioPriorAdderThread::run() {
         for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
             saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j]   = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]  / sumTemp * 255 * saliencyGain * rawPowerTotal;
             if(rawPowerTotal>rawPowerThreshold){
-                normalizedAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]   = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]  / sumTemp;
+                normalizedAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]   = avgProbabilitiesList[i];
                 cutAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]  = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j] ;
             }
             else{

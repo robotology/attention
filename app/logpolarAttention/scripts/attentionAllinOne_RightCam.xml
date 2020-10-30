@@ -61,7 +61,7 @@
 
 
 
-  
+
 
   <module>
     <name>egocentricAudioCropper</name>
@@ -466,7 +466,7 @@
       <protocol>tcp</protocol>
     </connection>
 
-   
+
     <connection>
         <from>/icub/camcalib/right/out</from>
         <to>/robotCameraDumper</to>
@@ -485,6 +485,26 @@
         <protocol>tcp</protocol>
     </connection>
 
+
+
+
+    	<connection>
+    		<from>/audioPreprocessor/rawPower:o</from>
+    		<to>/attentionActionLinker/rawPower:i</to>
+    		<protocol>tcp</protocol>
+    	</connection>
+
+    	<connection>
+    		<from>/iKinGazeCtrl/angles:o</from>
+    		<to>/attentionActionLinker/headAngles:i</to>
+    		<protocol>tcp</protocol>
+    	</connection>
+
+    	<connection>
+    		<from>/attentionActionLinker/headAngles:o</from>
+    		<to>/iKinGazeCtrl/angles:i</to>
+    		<protocol>tcp</protocol>
+    	</connection>
 
 
 </application>
