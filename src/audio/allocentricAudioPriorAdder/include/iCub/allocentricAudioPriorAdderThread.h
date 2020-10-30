@@ -38,6 +38,10 @@ typedef yarp::os::BufferedPort< yMatrix > yMatrixBuffer;
 typedef yarp::sig::ImageOf<yarp::sig::PixelMono>  yImgPixelMono;
 typedef yarp::os::BufferedPort<yImgPixelMono> yImgPixelMonoBuffer;
 
+
+typedef yarp::sig::ImageOf<yarp::sig::PixelRgb>  yImgPixelRgb;
+typedef yarp::os::BufferedPort<yImgPixelRgb> yImgPixelRgbBuffer;
+
 class allocentricAudioPriorAdderThread : public PeriodicThread {
 public:
     allocentricAudioPriorAdderThread(string moduleName = "allocentricAudioPriorAdder");
@@ -61,6 +65,8 @@ private:
 
     int priorAnglesCount;
     vector<int> priorAnglesIdxList;
+    int maxAngleIdx;
+    double maxAvg;
 
 
     double saliencyGain;
@@ -71,6 +77,7 @@ private:
     string outputNormalizedAngleMapPortName ;
     string outputCutAngleMapPortName ;
     string outputSaliencyAngleMapPortName;
+    string outputSaliencyAngleMapPortName_redLine;
 
 
     yMatrix probabilityAngleMapMatrix;
@@ -79,6 +86,7 @@ private:
     yMatrix cutAngleMapMatrix;
     yMatrix saliencyPowerNormalizedAngeMatrix;
     yImgPixelMono* saliencyPowerNormalizedAngelImg;
+    yImgPixelRgb* saliencyPowerNormalizedAngelImg_redLine;
 
     vector<double> avgProbabilitiesList;
     double rawPowerTotal;
@@ -88,6 +96,7 @@ private:
     yMatrixBuffer  outputNormalizedAngleMapPort;
     yMatrixBuffer  outputCutAngleMapPort;
     yImgPixelMonoBuffer outputSaliencyPowerNormalizedAngelPort;
+    yImgPixelRgbBuffer outputSaliencyPowerNormalizedAngel_redLine;
 
     void publishOutPorts();
 };

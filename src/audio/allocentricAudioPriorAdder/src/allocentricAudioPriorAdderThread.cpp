@@ -27,6 +27,7 @@ allocentricAudioPriorAdderThread::allocentricAudioPriorAdderThread(string module
     outputNormalizedAngleMapPortName = getName("/normalizedAngleMap:o");
     outputCutAngleMapPortName = getName("/cutAngleMap:o");
     outputSaliencyAngleMapPortName= getName("/saliencyAngleMap:o");
+    outputSaliencyAngleMapPortName_redLine = getName("/saliencyAngleMapWithRedLine:o");
 }
 
 allocentricAudioPriorAdderThread::~allocentricAudioPriorAdderThread(){
@@ -111,6 +112,10 @@ bool allocentricAudioPriorAdderThread::threadInit() {
         yError("Unable to open port /saliencyAngleMap:o to send output saliency angle map.");
         return false;
     }
+    if (!outputSaliencyPowerNormalizedAngel_redLine.open(outputSaliencyAngleMapPortName_redLine.c_str())) {
+        yError("Unable to open port /saliencyAngleMapWithRedLine:o to send output saliency angle map.");
+        return false;
+    }
 
     yInfo("Initialization of the processing thread correctly ended.");
 
@@ -125,6 +130,7 @@ void allocentricAudioPriorAdderThread::threadRelease() {
     outputNormalizedAngleMapPort.interrupt();
     outputCutAngleMapPort.interrupt();
     outputSaliencyPowerNormalizedAngelPort.interrupt();
+    outputSaliencyPowerNormalizedAngel_redLine.interrupt();
 
     //-- Close the threads.
     inputProbabilityAngleMapPort.close();
@@ -132,6 +138,7 @@ void allocentricAudioPriorAdderThread::threadRelease() {
     outputNormalizedAngleMapPort.close();
     outputCutAngleMapPort.close();
     outputSaliencyPowerNormalizedAngelPort.close();
+    outputSaliencyPowerNormalizedAngel_redLine.close();
 
 }
 
@@ -151,11 +158,17 @@ void allocentricAudioPriorAdderThread::run() {
 
 
     double sumTemp = 0;
+    maxAngleIdx = 0;
+    maxAvg = 0;
     for(int i = 0;i<priorAnglesCount;i++){
         avgProbabilitiesList[i] = 0;
         for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
             avgProbabilitiesList[i] += probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j];
             sumTemp += probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j] ;
+        }
+        if (avgProbabilitiesList[i] > maxAvg){
+            maxAvg = avgProbabilitiesList[i];
+            maxAngleIdx = i;
         }
     }
     for(int i = 0;i<priorAnglesCount;i++){
@@ -197,6 +210,26 @@ void allocentricAudioPriorAdderThread::publishOutPorts() {
         for(int i = 0;i<priorAnglesCount;i++){
             for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
                 rowImage[priorAnglesIdxList.at(i) + j]  = (unsigned char) saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j] ;
+            }
+        }
+        outputSaliencyPowerNormalizedAngelPort.write();
+    }
+    if (outputSaliencyPowerNormalizedAngel_redLine.getOutputCount()) {
+        saliencyPowerNormalizedAngelImg_redLine = &outputSaliencyPowerNormalizedAngel_redLine.prepare();
+        saliencyPowerNormalizedAngelImg_redLine->resize(360,1);
+        saliencyPowerNormalizedAngelImg_redLine->zero();
+        unsigned char* rowImage = saliencyPowerNormalizedAngelImg_redLine->getRawImage();
+        for(int i = 0;i<priorAnglesCount;i++){
+            for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
+                rowImage[(priorAnglesIdxList.at(i) + j)*3]  = (unsigned char) saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j] ;
+                rowImage[(priorAnglesIdxList.at(i) + j)*3 + 1]  = (unsigned char) saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j] ;
+                rowImage[(priorAnglesIdxList.at(i) + j)*3 + 2]  = (unsigned char) saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j] ;
+
+            }
+            if(maxAngleIdx == i){
+                rowImage[(priorAnglesIdxList.at(i) )*3]      = 255 ;
+                rowImage[(priorAnglesIdxList.at(i) )*3 + 1]  = 0 ;
+                rowImage[(priorAnglesIdxList.at(i) )*3 + 2]  = 0 ;
             }
         }
         outputSaliencyPowerNormalizedAngelPort.write();
