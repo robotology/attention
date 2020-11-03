@@ -232,7 +232,7 @@ void allocentricAudioPriorAdderThread::publishOutPorts() {
                 rowImage[(priorAnglesIdxList.at(i) )*3 + 2]  = 0 ;
             }
         }
-        outputSaliencyPowerNormalizedAngelPort.write();
+        outputSaliencyPowerNormalizedAngel_redLine.write();
     }
 
 }
