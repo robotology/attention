@@ -67,6 +67,7 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
     cameraSideAOV = cameraAOV/2;
 
+
     return true;
 }
 
@@ -119,7 +120,7 @@ void egocentricAudioCropperThread::run() {
         if (inputImg != NULL) {
             if (outputImgPort.getOutputCount()) {
                 outputImg = &outputImgPort.prepare();
-                outputImg->resize(1,cameraAOV);
+                outputImg->resize(cameraAOV,1);
                 unsigned char* rowOutImage = outputImg->getRawImage();
                 unsigned char* rowInImage = inputImg->getRawImage();
                 double maxValue = 0;
