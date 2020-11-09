@@ -69,11 +69,7 @@
     <node>icubsrv</node>
   </module>
 
-  <module>
-    <name>frequencyVisualisation</name>
-    <parameters>--name /bayesianProbabilityEdocentricAngleVisualiser --grid vert --gain 100</parameters>
-    <node>icubsrv</node>
-  </module>
+  
 
 
 
@@ -116,13 +112,6 @@
 </module>
 
 
-
-
-  <module>
-    <name>yarpview</name>
-    <parameters>--name /bayesianProbabilityEgocentricAngleView</parameters>
-    <node>icub13</node>
-  </module>
 
   <module>
     <name>yarpview</name>
@@ -378,7 +367,7 @@
 
 
   <connection>
-    <from>/audioBayesianMap/bayesianProbabilityAngle:o</from>
+    <from>/allocentricAudioPriorAdder/saliencyAngleMap:o</from>
     <to>/egocentricAudioCropper/map:i</to>
     <protocol>tcp</protocol>
   </connection>
@@ -390,12 +379,7 @@
   </connection>
 
 
-  <connection>
-    <from>/egocentricAudioCropper/map:o</from>
-    <to>/bayesianProbabilityEdocentricAngleVisualiser/map:i</to>
-    <protocol>tcp</protocol>
-  </connection>
-
+ 
   <connection>
     <from>/egocentricAudioCropper/cartImg:o</from>
     <to>/cartEgocentricAngleView</to>
@@ -414,12 +398,7 @@
     <protocol>tcp</protocol>
   </connection>
 
-  <connection>
-    <from>/bayesianProbabilityEdocentricAngleVisualiser/img:o</from>
-    <to>/bayesianProbabilityEgocentricAngleView</to>
-    <protocol>tcp</protocol>
-  </connection>
-
+  
 
 
 
