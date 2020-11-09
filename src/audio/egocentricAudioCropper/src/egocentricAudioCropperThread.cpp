@@ -24,7 +24,6 @@ egocentricAudioCropperThread::egocentricAudioCropperThread(string moduleName):Pe
     this->moduleName = moduleName;
     inputPortName = getName("/map:i");
     inputGazeAnglesPortName = getName("/gazeAngles:i");
-    outputPortName = getName("/map:o");
     outputImgPortName = getName("/cartImg:o");
     outputScaledImgPortName = getName("/cartScaledImg:o");
     maxAngleStatePortName = getName("/maxAngleState:o");
@@ -88,10 +87,6 @@ bool egocentricAudioCropperThread::threadInit() {
         return false;
     }
 
-    if (!outputPort.open(outputPortName.c_str())) {
-        yError("Unable to open port to send output.");
-        return false;
-    }
 
     if (!outputImgPort.open(outputImgPortName.c_str())) {
         yError("Unable to open port to send output image.");
@@ -114,66 +109,44 @@ void egocentricAudioCropperThread::run() {
 
     if (inputPort.getInputCount()) {
 
-        yMatrix* mat = inputPort.read(true);   //blocking reading for synchr with the input
+        inputImg = inputPort.read(true);   //blocking reading for synchr with the input
 
         if (inputGazeAnglesPort.getInputCount()) {
             gazeAnglesBottle = inputGazeAnglesPort.read(false);
             azimuthAngle = gazeAnglesBottle->get(azimuthIndex).asDouble();
         }
 
-        if (mat != NULL) {
-            if (outputPort.getOutputCount()) {
-                double * pMat = mat->data();
-                yMatrix resizedMat;
-                resizedMat.resize(1,cameraAOV);
-                double *pResizedMat = resizedMat.data();
-                pMat += (int) (179-azimuthAngle-cameraSideAOV);
-                int maxStartIdx = 0;
-                int maxCount = 0;
+        if (inputImg != NULL) {
+            if (outputImgPort.getOutputCount()) {
+                outputImg = &outputImgPort.prepare();
+                outputImg->resize(1,cameraAOV);
+                unsigned char* rowOutImage = outputImg->getRawImage();
+                unsigned char* rowInImage = inputImg->getRawImage();
                 double maxValue = 0;
+                int maxCount = 0;
+                int maxStartIdx = 0;
+                int mirroredIdx;
                 for(int i=0;i<cameraAOV;i++){
-                    *pResizedMat = *pMat;
-                    if(*pMat > maxValue){
-                        maxValue = *pMat;
-                        maxStartIdx = i;
+                    mirroredIdx = cameraAOV-1 - i;
+                    rowOutImage[mirroredIdx] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
+                    if(rowOutImage[mirroredIdx] > maxValue){
+                        maxValue = rowOutImage[mirroredIdx];
+                        maxStartIdx = mirroredIdx;
                         maxCount = 1;
                     }
-                    else if(*pMat == maxValue){
+                    else if(rowOutImage[mirroredIdx] == maxValue){
                         maxCount ++;
                     }
-                    pMat ++;
-                    pResizedMat ++;
-
                 }
+
                 publishMaxAngleState(maxValue,maxStartIdx,maxStartIdx - (int) (azimuthAngle+cameraSideAOV),azimuthAngle);
                 yInfo("max Value = %lf",maxValue);
-                outputPort.prepare() = resizedMat;
-                outputPort.write();
-                if (outputImgPort.getOutputCount()){
-                    outputImg = &outputImgPort.prepare();
-                    outputImg->resize(resizedMat.cols(),resizedMat.rows());
-                    unsigned char* rowImage = outputImg->getRawImage();
-                    for (int i = cameraAOV-1; i>=0;i--){
-                        if(maxValue >= thresholdMaxProb && (cameraAOV-i-1)>= maxStartIdx && (cameraAOV-i-1)< (maxStartIdx + maxCount)){
-                            if(conversionGain >0)
-                                rowImage[i] = maxValue*conversionGain*255.0;
-                            else{
-                                rowImage[i] = 255.0;
-                            }
-                        }
-                        else{
-                            rowImage[i] = 0;
-                        }
-
-                    }
-                    if (outputScaledImgPort.getOutputCount()){
-                        outputScaledImg = &outputScaledImgPort.prepare();
-                        outputScaledImg->copy(*outputImg,cameraWidth,cameraHeight);
-                        outputScaledImgPort.write();
-                    }
-                    outputImgPort.write();
+                if (outputScaledImgPort.getOutputCount()){
+                    outputScaledImg = &outputScaledImgPort.prepare();
+                    outputScaledImg->copy(*outputImg,cameraWidth,cameraHeight);
+                    outputScaledImgPort.write();
                 }
-
+                outputImgPort.write();
             }
         }
     }
@@ -184,7 +157,6 @@ void egocentricAudioCropperThread::threadRelease() {
     //-- Stop all threads.
     inputGazeAnglesPort.interrupt();
     inputPort.interrupt();
-    outputPort.interrupt();
     outputImgPort.interrupt();
     outputScaledImgPort.interrupt();
     maxAngleStatePort.interrupt();
@@ -192,7 +164,6 @@ void egocentricAudioCropperThread::threadRelease() {
     //-- Close the threads.
     inputGazeAnglesPort.close();
     inputPort.close();
-    outputPort.close();
     outputImgPort.close();
     outputScaledImgPort.close();
     maxAngleStatePort.close();

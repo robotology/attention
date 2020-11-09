@@ -49,7 +49,6 @@ private:
     string moduleName;
     string inputPortName;
     string inputGazeAnglesPortName;
-    string outputPortName;
     string outputImgPortName;
     string outputScaledImgPortName;
     string maxAngleStatePortName;
@@ -70,13 +69,13 @@ private:
     float conversionGain;
     float thresholdMaxProb;
 
+    yImgPixelMono* inputImg;
     yImgPixelMono* outputImg;
     yImgPixelMono* outputScaledImg;
     Bottle* gazeAnglesBottle;
 
     BufferedPort<Bottle>  inputGazeAnglesPort;;
-    BufferedPort<yMatrix>  inputPort;
-    BufferedPort<yMatrix>  outputPort;
+    BufferedPort<yImgPixelMono>  inputPort;
     BufferedPort<yImgPixelMono> outputImgPort;
     BufferedPort<yImgPixelMono> outputScaledImgPort;
     BufferedPort<Bottle> maxAngleStatePort;
