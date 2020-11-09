@@ -114,7 +114,8 @@ void egocentricAudioCropperThread::run() {
 
         if (inputGazeAnglesPort.getInputCount()) {
             gazeAnglesBottle = inputGazeAnglesPort.read(false);
-            azimuthAngle = gazeAnglesBottle->get(azimuthIndex).asDouble();
+            if(gazeAnglesBottle->size())
+                azimuthAngle = gazeAnglesBottle->get(azimuthIndex).asDouble();
         }
 
         if (inputImg != NULL) {
