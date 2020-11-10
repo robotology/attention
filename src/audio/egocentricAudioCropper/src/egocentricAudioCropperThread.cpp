@@ -67,6 +67,9 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
     cameraSideAOV = cameraAOV/2;
 
+    cutImg = new yImgPixelMono;
+    cutImg->resize(cameraAOV,1);
+
 
     return true;
 }
@@ -150,6 +153,32 @@ void egocentricAudioCropperThread::run() {
                 }
                 outputImgPort.write();
             }
+            else if (outputScaledImgPort.getOutputCount()){
+                unsigned char* rowOutImage = cutImg->getRawImage();
+                unsigned char* rowInImage = inputImg->getRawImage();
+                double maxValue = 0;
+                int maxCount = 0;
+                int maxStartIdx = 0;
+                int mirroredIdx;
+                for(int i=0;i<cameraAOV;i++){
+                    mirroredIdx = cameraAOV-1 - i;
+                    rowOutImage[mirroredIdx] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
+                    if(rowOutImage[mirroredIdx] > maxValue){
+                        maxValue = rowOutImage[mirroredIdx];
+                        maxStartIdx = mirroredIdx;
+                        maxCount = 1;
+                    }
+                    else if(rowOutImage[mirroredIdx] == maxValue){
+                        maxCount ++;
+                    }
+                }
+
+                publishMaxAngleState(maxValue,maxStartIdx,maxStartIdx - (int) (azimuthAngle+cameraSideAOV),azimuthAngle);
+                yInfo("max Value = %lf",maxValue);
+                outputScaledImg = &outputScaledImgPort.prepare();
+                outputScaledImg->copy(*cutImg,cameraWidth,cameraHeight);
+                outputScaledImgPort.write();
+            }
         }
     }
 }
@@ -169,6 +198,8 @@ void egocentricAudioCropperThread::threadRelease() {
     outputImgPort.close();
     outputScaledImgPort.close();
     maxAngleStatePort.close();
+
+    delete cutImg;
 }
 
 

@@ -70,6 +70,7 @@ private:
     float thresholdMaxProb;
 
     yImgPixelMono* inputImg;
+    yImgPixelMono* cutImg;
     yImgPixelMono* outputImg;
     yImgPixelMono* outputScaledImg;
     Bottle* gazeAnglesBottle;

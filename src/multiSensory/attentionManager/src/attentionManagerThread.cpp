@@ -54,12 +54,12 @@ bool attentionManagerThread::configure(yarp::os::ResourceFinder &rf){
 
 
     yInfo( " " );
-    yInfo( "\t               [processingParam]               "                              );
-    yInfo( "\t ============================================ "                               );
-    yInfo( "\t max_threshold                : %.3f m",       max_thresholdVal               );
-    yInfo("\t mean_threshold                : %.3f m", mean_thresholdVal               );
-    yInfo( "\t std_threshold                : %.3f m",       std_thresholdVal               );
-    yInfo( "\t three_sigma_threshold        : %.3f m",       threeSigma_thresholdVal        );
+    yInfo( "\t               [processingParam]               "                               );
+    yInfo( "\t ============================================ "                                );
+    yInfo( "\t max_threshold                : %.3f m",       max_thresholdVal                );
+    yInfo("\t mean_threshold                : %.3f m",       mean_thresholdVal               );
+    yInfo( "\t std_threshold                : %.3f m",       std_thresholdVal                );
+    yInfo( "\t three_sigma_threshold        : %.3f m",       threeSigma_thresholdVal         );
     yInfo( " " );
     return true;
 }
