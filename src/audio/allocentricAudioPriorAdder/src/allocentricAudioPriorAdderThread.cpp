@@ -173,14 +173,15 @@ void allocentricAudioPriorAdderThread::run() {
     }
     for(int i = 0;i<priorAnglesCount;i++){
         for(int j = -1*sideWindowWidth;j<=sideWindowWidth;j++){
-            saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j]   = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]  / sumTemp * 255 * saliencyGain * rawPowerTotal;
             if(rawPowerTotal>rawPowerThreshold){
                 normalizedAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]   = avgProbabilitiesList[i];
                 cutAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]  = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j] ;
+                saliencyPowerNormalizedAngeMatrix[0][priorAnglesIdxList.at(i) + j]   = probabilityAngleMapMatrix[0][priorAnglesIdxList.at(i) + j]  * 255 * saliencyGain * rawPowerTotal;
             }
             else{
                 normalizedAngleMapMatrix.zero();
                 cutAngleMapMatrix.zero();
+                saliencyPowerNormalizedAngeMatrix.zero();
             }
         }
     }
