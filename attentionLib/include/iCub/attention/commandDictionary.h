@@ -42,6 +42,9 @@ namespace attention
         const int32_t COMMAND_VOCAB_LK                  = yarp::os::createVocab('l','k');
         const int32_t COMMAND_VOCAB_ERROR               = yarp::os::createVocab('E','R','R');
 
+        const int32_t COMMAND_VOCAB_ABS                = yarp::os::createVocab('A','B','S');
+        const int32_t COMMAND_VOCAB_REL                = yarp::os::createVocab('R','E','L');
+
         const int32_t COMMAND_VOCAB_MAX                 = yarp::os::createVocab('m','a','x');
         const int32_t COMMAND_VOCAB_MEAN                = yarp::os::createVocab('m','e','a','n');
         const int32_t COMMAND_VOCAB_STD                 = yarp::os::createVocab('s','t','d');
@@ -57,10 +60,11 @@ namespace attention
         const int32_t COMMAND_VOCAB_RANDOM             = yarp::os::createVocab('R','A','N');
         const int32_t COMMAND_VOCAB_RED                 = yarp::os::createVocab('r','e','d');
         const int32_t COMMAND_VOCAB_SET                 = yarp::os::createVocab('s','e','t');
+        const int32_t COMMAND_VOCAB_RESET               = yarp::os::createVocab('r','e','s');
         const int32_t COMMAND_VOCAB_GET                 = yarp::os::createVocab('g','e','t');
         const int32_t COMMAND_VOCAB_RUN                 = yarp::os::createVocab('r','u','n');
         const int32_t COMMAND_VOCAB_SUSPEND             = yarp::os::createVocab('s','u','s');
-        const int32_t COMMAND_VOCAB_RESUME              = yarp::os::createVocab('r','e','s');
+        const int32_t COMMAND_VOCAB_RESUME              = yarp::os::createVocab('R','E','S');
         const int32_t COMMAND_VOCAB_FIX                 = yarp::os::createVocab('f','i','x');
         const int32_t COMMAND_VOCAB_ADD                 = yarp::os::createVocab('a','d','d');
         const int32_t COMMAND_VOCAB_HOR                 = yarp::os::createVocab('h','o','r');

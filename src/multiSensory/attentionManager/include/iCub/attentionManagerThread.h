@@ -36,9 +36,10 @@ public:
     void run();
     void threadRelease();
     string getName(const char* p) const;
-    bool resetAttentionState();
-    bool suspendAttentionState();
-    void setThreshold(const int32_t type,float val);
+    bool resetAttentionState(int statType);
+    bool suspendAttentionState(int statType);
+    void setThreshold(const int32_t mode,const int32_t type,float val);
+    bool resetThreshold(const int32_t type);
     float getThreshold(const int32_t type);
 
 private:
@@ -75,7 +76,12 @@ private:
     int max_thresholdVal;
     float mean_thresholdVal;
     float std_thresholdVal;
-    float threeSigma_thresholdVal;;
+    float threeSigma_thresholdVal;
+
+    int init_max_thresholdVal;
+    float init_mean_thresholdVal;
+    float init_std_thresholdVal;
+    float init_threeSigma_thresholdVal;
 
 
     //Processing Variables

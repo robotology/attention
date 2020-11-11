@@ -96,7 +96,7 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
 
     switch (command.get(0).asVocab()) {
         case COMMAND_VOCAB_SUSPEND:
-            if(pThread->suspendAttentionState()){
+            if(command.size()==2 && pThread->suspendAttentionState(command.get(1).asInt())){
                 reply.addVocab(COMMAND_VOCAB_OK);
                 ok = true;
                 break;
@@ -106,7 +106,7 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
                 break;
             }
         case COMMAND_VOCAB_RESUME:
-            if(pThread->resetAttentionState()){
+            if(command.size()==2 && pThread->resetAttentionState(command.get(1).asInt())){
                 reply.addVocab(COMMAND_VOCAB_OK);
                 ok = true;
                 break;
@@ -116,10 +116,10 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
                 break;
             }
         case COMMAND_VOCAB_SET:
-            if(command.size()==4){
+            if(command.size()==5){
                 switch (command.get(1).asVocab()){
                     case COMMAND_VOCAB_THRESHOLD:
-                        pThread->setThreshold(command.get(2).asVocab(),command.get(3).asFloat64());
+                        pThread->setThreshold(command.get(2).asVocab(),command.get(3).asVocab(),command.get(4).asFloat64());
                         reply.addVocab(COMMAND_VOCAB_OK);
                         ok = true;
                         break;
@@ -127,11 +127,22 @@ bool attentionManagerModule::respond(const Bottle& command, Bottle& reply)
             }
             break;
         case COMMAND_VOCAB_GET:
-            if(command.size()==2){
+            if(command.size()==3){
                 switch (command.get(1).asVocab()){
                     case COMMAND_VOCAB_THRESHOLD:
                         reply.addFloat64(pThread->getThreshold(command.get(2).asVocab()));
                         ok = true;
+                        break;
+                }
+            }
+            break;
+        case COMMAND_VOCAB_RESET:
+            if(command.size()==3){
+                switch (command.get(1).asVocab()){
+                    case COMMAND_VOCAB_THRESHOLD:
+                        ok = pThread->resetThreshold(command.get(2).asVocab());
+                        if( ok)
+                            reply.addVocab(COMMAND_VOCAB_OK);
                         break;
                 }
             }

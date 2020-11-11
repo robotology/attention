@@ -53,6 +53,11 @@ bool attentionManagerThread::configure(yarp::os::ResourceFinder &rf){
     threeSigma_thresholdVal = rf.findGroup("processingParam").check("three_sigma_threshold",    yarp::os::Value(95), "the 3 sigma threshold value to execute the action").asFloat64();
 
 
+    init_max_thresholdVal = max_thresholdVal;
+    init_mean_thresholdVal = mean_thresholdVal;
+    init_std_thresholdVal = std_thresholdVal;
+    init_threeSigma_thresholdVal = threeSigma_thresholdVal;
+
     yInfo( " " );
     yInfo( "\t               [processingParam]               "                               );
     yInfo( "\t ============================================ "                                );
@@ -180,29 +185,63 @@ bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val,fl
     return false;
 }
 
-bool attentionManagerThread::resetAttentionState() {
-    bool engineState = resumeEngine(); 
-    bool arbiterState = resumeArbiter();
-    resume();
-    if(!engineState)
-        yError("Couldn't resume the engine");
+bool attentionManagerThread::resetAttentionState(int statType) {
+    bool ret = false;
+    switch (statType){
+        case 1:
+            ret = resumeEngine();
+            if(!ret)
+                yError("Couldn't resume the engine");
+            break;
+        case 2:
+            ret = resumeArbiter();
+            if(!ret)
+                yError("Couldn't resume the gaze arbiter");
+            break;
+        default:
+            bool engineState = resumeEngine();
+            bool arbiterState = resumeArbiter();
+            resume();
+            if(!engineState)
+                yError("Couldn't resume the engine");
 
-    if(!arbiterState)
-        yError("Couldn't resume the gaze arbiter");
-    
-    return (engineState && arbiterState);
+            if(!arbiterState)
+                yError("Couldn't resume the gaze arbiter");
+
+            ret= (engineState && arbiterState);
+            break;
+    }
+    return ret;
+
 }
 
-bool attentionManagerThread::suspendAttentionState() {
+bool attentionManagerThread::suspendAttentionState(int statType) {
+    bool ret = false;
+    switch (statType){
+        case 1:
+            ret = suspendEngine();
+            if(!ret)
+                yError("Couldn't suspend the engine");
+            break;
+        case 2:
+            ret = suspendArbiter();
+            if(!ret)
+                yError("Couldn't suspend the gaze arbiter");
+            break;
+        default:
+            bool engineState = suspendEngine();
+            bool arbiterState = suspendEngine();
+            resume();
+            if(!engineState)
+                yError("Couldn't resume the engine");
 
-    bool engineState = suspendEngine(); 
-    bool arbiterState = suspendArbiter();
-    suspend();
-    if(!engineState)
-        yError("Couldn't suspend the engine");
-    if(!arbiterState)
-        yError("Couldn't suspend the gaze arbiter");
-    return (engineState && arbiterState);
+            if(!arbiterState)
+                yError("Couldn't resume the gaze arbiter");
+
+            ret= (engineState && arbiterState);
+            break;
+    }
+    return ret;
 }
 
 bool attentionManagerThread::suspendEngine() {
@@ -253,20 +292,52 @@ bool attentionManagerThread::resumeArbiter() {
     return false;
 }
 
-void attentionManagerThread::setThreshold(const int32_t type,float val){
+void attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,float val){
     switch (type){
         case COMMAND_VOCAB_MAX:
-            max_thresholdVal = val;
-            break;
+            switch (mode){
+                case COMMAND_VOCAB_ABS:
+                    max_thresholdVal = val;
+                    break;
+                case COMMAND_VOCAB_REL:
+                    max_thresholdVal += val;
+                    break;
+                default:
+                    break;
+            }
         case COMMAND_VOCAB_MEAN:
-            mean_thresholdVal = val;
-            break;
+            switch (mode){
+                case COMMAND_VOCAB_ABS:
+                    mean_thresholdVal = val;
+                    break;
+                case COMMAND_VOCAB_REL:
+                    mean_thresholdVal += val;
+                    break;
+                default:
+                    break;
+            }
         case COMMAND_VOCAB_STD:
-            std_thresholdVal =val;
-            break;
+            switch (mode){
+                case COMMAND_VOCAB_ABS:
+                    std_thresholdVal = val;
+                    break;
+                case COMMAND_VOCAB_REL:
+                    std_thresholdVal += val;
+                    break;
+                default:
+                    break;
+            }
         case COMMAND_VOCAB_3SIGMA:
-            threeSigma_thresholdVal = val;
-            break;
+            switch (mode){
+                case COMMAND_VOCAB_ABS:
+                    threeSigma_thresholdVal = val;
+                    break;
+                case COMMAND_VOCAB_REL:
+                    threeSigma_thresholdVal += val;
+                    break;
+                default:
+                    break;
+            }
         default:
             yError("wrong threshold type");
             break;
@@ -305,5 +376,30 @@ bool attentionManagerThread::publishAnalysis() {
     return false;
 }
 
+bool attentionManagerThread::resetThreshold(const int32_t type) {
+    bool ret = false;
+    switch (type){
+        case COMMAND_VOCAB_MAX:
+            max_thresholdVal = init_max_thresholdVal;
+            ret = true;
+            break;
+        case COMMAND_VOCAB_MEAN:
+            mean_thresholdVal = init_mean_thresholdVal;
+            ret = true;
+            break;
+        case COMMAND_VOCAB_STD:
+            std_thresholdVal = init_std_thresholdVal;
+            ret = true;
+            break;
+        case COMMAND_VOCAB_3SIGMA:
+            threeSigma_thresholdVal = init_threeSigma_thresholdVal;
+            ret = true;
+            break;
+        default:
+            yError("wrong threshold type");
+            break;
 
+    }
+    return ret;
+}
 
