@@ -233,10 +233,10 @@ bool attentionManagerThread::suspendAttentionState(int statType) {
             bool arbiterState = suspendEngine();
             resume();
             if(!engineState)
-                yError("Couldn't resume the engine");
+                yError("Couldn't suspend the engine");
 
             if(!arbiterState)
-                yError("Couldn't resume the gaze arbiter");
+                yError("Couldn't suspend the gaze arbiter");
 
             ret= (engineState && arbiterState);
             break;
@@ -292,56 +292,75 @@ bool attentionManagerThread::resumeArbiter() {
     return false;
 }
 
-void attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,float val){
+bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,float val){
+    bool ret = false;
     switch (type){
         case COMMAND_VOCAB_MAX:
             switch (mode){
                 case COMMAND_VOCAB_ABS:
                     max_thresholdVal = val;
+                    ret = true;
                     break;
                 case COMMAND_VOCAB_REL:
                     max_thresholdVal += val;
+                    ret = true;
                     break;
                 default:
+                    yError("wrong mode type");
                     break;
             }
+            break;
         case COMMAND_VOCAB_MEAN:
             switch (mode){
                 case COMMAND_VOCAB_ABS:
                     mean_thresholdVal = val;
+                    ret = true;
                     break;
                 case COMMAND_VOCAB_REL:
                     mean_thresholdVal += val;
+                    ret = true;
                     break;
                 default:
+                    yError("wrong mode type");
                     break;
             }
+            break;
         case COMMAND_VOCAB_STD:
             switch (mode){
                 case COMMAND_VOCAB_ABS:
                     std_thresholdVal = val;
+                    ret = true;
                     break;
                 case COMMAND_VOCAB_REL:
                     std_thresholdVal += val;
+                    ret = true;
                     break;
                 default:
+                    yError("wrong mode type");
                     break;
             }
+            break;
         case COMMAND_VOCAB_3SIGMA:
             switch (mode){
                 case COMMAND_VOCAB_ABS:
                     threeSigma_thresholdVal = val;
+                    ret = true;
                     break;
                 case COMMAND_VOCAB_REL:
                     threeSigma_thresholdVal += val;
+                    ret = true;
                     break;
                 default:
+                    yError("wrong mode type");
                     break;
             }
+            break;
         default:
             yError("wrong threshold type");
             break;
-        }
+    }
+    return ret;
+
 }
 
 float attentionManagerThread::getThreshold(const int32_t type) {

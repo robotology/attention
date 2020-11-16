@@ -38,7 +38,7 @@ public:
     string getName(const char* p) const;
     bool resetAttentionState(int statType);
     bool suspendAttentionState(int statType);
-    void setThreshold(const int32_t mode,const int32_t type,float val);
+    bool setThreshold(const int32_t mode,const int32_t type,float val);
     bool resetThreshold(const int32_t type);
     float getThreshold(const int32_t type);
 
