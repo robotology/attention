@@ -139,7 +139,7 @@ void attentionManagerThread::run() {
 //                    yDebug("max point port not connected to any output");
 //                }
 //            }
-            if(stdVal >= std_thresholdVal){
+            if(threeSigmaVal >= threeSigma_thresholdVal){
                 if(!sendMaxPointToLinker(idxOfMax,maxValue,meanVal,stdVal)){
                     yDebug("max point port not connected to any output");
                 }
