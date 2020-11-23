@@ -40,7 +40,7 @@ public:
     bool suspendAttentionState(int statType);
     bool setThreshold(const int32_t mode,const int32_t type,float val);
     bool resetThreshold(const int32_t type);
-    float getThreshold(const int32_t type);
+    float getThreshold(const int32_t mode,const int32_t type);
 
 private:
     Network yarp;

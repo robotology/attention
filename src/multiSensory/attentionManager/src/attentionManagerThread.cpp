@@ -310,6 +310,9 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                     max_thresholdVal += val;
                     ret = true;
                     break;
+                case COMMAND_VOCAB_INIT:
+                    init_max_thresholdVal = val;
+                    break;
                 default:
                     yError("wrong mode type");
                     break;
@@ -324,6 +327,9 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                 case COMMAND_VOCAB_REL:
                     mean_thresholdVal += val;
                     ret = true;
+                    break;
+                case COMMAND_VOCAB_INIT:
+                    init_mean_thresholdVal = val;
                     break;
                 default:
                     yError("wrong mode type");
@@ -340,6 +346,9 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                     std_thresholdVal += val;
                     ret = true;
                     break;
+                case COMMAND_VOCAB_INIT:
+                    init_std_thresholdVal = val;
+                    break;
                 default:
                     yError("wrong mode type");
                     break;
@@ -355,6 +364,9 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                     threeSigma_thresholdVal += val;
                     ret = true;
                     break;
+                case COMMAND_VOCAB_INIT:
+                    init_threeSigma_thresholdVal = val;
+                    break;
                 default:
                     yError("wrong mode type");
                     break;
@@ -368,16 +380,48 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
 
 }
 
-float attentionManagerThread::getThreshold(const int32_t type) {
+float attentionManagerThread::getThreshold(const int32_t mode,const int32_t type) {
     switch (type){
         case COMMAND_VOCAB_MAX:
-            return max_thresholdVal;
+            switch (mode){
+                case COMMAND_VOCAB_INIT:
+                    return init_max_thresholdVal;
+                case COMMAND_VOCAB_CURRENT:
+                    return max_thresholdVal;
+                default:
+                    yError("wrong threshold mode");
+                    return -1;
+            }
         case COMMAND_VOCAB_MEAN:
-            return mean_thresholdVal;
+            switch (mode){
+                case COMMAND_VOCAB_INIT:
+                    return init_mean_thresholdVal;
+                case COMMAND_VOCAB_CURRENT:
+                    return mean_thresholdVal;
+                default:
+                    yError("wrong threshold mode");
+                    return -1;
+            }
         case COMMAND_VOCAB_STD:
-            return std_thresholdVal;
+            switch (mode){
+                case COMMAND_VOCAB_INIT:
+                    return init_std_thresholdVal;
+                case COMMAND_VOCAB_CURRENT:
+                    return std_thresholdVal;
+                default:
+                    yError("wrong threshold mode");
+                    return -1;
+            }
         case COMMAND_VOCAB_3SIGMA:
-            return threeSigma_thresholdVal;
+            switch (mode){
+                case COMMAND_VOCAB_INIT:
+                    return init_threeSigma_thresholdVal;
+                case COMMAND_VOCAB_CURRENT:
+                    return threeSigma_thresholdVal;
+                default:
+                    yError("wrong threshold mode");
+                    return -1;
+            }
         default:
             yError("wrong threshold type");
             return -1;
