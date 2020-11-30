@@ -130,16 +130,14 @@ void egocentricAudioCropperThread::run() {
                 double maxValue = 0;
                 int maxCount = 0;
                 int maxStartIdx = 0;
-                int mirroredIdx;
                 for(int i=0;i<cameraAOV;i++){
-                    mirroredIdx = cameraAOV-1 - i;
-                    rowOutImage[mirroredIdx] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
-                    if(rowOutImage[mirroredIdx] > maxValue){
-                        maxValue = rowOutImage[mirroredIdx];
-                        maxStartIdx = mirroredIdx;
+                    rowOutImage[i] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
+                    if(rowOutImage[i] > maxValue){
+                        maxValue = rowOutImage[i];
+                        maxStartIdx = i;
                         maxCount = 1;
                     }
-                    else if(rowOutImage[mirroredIdx] == maxValue){
+                    else if(rowOutImage[i] == maxValue){
                         maxCount ++;
                     }
                 }
@@ -159,16 +157,14 @@ void egocentricAudioCropperThread::run() {
                 double maxValue = 0;
                 int maxCount = 0;
                 int maxStartIdx = 0;
-                int mirroredIdx;
                 for(int i=0;i<cameraAOV;i++){
-                    mirroredIdx = cameraAOV-1 - i;
-                    rowOutImage[mirroredIdx] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
-                    if(rowOutImage[mirroredIdx] > maxValue){
-                        maxValue = rowOutImage[mirroredIdx];
-                        maxStartIdx = mirroredIdx;
+                    rowOutImage[i] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
+                    if(rowOutImage[i] > maxValue){
+                        maxValue = rowOutImage[i];
+                        maxStartIdx = i;
                         maxCount = 1;
                     }
-                    else if(rowOutImage[mirroredIdx] == maxValue){
+                    else if(rowOutImage[i] == maxValue){
                         maxCount ++;
                     }
                 }
