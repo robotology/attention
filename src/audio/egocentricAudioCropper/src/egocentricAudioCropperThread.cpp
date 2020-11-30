@@ -53,15 +53,15 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
 
 
     if (cameraSide == "right"){
-        cameraWidth = rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
-        cameraFocalLength= rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
-        cameraHeight = rf.findGroup("CAMERA_CALIBRATION_RIGHT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
+        cameraWidth = iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
+        cameraFocalLength= iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
+        cameraHeight = iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
 
     }
     else{
-        cameraWidth = rf.findGroup("CAMERA_CALIBRATION_LEFT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
-        cameraFocalLength= rf.findGroup("CAMERA_CALIBRATION_LEFT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
-        cameraHeight = rf.findGroup("CAMERA_CALIBRATION_LEFT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
+        cameraWidth = iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
+        cameraFocalLength= iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
+        cameraHeight = iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
 
     }
     cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
