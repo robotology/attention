@@ -366,6 +366,7 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                     break;
                 case COMMAND_VOCAB_INIT:
                     init_threeSigma_thresholdVal = val;
+                    ret = true;
                     break;
                 default:
                     yError("wrong mode type");
