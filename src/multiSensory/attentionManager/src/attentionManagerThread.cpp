@@ -312,6 +312,7 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                     break;
                 case COMMAND_VOCAB_INIT:
                     init_max_thresholdVal = val;
+                    ret = true;
                     break;
                 default:
                     yError("wrong mode type");
@@ -330,6 +331,7 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                     break;
                 case COMMAND_VOCAB_INIT:
                     init_mean_thresholdVal = val;
+                    ret = true;
                     break;
                 default:
                     yError("wrong mode type");
@@ -348,6 +350,7 @@ bool attentionManagerThread::setThreshold(const int32_t mode,const int32_t type,
                     break;
                 case COMMAND_VOCAB_INIT:
                     init_std_thresholdVal = val;
+                    ret = true;
                     break;
                 default:
                     yError("wrong mode type");
