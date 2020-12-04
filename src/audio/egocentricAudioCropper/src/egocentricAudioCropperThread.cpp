@@ -41,9 +41,6 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     cameraContextName  = rf.findGroup("cameraParams").check("context",    yarp::os::Value("logpolarAttention"), "the context  of the  camera file (string)").asString();
     azimuthIndex =  rf.findGroup("cameraParams").check("azimuthIndex",    yarp::os::Value(0), "the index of the  azimuth angle in the angles input port (int)").asInt();
 
-    conversionGain =  rf.findGroup("maximisation").check("conversionGain",    yarp::os::Value(-1.0), "the coversion gain").asFloat64();
-    thresholdMaxProb =  rf.findGroup("maximisation").check("threshold",    yarp::os::Value(0.0066), "threshold to draw strap").asFloat64();
-
 
     ResourceFinder iCubEyesRF;
     iCubEyesRF.setVerbose(true);
@@ -69,6 +66,23 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
 
     cutImg = new yImgPixelMono;
     cutImg->resize(cameraAOV,1);
+
+    yInfo( "\t                [cameraParams]               "                                );
+    yInfo( "\t ============================================ "                               );
+    yInfo( "\t Camera file Name          : %s",        cameraFileName.c_str()               );
+    yInfo( "\t Camera context            : %s",        cameraContextName.c_str()            );
+    yInfo( "\t Azimuth Index in port     : %d",        azimuthIndex                         );
+    yInfo( "\t used Camera               : %s",        cameraSide.c_str()                   );
+    yInfo( " " );
+    yInfo( " " );
+    yInfo( "\t                  [icubEyes.ini]             "                               );
+    yInfo( "\t ============================================ "                              );
+    yInfo( "\t Camera hight                : %f",        cameraHeight                      );
+    yInfo( "\t Camera width                : %f",        cameraWidth                       );
+    yInfo( "\t Camera focal length         : %f",        cameraFocalLength                 );
+    yInfo( "\t Camera AOV                  : %f",        cameraAOV                         );
+    yInfo( "\t Camera Side AOV             : %d",        cameraSideAOV                     );
+    yInfo( " " );
 
 
     return true;
@@ -122,55 +136,32 @@ void egocentricAudioCropperThread::run() {
         }
 
         if (inputImg != NULL) {
+            unsigned char* rowOutImage = cutImg->getRawImage();
+            unsigned char* rowInImage = inputImg->getRawImage();
+            double maxValue = 0;
+            int maxCount = 0;
+            int maxStartIdx = 0;
+            for(int i=0;i<cameraAOV;i++){
+                rowOutImage[i] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
+                if(rowOutImage[i] > maxValue){
+                    maxValue = rowOutImage[i];
+                    maxStartIdx = i;
+                    maxCount = 1;
+                }
+                else if(rowOutImage[i] == maxValue){
+                    maxCount ++;
+                }
+            }
+
+            publishMaxAngleState(maxValue,maxStartIdx,maxStartIdx - (int) (azimuthAngle+cameraSideAOV),azimuthAngle);
+            yInfo("max Value = %lf",maxValue);
+
             if (outputImgPort.getOutputCount()) {
                 outputImg = &outputImgPort.prepare();
-                outputImg->resize(cameraAOV,1);
-                unsigned char* rowOutImage = outputImg->getRawImage();
-                unsigned char* rowInImage = inputImg->getRawImage();
-                double maxValue = 0;
-                int maxCount = 0;
-                int maxStartIdx = 0;
-                for(int i=0;i<cameraAOV;i++){
-                    rowOutImage[i] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
-                    if(rowOutImage[i] > maxValue){
-                        maxValue = rowOutImage[i];
-                        maxStartIdx = i;
-                        maxCount = 1;
-                    }
-                    else if(rowOutImage[i] == maxValue){
-                        maxCount ++;
-                    }
-                }
-
-                publishMaxAngleState(maxValue,maxStartIdx,maxStartIdx - (int) (azimuthAngle+cameraSideAOV),azimuthAngle);
-                yInfo("max Value = %lf",maxValue);
-                if (outputScaledImgPort.getOutputCount()){
-                    outputScaledImg = &outputScaledImgPort.prepare();
-                    outputScaledImg->copy(*outputImg,cameraWidth,cameraHeight);
-                    outputScaledImgPort.write();
-                }
+                outputImg->copy(*cutImg,cameraAOV,1);
                 outputImgPort.write();
             }
-            else if (outputScaledImgPort.getOutputCount()){
-                unsigned char* rowOutImage = cutImg->getRawImage();
-                unsigned char* rowInImage = inputImg->getRawImage();
-                double maxValue = 0;
-                int maxCount = 0;
-                int maxStartIdx = 0;
-                for(int i=0;i<cameraAOV;i++){
-                    rowOutImage[i] = rowInImage[(int) (i + 179 - azimuthAngle - cameraSideAOV)];
-                    if(rowOutImage[i] > maxValue){
-                        maxValue = rowOutImage[i];
-                        maxStartIdx = i;
-                        maxCount = 1;
-                    }
-                    else if(rowOutImage[i] == maxValue){
-                        maxCount ++;
-                    }
-                }
-
-                publishMaxAngleState(maxValue,maxStartIdx,maxStartIdx - (int) (azimuthAngle+cameraSideAOV),azimuthAngle);
-                yInfo("max Value = %lf",maxValue);
+            if (outputScaledImgPort.getOutputCount()){
                 outputScaledImg = &outputScaledImgPort.prepare();
                 outputScaledImg->copy(*cutImg,cameraWidth,cameraHeight);
                 outputScaledImgPort.write();

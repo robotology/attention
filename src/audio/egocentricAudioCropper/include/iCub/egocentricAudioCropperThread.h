@@ -66,8 +66,6 @@ private:
     int cameraSideAOV;
     int azimuthIndex;
 
-    float conversionGain;
-    float thresholdMaxProb;
 
     yImgPixelMono* inputImg;
     yImgPixelMono* cutImg;
@@ -75,7 +73,7 @@ private:
     yImgPixelMono* outputScaledImg;
     Bottle* gazeAnglesBottle;
 
-    BufferedPort<Bottle>  inputGazeAnglesPort;;
+    BufferedPort<Bottle>  inputGazeAnglesPort;
     BufferedPort<yImgPixelMono>  inputPort;
     BufferedPort<yImgPixelMono> outputImgPort;
     BufferedPort<yImgPixelMono> outputScaledImgPort;
