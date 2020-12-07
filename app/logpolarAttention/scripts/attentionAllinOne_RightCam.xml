@@ -46,56 +46,8 @@
         <node>icubsrv</node>
     </module>
 
-    
 
 
-
-    <!-- Interface Modules -->
-    <module>
-        <name>selAttentionInterface</name>
-        <parameters>--name /selectiveAttentionInterface/icub/right_cam --x 1480 --y 0</parameters>
-        <tag>selectiveAttInterfaceright</tag>
-        <node>icub13</node>
-    </module>
-
-
-
-    <!-- Viewers Modules -->
-
-    <module>
-      <name>yarpview</name>
-      <parameters>--name /icub/right_cam/attentionCartesian --x 000 --y 340 --RefreshTime 33</parameters>
-      <tag>attCartright</tag>
-      <node>icub13</node>
-    </module>
-
-    <module>
-      <name>yarpview</name>
-      <parameters>--name /icub/right_cam/cartesianPlainView --x 340 --y 340 --RefreshTime 33</parameters>
-      <tag>cartPlainViewright</tag>
-      <node>icub13</node>
-    </module>
-
-    <module>
-      <name>yarpview</name>
-      <parameters>--name /icub/right_cam/combinationView --x 340 --y 340 --RefreshTime 33</parameters>
-      <tag>combViewright</tag>
-      <node>icub13</node>
-    </module>
-
-
-
-    <module>
-        <name>yarpview</name>
-        <parameters>--name /cartEgocentricAngleView</parameters>
-        <node>icub13</node>
-        </module>
-
-        <module>
-        <name>yarpview</name>
-        <parameters>--name /cartEgocentricAngleScaledView</parameters>
-        <node>icub13</node>
-    </module>
 
 
 
@@ -179,31 +131,6 @@
     </connection>
 
 
-    <connection>
-          <from>/selectiveAttentionInterface/icub/right_cam/command:o</from>
-          <to>/selectiveAttentionEngine/icub/right_cam</to>
-          <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/selectiveAttentionEngine/icub/right_cam/cartesian:o</from>
-        <to>/icub/right_cam/attentionCartesian</to>
-        <protocol>udp</protocol>
-    </connection>
-
-    <connection>
-        <from>/selectiveAttentionEngine/icub/right_cam/cartesianPlain:o</from>
-        <to>/icub/right_cam/cartesianPlainView</to>
-        <protocol>udp</protocol>
-    </connection>
-
-    <connection>
-        <from>/selectiveAttentionEngine/icub/right_cam/combination:o</from>
-        <to>/icub/right_cam/combinationView</to>
-        <protocol>udp</protocol>
-    </connection>
-
-
 <!-- Integrated Attention Connections-->
 
 
@@ -233,19 +160,6 @@
         <protocol>tcp</protocol>
     </connection>
 
-
- 
-    <connection>
-        <from>/egocentricAudioCropper/cartImg:o</from>
-        <to>/cartEgocentricAngleView</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/egocentricAudioCropper/cartScaledImg:o</from>
-        <to>/cartEgocentricAngleScaledView</to>
-        <protocol>tcp</protocol>
-    </connection>
 
     <connection>
         <from>/egocentricAudioCropper/cartScaledImg:o</from>
