@@ -441,6 +441,7 @@ bool attentionManagerThread::publishAnalysis() {
         msg.addFloat64(threeSigmaVal);
         msg.addInt(idxOfMax.x);
         msg.addInt(idxOfMax.y);
+        msg.addFloat64(threeSigma_thresholdVal);
         sceneAnalysisPort.prepare() = msg;
         sceneAnalysisPort.write();
         return true;

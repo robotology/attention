@@ -49,24 +49,6 @@
 
 
 
-
-
-    <!-- Dara Dumping Modules -->
-
-    <module>
-        <name>yarpdatadumper </name>
-        <parameters> --name /robotCameraDumper --type image --dir /omar/lightboardExperimentData/robotCamera</parameters>
-        <node>icubsrv</node>
-    </module>
-
-    
-    <module>
-        <name>yarpdatadumper </name>
-        <parameters> --name /robotAudioAngleState --dir /omar/lightboardExperimentData/robotAudioAngleState</parameters>
-        <node>icubsrv</node>
-    </module>
-
-
     <!-- Connections -->
 
     <connection>
@@ -188,22 +170,6 @@
         <protocol>tcp</protocol>
     </connection>
 
-
-
-<!--Dumpers Connections -->
-
-    <connection>
-        <from>/icub/camcalib/right/out</from>
-        <to>/robotCameraDumper</to>
-        <protocol>tcp</protocol>
-    </connection>
-
- 
-    <connection>
-        <from>/egocentricAudioCropper/maxAngleState:o</from>
-        <to>/robotAudioAngleState</to>
-        <protocol>tcp</protocol>
-    </connection>
 
 
 </application>
