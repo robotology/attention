@@ -1,0 +1,38 @@
+<application>
+    <name>ColorSegmentation</name>
+
+
+    <module>
+        <name>ColorSegmentation</name>
+        <node>/icubsrv</node>
+    </module>
+
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /view/colorSegmentation </parameters>
+        <tag>colorSegmentationView</tag>
+        <node>icubsrv</node>
+    </module>
+
+
+
+    <!-- Connections of the application -->
+
+
+    <connection >
+        <from>/icub/cam/right/out</from>
+        <to>/colorSegmentation/img:i</to>
+        <protocol>mjpeg</protocol>
+    </connection>
+
+    <connection  persist="true">
+        <from>/colorSegmentation/img:o </from>
+        <to>/view/colorSegmentation </to>
+        <protocol>mjpeg</protocol>
+    </connection>
+
+
+
+
+</application>
