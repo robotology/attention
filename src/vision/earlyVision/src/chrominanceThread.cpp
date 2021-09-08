@@ -29,7 +29,7 @@
 //#include <sys/time.h>
 
 #include <time.h>
-#include <opencv/cv.hpp>
+
 
 
 using namespace yarp::os;
@@ -92,7 +92,8 @@ chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {
         wtForEachOrientation[i] = 1.0/(float)GABOR_ORIS;
     }
             
-    anchor = cv::Point(2,2);
+    anchor.x = 2;
+    anchor.y + 2;
     
     for(int i=0; i<GABOR_SCALES; ++i){
         imageForAScale[i] = new ImageOf<PixelFloat>;

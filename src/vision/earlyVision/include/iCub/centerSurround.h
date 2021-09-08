@@ -39,12 +39,14 @@
 #define __CENTSUR_H__
 
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types_c.h>
+#include <opencv2/core/core_c.h>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
+#include <opencv2/imgproc/imgproc_c.h>
 
 #include <iCub/convolve.h> 
 

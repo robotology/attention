@@ -2,13 +2,13 @@
 # Authors: Omar Eldardeer
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
 
 # subdirectories
-add_subdirectory( audio                      )
+#add_subdirectory( audio                      )
 add_subdirectory( vision                     )
-add_subdirectory( multiSensory               )
-add_subdirectory( action                     )
-add_subdirectory( deprecated                 )
+#add_subdirectory( multiSensory               )
+#add_subdirectory( action                     )
+#add_subdirectory( deprecated                 )
 #add_subdirectory( tutorial                   )
-add_subdirectory( guis                       )
+#add_subdirectory( guis                       )

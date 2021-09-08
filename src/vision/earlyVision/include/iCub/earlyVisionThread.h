@@ -34,10 +34,10 @@
 #include <yarp/os/Stamp.h>
 /* Log-Polar includes */
 #include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
-
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types_c.h>
+#include <opencv2/core/core_c.h>
 
 #include <iCub/logPolar.h>
 
@@ -108,7 +108,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
     yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
     convolve<yarp::sig::ImageOf<yarp::sig::PixelFloat>,float,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,float >* gaborFiveByFive[4];
-    CvMat *gaborizedImg[GABOR_ORIS*GABOR_SCALES];                                        // assuming 4 orientations with 4 scales each
+    cv::Mat *gaborizedImg[GABOR_ORIS*GABOR_SCALES];                                        // assuming 4 orientations with 4 scales each
     yarp::sig::ImageOf<yarp::sig::PixelMono>* visualizingImage;
     
   
@@ -124,7 +124,7 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
     IplImage *cs_tot_32f;  // extended
-    IplImage *cs_tot_8u; 
+    IplImage *cs_tot_8u;
     IplImage *ycs_out;     // final extended intensity center surround image
     IplImage *scs_out;     // final extended intensity center surround image
     IplImage *vcs_out;     // final extended intensity center surround image

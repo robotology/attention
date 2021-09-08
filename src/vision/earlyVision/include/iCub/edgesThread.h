@@ -34,10 +34,10 @@
 #include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 //#include <yarp/sig/IplImage.h>
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
-
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types_c.h>
+#include <opencv2/core/core_c.h>
 
 
 //#include <iCub/logPolar.h>

@@ -33,10 +33,11 @@
 #include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 
 /* openCV includes */
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
-
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types_c.h>
+#include <opencv2/core/core_c.h>
+#include <opencv2/highgui/highgui_c.h>
 /*  iCub includes */
 #include <iCub/logPolar.h>
 #include <iCub/convolve.h>

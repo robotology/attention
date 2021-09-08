@@ -28,6 +28,8 @@
 #ifndef _CONVOLVE_H_
 #define _CONVOLVE_H_
 
+#include <assert.h>
+
 template<class inputImage,class ptrInput, class outputImage, class ptrOutput>
 class convolve {
 
