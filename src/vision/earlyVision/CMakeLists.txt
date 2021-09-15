@@ -1,5 +1,5 @@
-# Copyright: (C) 2010 RobotCub Consortium
-# Authors: Rea Francesco, Shashank
+# Copyright: (C) 2021 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+# Authors: Rea Francesco, Shashank, Omar Eldardeer
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 SET(KEYWORD "earlyVision")

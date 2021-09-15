@@ -9,7 +9,7 @@ find_package(OpenCV REQUIRED PATHS /usr/local/src/robot/supportedLibs/opencv-4.5
 
 if(OpenCV_FOUND)
   #add_subdirectory( ColorSegmentation         )
-  #add_subdirectory( earlyMotion               )
+  add_subdirectory( earlyMotion               )
   add_subdirectory( earlyVision               )
   #add_subdirectory( faceDetector              )
   #add_subdirectory( faceTracker               )

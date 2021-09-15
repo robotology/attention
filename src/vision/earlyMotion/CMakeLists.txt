@@ -1,29 +1,26 @@
 # Copyright: (C) 2011 RobotCub Consortium
 # Authors: Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(KEYWORD "earlyMotion")
 PROJECT(${KEYWORD})
-
-#FIND_PACKAGE(ICUB REQUIRED)
-#FIND_PACKAGE(YARP REQUIRED)
-#SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_DIR}/conf ${YARP_DIR}/conf)
-#FIND_PACKAGE(OpenCV REQUIRED)
-
+cmake_minimum_required(VERSION 3.12)
 
 find_package(YARP REQUIRED)
-find_package(ICUB REQUIRED)
+find_package(YCM REQUIRED)
 find_package(ICUBcontrib REQUIRED)
-list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH}
-                              ${ICUBCONTRIB_MODULE_PATH})
-find_package(logpolar QUIET)
+find_package(OpenCV REQUIRED)
+find_package(logpolar REQUIRED)
+
+list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
+
+
+set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)
 
 INCLUDE_DIRECTORIES(
-    ${PROJECT_SOURCE_DIR}/include
-    ${logpolar_INCLUDE_DIRS}
-    ${YARP_INCLUDE_DIRS} 	
-    ${IPP_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIR}	
+        ${PROJECT_SOURCE_DIR}/include
+        ${ICUB_CONTRIB_DIRS}
+        ${OPENCV_INCLUDE_DIR}
+        ${logpolar_INCLUDE_DIRS}
 )
 
 # Search for source code.
@@ -34,17 +31,20 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 # Set up the main executable.
 IF (folder_source)
-    ADD_EXECUTABLE(${KEYWORD} 
-        ${folder_source} 
-        ${folder_header}
-    )
+    ADD_EXECUTABLE(${KEYWORD}
+            ${folder_source}
+            ${folder_header}
+            )
 
-  #TARGET_LINK_LIBRARIES(${KEYWORD} logpolar ${IPP_LIBRARIES} ${OpenCV_LIBS} ${YARP_LIBRARIES})
-  target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} logpolar ${YARP_LIBRARIES})
-  install(TARGETS ${KEYWORD} DESTINATION bin)
-    #INSTALL_TARGETS(/bin ${KEYWORD})
-	
+    TARGET_LINK_LIBRARIES(${KEYWORD}
+            ${OpenCV_LIBS}
+            ${YARP_LIBRARIES}
+            logpolar
+            )
+
+    INSTALL_TARGETS(/bin ${KEYWORD})
 ELSE (folder_source)
     MESSAGE(FATAL_ERROR "No source code files found. Please add something")
-	
 ENDIF (folder_source)
+
+

@@ -26,7 +26,6 @@
 #include <iCub/logpolar/RC_DIST_FB_logpolar_mapper.h>
 #include <iCub/earlyMotionThread.h>
 #include <cstring>
-//#include <cv.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace yarp::os;
