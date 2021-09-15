@@ -1,7 +1,7 @@
 set(appname faceDetector)
 icub_app(${appname})
 
-file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.*)
+file(GLOB conf conf/*.*)
 file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template)
 
 icub_app_install(${appname} 
