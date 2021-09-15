@@ -31,8 +31,8 @@
 #include <yarp/sig/all.h>
 
 //openCV include
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
 
 
 //within Project Include

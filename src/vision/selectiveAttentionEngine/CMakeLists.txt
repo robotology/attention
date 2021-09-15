@@ -1,19 +1,28 @@
-# Copyright: (C) 2010 RobotCub Consortium
-# Authors: Giorgio Metta, Francesco Rea
+# Copyright: (C) 2021 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
+# Authors: Giorgio Metta, Francesco Rea, Omar Eldardeer
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
 SET(KEYWORD "selectiveAttentionEngine")
 PROJECT(${KEYWORD})
 
-#search for includes
-INCLUDE_DIRECTORIES(
-    ${PROJECT_SOURCE_DIR}/include
-    ${YARP_INCLUDE_DIRS}
-    ${ICUB_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIR}    
-    ${logpolar_INCLUDE_DIRS}	
-)
+cmake_minimum_required(VERSION 3.12)
 
+find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
+find_package(ICUBcontrib REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(logpolar REQUIRED)
+
+list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
+
+
+set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)
+
+INCLUDE_DIRECTORIES(
+        ${PROJECT_SOURCE_DIR}/include
+        ${ICUB_CONTRIB_DIRS}
+        ${OPENCV_INCLUDE_DIR}
+        ${logpolar_INCLUDE_DIRS}
+)
 # Search for source code.
 FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
 FILE(GLOB folder_header include/iCub/*.h)
@@ -29,7 +38,6 @@ IF (folder_source)
     TARGET_LINK_LIBRARIES( ${KEYWORD}
       ${YARP_LIBRARIES} 
       ${OpenCV_LIBRARIES}  
- 	  #icubmod
 	  logpolar
     )	
     INSTALL_TARGETS(/bin ${KEYWORD})

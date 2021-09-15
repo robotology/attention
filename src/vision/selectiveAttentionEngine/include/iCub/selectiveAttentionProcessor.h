@@ -30,8 +30,8 @@
 //#include <ippi.h>
 
 //openCV includes
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
