@@ -17,9 +17,9 @@
 */
 
 #include "Detector.h"
-#include <opencv/cvaux.h>
-#include <opencv/highgui.h>
-#include <opencv/cxcore.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core_c.h>
+#include <opencv2/highgui/highgui_c.h>
 
 using namespace yarp::sig;
 using namespace yarp::os;
@@ -88,19 +88,19 @@ if (!idle){
                 // if(++counter > certainty)
                 {
                     if(disableGazeControl){
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,0,255), 3, 8, 0 );
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0, 0,255), 2, 8, 0 );
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, cvScalar(255,0,0,0), 3, 8, 0 );
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), cvScalar(255, 0,0,0), 2, 8, 0 );
                     
                     }
 
                     else{
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, CV_RGB(0,0,255), 3, 8, 0 );
-                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(0,0,255), 2, 8, 0 );
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), 2, cvScalar(255,0,0,0), 3, 8, 0 );
+                        cvCircle(display, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), cvScalar(255,0,0,0), 2, 8, 0 );
                     
                     }
 
                     if(withSaliency){
-                        cvCircle(saliency, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), CV_RGB(255,255,255), -1, 8, 0 );
+                        cvCircle(saliency, cvPoint(cvRound(face.x), cvRound(face.y)), cvRound(face.r), cvScalar(255,255,255,0), -1, 8, 0 );
                     }
                     double alfa = alpha;    
                     yarp::sig::Vector uv(2);
@@ -234,7 +234,7 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
         1.1, 2, 0
         //|CV_HAAR_FIND_BIGGEST_OBJECT
         //|CV_HAAR_DO_ROUGH_SEARCH
-        |CV_HAAR_SCALE_IMAGE
+        |CASCADE_SCALE_IMAGE
         ,
         Size(30, 30) );
     c.r = 0;
