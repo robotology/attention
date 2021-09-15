@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.12)
 find_package(OpenCV REQUIRED PATHS /usr/local/src/robot/supportedLibs/opencv-4.5.3/lib/cmake/opencv4/ NO_DEFAULT_PATH)
 
 if(OpenCV_FOUND)
-  #add_subdirectory( ColorSegmentation         )
+  add_subdirectory( ColorSegmentation         )
   add_subdirectory( earlyMotion               )
   add_subdirectory( earlyVision               )
   #add_subdirectory( faceDetector              )
