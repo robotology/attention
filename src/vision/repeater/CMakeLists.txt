@@ -4,16 +4,22 @@
 
 SET(KEYWORD "repeater")
 PROJECT(${KEYWORD})
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
+
+find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
+find_package(ICUBcontrib REQUIRED)
+find_package(OpenCV REQUIRED)
+
+list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
+
 
 set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)
 
 INCLUDE_DIRECTORIES(
-    ${PROJECT_SOURCE_DIR}/include
-    ${ICUB_INCLUDE_DIRS}
-    ${YARP_INCLUDE_DIRS}
-    ${ICUB_CONTRIB_DIRS}
-    ${OPENCV_INCLUDE_DIR}
+        ${PROJECT_SOURCE_DIR}/include
+        ${ICUB_CONTRIB_DIRS}
+        ${OPENCV_INCLUDE_DIR}
 )
 
 # Search for source code.

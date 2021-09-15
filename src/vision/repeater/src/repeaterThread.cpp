@@ -175,7 +175,7 @@ void repeaterThread::processing() {
         adjustHSV(outputMatrix, tempMatrix);
 
     //---- preparing the IPL image for the final copy ---------------
-    IplImage tempIpl = (IplImage) outputMatrix;
+    IplImage tempIpl = cvIplImage(outputMatrix);
     char* pMatrix     = tempIpl.imageData;
     int matrixPadding = tempIpl.widthStep - tempIpl.width * 3;
     //making a copy of it
