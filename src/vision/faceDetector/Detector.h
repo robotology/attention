@@ -20,7 +20,7 @@
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Image.h>
-#include <opencv/cvaux.h>
+#include <opencv2/opencv.hpp>
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 #include <yarp/dev/GazeControl.h>
@@ -28,8 +28,8 @@
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/sig/Vector.h>
 
-#include <opencv/highgui.h>
-#include <opencv/cxcore.h>
+#include <opencv2/highgui/highgui_c.h>
+#include "opencv2/core/core.hpp"
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
