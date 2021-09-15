@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 project (attention)
-
+find_package(YARP REQUIRED COMPONENTS sig cv)
 find_package(ICUBcontrib REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
 

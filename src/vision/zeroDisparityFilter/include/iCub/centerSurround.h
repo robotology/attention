@@ -39,9 +39,8 @@
 #define __CENTSUR_H__
 
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>

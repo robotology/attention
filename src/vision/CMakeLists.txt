@@ -4,6 +4,7 @@
 
 
 cmake_minimum_required(VERSION 3.12)
+find_package(YARP REQUIRED COMPONENTS sig cv)
 
 find_package(OpenCV REQUIRED PATHS /usr/local/src/robot/supportedLibs/opencv-4.5.3/lib/cmake/opencv4/ NO_DEFAULT_PATH)
 
@@ -15,7 +16,7 @@ if(OpenCV_FOUND)
   #add_subdirectory( faceTracker               )
   add_subdirectory( repeater                  )
   add_subdirectory( selectiveAttentionEngine  )
-  #add_subdirectory( zeroDisparityFilter       )
+  add_subdirectory( zeroDisparityFilter       )
 else(OpenCV_FOUND)
   message(STATUS "OpenCV not found/selected, skipping modules")
 endif(OpenCV_FOUND)

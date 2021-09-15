@@ -34,7 +34,7 @@
 #include <yarp/os/BufferedPort.h>
 #include "iCub/multiclass.h"
 #include <iCub/centerSurround.h>
-#include <cv.hpp>
+#include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/video.hpp>

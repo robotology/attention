@@ -18,6 +18,7 @@
  * Public License for more details
  */
 #include <iostream>
+#include <opencv2/core/core_c.h>
 #include "iCub/dog.h"
 
 //set up DoG Kernel stuff:
@@ -260,7 +261,7 @@ void DoG::procOpenCv(IplImage *in_, double xOne, double xTwo) {
     minMaxLoc(dog_mat, &dog_mat_min, &dog_mat_max); //find minimum and maximum intensities
     dog_mat.convertTo(dog_mat,CV_8U,255.0/(dog_mat_max - dog_mat_min), -dog_mat_min * 255.0/(dog_mat_max - dog_mat_min));
 
-    *out_dog_onoff_image = (IplImage) dog_mat;
+    *out_dog_onoff_image = cvIplImage(dog_mat);
 
 
     printf("proceduree concluded \n");
@@ -326,7 +327,7 @@ void DoG::proc(IplImage *in_, int psb_in) {
     printf("min Val of DoG : %f, max val of Dog: %f \n", dog_mat_min, dog_mat_max);
 
     //we do not remove the borders, we need them for later #amaroyo 11/02/2016
-    *dog_image = (IplImage)dog_mat;
+    *dog_image = cvIplImage(dog_mat);
 
     // TODO Fix me, this should get floating number from the matrix and copy them to a 32f IplImage. For not
     // we will use the casting of the matrix - just above. #amaroyo 19/02/2016
@@ -443,7 +444,7 @@ IplImage *DoG::remove_borders(const IplImage *input) {
     cv::Mat croppedImage = dog_mat_aux(imgROI);
     cv::Mat copy;
     croppedImage.copyTo(copy);
-    *dog_aux_32f_small = copy;
+    *dog_aux_32f_small = cvIplImage(copy);
     //printf("removing borders output address %08X \n", dog_aux_32f_small);
     printf("removing borders concluded\n");
 

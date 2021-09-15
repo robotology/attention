@@ -23,9 +23,8 @@
 #include "iCub/coord.h"
 #include "iCub/dog.h"
 
-#include <opencv/cv.h>
-#include <opencv/cvaux.h>
-#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
 
 /** 
   * The neighbourhood structure.
