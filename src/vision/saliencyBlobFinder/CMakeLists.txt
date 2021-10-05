@@ -1,22 +1,26 @@
 # Copyright: (C) 2010 RobotCub Consortium
 # Authors: Francesco Rea, Giorgio Metta
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
 SET(KEYWORD "saliencyBlobFinder")
 PROJECT(${KEYWORD})
-
+cmake_minimum_required(VERSION 3.12)
 
 find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
 find_package(ICUB REQUIRED)
 find_package(logpolar REQUIRED)
-#search for includes
+
+list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
+
 INCLUDE_DIRECTORIES(
-    ${PROJECT_SOURCE_DIR}/include
-    ${ICUB_INCLUDE_DIRS}
-    ${YARP_INCLUDE_DIRS}
-    ${IPP_INCLUDE_DIRS}
-    ${logpolar_INCLUDE_DIRS}
+        ${PROJECT_SOURCE_DIR}/include
+        ${ICUB_CONTRIB_DIRS}
+        ${ICUB_INCLUDE_DIRS}
+        ${OPENCV_INCLUDE_DIR}
+        ${logpolar_INCLUDE_DIRS}
 )
+
 
 # Search for source code.
 FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
@@ -31,12 +35,12 @@ IF (folder_source)
         ${folder_header}
     )
 
-    TARGET_LINK_LIBRARIES( ${KEYWORD} 
-      		${YARP_LIBRARIES}
-		${IPP_LIBRARIES}
-		logpolar
-		#icubmod
-		#iKin
+    TARGET_LINK_LIBRARIES( ${KEYWORD}
+            ${YARP_LIBRARIES}
+            ${ICUB_LIBRARIES}
+            logpolar
+            iKin
+
     )
     
   INSTALL_TARGETS(/bin ${KEYWORD})
