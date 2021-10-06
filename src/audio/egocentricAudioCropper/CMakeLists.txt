@@ -4,8 +4,11 @@
 
 SET(KEYWORD "egocentricAudioCropper")
 PROJECT(${KEYWORD})
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
+
 find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
+find_package(ICUB REQUIRED)
 set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)
 
 INCLUDE_DIRECTORIES(

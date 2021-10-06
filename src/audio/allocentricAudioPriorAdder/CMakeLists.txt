@@ -4,9 +4,14 @@
 
 SET(KEYWORD "allocentricAudioPriorAdder")
 PROJECT(${KEYWORD})
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
+
 find_package(YARP REQUIRED)
-set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)
+find_package(YCM REQUIRED)
+find_package(ICUBcontrib REQUIRED)
+
+
+list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
@@ -30,7 +35,6 @@ IF (folder_source)
     )
 
     TARGET_LINK_LIBRARIES(${KEYWORD}
-
       ${YARP_LIBRARIES}
       )
 
