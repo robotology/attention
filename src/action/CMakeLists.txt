@@ -3,18 +3,12 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
 
-if(OpenCV_FOUND)
-  #add_subdirectory( mosaic  )
-else(OpenCV_FOUND)
-  message(STATUS "OpenCV not found/selected, skipping modules")
-endif(OpenCV_FOUND)
-
+add_subdirectory( gazeArbiter  )
+add_subdirectory( eeProfiler   )
+add_subdirectory( attentionPrioritiser )
 
 if(IPOPT_FOUND)
-    add_subdirectory( gazeArbiter  )
-    add_subdirectory( eeProfiler   )
-    add_subdirectory( attentionPrioritiser )
     message(STATUS "IPOPT not found/selected, skipping Modules")
 endif(IPOPT_FOUND)

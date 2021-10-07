@@ -1,18 +1,22 @@
 # Copyright: (C) 2012 RobotCub Consortium
 # Authors: Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
 SET(KEYWORD "attentionPrioritiser")
 PROJECT(${KEYWORD})
 
-message ("logpolar_INCLUDE_DIRS : ${logpolar_INCLUDE_DIRS};")
-message ("YARP_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ")
+find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(logpolar REQUIRED)
+
+
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
     ${ICUB_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
-    ${iKin_INCLUDE_DIRS}
     ${ATTENTIONLIB_INCLUDE_DIRS}
     ${logpolar_INCLUDE_DIRS}
 )
@@ -54,7 +58,6 @@ IF (folder_source)
 	        ${YARP_LIBRARIES}
 	        ${OpenCV_LIBRARIES}
 	        iKin
-	        #icubmod 
             attentionLib
             logpolar
 	)	

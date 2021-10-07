@@ -1,17 +1,20 @@
 # Copyright: (C) 2015 Robotics, Brain and Cognitive Science
 # Authors: Francesco Rea, Giorgio Metta
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
 SET(KEYWORD "eeProfiler")
 PROJECT(${KEYWORD})
 
+find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(logpolar REQUIRED)
 #search for includes
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${ICUB_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS}
-    ${iKin_INCLUDE_DIRS}
-    ${OpenCV_DIRS}
+    ${OPENCV_INCLUDE_DIR}
     ${logpolar_INCLUDE_DIRS}
 )
 
@@ -30,10 +33,9 @@ IF (folder_source)
 
     TARGET_LINK_LIBRARIES( ${KEYWORD} 
       		${YARP_LIBRARIES}
-		${IPP_LIBRARIES}
-                ${OpenCV_LIBRARIES}
+		    ${IPP_LIBRARIES}
+            ${OpenCV_LIBRARIES}
 		logpolar
-		#icubmod
 		iKin
     )
     

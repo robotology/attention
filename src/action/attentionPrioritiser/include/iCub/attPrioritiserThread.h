@@ -43,8 +43,8 @@
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/ctrl/pids.h>
 
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
 
 //within project includes
 //#include <iCub/trackerThread.h>

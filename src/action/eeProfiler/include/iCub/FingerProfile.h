@@ -35,7 +35,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 #include <stdio.h>
 //#include <cmath>
 #include <math.h>
