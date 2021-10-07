@@ -4,7 +4,8 @@
 
 SET(KEYWORD "randomTopDownAttention")
 PROJECT(${KEYWORD})
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
+
 find_package(YARP REQUIRED)
 set(ICUB_CONTRIB_DIRS $ENV{ICUB_DIR}/include)
 

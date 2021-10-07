@@ -5,7 +5,7 @@
 SET(KEYWORD zeroDisparityFilter)
 PROJECT(${KEYWORD})
 cmake_minimum_required(VERSION 3.12)
-#
+
 find_package(YCM REQUIRED)
 find_package(YARP REQUIRED COMPONENTS sig cv)
 find_package(OpenCV REQUIRED)

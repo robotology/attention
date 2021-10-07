@@ -4,7 +4,8 @@
 
 SET(KEYWORD "attentionManager")
 PROJECT(${KEYWORD})
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
+
 
 find_package(ICUBcontrib REQUIRED)
 find_package(YARP REQUIRED os dev sig cv math)
