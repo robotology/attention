@@ -1,15 +1,4 @@
-#CMakeList.txt
-cmake_minimum_required(VERSION 2.8.9)
-#find YARP
-find_package(YARP REQUIRED)
-#compile definition file to generate source code into the desired directory
-set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-yarp_idl_to_dir(demo.thrift ${generated_libs_dir} sources headers include_dirs)
-# generated source files now listed in ${sources}
-# generated header files now listed in ${headers}
-# paths to include now listed in ${include_dirs}
-
-SET(KEYWORD "simpleThrift")
+SET(KEYWORD "simpleThriftClient")
 PROJECT(${KEYWORD})
 cmake_minimum_required(VERSION 2.6)
 
@@ -25,8 +14,7 @@ INCLUDE_DIRECTORIES(
 
 # Search for source code.
 FILE(GLOB folder_source
-  src/DemoServer.cpp
-  src/Demo.cpp
+        src/DemoClient.cpp
   )
 FILE(GLOB folder_header include/iCub/*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
