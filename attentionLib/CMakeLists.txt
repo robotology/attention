@@ -1,10 +1,13 @@
 # Copyright: (C) 2012 RobotCub Consortium
 # Authors: Francesco Rea
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
 
 SET(PROJECTNAME attentionLib)
 PROJECT(${PROJECTNAME})
+
+find_package(YARP REQUIRED)
+find_package(YCM REQUIRED)
 
 SET(PROJECT_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include)
@@ -27,11 +30,9 @@ MESSAGE("folder_header ${folder_header}")
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
-message ("YARP_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ")
 message ("PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}")
 # Add our include files into our compiler's search path.
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
-	${YARP_INCLUDE_DIRS}
         ${ICUB_INCLUDE_DIRS}
 )
 
@@ -47,6 +48,6 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES})
 
 
 icubcontrib_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
-                                          EXTERNAL_INCLUDE_DIRS ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS}
+                                          EXTERNAL_INCLUDE_DIRS ${ICUB_INCLUDE_DIRS}
                                           DESTINATION include/iCub/attention
                                           FILES  ${folder_header})

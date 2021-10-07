@@ -3,10 +3,13 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.12)
 
-if(ENABLE_GTK2)
+find_package(GTK2)
+
+
+if(GTK2_FOUND)
   add_subdirectory( selAttentionInterface     )
-else(ENABLE_GTK2)
+else(GTK2_FOUND)
     message(STATUS "ENABLE_GTK2 not found/selected, skipping modules")
-endif(ENABLE_GTK2)
+endif(GTK2_FOUND)

@@ -13,7 +13,6 @@ find_package(logpolar REQUIRED)
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
     ${ICUB_INCLUDE_DIRS}
-    ${YARP_INCLUDE_DIRS}
     ${OPENCV_INCLUDE_DIR}
     ${logpolar_INCLUDE_DIRS}
 )
