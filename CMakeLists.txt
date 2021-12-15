@@ -30,6 +30,6 @@ add_subdirectory(attentionLib)
 add_subdirectory(src)
 
 
-#icubcontrib_finalize_export(attention)
+icubcontrib_finalize_export(attention)
 icubcontrib_set_default_prefix()
 icubcontrib_add_uninstall_target()        
