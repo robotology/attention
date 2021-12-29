@@ -18,7 +18,9 @@ if(OpenCV_FOUND)
   add_subdirectory( selectiveAttentionEngine  )
   add_subdirectory( zeroDisparityFilter       )
   add_subdirectory( saliencyBlobFinder )
+  add_subdirectory(segmentInhibitor)
 else(OpenCV_FOUND)
+
   message(STATUS "OpenCV not found/selected, skipping modules")
 endif(OpenCV_FOUND)
 
