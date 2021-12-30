@@ -37,7 +37,6 @@ IF (folder_source)
 
     TARGET_LINK_LIBRARIES( ${KEYWORD}
             ${YARP_LIBRARIES}
-            ${ICUB_LIBRARIES}
             logpolar
             iKin
 

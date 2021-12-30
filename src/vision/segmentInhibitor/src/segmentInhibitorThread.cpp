@@ -74,16 +74,34 @@ void segmentInhibitorThread::run() {
 
             cvtColor(cartInMat, cartInputGray, COLOR_BGR2GRAY);
 
+            // bluring
+            GaussianBlur(cartInputGray,cartGrayBlured, Size( 11, 11 ), 0, 0 );
+
 
             //thresholding
+            //adaptiveThreshold(cartGrayBlured, thrsholdedImg,  255, ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,11,2);
 
-            adaptiveThreshold(cartInputGray, thrsholdedImg,  255, ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,11,2);
+            threshold(cartGrayBlured, thrsholdedImg,  70,255,THRESH_BINARY_INV);
+
+
+
+            // drawing contours
+            vector<vector<Point>> contours;
+            vector<Vec4i> hierarchy;
+            findContours(thrsholdedImg, contours, hierarchy, RETR_TREE, CHAIN_APPROX_NONE);
 
 
             // transforming to rgb
             cvtColor(thrsholdedImg, thrsholdedRGBImg, COLOR_GRAY2RGB);
-            *cartWithInhibitionImage = fromCvMat<PixelRgb>(thrsholdedImg);
+            // drawing contours
+            contoursImg = cartInMat.clone();
+            drawContours(contoursImg, contours, 1, Scalar(0, 0, 0), FILLED);
 
+
+
+
+
+            *cartWithInhibitionImage = fromCvMat<PixelRgb>(contoursImg);
 
         }
 
@@ -150,6 +168,14 @@ bool segmentInhibitorThread::threadInit() {
 
 void segmentInhibitorThread::publishImagesOnPorts() {
 
+    if(segmentedImageOutPort.getOutputCount()){
+        segmentedImageOutPort.prepare() = *segmentedImage;
+        segmentedImageOutPort.write();
+    }
+    if(inhibitionImageOutPort.getOutputCount()){
+        inhibitionImageOutPort.prepare() = *inhibitionImage;
+        inhibitionImageOutPort.write();
+    }
     if(cartWithInhibitionImageOutPort.getOutputCount()){
         cartWithInhibitionImageOutPort.prepare() = *cartWithInhibitionImage;
         cartWithInhibitionImageOutPort.write();

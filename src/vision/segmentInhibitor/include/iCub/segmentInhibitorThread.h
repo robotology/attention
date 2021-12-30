@@ -28,6 +28,7 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/all.h>
 #include <yarp/cv/Cv.h>
+#include <opencv2/imgproc.hpp>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -92,8 +93,10 @@ private:
 
     Mat cartInMat;
     Mat cartInputGray;
+    Mat cartGrayBlured;
     Mat thrsholdedImg;
     Mat thrsholdedRGBImg;
+    Mat contoursImg;
 
     
 
