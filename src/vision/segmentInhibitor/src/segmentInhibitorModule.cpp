@@ -84,6 +84,10 @@ bool segmentInhibitorModule::respond(const Bottle& command, Bottle& reply)
     else if (command.get(0).asString()=="help") {
         reply.addString(helpMessage);
         return true;
+    }else if (command.get(0).asString()=="reset") {
+        pThread->removeAllContours();
+        reply.addString("ok");
+        return true;
     }
     bool replied = false;
 

@@ -32,12 +32,16 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
     engineControlPortName =  getName("/engineControl:oi");
     gazeArbiterControlPortName = getName("/gazeArbiterControl:oi");
     sceneAnalysisPortName = getName("/sceneAnalysis:o");
+    inhibitionControlPortName = getName("/inhibitionControl:oi");
 
     //initialize data
     combinedImage = new ImageOf<PixelRgb>;
 
 
     //initialize processing variables
+    lastHotPointTime = Time::now();
+    resetRequired = false;
+
 
 }
 
@@ -51,6 +55,7 @@ bool attentionManagerThread::configure(yarp::os::ResourceFinder &rf){
     mean_thresholdVal = rf.findGroup("processingParam").check("mean_threshold", yarp::os::Value(0), "the mean threshold value to execute the action").asFloat64();
     std_thresholdVal = rf.findGroup("processingParam").check("std_threshold",    yarp::os::Value(5), "the std threshold value to execute the action").asFloat64();
     threeSigma_thresholdVal = rf.findGroup("processingParam").check("three_sigma_threshold",    yarp::os::Value(95), "the 3 sigma threshold value to execute the action").asFloat64();
+    marginTime = rf.findGroup("resettingInhibition").check("marginTime",    yarp::os::Value(0.5)).asFloat32();
 
 
     init_max_thresholdVal = max_thresholdVal;
@@ -59,13 +64,16 @@ bool attentionManagerThread::configure(yarp::os::ResourceFinder &rf){
     init_threeSigma_thresholdVal = threeSigma_thresholdVal;
 
     yInfo( " " );
-    yInfo( "\t               [processingParam]               "                               );
+    yInfo( "\t               [processingParam]              "                               );
     yInfo( "\t ============================================ "                                );
     yInfo( "\t max_threshold                : %.3f m",       max_thresholdVal                );
     yInfo("\t mean_threshold                : %.3f m",       mean_thresholdVal               );
     yInfo( "\t std_threshold                : %.3f m",       std_thresholdVal                );
     yInfo( "\t three_sigma_threshold        : %.3f m",       threeSigma_thresholdVal         );
     yInfo( " " );
+    yInfo( "\t          [resettingInhibition]               "                               );
+    yInfo( "\t ============================================ "                                );
+    yInfo( "\t marginTime                : %.3f m",       marginTime                );
     return true;
 }
 
@@ -77,33 +85,43 @@ bool attentionManagerThread::threadInit() {
 	 *    let RFModule know initialization was unsuccessful.
 	 * =========================================================================== */
 
-    if (!combinedImagePort.open(combinedImagePortName.c_str())) {
+    if (!combinedImagePort.open(combinedImagePortName)) {
         yError("Unable to open /combinedImage:i port ");
         return false;
     }
-    if (!hotPointPort.open(hotPointPortName.c_str())) {
+    if (!hotPointPort.open(hotPointPortName)) {
         yError("Unable to open /hotPoint:o port ");
         return false;
     }
 
-    if (!engineControlPort.open(engineControlPortName.c_str())) {
+    if (!engineControlPort.open(engineControlPortName)) {
         yError("Unable to open /engineControl:oi port ");
         return false;
     }
-    if (!gazeArbiterControlPort.open(gazeArbiterControlPortName.c_str())) {
+    if (!gazeArbiterControlPort.open(gazeArbiterControlPortName)) {
         yError("Unable to open /gazeArbiterControl:oi port ");
         return false;
     }
-    if (!sceneAnalysisPort.open(sceneAnalysisPortName.c_str())) {
+    if (!sceneAnalysisPort.open(sceneAnalysisPortName)) {
         yError("Unable to open /sceneAnalysis:o port ");
         return false;
     }
 
+    if (!inhibitionControlPort.open(inhibitionControlPortName)) {
+        yError("Unable to open %s port ",inhibitionControlPortName.c_str());
+        return false;
+    }
     yInfo("Initialization of the processing thread correctly ended.");
 
     return true;
 }
 void attentionManagerThread::run() {
+    if(resetRequired && Time::now() >(lastHotPointTime+marginTime) ){
+        if(resetInhibition())
+            yInfo("reset inhibition Done");
+        else
+            yError("reset inhibition error");
+    }
     if(combinedImagePort.getInputCount()){
         combinedImage = combinedImagePort.read(true);
         if(combinedImage!=NULL){
@@ -156,6 +174,7 @@ void attentionManagerThread::threadRelease() {
     engineControlPort.interrupt();
     gazeArbiterControlPort.interrupt();
     sceneAnalysisPort.interrupt();
+    inhibitionControlPort.interrupt();
 
 
     //-- Close the threads.
@@ -164,6 +183,7 @@ void attentionManagerThread::threadRelease() {
     engineControlPort.close();
     gazeArbiterControlPort.close();
     sceneAnalysisPort.close();
+    inhibitionControlPort.close();
 
 }
 
@@ -185,6 +205,11 @@ bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val,fl
         msg.addFloat64(imgStd);
         hotPointPort.prepare() = msg;
         hotPointPort.write();
+
+        // reset signal trigger
+        lastHotPointTime = Time::now();
+        resetRequired = true;
+
         return true;
     }
     return false;
@@ -474,5 +499,19 @@ bool attentionManagerThread::resetThreshold(const int32_t type) {
 
     }
     return ret;
+}
+
+bool attentionManagerThread::resetInhibition() {
+    if(inhibitionControlPort.getOutputCount()){
+        Bottle command;
+        Bottle reply;
+        command.addString("reset");
+        inhibitionControlPort.write(command,reply);
+        if(reply.get(0).asString()=="ok"){
+            resetRequired = false;
+            return true;
+        }
+    }
+    return false;
 }
 

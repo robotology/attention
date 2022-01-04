@@ -52,6 +52,7 @@ private:
     string engineControlPortName;
     string gazeArbiterControlPortName;
     string sceneAnalysisPortName;
+    string inhibitionControlPortName;
 
 
 
@@ -65,6 +66,7 @@ private:
     //rpcPorts
     RpcClient engineControlPort;
     RpcClient gazeArbiterControlPort;
+    RpcClient inhibitionControlPort;
 
 
     //Data
@@ -83,6 +85,9 @@ private:
     float init_std_thresholdVal;
     float init_threeSigma_thresholdVal;
 
+    // Parameters : resetting inhibition
+    float marginTime;
+
 
     //Processing Variables
     unsigned char maxValue;
@@ -90,7 +95,8 @@ private:
     float stdVal;
     float threeSigmaVal;
     cv::Point idxOfMax;
-
+    double lastHotPointTime;
+    bool resetRequired;
 
 
     //processing functions
@@ -100,6 +106,7 @@ private:
     bool suspendArbiter();
     bool resumeArbiter();
     bool publishAnalysis();
+    bool resetInhibition();
 
 };
 #endif //ATTENTION_ATTENTIONMANAGERTHREAD_H

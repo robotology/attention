@@ -67,6 +67,7 @@ private:
 
 
     string cartCombinedImageInPortName;
+    string hotPointInPortName;
     string segmentedImageOutPortName;
     string inhibitionImageOutPortName;
     string cartWithInhibitionImageOutPortName;
@@ -77,7 +78,8 @@ private:
 	 * =========================================================================== */
 
     yImgPixelRgbBuffer cartCombinedImageInPort;
-    yImgPixelMonoBuffer segmentedImageOutPort;
+    BufferedPort<Bottle> hotPointInPort;
+    yImgPixelRgbBuffer segmentedImageOutPort;
     yImgPixelMonoBuffer inhibitionImageOutPort;
     yImgPixelRgbBuffer cartWithInhibitionImageOutPort;
 
@@ -87,20 +89,35 @@ private:
     * =========================================================================== */
 
     yImgPixelRgb *cartCombinedImage;
-    yImgPixelMono *segmentedImage;
+    Bottle* hotPointBottle;
+    yImgPixelRgb *segmentedImage;
     yImgPixelMono *inhibitionImage;
     yImgPixelRgb *cartWithInhibitionImage;
 
     Mat cartInMat;
-    Mat cartInputGray;
-    Mat cartGrayBlured;
-    Mat thrsholdedImg;
-    Mat thrsholdedRGBImg;
-    Mat contoursImg;
+    Mat sagMat;
+    Mat inhMat;
+    Mat cartWithInhMat;
 
+
+
+    Point hotPoint;
+
+    vector<vector<Point>> inhibitedContours;
+
+    /* ===========================================================================
+     *  Reading functions
+     * =========================================================================== */
+    bool readHotPointBottle();
     
 
     void publishImagesOnPorts();
+    void addContourFromPoint(Point &point);
+
+    void computeSegmentedImage();
+    void computeInhImage();
+public:
+    void removeAllContours();
 
 };
 
