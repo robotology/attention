@@ -28,7 +28,7 @@ SET(ATTENTIONLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/attentionLib/include)
 
 add_subdirectory(attentionLib)
 add_subdirectory(src)
-
+add_subdirectory(app)
 
 icubcontrib_finalize_export(attention)
 icubcontrib_set_default_prefix()
