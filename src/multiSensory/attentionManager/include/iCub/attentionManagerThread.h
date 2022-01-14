@@ -56,11 +56,12 @@ private:
     string gazeArbiterControlPortName;
     string sceneAnalysisPortName;
     string inhibitionControlPortName;
-
+    string inputHeadAnglesPortName;
 
 
     //Input Ports
     BufferedPort<yImgPixelRGB> combinedImagePort;
+    BufferedPort<Bottle>  inputHeadAnglesPort;
 
     //output Ports
     BufferedPort<Bottle> hotPointPort;
@@ -73,11 +74,19 @@ private:
     RpcClient inhibitionControlPort;
 
 
-    //Data
+    //Data ... Input
+    Bottle* headAnglesBottle;
     yImgPixelRGB *combinedImage;
+
+    // Dara .. output
     yImgPixelRGB *visualizedImage;
 
     Mat visualizedImageMat;
+
+
+    //Data .... Processing
+    vector<double> currentAngles;
+    vector<double> prevAngles;
 
 
     //Parameters
@@ -93,7 +102,7 @@ private:
 
     // Parameters : resetting inhibition
     float marginTime;
-
+    float marginDisplacement;
 
     //Processing Variables
     unsigned char maxValue;
@@ -114,6 +123,7 @@ private:
     bool publishAnalysis();
     bool resetInhibition();
     void computeAndPublishVisualizedImage();
+    bool checkMovement();
 
 };
 #endif //ATTENTION_ATTENTIONMANAGERTHREAD_H

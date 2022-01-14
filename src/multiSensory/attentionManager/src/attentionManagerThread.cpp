@@ -28,6 +28,7 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
     //initialize names
     this->moduleName = moduleName;
     combinedImagePortName = getName("/combinedImage:i");
+    inputHeadAnglesPortName = getName("/headAngles:i");
     hotPointPortName = getName("/hotPoint:o");
     visualizationPortName = getName("/visualizedImage:o");
     engineControlPortName =  getName("/engineControl:oi");
@@ -91,6 +92,10 @@ bool attentionManagerThread::threadInit() {
         yError("Unable to open /combinedImage:i port ");
         return false;
     }
+    if (!inputHeadAnglesPort.open(inputHeadAnglesPortName)) {
+        yError("Unable to open port %s " , inputHeadAnglesPortName.c_str());
+        return false;
+    }
     if (!hotPointPort.open(hotPointPortName)) {
         yError("Unable to open /hotPoint:o port ");
         return false;
@@ -123,6 +128,9 @@ bool attentionManagerThread::threadInit() {
     return true;
 }
 void attentionManagerThread::run() {
+    if(checkMovement()){
+        resetInhibition();
+    }
     if(resetRequired && Time::now() >(lastHotPointTime+marginTime) ){
         if(resetInhibition())
             yInfo("reset inhibition Done");
@@ -186,6 +194,8 @@ void attentionManagerThread::threadRelease() {
     gazeArbiterControlPort.interrupt();
     sceneAnalysisPort.interrupt();
     inhibitionControlPort.interrupt();
+    visualizationPort.interrupt();
+    inputHeadAnglesPort.interrupt();
 
 
     //-- Close the threads.
@@ -195,6 +205,8 @@ void attentionManagerThread::threadRelease() {
     gazeArbiterControlPort.close();
     sceneAnalysisPort.close();
     inhibitionControlPort.close();
+    visualizationPort.close();
+    inputHeadAnglesPort.close();
 
 }
 
@@ -540,5 +552,27 @@ void attentionManagerThread::computeAndPublishVisualizedImage() {
         visualizationPort.write();
     }
 
+}
+
+bool attentionManagerThread::checkMovement() {
+
+    if(inputHeadAnglesPort.getInputCount()){
+        headAnglesBottle = inputHeadAnglesPort.read(false);
+        if(headAnglesBottle->size()){
+            currentAngles.clear();
+            double val = 0;
+            for(int i=0; i<headAnglesBottle->size();i++){
+                currentAngles.push_back(headAnglesBottle->get(i).asFloat32());
+                val = val + pow(headAnglesBottle->get(i).asFloat32() - prevAngles.at(i),2);
+            }
+            val = sqrt(val);
+            if(val > marginDisplacement){
+                prevAngles = currentAngles;
+                return true;
+            }
+        }
+        return true;
+    }
+    return false;
 }
 

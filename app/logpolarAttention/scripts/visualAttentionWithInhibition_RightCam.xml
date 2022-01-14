@@ -197,5 +197,12 @@
     </connection>
 
 
+    <connection>
+        <from>/icub/head/state:o</from>
+        <to>/attentionManager/headAngles:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
 
 </application>
