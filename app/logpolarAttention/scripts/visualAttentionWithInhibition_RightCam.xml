@@ -1,0 +1,201 @@
+<application>
+    <name>Neurocog 1 Visual Attention</name>
+
+    <!-- Early Attention Modules -->
+
+    <module>
+       <name>logpolarTransform</name>
+       <parameters>--name logPolarTransform/icub/right_cam --xsize 320 --ysize 240 --direction CARTESIAN2LOGPOLAR</parameters>
+       <node>icubsrv</node>
+       <tag>rightLogPolarTransform</tag>
+    </module>
+
+	<module>
+		<name>earlyVision</name>
+		<parameters>--name /earlyVision/icub/right_cam</parameters>
+		<tag>earlyvis</tag>
+		<node>icubsrv</node>
+	</module>
+	<module>
+		<name>earlyMotion</name>
+		<parameters>--name /earlyMotion/icub/right_cam</parameters>
+		<tag>earlymot</tag>
+		<node>icubsrv</node>
+	</module>
+
+
+    <!-- Attention MAin Modules -->
+	<module>
+		<name>selectiveAttentionEngine</name>
+		<parameters>--from selectiveAttentionRight.ini --context logpolarAttention --name /selectiveAttentionEngine/icub/right_cam </parameters>
+		<tag>earlySelectiveAtt</tag>
+		<node>icubsrv</node>
+	</module>
+
+    <module>
+        <name>egocentricAudioCropper</name>
+        <parameters>--name /egocentricAudioCropper</parameters>
+        <node>icubsrv</node>
+    </module>
+
+    <module>
+        <name>attentionManager</name>
+        <parameters>--name /attentionManager</parameters>
+        <node>icubsrv</node>
+    </module>
+
+
+    <module>
+        <name>gausianInhibitor</name>
+        <parameters></parameters>
+        <node>icubsrv</node>
+    </module>
+
+
+
+    <!-- Connections -->
+
+    <connection>
+      <from>/icub/camcalib/right/out</from>
+      <to>/logPolarTransform/icub/right_cam/image:i</to>
+      <protocol>udp</protocol>
+    </connection>
+
+
+
+
+    <connection>
+        <from>/logPolarTransform/icub/right_cam/image:o</from>
+        <to>/earlyVision/icub/right_cam/imageRGB:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+
+    <connection>
+         <from>/selectiveAttentionEngine/icub/right_cam/magnoCells:o</from>
+         <to>/earlyMotion/icub/right_cam</to>
+         <protocol>tcp</protocol>
+    </connection>
+
+
+
+    <connection>
+        <from>/earlyVision/icub/right_cam/centSurrIntensity:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/intensity:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/logPolarTransform/icub/right_cam/image:o</from>
+        <to>/earlyMotion/icub/right_cam/image:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/earlyMotion/icub/right_cam/motion:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/motion:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/earlyVision/icub/right_cam/chrominance:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/chrominance:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/earlyVision/icub/right_cam/chrome/sumOrientations:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/orientation:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/earlyVision/icub/right_cam/edges/edges:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/edges:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+<!-- Integrated Attention Connections-->
+
+
+    <connection>
+        <from>/faceDetector/image/out</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/cart1:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/oneMerger/maskBio:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/cart2:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+
+    <connection>
+        <from>/allocentricAudioPriorAdder/saliencyAngleMap:o</from>
+        <to>/egocentricAudioCropper/map:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from>/iKinGazeCtrl/angles:o</from>
+        <to>/egocentricAudioCropper/gazeAngles:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+    <connection>
+        <from>/egocentricAudioCropper/cartScaledImg:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam/cart3:i </to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+
+    <!--Inhibition Connections -->
+
+    <connection>
+        <from>/selectiveAttentionEngine/icub/right_cam/cartesianPlain:o</from>
+        <to>/gaussianInhibitor/cartCombinedImage:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+
+    <connection>
+        <from>/attentionManager/hotPoint:o</from>
+        <to>/gaussianInhibitor/hotPoint:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+
+    <connection>
+        <from>/attentionManager/inhibitionControl:oi</from>
+        <to>/gaussianInhibitor</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+    <!--AttentionManager Connections -->
+
+    <connection>
+        <from>/gaussianInhibitor/cartWithInhibitionImage:o</from>
+        <to>/attentionManager/combinedImage:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+
+    <connection>
+        <from>/attentionManager/engineControl:oi</from>
+        <to>/selectiveAttentionEngine/icub/right_cam</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+
+</application>
