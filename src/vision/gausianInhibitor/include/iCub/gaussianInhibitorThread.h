@@ -123,6 +123,7 @@ private:
      *  Processing functions
      * =========================================================================== */
     void addGaussianCircleFromPoint(Point &point);
+    void drawPointInInhMat(Point &point);
     void computeImages();
     void updateInhMat();
 

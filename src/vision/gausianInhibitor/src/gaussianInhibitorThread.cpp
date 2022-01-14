@@ -35,11 +35,6 @@ gaussianInhibitorThread::gaussianInhibitorThread(string moduleName): PeriodicThr
 
 
 
-
-
-    inhibitedPoints.push_back(Point(100,100));
-
-
 }
 
 gaussianInhibitorThread::~gaussianInhibitorThread(){
@@ -92,11 +87,6 @@ bool gaussianInhibitorThread::configure(yarp::os::ResourceFinder &rf){
     inhMat = Mat(rowSize,colSize,CV_8UC1,Scalar(255));
     cartWithInhMat = Mat(rowSize,colSize,CV_8UC3,Scalar(0,0,0));
 
-    for (int i = 0;i<30;i++){
-        for(int j=0; j<30;j++){
-            inhMat.at<uchar>(i,j) = (unsigned char )  0;
-        }
-    }
 
     return true;
 }
@@ -232,22 +222,7 @@ double gaussianInhibitorThread::norm_pdf(double x, double sig)
 void gaussianInhibitorThread::addGaussianCircleFromPoint(Point &point) {
 
     inhibitedPoints.push_back(point);
-    int x = max(0,point.x - xMargin);
-    int y;
-    double dist;
-    for(x;(x<rowSize && x < point.x + xMargin );x++){
-        for(y = max(0,point.y - yMargin);(y<colSize && y< point.y + yMargin);y++){
-            dist = pow(x-point.x, 2) + pow(y-point.y, 2);       //calculating Euclidean distance
-            dist = sqrt(dist);
-            double pixVal = norm_pdf(dist,sigma) * 255;
-            pixVal = 255 - pixVal;
-            yInfo(" x: %d , y %d  val  = %0.4f",x,y,pixVal);
-            inhMat.at<uchar>(x,y) = min(inhMat.at<uchar>(x,y),(unsigned char )pixVal)  ;
-
-        }
-        yInfo(" x:_________________________ %d",x);
-    }
-    inhMat.at<uchar>(point.x,point.y) = 0;
+    drawPointInInhMat(point);
 
 }
 
@@ -266,22 +241,8 @@ void gaussianInhibitorThread::updateInhMat() {
     inhMat = Mat(rowSize,colSize,CV_8U,Scalar(255));;
 
     for(auto point : inhibitedPoints){
-        int x = max(0,point.x - xMargin);
-        int y;
-        double dist;
-        for(x;(x<rowSize && x < point.x + xMargin );x++){
-            for(y = max(0,point.y - yMargin);(y<colSize && y< point.y + yMargin);y++){
-                dist = pow(x-point.x, 2) + pow(y-point.y, 2);       //calculating Euclidean distance
-                dist = sqrt(dist);
-                double pixVal = norm_pdf(dist,sigma) * 255;
-                pixVal = 255 - pixVal;
-                yInfo(" x: %d , y %d  val  = %0.4f",x,y,pixVal);
-                inhMat.at<uchar>(x,y) = min(inhMat.at<uchar>(x,y),(unsigned char )pixVal)  ;
+        drawPointInInhMat(point);
 
-            }
-            yInfo(" x:_________________________ %d",x);
-        }
-        inhMat.at<uchar>(point.x,point.y) = 0;
     }
 
 }
@@ -323,6 +284,25 @@ double gaussianInhibitorThread::getValue(const Value& var) const {
     }
     yError("error in variable name");
     return -1;
+}
+
+void gaussianInhibitorThread::drawPointInInhMat(Point &point) {
+    int x = max(0,point.x - xMargin);
+    int y;
+    double dist;
+    for(x;(x<rowSize && x < point.x + xMargin );x++){
+        for(y = max(0,point.y - yMargin);(y<colSize && y< point.y + yMargin);y++){
+            dist = pow(x-point.x, 2) + pow(y-point.y, 2);       //calculating Euclidean distance
+            dist = sqrt(dist);
+            double pixVal = norm_pdf(dist,sigma) * 255;
+            pixVal = 255 - pixVal;
+            yInfo(" x: %d , y %d  val  = %0.4f",x,y,pixVal);
+            inhMat.at<uchar>(x,y) = min(inhMat.at<uchar>(x,y),(unsigned char )pixVal)  ;
+
+        }
+        yInfo(" x:_________________________ %d",x);
+    }
+    inhMat.at<uchar>(point.x,point.y) = 0;
 }
 
 
