@@ -19,9 +19,11 @@
 #include <vector>
 #include <numeric>
 #include <iCub/attention/commandDictionary.h>
+#include <opencv2/imgproc.hpp>
 
 using namespace yarp::os;
 using namespace std;
+using namespace cv;
 
 
 typedef yarp::sig::ImageOf<yarp::sig::PixelRgb>  yImgPixelRGB;
@@ -49,6 +51,7 @@ private:
     string moduleName;
     string combinedImagePortName;
     string hotPointPortName;
+    string visualizationPortName;
     string engineControlPortName;
     string gazeArbiterControlPortName;
     string sceneAnalysisPortName;
@@ -62,6 +65,7 @@ private:
     //output Ports
     BufferedPort<Bottle> hotPointPort;
     BufferedPort<Bottle> sceneAnalysisPort;
+    BufferedPort<yImgPixelRGB> visualizationPort;
 
     //rpcPorts
     RpcClient engineControlPort;
@@ -71,7 +75,9 @@ private:
 
     //Data
     yImgPixelRGB *combinedImage;
+    yImgPixelRGB *visualizedImage;
 
+    Mat visualizedImageMat;
 
 
     //Parameters
@@ -107,6 +113,7 @@ private:
     bool resumeArbiter();
     bool publishAnalysis();
     bool resetInhibition();
+    void computeAndPublishVisualizedImage();
 
 };
 #endif //ATTENTION_ATTENTIONMANAGERTHREAD_H

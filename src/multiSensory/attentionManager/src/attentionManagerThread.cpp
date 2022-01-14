@@ -29,6 +29,7 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
     this->moduleName = moduleName;
     combinedImagePortName = getName("/combinedImage:i");
     hotPointPortName = getName("/hotPoint:o");
+    visualizationPortName = getName("/visualizedImage:o");
     engineControlPortName =  getName("/engineControl:oi");
     gazeArbiterControlPortName = getName("/gazeArbiterControl:oi");
     sceneAnalysisPortName = getName("/sceneAnalysis:o");
@@ -36,6 +37,7 @@ attentionManagerThread::attentionManagerThread(string moduleName):PeriodicThread
 
     //initialize data
     combinedImage = new ImageOf<PixelRgb>;
+    visualizedImage = new ImageOf<PixelRgb>;
 
 
     //initialize processing variables
@@ -107,6 +109,11 @@ bool attentionManagerThread::threadInit() {
         return false;
     }
 
+    if (!visualizationPort.open(visualizationPortName)) {
+        yError("Unable to open %s  port ", visualizationPortName.c_str());
+        return false;
+    }
+
     if (!inhibitionControlPort.open(inhibitionControlPortName)) {
         yError("Unable to open %s port ",inhibitionControlPortName.c_str());
         return false;
@@ -152,6 +159,10 @@ void attentionManagerThread::run() {
             threeSigmaVal =maxValue-meanVal-3*stdVal;
             publishAnalysis();
             yInfo("Max= %d  Mean = %.3f , std = %0.3f var = %.3f  (max-mean)-3s = %0.3f",maxValue,meanVal,stdVal,var,threeSigmaVal);
+
+            if(visualizationPort.getOutputCount()){
+                computeAndPublishVisualizedImage();
+            }
 //            if((maxValue >= max_thresholdVal) && (meanVal <= mean_thresholdVal) && (stdVal >= std_thresholdVal) && (threeSigmaVal >= threeSigma_thresholdVal)){
 //                if(!sendMaxPointToLinker(idxOfMax,maxValue,meanVal,stdVal)){
 //                    yDebug("max point port not connected to any output");
@@ -513,5 +524,21 @@ bool attentionManagerThread::resetInhibition() {
         }
     }
     return false;
+}
+
+void attentionManagerThread::computeAndPublishVisualizedImage() {
+
+    visualizedImageMat =  toCvMat(*combinedImage);
+    line(visualizedImageMat,Point(idxOfMax.x,0),Point(idxOfMax.x,visualizedImageMat.cols), Scalar(255,0,0));
+    line(visualizedImageMat,Point(0,idxOfMax.y),Point(visualizedImageMat.rows,idxOfMax.y), Scalar(255,0,0));
+    string summary = "max:" + to_string(maxValue) + " 3S: " + to_string(threeSigmaVal) ;
+    putText(visualizedImageMat,summary,Point(10,10),FONT_HERSHEY_DUPLEX,2,Scalar(0,0,255),2);
+
+    *visualizedImage = fromCvMat<PixelRgb>(visualizedImageMat);
+    if(visualizationPort.getOutputCount()){
+        visualizationPort.prepare() = *visualizedImage;
+        visualizationPort.write();
+    }
+
 }
 
