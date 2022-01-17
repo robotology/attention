@@ -180,8 +180,8 @@ bool gaussianInhibitorThread::readHotPointBottle() {
         if(hotPointBottle->size() >= 4){
             Bottle* hotPointCoordinatesList = hotPointBottle->get(0).asList();
             if(hotPointCoordinatesList!=nullptr && hotPointCoordinatesList->size()==2){
-                hotPoint.x = hotPointCoordinatesList->get(0).asInt32();
-                hotPoint.y  =  hotPointCoordinatesList->get(1).asInt32();
+                hotPoint.y = hotPointCoordinatesList->get(0).asInt32();
+                hotPoint.x  =  hotPointCoordinatesList->get(1).asInt32();
             }
             return true;
         }
@@ -192,7 +192,7 @@ bool gaussianInhibitorThread::readHotPointBottle() {
 
 void gaussianInhibitorThread::removeAllPoints() {
     inhibitedPoints.clear();
-    inhMat = Mat(rowSize,colSize,CV_8U,Scalar(255));
+    inhMat = Mat(rowSize,colSize,CV_8UC1,Scalar(255));
 }
 
 
@@ -238,7 +238,7 @@ bool gaussianInhibitorThread::readCartImage() {
 void gaussianInhibitorThread::updateInhMat() {
 
 
-    inhMat = Mat(rowSize,colSize,CV_8U,Scalar(255));;
+    inhMat = Mat(rowSize,colSize,CV_8UC1,Scalar(255));;
 
     for(auto point : inhibitedPoints){
         drawPointInInhMat(point);
