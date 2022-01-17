@@ -541,10 +541,10 @@ bool attentionManagerThread::resetInhibition() {
 void attentionManagerThread::computeAndPublishVisualizedImage() {
 
     visualizedImageMat =  toCvMat(*combinedImage);
-    line(visualizedImageMat,Point(idxOfMax.y,0),Point(idxOfMax.y,visualizedImageMat.cols), Scalar(255,0,0));
-    line(visualizedImageMat,Point(0,idxOfMax.x),Point(visualizedImageMat.rows,idxOfMax.x), Scalar(255,0,0));
-    string summary = "max:" + to_string(maxValue) + " 3S: " + to_string(threeSigmaVal) ;
-    putText(visualizedImageMat,summary,Point(10,10),FONT_HERSHEY_DUPLEX,2,Scalar(0,0,255),2);
+    line(visualizedImageMat,Point(idxOfMax.x,0),Point(idxOfMax.x,visualizedImageMat.rows), Scalar(255,0,0));
+    line(visualizedImageMat,Point(0,idxOfMax.y),Point(visualizedImageMat.cols,idxOfMax.y), Scalar(255,0,0));
+    string summary = "max: " + to_string(maxValue) + " 3S: " + to_string((int)threeSigmaVal) ;
+    putText(visualizedImageMat,summary,Point(30,30),FONT_HERSHEY_DUPLEX,0.8,Scalar(0,0,255),2);
 
     *visualizedImage = fromCvMat<PixelRgb>(visualizedImageMat);
     if(visualizationPort.getOutputCount()){
