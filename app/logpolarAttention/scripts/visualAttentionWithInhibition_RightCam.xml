@@ -32,11 +32,6 @@
 		<node>icubsrv</node>
 	</module>
 
-    <module>
-        <name>egocentricAudioCropper</name>
-        <parameters>--name /egocentricAudioCropper</parameters>
-        <node>icubsrv</node>
-    </module>
 
     <module>
         <name>attentionManager</name>
@@ -132,27 +127,7 @@
         <protocol>tcp</protocol>
     </connection>
 
-
-
-    <connection>
-        <from>/allocentricAudioPriorAdder/saliencyAngleMap:o</from>
-        <to>/egocentricAudioCropper/map:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-    <connection>
-        <from>/iKinGazeCtrl/angles:o</from>
-        <to>/egocentricAudioCropper/gazeAngles:i</to>
-        <protocol>tcp</protocol>
-    </connection>
-
-
-    <connection>
-        <from>/egocentricAudioCropper/cartScaledImg:o</from>
-        <to>/selectiveAttentionEngine/icub/right_cam/cart3:i </to>
-        <protocol>tcp</protocol>
-    </connection>
-
+    
 
 
     <!--Inhibition Connections -->
