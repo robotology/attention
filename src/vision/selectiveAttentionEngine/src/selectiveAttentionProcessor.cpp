@@ -1167,21 +1167,31 @@ cartSpace:
                 if(maxValue < value) {
                     maxValue = value;                 
                 }
-                // representation of the red cross
-                if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
-                    pImage++; pInter++;
-                    *pImage = 255;
-                    pImage++; pInter++;
-                    *pImage = 0;
-                    pImage++; pInter++; 
-                }
-                else {
-                    pImage++; pInter++;
-                    *pImage = value;
-                    pImage++; pInter++;
-                    *pImage = value;
-                    pImage++; pInter++;
-                }
+                ///////////////////////////////////////////////////////////////////////
+                // Omar Edit (17 of Jan 2022) remove if condition and its else
+//                // representation of the red cross
+//                if((y==ySizeValue>>1)&&(x==xSizeValue>>1)){
+//                    pImage++; pInter++;
+//                    *pImage = 255;
+//                    pImage++; pInter++;
+//                    *pImage = 0;
+//                    pImage++; pInter++;
+//                }
+//                else {
+//                    pImage++; pInter++;
+//                    *pImage = value;
+//                    pImage++; pInter++;
+//                    *pImage = value;
+//                    pImage++; pInter++;
+//                }
+                pImage++; pInter++;
+                *pImage = value;
+                pImage++; pInter++;
+                *pImage = value;
+                pImage++; pInter++;
+                // End Of Omar Edit
+                ///////////////////////////////////////////////////////////////////////
+
                 pcart1++;
                 pcart2++;
                 pcart3++;
