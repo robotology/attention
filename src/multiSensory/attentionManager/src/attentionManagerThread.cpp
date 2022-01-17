@@ -555,23 +555,29 @@ void attentionManagerThread::computeAndPublishVisualizedImage() {
 }
 
 bool attentionManagerThread::checkMovement() {
-
     if(inputHeadAnglesPort.getInputCount()){
         headAnglesBottle = inputHeadAnglesPort.read(false);
-        if(headAnglesBottle->size()){
-            currentAngles.clear();
-            double val = 0;
-            for(int i=0; i<headAnglesBottle->size();i++){
-                currentAngles.push_back(headAnglesBottle->get(i).asFloat32());
-                val = val + pow(headAnglesBottle->get(i).asFloat32() - prevAngles.at(i),2);
+        if(headAnglesBottle!= nullptr && headAnglesBottle->size()){
+            if(prevAngles.empty()){
+                for(int i=0; i<headAnglesBottle->size();i++){
+                    prevAngles.push_back(headAnglesBottle->get(i).asFloat32());
+                }
             }
-            val = sqrt(val);
-            if(val > marginDisplacement){
-                prevAngles = currentAngles;
-                return true;
+            else{
+                currentAngles.clear();
+                double val = 0;
+                for(int i=0; i<headAnglesBottle->size();i++){
+                    currentAngles.push_back(headAnglesBottle->get(i).asFloat32());
+                    val = val + pow(headAnglesBottle->get(i).asFloat32() - prevAngles.at(i),2);
+                }
+                val = sqrt(val);
+                if(val > marginDisplacement){
+                    prevAngles = currentAngles;
+                    return true;
+                }
             }
         }
-        return true;
+        return false;
     }
     return false;
 }
