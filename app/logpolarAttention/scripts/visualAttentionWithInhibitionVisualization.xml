@@ -1,0 +1,123 @@
+<application>
+    <name>Neurocog 2 Visual Attention Visualization</name>
+
+
+
+    <!-- Interface Modules -->
+    <module>
+        <name>selAttentionInterface</name>
+        <parameters>--name /selectiveAttentionInterface/icub/right_cam --x 1480 --y 0</parameters>
+        <tag>selectiveAttInterfaceright</tag>
+        <node>icubsrv</node>
+    </module>
+
+    <!-- Interface Modules -->
+    <module>
+        <name>yarpControlInterface</name>
+        <parameters>--from gaussianInhibitionController.ini </parameters>
+        <node>icubsrv</node>
+    </module>
+
+
+    <!-- Viewers Modules -->
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /icub/right_cam/attentionCartesian --x 000 --y 340 --RefreshTime 33</parameters>
+        <tag>attCartright</tag>
+        <node>icubsrv</node>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /icub/right_cam/cartesianPlainView --x 340 --y 340 --RefreshTime 33</parameters>
+        <tag>cartPlainViewright</tag>
+        <node>icubsrv</node>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /cartInhibitionImage --x 340 --y 340 --RefreshTime 33</parameters>
+        <tag>cartInhibitionImage</tag>
+        <node>icubsrv</node>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /cartWithInhibitionImage --x 340 --y 340 --RefreshTime 33</parameters>
+        <tag>cartWithInhibitionImage</tag>
+        <node>icubsrv</node>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /cartWithInhibitionPlainImage --x 340 --y 340 --RefreshTime 33</parameters>
+        <tag>cartWithInhibitionPlainImage</tag>
+        <node>icubsrv</node>
+    </module>
+
+
+
+
+    <!--> ############# selective Attention Interface ############# <!-->
+
+    <connection>
+        <from>/selectiveAttentionInterface/icub/right_cam/command:o</from>
+        <to>/selectiveAttentionEngine/icub/right_cam</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+
+    <!--> ############# attention Cartesian ############# <!-->
+
+    <connection>
+        <from>/selectiveAttentionEngine/icub/right_cam/cartesian:o</from>
+        <to>/icub/right_cam/attentionCartesian</to>
+        <protocol>udp</protocol>
+    </connection>
+
+
+    <!--> ############# attention Plain Cartesian ############# <!-->
+
+    <connection>
+        <from>/selectiveAttentionEngine/icub/right_cam/cartesianPlain:o</from>
+        <to>/icub/right_cam/cartesianPlainView</to>
+        <protocol>udp</protocol>
+    </connection>
+
+
+    <!--> ############# attention Plain Cartesian ############# <!-->
+
+    <connection>
+        <from>/gaussianIn/icub/right_cam/combination:o</from>
+        <to>/icub/right_cam/combinationView</to>
+        <protocol>udp</protocol>
+    </connection>
+
+
+    <!--> ############# cart With Inhibition Plain  Image ############# <!-->
+    <connection>
+        <from>/gaussianInhibitor/cartWithInhibitionImage:o</from>
+        <to>/cartWithInhibitionPlainImage</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!--> ############# Inhibition  Image ############# <!-->
+    <connection>
+        <from>/gaussianInhibitor/inhibitionImage:o </from>
+        <to>/cartInhibitionImage</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!--> ############# cart With Inhibition  Image ############## <!-->
+
+    <connection>
+        <from>/attentionManager/visualizedImage:o  </from>
+        <to>/cartWithInhibitionImage</to>
+        <protocol>udp</protocol>
+    </connection>
+
+
+
+
+</application>
