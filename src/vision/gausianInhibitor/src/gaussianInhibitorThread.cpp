@@ -18,7 +18,8 @@
 
 
 #include "iCub/gaussianInhibitorThread.h"
-#define THPERIOD 0.01   
+#define THPERIOD 0.01
+std::mutex imagemutex;
 gaussianInhibitorThread::gaussianInhibitorThread(string moduleName): PeriodicThread(THPERIOD){
     //initialize names
     this->moduleName = moduleName;
@@ -42,6 +43,7 @@ gaussianInhibitorThread::~gaussianInhibitorThread(){
     delete cartCombinedImage ;
     delete inhibitionImage ;
     delete cartWithInhibitionImage ;
+    delete hotPointBottle;
 
 }
 
@@ -191,8 +193,10 @@ bool gaussianInhibitorThread::readHotPointBottle() {
 
 
 void gaussianInhibitorThread::removeAllPoints() {
+    imagemutex.lock();
     inhibitedPoints.clear();
     inhMat = Mat(rowSize,colSize,CV_8UC1,Scalar(255));
+    imagemutex.unlock();
 }
 
 
