@@ -166,7 +166,7 @@ bool gaussianInhibitorThread::threadInit() {
 }
 
 void gaussianInhibitorThread::publishImagesOnPorts() {
-
+    yInfo(" publishImagesOnPorts ");
     if(inhibitionImageOutPort.getOutputCount()){
         inhibitionImageOutPort.prepare() = *inhibitionImage;
         inhibitionImageOutPort.write();
@@ -178,6 +178,7 @@ void gaussianInhibitorThread::publishImagesOnPorts() {
 
 }
 bool gaussianInhibitorThread::readHotPointBottle() {
+    yInfo(" readHotPointBottle ");
     if(hotPointBottle!=nullptr){
         if(hotPointBottle->size() >= 4){
             Bottle* hotPointCoordinatesList = hotPointBottle->get(0).asList();
@@ -193,6 +194,7 @@ bool gaussianInhibitorThread::readHotPointBottle() {
 
 
 void gaussianInhibitorThread::removeAllPoints() {
+    yInfo(" removeAllPoints ");
     imagemutex.lock();
     inhibitedPoints.clear();
     inhMat = Mat(rowSize,colSize,CV_8UC1,Scalar(255));
@@ -201,7 +203,7 @@ void gaussianInhibitorThread::removeAllPoints() {
 
 
 void gaussianInhibitorThread::computeImages() {
-
+    yInfo(" computeImages ");
     Mat cartInputGray;
     Mat cartWithInhGrayMat;
     cvtColor(cartInMat, cartInputGray, COLOR_BGR2GRAY);
@@ -216,6 +218,7 @@ void gaussianInhibitorThread::computeImages() {
 
 double gaussianInhibitorThread::norm_pdf(double x, double sig)
 {
+    yInfo(" norm_pdf ");
     if(x  == 0){
         return 1.0 / (sig * sqrt(2.0 * M_PI)) * exp(-(pow((x) / sig, 2) / 2.0));
     }
@@ -224,13 +227,14 @@ double gaussianInhibitorThread::norm_pdf(double x, double sig)
 }
 
 void gaussianInhibitorThread::addGaussianCircleFromPoint(Point &point) {
-
+    yInfo(" addGaussianCircleFromPoint ");
     inhibitedPoints.push_back(point);
     drawPointInInhMat(point);
 
 }
 
 bool gaussianInhibitorThread::readCartImage() {
+    yInfo(" readCartImage ");
     if(cartCombinedImage!=nullptr){
         cartInMat = toCvMat(*cartCombinedImage);
         return true;
@@ -240,7 +244,7 @@ bool gaussianInhibitorThread::readCartImage() {
 }
 
 void gaussianInhibitorThread::updateInhMat() {
-
+    yInfo(" updateInhMat ");
 
     inhMat = Mat(rowSize,colSize,CV_8UC1,Scalar(255));;
 
@@ -291,6 +295,7 @@ double gaussianInhibitorThread::getValue(const Value& var) const {
 }
 
 void gaussianInhibitorThread::drawPointInInhMat(Point &point) {
+    yInfo(" drawPointInInhMat ");
     int x = max(0,point.x - xMargin);
     int y;
     double dist;
