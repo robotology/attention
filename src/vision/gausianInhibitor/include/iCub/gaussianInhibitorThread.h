@@ -19,7 +19,7 @@
 #ifndef ATTENTION_SEGMENTINHIBITORTHREAD_H
 #define ATTENTION_gaussianINHIBITORTHREAD_H
 
-
+#include <mutex>
 #include <string>
 #include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Time.h>

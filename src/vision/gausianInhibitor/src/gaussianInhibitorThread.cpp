@@ -244,14 +244,16 @@ bool gaussianInhibitorThread::readCartImage() {
 }
 
 void gaussianInhibitorThread::updateInhMat() {
-    yInfo(" updateInhMat ");
 
+    yInfo(" updateInhMat ");
+    imagemutex.lock();
     inhMat = Mat(rowSize,colSize,CV_8UC1,Scalar(255));;
 
     for(auto point : inhibitedPoints){
         drawPointInInhMat(point);
 
     }
+    imagemutex.unlock();
 
 }
 
