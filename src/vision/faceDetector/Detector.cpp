@@ -127,18 +127,18 @@ void Detector::loop()
                                 //yDebug("get3DPoint %f %f %f sent in...ready to send",prev_x, prev_y+offsetY, prev_z+offsetZ);
                                 Bottle &target=targetPort.prepare();
                                 target.clear();
-                                target.addDouble(prev_x);
-                                target.addDouble(prev_y+offsetY);
-                                target.addDouble(prev_z+offsetZ);
+                                target.addFloat32(prev_x);
+                                target.addFloat32(prev_y+offsetY);
+                                target.addFloat32(prev_z+offsetZ);
                                 for(int i=0; i<rotation.size(); i++){
-                                    target.addDouble(rotation[i]);
+                                    target.addFloat32(rotation[i]);
                                 }
                                 targetPort.write();
                       
                                 Bottle &cmd=faceExpPort.prepare();
-                                cmd.addVocab(Vocab::encode("set"));
-                                cmd.addVocab(Vocab::encode("all"));
-                                cmd.addVocab(Vocab::encode(faceExpression.c_str()));
+                                cmd.addVocab32(Vocab32::encode("set"));
+                                cmd.addVocab32(Vocab32::encode("all"));
+                                cmd.addVocab32(Vocab32::encode(faceExpression.c_str()));
                                 faceExpPort.write();
 
 
@@ -271,13 +271,13 @@ void Detector::detectAndDraw(cv::Mat& img, double scale, circle_t &c)
         Bottle &faceRectCoordinateBottle = faceRectCoordinatePort.prepare();
         faceRectCoordinateBottle.clear();
 
-        faceRectCoordinateBottle.addVocab( yarp::os::createVocab('s','e','t'));
-        faceRectCoordinateBottle.addVocab( yarp::os::createVocab('t','r','a','c'));
-        faceRectCoordinateBottle.addInt(rectTopLeft.x);
-        faceRectCoordinateBottle.addInt(rectTopLeft.y);
+        faceRectCoordinateBottle.addVocab32( yarp::os::createVocab32('s','e','t'));
+        faceRectCoordinateBottle.addVocab32( yarp::os::createVocab32('t','r','a','c'));
+        faceRectCoordinateBottle.addInt16(rectTopLeft.x);
+        faceRectCoordinateBottle.addInt16(rectTopLeft.y);
 
-        faceRectCoordinateBottle.addInt(rectBottomRight.x);
-        faceRectCoordinateBottle.addInt(rectBottomRight.y);
+        faceRectCoordinateBottle.addInt16(rectBottomRight.x);
+        faceRectCoordinateBottle.addInt16(rectBottomRight.y);
 
         faceRectCoordinatePort.write();
     }
@@ -290,16 +290,16 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     yDebug("Opening the Detector");
     eye = rf.check("eye", Value("left")).asString().c_str();
     faceExpression = rf.check("expression", Value("ang")).asString().c_str();
-    eyeDist = fabs(rf.check("eyeDist", Value(0.7)).asDouble());
-    alpha = fabs(rf.check("alpha", Value(0.15)).asDouble());
-    certainty = rf.check("certainty", Value(1.0)).asInt();
-    offsetZ =  rf.check("offset_z", Value(-0.05)).asDouble();
-    offsetY =  rf.check("offset_y", Value(0.0)).asDouble();
-    withSaliency = rf.check("enable_saliency", Value(0)).asInt();
+    eyeDist = fabs(rf.check("eyeDist", Value(0.7)).asFloat32());
+    alpha = fabs(rf.check("alpha", Value(0.15)).asFloat32());
+    certainty = rf.check("certainty", Value(1.0)).asInt16();
+    offsetZ =  rf.check("offset_z", Value(-0.05)).asFloat32();
+    offsetY =  rf.check("offset_y", Value(0.0)).asFloat32();
+    withSaliency = rf.check("enable_saliency", Value(0)).asInt16();
     withAttentionSystem = rf.check("with_attention", Value(0)).asBool();
     disableGazeControl  = rf.check("gaze_control", Value( !withAttentionSystem)).asBool();
 
-    refreshFaceFound = rf.check("refresh_face_rate", Value( "2.")).asDouble();
+    refreshFaceFound = rf.check("refresh_face_rate", Value( "2.")).asFloat32();
 
 
     yInfo("eye: %s", eye.c_str());
@@ -315,7 +315,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     if(Bottle *rot=rf.find("rotation").asList())
     {
         for(int i=0; i<rot->size(); i++)
-            rotation.push_back(rot->get(i).asDouble());
+            rotation.push_back(rot->get(i).asFloat32());
     }
 
     //---------------------------------------------------------------
@@ -367,7 +367,7 @@ bool Detector::open(yarp::os::ResourceFinder &rf)
     //---------------------------------------------------------------
 
     
-    if (rf.check("disable_saccade", Value(0)).asInt())
+    if (rf.check("disable_saccade", Value(0)).asInt16())
     {
         //disabling saccade
         printf("\nDisabling saccade...\t");

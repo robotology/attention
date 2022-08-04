@@ -26,8 +26,8 @@
 #include "iCub/mosaicModule.h"
 
 
-#define COMMAND_VOCAB_OK VOCAB2('o','k')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+const int32_t COMMAND_VOCAB_OK = yarp::os::createVocab32('o','k')
+const int32_t COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -78,25 +78,25 @@ bool mosaicModule::configure(yarp::os::ResourceFinder &rf) {
     */
     width_orig            = rf.check("widthOrig", 
                            Value(320), 
-                           "width original (int)").asInt();
+                           "width original (int)").asInt16();
     /*
     * get the original height of the input image
     */
     height_orig            = rf.check("heightOrig", 
                            Value(240), 
-                           "height original (int)").asInt();
+                           "height original (int)").asInt16();
     /*
     * get the width of the mosaic image
     */
     width            = rf.check("width", 
                            Value(640), 
-                           "width mosaic (int)").asInt();
+                           "width mosaic (int)").asInt16();
     /*
     * get the original height of the mosaic image
     */
     height            = rf.check("height", 
                            Value(480), 
-                           "height mosaic (int)").asInt();
+                           "height mosaic (int)").asInt16();
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
     * so that messages received from the port are redirected to the respond method
@@ -202,22 +202,22 @@ bool mosaicModule::respond(const Bottle& command, Bottle& reply)  {
     }
     else if (command.get(0).asString() == "size") {
         rec = true;
-        bool set = mThread->setMosaicSize(command.get(1).asInt(), command.get(2).asInt());
+        bool set = mThread->setMosaicSize(command.get(1).asInt16(), command.get(2).asInt16());
         if (set) reply.addString("Changed size of the mosaic.");
         else reply.addString("Could NOT change size of the mosaic.");
     }
     else if (command.get(0).asString() == "place") {
         rec = true;
-        bool set = mThread->placeInpImage(command.get(1).asInt(), command.get(2).asInt());
+        bool set = mThread->placeInpImage(command.get(1).asInt16(), command.get(2).asInt16());
         if(set) reply.addString("Input image placed successfully");
         else reply.addString("Input image can NOT be placed there!");
         ok = true;
     }
     else if (command.get(0).asString() == "plot") {
         rec = true;
-        double x = command.get(1).asDouble();
-        double y = command.get(2).asDouble();
-        double z = command.get(3).asDouble();
+        double x = command.get(1).asFloat32();
+        double y = command.get(2).asFloat32();
+        double z = command.get(3).asFloat32();
         
         printf("x %f y %f z %f \n",x,y,z);
         mThread->plotObject(x,y,z);
@@ -226,8 +226,8 @@ bool mosaicModule::respond(const Bottle& command, Bottle& reply)  {
     }
     else if (command.get(0).asString() == "fetch") {
         rec = true;
-        double azimuth = command.get(1).asDouble();
-        double elevation = command.get(2).asDouble();
+        double azimuth = command.get(1).asFloat32();
+        double elevation = command.get(2).asFloat32();
         
         //printf("azimuth %f elevation %f  \n",azimuth,elevation);
         mThread->setFetchPortion(azimuth, elevation);
@@ -240,10 +240,10 @@ bool mosaicModule::respond(const Bottle& command, Bottle& reply)  {
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
 
     return true;
 }

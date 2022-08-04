@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
         Bottle& b = bottlePort.prepare();
         b.clear();
         double dTime = Time::now();
-        b.addDouble(dTime);
+        b.addFloat32(dTime);
         bottlePort.write();
     }
 

@@ -27,8 +27,8 @@ public:
   */
   enum OvDataType {
     OV_DATA_UNKNOWN, /**< unknown */
-    OV_DATA_UINT8,   /**< unsigned char */
-    OV_DATA_INT8,	 /**< char */
+    OV_DATA_UInt16,   /**< unsigned char */
+    OV_DATA_Int16,	 /**< char */
     OV_DATA_UINT16,  /**< short */
     OV_DATA_INT16,   /**< unsigned short */
     OV_DATA_UINT32,  /**< int */

@@ -59,46 +59,46 @@
 #define NUMSTATES 7 // number of states in the attPrioritiser
                     // any state corresponds to an action for the oculomotorController
 
-const int32_t COMMAND_VOCAB_K1                 = yarp::os::createVocab('k','1');
-const int32_t COMMAND_VOCAB_K2                 = yarp::os::createVocab('k','2');
-const int32_t COMMAND_VOCAB_K3                 = yarp::os::createVocab('k','3');
-const int32_t COMMAND_VOCAB_K4                 = yarp::os::createVocab('k','4');
-const int32_t COMMAND_VOCAB_K5                 = yarp::os::createVocab('k','5');
-const int32_t COMMAND_VOCAB_K6                 = yarp::os::createVocab('k','6');
-const int32_t COMMAND_VOCAB_BU                 = yarp::os::createVocab('b','u');
-const int32_t COMMAND_VOCAB_P0                 = yarp::os::createVocab('p','0');
+const int32_t COMMAND_VOCAB_K1                 = yarp::os::createVocab32('k','1');
+const int32_t COMMAND_VOCAB_K2                 = yarp::os::createVocab32('k','2');
+const int32_t COMMAND_VOCAB_K3                 = yarp::os::createVocab32('k','3');
+const int32_t COMMAND_VOCAB_K4                 = yarp::os::createVocab32('k','4');
+const int32_t COMMAND_VOCAB_K5                 = yarp::os::createVocab32('k','5');
+const int32_t COMMAND_VOCAB_K6                 = yarp::os::createVocab32('k','6');
+const int32_t COMMAND_VOCAB_BU                 = yarp::os::createVocab32('b','u');
+const int32_t COMMAND_VOCAB_P0                 = yarp::os::createVocab32('p','0');
 
-const int32_t COMMAND_VOCAB_45                 = yarp::os::createVocab('o','4','5');
-const int32_t COMMAND_VOCAB_P45                = yarp::os::createVocab('p','4','5');
-const int32_t COMMAND_VOCAB_N45                = yarp::os::createVocab('n','4','5');
-const int32_t COMMAND_VOCAB_M45                = yarp::os::createVocab('M','4','5');
-const int32_t COMMAND_VOCAB_P90                = yarp::os::createVocab('p','9','0');
-const int32_t COMMAND_VOCAB_SUSPEND            = yarp::os::createVocab('s','u','s');
-const int32_t COMMAND_VOCAB_RESUME             = yarp::os::createVocab('r','e','s');
-const int32_t COMMAND_VOCAB_INH                = yarp::os::createVocab('i','n','h');
-const int32_t COMMAND_VOCAB_ACT                = yarp::os::createVocab('a','c','t');
+const int32_t COMMAND_VOCAB_45                 = yarp::os::createVocab32('o','4','5');
+const int32_t COMMAND_VOCAB_P45                = yarp::os::createVocab32('p','4','5');
+const int32_t COMMAND_VOCAB_N45                = yarp::os::createVocab32('n','4','5');
+const int32_t COMMAND_VOCAB_M45                = yarp::os::createVocab32('M','4','5');
+const int32_t COMMAND_VOCAB_P90                = yarp::os::createVocab32('p','9','0');
+const int32_t COMMAND_VOCAB_SUSPEND            = yarp::os::createVocab32('s','u','s');
+const int32_t COMMAND_VOCAB_RESUME             = yarp::os::createVocab32('r','e','s');
+const int32_t COMMAND_VOCAB_INH                = yarp::os::createVocab32('i','n','h');
+const int32_t COMMAND_VOCAB_ACT                = yarp::os::createVocab32('a','c','t');
 
-const int32_t COMMAND_VOCAB_PRED               = yarp::os::createVocab('p','r','e','d');
-const int32_t COMMAND_VOCAB_STAT               = yarp::os::createVocab('s','t','a','t');
-const int32_t COMMAND_VOCAB_NINH               = yarp::os::createVocab('n','i','n','h');
-const int32_t COMMAND_VOCAB_NULL               = yarp::os::createVocab('n','u','l','l');
-const int32_t COMMAND_VOCAB_TIME               = yarp::os::createVocab('t','i','m','e');
-const int32_t COMMAND_VOCAB_TRED               = yarp::os::createVocab('t','r','e','d');
-const int32_t COMMAND_VOCAB_TBLU               = yarp::os::createVocab('t','b','l','u');
-const int32_t COMMAND_VOCAB_TGRE               = yarp::os::createVocab('t','g','r','e');
-const int32_t COMMAND_VOCAB_FRGB               = yarp::os::createVocab('f','r','g','b');
+const int32_t COMMAND_VOCAB_PRED               = yarp::os::createVocab32('p','r','e','d');
+const int32_t COMMAND_VOCAB_STAT               = yarp::os::createVocab32('s','t','a','t');
+const int32_t COMMAND_VOCAB_NINH               = yarp::os::createVocab32('n','i','n','h');
+const int32_t COMMAND_VOCAB_NULL               = yarp::os::createVocab32('n','u','l','l');
+const int32_t COMMAND_VOCAB_TIME               = yarp::os::createVocab32('t','i','m','e');
+const int32_t COMMAND_VOCAB_TRED               = yarp::os::createVocab32('t','r','e','d');
+const int32_t COMMAND_VOCAB_TBLU               = yarp::os::createVocab32('t','b','l','u');
+const int32_t COMMAND_VOCAB_TGRE               = yarp::os::createVocab32('t','g','r','e');
+const int32_t COMMAND_VOCAB_FRGB               = yarp::os::createVocab32('f','r','g','b');
 
-const int32_t COMMAND_VOCAB_RED                = yarp::os::createVocab('r','e','d');
-const int32_t COMMAND_VOCAB_GRE                = yarp::os::createVocab('g','r','e');
-const int32_t COMMAND_VOCAB_BLU                = yarp::os::createVocab('b','l','u');
-const int32_t COMMAND_VOCAB_SET                = yarp::os::createVocab('s','e','t');
-const int32_t COMMAND_VOCAB_WTD                = yarp::os::createVocab('w','t','d');
-const int32_t COMMAND_VOCAB_WBU                = yarp::os::createVocab('w','b','u');
-const int32_t COMMAND_VOCAB_RGB                = yarp::os::createVocab('r','g','b');
-const int32_t COMMAND_VOCAB_GET                = yarp::os::createVocab('g','e','t');
-const int32_t COMMAND_VOCAB_ORI                = yarp::os::createVocab('o','r','i');
-const int32_t COMMAND_VOCAB_MAXDB              = yarp::os::createVocab('M','d','b');           // maximum dimension of the blob drawn
-const int32_t COMMAND_VOCAB_MINDB              = yarp::os::createVocab('m','d','b');           // minimum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_RED                = yarp::os::createVocab32('r','e','d');
+const int32_t COMMAND_VOCAB_GRE                = yarp::os::createVocab32('g','r','e');
+const int32_t COMMAND_VOCAB_BLU                = yarp::os::createVocab32('b','l','u');
+const int32_t COMMAND_VOCAB_SET                = yarp::os::createVocab32('s','e','t');
+const int32_t COMMAND_VOCAB_WTD                = yarp::os::createVocab32('w','t','d');
+const int32_t COMMAND_VOCAB_WBU                = yarp::os::createVocab32('w','b','u');
+const int32_t COMMAND_VOCAB_RGB                = yarp::os::createVocab32('r','g','b');
+const int32_t COMMAND_VOCAB_GET                = yarp::os::createVocab32('g','e','t');
+const int32_t COMMAND_VOCAB_ORI                = yarp::os::createVocab32('o','r','i');
+const int32_t COMMAND_VOCAB_MAXDB              = yarp::os::createVocab32('M','d','b');           // maximum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MINDB              = yarp::os::createVocab32('m','d','b');           // minimum dimension of the blob drawn
 
 
 /**

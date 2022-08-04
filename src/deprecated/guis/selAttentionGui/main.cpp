@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
 
     gXpos=10;
     gYpos=10;
-    if (rf.check("xpos")) gXpos=rf.find("xpos").asInt();
-    if (rf.check("ypos")) gYpos=rf.find("ypos").asInt();
+    if (rf.check("xpos")) gXpos=rf.find("xpos").asInt16();
+    if (rf.check("ypos")) gYpos=rf.find("ypos").asInt16();
 
 //    string driftCompRpcPortName     = rf.check("skinManRpcPort", Value("/skinManager/rpc")).asString().c_str();
 //    string driftCompMonitorPortName = rf.check("skinManMonitorPort", Value("/skinManager/monitor:o")).asString().c_str();

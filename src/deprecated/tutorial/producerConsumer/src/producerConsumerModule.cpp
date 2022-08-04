@@ -135,11 +135,11 @@ bool producerConsumerModule::respond(const Bottle& command, Bottle& reply)
     //}
 
     respondLock.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addVocab(Vocab::encode("many"));
+            reply.addVocab32(Vocab32::encode("many"));
             reply.addString("help");
             reply.addString("commands are:");
             reply.addString(" help    : to get help");
@@ -186,7 +186,7 @@ bool producerConsumerModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_VIS:
         {
             rec = true;
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_ON:
                 {
                     reply.addString("visualization ON");
@@ -208,15 +208,15 @@ bool producerConsumerModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_GET:
         {
             rec = true;
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_WEIGHT:
                 {
-                    switch(command.get(2).asVocab()){
+                    switch(command.get(2).asVocab32()){
                     case COMMAND_VOCAB_HOR:
                         
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
-                        //reply.addDouble(wt);
+                        reply.addVocab32(COMMAND_VOCAB_HOR); // ?? Needed
+                        //reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
@@ -263,10 +263,10 @@ bool producerConsumerModule::respond(const Bottle& command, Bottle& reply)
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
     
     return true;
 }

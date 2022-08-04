@@ -203,10 +203,10 @@ void iKartFollowerThread::jackKnifeControl(double position1, double position2, d
 void iKartFollowerThread::commandControl() {
     Bottle& b = outputPort.prepare();
     b.clear();
-    b.addInt(2);
-    b.addDouble(heading);  //the commanded linear direction of the iKart, expressed in degrees.
-    b.addDouble(linSpeed); //the commanded linear speed, expressed in m/s.
-    b.addDouble(angSpeed); //the commanded angular speed, expressed in deg/s.
+    b.addInt16(2);
+    b.addFloat32(heading);  //the commanded linear direction of the iKart, expressed in degrees.
+    b.addFloat32(linSpeed); //the commanded linear speed, expressed in m/s.
+    b.addFloat32(angSpeed); //the commanded angular speed, expressed in deg/s.
     outputPort.writeStrict();
 }
 

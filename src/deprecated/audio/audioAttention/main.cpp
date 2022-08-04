@@ -281,7 +281,7 @@ public:
                     //printf(" %d", result);
                     //int t = total.get(j,i);
                     //str.append((const char *) pSound);
-                    data.addInt(result);
+                    data.addInt16(result);
                     outport.writeStrict();
                 }
                 //printf("\n");
@@ -553,17 +553,17 @@ public:
                     if (true) {            
                         Bottle& toSend = outputPort1.prepare();
                         toSend.clear();
-                        toSend.addDouble(left);
-                        //toSend.addInt(right);
-                        //toSend.addInt(timestamp);
+                        toSend.addFloat32(left);
+                        //toSend.addInt16(right);
+                        //toSend.addInt16(timestamp);
                         outputPort1.write(); 
                     }
                     else {
                         Bottle& toSend = outputPort2.prepare();
                         toSend.clear();
-                        toSend.addInt(left++);
-                        toSend.addInt(right++);
-                        toSend.addInt(timestamp++);
+                        toSend.addInt16(left++);
+                        toSend.addInt16(right++);
+                        toSend.addInt16(timestamp++);
                         outputPort2.write();
                     }
                 }

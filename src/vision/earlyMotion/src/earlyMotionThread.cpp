@@ -407,7 +407,7 @@ void earlyMotionThread::temporalSubtraction(ImageOf<PixelMono>* outputImage) {
             // response no row-dependent
             *pout += (unsigned char) floor(sqrt(diff10 + diff32 + diff21 ) * (exp( (2.3 * 100)   / (double)height_orig) - 1));
             // response row-dependent
-//            *pout += (unsigned char) floor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * 100)   / (double)height_orig) - 1));
+//            *pout += (unsigned char) fVocabloor(sqrt(diff10 + diff20 + diff30 + diff40 + diff21 + diff32 ) * (exp( (2.3 * 100)   / (double)height_orig) - 1));
 
 
 //            *pout += (unsigned char) floor(

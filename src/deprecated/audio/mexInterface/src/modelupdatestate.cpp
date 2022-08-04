@@ -106,7 +106,7 @@ bool ModelUpdateState::allocateReturnSpace(int nlhs, mxArray* plhs[])
 //   bool retVal = false;
 // //   if(nlhs==0)
 // //   {
-//     plhs = NULL;//mxCreateNumericMatrix(1,1, mxINT8_CLASS, mxREAL);//
+//     plhs = NULL;//mxCreateNumericMatrix(1,1, mxInt16_CLASS, mxREAL);//
 //     retVal = true;
 // //   }
 //   //int *retVal =  mxGetPr(plhs[0]);

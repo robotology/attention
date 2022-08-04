@@ -251,10 +251,10 @@ public:
         in[0]=head[3];                              // tilt
         in[1]=head[4];                              // pan
         in[2]=head[5];                              // ver
-        in[3]=firstBlobLeft->get(0).asDouble();     // ul
-        in[4]=firstBlobLeft->get(1).asDouble();     // vl
-        in[5]=firstBlobRight->get(0).asDouble();    // ur
-        in[6]=firstBlobRight->get(1).asDouble();    // vr
+        in[3]=firstBlobLeft->get(0).asFloat32();     // ul
+        in[4]=firstBlobLeft->get(1).asFloat32();     // vl
+        in[5]=firstBlobRight->get(0).asFloat32();    // ur
+        in[6]=firstBlobRight->get(1).asFloat32();    // vr
 
         return net.predict(in);
     }
@@ -356,13 +356,13 @@ protected:
             if (grp.check("min","Getting minimum value"))
             {
                 lim(i,0)=1.0;
-                lim(i,1)=grp.find("min").asDouble();
+                lim(i,1)=grp.find("min").asFloat32();
             }
 
             if (grp.check("max","Getting maximum value"))
             {
                 lim(i,2)=1.0;
-                lim(i,3)=grp.find("max").asDouble();
+                lim(i,3)=grp.find("max").asFloat32();
             }
         }
     }
@@ -378,7 +378,7 @@ protected:
             int len=sz>3?3:sz;
 
             for (int i=0; i<len; i++)
-                reachOffs[i]=grp.get(1+i).asDouble();
+                reachOffs[i]=grp.get(1+i).asFloat32();
         }
 
         if (b.check("grasp_offset","Getting grasping offset"))
@@ -388,7 +388,7 @@ protected:
             int len=sz>3?3:sz;
 
             for (int i=0; i<len; i++)
-                graspOffs[i]=grp.get(1+i).asDouble();
+                graspOffs[i]=grp.get(1+i).asFloat32();
         }
 
         if (b.check("grasp_sigma","Getting grasping sigma"))
@@ -398,7 +398,7 @@ protected:
             int len=sz>3?3:sz;
 
             for (int i=0; i<len; i++)
-                graspSigma[i]=grp.get(1+i).asDouble();
+                graspSigma[i]=grp.get(1+i).asFloat32();
         }
 
         if (b.check("hand_orientation","Getting hand orientation"))
@@ -408,7 +408,7 @@ protected:
             int len=sz>4?4:sz;
 
             for (int i=0; i<len; i++)
-                orien[i]=grp.get(1+i).asDouble();
+                orien[i]=grp.get(1+i).asFloat32();
         }
 
         impVelMode=b.check("impedance_velocity_mode",Value("off"),"Getting arm impedance-velocity-mode").asString()=="on"?true:false;
@@ -420,7 +420,7 @@ protected:
             size_t len=sz>impStiff.length()?impStiff.length():sz;
 
             for (size_t i=0; i<len; i++)
-                impStiff[i]=grp.get(1+i).asDouble();
+                impStiff[i]=grp.get(1+i).asFloat32();
         }
 
         if (b.check("impedance_damping","Getting joints damping"))
@@ -430,7 +430,7 @@ protected:
             size_t len=sz>impDamp.length()?impDamp.length():sz;
 
             for (size_t i=0; i<len; i++)
-                impDamp[i]=grp.get(1+i).asDouble();
+                impDamp[i]=grp.get(1+i).asFloat32();
         }
     }
 
@@ -443,7 +443,7 @@ protected:
             int len=sz>7?7:sz;
 
             for (int i=0; i<len; i++)
-                poss[i]=grp.get(1+i).asDouble();
+                poss[i]=grp.get(1+i).asFloat32();
         }
 
         if (b.check("vels","Getting home vels"))
@@ -453,7 +453,7 @@ protected:
             int len=sz>7?7:sz;
 
             for (int i=0; i<len; i++)
-                vels[i]=grp.get(1+i).asDouble();
+                vels[i]=grp.get(1+i).asFloat32();
         }
     }
 
@@ -466,7 +466,7 @@ protected:
             int len=sz>9?9:sz;
 
             for (int i=0; i<len; i++)
-                openPoss[i]=grp.get(1+i).asDouble();
+                openPoss[i]=grp.get(1+i).asFloat32();
         }
 
         if (b.check("close_hand","Getting closeHand poss"))
@@ -476,7 +476,7 @@ protected:
             int len=sz>9?9:sz;
 
             for (int i=0; i<len; i++)
-                closePoss[i]=grp.get(1+i).asDouble();
+                closePoss[i]=grp.get(1+i).asFloat32();
         }
 
         if (b.check("vels_hand","Getting hand vels"))
@@ -486,7 +486,7 @@ protected:
             int len=sz>9?9:sz;
 
             for (int i=0; i<len; i++)
-                vels[i]=grp.get(1+i).asDouble();
+                vels[i]=grp.get(1+i).asFloat32();
         }
     }
 
@@ -600,7 +600,7 @@ protected:
             if (azimuthNew->size()>0)
             {
               double r = 0.45;
-              double value = azimuthNew->get(0).asDouble();
+              double value = azimuthNew->get(0).asFloat32();
               
              
               double endPos2, startPos2;
@@ -646,12 +646,12 @@ protected:
         {
             if (targetPosNew->size()>6)
             {
-                if (targetPosNew->get(6).asDouble()==1.0)
+                if (targetPosNew->get(6).asFloat32()==1.0)
                 {
                     Vector fp(4);
-                    fp[0]=targetPosNew->get(0).asDouble();
-                    fp[1]=targetPosNew->get(1).asDouble();
-                    fp[2]=targetPosNew->get(2).asDouble();
+                    fp[0]=targetPosNew->get(0).asFloat32();
+                    fp[1]=targetPosNew->get(1).asFloat32();
+                    fp[2]=targetPosNew->get(2).asFloat32();
                     fp[3]=1.0;
 
                     if (!gsl_isnan(fp[0]) && !gsl_isnan(fp[1]) && !gsl_isnan(fp[2]))
@@ -726,27 +726,27 @@ protected:
                 obj.addString("ball");
              
                 // size 
-                obj.addDouble(50.0);
-                obj.addDouble(50.0);
-                obj.addDouble(50.0);
+                obj.addFloat32(50.0);
+                obj.addFloat32(50.0);
+                obj.addFloat32(50.0);
             
                 // positions
-                obj.addDouble(1000.0*targetPos[0]);
-                obj.addDouble(1000.0*targetPos[1]);
-                obj.addDouble(1000.0*targetPos[2]);
+                obj.addFloat32(1000.0*targetPos[0]);
+                obj.addFloat32(1000.0*targetPos[1]);
+                obj.addFloat32(1000.0*targetPos[2]);
             
                 // orientation
-                obj.addDouble(0.0);
-                obj.addDouble(0.0);
-                obj.addDouble(0.0);
+                obj.addFloat32(0.0);
+                obj.addFloat32(0.0);
+                obj.addFloat32(0.0);
             
                 // color
-                obj.addInt(255);
-                obj.addInt(0);
-                obj.addInt(0);
+                obj.addInt16(255);
+                obj.addInt16(0);
+                obj.addInt16(0);
             
                 // transparency
-                obj.addDouble(1.0);
+                obj.addFloat32(1.0);
             
                 outportGui.write(obj);
             }
@@ -1189,23 +1189,23 @@ protected:
     {
         Bottle in, out;
 
-        out.addVocab(Vocab::encode("set"));
-        out.addVocab(Vocab::encode("mou"));
-        out.addVocab(Vocab::encode(type.c_str()));
+        out.addVocab32(Vocab32::encode("set"));
+        out.addVocab32(Vocab32::encode("mou"));
+        out.addVocab32(Vocab32::encode(type.c_str()));
         outportCmdFace.write(out,in);
 
         out.clear();
 
-        out.addVocab(Vocab::encode("set"));
-        out.addVocab(Vocab::encode("leb"));
-        out.addVocab(Vocab::encode(type.c_str()));
+        out.addVocab32(Vocab32::encode("set"));
+        out.addVocab32(Vocab32::encode("leb"));
+        out.addVocab32(Vocab32::encode(type.c_str()));
         outportCmdFace.write(out,in);
 
         out.clear();
 
-        out.addVocab(Vocab::encode("set"));
-        out.addVocab(Vocab::encode("reb"));
-        out.addVocab(Vocab::encode(type.c_str()));
+        out.addVocab32(Vocab32::encode("set"));
+        out.addVocab32(Vocab32::encode("reb"));
+        out.addVocab32(Vocab32::encode(type.c_str()));
         outportCmdFace.write(out,in);
     }
 
@@ -1312,11 +1312,11 @@ public:
         useLeftArm=bGeneral.check("left_arm",Value("on"),"Getting left arm use flag").asString()=="on"?true:false;
         useRightArm=bGeneral.check("right_arm",Value("on"),"Getting right arm use flag").asString()=="on"?true:false;
         useNetwork=bGeneral.check("use_network",Value("off"),"Getting network enable").asString()=="on"?true:false;
-        trajTime=bGeneral.check("traj_time",Value(2.0),"Getting trajectory time").asDouble();
-        reachTol=bGeneral.check("reach_tol",Value(0.01),"Getting reaching tolerance").asDouble();
+        trajTime=bGeneral.check("traj_time",Value(2.0),"Getting trajectory time").asFloat32();
+        reachTol=bGeneral.check("reach_tol",Value(0.01),"Getting reaching tolerance").asFloat32();
         eyeUsed=bGeneral.check("eye",Value("left"),"Getting the used eye").asString().c_str();
-        idleTmo=bGeneral.check("idle_tmo",Value(1e10),"Getting idle timeout").asDouble();
-        setRate(bGeneral.check("thread_period",Value(DEFAULT_THR_PER),"Getting thread period [ms]").asInt());
+        idleTmo=bGeneral.check("idle_tmo",Value(1e10),"Getting idle timeout").asFloat32();
+        setRate(bGeneral.check("thread_period",Value(DEFAULT_THR_PER),"Getting thread period [ms]").asInt16());
 
         // torso part
         Bottle &bTorso=rf.findGroup("torso");
@@ -1364,14 +1364,14 @@ public:
         // arm_selection part
         Bottle &bArmSel=rf.findGroup("arm_selection");
         bArmSel.setMonitor(rf.getMonitor());
-        hystThres=bArmSel.check("hysteresis_thres",Value(0.0),"Getting hysteresis threshold").asDouble();
+        hystThres=bArmSel.check("hysteresis_thres",Value(0.0),"Getting hysteresis threshold").asFloat32();
 
         // grasp part
         Bottle &bGrasp=rf.findGroup("grasp");
         bGrasp.setMonitor(rf.getMonitor());
-        sphereRadius=bGrasp.check("sphere_radius",Value(0.0),"Getting sphere radius").asDouble();
-        sphereTmo=bGrasp.check("sphere_tmo",Value(0.0),"Getting sphere timeout").asDouble();
-        releaseTmo=bGrasp.check("release_tmo",Value(0.0),"Getting release timeout").asDouble();
+        sphereRadius=bGrasp.check("sphere_radius",Value(0.0),"Getting sphere radius").asFloat32();
+        sphereTmo=bGrasp.check("sphere_tmo",Value(0.0),"Getting sphere timeout").asFloat32();
+        releaseTmo=bGrasp.check("release_tmo",Value(0.0),"Getting release timeout").asFloat32();
 
         openHandPoss.resize(9,0.0); closeHandPoss.resize(9,0.0);
         handVels.resize(9,0.0);

@@ -20,17 +20,17 @@ int main() {
 
 	port.write(del_all, reply);
 	Bottle create_obj("world mk ssph");
-    create_obj.addDouble(0.1); //radius
-    create_obj.addInt(1); //x
-    create_obj.addInt(1); //y
-    create_obj.addInt(1); //z
-    create_obj.addInt(0); //r
-    create_obj.addInt(0); //g
-    create_obj.addInt(1); //b
+    create_obj.addFloat32(0.1); //radius
+    create_obj.addInt16(1); //x
+    create_obj.addInt16(1); //y
+    create_obj.addInt16(1); //z
+    create_obj.addInt16(0); //r
+    create_obj.addInt16(0); //g
+    create_obj.addInt16(1); //b
 
 	port.write(create_obj, reply);
 
-    if (reply.get(0).asVocab()!=Vocab::encode("ok"))
+    if (reply.get(0).asVocab32()!=Vocab32::encode("ok"))
         fprintf(stderr, "Error setting sphere\n");
 
 	double start = Time::now();
@@ -43,13 +43,13 @@ int main() {
         move_obj.addString("world");
         move_obj.addString("set");
         move_obj.addString("ssph");
-        move_obj.addInt(1);         //radius
-		move_obj.addDouble(dx/2);   //x
-		move_obj.addDouble(dy/2+1); //y
-		move_obj.addDouble(1);      //z
+        move_obj.addInt16(1);         //radius
+		move_obj.addFloat32(dx/2);   //x
+		move_obj.addFloat32(dy/2+1); //y
+		move_obj.addFloat32(1);      //z
 		port.write(move_obj, reply);
         
-        if (reply.get(0).asVocab()!=Vocab::encode("ok"))
+        if (reply.get(0).asVocab32()!=Vocab32::encode("ok"))
             fprintf(stderr, "Error moving sphere\n");
 	}
 	return 0;

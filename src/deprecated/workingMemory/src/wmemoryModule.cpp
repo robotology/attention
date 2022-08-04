@@ -111,7 +111,7 @@ bool wmemoryModule::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ok");
     }
     mutex.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
@@ -146,37 +146,37 @@ bool wmemoryModule::respond(const Bottle& command, Bottle& reply) {
             Bottle& sublistX = listAttr.addList();
     
             sublistX.addString("x");
-            sublistX.addDouble(x1[0] * 1000);    
+            sublistX.addFloat32(x1[0] * 1000);
             listAttr.append(sublistX);
             
             Bottle& sublistY = listAttr.addList();
             sublistY.addString("y");
-            sublistY.addDouble(x1[1] * 1000);      
+            sublistY.addFloat32(x1[1] * 1000);
             listAttr.append(sublistY);
             
             Bottle& sublistZ = listAttr.addList();            
             sublistZ.addString("z");
-            sublistZ.addDouble(x1[2] * 1000);   
+            sublistZ.addFloat32(x1[2] * 1000);
             listAttr.append(sublistZ);
             
             Bottle& sublistR = listAttr.addList();
             sublistR.addString("r");
-            sublistR.addDouble(255.0);
+            sublistR.addFloat32(255.0);
             listAttr.append(sublistR);
             
             Bottle& sublistG = listAttr.addList();
             sublistG.addString("g");
-            sublistG.addDouble(255.0);
+            sublistG.addFloat32(255.0);
             listAttr.append(sublistG);
             
             Bottle& sublistB = listAttr.addList();
             sublistB.addString("b");
-            sublistB.addDouble(255.0);
+            sublistB.addFloat32(255.0);
             listAttr.append(sublistB);
             
             Bottle& sublistLife = listAttr.addList();
             sublistLife.addString("lifeTimer");
-            sublistLife.addDouble(1.0);
+            sublistLife.addFloat32(1.0);
             listAttr.append(sublistLife)
             */
             ok = true;
@@ -193,10 +193,10 @@ bool wmemoryModule::respond(const Bottle& command, Bottle& reply) {
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else{
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
     }
 
     RFModule::respond(command,reply); 

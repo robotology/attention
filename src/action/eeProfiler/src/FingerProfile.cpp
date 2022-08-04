@@ -204,7 +204,7 @@ CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
         //stringArray[j * 2 + 1].append("A");
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
-        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        sprintf(temp,"%f %f %f", vector->get(1).asFloat32(), vector->get(2).asFloat32(), vector->get(3).asFloat32());
         yDebug("stringArray %s", stringArray[j * 2 + 1].c_str());
         stringArray[j * 2 + 2].append(&temp[0]);
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
@@ -243,16 +243,16 @@ CVVFingerProfile::CVVFingerProfile(const Bottle& bInit){
         //((ta,tb,tc) (pa,pb,pc))
         Bottle* tVector = b->get(0).asList();
         Vector tVec(3);
-        tVec[0] = tVector->get(1).asDouble();
-        tVec[1] = tVector->get(2).asDouble();
-        tVec[2] = tVector->get(3).asDouble();
+        tVec[0] = tVector->get(1).asFloat32();
+        tVec[1] = tVector->get(2).asFloat32();
+        tVec[2] = tVector->get(3).asFloat32();
         yDebug("bottlet:%s", tVec.toString().c_str());
 
         Bottle* pVector = b->get(1).asList();
         Vector pVec(3);
-        pVec[0] = pVector->get(1).asDouble();
-        pVec[1] = pVector->get(2).asDouble();
-        pVec[2] = pVector->get(3).asDouble();
+        pVec[0] = pVector->get(1).asFloat32();
+        pVec[1] = pVector->get(2).asFloat32();
+        pVec[2] = pVector->get(3).asFloat32();
         yDebug("bottlep:%s", pVec.toString().c_str());
 
         

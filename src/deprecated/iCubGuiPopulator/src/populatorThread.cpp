@@ -84,14 +84,14 @@ void populatorThread::run() {
         list.clear();
         
         //asking for the list of all the object in the objectsPropertiesCollector
-        writer.addVocab(createVocab('a','s','k'));
+        writer.addVocab32(createVocab32('a','s','k'));
         Bottle& listAttr=writer.addList();
         listAttr.addString("all");
         //writer.append(listAttr);
         databasePort.write(writer,reader);
-        //int v = reader.pop().asVocab();
+        //int v = reader.pop().asVocab32();
         cout<<"reader:"<<reader.toString()<<endl;
-        if(reader.get(0).asVocab()==createVocab('a','c','k')) {
+        if(reader.get(0).asVocab32()==createVocab32('a','c','k')) {
             cout<<"reader:"<<reader.toString()<<" size:"<<reader.size()<<endl;
             if(reader.size()<=1) {
                 printf("No Objects Found \n");
@@ -107,32 +107,32 @@ void populatorThread::run() {
             int r, g, b;
             //starting for the list of ids, extract properties of all the object
             while( j < size) {
-                int id = list->get(j++).asInt();
+                int id = list->get(j++).asInt16();
                 cout<<id<<", ";
                 writer2.clear(); reader2.clear();
-                writer2.addVocab(createVocab('g','e','t'));
+                writer2.addVocab32(createVocab32('g','e','t'));
                 Bottle& listAttr=writer2.addList();
                 //listAttr.addList(listAttr);
                 Bottle& listId=listAttr.addList();
                 listId.addString("id");
-                listId.addInt(id);
+                listId.addInt16(id);
                 cout<<writer2.toString()<<endl;
                 databasePort.write(writer2,reader2);
-                if(reader2.get(0).asVocab()==createVocab('a','c','k')) {
+                if(reader2.get(0).asVocab32()==createVocab32('a','c','k')) {
                     //cout << "reader:" << reader2.toString() << endl;
                     Bottle* list = reader2.get(1).asList();
                     //cout << "list:" << list->toString() << endl;
-                    posX = list->find("x").asDouble();
-                    posY = list->find("y").asDouble();
-                    posZ = list->find("z").asDouble();
+                    posX = list->find("x").asFloat32();
+                    posY = list->find("y").asFloat32();
+                    posZ = list->find("z").asFloat32();
                     printf("position: %f,%f,%f \n", posX,posY,posZ);
                     
-                    r = list->find("r").asInt();
-                    g = list->find("g").asInt();
-                    b = list->find("b").asInt();
+                    r = list->find("r").asInt16();
+                    g = list->find("g").asInt16();
+                    b = list->find("b").asInt16();
                     printf("colour: %d,%d,%d \n", r,g,b);
 
-                    lifeTimer = list->find("lifeTimer").asDouble();
+                    lifeTimer = list->find("lifeTimer").asFloat32();
                     printf("lifeTimer %f \n",lifeTimer);   
                            
                     if(guiPort.getOutputCount()) {
@@ -169,30 +169,30 @@ void populatorThread::run() {
                             // object dimension in millimeters 
                             // it draws an ellips with a the name close by
                             // pay attention to the order!!!!!!!
-                            obj.addDouble(65.0); 
-                            obj.addDouble(65.0); 
-                            obj.addDouble(65.0);
+                            obj.addFloat32(65.0);
+                            obj.addFloat32(65.0);
+                            obj.addFloat32(65.0);
                             // position of the objects in millimeters!
                             // (pay attention to the order!!!!!!)
                             // frame of reference locate with the Z axis toward the ceiling, the X axis pointing into the hip,
                             // and the Y axis directed to the right hand side of the robot  
-                            obj.addDouble(posX);
-                            obj.addDouble(posY);
-                            obj.addDouble(posZ);
+                            obj.addFloat32(posX);
+                            obj.addFloat32(posY);
+                            obj.addFloat32(posZ);
                             // orientation of the object (roll, pitch,yaw) 
                             // in gradi 
-                            obj.addDouble(0.0);
-                            obj.addDouble(0.0);
-                            obj.addDouble(0.0);
+                            obj.addFloat32(0.0);
+                            obj.addFloat32(0.0);
+                            obj.addFloat32(0.0);
                             // colour of the object (0-255)
-                            obj.addInt(r);
-                            obj.addInt(g);
-                            obj.addInt(b);
+                            obj.addInt16(r);
+                            obj.addInt16(g);
+                            obj.addInt16(b);
                             // trasparency of the object (0.0=invisible 1.0=solid) 
                             //if(lifeTimer == 0)
-                            obj.addDouble(1.0);
+                            obj.addFloat32(1.0);
                             //else
-                            //obj.addDouble((lifeTimer / OBLIVIONFACTOR) + 0.05);
+                            //obj.addFloat32((lifeTimer / OBLIVIONFACTOR) + 0.05);
                             guiPort.writeStrict();
                             printf("object written on the guiPort \n");
 
@@ -231,8 +231,8 @@ void populatorThread::run() {
                             int dimHeader = 11;
                             unsigned char buffer[9529]; 
                             unsigned char* pbuffer = &buffer[0];
-                            int pwidth =  templateBottle->get(0).asInt();
-                            int pheight =  templateBottle->get(1).asInt();
+                            int pwidth =  templateBottle->get(0).asInt16();
+                            int pheight =  templateBottle->get(1).asInt16();
                             
                             
                             
@@ -259,7 +259,7 @@ void populatorThread::run() {
                         
                             //printf("chars \n");
                             for (int i = 2; i < dimTemplate; i++) {
-                                int value = templateBottle->get(i).asInt();
+                                int value = templateBottle->get(i).asInt16();
                                 unsigned char c = (unsigned char) value;
                                 *pbuffer++ = c;
                                 //printf("%d ",c);

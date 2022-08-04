@@ -66,7 +66,7 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
     */
     threadRate = rf.check("ratethread",
                           Value(33),
-                          "processing ratethread (int)").asInt();
+                          "processing ratethread (int)").asInt16();
     cout << "Module started with the parameter ratethread: " << threadRate << endl;
 
     /*
@@ -74,7 +74,7 @@ bool saliencyBlobFinderModule::configure(ResourceFinder &rf) {
     */
     minBoundingArea = rf.check("minBoundingArea", 
                                Value(225),
-                               "minBoundingArea (int)").asInt();
+                               "minBoundingArea (int)").asInt16();
     cout << "Module started with min bounding area " << minBoundingArea << endl;
 
     if (!cmdPort.open(getName())) {
@@ -158,7 +158,7 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
 
     mutex.wait();
     
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
@@ -183,10 +183,10 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
     case COMMAND_VOCAB_SET:
         rec = true;
         {
-            switch(command.get(1).asVocab()) {
+            switch(command.get(1).asVocab32()) {
             case COMMAND_VOCAB_MBA:
                 {
-                    double w = command.get(2).asDouble();
+                    double w = command.get(2).asFloat32();
                     cout << "set mBA: " << w << endl;
                     if (0 != blobFinder)
                         blobFinder->setMinBoundingArea(int(w+.5));
@@ -195,7 +195,7 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                 break;
             case COMMAND_VOCAB_MAXDB:
                 {
-                    int w = command.get(2).asInt();
+                    int w = command.get(2).asInt16();
                     if (0 != blobFinder)
                         blobFinder->setMaxBlobSize(w);
                     ok=true;
@@ -203,7 +203,7 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                 break;
             case COMMAND_VOCAB_MINDB:
                 {
-                    int w = command.get(2).asInt();
+                    int w = command.get(2).asInt16();
                     if(0 != blobFinder)
                         blobFinder->setMinBlobSize(w);
                     ok=true;
@@ -211,7 +211,7 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                 break;
             case COMMAND_VOCAB_WTD:
                 {
-                    int w = command.get(2).asDouble();
+                    int w = command.get(2).asFloat32();
                     if(0 != blobFinder)
                         blobFinder->setWeightTD(w);
                     ok=true;
@@ -219,7 +219,7 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                 break;
             case COMMAND_VOCAB_WBU:
                 {
-                    int w = command.get(2).asDouble();
+                    int w = command.get(2).asFloat32();
                     if(0 != blobFinder)
                         blobFinder->setWeightBU(w);
                     ok=true;
@@ -227,45 +227,45 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                 break;
             case COMMAND_VOCAB_TRED:
                 {
-                    int t = command.get(2).asInt();
+                    int t = command.get(2).asInt16();
                     if(0 != blobFinder) {
                         blobFinder->setTargetRed(t);                    
                         reply.addString("trg:");
-                        reply.addInt(blobFinder->getTargetRG());
+                        reply.addInt16(blobFinder->getTargetRG());
                         reply.addString("tgr:");
-                        reply.addInt(blobFinder->getTargetGR());
+                        reply.addInt16(blobFinder->getTargetGR());
                         reply.addString("tby:");
-                        reply.addInt(blobFinder->getTargetBY());
+                        reply.addInt16(blobFinder->getTargetBY());
                     }
                     ok=true;
                 }
                 break;
             case COMMAND_VOCAB_TGRE:
                 {
-                    int t = command.get(2).asInt();
+                    int t = command.get(2).asInt16();
                     if(0 != blobFinder) {
                         blobFinder->setTargetGreen(t);
                         reply.addString("trg:");
-                        reply.addInt(blobFinder->getTargetRG());
+                        reply.addInt16(blobFinder->getTargetRG());
                         reply.addString("tgr:");
-                        reply.addInt(blobFinder->getTargetGR());
+                        reply.addInt16(blobFinder->getTargetGR());
                         reply.addString("tby:");
-                        reply.addInt(blobFinder->getTargetBY());
+                        reply.addInt16(blobFinder->getTargetBY());
                     }
                     ok=true;
                 }
                 break;
             case COMMAND_VOCAB_TBLU:
                 {
-                    int t = command.get(2).asInt();
+                    int t = command.get(2).asInt16();
                     if(0 != blobFinder) {
                         blobFinder->setTargetBlue(t);
                         reply.addString("trg:");
-                        reply.addInt(blobFinder->getTargetRG());
+                        reply.addInt16(blobFinder->getTargetRG());
                         reply.addString("tgr:");
-                        reply.addInt(blobFinder->getTargetGR());
+                        reply.addInt16(blobFinder->getTargetGR());
                         reply.addString("tby:");
-                        reply.addInt(blobFinder->getTargetBY());
+                        reply.addInt16(blobFinder->getTargetBY());
                     }
                     ok=true;
                 }
@@ -280,21 +280,21 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
     case COMMAND_VOCAB_GET:
         rec = true;
         {
-            //reply.addVocab(COMMAND_VOCAB_IS);
+            //reply.addVocab32(COMMAND_VOCAB_IS);
             //reply.add(command.get(1));
-            switch(command.get(1).asVocab()) {
+            switch(command.get(1).asVocab32()) {
 
             case COMMAND_VOCAB_MAXDB:
                 {
                     int nb = blobFinder->getMaxBlobSize();
-                    reply.addInt(nb);
+                    reply.addInt16(nb);
                     ok = true;
                 }
             break;
             case COMMAND_VOCAB_MINDB:
                 {
                     int nb = blobFinder->getMinBlobSize();
-                    reply.addInt(nb);
+                    reply.addInt16(nb);
                     ok = true;
                 }
                 break;
@@ -302,9 +302,9 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
                 {
                     int redValue,greenValue, blueValue;
                     blobFinder->getFoveaRgb(redValue, greenValue, blueValue);
-                    reply.addInt(redValue);
-                    reply.addInt(greenValue);
-                    reply.addInt(blueValue);
+                    reply.addInt16(redValue);
+                    reply.addInt16(greenValue);
+                    reply.addInt16(blueValue);
                     ok = true;
                 }
                 break;
@@ -327,10 +327,10 @@ bool saliencyBlobFinderModule::respond(const Bottle &command, Bottle &reply) {
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
 
     return ok;
 } 	

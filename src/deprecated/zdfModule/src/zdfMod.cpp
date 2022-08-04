@@ -35,20 +35,20 @@ bool zdfMod::configure(yarp::os::ResourceFinder &rf)
                            "module name (string)").asString();
 
     setName(moduleName.c_str());
-    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration",Value(1),"what did the user select?").asInt();
-    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration",Value(1),"what did the user select?").asInt();
-    parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base",Value(1),"what did the user select?").asInt();
-    parameters.smoothness_penalty = rf.findGroup("PARAMS").check("smoothness_penalty",Value(1),"what did the user select?").asInt();
-    parameters.data_penalty  = rf.findGroup("PARAMS").check("data_penalty",Value(1),"what did the user select?").asInt();
-    parameters.smoothness_3sigmaon2 = rf.findGroup("PARAMS").check("smoothness_3sigmaon2",Value(1),"what did the user select?").asInt();
-    parameters.bland_dog_thresh = rf.findGroup("PARAMS").check("bland_dog_thresh",Value(1),"what did the user select?").asInt();
-    parameters.radial_penalty = rf.findGroup("PARAMS").check("radial_penalty",Value(1),"what did the user select?").asInt();
-    parameters.acquire_wait = rf.findGroup("PARAMS").check("acquire_wait",Value(1),"what did the user select?").asInt();
-    parameters.min_area = rf.findGroup("PARAMS").check("min_area",Value(1),"what did the user select?").asInt();
-    parameters.max_area = rf.findGroup("PARAMS").check("max_area",Value(1),"what did the user select?").asInt();
-    parameters.max_spread = rf.findGroup("PARAMS").check("max_spread",Value(1),"what did the user select?").asInt();
-    parameters.cog_snap = rf.findGroup("PARAMS").check("cog_snap",Value(1),"what did the user select?").asDouble();
-    parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob",Value(1),"what did the user select?").asDouble();
+    parameters.iter_max = rf.findGroup("PARAMS").check("max_iteration",Value(1),"what did the user select?").asInt16();
+    parameters.randomize_every_iteration = rf.findGroup("PARAMS").check("randomize_iteration",Value(1),"what did the user select?").asInt16();
+    parameters.smoothness_penalty_base = rf.findGroup("PARAMS").check("smoothness_penalty_base",Value(1),"what did the user select?").asInt16();
+    parameters.smoothness_penalty = rf.findGroup("PARAMS").check("smoothness_penalty",Value(1),"what did the user select?").asInt16();
+    parameters.data_penalty  = rf.findGroup("PARAMS").check("data_penalty",Value(1),"what did the user select?").asInt16();
+    parameters.smoothness_3sigmaon2 = rf.findGroup("PARAMS").check("smoothness_3sigmaon2",Value(1),"what did the user select?").asInt16();
+    parameters.bland_dog_thresh = rf.findGroup("PARAMS").check("bland_dog_thresh",Value(1),"what did the user select?").asInt16();
+    parameters.radial_penalty = rf.findGroup("PARAMS").check("radial_penalty",Value(1),"what did the user select?").asInt16();
+    parameters.acquire_wait = rf.findGroup("PARAMS").check("acquire_wait",Value(1),"what did the user select?").asInt16();
+    parameters.min_area = rf.findGroup("PARAMS").check("min_area",Value(1),"what did the user select?").asInt16();
+    parameters.max_area = rf.findGroup("PARAMS").check("max_area",Value(1),"what did the user select?").asInt16();
+    parameters.max_spread = rf.findGroup("PARAMS").check("max_spread",Value(1),"what did the user select?").asInt16();
+    parameters.cog_snap = rf.findGroup("PARAMS").check("cog_snap",Value(1),"what did the user select?").asFloat32();
+    parameters.bland_prob = rf.findGroup("PARAMS").check("bland_prob",Value(1),"what did the user select?").asFloat32();
 
    /*
     * attach a port of the same name as the module (prefixed with a /) to the module
@@ -118,7 +118,7 @@ bool zdfMod::respond(const Bottle& command, Bottle& reply)
     bool rec = false; // is the command recognized?
 
    // mutex.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
@@ -136,49 +136,49 @@ bool zdfMod::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_SET:
         rec = true;
         {
-        switch(command.get(1).asVocab()) {
+        switch(command.get(1).asVocab32()) {
             case COMMAND_VOCAB_K1:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->data_penalty = w;
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K2:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->smoothness_penalty_base = w;
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K3:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->smoothness_penalty = w;
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K4:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->radial_penalty = w;
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K5:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->smoothness_3sigmaon2 = w;
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K6:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->bland_dog_thresh = w;
                 ok = true;
             }
             case COMMAND_VOCAB_K7:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->bland_prob = w;
                 ok = true;
             }
             case COMMAND_VOCAB_K8:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 zdfThread->params->max_spread = w;
                 ok = true;
             }
@@ -187,52 +187,52 @@ bool zdfMod::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_GET:
         rec = true;
         {
-        reply.addVocab(COMMAND_VOCAB_IS);
+        reply.addVocab32(COMMAND_VOCAB_IS);
         reply.add(command.get(1));
-        switch(command.get(1).asVocab()) {
+        switch(command.get(1).asVocab32()) {
             case COMMAND_VOCAB_K1:{
                 double w = zdfThread->params->data_penalty;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K2:{
                 double w = zdfThread->params->smoothness_penalty_base;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K3:{
                 double w = zdfThread->params->smoothness_penalty;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K4:{
                 double w = zdfThread->params->radial_penalty;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K5:{
                 double w = zdfThread->params->smoothness_3sigmaon2;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K6:{
                 double w = zdfThread->params->bland_dog_thresh;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             case COMMAND_VOCAB_K7:{
                 double w = zdfThread->params->bland_prob;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             case COMMAND_VOCAB_K8:{
                 double w = zdfThread->params->max_spread;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;

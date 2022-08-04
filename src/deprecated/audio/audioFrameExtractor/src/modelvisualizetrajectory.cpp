@@ -118,19 +118,19 @@ bool ModelVisualizeTrajectory::visualizeTrajectory(int nrhs, const mxArray* prhs
     baseRot.eulerZYX(roll,pitch,yaw);
     
     // 3orientations and 3 positions
-    floatingBaseData.addDouble(yaw);
-    floatingBaseData.addDouble(pitch);
-    floatingBaseData.addDouble(roll);
-    floatingBaseData.addDouble(1000*tXb[ti+0*numTSteps]);
-    floatingBaseData.addDouble(1000*tXb[ti+1*numTSteps]);
-    floatingBaseData.addDouble(1000*tXb[ti+2*numTSteps]);
+    floatingBaseData.addFloat32(yaw);
+    floatingBaseData.addFloat32(pitch);
+    floatingBaseData.addFloat32(roll);
+    floatingBaseData.addFloat32(1000*tXb[ti+0*numTSteps]);
+    floatingBaseData.addFloat32(1000*tXb[ti+1*numTSteps]);
+    floatingBaseData.addFloat32(1000*tXb[ti+2*numTSteps]);
         
     //torso
     torsoData.clear();
     for (i = 0; i<3;i++)
     {
-//       torsoData.addDouble(qj[ti*modelState->dof()+i]);
-      torsoData.addDouble(qj[ti+i*numTSteps] );//[ti*modelState->dof()+i]);
+//       torsoData.addFloat32(qj[ti*modelState->dof()+i]);
+      torsoData.addFloat32(qj[ti+i*numTSteps] );//[ti*modelState->dof()+i]);
       
     }
     
@@ -141,8 +141,8 @@ bool ModelVisualizeTrajectory::visualizeTrajectory(int nrhs, const mxArray* prhs
     leftArmData.clear();
     for(i =3;i<7;i++)
     {
-     // leftArmData.addDouble(qj[ti*modelState->dof()+i]);
-      leftArmData.addDouble(qj[ti+i*numTSteps] );
+     // leftArmData.addFloat32(qj[ti*modelState->dof()+i]);
+      leftArmData.addFloat32(qj[ti+i*numTSteps] );
     }
 
     
@@ -150,32 +150,32 @@ bool ModelVisualizeTrajectory::visualizeTrajectory(int nrhs, const mxArray* prhs
     rightArmData.clear();
     for(i =8;i<12;i++)
     {
-//       rightArmData.addDouble(qj[ti*modelState->dof()+i]);
-      rightArmData.addDouble(qj[ti+i*numTSteps] );
+//       rightArmData.addFloat32(qj[ti*modelState->dof()+i]);
+      rightArmData.addFloat32(qj[ti+i*numTSteps] );
     }
     
         //padding to make the rest of arms render (minor issue with icubGui non controlled DoF in a port)
     for(ip =0;i<11;i++)
     {
-     // leftArmData.addDouble(qj[ti*modelState->dof()+i]);
-      leftArmData.addDouble(0.0);
-      rightArmData.addDouble(0.0);
+     // leftArmData.addFloat32(qj[ti*modelState->dof()+i]);
+      leftArmData.addFloat32(0.0);
+      rightArmData.addFloat32(0.0);
     }
     
     //left_leg
     leftLegData.clear();
     for(i=13;i<18;i++)
     {
-// 	leftLegData.addDouble(qj[ti*modelState->dof()+i]);
-      leftLegData.addDouble(qj[ti+i*numTSteps] );
+// 	leftLegData.addFloat32(qj[ti*modelState->dof()+i]);
+      leftLegData.addFloat32(qj[ti+i*numTSteps] );
     }
     
     //right_leg
     rightLegData.clear();
     for(i=19;i<24;i++)
     {
-//       rightLegData.addDouble(qj[ti*modelState->dof()+i]);
-      rightLegData.addDouble(qj[ti+i*numTSteps] );
+//       rightLegData.addFloat32(qj[ti*modelState->dof()+i]);
+      rightLegData.addFloat32(qj[ti+i*numTSteps] );
     }
     
 //     if(!torso.write(torsoData) || !leftArm.write(leftArmData) || !rightArm.write(rightArmData) || !leftLeg.write(leftLegData) || rightLeg.write(rightLegData))

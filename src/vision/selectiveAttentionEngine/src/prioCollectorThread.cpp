@@ -352,8 +352,8 @@ void prioCollectorThread::run() {
                 //printf("max in contrast or motion \n");
                 Bottle b;
                 b.addString("MOT");
-                b.addInt(xm);
-                b.addInt(ym);
+                b.addInt16(xm);
+                b.addInt16(ym);
                 setChanged();
                 notifyObservers(&b);
             }

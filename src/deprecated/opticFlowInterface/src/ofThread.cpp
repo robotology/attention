@@ -76,10 +76,10 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 parType.check("fx") && parType.check("fy"))
             {
                 // we suppose that the center distorsion is already compensated
-                double cx = parType.find("w").asDouble() / 2.0;
-                double cy = parType.find("h").asDouble() / 2.0;
-                double fx = parType.find("fx").asDouble();
-                double fy = parType.find("fy").asDouble();
+                double cx = parType.find("w").asFloat32() / 2.0;
+                double cy = parType.find("h").asFloat32() / 2.0;
+                double fx = parType.find("fx").asFloat32();
+                double fy = parType.find("fy").asFloat32();
 
                 Matrix K  = eye(3,3);
                 Matrix Pi = zeros(3,4);
@@ -320,7 +320,7 @@ void ofThread::run() {
     if(velocityPort->getOutputCount()) {
         Bottle& b = velocityPort->prepare();
         b.clear();
-        b.addDouble(1.0);
+        b.addFloat32(1.0);
         velocityPort->write();
     }
 }
@@ -357,10 +357,10 @@ void ofThread::update(observable* o, Bottle * arg) {
         unsigned char *forgettingFactor = forgettingImage->getRawImage();
         int rowSize = forgettingImage->getRowSize();
         for (int i = 0 ; i < numEvents; i++) {
-            x = arg->get(i * 4    ).asInt();
-            y = arg->get(i * 4 + 1).asInt();
-            u = arg->get(i * 4 + 2).asDouble();
-            v = arg->get(i * 4 + 3).asDouble();
+            x = arg->get(i * 4    ).asInt16();
+            y = arg->get(i * 4 + 1).asInt16();
+            u = arg->get(i * 4 + 2).asFloat32();
+            v = arg->get(i * 4 + 3).asFloat32();
             
             //printf("%d %d %f %f \n",x,y,u,v);
             spatialMemoryU  [y * width   + x] = u;

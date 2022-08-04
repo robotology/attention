@@ -39,7 +39,7 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
     cameraFileName = rf.findGroup("cameraParams").check("fileName",    yarp::os::Value("icubEyes.ini"), "the file name of the camera parameters (string)").asString();
     cameraSide = rf.findGroup("cameraParams").check("side",    yarp::os::Value("left"), "the side  of the used camera (string)").asString();
     cameraContextName  = rf.findGroup("cameraParams").check("context",    yarp::os::Value("logpolarAttention"), "the context  of the  camera file (string)").asString();
-    azimuthIndex =  rf.findGroup("cameraParams").check("azimuthIndex",    yarp::os::Value(0), "the index of the  azimuth angle in the angles input port (int)").asInt();
+    azimuthIndex =  rf.findGroup("cameraParams").check("azimuthIndex",    yarp::os::Value(0), "the index of the  azimuth angle in the angles input port (int)").asInt16();
 
 
     ResourceFinder iCubEyesRF;
@@ -50,15 +50,15 @@ bool egocentricAudioCropperThread::configure(yarp::os::ResourceFinder &rf){
 
 
     if (cameraSide == "right"){
-        cameraWidth = iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
-        cameraFocalLength= iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
-        cameraHeight = iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
+        cameraWidth = iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asFloat32();
+        cameraFocalLength= iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asFloat32();
+        cameraHeight = iCubEyesRF.findGroup("CAMERA_CALIBRATION_RIGHT").check("h", yarp::os::Value(240), "the height of the camera (double)").asFloat32();
 
     }
     else{
-        cameraWidth = iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asDouble();
-        cameraFocalLength= iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asDouble();
-        cameraHeight = iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("h", yarp::os::Value(240), "the height of the camera (double)").asDouble();
+        cameraWidth = iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("w",    yarp::os::Value(320), "the width of the camera (double)").asFloat32();
+        cameraFocalLength= iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("fx",yarp::os::Value(200),"the focal length of the camera" ).asFloat32();
+        cameraHeight = iCubEyesRF.findGroup("CAMERA_CALIBRATION_LEFT").check("h", yarp::os::Value(240), "the height of the camera (double)").asFloat32();
 
     }
     cameraAOV = atan(cameraWidth/(2*cameraFocalLength))*(180.0/M_PI)*2;
@@ -132,7 +132,7 @@ void egocentricAudioCropperThread::run() {
         if (inputGazeAnglesPort.getInputCount()) {
             gazeAnglesBottle = inputGazeAnglesPort.read(false);
             if(gazeAnglesBottle->size())
-                azimuthAngle = gazeAnglesBottle->get(azimuthIndex).asDouble();
+                azimuthAngle = gazeAnglesBottle->get(azimuthIndex).asFloat32();
         }
 
         if (inputImg != NULL) {
@@ -199,10 +199,10 @@ string egocentricAudioCropperThread::getName(const char* p) const{
 bool egocentricAudioCropperThread::publishMaxAngleState(double maxVal,int egoMAxAngle,int aloMaxAngle, double azimuthAngle) {
     if(maxAngleStatePort.getOutputCount()){
         Bottle msg;
-        msg.addDouble(maxVal);
-        msg.addInt(egoMAxAngle);
-        msg.addInt(aloMaxAngle);
-        msg.addDouble(azimuthAngle);
+        msg.addFloat32(maxVal);
+        msg.addInt16(egoMAxAngle);
+        msg.addInt16(aloMaxAngle);
+        msg.addFloat32(azimuthAngle);
         maxAngleStatePort.prepare() = msg;
         maxAngleStatePort.write();
         return true;

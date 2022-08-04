@@ -23,16 +23,16 @@
 #include "iCub/earlyMotionModule.h"
 
 // general command vocab's
-const int32_t COMMAND_VOCAB_OK     = yarp::os::createVocab('o','k');
+const int32_t COMMAND_VOCAB_OK     = yarp::os::createVocab32('o','k');
 
-const int32_t COMMAND_VOCAB_SET    = yarp::os::createVocab('s','e','t');
-const int32_t COMMAND_VOCAB_GET    = yarp::os::createVocab('g','e','t');
-const int32_t COMMAND_VOCAB_SUS    = yarp::os::createVocab('s','u','s');
-const int32_t COMMAND_VOCAB_RES    = yarp::os::createVocab('r','e','s');
-const int32_t COMMAND_VOCAB_THRESSHOLD = yarp::os::createVocab('t','h', 'r');
+const int32_t COMMAND_VOCAB_SET    = yarp::os::createVocab32('s','e','t');
+const int32_t COMMAND_VOCAB_GET    = yarp::os::createVocab32('g','e','t');
+const int32_t COMMAND_VOCAB_SUS    = yarp::os::createVocab32('s','u','s');
+const int32_t COMMAND_VOCAB_RES    = yarp::os::createVocab32('r','e','s');
+const int32_t COMMAND_VOCAB_THRESSHOLD = yarp::os::createVocab32('t','h', 'r');
 
-const int32_t COMMAND_VOCAB_HELP   = yarp::os::createVocab('h','e','l','p');
-const int32_t COMMAND_VOCAB_FAILED = yarp::os::createVocab('f','a','i','l');
+const int32_t COMMAND_VOCAB_HELP   = yarp::os::createVocab32('h','e','l','p');
+const int32_t COMMAND_VOCAB_FAILED = yarp::os::createVocab32('f','a','i','l');
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -90,7 +90,7 @@ bool earlyMotionModule::configure(yarp::os::ResourceFinder &rf) {
 
   //threshold = (unsigned char) rf.check("threshold",
   //                                     Value(12),
-  //                                     "Threshold value for white value(int)").asInt();
+  //                                     "Threshold value for white value(int)").asInt16();
 
   return true;       // let the RFModule know everything went well
   // so that it will then run the module
@@ -132,10 +132,10 @@ bool earlyMotionModule::respond(const Bottle &command, Bottle &reply) {
       "(where <n> is an integer number) \n"
       "get thr get the threshold \n" ;
 
-  switch (command.get(0).asVocab()) {
+  switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP: {
       rec = true;
-      reply.addVocab(Vocab::encode("many"));
+      reply.addVocab32(Vocab32::encode("many"));
       reply.addString(helpMessage);
       ok = true;
       break;
@@ -143,9 +143,9 @@ bool earlyMotionModule::respond(const Bottle &command, Bottle &reply) {
 
     case COMMAND_VOCAB_SET: {
       rec = true;
-      if( command.get(1).asVocab() == COMMAND_VOCAB_THRESSHOLD){
+      if( command.get(1).asVocab32() == COMMAND_VOCAB_THRESSHOLD){
         ok =true;
-        unsigned char tmpThreshold = (unsigned char) command.get(2).asInt();
+        unsigned char tmpThreshold = (unsigned char) command.get(2).asInt16();
         emThread->setThreshold(tmpThreshold);
         reply.addString("ok");
       }
@@ -155,8 +155,8 @@ bool earlyMotionModule::respond(const Bottle &command, Bottle &reply) {
     case COMMAND_VOCAB_GET: {
       rec = true;
 
-      if( command.get(1).asVocab() == COMMAND_VOCAB_THRESSHOLD){
-        reply.addInt(emThread->getThreshold());
+      if( command.get(1).asVocab32() == COMMAND_VOCAB_THRESSHOLD){
+        reply.addInt16(emThread->getThreshold());
         ok = true;
       }
 
@@ -194,9 +194,9 @@ bool earlyMotionModule::respond(const Bottle &command, Bottle &reply) {
 
   if (!ok) {
     reply.clear();
-    reply.addVocab(COMMAND_VOCAB_FAILED);
+    reply.addVocab32(COMMAND_VOCAB_FAILED);
   } else
-    reply.addVocab(COMMAND_VOCAB_OK);
+    reply.addVocab32(COMMAND_VOCAB_OK);
 
   return ok;
 

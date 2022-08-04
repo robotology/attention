@@ -28,13 +28,13 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
-const int32_t COMMAND_VOCAB_OK  = yarp::os::createVocab('o', 'k');
-const int32_t COMMAND_VOCAB_RESUME  = yarp::os::createVocab('r', 'e', 's');
-const int32_t COMMAND_VOCAB_FIX     = yarp::os::createVocab('f', 'i', 'x');
-const int32_t COMMAND_VOCAB_STOP    = yarp::os::createVocab('s', 't', 'o', 'p');
-const int32_t COMMAND_VOCAB_SUSPEND = yarp::os::createVocab('s', 'u', 's', 'p');
-const int32_t COMMAND_VOCAB_FAILED  = yarp::os::createVocab('f', 'a', 'i', 'l');
-const int32_t COMMAND_VOCAB_HELP    = yarp::os::createVocab('h', 'e', 'l', 'p');
+const int32_t COMMAND_VOCAB_OK  = yarp::os::createVocab32('o', 'k');
+const int32_t COMMAND_VOCAB_RESUME  = yarp::os::createVocab32('r', 'e', 's');
+const int32_t COMMAND_VOCAB_FIX     = yarp::os::createVocab32('f', 'i', 'x');
+const int32_t COMMAND_VOCAB_STOP    = yarp::os::createVocab32('s', 't', 'o', 'p');
+const int32_t COMMAND_VOCAB_SUSPEND = yarp::os::createVocab32('s', 'u', 's', 'p');
+const int32_t COMMAND_VOCAB_FAILED  = yarp::os::createVocab32('f', 'a', 'i', 'l');
+const int32_t COMMAND_VOCAB_HELP    = yarp::os::createVocab32('h', 'e', 'l', 'p');
 
 
 
@@ -163,7 +163,7 @@ bool iKartFollowerModule::respond(const Bottle& command, Bottle& reply)
     }
 
     mutex.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
@@ -221,10 +221,10 @@ bool iKartFollowerModule::respond(const Bottle& command, Bottle& reply)
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
     
     return true;
 }

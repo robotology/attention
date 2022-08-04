@@ -124,7 +124,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
     double brightness=0;
 
     respondLock.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
@@ -164,14 +164,14 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
         break;
     case COMMAND_VOCAB_SET:
         {
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_WEIGHT:
                 {
-                    switch(command.get(2).asVocab()){
+                    switch(command.get(2).asVocab32()){
                         
                     case COMMAND_VOCAB_GHOR:
-                        vhor = command.get(3).asDouble();
-                        bhor = command.get(4).asInt();
+                        vhor = command.get(3).asFloat32();
+                        bhor = command.get(4).asInt16();
                         evThread->setGradientHoriz(vhor, bhor);
                         reply.addString("changed weight for horizontal gradient");
                         rec = true;
@@ -180,8 +180,8 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
                         
                         
                     case COMMAND_VOCAB_GVER:
-                        vver = command.get(3).asDouble();
-                        bver = command.get(4).asInt();
+                        vver = command.get(3).asFloat32();
+                        bver = command.get(4).asInt16();
                         evThread->setGradientVert(vver, bver);
                         reply.addString("changed weight for vertical gradient");
                         rec = true;
@@ -190,32 +190,32 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
 
                         
                     case COMMAND_VOCAB_HOR:
-                        //evThread->chromeThread->setWeightForOrientation(0,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(0,command.get(3).asFloat32());
                         reply.addString("changed weight for horizontal orientation");
                         rec = true;
                         ok = true;
                         break;
 
                     case COMMAND_VOCAB_45:
-                        //evThread->chromeThread->setWeightForOrientation(1,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(1,command.get(3).asFloat32());
                         reply.addString("changed weight for 45 deg orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_VER:
-                        //evThread->chromeThread->setWeightForOrientation(2,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(2,command.get(3).asFloat32());
                         reply.addString("changed weight for vertical orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_M45:
-                        //evThread->chromeThread->setWeightForOrientation(3,command.get(3).asDouble());
+                        //evThread->chromeThread->setWeightForOrientation(3,command.get(3).asFloat32());
                         reply.addString("changed weight for -45 deg orientation");
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_BRIGHT:
-                        //evThread->chromeThread->setBrightness((float)(command.get(3).asDouble()));
+                        //evThread->chromeThread->setBrightness((float)(command.get(3).asFloat32()));
                         reply.addString("changed brightness for overall image");
                         rec = true;
                         ok = true;
@@ -234,47 +234,47 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
 
     case COMMAND_VOCAB_GET:
         {
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_WEIGHT:
                 {
-                    switch(command.get(2).asVocab()){
+                    switch(command.get(2).asVocab32()){
                     case COMMAND_VOCAB_HOR:
                         //wt = evThread->chromeThread->getWeightForOrientation(0);
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
-                        reply.addDouble(wt);
+                        reply.addVocab32(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_45:
                         //wt = evThread->chromeThread->getWeightForOrientation(1);
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
-                        reply.addDouble(wt);
+                        reply.addVocab32(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_VER:
                         //wt = evThread->chromeThread->getWeightForOrientation(2);
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
-                        reply.addDouble(wt);
+                        reply.addVocab32(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_M45:
                         //wt = evThread->chromeThread->getWeightForOrientation(3);
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
-                        reply.addDouble(wt);
+                        reply.addVocab32(COMMAND_VOCAB_HOR); // ?? Needed
+                        reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
                     case COMMAND_VOCAB_BRIGHT:
                         //brightness = evThread->chromeThread->getBrightness();
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_BRIGHT); // ?? Needed
-                        reply.addDouble(brightness);
+                        reply.addVocab32(COMMAND_VOCAB_BRIGHT); // ?? Needed
+                        reply.addFloat32(brightness);
                         rec = true;
                         ok = true;
                         break;                                    
@@ -292,7 +292,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
 
     case COMMAND_VOCAB_SUSPEND:
         {
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_CHROME_THREAD:
                 //evThread->chromeThread->suspend();
                 reply.addString("suspending chrome thread");
@@ -314,7 +314,7 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
         break;
     case COMMAND_VOCAB_RESUME:
         {
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_CHROME_THREAD:
                 //evThread->chromeThread->resume();
                 reply.addString("resuming chrome thread");
@@ -347,10 +347,10 @@ bool logOFModule::respond(const Bottle& command, Bottle& reply)
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
 
     return ok;
 

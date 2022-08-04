@@ -193,15 +193,15 @@
 #include <iCub/attention/evalThread.h>
 
 // general command vocab's
-const int32_t COMMAND_VOCAB_HELP                = yarp::os::createVocab('h','e','l','p');
-const int32_t COMMAND_VOCAB_RUN                 = yarp::os::createVocab('r','u','n');
-const int32_t COMMAND_VOCAB_FIX                 = yarp::os::createVocab('f','i','x');
-const int32_t COMMAND_VOCAB_IS                  = yarp::os::createVocab('i','s');
-const int32_t COMMAND_VOCAB_OK                  = yarp::os::createVocab('o','k');
-const int32_t COMMAND_VOCAB_FAILED              = yarp::os::createVocab('f','a','i','l');
-const int32_t COMMAND_VOCAB_SEEK                = yarp::os::createVocab('s','e','e','k');
-const int32_t COMMAND_VOCAB_CENT                = yarp::os::createVocab('c','e','n','t');
-const int32_t COMMAND_VOCAB_STOP                = yarp::os::createVocab('s','t','o','p');
+const int32_t COMMAND_VOCAB_HELP                = yarp::os::createVocab32('h','e','l','p');
+const int32_t COMMAND_VOCAB_RUN                 = yarp::os::createVocab32('r','u','n');
+const int32_t COMMAND_VOCAB_FIX                 = yarp::os::createVocab32('f','i','x');
+const int32_t COMMAND_VOCAB_IS                  = yarp::os::createVocab32('i','s');
+const int32_t COMMAND_VOCAB_OK                  = yarp::os::createVocab32('o','k');
+const int32_t COMMAND_VOCAB_FAILED              = yarp::os::createVocab32('f','a','i','l');
+const int32_t COMMAND_VOCAB_SEEK                = yarp::os::createVocab32('s','e','e','k');
+const int32_t COMMAND_VOCAB_CENT                = yarp::os::createVocab32('c','e','n','t');
+const int32_t COMMAND_VOCAB_STOP                = yarp::os::createVocab32('s','t','o','p');
 
 
 

@@ -81,10 +81,10 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 parType.check("fx") && parType.check("fy"))
             {
                 // we suppose that the center distorsion is already compensated
-                double cx = parType.find("w").asDouble() / 2.0;
-                double cy = parType.find("h").asDouble() / 2.0;
-                double fx = parType.find("fx").asDouble();
-                double fy = parType.find("fy").asDouble();
+                double cx = parType.find("w").asFloat32() / 2.0;
+                double cy = parType.find("h").asFloat32() / 2.0;
+                double fx = parType.find("fx").asFloat32();
+                double fy = parType.find("fy").asFloat32();
 
                 Matrix K=eye(3,3);
                 Matrix Pi=zeros(3,4);
@@ -578,13 +578,13 @@ void blobFinderThread::run() {
                     Bottle& blob = streamBottle.addList();
                     //blob.clear();
               
-                    blob.addInt(pBlob[i].centroid_x);
-                    blob.addInt(pBlob[i].centroid_y);
-                    blob.addInt(pBlob[i].meanRG);
-                    blob.addInt(pBlob[i].meanGR);
-                    blob.addInt(pBlob[i].meanBY);
-                    blob.addInt(pBlob[i].xmax - pBlob[i].xmin);
-                    blob.addInt(pBlob[i].ymax - pBlob[i].ymin);                                                        
+                    blob.addInt16(pBlob[i].centroid_x);
+                    blob.addInt16(pBlob[i].centroid_y);
+                    blob.addInt16(pBlob[i].meanRG);
+                    blob.addInt16(pBlob[i].meanGR);
+                    blob.addInt16(pBlob[i].meanBY);
+                    blob.addInt16(pBlob[i].xmax - pBlob[i].xmin);
+                    blob.addInt16(pBlob[i].ymax - pBlob[i].ymin);
                     
                 } //if ((pBlob[i].valid)&&(pBlob[i].areaLP > thresholdDB))
             } //for (int i = 1; i < nBlobs; i++)
@@ -675,13 +675,13 @@ void blobFinderThread::run() {
                         Bottle blob;
                         streamBottle.addList() = blob;
                         
-                        blob.addInt(pBlob[i].centroid_x);
-                        blob.addInt(pBlob[i].centroid_y);
-                        blob.addInt(pBlob[i].meanRG);
-                        blob.addInt(pBlob[i].meanGR);
-                        blob.addInt(pBlob[i].meanBY);
-                        blob.addInt(pBlob[i].xmax - pBlob[i].xmin);
-                        blob.addInt(pBlob[i].ymax - pBlob[i].ymin);                        
+                        blob.addInt16(pBlob[i].centroid_x);
+                        blob.addInt16(pBlob[i].centroid_y);
+                        blob.addInt16(pBlob[i].meanRG);
+                        blob.addInt16(pBlob[i].meanGR);
+                        blob.addInt16(pBlob[i].meanBY);
+                        blob.addInt16(pBlob[i].xmax - pBlob[i].xmin);
+                        blob.addInt16(pBlob[i].ymax - pBlob[i].ymin);
 
                     }
                     
@@ -714,43 +714,43 @@ void blobFinderThread::run() {
                                 //adding novel position to the GUI
                                 Bottle request, reply;
                                 request.clear(); reply.clear();
-                                request.addVocab(VOCAB3('a','d','d'));
+                                request.addVocab32(= yarp::os::createVocab32('a','d','d'));
                                 Bottle& listAttr=request.addList();
                                 
                                 Bottle& sublistX = listAttr.addList();
                                 
                                 sublistX.addString("x");
-                                sublistX.addDouble(fp[0] * 1000);    
+                                sublistX.addFloat32(fp[0] * 1000);
                                 listAttr.append(sublistX);
                                 
                                 Bottle& sublistY = listAttr.addList();
                                 sublistY.addString("y");
-                                sublistY.addDouble(fp[1] * 1000);      
+                                sublistY.addFloat32(fp[1] * 1000);
                                 listAttr.append(sublistY);
                                 
                                 Bottle& sublistZ = listAttr.addList();            
                                 sublistZ.addString("z");
-                                sublistZ.addDouble(fp[2] * 1000);   
+                                sublistZ.addFloat32(fp[2] * 1000);
                                 listAttr.append(sublistZ);
                                 
                                 Bottle& sublistR = listAttr.addList();
                                 sublistR.addString("r");
-                                sublistR.addDouble(255.0);
+                                sublistR.addFloat32(255.0);
                                 listAttr.append(sublistR);
                                 
                                 Bottle& sublistG = listAttr.addList();
                                 sublistG.addString("g");
-                                sublistG.addDouble(0.0);
+                                sublistG.addFloat32(0.0);
                                 listAttr.append(sublistG);
                                 
                                 Bottle& sublistB = listAttr.addList();
                                 sublistB.addString("b");
-                                sublistB.addDouble(0.0);
+                                sublistB.addFloat32(0.0);
                                 listAttr.append(sublistB);
                                 
                                 Bottle& sublistLife = listAttr.addList();
                                 sublistLife.addString("lifeTimer");
-                                sublistLife.addDouble(60.0);
+                                sublistLife.addFloat32(60.0);
                                 listAttr.append(sublistLife);          
                    
                                 
@@ -766,43 +766,43 @@ void blobFinderThread::run() {
                             
                             Bottle request, reply;
                             request.clear(); reply.clear();
-                            request.addVocab(VOCAB3('a','d','d'));
+                            request.addVocab32(= yarp::os::createVocab32('a','d','d'));
                             Bottle& listAttr=request.addList();
                             
                             Bottle& sublistX = listAttr.addList();
                             
                             sublistX.addString("x");
-                            sublistX.addDouble(fp[0] * 1000);      
+                            sublistX.addFloat32(fp[0] * 1000);
                             listAttr.append(sublistX);
                             
                             Bottle& sublistY = listAttr.addList();
                             sublistY.addString("y");
-                            sublistY.addDouble(fp[1] * 1000);      
+                            sublistY.addFloat32(fp[1] * 1000);
                             listAttr.append(sublistY);
                             
                             Bottle& sublistZ = listAttr.addList();            
                             sublistZ.addString("z");
-                            sublistZ.addDouble(fp[2] * 1000);   
+                            sublistZ.addFloat32(fp[2] * 1000);
                             listAttr.append(sublistZ);
                             
                             Bottle& sublistR = listAttr.addList();
                             sublistR.addString("r");
-                            sublistR.addDouble(255.0);
+                            sublistR.addFloat32(255.0);
                             listAttr.append(sublistR);
                             
                             Bottle& sublistG = listAttr.addList();
                             sublistG.addString("g");
-                            sublistG.addDouble(0.0);
+                            sublistG.addFloat32(0.0);
                             listAttr.append(sublistG);
                             
                             Bottle& sublistB = listAttr.addList();
                             sublistB.addString("b");
-                            sublistB.addDouble(0.0);
+                            sublistB.addFloat32(0.0);
                             listAttr.append(sublistB);
                             
                             Bottle& sublistLife = listAttr.addList();
                             sublistLife.addString("lifeTimer");
-                            sublistLife.addDouble(60.0);
+                            sublistLife.addFloat32(60.0);
                             listAttr.append(sublistLife);          
                             
                             

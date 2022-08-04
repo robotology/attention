@@ -286,10 +286,10 @@ void ZDFThread::run() {
                 if (outputGeometry.getOutputCount()) {
                     Bottle &geometry = outputGeometry.prepare();
                     geometry.clear();
-                    geometry.addDouble(rRect.tl().x);
-                    geometry.addDouble(rRect.tl().y);
-                    geometry.addDouble(rRect.br().x);
-                    geometry.addDouble(rRect.br().y);
+                    geometry.addFloat32(rRect.tl().x);
+                    geometry.addFloat32(rRect.tl().y);
+                    geometry.addFloat32(rRect.br().x);
+                    geometry.addFloat32(rRect.br().y);
                     outputGeometry.write();
 
 
@@ -301,8 +301,8 @@ void ZDFThread::run() {
                     const int centerX = rRect.tl().x + rRect.width / 2;
                     const int centerY = rRect.tl().y + rRect.height / 2;
 
-                    cog.addInt(centerX);
-                    cog.addInt(centerY);
+                    cog.addInt16(centerX);
+                    cog.addInt16(centerY);
                     outputCOG.write();
 
                 }

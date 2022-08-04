@@ -86,9 +86,9 @@ bool topDownAttentionModule::respond(const Bottle& command, Bottle& reply)
 
 
 
-    switch (command.get(0).asVocab()){
+    switch (command.get(0).asVocab32()){
         case COMMAND_VOCAB_MODE:
-            switch (command.get(1).asVocab()){
+            switch (command.get(1).asVocab32()){
                 case COMMAND_VOCAB_BLOB:
                     pThread->setBlobMode();
                     reply.addString("Blob");

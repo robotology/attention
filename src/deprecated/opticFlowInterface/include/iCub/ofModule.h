@@ -146,14 +146,14 @@
  * 03/02/12 : the module is created                                                      author: Rea \n
 */
 
-#define COMMAND_VOCAB_SET           VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET           VOCAB3('g','e','t')
-#define COMMAND_VOCAB_SUSPEND       VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME        VOCAB3('r','e','s')
-#define COMMAND_VOCAB_QUIT          VOCAB4('q','u','i','t')
-#define COMMAND_VOCAB_OK            VOCAB2('o','k')
-#define COMMAND_VOCAB_HELP          VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_FAILED        VOCAB4('f','a','i','l')
+const int32_t COMMAND_VOCAB_SET           = yarp::os::createVocab32('s','e','t')
+const int32_t COMMAND_VOCAB_GET           = yarp::os::createVocab32('g','e','t')
+const int32_t COMMAND_VOCAB_SUSPEND       = yarp::os::createVocab32('s','u','s')
+const int32_t COMMAND_VOCAB_RESUME        = yarp::os::createVocab32('r','e','s')
+const int32_t COMMAND_VOCAB_QUIT          VOCAB4('q','u','i','t')
+const int32_t COMMAND_VOCAB_OK            = yarp::os::createVocab32('o','k')
+const int32_t COMMAND_VOCAB_HELP          VOCAB4('h','e','l','p')
+const int32_t COMMAND_VOCAB_FAILED        VOCAB4('f','a','i','l')
 
 
 #include <iostream>

@@ -39,8 +39,8 @@ void helperFunctions::printBottle(Bottle& bottle){
         case BOTTLE_TAG_BLOB:
             yInfo("binary blob of length %zd\n", element.asBlobLength());
             break;
-        case BOTTLE_TAG_VOCAB:
-            yInfo("vocab [%s]\n", Vocab::decode(element.asVocab()).c_str());
+        case BOTTLE_TAG_VOCAB32:
+            yInfo("vocab [%s]\n", Vocab32::decode(element.asVocab32()).c_str());
             break;
         default:
             if (element.isList()) {
@@ -59,8 +59,8 @@ void helperFunctions::printBottle(Bottle& bottle){
 Bottle helperFunctions::createSetVocabBottle(NetInt32 vocab ,double value){
     //this function creates a set commad vocab command
     Bottle cmd;
-    cmd.addVocab(COMMAND_VOCAB_SET);
-    cmd.addVocab(vocab);
-    cmd.addDouble(value);
+    cmd.addVocab32(COMMAND_VOCAB_SET);
+    cmd.addVocab32(vocab);
+    cmd.addFloat32(value);
     return cmd;
 }

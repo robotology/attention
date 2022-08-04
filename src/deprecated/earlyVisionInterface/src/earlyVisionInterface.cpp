@@ -41,21 +41,21 @@
 
 #ifndef _VOCAB_EARLY_VISION
 #define _VOCAB_EARLY_VISION
-#define COMMAND_VOCAB_SET VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET VOCAB3('g','e','t')
-#define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_QUIT VOCAB4('q','u','i','t')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_OK VOCAB2('o','k')
-#define COMMAND_VOCAB_SUSPEND VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME VOCAB3('r','e','s')
-#define COMMAND_VOCAB_HOR VOCAB3('h','o','r')
-#define COMMAND_VOCAB_VER VOCAB3('v','e','r')
-#define COMMAND_VOCAB_45 VOCAB3('o','4','5')
-#define COMMAND_VOCAB_M45 VOCAB4('o','M','4','5')
-#define COMMAND_VOCAB_WEIGHT VOCAB1('w')
-#define COMMAND_VOCAB_CHROME_THREAD VOCAB3('c','h','r')
-#define COMMAND_VOCAB_EDGES_THREAD VOCAB3('e','d','g')
+const int32_t COMMAND_VOCAB_SET = yarp::os::createVocab32('s','e','t')
+const int32_t COMMAND_VOCAB_GET = yarp::os::createVocab32('g','e','t')
+const int32_t COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
+const int32_t COMMAND_VOCAB_QUIT VOCAB4('q','u','i','t')
+const int32_t COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+const int32_t COMMAND_VOCAB_OK = yarp::os::createVocab32('o','k')
+const int32_t COMMAND_VOCAB_SUSPEND = yarp::os::createVocab32('s','u','s')
+const int32_t COMMAND_VOCAB_RESUME = yarp::os::createVocab32('r','e','s')
+const int32_t COMMAND_VOCAB_HOR = yarp::os::createVocab32('h','o','r')
+const int32_t COMMAND_VOCAB_VER = yarp::os::createVocab32('v','e','r')
+const int32_t COMMAND_VOCAB_45 = yarp::os::createVocab32('o','4','5')
+const int32_t COMMAND_VOCAB_M45 VOCAB4('o','M','4','5')
+const int32_t COMMAND_VOCAB_WEIGHT VOCAB1('w')
+const int32_t COMMAND_VOCAB_CHROME_THREAD = yarp::os::createVocab32('c','h','r')
+const int32_t COMMAND_VOCAB_EDGES_THREAD = yarp::os::createVocab32('e','d','g')
 #endif
 
 
@@ -145,9 +145,9 @@ static void cb_w0_scale( GtkAdjustment *adj ) {
         Bottle in;
         yarp::os::Bottle bot;
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_HOR);
-        bot.addDouble((double) adj->value);        
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_HOR);
+        bot.addFloat32((double) adj->value);
         _pOutPort->write(bot,in);
     }
 }
@@ -158,9 +158,9 @@ static void cb_w1_scale( GtkAdjustment *adj ) {
         Bottle in;
         yarp::os::Bottle bot;
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_45);
-        bot.addDouble((double) adj->value);        
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_45);
+        bot.addFloat32((double) adj->value);
         _pOutPort->write(bot,in);
     }
 }
@@ -171,9 +171,9 @@ static void cb_w2_scale( GtkAdjustment *adj ) {
         Bottle in;
         yarp::os::Bottle bot;
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_VER);
-        bot.addDouble((double) adj->value);        
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_VER);
+        bot.addFloat32((double) adj->value);
         _pOutPort->write(bot,in);
     }
 }
@@ -184,9 +184,9 @@ static void cb_w3_scale( GtkAdjustment *adj ) {
         Bottle in;
         yarp::os::Bottle bot;
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_M45);
-        bot.addDouble((double) adj->value);        
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_M45);
+        bot.addFloat32((double) adj->value);
         _pOutPort->write(bot,in);
     }
 }
@@ -209,11 +209,11 @@ gint timeout_CB (gpointer data) {
             if(_pOutPort->getOutputCount()) {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                    bot.addVocab(COMMAND_VOCAB_HOR);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                    bot.addVocab32(COMMAND_VOCAB_HOR);
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adjW0),value);
                     
             }
@@ -223,11 +223,11 @@ gint timeout_CB (gpointer data) {
             if(_pOutPort->getOutputCount()) {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                    bot.addVocab(COMMAND_VOCAB_45);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                    bot.addVocab32(COMMAND_VOCAB_45);
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adjW1),value);
                     
             }
@@ -237,11 +237,11 @@ gint timeout_CB (gpointer data) {
             if(_pOutPort->getOutputCount()) {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                    bot.addVocab(COMMAND_VOCAB_VER);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                    bot.addVocab32(COMMAND_VOCAB_VER);
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adjW2),value);
                     
             }
@@ -251,11 +251,11 @@ gint timeout_CB (gpointer data) {
             if(_pOutPort->getOutputCount()) {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                    bot.addVocab(COMMAND_VOCAB_M45);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                    bot.addVocab32(COMMAND_VOCAB_M45);
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adjW3),value);                    
             }
         }
@@ -744,10 +744,10 @@ void configure(yarp::os::ResourceFinder rf){
                            "module name (string)").asString();
     _options.posX      = rf.check("x", 
                            Value(100), 
-                           "module pos x (int)").asInt();
+                           "module pos x (int)").asInt16();
     _options.posY      = rf.check("y", 
                            Value(100), 
-                           "module pos y (int)").asInt();
+                           "module pos y (int)").asInt16();
 
 }
 

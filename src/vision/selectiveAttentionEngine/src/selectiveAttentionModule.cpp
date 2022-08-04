@@ -94,7 +94,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     */
     rateThread             = rf.check("ratethread", 
                            Value(20), 
-                           "processing ratethread (int)").asInt();
+                           "processing ratethread (int)").asInt16();
 
 
     if (!cmdPort.open(getName())) {           
@@ -113,21 +113,21 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     numberOfAngles        = rf.check("angles",
                            Value(252),
-                           "Key value (int)").asInt();
+                           "Key value (int)").asInt16();
     currentProcessor->setNumberOfAngles(numberOfAngles);
 
     /* get the number of rings */
 
     numberOfRings         = rf.check("rings",
                            Value(152),
-                           "Key value (int)").asInt();
+                           "Key value (int)").asInt16();
     currentProcessor->setNumberOfRings(numberOfRings);
 
     /* get the size of the X dimension */
 
     xSize                 = rf.check("xsize",
                            Value(320),
-                           "Key value (int)").asInt();
+                           "Key value (int)").asInt16();
     currentProcessor->setXSize(xSize);
     printf("selected cartesian x dimension %d \n", xSize);
 
@@ -135,7 +135,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     ySize                 = rf.check("ysize",
                            Value(240),
-                           "Key value (int)").asInt();
+                           "Key value (int)").asInt16();
     currentProcessor->setYSize(ySize);
     printf("selected cartesian y dimension %d \n", ySize);
     
@@ -144,7 +144,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
 
     overlap               = rf.check("overlap",
                            Value(1.0),
-                           "Key value (int)").asDouble();
+                           "Key value (int)").asFloat32();
     currentProcessor->setOverlap(overlap);
 
     /* selects which one of the two camera drives the gaze */
@@ -174,7 +174,7 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     /* selects which one of the two camera drives the gaze */
     saccadicInterval       = rf.check("saccadicInterval", 
                            Value(3000), 
-                           "saccadic intervall in ms (int)").asInt();
+                           "saccadic intervall in ms (int)").asInt16();
     currentProcessor->setSaccadicInterval(saccadicInterval);
     printf("saccadic interval selected : %d \n", saccadicInterval); 
 
@@ -183,56 +183,56 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     //if you do not have it, try to guess :)
     parameterZ       = rf.check("z", 
                            Value(0.5), 
-                           "distance of objecr in meters (double)").asDouble();
+                           "distance of objecr in meters (double)").asFloat32();
     currentProcessor->setZ(parameterZ);
 
 
     /* parses the value of the coefficient map1 */
     k1       = rf.check("k1", 
                            Value(0.4), 
-                           "coefficient map1 (double)").asDouble();
+                           "coefficient map1 (double)").asFloat32();
     currentProcessor->setK1(k1);
 
     /* parses the value of the coefficient map2 */
     k2       = rf.check("k2", 
                            Value(0.4), 
-                           "coefficient map2 (double)").asDouble();
+                           "coefficient map2 (double)").asFloat32();
     currentProcessor->setK2(k2);
 
     /* parses the value of the coefficient map3 */
     k3       = rf.check("k3", 
                            Value(0.4), 
-                           "coefficient map1 (double)").asDouble();
+                           "coefficient map1 (double)").asFloat32();
     currentProcessor->setK3(k3);
 
     /* parses the value of the coefficient map4 */
     k4       = rf.check("k4", 
                            Value(0.05), 
-                           "coefficient map4 (double)").asDouble();
+                           "coefficient map4 (double)").asFloat32();
     currentProcessor->setK4(k4);
 
     /* parses the value of the coefficient map5 */
     k5       = rf.check("k5", 
                            Value(0.05), 
-                           "coefficient map5 (double)").asDouble();
+                           "coefficient map5 (double)").asFloat32();
     currentProcessor->setK5(k5);
 
     /* parses the value of the coefficient map6 */
     k6       = rf.check("k6",  
                            Value(0.05), 
-                           "coefficient map6 (double)").asDouble();
+                           "coefficient map6 (double)").asFloat32();
     currentProcessor->setK6(k6);
 
     /* parses the index of the hueMap */
     hueMap       = rf.check("hueMap", 
                            Value(1), 
-                           "map dedicated hue (int)").asInt();
+                           "map dedicated hue (int)").asInt16();
     
 
     /* parses the index of the satMap */
     satMap       = rf.check("satMap", 
                            Value(2), 
-                           "map dedicated saturation (int)").asInt();
+                           "map dedicated saturation (int)").asInt16();
     
 
     
@@ -240,23 +240,23 @@ bool selectiveAttentionModule::configure(ResourceFinder &rf) {
     /* parses the value of the coefficient map Motion */
     kMotion       = rf.check("kMot", 
                            Value(0.0), 
-                           "coefficient mapMotion (int)").asDouble();
+                           "coefficient mapMotion (int)").asFloat32();
     currentProcessor->setKMotion(kMotion);
 
     /* parses the value of the coefficient map cartesian 1 */
     kc1       = rf.check("kc1", 
                            Value(0.0), 
-                           "coefficient map cartesian1 (double)").asDouble();
+                           "coefficient map cartesian1 (double)").asFloat32();
 
     /* parses the value of the coefficient map cartesian 2 */
     kc2       = rf.check("kc2", 
                            Value(0.0), 
-                           "coefficient map cartesian2 (double)").asDouble();
+                           "coefficient map cartesian2 (double)").asFloat32();
 
     /* parses the value of the coefficient map cartesian 3 */
     kc3       = rf.check("kc3",
                          Value(0.0),
-                         "coefficient map cartesian3 (double)").asDouble();
+                         "coefficient map cartesian3 (double)").asFloat32();
 
     /*
      *checking if the earlyResponse stages are activated
@@ -416,12 +416,12 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     std::string str=command.get(0).asString();
     if(!strcmp(str.c_str(),"sus")) {
         currentProcessor->suspend();
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
         return true;
     }
     else if(!strcmp(str.c_str(),"res")) {
         currentProcessor->resume();
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
         return true;
     }
     else if(!strcmp(str.c_str(),"set")) {
@@ -457,11 +457,11 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     }
 
     mutex.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addVocab(Vocab::encode("many"));
+            reply.addVocab32(Vocab32::encode("many"));
             reply.addString("help");
 
             reply.addString("");
@@ -571,20 +571,20 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     case COMMAND_VOCAB_SET:
         rec = true;
         {
-            switch(command.get(1).asVocab()) {
+            switch(command.get(1).asVocab32()) {
             case COMMAND_VOCAB_SALIENCE_THRESHOLD:{
-                double thr = command.get(2).asDouble();
+                double thr = command.get(2).asFloat32();
             }
                 break;
             case COMMAND_VOCAB_NUM_BLUR_PASSES:{
-                int nb = command.get(2).asInt();
+                int nb = command.get(2).asInt16();
                 //reply.addString("connection 2");
               
                 ok=true;
             }
             break;
             case COMMAND_VOCAB_LHAND:{
-                int nb = command.get(2).asInt();
+                int nb = command.get(2).asInt16();
                 if(nb)
                     currentProcessor->setHandFixation(true);
                 else
@@ -593,84 +593,84 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             }
             break;
             case COMMAND_VOCAB_TIME:{
-                int w = command.get(2).asInt();
+                int w = command.get(2).asInt16();
                 if(currentProcessor!=0)
                     currentProcessor->setSaccadicInterval(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K1:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setK1(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K2:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setK2(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K3:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setK3(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K4:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setK4(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K5:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setK5(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K6:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setK6(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_BU:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setBU(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_TD:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setTD(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KC1:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setKC1(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KC2:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setKC2(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KC3:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setKC3(w);
                 ok = true;
@@ -693,7 +693,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             }
             break;
             case COMMAND_VOCAB_KMOT:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
                 if(currentProcessor!=0)
                     currentProcessor->setKMotion(w);
                 ok = true;
@@ -716,23 +716,23 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             }
             break;
             case COMMAND_VOCAB_CHILD_NAME:{
-                int j = command.get(2).asInt();
+                int j = command.get(2).asInt16();
                 string s(command.get(3).asString().c_str());
             }
                 break;
             case COMMAND_VOCAB_WEIGHT:{
-                double w = command.get(2).asDouble();
+                double w = command.get(2).asFloat32();
             }
                 break;
             case COMMAND_VOCAB_CHILD_WEIGHT:{
-                int j = command.get(2).asInt();
-                double w = command.get(3).asDouble();
+                int j = command.get(2).asInt16();
+                double w = command.get(3).asFloat32();
             }
                 break;
             case COMMAND_VOCAB_CHILD_WEIGHTS:{
                 Bottle weights;
                 for (int i = 2; i < command.size(); i++)
-                    weights.addDouble(command.get(i).asDouble());
+                    weights.addFloat32(command.get(i).asFloat32());
             }
                 break;
             default: {
@@ -745,18 +745,18 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     case COMMAND_VOCAB_GET:
         rec = true;
         {
-            reply.addVocab(COMMAND_VOCAB_IS);
+            reply.addVocab32(COMMAND_VOCAB_IS);
             reply.add(command.get(1));
-            switch(command.get(1).asVocab()) {
+            switch(command.get(1).asVocab32()) {
             case COMMAND_VOCAB_SALIENCE_THRESHOLD:{
                 double thr=0.0;
-                reply.addDouble(thr);
+                reply.addFloat32(thr);
                 ok = true;
             }
                 break;
             case COMMAND_VOCAB_NUM_BLUR_PASSES:{
                 int nb = 0;
-                reply.addInt(nb);
+                reply.addInt16(nb);
                 ok = true;
             }
                 break;
@@ -767,7 +767,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
             }
                 break;
             case COMMAND_VOCAB_CHILD_NAME:{
-                int j = command.get(2).asInt();
+                int j = command.get(2).asInt16();
                 string s(" ");
                 reply.addString(s.c_str());
                 ok = true;
@@ -775,20 +775,20 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                 break;
             case COMMAND_VOCAB_CHILD_COUNT:{
                 int count =0;
-                reply.addInt(count);
+                reply.addInt16(count);
                 ok = true;
             }
                 break;
             case COMMAND_VOCAB_WEIGHT:{
                 double w = 0.0;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
                 break;
             case COMMAND_VOCAB_CHILD_WEIGHT:{
-                int j = command.get(2).asInt();
+                int j = command.get(2).asInt16();
                 double w = 0.0;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
                 break;
@@ -796,92 +796,92 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
                 Bottle weights;
                 //ok = filter->getChildWeights(&weights);
                 for (int k = 0; k < weights.size(); k++)
-                    reply.addDouble(0.0);
+                    reply.addFloat32(0.0);
             }
             break;
             case COMMAND_VOCAB_TIME:{
                 int w = currentProcessor->getSaccadicInterval();               
-                reply.addInt(w);
+                reply.addInt16(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KMOT:{
                 double w = currentProcessor->getKMotion();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K1:{
                 double w = currentProcessor->getK1();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K2:{
                 double w = currentProcessor->getK2();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K3:{
                 double w = currentProcessor->getK3();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K4:{
                 double w = currentProcessor->getK4();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K5:{
                 double w = currentProcessor->getK5();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_K6:{
                 double w = currentProcessor->getK6();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KC1:{
                 double w = currentProcessor->getKC1();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             
             case COMMAND_VOCAB_KC2:{
                 double w = currentProcessor->getKC2();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KC3:{
                 double w = currentProcessor->getKC3();
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             /*
             case COMMAND_VOCAB_KC4:{
                 double w = currentProcessor->kc4;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KC5:{
                 double w = currentProcessor->kc5;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
             case COMMAND_VOCAB_KC6:{
                 double w = currentProcessor->kc6;
-                reply.addDouble(w);
+                reply.addFloat32(w);
                 ok = true;
             }
             break;
@@ -902,10 +902,10 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
 
     return ok;
 }

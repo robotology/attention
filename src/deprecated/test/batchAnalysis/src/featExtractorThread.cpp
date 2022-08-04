@@ -562,23 +562,23 @@ void featExtractorThread::run() {    //uImage,vImage,mImage
 
         contentBottle = descrBottle.addList();
         //if(nFr>30){
-            contentBottle.addDouble(descr[0]);
-            contentBottle.addDouble(descr[1]);           
-            //contentBottle.addDouble(descr[2]);           
-            //contentBottle.addDouble(descr[3]);           
-            //contentBottle.addDouble(descr[4]);           
-            //contentBottle.addDouble(descr[5]);          
-            //contentBottle.addDouble(descr[6]);               //filtered V:  to be sent to the Carlo's module
-            //contentBottle.addDouble(descr[7]);               //filtered C:  to be sent to the Carlo's module
-            //contentBottle.addDouble(descr[8]);               //filtered R:  to be sent to the Carlo's module
-            ///contentBottle.addDouble(descr[9]);               //filtered A:  to be sent to the Carlo's module
-            //contentBottle.addDouble(descr[10]);
-            //contentBottle.addDouble(descr[11]);
-            //contentBottle.addDouble(descr[12]);
-            //contentBottle.addDouble(descr[13]);
+            contentBottle.addFloat32(descr[0]);
+            contentBottle.addFloat32(descr[1]);
+            //contentBottle.addFloat32(descr[2]);
+            //contentBottle.addFloat32(descr[3]);
+            //contentBottle.addFloat32(descr[4]);
+            //contentBottle.addFloat32(descr[5]);
+            //contentBottle.addFloat32(descr[6]);               //filtered V:  to be sent to the Carlo's module
+            //contentBottle.addFloat32(descr[7]);               //filtered C:  to be sent to the Carlo's module
+            //contentBottle.addFloat32(descr[8]);               //filtered R:  to be sent to the Carlo's module
+            ///contentBottle.addFloat32(descr[9]);               //filtered A:  to be sent to the Carlo's module
+            //contentBottle.addFloat32(descr[10]);
+            //contentBottle.addFloat32(descr[11]);
+            //contentBottle.addFloat32(descr[12]);
+            //contentBottle.addFloat32(descr[13]);
 
-            contentBottle.addDouble(descr[14]);   //Vx:  to be sent to a dumper for analysis in batch
-            contentBottle.addDouble(descr[15]);   //Vy:  to be sent to a dumper for analysis in batch
+            contentBottle.addFloat32(descr[14]);   //Vx:  to be sent to a dumper for analysis in batch
+            contentBottle.addFloat32(descr[15]);   //Vy:  to be sent to a dumper for analysis in batch
         //}
         //printf("bottle is %s\n", contentBottle.toString().c_str());
 

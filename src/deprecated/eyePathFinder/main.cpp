@@ -95,8 +95,8 @@ public:
     virtual bool threadInit()
     {
         name=rf.check("name",Value("eyePathFinder")).asString().c_str();
-        template_size=rf.check("template_size",Value(20)).asInt();
-        search_size=rf.check("search_size",Value(100)).asInt();
+        template_size=rf.check("template_size",Value(20)).asInt16();
+        search_size=rf.check("search_size",Value(100)).asInt16();
 
         inPort.open(("/"+name+"/img:i").c_str());
         outPort.open(("/"+name+"/img:o").c_str());
@@ -310,7 +310,7 @@ public:
                 if (req.size()<3)
                     return false;
 
-                init(req.get(1).asInt(),req.get(2).asInt());
+                init(req.get(1).asInt16(),req.get(2).asInt16());
                 reply.addString("ack");
             }
             else if (cmd=="stop")
@@ -327,12 +327,12 @@ public:
 
                 if (subcmd=="template_size")
                 {
-                    template_size=req.get(2).asInt();
+                    template_size=req.get(2).asInt16();
                     reply.addString("ack");
                 }
                 else if (subcmd=="search_size")
                 {
-                    search_size=req.get(2).asInt();
+                    search_size=req.get(2).asInt16();
                     reply.addString("ack");
                 }
                 else
@@ -346,15 +346,15 @@ public:
                 string subcmd=req.get(1).asString().c_str();
 
                 if (subcmd=="template_size")
-                    reply.addInt(template_size);
+                    reply.addInt16(template_size);
                 else if (subcmd=="search_size")
-                    reply.addInt(search_size);
+                    reply.addInt16(search_size);
                 else if (subcmd=="status")
                     reply.addString(running?"running":"paused");
                 else if (subcmd=="point")
                 {
-                    reply.addInt(point.x);
-                    reply.addInt(point.y);
+                    reply.addInt16(point.x);
+                    reply.addInt16(point.y);
                 }
                 else
                     return false;

@@ -44,16 +44,16 @@ string allocentricAudioPriorAdderThread::getName(const char* p) const{
 
 bool allocentricAudioPriorAdderThread::configure(yarp::os::ResourceFinder &rf){
 
-    rawPowerThreshold = rf.findGroup("powerPriors").check("rawThreshold",    yarp::os::Value(0.9), "the threshold of the total raw power (double)").asDouble();
-    sideWindowWidth = rf.findGroup("anglePriors").check("windowSideWidth",    yarp::os::Value(2), "the width of the prior angles for each side (int)").asInt();
+    rawPowerThreshold = rf.findGroup("powerPriors").check("rawThreshold",    yarp::os::Value(0.9), "the threshold of the total raw power (double)").asFloat32();
+    sideWindowWidth = rf.findGroup("anglePriors").check("windowSideWidth",    yarp::os::Value(2), "the width of the prior angles for each side (int)").asInt16();
     priorAngles  = rf.findGroup("anglePriors").findGroup("anglesIdx").tail();
-    saliencyGain = rf.findGroup("saliencyTransformation").check("saliencyGain",    yarp::os::Value(1), "the threshold of the total raw power (double)").asDouble();
+    saliencyGain = rf.findGroup("saliencyTransformation").check("saliencyGain",    yarp::os::Value(1), "the threshold of the total raw power (double)").asFloat32();
 
     
 
     priorAnglesCount = priorAngles.size();
     for(int i = 0; i< priorAnglesCount;i++){
-        priorAnglesIdxList.push_back(priorAngles.get(i).asInt()+180);
+        priorAnglesIdxList.push_back(priorAngles.get(i).asInt16()+180);
         avgProbabilitiesList.push_back(0);
     }
 

@@ -181,7 +181,7 @@ public:
         
         yarp::os::Bottle& scopeBottle = scopePort.prepare();
         scopeBottle.clear();
-        scopeBottle.addDouble(value);
+        scopeBottle.addFloat32(value);
         scopePort.write();
         //}
     }; 

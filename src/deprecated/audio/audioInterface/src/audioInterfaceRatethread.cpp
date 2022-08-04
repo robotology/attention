@@ -176,7 +176,7 @@ void audioInterfaceRatethread::run() {
 
             printf("bottleSize %d \n", read->size());
             for(int i= 0; i < 4096 * 3; i++){
-                a = read->get(i).asInt();
+                a = read->get(i).asInt16();
                 s_a = a & mask_a;
                 s_b = (a & mask_b) >> 8;
                 s_c = (a & mask_c) >> 16;
@@ -185,8 +185,8 @@ void audioInterfaceRatethread::run() {
             }
 
             /*
-            b = read->get(1).asInt();
-            c = read->get(2).asInt();
+            b = read->get(1).asInt16();
+            c = read->get(2).asInt16();
 
             s_a = b & mask_a;
             s_b = b & mask_b >> 8;

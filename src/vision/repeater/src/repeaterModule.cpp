@@ -29,23 +29,23 @@ using namespace yarp::sig;
 using namespace std;
 
 // general command vocab's
-const int32_t COMMAND_VOCAB_HELP               = yarp::os::createVocab('h','e','l','p');
-const int32_t COMMAND_VOCAB_SET                = yarp::os::createVocab('s','e','t');
-const int32_t COMMAND_VOCAB_GET                = yarp::os::createVocab('g','e','t');
-const int32_t COMMAND_VOCAB_RUN                = yarp::os::createVocab('r','u','n');
-const int32_t COMMAND_VOCAB_SUSPEND            = yarp::os::createVocab('s','u','s');
-const int32_t COMMAND_VOCAB_RESUME             = yarp::os::createVocab('r','e','s');
-const int32_t COMMAND_VOCAB_FIX                = yarp::os::createVocab('f','i','x');
-const int32_t COMMAND_VOCAB_IS                 = yarp::os::createVocab('i','s');
-const int32_t COMMAND_VOCAB_OK                 = yarp::os::createVocab('o','k');
-const int32_t COMMAND_VOCAB_FAILED             = yarp::os::createVocab('f','a','i','l');
-const int32_t COMMAND_VOCAB_SEEK               = yarp::os::createVocab('s','e','e','k');
-const int32_t COMMAND_VOCAB_CENT               = yarp::os::createVocab('c','e','n','t');
-const int32_t COMMAND_VOCAB_STOP               = yarp::os::createVocab('s','t','o','p');
-const int32_t COMMAND_VOCAB_PUSH               = yarp::os::createVocab('p','u','s','h');
-const int32_t COMMAND_VOCAB_SAT                = yarp::os::createVocab('s','a','t');
-const int32_t COMMAND_VOCAB_HUE                = yarp::os::createVocab('h','u','e');
-const int32_t COMMAND_VOCAB_BRI                = yarp::os::createVocab('b','r','i');
+const int32_t COMMAND_VOCAB_HELP               = yarp::os::createVocab32('h','e','l','p');
+const int32_t COMMAND_VOCAB_SET                = yarp::os::createVocab32('s','e','t');
+const int32_t COMMAND_VOCAB_GET                = yarp::os::createVocab32('g','e','t');
+const int32_t COMMAND_VOCAB_RUN                = yarp::os::createVocab32('r','u','n');
+const int32_t COMMAND_VOCAB_SUSPEND            = yarp::os::createVocab32('s','u','s');
+const int32_t COMMAND_VOCAB_RESUME             = yarp::os::createVocab32('r','e','s');
+const int32_t COMMAND_VOCAB_FIX                = yarp::os::createVocab32('f','i','x');
+const int32_t COMMAND_VOCAB_IS                 = yarp::os::createVocab32('i','s');
+const int32_t COMMAND_VOCAB_OK                 = yarp::os::createVocab32('o','k');
+const int32_t COMMAND_VOCAB_FAILED             = yarp::os::createVocab32('f','a','i','l');
+const int32_t COMMAND_VOCAB_SEEK               = yarp::os::createVocab32('s','e','e','k');
+const int32_t COMMAND_VOCAB_CENT               = yarp::os::createVocab32('c','e','n','t');
+const int32_t COMMAND_VOCAB_STOP               = yarp::os::createVocab32('s','t','o','p');
+const int32_t COMMAND_VOCAB_PUSH               = yarp::os::createVocab32('p','u','s','h');
+const int32_t COMMAND_VOCAB_SAT                = yarp::os::createVocab32('s','a','t');
+const int32_t COMMAND_VOCAB_HUE                = yarp::os::createVocab32('h','u','e');
+const int32_t COMMAND_VOCAB_BRI                = yarp::os::createVocab32('b','r','i');
 
 /* 
  * Configure method. Receive a previously initialized
@@ -85,14 +85,14 @@ bool repeaterModule::configure(yarp::os::ResourceFinder &rf) {
      */   
     int  outputWidth       = rf.check("outputWidth", 
                            Value(320), 
-                           "output image width (int)").asInt();
+                           "output image width (int)").asInt16();
     int  outputHeight      = rf.check("outputHeight", 
                            Value(240), 
-                           "output image height (int)").asInt();
+                           "output image height (int)").asInt16();
 
     verticalOffset = rf.check("verticalOffset", 
                            Value(-1), 
-                           "vertical offset rectification (double)").asDouble();
+                           "vertical offset rectification (double)").asFloat32();
 
     /*
     * attach a port of the same name as the module (prefixed with a /) to the module
@@ -177,11 +177,11 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
     }
     
     mutex.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addVocab(Vocab::encode("many"));
+            reply.addVocab32(Vocab32::encode("many"));
             reply.addString("help");
 
             //reply.addString();
@@ -234,7 +234,7 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_FIX:
         rec = true;
         {
-            switch (command.get(1).asVocab()) {
+            switch (command.get(1).asVocab32()) {
             case COMMAND_VOCAB_CENT:
                 {
                     printf("Fixating in Center \n");
@@ -248,9 +248,9 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_PUSH:
         rec = true;
         {
-            switch (command.get(1).asVocab()) {
+            switch (command.get(1).asVocab32()) {
             case COMMAND_VOCAB_SAT:
-                {   int delta = command.get(2).asInt();
+                {   int delta = command.get(2).asInt16();
                     printf("Pushing Saturation %d \n", delta);
                     rThread->setSatPush(delta);
                 }
@@ -258,7 +258,7 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
             
             case COMMAND_VOCAB_BRI:
                 {
-                    int delta = command.get(2).asInt();
+                    int delta = command.get(2).asInt16();
                     printf("Pushing Brightness %d \n", delta);
                     rThread->setBriPush(delta);
                 }
@@ -266,7 +266,7 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
             
             case COMMAND_VOCAB_HUE:
                 {
-                    int delta = command.get(2).asInt();
+                    int delta = command.get(2).asInt16();
                     printf("Pushing Hue %d \n", delta);
                     rThread->setHuePush(delta);
                 }
@@ -288,10 +288,10 @@ bool repeaterModule::respond(const Bottle& command, Bottle& reply)
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else {
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
     }
 
     return true;

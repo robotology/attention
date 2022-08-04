@@ -19,9 +19,9 @@ int main(int argc, char *argv[]) {
   rf.configure(argc, argv);
   
   // take reference coordinates
-  double refX=rf.find("x").asDouble();
-  double refY=rf.find("y").asDouble();
-  double refZ=rf.find("z").asDouble();
+  double refX=rf.find("x").asFloat32();
+  double refY=rf.find("y").asFloat32();
+  double refZ=rf.find("z").asFloat32();
   
   // open ports
   BufferedPort<Bottle> inPort;
@@ -75,9 +75,9 @@ int main(int argc, char *argv[]) {
 	    Bottle &refOut	= refPort.prepare();
 	    refOut.clear();
 	    
-	    refOut.addDouble(refX);
-	    refOut.addDouble(refY);
-	    refOut.addDouble(refZ);
+	    refOut.addFloat32(refX);
+	    refOut.addFloat32(refY);
+	    refOut.addFloat32(refZ);
 	    refPort.writeStrict();
 	  }	
 	  
@@ -94,9 +94,9 @@ int main(int argc, char *argv[]) {
 	  
 	  //get the iKin input
 	  
-	  // double x = iKinIn->get(0).asDouble();
-	  // double y = iKinIn->get(1).asDouble();
-	  // double z = iKinIn->get(2).asDouble(); 
+	  // double x = iKinIn->get(0).asFloat32();
+	  // double y = iKinIn->get(1).asFloat32();
+	  // double z = iKinIn->get(2).asFloat32();
 	  
 	  
 	  cout << "receiving input" << endl;
@@ -107,15 +107,15 @@ int main(int argc, char *argv[]) {
 	  
 	}
 	
-	//	out.addDouble(x);
-	//	out.addDouble(y);
-	//	out.addDouble(z);
+	//	out.addFloat32(x);
+	//	out.addFloat32(y);
+	//	out.addFloat32(z);
 	
 	// add sequence numbers and timestamps
-	out.addInt(frameSeq);
-	out.addInt(iSeq);
-	out.addDouble(vTime);
-	out.addDouble(iTime);
+	out.addInt16(frameSeq);
+	out.addInt16(iSeq);
+	out.addFloat32(vTime);
+	out.addFloat32(iTime);
 	outPort.writeStrict();
 	count++;
 	

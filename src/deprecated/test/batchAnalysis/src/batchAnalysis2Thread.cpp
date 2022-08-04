@@ -241,7 +241,7 @@ void batchAnalysis2Thread::run() {
                     k_max=176;  //6 spostamenti di oggetto
                 }
                 //test on nonbio
-                //test on change of velocity (ma c'é cmq accelerazione iniziale come in trainingset)
+                //test on change of velocity (ma c'ï¿½ cmq accelerazione iniziale come in trainingset)
                 if (sequenceID==37){
                     seq="notBio/roll/zigzag_slower/zigzag_const_2/leftDumper/"; 
                     k_min=58;
@@ -1119,9 +1119,9 @@ bool batchAnalysis2Thread::processing(){
     //zzz
         contentBottleTime = timeBottle.addList();
 
-        contentBottleTime.addDouble(timeDiffOF);
-        contentBottleTime.addDouble(timeDiffThresholding);
-        contentBottleTime.addDouble(timeDiffProcessing);
+        contentBottleTime.addFloat32(timeDiffOF);
+        contentBottleTime.addFloat32(timeDiffThresholding);
+        contentBottleTime.addFloat32(timeDiffProcessing);
     return true;
 }
 

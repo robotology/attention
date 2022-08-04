@@ -181,9 +181,9 @@ static void cb_digits_scale3( GtkAdjustment *adj )
     if (_pOutPort!=NULL) {
         yarp::os::Bottle& bot = _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_MAXDB);
-        bot.addInt(maxBLOB);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_MAXDB);
+        bot.addInt16(maxBLOB);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write();
     }
@@ -196,9 +196,9 @@ static void cb_digits_scale4( GtkAdjustment *adj )
     if (_pOutPort!=NULL) {
         yarp::os::Bottle& bot = _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_MINDB);
-        bot.addInt(minBLOB);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_MINDB);
+        bot.addInt16(minBLOB);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write();
     }
@@ -262,9 +262,9 @@ static void cb_digits_scalemin( GtkAdjustment *adj )
     if (_pOutPort!=NULL) {
         yarp::os::Bottle& bot = _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_MBA);
-        bot.addDouble(minBoundingArea);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_MBA);
+        bot.addFloat32(minBoundingArea);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write();
     }

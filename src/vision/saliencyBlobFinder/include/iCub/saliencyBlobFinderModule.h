@@ -175,27 +175,27 @@
 #include <iCub/blobFinderThread.h>
 
 // general command vocab's
-const int32_t COMMAND_VOCAB_IS     = yarp::os::createVocab('i','s');
-const int32_t COMMAND_VOCAB_OK     = yarp::os::createVocab('o','k');
+const int32_t COMMAND_VOCAB_IS     = yarp::os::createVocab32('i','s');
+const int32_t COMMAND_VOCAB_OK     = yarp::os::createVocab32('o','k');
 
-const int32_t COMMAND_VOCAB_HELP   = yarp::os::createVocab('h','e','l','p');
-const int32_t COMMAND_VOCAB_FAILED = yarp::os::createVocab('f','a','i','l');
-const int32_t COMMAND_VOCAB_TRED   = yarp::os::createVocab('t','r','e','d');
-const int32_t COMMAND_VOCAB_TGRE   = yarp::os::createVocab('t','g','r','e');
-const int32_t COMMAND_VOCAB_TBLU   = yarp::os::createVocab('t','b','l','u');
-const int32_t COMMAND_VOCAB_FRED   = yarp::os::createVocab('f','r','e','d');       // request of fovea blob color (red)
-const int32_t COMMAND_VOCAB_FBLU   = yarp::os::createVocab('f','b','l','u');       // request of fovea blob color (red)
-const int32_t COMMAND_VOCAB_FGRE   = yarp::os::createVocab('f','g','r','e');       // request of fovea blob color (red)
-const int32_t COMMAND_VOCAB_FRGB   = yarp::os::createVocab('f','r','g','b');       // request of fovea blob color (rgb)
+const int32_t COMMAND_VOCAB_HELP   = yarp::os::createVocab32('h','e','l','p');
+const int32_t COMMAND_VOCAB_FAILED = yarp::os::createVocab32('f','a','i','l');
+const int32_t COMMAND_VOCAB_TRED   = yarp::os::createVocab32('t','r','e','d');
+const int32_t COMMAND_VOCAB_TGRE   = yarp::os::createVocab32('t','g','r','e');
+const int32_t COMMAND_VOCAB_TBLU   = yarp::os::createVocab32('t','b','l','u');
+const int32_t COMMAND_VOCAB_FRED   = yarp::os::createVocab32('f','r','e','d');       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FBLU   = yarp::os::createVocab32('f','b','l','u');       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FGRE   = yarp::os::createVocab32('f','g','r','e');       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FRGB   = yarp::os::createVocab32('f','r','g','b');       // request of fovea blob color (rgb)
 
 
-const int32_t COMMAND_VOCAB_MAXDB  = yarp::os::createVocab('M','d','b');           // maximum dimension of the blob drawn
-const int32_t COMMAND_VOCAB_MINDB  = yarp::os::createVocab('m','d','b');           // minimum dimension of the blob drawn
-const int32_t COMMAND_VOCAB_MBA    = yarp::os::createVocab('m','B','A');           // minimum dimension of the bounding area
-const int32_t COMMAND_VOCAB_SET    = yarp::os::createVocab('s','e','t');
-const int32_t COMMAND_VOCAB_GET    = yarp::os::createVocab('g','e','t');
-const int32_t COMMAND_VOCAB_WTD    = yarp::os::createVocab('w','t','d');
-const int32_t COMMAND_VOCAB_WBU    = yarp::os::createVocab('w','b','u');
+const int32_t COMMAND_VOCAB_MAXDB  = yarp::os::createVocab32('M','d','b');           // maximum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MINDB  = yarp::os::createVocab32('m','d','b');           // minimum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MBA    = yarp::os::createVocab32('m','B','A');           // minimum dimension of the bounding area
+const int32_t COMMAND_VOCAB_SET    = yarp::os::createVocab32('s','e','t');
+const int32_t COMMAND_VOCAB_GET    = yarp::os::createVocab32('g','e','t');
+const int32_t COMMAND_VOCAB_WTD    = yarp::os::createVocab32('w','t','d');
+const int32_t COMMAND_VOCAB_WBU    = yarp::os::createVocab32('w','b','u');
 
 /*
  * @brief: module interfacing with the user

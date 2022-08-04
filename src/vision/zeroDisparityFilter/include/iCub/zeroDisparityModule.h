@@ -33,23 +33,23 @@
 class zeroDisparityFilterMod : public yarp::os::RFModule {
 
     enum {
-        COMMAND_VOCAB_IS = yarp::os::createVocab('i', 's'),
-        COMMAND_VOCAB_HELP = yarp::os::createVocab('h', 'e', 'l', 'p'),
-        COMMAND_VOCAB_SET = yarp::os::createVocab('s', 'e', 't'),
-        COMMAND_VOCAB_GET = yarp::os::createVocab('g', 'e', 't'),
-        COMMAND_VOCAB_K1 = yarp::os::createVocab('k', '1'), //data penalty
-        COMMAND_VOCAB_K2 = yarp::os::createVocab('k', '2'), //smoothness penalty base
-        COMMAND_VOCAB_K3 = yarp::os::createVocab('k', '3'), //smoothness penalty
-        COMMAND_VOCAB_K4 = yarp::os::createVocab('k', '4'),//radial penalty
-        COMMAND_VOCAB_K5 = yarp::os::createVocab('k', '5'), //smoothness 3sigmaon2
-        COMMAND_VOCAB_K6 = yarp::os::createVocab('k', '6'), //bland dog thresh
-        COMMAND_VOCAB_K7 = yarp::os::createVocab('k', '7'), //bland prob
-        COMMAND_VOCAB_K8 = yarp::os::createVocab('k', '8'), //max spread
-        COMMAND_VOCAB_K9 = yarp::os::createVocab('k', '9'), //max spread
-        COMMAND_VOCAB_FAILED = yarp::os::createVocab('f', 'a' , 'i', 'l'), //max spread
-        COMMAND_VOCAB_OK = yarp::os::createVocab('o', 'k'), //max spread
-        COMMAND_VOCAB_SUS = yarp::os::createVocab('s', 'u' , 's'), //max spread
-        COMMAND_VOCAB_RUN = yarp::os::createVocab('r', 'u' , 'n'), //max spread
+        COMMAND_VOCAB_IS = yarp::os::createVocab32('i', 's'),
+        COMMAND_VOCAB_HELP = yarp::os::createVocab32('h', 'e', 'l', 'p'),
+        COMMAND_VOCAB_SET = yarp::os::createVocab32('s', 'e', 't'),
+        COMMAND_VOCAB_GET = yarp::os::createVocab32('g', 'e', 't'),
+        COMMAND_VOCAB_K1 = yarp::os::createVocab32('k', '1'), //data penalty
+        COMMAND_VOCAB_K2 = yarp::os::createVocab32('k', '2'), //smoothness penalty base
+        COMMAND_VOCAB_K3 = yarp::os::createVocab32('k', '3'), //smoothness penalty
+        COMMAND_VOCAB_K4 = yarp::os::createVocab32('k', '4'),//radial penalty
+        COMMAND_VOCAB_K5 = yarp::os::createVocab32('k', '5'), //smoothness 3sigmaon2
+        COMMAND_VOCAB_K6 = yarp::os::createVocab32('k', '6'), //bland dog thresh
+        COMMAND_VOCAB_K7 = yarp::os::createVocab32('k', '7'), //bland prob
+        COMMAND_VOCAB_K8 = yarp::os::createVocab32('k', '8'), //max spread
+        COMMAND_VOCAB_K9 = yarp::os::createVocab32('k', '9'), //max spread
+        COMMAND_VOCAB_FAILED = yarp::os::createVocab32('f', 'a' , 'i', 'l'), //max spread
+        COMMAND_VOCAB_OK = yarp::os::createVocab32('o', 'k'), //max spread
+        COMMAND_VOCAB_SUS = yarp::os::createVocab32('s', 'u' , 's'), //max spread
+        COMMAND_VOCAB_RUN = yarp::os::createVocab32('r', 'u' , 'n'), //max spread
     };
 
 

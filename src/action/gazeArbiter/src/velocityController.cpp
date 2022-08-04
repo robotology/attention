@@ -410,9 +410,9 @@ void velocityController::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_MONO")) {
             // monocular saccades with visualFeedback
             printf("MONO SACCADE request \n");
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
-            zDistance = arg->get(3).asDouble();
+            u = arg->get(1).asInt16();
+            v = arg->get(2).asInt16();
+            zDistance = arg->get(3).asFloat32();
             mutex.wait();
             setVisualFeedback(true);
             stateRequest[3] = 1;
@@ -424,9 +424,9 @@ void velocityController::update(observable* o, Bottle * arg) {
         if(!strcmp(name.c_str(),"SAC_EXPR")) {
             // monocular saccades without visualfeedback
             printf("EXPRESS SACCADE request \n");
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
-            zDistance = arg->get(3).asDouble();
+            u = arg->get(1).asInt16();
+            v = arg->get(2).asInt16();
+            zDistance = arg->get(3).asFloat32();
             mutex.wait();
             setVisualFeedback(false);
             stateRequest[3] = 1;
@@ -438,9 +438,9 @@ void velocityController::update(observable* o, Bottle * arg) {
         }
         
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
-            xObject = arg->get(1).asDouble();
-            yObject = arg->get(2).asDouble();
-            zObject = arg->get(3).asDouble();
+            xObject = arg->get(1).asFloat32();
+            yObject = arg->get(2).asFloat32();
+            zObject = arg->get(3).asFloat32();
             printf("received request of abs saccade in position %f %f %f \n", xObject, yObject, zObject);
             mutex.wait();
             stateRequest[3] = 1;
@@ -455,7 +455,7 @@ void velocityController::update(observable* o, Bottle * arg) {
             mutex.post();
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
-            phi = arg->get(1).asDouble();            
+            phi = arg->get(1).asFloat32();
             mutex.wait();
             mono = true;
             stateRequest[1] = 1;

@@ -213,11 +213,11 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     /* get the dimension of the image for the thread parametric control */
     width                  = rf.check("width", 
                            Value(320), 
-                           "width of the image (int)").asInt();
+                           "width of the image (int)").asInt16();
 
     height                 = rf.check("height", 
                            Value(240), 
-                           "height of the image (int)").asInt();
+                           "height of the image (int)").asInt16();
 
     printf("\n width: %d  height:%d \n", width, height);
     prioritiser->setDimension(width,height);
@@ -225,21 +225,21 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     /* offset for 3d position along x axis */
     this->xoffset       = rf.check("xoffset", 
                            Value(0), 
-                           "offset for 3D fixation point x").asDouble();
+                           "offset for 3D fixation point x").asFloat32();
     printf("xoffset:%f \n", xoffset);
     prioritiser->setXOffset(xoffset);
 
     /* offset for 3d position along y axis */
     this->yoffset       = rf.check("yoffset", 
                            Value(0), 
-                           "offset for 3D fixation point y").asDouble();
+                           "offset for 3D fixation point y").asFloat32();
     printf("yoffset:%f \n", yoffset);
     prioritiser->setYOffset(yoffset);
 
     /* offset for 3d position along z axis */
     this->zoffset       = rf.check("zoffset", 
                            Value(0), 
-                           "offset for 3D fixation point z").asDouble();
+                           "offset for 3D fixation point z").asFloat32();
     printf("zoffset:%f \n", zoffset);
     prioritiser->setZOffset(zoffset);
 
@@ -247,40 +247,40 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     // limits for 3d position along x axis 
     xmax       = rf.check("xmax", 
                            Value(-0.2), 
-                          "limit max for 3D fixation point x").asDouble();
+                          "limit max for 3D fixation point x").asFloat32();
     printf("xmax:%f \n", xmax);
     xmin       = rf.check("xmin", 
                            Value(-10.0), 
-                           "limit min for 3D fixation point x").asDouble();;
+                           "limit min for 3D fixation point x").asFloat32();;
     printf("xmin:%f \n", xmin);
     prioritiser->setXLimits(xmax,xmin);
     
     // limits for 3d position along y axis 
     ymax       = rf.check("ymax", 
                            Value(0.3), 
-                           "limit max for 3D fixation point y").asDouble();
+                           "limit max for 3D fixation point y").asFloat32();
     printf("ymax:%f \n", ymax);
     ymin       = rf.check("ymin", 
                            Value(-0.3), 
-                           "limit max for 3D fixation point y").asDouble();
+                           "limit max for 3D fixation point y").asFloat32();
     printf("ymin:%f \n", ymin);
     prioritiser->setYLimits(ymax,ymin);
     
     // limits for 3d position along z axis 
     zmax       = rf.check("zmax", 
                            Value(0.9), 
-                           "limit max for 3D fixation point z").asDouble();
+                           "limit max for 3D fixation point z").asFloat32();
     printf("zmax:%f \n", zmax);
     zmin       = rf.check("zmin", 
                            Value(-0.3), 
-                           "limit min for 3D fixation point z").asDouble();
+                           "limit min for 3D fixation point z").asFloat32();
     printf("zmin:%f \n", zmin);
     prioritiser->setZLimits(zmax,zmin);
     
     // specifies whether the camera is mounted on the head
     //onWings       = rf.check("onWings", 
     //                       Value(0), 
-    //                       "indicates whether the camera is mounted on the head").asInt();
+    //                       "indicates whether the camera is mounted on the head").asInt16();
     //printf("onWings %d \n", onWings);
     //prioritiser->setOnWings(onWings);
     
@@ -302,7 +302,7 @@ bool attPrioritiserModule::configure(yarp::os::ResourceFinder &rf) {
     // fixating pitch
     pitch       = rf.check("blockPitch", 
                            Value(-1), 
-                           "fixing the pitch to a desired angle").asDouble();
+                           "fixing the pitch to a desired angle").asFloat32();
     printf("pitch:%f \n", pitch);
     prioritiser->setBlockPitch(pitch);
 
@@ -494,11 +494,11 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
     }
     
     mutex.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addVocab(Vocab::encode("many"));
+            reply.addVocab32(Vocab32::encode("many"));
             reply.addString("help");
 
             //reply.addString();
@@ -552,7 +552,7 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
     case COMMAND_VOCAB_FIX:
         rec = true;
         {
-            switch (command.get(1).asVocab()) {
+            switch (command.get(1).asVocab32()) {
             case COMMAND_VOCAB_CENT:
                 {
                     printf("Fixating in Center \n");
@@ -575,10 +575,10 @@ bool attPrioritiserModule::respond(const Bottle& command, Bottle& reply) {
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
     
     
     return true;

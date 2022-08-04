@@ -134,7 +134,7 @@ void tutorialThread::run() {
 
             if (outputPort.getOutputCount()) {
                 Bottle b = outputPort.prepare();
-                b.addInt(result);
+                b.addInt16(result);
                 outputPort.write();  
             }
         

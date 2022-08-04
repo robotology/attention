@@ -63,10 +63,10 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
             if (parType.check("w") && parType.check("h") &&
                 parType.check("fx") && parType.check("fy")) {
                 // we suppose that the center distorsion is already compensated
-                double cx = parType.find("w").asDouble() / 2.0;
-                double cy = parType.find("h").asDouble() / 2.0;
-                double fx = parType.find("fx").asDouble(); printf("fx %f \n", fx);
-                double fy = parType.find("fy").asDouble(); printf("fy %f \n", fy);
+                double cx = parType.find("w").asFloat32() / 2.0;
+                double cy = parType.find("h").asFloat32() / 2.0;
+                double fx = parType.find("fx").asFloat32(); printf("fx %f \n", fx);
+                double fy = parType.find("fy").asFloat32(); printf("fy %f \n", fy);
 
                 Matrix K=eye(3,3);
                 Matrix Pi=zeros(3,4);

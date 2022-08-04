@@ -998,7 +998,7 @@ void oculomotorController::run() {
         
         //Bottle& scopeBottle = scopePort.prepare();
         //scopeBottle.clear();
-        //scopeBottle.addDouble(totalPayoff);
+        //scopeBottle.addFloat32(totalPayoff);
         //scopePort.write();
     }
     
@@ -1130,22 +1130,22 @@ void oculomotorController::update(observable* o, Bottle * arg) {
             return;
         }
 
-        switch(arg->get(0).asVocab()) {
+        switch(arg->get(0).asVocab32()) {
         case COMMAND_VOCAB_STAT :{
             // called from the observed class (attentioPrioritiser)
                      
-            //int actionvalue = (int) arg->get(1).asDouble();  // action that is just finalized
+            //int actionvalue = (int) arg->get(1).asFloat32();  // action that is just finalized
             int actionvalue = 0;
-            int statevalueparam    = (int) arg->get(1).asDouble();
-            double timing          =       arg->get(2).asDouble();
-            double accuracy        =       arg->get(3).asDouble();
-            double amplitude       =       arg->get(4).asDouble();
-            double frequency       =       arg->get(5).asDouble();
+            int statevalueparam    = (int) arg->get(1).asFloat32();
+            double timing          =       arg->get(2).asFloat32();
+            double accuracy        =       arg->get(3).asFloat32();
+            double amplitude       =       arg->get(4).asFloat32();
+            double frequency       =       arg->get(5).asFloat32();
             
             printf("\n timing:%f accuracy:%f amplitude:%f frequency:%f \n", timing, accuracy, amplitude, frequency);           
 
             
-            //printf("new state update arrived action: %d state :%f  \n", actionvalue, arg->get(2).asDouble()); 
+            //printf("new state update arrived action: %d state :%f  \n", actionvalue, arg->get(2).asFloat32());
             // update for evaluation of pSA without learning
             state_next = statevalueparam;           // the update comes from the attPrioritiser with default state.
             
@@ -1285,20 +1285,20 @@ void oculomotorController::update(observable* o, Bottle * arg) {
                         
         } break;
         case COMMAND_VOCAB_ACT :{
-            //printf("new action update arrived %f %f \n", arg->get(1).asDouble(), arg->get(2).asDouble());
+            //printf("new action update arrived %f %f \n", arg->get(1).asFloat32(), arg->get(2).asFloat32());
             //yarp::sig::Vector action(8);
             //action.zero();
-            //int a = (int) arg->get(1).asDouble();
+            //int a = (int) arg->get(1).asFloat32();
             
             //extracting the allowTransition matrix
             yarp::sig::Vector a(7);
-            a(0) = arg->get(1).asDouble();
-            a(1) = arg->get(2).asDouble();
-            a(2) = arg->get(3).asDouble();
-            a(3) = arg->get(4).asDouble();
-            a(4) = arg->get(5).asDouble();
-            a(5) = arg->get(6).asDouble();
-            a(6) = arg->get(7).asDouble();
+            a(0) = arg->get(1).asFloat32();
+            a(1) = arg->get(2).asFloat32();
+            a(2) = arg->get(3).asFloat32();
+            a(3) = arg->get(4).asFloat32();
+            a(4) = arg->get(5).asFloat32();
+            a(5) = arg->get(6).asFloat32();
+            a(6) = arg->get(7).asFloat32();
             
             // if it is not learning the action is trigger by these lines
             int i = 0;

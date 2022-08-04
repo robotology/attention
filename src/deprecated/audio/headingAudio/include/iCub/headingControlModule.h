@@ -191,38 +191,38 @@ Windows, Linux
 
 #include <string>
 
-#define COMMAND_VOCAB_ON    VOCAB2('o','n')
-#define COMMAND_VOCAB_OFF   VOCAB3('o','f','f')
-#define COMMAND_VOCAB_DUMP  VOCAB4('d','u','m','p')
-#define COMMAND_VOCAB_SYNC  VOCAB4('s','y','n','c')
+const int32_t COMMAND_VOCAB_ON    = yarp::os::createVocab32('o','n')
+const int32_t COMMAND_VOCAB_OFF   = yarp::os::createVocab32('o','f','f')
+const int32_t COMMAND_VOCAB_DUMP  VOCAB4('d','u','m','p')
+const int32_t COMMAND_VOCAB_SYNC  VOCAB4('s','y','n','c')
 
 #define DELTAENC 0.0000001
 #define deg2rad  3.1415/180
 
 // general command vocab's
-#define COMMAND_VOCAB_IS     VOCAB2('i','s')
-#define COMMAND_VOCAB_OK     VOCAB2('o','k')
+const int32_t COMMAND_VOCAB_IS     = yarp::os::createVocab32('i','s')
+const int32_t COMMAND_VOCAB_OK     = yarp::os::createVocab32('o','k')
 
-#define COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_POINT  VOCAB4('p','o','i','n')
-#define COMMAND_VOCAB_LOOK   VOCAB4('l','o','o','k')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
-#define COMMAND_VOCAB_TGRE   VOCAB4('t','g','r','e')
-#define COMMAND_VOCAB_TBLU   VOCAB4('t','b','l','u')
-#define COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_FGRE   VOCAB4('f','g','r','e')       // request of fovea blob color (red)
-#define COMMAND_VOCAB_FRGB   VOCAB4('f','r','g','b')       // request of fovea blob color (rgb)
+const int32_t COMMAND_VOCAB_HELP   VOCAB4('h','e','l','p')
+const int32_t COMMAND_VOCAB_POINT  VOCAB4('p','o','i','n')
+const int32_t COMMAND_VOCAB_LOOK   VOCAB4('l','o','o','k')
+const int32_t COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+const int32_t COMMAND_VOCAB_TRED   VOCAB4('t','r','e','d')
+const int32_t COMMAND_VOCAB_TGRE   VOCAB4('t','g','r','e')
+const int32_t COMMAND_VOCAB_TBLU   VOCAB4('t','b','l','u')
+const int32_t COMMAND_VOCAB_FRED   VOCAB4('f','r','e','d')       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FBLU   VOCAB4('f','b','l','u')       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FGRE   VOCAB4('f','g','r','e')       // request of fovea blob color (red)
+const int32_t COMMAND_VOCAB_FRGB   VOCAB4('f','r','g','b')       // request of fovea blob color (rgb)
 
 
-#define COMMAND_VOCAB_MAXDB  VOCAB3('M','d','b')           // maximum dimension of the blob drawn
-#define COMMAND_VOCAB_MINDB  VOCAB3('m','d','b')           // minimum dimension of the blob drawn
-#define COMMAND_VOCAB_MBA    VOCAB3('m','B','A')           // minimum dimension of the bounding area
-#define COMMAND_VOCAB_SET    VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET    VOCAB3('g','e','t')
-#define COMMAND_VOCAB_WTD    VOCAB3('w','t','d')
-#define COMMAND_VOCAB_WBU    VOCAB3('w','b','u')
+const int32_t COMMAND_VOCAB_MAXDB  = yarp::os::createVocab32('M','d','b')           // maximum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MINDB  = yarp::os::createVocab32('m','d','b')           // minimum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MBA    = yarp::os::createVocab32('m','B','A')           // minimum dimension of the bounding area
+const int32_t COMMAND_VOCAB_SET    = yarp::os::createVocab32('s','e','t')
+const int32_t COMMAND_VOCAB_GET    = yarp::os::createVocab32('g','e','t')
+const int32_t COMMAND_VOCAB_WTD    = yarp::os::createVocab32('w','t','d')
+const int32_t COMMAND_VOCAB_WBU    = yarp::os::createVocab32('w','b','u')
 
 
 using namespace yarp::dev;
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
     remotePorts+="/head"; //"/right_arm"
 
     //int nOl=atoi(params.find("loop").asString().c_str());
-    int nOl=params.find("loop").asInt();
+    int nOl=params.find("loop").asInt16();
 
     //Network::connect(portName.c_str(), "/aexGrabber");
 
@@ -397,8 +397,8 @@ int main(int argc, char *argv[])
     int times=0;
     yarp::os::Bottle bot; //= _pOutPort->prepare();
     bot.clear();
-    bot.addVocab(COMMAND_VOCAB_DUMP);
-    bot.addVocab(COMMAND_VOCAB_ON);
+    bot.addVocab32(COMMAND_VOCAB_DUMP);
+    bot.addVocab32(COMMAND_VOCAB_ON);
     Bottle inOn;
     _pOutPort->write(bot,inOn);
 
@@ -425,7 +425,7 @@ int main(int argc, char *argv[])
     //        encs->getEncoder(4, &curPos);
      //   }
     //    bot.clear();
-    //    bot.addVocab(COMMAND_VOCAB_SYNC);
+    //    bot.addVocab32(COMMAND_VOCAB_SYNC);
     //    Bottle inStart;
     //    _pOutPort->write(bot,inStart);
    // 	printf("1st synch asked\n");
@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
     //    //    encs->getEncoder(3, &curPos);
     //    //}
     //    bot.clear();
-    //    bot.addVocab(COMMAND_VOCAB_SYNC);
+    //    bot.addVocab32(COMMAND_VOCAB_SYNC);
     //    Bottle inEnd;
     //    _pOutPort->write(bot,inEnd);
     //	printf("2nd synch asked\n");
@@ -486,7 +486,7 @@ int main(int argc, char *argv[])
     while(true){
         if (_pInPort->getInputCount()) {
             Bottle* b = _pInPort->read(true);
-            value = b->get(0).asDouble();
+            value = b->get(0).asFloat32();
             printf("got the double %f \n", value);
             encs->getEncoder(2, &startPos2);
             //printf("getEncoder3 position %f \n", startPos2);
@@ -525,14 +525,14 @@ int main(int argc, char *argv[])
 
 
     //bot.clear();
-    //bot.addVocab(COMMAND_VOCAB_SYNC);
+    //bot.addVocab32(COMMAND_VOCAB_SYNC);
     //Bottle inEnd;
     //_pOutPort->write(bot,inEnd);
     
 
     bot.clear();
-    bot.addVocab(COMMAND_VOCAB_DUMP);
-    bot.addVocab(COMMAND_VOCAB_OFF);
+    bot.addVocab32(COMMAND_VOCAB_DUMP);
+    bot.addVocab32(COMMAND_VOCAB_OFF);
     Bottle inOff;
     _pOutPort->write(bot,inOff);
 
@@ -596,11 +596,11 @@ public:
         
         mutex.wait();
         
-        switch (command.get(0).asVocab()) {
+        switch (command.get(0).asVocab32()) {
         case COMMAND_VOCAB_HELP:
             rec = true;
             {
-                reply.addVocab(Vocab::encode("many"));
+                reply.addVocab32(Vocab32::encode("many"));
                 reply.addString("help");
                 
                 //reply.addString("\n");
@@ -626,10 +626,10 @@ public:
                 printf("*** LOOK command received \n");                
                 thr->setAction("look");
                 /*
-                switch(command.get(1).asVocab()) {
+                switch(command.get(1).asVocab32()) {
                 case COMMAND_VOCAB_MBA:
                     {
-                        double w = command.get(2).asDouble();
+                        double w = command.get(2).asFloat32();
                         cout << "set mBA: " << w << endl;
  
                         ok=true;
@@ -637,49 +637,49 @@ public:
                     break;
                 case COMMAND_VOCAB_MAXDB:
                     {
-                        int w = command.get(2).asInt();
+                        int w = command.get(2).asInt16();
                         
                         ok=true;
                     }
                     break;
                 case COMMAND_VOCAB_MINDB:
                     {
-                        int w = command.get(2).asInt();
+                        int w = command.get(2).asInt16();
      
                         ok=true;
                     }
                     break;
                 case COMMAND_VOCAB_WTD:
                     {
-                        int w = command.get(2).asDouble();
+                        int w = command.get(2).asFloat32();
     
                         ok=true;
                     }
                     break;
                 case COMMAND_VOCAB_WBU:
                     {
-                        int w = command.get(2).asDouble();
+                        int w = command.get(2).asFloat32();
                        
                         ok=true;
                     }
                     break;
                 case COMMAND_VOCAB_TRED:
                     {
-                        int t = command.get(2).asInt();
+                        int t = command.get(2).asInt16();
                         
                         ok=true;
                     }
                     break;
                 case COMMAND_VOCAB_TGRE:
                     {
-                        int t = command.get(2).asInt();
+                        int t = command.get(2).asInt16();
                         
                         ok=true;
                     }
                     break;
                 case COMMAND_VOCAB_TBLU:
                     {
-                        int t = command.get(2).asInt();
+                        int t = command.get(2).asInt16();
                         
                         ok=true;
                     }
@@ -700,21 +700,21 @@ public:
                 printf("*** POINT command received \n");
                 thr->setAction("point");
                 
-                //reply.addVocab(COMMAND_VOCAB_IS);
+                //reply.addVocab32(COMMAND_VOCAB_IS);
                 //reply.add(command.get(1));
-                /*switch(command.get(1).asVocab()) {
+                /*switch(command.get(1).asVocab32()) {
                     
                 case COMMAND_VOCAB_MAXDB:
                     {
                         
-                        //reply.addInt(nb);
+                        //reply.addInt16(nb);
                         ok = true;
                     }
                     break;
                 case COMMAND_VOCAB_MINDB:
                     {
                         
-                        //reply.addInt(nb);
+                        //reply.addInt16(nb);
                         ok = true;
                     }
                     break;
@@ -722,9 +722,9 @@ public:
                     {
                         int redValue,greenValue, blueValue;
                         
-                        reply.addInt(redValue);
-                        reply.addInt(greenValue);
-                        reply.addInt(blueValue);
+                        reply.addInt16(redValue);
+                        reply.addInt16(greenValue);
+                        reply.addInt16(blueValue);
                         ok = true;
                     }
                     break;
@@ -750,10 +750,10 @@ public:
         
         if (!ok) {
             reply.clear();
-            reply.addVocab(COMMAND_VOCAB_FAILED);
+            reply.addVocab32(COMMAND_VOCAB_FAILED);
         }
         else
-            reply.addVocab(COMMAND_VOCAB_OK);
+            reply.addVocab32(COMMAND_VOCAB_OK);
         
         return ok;
     } 	

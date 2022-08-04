@@ -54,7 +54,7 @@ attentionManagerThread::~attentionManagerThread(){
 
 
 bool attentionManagerThread::configure(yarp::os::ResourceFinder &rf){
-    max_thresholdVal = rf.findGroup("processingParam").check("max_threshold",    yarp::os::Value(200), "the max threshold value to execute the action").asDouble();
+    max_thresholdVal = rf.findGroup("processingParam").check("max_threshold",    yarp::os::Value(200), "the max threshold value to execute the action").asFloat32();
     mean_thresholdVal = rf.findGroup("processingParam").check("mean_threshold", yarp::os::Value(0), "the mean threshold value to execute the action").asFloat64();
     std_thresholdVal = rf.findGroup("processingParam").check("std_threshold",    yarp::os::Value(5), "the std threshold value to execute the action").asFloat64();
     threeSigma_thresholdVal = rf.findGroup("processingParam").check("three_sigma_threshold",    yarp::os::Value(95), "the 3 sigma threshold value to execute the action").asFloat64();
@@ -221,9 +221,9 @@ bool attentionManagerThread::sendMaxPointToLinker(cv::Point maxPoint, int val,fl
     if(hotPointPort.getOutputCount()){
         Bottle msg;
         Bottle& coordinatesList = msg.addList();
-        coordinatesList.addInt(maxPoint.x);
-        coordinatesList.addInt(maxPoint.y);
-        msg.addInt(val);
+        coordinatesList.addInt16(maxPoint.x);
+        coordinatesList.addInt16(maxPoint.y);
+        msg.addInt16(val);
         msg.addFloat64(imgMean);
         msg.addFloat64(imgStd);
         hotPointPort.prepare() = msg;
@@ -301,9 +301,9 @@ bool attentionManagerThread::suspendEngine() {
     if(engineControlPort.getOutputCount()){
         Bottle command;
         Bottle reply;
-        command.addVocab(COMMAND_VOCAB_SUSPEND);
+        command.addVocab32(COMMAND_VOCAB_SUSPEND);
         engineControlPort.write(command,reply);
-        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+        if(reply.get(0).asVocab32()==COMMAND_VOCAB_OK)
             return true;
     }
     return false;
@@ -313,9 +313,9 @@ bool attentionManagerThread::resumeEngine() {
     if(engineControlPort.getOutputCount()){
         Bottle command;
         Bottle reply;
-        command.addVocab(COMMAND_VOCAB_RESUME);
+        command.addVocab32(COMMAND_VOCAB_RESUME);
         engineControlPort.write(command,reply);
-        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+        if(reply.get(0).asVocab32()==COMMAND_VOCAB_OK)
             return true;
     }
     return false;
@@ -325,9 +325,9 @@ bool attentionManagerThread::suspendArbiter() {
     if(gazeArbiterControlPort.getOutputCount()){
         Bottle command;
         Bottle reply;
-        command.addVocab(COMMAND_VOCAB_SUSPEND);
+        command.addVocab32(COMMAND_VOCAB_SUSPEND);
         gazeArbiterControlPort.write(command,reply);
-        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+        if(reply.get(0).asVocab32()==COMMAND_VOCAB_OK)
             return true;
     }
     return false;
@@ -337,9 +337,9 @@ bool attentionManagerThread::resumeArbiter() {
     if(gazeArbiterControlPort.getOutputCount()){
         Bottle command;
         Bottle reply;
-        command.addVocab(COMMAND_VOCAB_RESUME);
+        command.addVocab32(COMMAND_VOCAB_RESUME);
         gazeArbiterControlPort.write(command,reply);
-        if(reply.get(0).asVocab()==COMMAND_VOCAB_OK)
+        if(reply.get(0).asVocab32()==COMMAND_VOCAB_OK)
             return true;
     }
     return false;
@@ -483,12 +483,12 @@ float attentionManagerThread::getThreshold(const int32_t mode,const int32_t type
 bool attentionManagerThread::publishAnalysis() {
     if(sceneAnalysisPort.getOutputCount()){
         Bottle msg;
-        msg.addInt(maxValue);
+        msg.addInt16(maxValue);
         msg.addFloat64(meanVal);
         msg.addFloat64(stdVal);
         msg.addFloat64(threeSigmaVal);
-        msg.addInt(idxOfMax.x);
-        msg.addInt(idxOfMax.y);
+        msg.addInt16(idxOfMax.x);
+        msg.addInt16(idxOfMax.y);
         msg.addFloat64(threeSigma_thresholdVal);
         sceneAnalysisPort.prepare() = msg;
         sceneAnalysisPort.write();

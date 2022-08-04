@@ -58,18 +58,18 @@
 
 #define NDTEQ    1 //0
 
-#define COMMAND_VOCAB_IS VOCAB2('i','s')
-#define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_SET VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET VOCAB3('g','e','t')
-#define COMMAND_VOCAB_K1 VOCAB2('k','1') //data penalty
-#define COMMAND_VOCAB_K2 VOCAB2('k','2') //smoothness penalty base
-#define COMMAND_VOCAB_K3 VOCAB2('k','3') //smoothness penalty
-#define COMMAND_VOCAB_K4 VOCAB2('k','4') //radial penalty
-#define COMMAND_VOCAB_K5 VOCAB2('k','5') //smoothness 3sigmaon2
-#define COMMAND_VOCAB_K6 VOCAB2('k','6') //bland dog thresh
-#define COMMAND_VOCAB_K7 VOCAB2('k','7') //bland prob
-#define COMMAND_VOCAB_K8 VOCAB2('k','8') //max spread
+const int32_t COMMAND_VOCAB_IS = yarp::os::createVocab32('i','s')
+const int32_t COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
+const int32_t COMMAND_VOCAB_SET = yarp::os::createVocab32('s','e','t')
+const int32_t COMMAND_VOCAB_GET = yarp::os::createVocab32('g','e','t')
+const int32_t COMMAND_VOCAB_K1 = yarp::os::createVocab32('k','1') //data penalty
+const int32_t COMMAND_VOCAB_K2 = yarp::os::createVocab32('k','2') //smoothness penalty base
+const int32_t COMMAND_VOCAB_K3 = yarp::os::createVocab32('k','3') //smoothness penalty
+const int32_t COMMAND_VOCAB_K4 = yarp::os::createVocab32('k','4') //radial penalty
+const int32_t COMMAND_VOCAB_K5 = yarp::os::createVocab32('k','5') //smoothness 3sigmaon2
+const int32_t COMMAND_VOCAB_K6 = yarp::os::createVocab32('k','6') //bland dog thresh
+const int32_t COMMAND_VOCAB_K7 = yarp::os::createVocab32('k','7') //bland prob
+const int32_t COMMAND_VOCAB_K8 = yarp::os::createVocab32('k','8') //max spread
   
 class ZDFThread : public yarp::os::Thread
 {

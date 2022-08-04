@@ -73,7 +73,7 @@ bool stereoAttModule::configure(yarp::os::ResourceFinder &rf) {
     /* get the rate by which the ratethread is updated */
     ratethread            = rf.check("ratethread", 
                            Value(100), 
-                           "module ratethread (int)").asInt();
+                           "module ratethread (int)").asInt16();
 
     /* create the thread and pass pointers to the module parameters */
     saThread = new stereoAttThread(ratethread);

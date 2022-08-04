@@ -105,15 +105,15 @@ CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 
 // general command vocab's
-#define COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_SET VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET VOCAB3('g','e','t')
-#define COMMAND_VOCAB_IS VOCAB2('i','s')
-#define COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
-#define COMMAND_VOCAB_OK VOCAB2('o','k')
-#define COMMAND_VOCAB_MAXDB VOCAB3('M','d','b')         // maximum dimension of the blob drawn
-#define COMMAND_VOCAB_MINDB VOCAB3('m','d','b')         // minimum dimension of the blob drawn
-#define COMMAND_VOCAB_MBA VOCAB3('m','B','A')           // minimum dimension of the bounding area
+const int32_t COMMAND_VOCAB_HELP VOCAB4('h','e','l','p')
+const int32_t COMMAND_VOCAB_SET = yarp::os::createVocab32('s','e','t')
+const int32_t COMMAND_VOCAB_GET = yarp::os::createVocab32('g','e','t')
+const int32_t COMMAND_VOCAB_IS = yarp::os::createVocab32('i','s')
+const int32_t COMMAND_VOCAB_FAILED VOCAB4('f','a','i','l')
+const int32_t COMMAND_VOCAB_OK = yarp::os::createVocab32('o','k')
+const int32_t COMMAND_VOCAB_MAXDB = yarp::os::createVocab32('M','d','b')         // maximum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MINDB = yarp::os::createVocab32('m','d','b')         // minimum dimension of the blob drawn
+const int32_t COMMAND_VOCAB_MBA = yarp::os::createVocab32('m','B','A')           // minimum dimension of the bounding area
 
 //-------------------------------------------------
 // Callbacks

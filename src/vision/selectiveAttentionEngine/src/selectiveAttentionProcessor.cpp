@@ -320,11 +320,8 @@ bool selectiveAttentionProcessor::threadInit(){
     portionRequestPort.open(    getName("/portionRequest:o").c_str());
     testPort.open(              getName("/test:o").c_str());
     magnoCellFeedback.open(     getName("/magnoCells:o").c_str());
-
-		
     //initializing logpolar mapping
     cout << "||| initializing the logpolar mapping" << endl;
-
     if (!trsf.allocLookupTables(L2C, numberOfRings, numberOfAngles, xSizeValue, ySizeValue, overlap)) {
         cerr << "can't allocate lookup tables" << endl;
         return false;
@@ -595,9 +592,9 @@ void selectiveAttentionProcessor::run(){
             Bottle& commandBottle=outputCmdPort.prepare();
             commandBottle.clear();
             commandBottle.addString("SAC_ABS");
-            commandBottle.addDouble(x(0));
-            commandBottle.addDouble(x(1));
-            commandBottle.addDouble(x(2));
+            commandBottle.addFloat32(x(0));
+            commandBottle.addFloat32(x(1));
+            commandBottle.addFloat32(x(2));
             outputCmdPort.write();
             return; 
         }                        
@@ -614,7 +611,7 @@ void selectiveAttentionProcessor::run(){
             out.addString("ktd");
             feedbackPort.write(out,in);
             name=in.pop().asString();
-            salienceTD=in.pop().asDouble();
+            salienceTD=in.pop().asFloat32();
             out.clear();
             in.clear();
             
@@ -622,7 +619,7 @@ void selectiveAttentionProcessor::run(){
             out.addString("kbu");
             feedbackPort.write(out,in);
             name=in.pop().asString();
-            salienceBU=in.pop().asDouble();
+            salienceBU=in.pop().asFloat32();
             out.clear();
             in.clear();
             
@@ -630,7 +627,7 @@ void selectiveAttentionProcessor::run(){
             out.addString("rin");
             feedbackPort.write(out,in);
             name=in.pop().asString();
-            targetRED=in.pop().asInt();
+            targetRED=in.pop().asInt16();
             out.clear();
             in.clear();
             
@@ -638,7 +635,7 @@ void selectiveAttentionProcessor::run(){
             out.addString("gin");
             feedbackPort.write(out,in);
             name=in.pop().asString();
-            targetGREEN=in.pop().asInt();
+            targetGREEN=in.pop().asInt16();
             out.clear();
             in.clear();
             
@@ -646,7 +643,7 @@ void selectiveAttentionProcessor::run(){
             out.addString("bin");
             feedbackPort.write(out,in);
             name=in.pop().asString();
-            targetBLUE=in.pop().asDouble();
+            targetBLUE=in.pop().asFloat32();
             out.clear();
             in.clear();
             */
@@ -1072,8 +1069,8 @@ cartSpace:
             Bottle* received = new Bottle();    
             sent->clear();
             sent->addString("fetch");
-            sent->addDouble(angles[0]);
-            sent->addDouble(angles[1]);
+            sent->addFloat32(angles[0]);
+            sent->addFloat32(angles[1]);
             portionRequestPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -1096,8 +1093,8 @@ cartSpace:
             Bottle* received = new Bottle();
             sent->clear();
             sent->addString("fetch");
-            sent->addDouble(angles[0]);
-            sent->addDouble(angles[1]);
+            sent->addFloat32(angles[0]);
+            sent->addFloat32(angles[1]);
             portionRequestPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -1444,10 +1441,10 @@ cartSpace:
                         Bottle& commandBottle=outputCmdPort.prepare();
                         commandBottle.clear();
                         commandBottle.addString("SAC_MONO");
-                        commandBottle.addInt(centroid_x);
-                        commandBottle.addInt(centroid_y);
-                        commandBottle.addDouble(z);
-                        commandBottle.addDouble(timing);
+                        commandBottle.addInt16(centroid_x);
+                        commandBottle.addInt16(centroid_y);
+                        commandBottle.addFloat32(z);
+                        commandBottle.addFloat32(timing);
                         outputCmdPort.write();
                     } 
                 }
@@ -1477,8 +1474,8 @@ cartSpace:
                 //    //suspending any vergence control
                 //    Bottle& command=databasePort.prepare();
                 //    command.clear();
-                //    command.addInt(xm);
-                //    command.addInt(ym);
+                //    command.addInt16(xm);
+                //    command.addInt16(ym);
                 //    databasePort.write();
                 //}
                 
@@ -1541,8 +1538,8 @@ bool selectiveAttentionProcessor::outPorts(){
         commandBottle.clear();
         commandBottle.addString("sac");
         commandBottle.addString("img");
-        commandBottle.addInt(centroid_x);
-        commandBottle.addInt(centroid_y);
+        commandBottle.addInt16(centroid_x);
+        commandBottle.addInt16(centroid_y);
         centroidPort.write();
     }
     if(feedbackPort.getOutputCount()){
@@ -1560,59 +1557,59 @@ bool selectiveAttentionProcessor::outPorts(){
         else if((dif>2)&&(dif<30+2)){
             //setting coefficients
             commandBottle.clear();
-            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
-            commandBottle.addVocab(yarp::os::createVocab('k','t','d'));
+            commandBottle.addVocab32(yarp::os::createVocab32('s','e','t'));
+            commandBottle.addVocab32(yarp::os::createVocab32('k','t','d'));
             salienceTD=salienceTD+0.1;
         
             //if(salienceTD>0.99)
                 salienceTD=1.0;
             printf("salienceTD \n");
-            commandBottle.addDouble((double)salienceTD);
+            commandBottle.addFloat32((double)salienceTD);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
-            commandBottle.addVocab(yarp::os::createVocab('k','b','u'));
+            commandBottle.addVocab32(yarp::os::createVocab32('s','e','t'));
+            commandBottle.addVocab32(yarp::os::createVocab32('k','b','u'));
             salienceBU=salienceBU-0.1;
             
             //if(salienceBU<=0)
                 salienceBU=0;
-            commandBottle.addDouble((double)salienceBU);
+            commandBottle.addFloat32((double)salienceBU);
             feedbackPort.write(commandBottle,in);    
             printf("read: %f,%f,%f \n",(double)targetRED,(double)targetGREEN,(double)targetBLUE);
             
         }
         else{
             printf("salienceBU \n");
-            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
-            commandBottle.addVocab(yarp::os::createVocab('k','t','d'));
+            commandBottle.addVocab32(yarp::os::createVocab32('s','e','t'));
+            commandBottle.addVocab32(yarp::os::createVocab32('k','t','d'));
             salienceTD=0.0;
-            commandBottle.addDouble((double)salienceTD);
+            commandBottle.addFloat32((double)salienceTD);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
-            commandBottle.addVocab(yarp::os::createVocab('k','b','u'));
+            commandBottle.addVocab32(yarp::os::createVocab32('s','e','t'));
+            commandBottle.addVocab32(yarp::os::createVocab32('k','b','u'));
             salienceBU=1.0;
-            commandBottle.addDouble((double)salienceBU);
+            commandBottle.addFloat32((double)salienceBU);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
-            commandBottle.addVocab(yarp::os::createVocab('r','i','n'));
-            commandBottle.addDouble((double)targetRed);
-            //commandBottle.addDouble(255.0);
+            commandBottle.addVocab32(yarp::os::createVocab32('s','e','t'));
+            commandBottle.addVocab32(yarp::os::createVocab32('r','i','n'));
+            commandBottle.addFloat32((double)targetRed);
+            //commandBottle.addFloat32(255.0);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
-            commandBottle.addVocab(yarp::os::createVocab('g','i','n'));
-            commandBottle.addDouble((double)targetGreen);
-            //commandBottle.addDouble(0.0);
+            commandBottle.addVocab32(yarp::os::createVocab32('s','e','t'));
+            commandBottle.addVocab32(yarp::os::createVocab32('g','i','n'));
+            commandBottle.addFloat32((double)targetGreen);
+            //commandBottle.addFloat32(0.0);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            commandBottle.addVocab(yarp::os::createVocab('s','e','t'));
-            commandBottle.addVocab(yarp::os::createVocab('b','i','n'));
-            commandBottle.addDouble((double)targetBlue);
+            commandBottle.addVocab32(yarp::os::createVocab32('s','e','t'));
+            commandBottle.addVocab32(yarp::os::createVocab32('b','i','n'));
+            commandBottle.addFloat32((double)targetBlue);
             feedbackPort.write(commandBottle,in);
             commandBottle.clear();
-            //commandBottle.addDouble(0.0);
+            //commandBottle.addFloat32(0.0);
             printf("%f,%f,%f \n",(double)targetRed,(double)targetGreen,(double)targetBlue);
         }
     }
@@ -1718,7 +1715,7 @@ void selectiveAttentionProcessor::magnoCellularSuppression(bool on) {
         // express saccade can be inhibit as well
         Bottle& commandBottle = magnoCellFeedback.prepare();
         commandBottle.clear();
-        commandBottle.addVocab(yarp::os::createVocab('s','u','s'));
+        commandBottle.addVocab32(yarp::os::createVocab32('s','u','s'));
         magnoCellFeedback.write();
     }
     else {
@@ -1727,7 +1724,7 @@ void selectiveAttentionProcessor::magnoCellularSuppression(bool on) {
         
         Bottle& commandBottle = magnoCellFeedback.prepare();
         commandBottle.clear();
-        commandBottle.addVocab(yarp::os::createVocab('r','e','s'));
+        commandBottle.addVocab32(yarp::os::createVocab32('r','e','s'));
         magnoCellFeedback.write();
     }
 }
@@ -1827,8 +1824,8 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
             if(!strcmp(name.c_str(),"MOT")) {
                 // interrupt coming from motion
                 //printf("interrupt received by motion map \n");
-                xm = (double) arg->get(1).asInt();
-                ym = (double) arg->get(2).asInt();
+                xm = (double) arg->get(1).asInt16();
+                ym = (double) arg->get(2).asInt16();
                 timing = 0.1;
                 printf("------------------------->xm %f ym %f \n", xm, ym);
                 

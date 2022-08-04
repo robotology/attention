@@ -16,7 +16,7 @@ OpenCVImageAdapter::OpenCVImageAdapter(IplImage*im)
     switch(mIplImage->depth)
     {
     case IPL_DEPTH_8U:
-      mDataType = OV_DATA_UINT8;
+      mDataType = OV_DATA_UInt16;
       getPixelfptr = &OpenCVImageAdapter::getPixelT<unsigned char>; 
       setPixelfptr = &OpenCVImageAdapter::setPixelT<unsigned char>;
       break;
@@ -26,7 +26,7 @@ OpenCVImageAdapter::OpenCVImageAdapter(IplImage*im)
       setPixelfptr = &OpenCVImageAdapter::setPixelT<unsigned short>;
       break;
     case IPL_DEPTH_8S:
-      mDataType = OV_DATA_INT8;
+      mDataType = OV_DATA_Int16;
       getPixelfptr = &OpenCVImageAdapter::getPixelT<char>; 
       setPixelfptr = &OpenCVImageAdapter::setPixelT<char>;
       break;

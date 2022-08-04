@@ -105,11 +105,11 @@ bool ofModule::configure(yarp::os::ResourceFinder &rf) {
     /* get the dimension of the image for the thread parametric control */
     width                  = rf.check("width", 
                            Value(320), 
-                           "width of the image (int)").asInt();
+                           "width of the image (int)").asInt16();
 
     height                 = rf.check("height", 
                            Value(240), 
-                           "height of the image (int)").asInt();
+                           "height of the image (int)").asInt16();
 
     printf("\n width: %d  height:%d \n", width, height);
     arbiter->setDimension(width,height);
@@ -119,7 +119,7 @@ bool ofModule::configure(yarp::os::ResourceFinder &rf) {
     // specifies whether the camera is mounted on the head
     //onWings       = rf.check("onWings", 
     //                       Value(0), 
-    //                       "indicates whether the camera is mounted on the head").asInt();
+    //                       "indicates whether the camera is mounted on the head").asInt16();
     //printf("onWings %d \n", onWings);
     //arbiter->setOnWings(onWings);
     
@@ -191,7 +191,7 @@ bool ofModule::respond(const Bottle& command, Bottle& reply) {
     bool rec = false; // is the command recognized?
 
     respondLock.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
@@ -223,14 +223,14 @@ bool ofModule::respond(const Bottle& command, Bottle& reply) {
         {            
             ok = true;rec = true;
             printf("responding to the get command \n");
-            int lefttopx = command.get(1).asInt() ;
-            int lefttopy = command.get(2).asInt() ;
-            int bottomrightx = command.get(3).asInt() ;
-            int bottomrighty = command.get(4).asInt() ;
+            int lefttopx = command.get(1).asInt16() ;
+            int lefttopy = command.get(2).asInt16() ;
+            int bottomrightx = command.get(3).asInt16() ;
+            int bottomrighty = command.get(4).asInt16() ;
             double u, v;
             arbiter->getVelocity(lefttopx, lefttopy, bottomrightx, bottomrighty, u, v);
-            reply.addDouble(u);
-            reply.addDouble(v);
+            reply.addFloat32(u);
+            reply.addFloat32(v);
         }
         break;
     
@@ -260,10 +260,10 @@ bool ofModule::respond(const Bottle& command, Bottle& reply) {
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
 
     return ok;
 

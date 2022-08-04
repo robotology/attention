@@ -83,14 +83,14 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 parType.check("fx") && parType.check("fy"))
             {
                 // we suppose that the center distorsion is already compensated
-                //double cx = parType.find("w").asDouble() / 2.0;
-                //double cy = parType.find("h").asDouble() / 2.0;
+                //double cx = parType.find("w").asFloat32() / 2.0;
+                //double cy = parType.find("h").asFloat32() / 2.0;
                 // we suppose that the centerof ditortion is NOT    compensated
-                double cx = parType.find("cx").asDouble();
-                double cy = parType.find("cy").asDouble();
+                double cx = parType.find("cx").asFloat32();
+                double cy = parType.find("cy").asFloat32();
 
-                double fx = parType.find("fx").asDouble();
-                double fy = parType.find("fy").asDouble();
+                double fx = parType.find("fx").asFloat32();
+                double fy = parType.find("fy").asFloat32();
 
                 Matrix K  = eye(3,3);
                 Matrix Pi = zeros(3,4);
@@ -221,7 +221,7 @@ bool gazeArbiterThread::threadInit() {
     Bottle info;
     igaze->getInfo(info);
     printf("just got the info \n");    
-    double head_version = info.check("head_version", Value(1.0)).asDouble();
+    double head_version = info.check("head_version", Value(1.0)).asFloat32();
     
     printf("head_version extracted from gazeArbiter \n");
 
@@ -511,7 +511,7 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing, Vector& fixCoord) {
     timetot = timetotStop - timetotStart;
     timing = timingPort.prepare();
     timing.clear();
-    timing.addDouble(timetot);
+    timing.addFloat32(timetot);
     timingPort.write();
     
     accomplished_flag = true;
@@ -667,43 +667,43 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing, Vector& fixCoord) {
     //adding novel position to the working memory
     Bottle request, reply;
     request.clear(); reply.clear();
-    request.addVocab(VOCAB3('a','d','d'));
+    request.addVocab32(yarp::os::createVocab32('a','d','d'));
     Bottle& listAttr=request.addList();
     
     Bottle& sublistX = listAttr.addList();
     
     sublistX.addString("x");
-    sublistX.addDouble(x1[0] * 1000);    
+    sublistX.addFloat32(x1[0] * 1000);
     //listAttr.append(sublistX);
     
     Bottle& sublistY = listAttr.addList();
     sublistY.addString("y");
-    sublistY.addDouble(x1[1] * 1000);      
+    sublistY.addFloat32(x1[1] * 1000);
     //listAttr.append(sublistY);
     
     Bottle& sublistZ = listAttr.addList();            
     sublistZ.addString("z");
-    sublistZ.addDouble(x1[2] * 1000);   
+    sublistZ.addFloat32(x1[2] * 1000);
     //listAttr.append(sublistZ);
     
     Bottle& sublistR = listAttr.addList();
     sublistR.addString("r");
-    sublistR.addDouble(255.0);
+    sublistR.addFloat32(255.0);
     //listAttr.append(sublistR);
                     
     Bottle& sublistG = listAttr.addList();
     sublistG.addString("g");
-    sublistG.addDouble(255.0);
+    sublistG.addFloat32(255.0);
     //listAttr.append(sublistG);
                         
     Bottle& sublistB = listAttr.addList();
     sublistB.addString("b");
-    sublistB.addDouble(255.0);
+    sublistB.addFloat32(255.0);
     //listAttr.append(sublistB);
     
     Bottle& sublistLife = listAttr.addList();
     sublistLife.addString("lifeTimer");
-    sublistLife.addDouble(10.0);
+    sublistLife.addFloat32(10.0);
     //listAttr.append(sublistLife);          
     
     if (templatePort.getInputCount()) {
@@ -718,13 +718,13 @@ void gazeArbiterThread::interfaceIOR(Bottle& timing, Vector& fixCoord) {
             int padding = templateImage->getPadding();
             templateList.addString("texture");
             Bottle& pixelList = templateList.addList();
-            pixelList.addInt(width);
-            pixelList.addInt(height);
+            pixelList.addInt16(width);
+            pixelList.addInt16(height);
             
             for (int r = 0; r < height ; r++) {
                 for (int c = 0; c < width; c++) {
-                    pixelList.addInt((unsigned char)*pointerTemplate++);
-                    //pixelList.addInt(r + c);
+                    pixelList.addInt16((unsigned char)*pointerTemplate++);
+                    //pixelList.addInt16(r + c);
                 }
                 pointerTemplate += padding;
             }
@@ -892,7 +892,7 @@ void gazeArbiterThread::run() {
                     if(!accomplished_flag){
                         timing = timingPort.prepare();
                         timing.clear();
-                        timing.addDouble(-1);
+                        timing.addFloat32(-1);
                         timingPort.write();
                     }
                     else {
@@ -1084,7 +1084,7 @@ void gazeArbiterThread::run() {
                     //printf("TIMEOUT in reaching with a saccade %f <---- \n", timetot);
                     timing = timingPort.prepare();
                     timing.clear();
-                    timing.addDouble(-1);
+                    timing.addFloat32(-1);
                     timingPort.write();
 
                     // sending error message for saccade SAC_FAIL
@@ -1280,7 +1280,7 @@ void gazeArbiterThread::run() {
                     if( errorPort.getOutputCount()) {                        
                         Bottle& b = errorPort.prepare();
                         b.clear();
-                        b.addDouble(error_control);
+                        b.addFloat32(error_control);
                         errorPort.write();
                     }
                     
@@ -1348,7 +1348,7 @@ void gazeArbiterThread::run() {
                     timetot = timetotStop - timetotStart;
                     timing = timingPort.prepare();
                     timing.clear();
-                    timing.addDouble(-1);
+                    timing.addFloat32(-1);
                     timingPort.write();
 
                     // -------------- Resetting after error --------------------
@@ -1424,9 +1424,9 @@ void gazeArbiterThread::run() {
         // sending the egoMotion velocity as Feedback
         if(egoMotionFeedback.getOutputCount()) {
             Bottle query;
-            query.addVocab(yarp::os::createVocab('E','G','O'));
-            query.addDouble(uVel);
-            query.addDouble(vVel);
+            query.addVocab32(yarp::os::createVocab32('E','G','O'));
+            query.addFloat32(uVel);
+            query.addFloat32(vVel);
             Bottle response;
             egoMotionFeedback.write(query,response);
         }
@@ -1506,9 +1506,9 @@ void gazeArbiterThread::run() {
         // sending the egoMotion velocity null as feedback of SM_ACC
         if(egoMotionFeedback.getOutputCount()) {
             Bottle query;
-            query.addVocab(yarp::os::createVocab('E','G','O'));
-            query.addDouble(0);
-            query.addDouble(0);
+            query.addVocab32(yarp::os::createVocab32('E','G','O'));
+            query.addFloat32(0);
+            query.addFloat32(0);
             Bottle response;
             egoMotionFeedback.write(query,response);
         }
@@ -1556,9 +1556,9 @@ void gazeArbiterThread::run() {
                     Bottle& status2 = statusPort.prepare();
                     status2.clear();
                     status2.addString("VER_ACC");
-                    status2.addDouble(fixCoord[0]);
-                    status2.addDouble(fixCoord[1]);
-                    status2.addDouble(fixCoord[2]);
+                    status2.addFloat32(fixCoord[0]);
+                    status2.addFloat32(fixCoord[1]);
+                    status2.addFloat32(fixCoord[2]);
                     statusPort.write();
                     //delete &status2;
 
@@ -1889,7 +1889,7 @@ void gazeArbiterThread::vergenceInAngle() {
                 printf("errorPort write \n");
                 Bottle& b = errorPort.prepare();
                 b.clear();
-                b.addDouble(error);
+                b.addFloat32(error);
                 errorPort.write();
             }
 
@@ -2024,10 +2024,10 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"WAIT")) {
             // monocular saccades with visualFeedback
             printf("WAIT request \n");
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
+            u = arg->get(1).asInt16();
+            v = arg->get(2).asInt16();
             zDistance = 0.5;
-            time = arg->get(3).asDouble();
+            time = arg->get(3).asFloat32();
             mutex.wait();
             
             stateRequest[1] = 1;
@@ -2040,10 +2040,10 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"SAC_MONO")) {
             // monocular saccades with visualFeedback
             
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
+            u = arg->get(1).asInt16();
+            v = arg->get(2).asInt16();
             printf("MONO SACCADE request %d %d \n", u, v);
-            zDistance = arg->get(3).asDouble();
+            zDistance = arg->get(3).asFloat32();
             mutex.wait();
             
             stateRequest[4] = 1;
@@ -2056,9 +2056,9 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         else if(!strcmp(name.c_str(),"SAC_EXPR")) {
             // monocular saccades without visualfeedback
             printf("EXPRESS SACCADE request \n");
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
-            zDistance = arg->get(3).asDouble();
+            u = arg->get(1).asInt16();
+            v = arg->get(2).asInt16();
+            zDistance = arg->get(3).asFloat32();
             mutex.wait();
             //setVisualFeedback(false);
             stateRequest[4] = 1;
@@ -2070,9 +2070,9 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             firstVergence = true;
         }
         else if(!strcmp(name.c_str(),"SAC_ABS")) {
-            xObject = arg->get(1).asDouble();
-            yObject = arg->get(2).asDouble();
-            zObject = arg->get(3).asDouble();
+            xObject = arg->get(1).asFloat32();
+            yObject = arg->get(2).asFloat32();
+            zObject = arg->get(3).asFloat32();
             printf("received request of abs saccade in position %f %f %f \n", xObject, yObject, zObject);
             mutex.wait();
             stateRequest[4] = 1;
@@ -2083,9 +2083,9 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"SM_PUR")) {
             printf("received a command of smooth pursuit ");
-            uVel = arg->get(1).asDouble();
-            vVel = arg->get(2).asDouble();
-            time = arg->get(3).asDouble();
+            uVel = arg->get(1).asFloat32();
+            vVel = arg->get(2).asFloat32();
+            time = arg->get(3).asFloat32();
             printf("velocity %f %f %f \n", uVel, vVel,time);
             mutex.wait();
             stateRequest[3] = 1;
@@ -2095,9 +2095,9 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
             firstVergence = true;
         }
         else if(!strcmp(name.c_str(),"VER_REL")) {
-            phi  = arg->get(1).asDouble();            
-            phi2 = arg->get(2).asDouble();
-            phi3 = arg->get(3).asDouble();
+            phi  = arg->get(1).asFloat32();
+            phi2 = arg->get(2).asFloat32();
+            phi3 = arg->get(3).asFloat32();
             mutex.wait();
             mono = true;
             stateRequest[2] = 1;
@@ -2106,9 +2106,9 @@ void gazeArbiterThread::update(observable* o, Bottle * arg) {
         }
         else if(!strcmp(name.c_str(),"VER_ABS")) {
             phi = -1;
-            phiTOT1 = arg->get(1).asDouble();            
-            phiTOT2 = arg->get(2).asDouble();
-            phiTOT3 = arg->get(3).asDouble();
+            phiTOT1 = arg->get(1).asFloat32();
+            phiTOT2 = arg->get(2).asFloat32();
+            phiTOT3 = arg->get(3).asFloat32();
             
             mutex.wait();
             mono = true;

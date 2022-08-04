@@ -115,10 +115,10 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
                 parType.check("fx") && parType.check("fy"))
             {
                 // we suppose that the center distorsion is already compensated
-                double cx = parType.find("w").asDouble() / 2.0;
-                double cy = parType.find("h").asDouble() / 2.0;
-                double fx = parType.find("fx").asDouble();
-                double fy = parType.find("fy").asDouble();
+                double cx = parType.find("w").asFloat32() / 2.0;
+                double cy = parType.find("h").asFloat32() / 2.0;
+                double fx = parType.find("fx").asFloat32();
+                double fy = parType.find("fy").asFloat32();
 
                 Matrix K  = eye(3,3);
                 Matrix Pi = zeros(3,4);
@@ -665,15 +665,15 @@ void attPrioritiserThread::setFacialExpression(std::string command) {
         Bottle& value = emoPort.prepare();
         value.clear();
         value.addString("EMO");
-        value.addInt(valueSent);
+        value.addInt16(valueSent);
         facePort.write();
         */
 
         Bottle& value = emoPort.prepare();
         value.clear();
-        value.addVocab(Vocab::encode("joy"));
-        value.addInt(1);
-        value.addDouble(4.0);
+        value.addVocab32(Vocab32::encode("joy"));
+        value.addInt16(1);
+        value.addFloat32(4.0);
         emoPort.write();
     }
 }
@@ -769,14 +769,14 @@ void attPrioritiserThread::run() {
         
         // notify observer concerning the state in which the prioritiser sets in
         Bottle notif;
-        notif.addVocab(COMMAND_VOCAB_ACT);
-        notif.addDouble(allowedTransitions(0));  // reset
-        notif.addDouble(allowedTransitions(1));  // wait
-        notif.addDouble(allowedTransitions(2));  // vergence 
-        notif.addDouble(allowedTransitions(3));  // smooth pursuit
-        notif.addDouble(allowedTransitions(4));  // planned saccade
-        notif.addDouble(allowedTransitions(5));  // express saccade
-        notif.addDouble(allowedTransitions(6));  // trajectory prediction
+        notif.addVocab32(COMMAND_VOCAB_ACT);
+        notif.addFloat32(allowedTransitions(0));  // reset
+        notif.addFloat32(allowedTransitions(1));  // wait
+        notif.addFloat32(allowedTransitions(2));  // vergence
+        notif.addFloat32(allowedTransitions(3));  // smooth pursuit
+        notif.addFloat32(allowedTransitions(4));  // planned saccade
+        notif.addFloat32(allowedTransitions(5));  // express saccade
+        notif.addFloat32(allowedTransitions(6));  // trajectory prediction
         setChanged();
         notifyObservers(&notif);
 
@@ -862,14 +862,14 @@ void attPrioritiserThread::run() {
         // nofiying action _old            
         //Bottle notif;
         //notif.clear();
-        //notif.addVocab(COMMAND_VOCAB_ACT);
+        //notif.addVocab32(COMMAND_VOCAB_ACT);
         // code for prediction accomplished
-        //notif.addDouble(states(0));  // null
-        //notif.addDouble(states(1));  // vergence 
-        //notif.addDouble(states(2));  // smooth pursuit
-        //notif.addDouble(states(3));  // planned saccade
-        //notif.addDouble(states(4));  // express saccade
-        //notif.addDouble(states(5));  // trajectory prediction
+        //notif.addFloat32(states(0));  // null
+        //notif.addFloat32(states(1));  // vergence
+        //notif.addFloat32(states(2));  // smooth pursuit
+        //notif.addFloat32(states(3));  // planned saccade
+        //notif.addFloat32(states(4));  // express saccade
+        //notif.addFloat32(states(5));  // trajectory prediction
         //setChanged();
         //notifyObservers(&notif);
         
@@ -919,8 +919,8 @@ void attPrioritiserThread::run() {
         // nofiying state transition            
         //Bottle notif;
         //notif.clear();
-        //notif.addVocab(COMMAND_VOCAB_STAT);
-        //notif.addDouble(1);                  // code for prediction accomplished
+        //notif.addVocab32(COMMAND_VOCAB_STAT);
+        //notif.addFloat32(1);                  // code for prediction accomplished
         //setChanged();
         //notifyObservers(&notif); 
 
@@ -967,7 +967,7 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_INH);
+            sent->addVocab32(COMMAND_VOCAB_INH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -995,10 +995,10 @@ void attPrioritiserThread::run() {
             Bottle& commandBottle = outputPort.prepare();
             commandBottle.clear();
             commandBottle.addString("SAC_EXPR");
-            commandBottle.addInt(centroid_x);
-            commandBottle.addInt(centroid_y);
+            commandBottle.addInt16(centroid_x);
+            commandBottle.addInt16(centroid_y);
             zDistance = 0.6;
-            commandBottle.addDouble(zDistance);
+            commandBottle.addFloat32(zDistance);
             outputPort.write();
             
             //Bottle& commandBottleON = outputPort.prepare();
@@ -1008,8 +1008,8 @@ void attPrioritiserThread::run() {
 
             // Bottle notif;
             // notif.clear();
-            // notif.addVocab(COMMAND_VOCAB_STAT);
-            // notif.addDouble(6);                  // code for fixStableKO
+            // notif.addVocab32(COMMAND_VOCAB_STAT);
+            // notif.addFloat32(6);                  // code for fixStableKO
             // setChanged();
             // notifyObservers(&notif);
 
@@ -1034,8 +1034,8 @@ void attPrioritiserThread::run() {
                 // nofiying state transition            
                 //Bottle notif;
                 //notif.clear();
-                //notif.addVocab(COMMAND_VOCAB_STAT);
-                //notif.addDouble(3);                  // code for fixStableKO
+                //notif.addVocab32(COMMAND_VOCAB_STAT);
+                //notif.addFloat32(3);                  // code for fixStableKO
                 //setChanged();
                 //notifyObservers(&notif);
 
@@ -1046,8 +1046,8 @@ void attPrioritiserThread::run() {
                 
                 //Bottle notif;
                 //notif.clear();
-                //notif.addVocab(COMMAND_VOCAB_STAT);
-                //notif.addDouble(2);                  // code for fixStableKO
+                //notif.addVocab32(COMMAND_VOCAB_STAT);
+                //notif.addFloat32(2);                  // code for fixStableKO
                 //setChanged();
                 //notifyObservers(&notif);
             } 
@@ -1080,9 +1080,9 @@ void attPrioritiserThread::run() {
                 Bottle& commandBottle=outputPort.prepare();
                 commandBottle.clear();
                 commandBottle.addString("SAC_MON");
-                commandBottle.addInt(centroid_x);
-                commandBottle.addInt(centroid_y);
-                commandBottle.addDouble(zDistance);
+                commandBottle.addInt16(centroid_x);
+                commandBottle.addInt16(centroid_y);
+                commandBottle.addFloat32(zDistance);
                 outputPort.write();
                 
                 //allowedTransitions(2) = 0;
@@ -1098,7 +1098,7 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_NINH);
+            sent->addVocab32(COMMAND_VOCAB_NINH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -1132,7 +1132,7 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_INH);
+            sent->addVocab32(COMMAND_VOCAB_INH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -1154,9 +1154,9 @@ void attPrioritiserThread::run() {
                 Bottle& commandBottle=outputPort.prepare();
                 commandBottle.clear();
                 commandBottle.addString("SAC_ABS");
-                commandBottle.addDouble(xObject);
-                commandBottle.addDouble(yObject);
-                commandBottle.addDouble(zObject);
+                commandBottle.addFloat32(xObject);
+                commandBottle.addFloat32(yObject);
+                commandBottle.addFloat32(zObject);
                 outputPort.write();
                 printf("______________Stereo Planned Saccade______________\n\n");
                 
@@ -1168,8 +1168,8 @@ void attPrioritiserThread::run() {
                 // nofiying state transition            
                 //Bottle notif;
                 //notif.clear();
-                //notif.addVocab(COMMAND_VOCAB_STAT);
-                //notif.addDouble(3);                  // code for fixStableKO
+                //notif.addVocab32(COMMAND_VOCAB_STAT);
+                //notif.addFloat32(3);                  // code for fixStableKO
                 //setChanged();
                 //notifyObservers(&notif);
                                 
@@ -1200,9 +1200,9 @@ void attPrioritiserThread::run() {
                 Bottle& commandBottle=outputPort.prepare();
                 commandBottle.clear();
                 commandBottle.addString("SAC_MONO");
-                commandBottle.addInt(u);
-                commandBottle.addInt(v);
-                commandBottle.addDouble(zDistance);
+                commandBottle.addInt16(u);
+                commandBottle.addInt16(v);
+                commandBottle.addFloat32(zDistance);
                 outputPort.write();
                 
                 // post-saccadic connection
@@ -1222,8 +1222,8 @@ void attPrioritiserThread::run() {
                         // nofiying state transition            
                         //Bottle notif;
                         //notif.clear();
-                        //notif.addVocab(COMMAND_VOCAB_STAT);
-                        //notif.addDouble(3);                  // code for fixStableKO
+                        //notif.addVocab32(COMMAND_VOCAB_STAT);
+                        //notif.addFloat32(3);                  // code for fixStableKO
                         //setChanged();
                         //notifyObservers(&notif);
 
@@ -1238,8 +1238,8 @@ void attPrioritiserThread::run() {
                         // nofiying state transition            
                         //Bottle notif;
                         //notif.clear();
-                        //notif.addVocab(COMMAND_VOCAB_STAT);
-                        //notif.addDouble(2);                  // code for fixStableKO
+                        //notif.addVocab32(COMMAND_VOCAB_STAT);
+                        //notif.addFloat32(2);                  // code for fixStableKO
                         //setChanged();
                         //notifyObservers(&notif);
                         
@@ -1277,9 +1277,9 @@ void attPrioritiserThread::run() {
                     //    vCorr = sin(resultC) * 5;
                     //    commandBottle.clear();
                     //   commandBottle.addString("SAC_MONO");
-                    //    commandBottle.addInt(u);
-                    //    commandBottle.addInt(v);
-                    //    commandBottle.addDouble(zDistance);
+                    //    commandBottle.addInt16(u);
+                    //    commandBottle.addInt16(v);
+                    //    commandBottle.addFloat32(zDistance);
                     //    outputPort.write();
                     //}
                     
@@ -1298,9 +1298,9 @@ void attPrioritiserThread::run() {
                     //    Bottle& commandBottle = outputPort.prepare();
                     //    commandBottle.clear();
                     //    commandBottle.addString("SAC_MONO");
-                    //    commandBottle.addInt(160 + xVar);
-                    //    commandBottle.addInt(120 + yVar);
-                    //    commandBottle.addDouble(zDistance);
+                    //    commandBottle.addInt16(160 + xVar);
+                    //    commandBottle.addInt16(120 + yVar);
+                    //    commandBottle.addFloat32(zDistance);
                     //    outputPort.write();
                     //} 
                                         
@@ -1318,7 +1318,7 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_NINH);
+            sent->addVocab32(COMMAND_VOCAB_NINH);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -1349,9 +1349,9 @@ void attPrioritiserThread::run() {
                 Bottle& commandBottle=outputPort.prepare();
                 commandBottle.clear();
                 commandBottle.addString("SM_PUR");
-                commandBottle.addDouble(Vx);
-                commandBottle.addDouble(Vy);
-                commandBottle.addDouble(time);
+                commandBottle.addFloat32(Vx);
+                commandBottle.addFloat32(Vy);
+                commandBottle.addFloat32(time);
                 outputPort.write();
             }
             
@@ -1382,7 +1382,7 @@ void attPrioritiserThread::run() {
             Bottle* sent     = new Bottle();
             Bottle* received = new Bottle();    
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SUSPEND);
+            sent->addVocab32(COMMAND_VOCAB_SUSPEND);
             feedbackPort.write(*sent, *received);
             delete sent;
             delete received;
@@ -1422,8 +1422,8 @@ void attPrioritiserThread::run() {
                 // nofiying state transition  added back 8/7/2014. Needed to set stateTransition=false in the oculomotorController         
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(10);                  // code for vergence accomplished
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(10);                  // code for vergence accomplished
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -1436,7 +1436,7 @@ void attPrioritiserThread::run() {
                     Bottle* sent     = new Bottle();
                     Bottle* received = new Bottle();    
                     sent->clear();
-                    sent->addVocab(COMMAND_VOCAB_RESUME);
+                    sent->addVocab32(COMMAND_VOCAB_RESUME);
                     //feedbackPort.write(*sent, *received);             // Removed the 07/07/2014 because missing reply from selectiveAttention
                     printf("received reply on feedback connection \n");
                     delete sent;
@@ -1449,8 +1449,8 @@ void attPrioritiserThread::run() {
                 // nofiying state transition            
                 //Bottle notif;
                 //notif.clear();
-                //notif.addVocab(COMMAND_VOCAB_STAT);
-                //notif.addDouble(8);                  // code for vergence angle under correction
+                //notif.addVocab32(COMMAND_VOCAB_STAT);
+                //notif.addFloat32(8);                  // code for vergence angle under correction
                 //setChanged();
                 //notifyObservers(&notif);
 
@@ -1465,9 +1465,9 @@ void attPrioritiserThread::run() {
                     printf("VER@%f %f %f \n", phi, phi2, phi3);
                     commandBottle.clear();
                     commandBottle.addString("VER_REL");
-                    commandBottle.addDouble(phi);
-                    commandBottle.addDouble(phi2);
-                    commandBottle.addDouble(phi3);
+                    commandBottle.addFloat32(phi);
+                    commandBottle.addFloat32(phi2);
+                    commandBottle.addFloat32(phi3);
                     outputPort.write();
                     Time::delay(0.1);
                 }
@@ -1505,9 +1505,9 @@ void attPrioritiserThread::run() {
         Bottle& commandBottle = outputPort.prepare();
         commandBottle.clear();
         commandBottle.addString("WAIT");
-        commandBottle.addInt(uWait);
-        commandBottle.addInt(vWait);
-        commandBottle.addDouble(waitTime);
+        commandBottle.addInt16(uWait);
+        commandBottle.addInt16(vWait);
+        commandBottle.addFloat32(waitTime);
         outputPort.write();
         
         printf("Sent Wait %d %d %f in mode %s  \n",uWait,vWait, waitTime, waitType.c_str());
@@ -1543,8 +1543,8 @@ void attPrioritiserThread::run() {
         // nofiying state transition            
         Bottle notif;
         notif.clear();
-        notif.addVocab(COMMAND_VOCAB_STAT);
-        notif.addDouble(0);                  // code for prediction accomplished
+        notif.addVocab32(COMMAND_VOCAB_STAT);
+        notif.addFloat32(0);                  // code for prediction accomplished
         setChanged();
         notifyObservers(&notif);
         firstNull = false;
@@ -1667,9 +1667,9 @@ void attPrioritiserThread::executeClone(int _pos) {
         stateRequest[pos] = 1.0;
         Bottle b;
         b.addString("VER");
-        b.addDouble(1.0);
-        b.addDouble(1.0);
-        b.addDouble(1.0);
+        b.addFloat32(1.0);
+        b.addFloat32(1.0);
+        b.addFloat32(1.0);
         bufCommand[pos] = b;
     }break;
     case 2: {
@@ -1677,9 +1677,9 @@ void attPrioritiserThread::executeClone(int _pos) {
         stateRequest[pos] = 1.0;
         Bottle b;
         b.addString("SM_PUR");
-        b.addInt(0);
-        b.addInt(0);
-        b.addDouble(0.5);
+        b.addInt16(0);
+        b.addInt16(0);
+        b.addFloat32(0.5);
         bufCommand[pos] = b;
     }
     case 3 : {
@@ -1687,10 +1687,10 @@ void attPrioritiserThread::executeClone(int _pos) {
         stateRequest[pos] = 1.0;
         Bottle b;
         b.addString("SAC_MONO");
-        b.addInt(160);
-        b.addInt(120);
-        b.addDouble(0.5);
-        b.addDouble(1.0);
+        b.addInt16(160);
+        b.addInt16(120);
+        b.addFloat32(0.5);
+        b.addFloat32(1.0);
         bufCommand[pos] = b;
     }break;
     case 4 : {
@@ -1698,10 +1698,10 @@ void attPrioritiserThread::executeClone(int _pos) {
         stateRequest[pos] = 1.0;
         Bottle b;
         b.addString("SAC_EXP");
-        b.addInt(160);
-        b.addInt(120);
-        b.addDouble(0.5);
-        b.addDouble(0.1);
+        b.addInt16(160);
+        b.addInt16(120);
+        b.addFloat32(0.5);
+        b.addFloat32(0.1);
         bufCommand[pos] = b;
     }break;
     case 5 : {
@@ -1709,8 +1709,8 @@ void attPrioritiserThread::executeClone(int _pos) {
         stateRequest[pos] = 1.0;
         Bottle b;
         b.addString("PRED");
-        b.addInt(160);
-        b.addInt(120);
+        b.addInt16(160);
+        b.addInt16(120);
         bufCommand[pos] = b;
     }break;
     }
@@ -1838,78 +1838,78 @@ void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int bl
     //setting selective attention
     //map1
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K1);
-    sent->addDouble(kColor[0]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K1);
+    sent->addFloat32(kColor[0]);
     feedbackSelective.write(*sent, *received);
     //map2
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K2);
-    sent->addDouble(kColor[1]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K2);
+    sent->addFloat32(kColor[1]);
     feedbackSelective.write(*sent, *received);
     //map3
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K3);
-    sent->addDouble(kColor[2]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K3);
+    sent->addFloat32(kColor[2]);
     feedbackSelective.write(*sent, *received);
     //map4
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K4);
-    sent->addDouble(kColor[3]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K4);
+    sent->addFloat32(kColor[3]);
     feedbackSelective.write(*sent, *received);
     //map5
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K5);
-    sent->addDouble(kColor[4]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K5);
+    sent->addFloat32(kColor[4]);
     feedbackSelective.write(*sent, *received);
     //map6
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K6);
-    sent->addDouble(kColor[5]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K6);
+    sent->addFloat32(kColor[5]);
     feedbackSelective.write(*sent, *received);
     
     //timing of the saccades
     //sent->clear();
-    //sent->addVocab(COMMAND_VOCAB_SET);
-    //sent->addVocab(COMMAND_VOCAB_TIME);
-    //sent->addDouble(tNull);
+    //sent->addVocab32(COMMAND_VOCAB_SET);
+    //sent->addVocab32(COMMAND_VOCAB_TIME);
+    //sent->addFloat32(tNull);
     //feedbackSelective.write(*sent, *received);
     
     //setting saliencyBlobFinder
     //weight BU
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_WBU);
-    sent->addDouble(0.05);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_WBU);
+    sent->addFloat32(0.05);
     feedbackProtoObject.write(*sent, *received);
     //weight TD           
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_WTD);
-    sent->addDouble(0.95);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_WTD);
+    sent->addFloat32(0.95);
     feedbackProtoObject.write(*sent, *received);
     //colour red
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TRED);
-    sent->addInt(redValue);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_TRED);
+    sent->addInt16(redValue);
     feedbackProtoObject.write(*sent, *received);
     //colour green
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TGRE);
-    sent->addInt(greenValue);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_TGRE);
+    sent->addInt16(greenValue);
     feedbackProtoObject.write(*sent, *received);
     //colour blue
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TBLU);
-    sent->addInt(blueValue);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_TBLU);
+    sent->addInt16(blueValue);
     feedbackProtoObject.write(*sent, *received);
     
     delete sent;
@@ -1918,7 +1918,7 @@ void attPrioritiserThread::sendColorCommand(int redValue, int greenValue, int bl
 
 
 void attPrioritiserThread::seek(Bottle command) {
-    int voc = command.get(1).asVocab();
+    int voc = command.get(1).asVocab32();
     printf("seeking subject to %s \n", command.get(1).asString().c_str());
     switch (voc) {
     case COMMAND_VOCAB_RED:
@@ -1938,9 +1938,9 @@ void attPrioritiserThread::seek(Bottle command) {
         break;
     case COMMAND_VOCAB_RGB:
         {
-            int redValue   = command.get(2).asInt();
-            int greenValue = command.get(3).asInt();
-            int blueValue  = command.get(4).asInt();
+            int redValue   = command.get(2).asInt16();
+            int greenValue = command.get(3).asInt16();
+            int blueValue  = command.get(4).asInt16();
             //printf("looking for color %d, %d, %d \n", redValue, greenValue, blueValue);            
             sendColorCommand(redValue, greenValue, blueValue);
         }
@@ -1959,54 +1959,54 @@ void attPrioritiserThread::seek(Bottle command) {
             //setting selective attention
             //map1
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K1);
-            sent->addDouble(kNull[0]);
+            sent->addVocab32(COMMAND_VOCAB_SET);
+            sent->addVocab32(COMMAND_VOCAB_K1);
+            sent->addFloat32(kNull[0]);
             feedbackSelective.write(*sent, *received);
             //map2
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K2);
-            sent->addDouble(kNull[1]);
+            sent->addVocab32(COMMAND_VOCAB_SET);
+            sent->addVocab32(COMMAND_VOCAB_K2);
+            sent->addFloat32(kNull[1]);
             feedbackSelective.write(*sent, *received);
             //map3
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K3);
-            sent->addDouble(kNull[2]);
+            sent->addVocab32(COMMAND_VOCAB_SET);
+            sent->addVocab32(COMMAND_VOCAB_K3);
+            sent->addFloat32(kNull[2]);
             feedbackSelective.write(*sent, *received);
             //map4
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K4);
-            sent->addDouble(kNull[3]);
+            sent->addVocab32(COMMAND_VOCAB_SET);
+            sent->addVocab32(COMMAND_VOCAB_K4);
+            sent->addFloat32(kNull[3]);
             feedbackSelective.write(*sent, *received);
             //map5
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K5);
-            sent->addDouble(kNull[4]);
+            sent->addVocab32(COMMAND_VOCAB_SET);
+            sent->addVocab32(COMMAND_VOCAB_K5);
+            sent->addFloat32(kNull[4]);
             feedbackSelective.write(*sent, *received);
             //map6
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K6);
-            sent->addDouble(kNull[5]);
+            sent->addVocab32(COMMAND_VOCAB_SET);
+            sent->addVocab32(COMMAND_VOCAB_K6);
+            sent->addFloat32(kNull[5]);
             feedbackSelective.write(*sent, *received);
             
             //timing of the saccades
             //sent->clear();
-            //sent->addVocab(COMMAND_VOCAB_SET);
-            //sent->addVocab(COMMAND_VOCAB_TIME);
-            //sent->addDouble(tNull);
+            //sent->addVocab32(COMMAND_VOCAB_SET);
+            //sent->addVocab32(COMMAND_VOCAB_TIME);
+            //sent->addFloat32(tNull);
             //feedbackSelective.write(*sent, *received);
             
             //setting saliencyBlobFinder
             //weight BU
             sent->clear();
-            sent->addVocab(COMMAND_VOCAB_SET);
-            sent->addVocab(COMMAND_VOCAB_K6);
-            sent->addDouble(0.95);
+            sent->addVocab32(COMMAND_VOCAB_SET);
+            sent->addVocab32(COMMAND_VOCAB_K6);
+            sent->addFloat32(0.95);
             feedbackProtoObject.write(*sent, *received);
 
             delete sent;
@@ -2038,78 +2038,78 @@ void attPrioritiserThread::reinforceFootprint() {
     //setting selective attention
     //map1
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K1);
-    sent->addDouble(kColOri[0]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K1);
+    sent->addFloat32(kColOri[0]);
     feedbackSelective.write(*sent, *received);
     //map2
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K2);
-    sent->addDouble(kColOri[1]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K2);
+    sent->addFloat32(kColOri[1]);
     feedbackSelective.write(*sent, *received);
     //map3
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K3);
-    sent->addDouble(kColOri[2]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K3);
+    sent->addFloat32(kColOri[2]);
     feedbackSelective.write(*sent, *received);
     //map4
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K4);
-    sent->addDouble(kColOri[3]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K4);
+    sent->addFloat32(kColOri[3]);
     feedbackSelective.write(*sent, *received);
     //map5
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K5);
-    sent->addDouble(kColOri[4]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K5);
+    sent->addFloat32(kColOri[4]);
     feedbackSelective.write(*sent, *received);
     //map6
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_K6);
-    sent->addDouble(kColOri[5]);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_K6);
+    sent->addFloat32(kColOri[5]);
     feedbackSelective.write(*sent, *received);
     
     //timing of the saccades
     //sent->clear();
-    //sent->addVocab(COMMAND_VOCAB_SET);
-    //sent->addVocab(COMMAND_VOCAB_TIME);
-    //sent->addDouble(tColOri);
+    //sent->addVocab32(COMMAND_VOCAB_SET);
+    //sent->addVocab32(COMMAND_VOCAB_TIME);
+    //sent->addFloat32(tColOri);
     //feedbackSelective.write(*sent, *received);
     
     //setting saliencyBlobFinder
     //weight BU
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_WBU);
-    sent->addDouble(0.05);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_WBU);
+    sent->addFloat32(0.05);
     feedbackProtoObject.write(*sent, *received);
     //weight TD           
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_WTD);
-    sent->addDouble(0.95);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_WTD);
+    sent->addFloat32(0.95);
     feedbackProtoObject.write(*sent, *received);
     //colour red
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TRED);
-    sent->addInt(feedbackBlobRed);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_TRED);
+    sent->addInt16(feedbackBlobRed);
     feedbackProtoObject.write(*sent, *received);
     //colour green
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TGRE);
-    sent->addInt(feedbackBlobGreen);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_TGRE);
+    sent->addInt16(feedbackBlobGreen);
     feedbackProtoObject.write(*sent, *received);
     //colour blue
     sent->clear();
-    sent->addVocab(COMMAND_VOCAB_SET);
-    sent->addVocab(COMMAND_VOCAB_TBLU);
-    sent->addInt(feedbackBlobBlue);
+    sent->addVocab32(COMMAND_VOCAB_SET);
+    sent->addVocab32(COMMAND_VOCAB_TBLU);
+    sent->addInt16(feedbackBlobBlue);
     feedbackProtoObject.write(*sent, *received);
 
     //feedback feedbackEarlyVision
@@ -2135,8 +2135,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("SAC_MONO command received with waitingWaitCommand %d \n", waitResponse[1]);
             //Time::delay(5.0);
             
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();                      
+            u = arg->get(1).asInt16();
+            v = arg->get(2).asInt16();
 
             
             //--------------------------------------------------------------------------
@@ -2163,8 +2163,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     Bottle& sent     = highLevelLoopPort.prepare();
                     sent.clear();
                     sent.addString("PRED");
-                    sent.addInt(u);
-                    sent.addInt(v);
+                    sent.addInt16(u);
+                    sent.addInt16(v);
                     highLevelLoopPort.write();
                 }
                 */
@@ -2176,8 +2176,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     printf("sending pending command PRED in Saccade \n");
                     pendingCommand->clear();
                     pendingCommand->addString("PRED");
-                    pendingCommand->addInt(u);
-                    pendingCommand->addInt(v);
+                    pendingCommand->addInt16(u);
+                    pendingCommand->addInt16(v);
                     isPendingCommand = true;
                 }
                 
@@ -2190,14 +2190,14 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 printf("sending pending command2 PRED in Saccade \n");
                 pendingCommand2->clear();
                 pendingCommand2->addString("PRED");
-                pendingCommand2->addInt(u);
-                pendingCommand2->addInt(v);
+                pendingCommand2->addInt16(u);
+                pendingCommand2->addInt16(v);
                 isPendingCommand2 = true;
             }      
             
             //---------------------------------------------------------------------------
-            zDistance = arg->get(3).asDouble();
-            time      = arg->get(4).asDouble();
+            zDistance = arg->get(3).asFloat32();
+            time      = arg->get(4).asFloat32();
             printf("saccade mono time: %f with allowed %d  \n", time,allowStateRequest[3]);
             //mutex.wait();
             if(time <= 0.5) {
@@ -2245,13 +2245,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     Bottle req;
                     
                     req.clear();
-                    req.addVocab(COMMAND_VOCAB_GET);
-                    req.addVocab(COMMAND_VOCAB_FRGB);
+                    req.addVocab32(COMMAND_VOCAB_GET);
+                    req.addVocab32(COMMAND_VOCAB_FRGB);
                     feedbackProtoObject.write(req, rep);
                     cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
-                    unsigned char currentBlobRed    = rep.get(0).asInt();
-                    unsigned char currentBlobGreen  = rep.get(1).asInt();
-                    unsigned char currentBlobBlue   = rep.get(2).asInt();
+                    unsigned char currentBlobRed    = rep.get(0).asInt16();
+                    unsigned char currentBlobGreen  = rep.get(1).asInt16();
+                    unsigned char currentBlobBlue   = rep.get(2).asInt16();
                     printf("feedback colour value %d %d %d \n",feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
                     printf("current  fovea colour %d %d %d \n",currentBlobRed , currentBlobGreen ,  currentBlobBlue);
                     
@@ -2307,8 +2307,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // null state
             Bottle notif;
             notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(3);                  // code for fixStateKO 
+            notif.addVocab32(COMMAND_VOCAB_STAT);
+            notif.addFloat32(3);                  // code for fixStateKO
             setChanged();
             notifyObservers(&notif);
             */
@@ -2348,11 +2348,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             //===================================
 
             printf("Received WAIT COMMAND with parameters %d %d \n", uWait,vWait);
-            uWait         = arg->get(1).asInt();
-            vWait         = arg->get(2).asInt();
+            uWait         = arg->get(1).asInt16();
+            vWait         = arg->get(2).asInt16();
             // reading the typology of waiting: ant (anticipatory), fix (fixation)
             //waitType      = arg->get(3).asString();  //deprecated: the type is automatically assigned
-            waitTime      = arg->get(3).asDouble();
+            waitTime      = arg->get(3).asFloat32();
             
             // reseting the state action history
             mutex.wait();
@@ -2383,13 +2383,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // saving bottle in the buffer
             bufCommand[5] = *arg;
             // position of cartesian input image of the particle filter
-            u = arg->get(1).asInt();
-            v = arg->get(2).asInt();
+            u = arg->get(1).asInt16();
+            v = arg->get(2).asInt16();
             // sending a command to the particle filter
             Bottle& trackReq = desiredTrackPort.prepare();
             trackReq.clear();
-            trackReq.addInt(u);
-            trackReq.addInt(v);
+            trackReq.addInt16(u);
+            trackReq.addInt16(v);
             desiredTrackPort.write();
             // reading relavant position from the particol filter
             Time::delay(0.5);
@@ -2403,8 +2403,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             timestart = Time::now();
             while(diff < 30.0) {
                 Bottle* posTrack = trackPositionPort.read();
-                u = posTrack->get(0).asDouble();
-                v = posTrack->get(1).asDouble();
+                u = posTrack->get(0).asFloat32();
+                v = posTrack->get(1).asFloat32();
                 printf("tracking position %d %d        \n ",u,v);
                 count++;
                 
@@ -2412,9 +2412,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle& direct = directPort.prepare();
                 direct.clear();
                 direct.addString("left");
-                direct.addInt(u);
-                direct.addInt(v);
-                direct.addDouble(0.5);
+                direct.addInt16(u);
+                direct.addInt16(v);
+                direct.addFloat32(0.5);
                 directPort.write();
                 */
 
@@ -2424,8 +2424,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     printf("REINFORCING the TEMPLATE in pos %d %d \n", u, v);
                     Bottle& trackReq = desiredTrackPort.prepare();
                     trackReq.clear();
-                    trackReq.addInt(u);
-                    trackReq.addInt(v);
+                    trackReq.addInt16(u);
+                    trackReq.addInt16(v);
                     desiredTrackPort.write();
                 }
                 */
@@ -2473,8 +2473,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             bufCommand[6] = *arg;
             //==============================
 
-            uPred = arg->get(1).asInt();
-            vPred = arg->get(2).asInt();
+            uPred = arg->get(1).asInt16();
+            vPred = arg->get(2).asInt16();
             
             // prediction attemp after triggering stimulus
             mutex.wait();
@@ -2498,9 +2498,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // for any SAC_ABS the wait is not longer in fixation
             //waitType = "ant";
 
-            xObject = arg->get(1).asDouble();
-            yObject = arg->get(2).asDouble();
-            zObject = arg->get(3).asDouble();
+            xObject = arg->get(1).asFloat32();
+            yObject = arg->get(2).asFloat32();
+            zObject = arg->get(3).asFloat32();
             u = -1;
             v = -1;
             mutex.wait();
@@ -2523,9 +2523,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             bufCommand[3] = *arg;
             //=================================
             
-            Vx   = arg->get(1).asDouble();
-            Vy   = arg->get(2).asDouble();
-            time = arg->get(3).asDouble();
+            Vx   = arg->get(1).asFloat32();
+            Vy   = arg->get(2).asFloat32();
+            time = arg->get(3).asFloat32();
             mutex.wait();
             //printf("recognised PUR command Vx %f Vy %f \n", Vx, Vy);
 
@@ -2551,9 +2551,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             bufCommand[2] = *arg;
             //===============================
             
-            phi  = arg->get(1).asDouble();
-            phi2 = arg->get(2).asDouble();
-            phi3 = arg->get(3).asDouble();
+            phi  = arg->get(1).asFloat32();
+            phi2 = arg->get(2).asFloat32();
+            phi3 = arg->get(3).asFloat32();
             
             //printf("\r                                                      \r");
             // stop vergence puts the commands on hold after the VER_ACC
@@ -2630,12 +2630,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // nofiying state transition to fixStable ok           
             Bottle notif;
             notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(7);                  // code for fixStableKO saccade not accomplished
-            notif.addDouble(timing);
-            notif.addDouble(accuracy);
-            notif.addDouble(amplitude);
-            notif.addDouble(frequency);
+            notif.addVocab32(COMMAND_VOCAB_STAT);
+            notif.addFloat32(7);                  // code for fixStableKO saccade not accomplished
+            notif.addFloat32(timing);
+            notif.addFloat32(accuracy);
+            notif.addFloat32(amplitude);
+            notif.addFloat32(frequency);
             setChanged();
             notifyObservers(&notif);
 
@@ -2643,21 +2643,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // reset action
             notif.clear();
             printf("notify action reset \n");
-            notif.addVocab(COMMAND_VOCAB_ACT);
+            notif.addVocab32(COMMAND_VOCAB_ACT);
             // code for reset action
-            notif.addDouble(1.0);  // reset
-            notif.addDouble(0.0);  // vergence 
-            notif.addDouble(0.0);  // smooth pursuit
-            notif.addDouble(0.0);  // planned saccade
-            notif.addDouble(0.0);  // express saccade
-            notif.addDouble(0.0);  // trajectory prediction
+            notif.addFloat32(1.0);  // reset
+            notif.addFloat32(0.0);  // vergence
+            notif.addFloat32(0.0);  // smooth pursuit
+            notif.addFloat32(0.0);  // planned saccade
+            notif.addFloat32(0.0);  // express saccade
+            notif.addFloat32(0.0);  // trajectory prediction
             setChanged();
             notifyObservers(&notif);
             
             // null state
             notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(0);                  // code for null state
+            notif.addVocab32(COMMAND_VOCAB_STAT);
+            notif.addFloat32(0);                  // code for null state
             setChanged();
             notifyObservers(&notif);
             */
@@ -2685,12 +2685,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // nofiying state transition            
             Bottle notif;
             notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(13);                  // code for vergence refinement
-            notif.addDouble(timing);
-            notif.addDouble(accuracy);
-            notif.addDouble(amplitude);
-            notif.addDouble(frequency);
+            notif.addVocab32(COMMAND_VOCAB_STAT);
+            notif.addFloat32(13);                  // code for vergence refinement
+            notif.addFloat32(timing);
+            notif.addFloat32(accuracy);
+            notif.addFloat32(amplitude);
+            notif.addFloat32(frequency);
             setChanged();
             notifyObservers(&notif);            
         }
@@ -2715,12 +2715,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
             Bottle notif;
             notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(0);                  // code for prediction fail goes into the NULL state
-            notif.addDouble(timing);
-            notif.addDouble(accuracy);
-            notif.addDouble(amplitude);
-            notif.addDouble(frequency);
+            notif.addVocab32(COMMAND_VOCAB_STAT);
+            notif.addFloat32(0);                  // code for prediction fail goes into the NULL state
+            notif.addFloat32(timing);
+            notif.addFloat32(accuracy);
+            notif.addFloat32(amplitude);
+            notif.addFloat32(frequency);
             setChanged();
             notifyObservers(&notif); 
 
@@ -2765,12 +2765,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(6);                  // code for fixStableOK accomplished 
-                notif.addDouble(timing);
-                notif.addDouble(accuracy);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(6);                  // code for fixStableOK accomplished
+                notif.addFloat32(timing);
+                notif.addFloat32(accuracy);
+                notif.addFloat32(amplitude);
+                notif.addFloat32(frequency);
                 setChanged();
                 notifyObservers(&notif);
             
@@ -2817,12 +2817,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition to fixStable ok                               
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(6);                  // code for fixStableOK accomplished 
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
-                    notif.addDouble(frequency);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(6);                  // code for fixStableOK accomplished
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
+                    notif.addFloat32(frequency);
                     setChanged();
                     notifyObservers(&notif);
 
@@ -2842,12 +2842,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(7);                  // code for fixStableNO 
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
-                    notif.addDouble(frequency);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(7);                  // code for fixStableNO
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
+                    notif.addFloat32(frequency);
                     setChanged();
                     notifyObservers(&notif);
                 }
@@ -2857,21 +2857,21 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // reset action
                 notif.clear();
                 printf("notify action reset \n");
-                notif.addVocab(COMMAND_VOCAB_ACT);
+                notif.addVocab32(COMMAND_VOCAB_ACT);
                 // code for reset action
-                notif.addDouble(1.0);  // reset
-                notif.addDouble(0.0);  // vergence 
-                notif.addDouble(0.0);  // smooth pursuit
-                notif.addDouble(0.0);  // planned saccade
-                notif.addDouble(0.0);  // express saccade
-                notif.addDouble(0.0);  // trajectory prediction
+                notif.addFloat32(1.0);  // reset
+                notif.addFloat32(0.0);  // vergence
+                notif.addFloat32(0.0);  // smooth pursuit
+                notif.addFloat32(0.0);  // planned saccade
+                notif.addFloat32(0.0);  // express saccade
+                notif.addFloat32(0.0);  // trajectory prediction
                 setChanged();
                 notifyObservers(&notif);
                 
                 // null state
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(0);                  // code for null state
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(0);                  // code for null state
                 setChanged();
                 notifyObservers(&notif);
                 */
@@ -2883,36 +2883,36 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     Bottle req;
                     
                     req.clear();
-                    req.addVocab(COMMAND_VOCAB_GET);
-                    req.addVocab(COMMAND_VOCAB_ORI);
-                    req.addVocab(COMMAND_VOCAB_P0);
+                    req.addVocab32(COMMAND_VOCAB_GET);
+                    req.addVocab32(COMMAND_VOCAB_ORI);
+                    req.addVocab32(COMMAND_VOCAB_P0);
                     feedbackEarlyVision.write(req, rep);
                     //cout<<"orientation pos.0 : "<<rep.toString().c_str()<<endl;
-                    feedbackOri0 = rep.get(0).asInt(); 
+                    feedbackOri0 = rep.get(0).asInt16();
                     
                     req.clear();
-                    req.addVocab(COMMAND_VOCAB_GET);
-                    req.addVocab(COMMAND_VOCAB_ORI);
-                    req.addVocab(COMMAND_VOCAB_P90);
+                    req.addVocab32(COMMAND_VOCAB_GET);
+                    req.addVocab32(COMMAND_VOCAB_ORI);
+                    req.addVocab32(COMMAND_VOCAB_P90);
                     feedbackEarlyVision.write(req, rep);
                     //cout<<"orientation pos.90 : "<<rep.toString().c_str()<<endl;
-                    feedbackOri90 = rep.get(0).asInt();
+                    feedbackOri90 = rep.get(0).asInt16();
                     
                     req.clear();
-                    req.addVocab(COMMAND_VOCAB_GET);
-                    req.addVocab(COMMAND_VOCAB_ORI);
-                    req.addVocab(COMMAND_VOCAB_P45);
+                    req.addVocab32(COMMAND_VOCAB_GET);
+                    req.addVocab32(COMMAND_VOCAB_ORI);
+                    req.addVocab32(COMMAND_VOCAB_P45);
                     feedbackEarlyVision.write(req, rep);
                     //cout<<"orientation pos.45 : "<<rep.toString().c_str()<<endl;
-                    feedbackOri45 = rep.get(0).asInt();
+                    feedbackOri45 = rep.get(0).asInt16();
                     
                     req.clear();
-                    req.addVocab(COMMAND_VOCAB_GET);
-                    req.addVocab(COMMAND_VOCAB_ORI);
-                    req.addVocab(COMMAND_VOCAB_N45);
+                    req.addVocab32(COMMAND_VOCAB_GET);
+                    req.addVocab32(COMMAND_VOCAB_ORI);
+                    req.addVocab32(COMMAND_VOCAB_N45);
                     feedbackEarlyVision.write(req, rep);
                     //cout<<"orientation neg.45 : "<<rep.toString().c_str()<<endl;
-                    feedbackOriM45 = rep.get(0).asInt();
+                    feedbackOriM45 = rep.get(0).asInt16();
                 }
                 else {
                     cout<<"no active feedback to earlyVision"<<endl;
@@ -2925,13 +2925,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     Bottle req;
                     
                     req.clear();
-                    req.addVocab(COMMAND_VOCAB_GET);
-                    req.addVocab(COMMAND_VOCAB_FRGB);
+                    req.addVocab32(COMMAND_VOCAB_GET);
+                    req.addVocab32(COMMAND_VOCAB_FRGB);
                     feedbackProtoObject.write(req, rep);
                     //cout<<"fovrgb:     "<<rep.toString().c_str()<<endl;
-                    feedbackBlobRed   = rep.get(0).asInt();
-                    feedbackBlobGreen = rep.get(1).asInt();
-                    feedbackBlobBlue  = rep.get(2).asInt();
+                    feedbackBlobRed   = rep.get(0).asInt16();
+                    feedbackBlobGreen = rep.get(1).asInt16();
+                    feedbackBlobBlue  = rep.get(2).asInt16();
                     //printf("rgb colour value %d %d %d \n",feedbackBlobRed, feedbackBlobGreen, feedbackBlobBlue);
                 }
                 else {
@@ -2972,64 +2972,64 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 int r;
                 int g;
                 int b;
-                double x = arg->get(1).asDouble();
-                double y = arg->get(2).asDouble();
-                double z = arg->get(3).asDouble();
+                double x = arg->get(1).asFloat32();
+                double y = arg->get(2).asFloat32();
+                double z = arg->get(3).asFloat32();
                 printf("estimated location of the fixation %f %f %f \n", x, y, z);
                 
                 //requesting other parameters
                 if (feedbackProtoObject.getOutputCount()){
                    Bottle requestProto, replyProto;
                    requestProto.clear(); replyProto.clear();
-                   requestProto.addVocab(yarp::os::createVocab('g','e','t'));
-                   requestProto.addVocab(yarp::os::createVocab('f','r','g','b'));
+                   requestProto.addVocab32(yarp::os::createVocab32('g','e','t'));
+                   requestProto.addVocab32(yarp::os::createVocab32('f','r','g','b'));
                    feedbackProtoObject.write(requestProto, replyProto); 
                    printf("returned from proto %s \n", replyProto.toString().c_str());
-                   r = replyProto.get(0).asInt();
-                   g = replyProto.get(1).asInt();
-                   b = replyProto.get(2).asInt();
+                   r = replyProto.get(0).asInt16();
+                   g = replyProto.get(1).asInt16();
+                   b = replyProto.get(2).asInt16();
                 }
 
                 //adding novel position to the working memory
                 Bottle request, reply;
                 request.clear(); reply.clear();
-                request.addVocab(yarp::os::createVocab('a','d','d'));
+                request.addVocab32(yarp::os::createVocab32('a','d','d'));
                 Bottle& listAttr=request.addList();
                 
                 Bottle& sublistX = listAttr.addList();
                 
                 sublistX.addString("x");
-                sublistX.addDouble(x * 1000);    
+                sublistX.addFloat32(x * 1000);
                 //listAttr.append(sublistX);
                 
                 Bottle& sublistY = listAttr.addList();
                 sublistY.addString("y");
-                sublistY.addDouble(y * 1000);      
+                sublistY.addFloat32(y * 1000);
                 //listAttr.append(sublistY);
                 
                 Bottle& sublistZ = listAttr.addList();            
                 sublistZ.addString("z");
-                sublistZ.addDouble(z * 1000);   
+                sublistZ.addFloat32(z * 1000);
                 //listAttr.append(sublistZ);
                 
                 Bottle& sublistR = listAttr.addList();
                 sublistR.addString("r");
-                sublistR.addDouble((double)r);
+                sublistR.addFloat32((double)r);
                 //listAttr.append(sublistR);
                 
                 Bottle& sublistG = listAttr.addList();
                 sublistG.addString("g");
-                sublistG.addDouble((double)g);
+                sublistG.addFloat32((double)g);
                 //listAttr.append(sublistG);
                 
                 Bottle& sublistB = listAttr.addList();
                 sublistB.addString("b");
-                sublistB.addDouble((double)b);
+                sublistB.addFloat32((double)b);
                 //listAttr.append(sublistB);
                 
                 Bottle& sublistLife = listAttr.addList();
                 sublistLife.addString("lifeTimer");
-                sublistLife.addDouble(10.0);
+                sublistLife.addFloat32(10.0);
                 //listAttr.append(sublistLife);          
                 
                 /*
@@ -3045,13 +3045,13 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         int padding = templateImage->getPadding();
                         templateList.addString("texture");
                         Bottle& pixelList = templateList.addList();
-                        pixelList.addInt(width);
-                        pixelList.addInt(height);
+                        pixelList.addInt16(width);
+                        pixelList.addInt16(height);
                         
                         for (int r = 0; r < height ; r++) {
                             for (int c = 0; c < width; c++) {
-                                pixelList.addInt((unsigned char)*pointerTemplate++);
-                                //pixelList.addInt(r + c);
+                                pixelList.addInt16((unsigned char)*pointerTemplate++);
+                                //pixelList.addInt16(r + c);
                             }
                             pointerTemplate += padding;
                         }
@@ -3066,9 +3066,9 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             printf("sending pending WAIT 160 120 in vergence accomplished \n");
             pendingCommand->clear();
             pendingCommand->addString("WAIT");
-            pendingCommand->addInt(160);
-            pendingCommand->addInt(120);
-            pendingCommand->addDouble(1.0);
+            pendingCommand->addInt16(160);
+            pendingCommand->addInt16(120);
+            pendingCommand->addFloat32(1.0);
             isPendingCommand = true;
 
             
@@ -3118,12 +3118,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // nofiying state transition            
             Bottle notif;
             notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(12);                  // code for vergence accomplished
-            notif.addDouble(timing);
-            notif.addDouble(accuracy);
-            notif.addDouble(amplitude);
-            notif.addDouble(frequency);
+            notif.addVocab32(COMMAND_VOCAB_STAT);
+            notif.addFloat32(12);                  // code for vergence accomplished
+            notif.addFloat32(timing);
+            notif.addFloat32(accuracy);
+            notif.addFloat32(amplitude);
+            notif.addFloat32(frequency);
             setChanged();
             notifyObservers(&notif); 
 
@@ -3131,10 +3131,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // waiting fix command added
             pendingCommand2->clear();
             pendingCommand2->addString("WAIT");
-            pendingCommand2->addInt(160);
-            pendingCommand2->addInt(140);
+            pendingCommand2->addInt16(160);
+            pendingCommand2->addInt16(140);
             //pendingCommand->addString("fix");
-            pendingCommand2->addDouble(0.5);
+            pendingCommand2->addFloat32(0.5);
             isPendingCommand2 = true; 
             
             
@@ -3142,10 +3142,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // waiting fix command added
             pendingCommand->clear();
             pendingCommand->addString("WAIT");
-            pendingCommand->addInt(160);
-            pendingCommand->addInt(140);
+            pendingCommand->addInt16(160);
+            pendingCommand->addInt16(140);
             //pendingCommand->addString("fix");
-            pendingCommand->addDouble(0.5);
+            pendingCommand->addFloat32(0.5);
             isPendingCommand = true; 
             */
 
@@ -3195,7 +3195,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
             // getting energy Value
             if(energyPort.getInputCount()) {
                 Bottle* b = energyPort.read(false);
-                double  v = b->get(0).asDouble();
+                double  v = b->get(0).asFloat32();
                 //printf("energyconsumption %f \n",v );
             }
 
@@ -3215,12 +3215,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // nofiying state transition into successful tracking
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(8);                  // code for smooth-pursuit accomplished
-                notif.addDouble(timing);
-                notif.addDouble(accuracy);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(8);                  // code for smooth-pursuit accomplished
+                notif.addFloat32(timing);
+                notif.addFloat32(accuracy);
+                notif.addFloat32(amplitude);
+                notif.addFloat32(frequency);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -3230,12 +3230,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // nofiying state transition into unsuccessful tracking
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(9);                  // code for smooth-pursuit not accomplished
-                notif.addDouble(timing);
-                notif.addDouble(accuracy);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(9);                  // code for smooth-pursuit not accomplished
+                notif.addFloat32(timing);
+                notif.addFloat32(accuracy);
+                notif.addFloat32(amplitude);
+                notif.addFloat32(frequency);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -3290,8 +3290,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
              // nofiying state transition            
             //Bottle notif;
             //notif.clear();
-            //notif.addVocab(COMMAND_VOCAB_STAT);
-            //notif.addDouble(1);                  // code for prediction accomplished
+            //notif.addVocab32(COMMAND_VOCAB_STAT);
+            //notif.addFloat32(1);                  // code for prediction accomplished
             //setChanged();
             //notifyObservers(&notif);
 
@@ -3314,12 +3314,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
 
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(1);                  // code for prediction accomplished in fixed position (fixPredict)
-                notif.addDouble(timing);
-                notif.addDouble(1);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(1);                  // code for prediction accomplished in fixed position (fixPredict)
+                notif.addFloat32(timing);
+                notif.addFloat32(1);
+                notif.addFloat32(amplitude);
+                notif.addFloat32(frequency);
                 setChanged();
                 notifyObservers(&notif);
                 
@@ -3330,11 +3330,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(1);                  // code for prediction accomplished
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(1);                  // code for prediction accomplished
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                 }
@@ -3344,11 +3344,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(2);                  // code for prediction accomplished
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(2);                  // code for prediction accomplished
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                 }
@@ -3357,11 +3357,11 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(3);                  // code for prediction accomplished
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(3);                  // code for prediction accomplished
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
                     setChanged();
                     notifyObservers(&notif);
                 } 
@@ -3371,10 +3371,10 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 //sending a command of saccade to the original location (no motion)
                 pendingCommand2->clear();
                 pendingCommand2->addString("SAC_MONO");
-                pendingCommand2->addInt(uPred);
-                pendingCommand2->addInt(vPred);
-                pendingCommand2->addDouble(0.5);
-                pendingCommand2->addDouble(1.0);
+                pendingCommand2->addInt16(uPred);
+                pendingCommand2->addInt16(vPred);
+                pendingCommand2->addFloat32(0.5);
+                pendingCommand2->addFloat32(1.0);
                 isPendingCommand2 = true;
 
             }
@@ -3384,12 +3384,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition            
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(4);                  // code for prediction accomplished in motion state (motPredict)
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
-                    notif.addDouble(frequency);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(4);                  // code for prediction accomplished in motion state (motPredict)
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
+                    notif.addFloat32(frequency);
                     setChanged();
                     notifyObservers(&notif);
                     
@@ -3397,17 +3397,17 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                       Bottle& sent     = highLevelLoopPort.prepare();                  
                       sent.clear();
                       sent.addString("SM_PUR");
-                      sent.addInt(predVx);
-                      sent.addInt(predVy);
-                      sent.addDouble(predTime);
+                      sent.addInt16(predVx);
+                      sent.addInt16(predVy);
+                      sent.addFloat32(predTime);
                       highLevelLoopPort.write();
                     */
                     
                     pendingCommand2->clear();
                     pendingCommand2->addString("SM_PUR");
-                    pendingCommand2->addInt(predVx);
-                    pendingCommand2->addInt(predVy);
-                    pendingCommand2->addDouble(predTime);
+                    pendingCommand2->addInt16(predVx);
+                    pendingCommand2->addInt16(predVy);
+                    pendingCommand2->addFloat32(predTime);
                     isPendingCommand2 = true; 
                     
                 }
@@ -3428,12 +3428,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         // nofiying state transition            
                         Bottle notif;
                         notif.clear();
-                        notif.addVocab(COMMAND_VOCAB_STAT);
-                        notif.addDouble(5);                  // code for prediction accomplished in anticipatory state (antPredict)
-                        notif.addDouble(timing);
-                        notif.addDouble(accuracy * 2);
-                        notif.addDouble(amplitude);
-                        notif.addDouble(frequency);
+                        notif.addVocab32(COMMAND_VOCAB_STAT);
+                        notif.addFloat32(5);                  // code for prediction accomplished in anticipatory state (antPredict)
+                        notif.addFloat32(timing);
+                        notif.addFloat32(accuracy * 2);
+                        notif.addFloat32(amplitude);
+                        notif.addFloat32(frequency);
                         setChanged();
                         notifyObservers(&notif);                    
                         
@@ -3442,8 +3442,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                           Bottle* receivedPred = new Bottle();    
                           sentPred.clear();
                           sentPred.addString("SAC_MONO");
-                          sentPred.addInt(predXpos);
-                          sentPred.addInt(predYpos);
+                          sentPred.addInt16(predXpos);
+                          sentPred.addInt16(predYpos);
                           highLevelLoopPort.write();                    
                           delete receivedPred;
                         ************ OLD ******************/
@@ -3460,8 +3460,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                         //commanding the waiting in a predefined location on the image plane
                         pendingCommand2->clear();
                         pendingCommand2->addString("WAIT");
-                        pendingCommand2->addInt(px(0));
-                        pendingCommand2->addInt(px(1));
+                        pendingCommand2->addInt16(px(0));
+                        pendingCommand2->addInt16(px(1));
                         //pendingCommand->addString("ant");
                         isPendingCommand2 = true;
                         
@@ -3479,8 +3479,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 Bottle* receivedPred = new Bottle();    
                 sentPred.clear();
                 sentPred.addString("SAC_MONO");
-                sentPred.addInt(predXpos);
-                sentPred.addInt(predYpos);
+                sentPred.addInt16(predXpos);
+                sentPred.addInt16(predYpos);
                 highLevelLoopPort.write();
                 
                 delete receivedPred;
@@ -3493,17 +3493,17 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     //Bottle& sent     = highLevelLoopPort.prepare();                  
                     //sent.clear();
                     //sent.addString("SM_PUR");
-                    //sent.addInt(predVx);
-                    //sent.addInt(predVy);
-                    //sent.addDouble(predTime);
+                    //sent.addInt16(predVx);
+                    //sent.addInt16(predVy);
+                    //sent.addFloat32(predTime);
                     //highLevelLoopPort.write();
                     
 
                     pendingCommand->clear();
                     pendingCommand->addString("SM_PUR");
-                    pendingCommand->addInt(predVx);
-                    pendingCommand->addInt(predVy);
-                    pendingCommand->addDouble(predTime);
+                    pendingCommand->addInt16(predVx);
+                    pendingCommand->addInt16(predVy);
+                    pendingCommand->addFloat32(predTime);
                     isPendingCommand = true;                    
 
                     
@@ -3596,12 +3596,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition into successful tracking
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(10);                  // code for anticip OK
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
-                    notif.addDouble(frequency);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(10);                  // code for anticip OK
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
+                    notif.addFloat32(frequency);
                     setChanged();
                     notifyObservers(&notif);
                     
@@ -3612,12 +3612,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                     // nofiying state transition into unsuccessful tracking
                     Bottle notif;
                     notif.clear();
-                    notif.addVocab(COMMAND_VOCAB_STAT);
-                    notif.addDouble(11);                  // code for anticipKO, anticipWait
-                    notif.addDouble(timing);
-                    notif.addDouble(accuracy);
-                    notif.addDouble(amplitude);
-                    notif.addDouble(frequency);
+                    notif.addVocab32(COMMAND_VOCAB_STAT);
+                    notif.addFloat32(11);                  // code for anticipKO, anticipWait
+                    notif.addFloat32(timing);
+                    notif.addFloat32(accuracy);
+                    notif.addFloat32(amplitude);
+                    notif.addFloat32(frequency);
                     setChanged();
                     notifyObservers(&notif);
                 
@@ -3635,12 +3635,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 // nofiying state transition into unsuccessful tracking
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(14);                  // code for smooth-pursuit not accomplished
-                notif.addDouble(timing);
-                notif.addDouble(500);
-                notif.addDouble(amplitude);
-                notif.addDouble(frequency);
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(14);                  // code for smooth-pursuit not accomplished
+                notif.addFloat32(timing);
+                notif.addFloat32(500);
+                notif.addFloat32(amplitude);
+                notif.addFloat32(frequency);
                 setChanged();
                 notifyObservers(&notif);                
             }
@@ -3667,8 +3667,8 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
              // nofiying state transition            
             Bottle notif;
             notif.clear();
-            notif.addVocab(COMMAND_VOCAB_STAT);
-            notif.addDouble(0);                  // code for reset accomplished in vergence ok state
+            notif.addVocab32(COMMAND_VOCAB_STAT);
+            notif.addFloat32(0);                  // code for reset accomplished in vergence ok state
             setChanged();
             notifyObservers(&notif);
 
@@ -3690,7 +3690,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 actionId(4) = 0;
                 
                 
-                switch (arg->get(2).asInt()){
+                switch (arg->get(2).asInt16()){
                 case 0 : actionId(0) = 1; break;
                 case 1 : actionId(1) = 1; break;
                 case 2 : actionId(2) = 1; break;    
@@ -3700,12 +3700,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_ACT);
-                notif.addDouble(actionId(0));
-                notif.addDouble(actionId(1)); 
-                notif.addDouble(actionId(2));
-                notif.addDouble(actionId(3));
-                notif.addDouble(actionId(4));
+                notif.addVocab32(COMMAND_VOCAB_ACT);
+                notif.addFloat32(actionId(0));
+                notif.addFloat32(actionId(1));
+                notif.addFloat32(actionId(2));
+                notif.addFloat32(actionId(3));
+                notif.addFloat32(actionId(4));
                 setChanged();
                 notifyObservers(&notif);
             }
@@ -3720,7 +3720,7 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 stateId(3) = 0;
                 stateId(4) = 0;
                 
-                switch (arg->get(2).asInt()){
+                switch (arg->get(2).asInt16()){
                 case 0 : stateId(0) = 1; break;
                 case 1 : stateId(1) = 1; break;
                 case 2 : stateId(2) = 1; break;    
@@ -3731,12 +3731,12 @@ void attPrioritiserThread::update(observable* o, Bottle * arg) {
                 
                 Bottle notif;
                 notif.clear();
-                notif.addVocab(COMMAND_VOCAB_STAT);
-                notif.addDouble(arg->get(2).asInt());
-                //notif.addDouble(stateId(1)); 
-                //notif.addDouble(stateId(2));
-                //notif.addDouble(stateId(3));
-                //notif.addDouble(stateId(4));
+                notif.addVocab32(COMMAND_VOCAB_STAT);
+                notif.addFloat32(arg->get(2).asInt16());
+                //notif.addFloat32(stateId(1));
+                //notif.addFloat32(stateId(2));
+                //notif.addFloat32(stateId(3));
+                //notif.addFloat32(stateId(4));
                 setChanged();
                 notifyObservers(&notif); 
             }

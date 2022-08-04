@@ -34,20 +34,20 @@ using namespace cv;
 
 ///// dictionary
 
-const int32_t VOCAB_TORSO_UPRIGHT               = yarp::os::createVocab('t','u','r');
-const int32_t VOCAB_TORSO_UPLEFT                = yarp::os::createVocab('t','u','l');
-const int32_t VOCAB_TORSO_DOWNRIGHT             = yarp::os::createVocab('t','d','r');
-const int32_t VOCAB_TORSO_DOWNLEFT              = yarp::os::createVocab('t','d','l');
-const int32_t VOCAB_RIGHTARM_UPRIGHT            = yarp::os::createVocab('r','u','r');
-const int32_t VOCAB_RIGHTARM_UPLEFT             = yarp::os::createVocab('r','u','l');
-const int32_t VOCAB_RIGHTARM_FORERIGHT          = yarp::os::createVocab('r','f','r');
-const int32_t VOCAB_RIGHTARM_FORELEFT           = yarp::os::createVocab('r','f','l');
-const int32_t VOCAB_RIGHTARM_HAND               = yarp::os::createVocab('r','h');
-const int32_t VOCAB_LEFTARM_UPRIGHT             = yarp::os::createVocab('l','u','r');
-const int32_t VOCAB_LEFTARM_UPLEFT              = yarp::os::createVocab('l','u','l');
-const int32_t VOCAB_LEFTARM_FORERIGHT           = yarp::os::createVocab('l','f','r');
-const int32_t VOCAB_LEFTARM_FORELEFT            = yarp::os::createVocab('l','f','l');
-const int32_t VOCAB_LEFTARM_HAND                = yarp::os::createVocab('l','h');
+const int32_t VOCAB_TORSO_UPRIGHT               = yarp::os::createVocab32('t','u','r');
+const int32_t VOCAB_TORSO_UPLEFT                = yarp::os::createVocab32('t','u','l');
+const int32_t VOCAB_TORSO_DOWNRIGHT             = yarp::os::createVocab32('t','d','r');
+const int32_t VOCAB_TORSO_DOWNLEFT              = yarp::os::createVocab32('t','d','l');
+const int32_t VOCAB_RIGHTARM_UPRIGHT            = yarp::os::createVocab32('r','u','r');
+const int32_t VOCAB_RIGHTARM_UPLEFT             = yarp::os::createVocab32('r','u','l');
+const int32_t VOCAB_RIGHTARM_FORERIGHT          = yarp::os::createVocab32('r','f','r');
+const int32_t VOCAB_RIGHTARM_FORELEFT           = yarp::os::createVocab32('r','f','l');
+const int32_t VOCAB_RIGHTARM_HAND               = yarp::os::createVocab32('r','h');
+const int32_t VOCAB_LEFTARM_UPRIGHT             = yarp::os::createVocab32('l','u','r');
+const int32_t VOCAB_LEFTARM_UPLEFT              = yarp::os::createVocab32('l','u','l');
+const int32_t VOCAB_LEFTARM_FORERIGHT           = yarp::os::createVocab32('l','f','r');
+const int32_t VOCAB_LEFTARM_FORELEFT            = yarp::os::createVocab32('l','f','l');
+const int32_t VOCAB_LEFTARM_HAND                = yarp::os::createVocab32('l','h');
 
 //////
 
@@ -136,20 +136,20 @@ void skinProcessorRateThread::run() {
                 int inputSize = inputValue->size();
                 for(int i=0; i<inputSize; i++){                                                     // inputValue is a list of contacts. A contact is a list layout described at
                     contactList = inputValue->get(i).asList();                                      // http://wiki.icub.org/wiki/Tactile_sensors_(aka_Skin)
-                    bodyPart = contactList->get(0).asList()->get(3).asInt();                        // retrieve touched body part
+                    bodyPart = contactList->get(0).asList()->get(3).asInt16();                        // retrieve touched body part
 
                     int taxellCount = contactList->get(6).asList()->size();
                     taxellList.resize(taxellCount);                                                 // retrieve list of contact taxells
                     for(int j=0; j<taxellCount; j++){                                             
-                        taxellList[j] = contactList->get(6).asList()->get(j).asInt(); 
+                        taxellList[j] = contactList->get(6).asList()->get(j).asInt16();
                     }
         
                     geometricCenter.resize(3);
                     for(int j=0; j<3; j++){                 
-                        geometricCenter[j] = contactList->get(4).asList()->get(j).asDouble();        // retrieve the coordinates of contact point
+                        geometricCenter[j] = contactList->get(4).asList()->get(j).asFloat32();        // retrieve the coordinates of contact point
                     }
 
-                    avgPressure = contactList->get(7).asDouble();                                    // retrieve average pressure of contact       
+                    avgPressure = contactList->get(7).asFloat32();                                    // retrieve average pressure of contact
                     
                     Bottle& b = outputDataPort.prepare();                                            //preparing data output bottle
                     b.clear();
@@ -158,68 +158,68 @@ void skinProcessorRateThread::run() {
                         case (7):                                                                                   // torso
                             if(geometricCenter[2] >= 0.0 && geometricCenter[1] >= -0.08){ 
                                 touchedPart = 1;                                                                    // torso upright        1
-                                b.addVocab(VOCAB_TORSO_UPRIGHT);
+                                b.addVocab32(VOCAB_TORSO_UPRIGHT);
                             }
                             else if(geometricCenter[2] < 0.0 && geometricCenter[1] >= -0.08){ 
                                 touchedPart = 2;                                                                    // torso upleft         2
-                                b.addVocab(VOCAB_TORSO_UPLEFT);
+                                b.addVocab32(VOCAB_TORSO_UPLEFT);
                             }
                             else if(geometricCenter[2] >= 0.0 && geometricCenter[1] < -0.08){
                                 touchedPart = 3;                                                                    // torso downright      3
-                                b.addVocab(VOCAB_TORSO_DOWNRIGHT);
+                                b.addVocab32(VOCAB_TORSO_DOWNRIGHT);
                             }
                             else if(geometricCenter[2] < 0.0 && geometricCenter[1] < -0.08){
                                 touchedPart = 4;                                                                    // torso downleft       4
-                                b.addVocab(VOCAB_TORSO_DOWNLEFT);
+                                b.addVocab32(VOCAB_TORSO_DOWNLEFT);
                             }
                             break; 
                         case (6):                                                                                   // rightarm upper
                             if(geometricCenter[2] >= 0.0){
                                 touchedPart = 5;                                                                    // rightarm upright     5
-                                b.addVocab(VOCAB_RIGHTARM_UPRIGHT);
+                                b.addVocab32(VOCAB_RIGHTARM_UPRIGHT);
                             }                                          
                             else if(geometricCenter[2] < 0.0){ 
                                 touchedPart = 6;                                                                    // rightarm upleft      6
-                                b.addVocab(VOCAB_RIGHTARM_UPLEFT);
+                                b.addVocab32(VOCAB_RIGHTARM_UPLEFT);
                             }
                             break;
                         case (5):                                                                                   // rightarm forearm
                             if(geometricCenter[0] <= 0.0){ 
                                 touchedPart = 7;                                                                    // rightarm downright   7
-                                b.addVocab(VOCAB_RIGHTARM_FORERIGHT);
+                                b.addVocab32(VOCAB_RIGHTARM_FORERIGHT);
                             }
                             else if(geometricCenter[0] > 0.0){
                                 touchedPart = 8;                                                                    // rightarm downleft    8
-                                b.addVocab(VOCAB_RIGHTARM_FORELEFT);
+                                b.addVocab32(VOCAB_RIGHTARM_FORELEFT);
                             }
                             break;
                         case (4):
                             touchedPart = 9;                                                                        // right hand           9
-                            b.addVocab(VOCAB_RIGHTARM_HAND);
+                            b.addVocab32(VOCAB_RIGHTARM_HAND);
                             break;
                         case (3):                                                                                   // leftarm upper
                             if(geometricCenter[2] >= 0.0){ 
                                 touchedPart = 10;                                                                   // leftarm upright     10
-                                b.addVocab(VOCAB_LEFTARM_UPRIGHT);
+                                b.addVocab32(VOCAB_LEFTARM_UPRIGHT);
                             }
                             else if(geometricCenter[2] < 0.0){
                                  touchedPart = 11;                                                                  // leftarm upleft      11
-                                 b.addVocab(VOCAB_LEFTARM_UPLEFT);
+                                 b.addVocab32(VOCAB_LEFTARM_UPLEFT);
                             }
                             break;
                         case (2):                                                                                   // leftarm forearm
                             if(geometricCenter[0] <= 0.0){ 
                                 touchedPart = 12;                                                                   // leftarm downright   12
-                                b.addVocab(VOCAB_LEFTARM_FORERIGHT);
+                                b.addVocab32(VOCAB_LEFTARM_FORERIGHT);
                             }
                             else if(geometricCenter[0] > 0.0){ 
                                 touchedPart = 13;                                                                   // leftarm downleft    13
-                                b.addVocab(VOCAB_LEFTARM_FORELEFT);
+                                b.addVocab32(VOCAB_LEFTARM_FORELEFT);
                             }
                             break;
                         case (1):
                             touchedPart = 14;                                                                       // left hand           14
-                            b.addVocab(VOCAB_LEFTARM_HAND);
+                            b.addVocab32(VOCAB_LEFTARM_HAND);
                             break;  
                     }
                     
@@ -228,8 +228,8 @@ void skinProcessorRateThread::run() {
                         if(touchInfo[touchedPart-1] >= 255){
                             touchInfo[touchedPart-1] = 255;
                         }
-                        b.addInt(taxellCount);                                                      //add taxell number to output  
-                        b.addDouble(avgPressure);                                                   //addaverage pressure to output 
+                        b.addInt16(taxellCount);                                                      //add taxell number to output
+                        b.addFloat32(avgPressure);                                                   //addaverage pressure to output
     
                         if(outputDataPort.getOutputCount()) {
                             if(useLeftArm && touchedPart >=10){ 

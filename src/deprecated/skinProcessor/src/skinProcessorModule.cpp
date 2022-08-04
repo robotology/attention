@@ -31,22 +31,22 @@ using namespace std;
 
 ///// dictionary
 
-#define COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
-#define COMMAND_VOCAB_QUIT               VOCAB4('q','u','i','t')
-#define COMMAND_VOCAB_TEST               VOCAB4('t','e','s','t')
-#define COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
+const int32_t COMMAND_VOCAB_HELP               VOCAB4('h','e','l','p')
+const int32_t COMMAND_VOCAB_QUIT               VOCAB4('q','u','i','t')
+const int32_t COMMAND_VOCAB_TEST               VOCAB4('t','e','s','t')
+const int32_t COMMAND_VOCAB_FAILED             VOCAB4('f','a','i','l')
 
-#define COMMAND_VOCAB_VIS                VOCAB3('v','i','s')
-#define COMMAND_VOCAB_OFF                VOCAB3('o','f','f')
-#define COMMAND_VOCAB_GET                VOCAB3('g','e','t')
-#define COMMAND_VOCAB_HOR                VOCAB3('h','o','r')
-#define COMMAND_VOCAB_SUSPEND            VOCAB3('s','u','s')
-#define COMMAND_VOCAB_RESUME             VOCAB3('r','e','s')
+const int32_t COMMAND_VOCAB_VIS                = yarp::os::createVocab32('v','i','s')
+const int32_t COMMAND_VOCAB_OFF                = yarp::os::createVocab32('o','f','f')
+const int32_t COMMAND_VOCAB_GET                = yarp::os::createVocab32('g','e','t')
+const int32_t COMMAND_VOCAB_HOR                = yarp::os::createVocab32('h','o','r')
+const int32_t COMMAND_VOCAB_SUSPEND            = yarp::os::createVocab32('s','u','s')
+const int32_t COMMAND_VOCAB_RESUME             = yarp::os::createVocab32('r','e','s')
 
-#define COMMAND_VOCAB_ON                 VOCAB2('o','n')
-#define COMMAND_VOCAB_OK                 VOCAB2('o','k')
+const int32_t COMMAND_VOCAB_ON                 = yarp::os::createVocab32('o','n')
+const int32_t COMMAND_VOCAB_OK                 = yarp::os::createVocab32('o','k')
 
-#define COMMAND_VOCAB_WEIGHT             VOCAB1('w')
+const int32_t COMMAND_VOCAB_WEIGHT             VOCAB1('w')
 
 /* 
  * Configure method. Receive a previously initialized
@@ -83,13 +83,13 @@ bool skinProcessorModule::configure(yarp::os::ResourceFinder &rf) {
 
     int  useLeftArm           = rf.check("useLeftArm", 
                                      Value(1), 
-                                     "value of the useLeftArm(int)").asInt();
+                                     "value of the useLeftArm(int)").asInt16();
     int  useRightArm          = rf.check("useRightArm", 
                                      Value(1), 
-                                     "value of the useRightArm(int)").asInt();
+                                     "value of the useRightArm(int)").asInt16();
     int  useTorso         = rf.check("useTorso", 
                                      Value(1), 
-                                     "value of the useTorso(int)").asInt();
+                                     "value of the useTorso(int)").asInt16();
 
     
     /*
@@ -165,11 +165,11 @@ bool skinProcessorModule::respond(const Bottle& command, Bottle& reply)
     //}
 
     respondLock.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addVocab(Vocab::encode("many"));
+            reply.addVocab32(Vocab32::encode("many"));
             reply.addString("help");
             reply.addString("commands are:");
             reply.addString(" help    : to get help");
@@ -216,7 +216,7 @@ bool skinProcessorModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_VIS:
         {
             rec = true;
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_ON:
                 {
                     reply.addString("visualization ON");
@@ -236,15 +236,15 @@ bool skinProcessorModule::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_GET:
         {
             rec = true;
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_WEIGHT:
                 {
-                    switch(command.get(2).asVocab()){
+                    switch(command.get(2).asVocab32()){
                     case COMMAND_VOCAB_HOR:
                         
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
-                        //reply.addDouble(wt);
+                        reply.addVocab32(COMMAND_VOCAB_HOR); // ?? Needed
+                        //reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
@@ -291,10 +291,10 @@ bool skinProcessorModule::respond(const Bottle& command, Bottle& reply)
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);*/
+        reply.addVocab32(COMMAND_VOCAB_OK);*/
     
     return true;
 }

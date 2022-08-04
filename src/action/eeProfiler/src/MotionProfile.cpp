@@ -324,7 +324,7 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
         //stringArray[j * 2 + 1].append("A");
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
-        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        sprintf(temp,"%f %f %f", vector->get(1).asFloat32(), vector->get(2).asFloat32(), vector->get(3).asFloat32());
         yDebug("stringArray %s", stringArray[j * 2 + 1].c_str());
         stringArray[j * 2 + 2].append(&temp[0]);
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
@@ -389,36 +389,36 @@ CVMotionProfile::CVMotionProfile(const Bottle& bInit) {
         //((xa,ya,za) (xb,yb,zb) (xc,yc,zc) (0,0.7853,1.5707) (0.1))
         Bottle* aVector = b->get(0).asList();
         Vector aVec(3);
-        aVec[0] = aVector->get(1).asDouble();
-        aVec[1] = aVector->get(2).asDouble();
-        aVec[2] = aVector->get(3).asDouble();
+        aVec[0] = aVector->get(1).asFloat32();
+        aVec[1] = aVector->get(2).asFloat32();
+        aVec[2] = aVector->get(3).asFloat32();
         yDebug("bottleA:%s", aVec.toString().c_str());
 
         Bottle* bVector = b->get(1).asList();
         Vector bVec(3);
-        bVec[0] = bVector->get(1).asDouble();
-        bVec[1] = bVector->get(2).asDouble();
-        bVec[2] = bVector->get(3).asDouble();
+        bVec[0] = bVector->get(1).asFloat32();
+        bVec[1] = bVector->get(2).asFloat32();
+        bVec[2] = bVector->get(3).asFloat32();
         yDebug("bottleB:%s", bVec.toString().c_str());
 
         Bottle* cVector = b->get(2).asList();
         Vector cVec(3);
-        cVec[0] = cVector->get(1).asDouble();
-        cVec[1] = cVector->get(2).asDouble();
-        cVec[2] = cVector->get(3).asDouble();
+        cVec[0] = cVector->get(1).asFloat32();
+        cVec[1] = cVector->get(2).asFloat32();
+        cVec[2] = cVector->get(3).asFloat32();
         yDebug("bottleC:%s", cVec.toString().c_str());
 
         Bottle* angles  = b->get(3).asList();
         yDebug("angles:%s", angles->toString().c_str());
-        setStartStop(angles->get(1).asDouble(), angles->get(2).asDouble(), angles->get(3).asDouble());
+        setStartStop(angles->get(1).asFloat32(), angles->get(2).asFloat32(), angles->get(3).asFloat32());
 
         Bottle* axis  = b->get(4).asList();
         yDebug("axis:%s", axis->toString().c_str());
-        setAxes(axis->get(1).asDouble(), axis->get(2).asDouble());
+        setAxes(axis->get(1).asFloat32(), axis->get(2).asFloat32());
 
         Bottle* params  = b->get(5).asList();
         yDebug("params:%s", params->toString().c_str());
-        setVelocity(params->get(1).asDouble());
+        setVelocity(params->get(1).asFloat32());
         setViaPoints(aVec, bVec, cVec);
         valid = true;
     }
@@ -602,8 +602,8 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
         //stringArray[j * 2 + 1].append("A");
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
-        yDebug("%f %f %f",vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
-        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        yDebug("%f %f %f",vector->get(1).asFloat32(), vector->get(2).asFloat32(), vector->get(3).asFloat32());
+        sprintf(temp,"%f %f %f", vector->get(1).asFloat32(), vector->get(2).asFloat32(), vector->get(3).asFloat32());
 
         stringArray[j * 2 + 2].append(&temp[0]);
         yDebug("string: %s %s", stringArray[j * 2 + 1].c_str(), stringArray[j * 2 + 2].c_str());
@@ -671,36 +671,36 @@ TTPLMotionProfile::TTPLMotionProfile(const Bottle& bInit) {
         Bottle* aVector = b->get(0).asList();
         yDebug("bottleA:%s", aVector->toString().c_str());
         Vector aVec(3);
-        aVec[0] = aVector->get(1).asDouble();
-        aVec[1] = aVector->get(2).asDouble();
-        aVec[2] = aVector->get(3).asDouble();
+        aVec[0] = aVector->get(1).asFloat32();
+        aVec[1] = aVector->get(2).asFloat32();
+        aVec[2] = aVector->get(3).asFloat32();
 
         Bottle* bVector = b->get(1).asList();
         yDebug("bottleB:%s", bVector->toString().c_str());
         Vector bVec(3);
-        bVec[0] = bVector->get(1).asDouble();
-        bVec[1] = bVector->get(2).asDouble();
-        bVec[2] = bVector->get(3).asDouble();
+        bVec[0] = bVector->get(1).asFloat32();
+        bVec[1] = bVector->get(2).asFloat32();
+        bVec[2] = bVector->get(3).asFloat32();
 
         Bottle* cVector = b->get(2).asList();
         yDebug("bottleC:%s", cVector->toString().c_str());
         Vector cVec(3);
-        cVec[0] = cVector->get(1).asDouble();
-        cVec[1] = cVector->get(2).asDouble();
-        cVec[2] = cVector->get(3).asDouble();
+        cVec[0] = cVector->get(1).asFloat32();
+        cVec[1] = cVector->get(2).asFloat32();
+        cVec[2] = cVector->get(3).asFloat32();
 
         Bottle* angles  = b->get(3).asList();
         yDebug("angles:%s", angles->toString().c_str());
-        setStartStop(angles->get(1).asDouble(), angles->get(2).asDouble(), angles->get(3).asDouble());
+        setStartStop(angles->get(1).asFloat32(), angles->get(2).asFloat32(), angles->get(3).asFloat32());
 
         Bottle* axes  = b->get(4).asList();
         yDebug("axes:%s", axes->toString().c_str());
-        setAxes(axes->get(1).asDouble(), axes->get(2).asDouble());
+        setAxes(axes->get(1).asFloat32(), axes->get(2).asFloat32());
 
         Bottle* params  = b->get(5).asList();
         yDebug("params:%s", params->toString().c_str());
-        setGain(params->get(1).asDouble());
-        setBeta(params->get(2).asDouble());
+        setGain(params->get(1).asFloat32());
+        setBeta(params->get(2).asFloat32());
         setViaPoints(aVec, bVec, cVec);
         valid = true;
 
@@ -894,8 +894,8 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
         //stringArray[j * 2 + 1].append("A");
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
-        //yDebug("%f %f %f",vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
-        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        //yDebug("%f %f %f",vector->get(1).asFloat32(), vector->get(2).asFloat32(), vector->get(3).asFloat32());
+        sprintf(temp,"%f %f %f", vector->get(1).asFloat32(), vector->get(2).asFloat32(), vector->get(3).asFloat32());
 
         stringArray[j * 2 + 2].append(&temp[0]);
         //yDebug("string: %s %s", stringArray[j * 2 + 1].c_str(), stringArray[j * 2 + 2].c_str());
@@ -966,9 +966,9 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
         Bottle* aVector = b->get(0).asList();
         yDebug("bottleA:%s", aVector->toString().c_str());
         Vector aVec(3);
-        aVec[0] = aVector->get(1).asDouble();
-        aVec[1] = aVector->get(2).asDouble();
-        aVec[2] = aVector->get(3).asDouble();
+        aVec[0] = aVector->get(1).asFloat32();
+        aVec[1] = aVector->get(2).asFloat32();
+        aVec[2] = aVector->get(3).asFloat32();
         xPrev[0] = aVec[0];
         xPrev[1] = aVec[1];
         xPrev[2] = aVec[2];
@@ -976,29 +976,29 @@ TwoThirdMotionProfile::TwoThirdMotionProfile(const Bottle& bInit) {
         Bottle* bVector = b->get(1).asList();
         yDebug("bottleB:%s", bVector->toString().c_str());
         Vector bVec(3);
-        bVec[0] = bVector->get(1).asDouble();
-        bVec[1] = bVector->get(2).asDouble();
-        bVec[2] = bVector->get(3).asDouble();
+        bVec[0] = bVector->get(1).asFloat32();
+        bVec[1] = bVector->get(2).asFloat32();
+        bVec[2] = bVector->get(3).asFloat32();
 
         Bottle* cVector = b->get(2).asList();
         yDebug("bottleC:%s", cVector->toString().c_str());
         Vector cVec(3);
-        cVec[0] = cVector->get(1).asDouble();
-        cVec[1] = cVector->get(2).asDouble();
-        cVec[2] = cVector->get(3).asDouble();
+        cVec[0] = cVector->get(1).asFloat32();
+        cVec[1] = cVector->get(2).asFloat32();
+        cVec[2] = cVector->get(3).asFloat32();
 
         Bottle* angles  = b->get(3).asList();
         yDebug("angles:%s", angles->toString().c_str());
-        setStartStop(angles->get(1).asDouble(), angles->get(2).asDouble(), angles->get(3).asDouble());
+        setStartStop(angles->get(1).asFloat32(), angles->get(2).asFloat32(), angles->get(3).asFloat32());
 
         Bottle* axes  = b->get(4).asList();
         yDebug("axes:%s", axes->toString().c_str());
-        setAxes(axes->get(1).asDouble(), axes->get(2).asDouble());
+        setAxes(axes->get(1).asFloat32(), axes->get(2).asFloat32());
 
         Bottle* params  = b->get(5).asList();
         yDebug("params:%s", params->toString().c_str());
-        setGain(params->get(1).asDouble());
-        setBeta(params->get(2).asDouble());
+        setGain(params->get(1).asFloat32());
+        setBeta(params->get(2).asFloat32());
         setViaPoints(aVec, bVec, cVec);
         valid = true;
 
@@ -1086,10 +1086,10 @@ double TwoThirdMotionProfile::computeCurvature(const double timeDiff, const doub
     //if (dataPort.getOutputCount()) {
         Bottle& dataBottle = dataPort.prepare();
         dataBottle.clear();
-        dataBottle.addDouble(xcur[0]); dataBottle.addDouble(xcur[1]); dataBottle.addDouble(xcur[2]); //position
-        dataBottle.addDouble((*xder1)[0]); dataBottle.addDouble((*xder1)[1]); dataBottle.addDouble((*xder1)[2]); //velocity
-        dataBottle.addDouble( xder2[0]); dataBottle.addDouble( xder2[1]); dataBottle.addDouble( xder2[2]); //acceleration
-        dataBottle.addDouble(d); dataBottle.addDouble(e); dataBottle.addDouble(k); //d, e, k
+        dataBottle.addFloat32(xcur[0]); dataBottle.addFloat32(xcur[1]); dataBottle.addFloat32(xcur[2]); //position
+        dataBottle.addFloat32((*xder1)[0]); dataBottle.addFloat32((*xder1)[1]); dataBottle.addFloat32((*xder1)[2]); //velocity
+        dataBottle.addFloat32( xder2[0]); dataBottle.addFloat32( xder2[1]); dataBottle.addFloat32( xder2[2]); //acceleration
+        dataBottle.addFloat32(d); dataBottle.addFloat32(e); dataBottle.addFloat32(k); //d, e, k
 
         //dataPort.setEnvelope(ts);
         dataPort.write();
@@ -1297,7 +1297,7 @@ MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
         //stringArray[j * 2 + 1].append("A");
         stringArray[j * 2 + 1].append(vector->get(0).asString().c_str());
         char temp[50];
-        sprintf(temp,"%f %f %f", vector->get(1).asDouble(), vector->get(2).asDouble(), vector->get(3).asDouble());
+        sprintf(temp,"%f %f %f", vector->get(1).asFloat32(), vector->get(2).asFloat32(), vector->get(3).asFloat32());
         stringArray[j * 2 + 2].append(&temp[0]);
         argv[j * 2 + 1] = (char*) stringArray[j * 2 + 1].c_str();
         argv[j * 2 + 2] = (char*) stringArray[j * 2 + 2].c_str();
@@ -1358,37 +1358,37 @@ MJMotionProfile::MJMotionProfile(const Bottle& bInit) {
         //((xa,ya,za) (xb,yb,zb) (xc,yc,zc) (0,0.7853,1.5707) (0.1))
         Bottle* aVector = b->get(0).asList();
         Vector aVec(3);
-        aVec[0] = aVector->get(1).asDouble();
-        aVec[1] = aVector->get(2).asDouble();
-        aVec[2] = aVector->get(3).asDouble();
+        aVec[0] = aVector->get(1).asFloat32();
+        aVec[1] = aVector->get(2).asFloat32();
+        aVec[2] = aVector->get(3).asFloat32();
         yDebug("bottleA:%s", aVec.toString().c_str());
 
 
         Bottle* bVector = b->get(1).asList();
         Vector bVec(3);
-        bVec[0] = bVector->get(1).asDouble();
-        bVec[1] = bVector->get(2).asDouble();
-        bVec[2] = bVector->get(3).asDouble();
+        bVec[0] = bVector->get(1).asFloat32();
+        bVec[1] = bVector->get(2).asFloat32();
+        bVec[2] = bVector->get(3).asFloat32();
         yDebug("bottleB:%s", bVec.toString().c_str());
 
         Bottle* cVector = b->get(2).asList();
         Vector cVec(3);
-        cVec[0] = cVector->get(1).asDouble();
-        cVec[1] = cVector->get(2).asDouble();
-        cVec[2] = cVector->get(3).asDouble();
+        cVec[0] = cVector->get(1).asFloat32();
+        cVec[1] = cVector->get(2).asFloat32();
+        cVec[2] = cVector->get(3).asFloat32();
         yDebug("bottleC:%s", cVec.toString().c_str());
 
         Bottle* angles  = b->get(3).asList();
         yDebug("angles:%s", angles->toString().c_str());
-        setStartStop(angles->get(1).asDouble(), angles->get(2).asDouble(), angles->get(3).asDouble());
+        setStartStop(angles->get(1).asFloat32(), angles->get(2).asFloat32(), angles->get(3).asFloat32());
 
         Bottle* axis  = b->get(4).asList();
         yDebug("axis:%s", axis->toString().c_str());
-        setAxes(axis->get(1).asDouble(), axis->get(2).asDouble());
+        setAxes(axis->get(1).asFloat32(), axis->get(2).asFloat32());
 
         Bottle* params  = b->get(5).asList();
         yDebug("params:%s", params->toString().c_str());
-        setVelocity(params->get(1).asDouble());
+        setVelocity(params->get(1).asFloat32());
         setViaPoints(aVec, bVec, cVec);
         valid = true;
     }

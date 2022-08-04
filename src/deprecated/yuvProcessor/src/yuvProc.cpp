@@ -41,7 +41,7 @@ bool yuvProc::configure(yarp::os::ResourceFinder &rf)
                            Value("yuv"), 
                            "image type (string)").asString();
     
-    period               = rf.check("period", Value(100), "thread period").asInt();
+    period               = rf.check("period", Value(100), "thread period").asInt16();
 
    /*
     * attach a port of the same name as the module (prefixed with a /) to the module

@@ -14,10 +14,10 @@
 
 #include <string>
 
-#define COMMAND_VOCAB_ON    VOCAB2('o','n')
-#define COMMAND_VOCAB_OFF   VOCAB3('o','f','f')
-#define COMMAND_VOCAB_DUMP  VOCAB4('d','u','m','p')
-#define COMMAND_VOCAB_SYNC  VOCAB4('s','y','n','c')
+const int32_t COMMAND_VOCAB_ON    = yarp::os::createVocab32('o','n')
+const int32_t COMMAND_VOCAB_OFF   = yarp::os::createVocab32('o','f','f')
+const int32_t COMMAND_VOCAB_DUMP  VOCAB4('d','u','m','p')
+const int32_t COMMAND_VOCAB_SYNC  VOCAB4('s','y','n','c')
 
 #define DELTAENC 0.0000001
 #define deg2rad  3.1415/180
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     remotePorts+="/head"; //"/right_arm"
 
     //int nOl=atoi(params.find("loop").asString().c_str());
-    int nOl=params.find("loop").asInt();
+    int nOl=params.find("loop").asInt16();
 
     //Network::connect(portName.c_str(), "/aexGrabber");
 
@@ -182,8 +182,8 @@ int main(int argc, char *argv[])
     int times=0;
     yarp::os::Bottle bot; //= _pOutPort->prepare();
     bot.clear();
-    bot.addVocab(COMMAND_VOCAB_DUMP);
-    bot.addVocab(COMMAND_VOCAB_ON);
+    bot.addVocab32(COMMAND_VOCAB_DUMP);
+    bot.addVocab32(COMMAND_VOCAB_ON);
     Bottle inOn;
     _pOutPort->write(bot,inOn);
 
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
             encs->getEncoder(4, &curPos);
         }
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SYNC);
+        bot.addVocab32(COMMAND_VOCAB_SYNC);
         Bottle inStart;
         _pOutPort->write(bot,inStart);
     	printf("1st synch asked\n");
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
         //    encs->getEncoder(3, &curPos);
         //}
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SYNC);
+        bot.addVocab32(COMMAND_VOCAB_SYNC);
         Bottle inEnd;
         _pOutPort->write(bot,inEnd);
     	printf("2nd synch asked\n");
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
     while(true){
         if (_pInPort->getInputCount()) {
             Bottle* b = _pInPort->read(true);
-            value = b->get(0).asDouble();
+            value = b->get(0).asFloat32();
             printf("got the double %f \n", value);
             encs->getEncoder(2, &startPos2);
             //printf("getEncoder3 position %f \n", startPos2);
@@ -310,15 +310,15 @@ int main(int argc, char *argv[])
 
 
     /*bot.clear();
-    bot.addVocab(COMMAND_VOCAB_SYNC);
+    bot.addVocab32(COMMAND_VOCAB_SYNC);
     Bottle inEnd;
     _pOutPort->write(bot,inEnd);
     */
 
 
     bot.clear();
-    bot.addVocab(COMMAND_VOCAB_DUMP);
-    bot.addVocab(COMMAND_VOCAB_OFF);
+    bot.addVocab32(COMMAND_VOCAB_DUMP);
+    bot.addVocab32(COMMAND_VOCAB_OFF);
     Bottle inOff;
     _pOutPort->write(bot,inOff);
 

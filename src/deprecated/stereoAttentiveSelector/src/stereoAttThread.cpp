@@ -130,7 +130,7 @@ void stereoAttThread::run() {
     ImageOf<PixelRgb>& outImage=outPort.prepare();
     outImage.resize(width,height);
     if(b!=0) {
-        shiftvalue=b->get(0).asInt();
+        shiftvalue=b->get(0).asInt16();
         b->clear();
     }
     //shift images and fuse them
@@ -141,10 +141,10 @@ void stereoAttThread::run() {
         int first,second;
         Bottle* b=vergenceInPort.read(false);
         if(b!=0) {
-            first=b->get(0).asVocab();
-            second=b->get(1).asVocab();
-            joint=b->get(2).asInt();
-            angle=b->get(3).asInt();
+            first=b->get(0).asVocab32();
+            second=b->get(1).asVocab32();
+            joint=b->get(2).asInt16();
+            angle=b->get(3).asInt16();
         }
     }
     outPort.write();

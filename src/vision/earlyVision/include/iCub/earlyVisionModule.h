@@ -178,34 +178,34 @@
 #define _VOCAB_EARLY_VISION
 
 
-const int32_t COMMAND_VOCAB_HELP     = yarp::os::createVocab('h','e','l','p');
-const int32_t COMMAND_VOCAB_QUIT     = yarp::os::createVocab('q','u','i','t');
-const int32_t COMMAND_VOCAB_FAILED   = yarp::os::createVocab('f','a','i','l');
+const int32_t COMMAND_VOCAB_HELP     = yarp::os::createVocab32('h','e','l','p');
+const int32_t COMMAND_VOCAB_QUIT     = yarp::os::createVocab32('q','u','i','t');
+const int32_t COMMAND_VOCAB_FAILED   = yarp::os::createVocab32('f','a','i','l');
 
-const int32_t COMMAND_VOCAB_OK       = yarp::os::createVocab('o','k');
-const int32_t COMMAND_VOCAB_P0       = yarp::os::createVocab('p','0');
+const int32_t COMMAND_VOCAB_OK       = yarp::os::createVocab32('o','k');
+const int32_t COMMAND_VOCAB_P0       = yarp::os::createVocab32('p','0');
 
-const int32_t COMMAND_VOCAB_SET      = yarp::os::createVocab('s','e','t');
-const int32_t COMMAND_VOCAB_GET      = yarp::os::createVocab('g','e','t');
-const int32_t COMMAND_VOCAB_SUSPEND  = yarp::os::createVocab('s','u','s');
-const int32_t COMMAND_VOCAB_RESUME   = yarp::os::createVocab('r','e','s');
-const int32_t COMMAND_VOCAB_HOR      = yarp::os::createVocab('h','o','r');
-const int32_t COMMAND_VOCAB_VER      = yarp::os::createVocab('v','e','r');
-const int32_t COMMAND_VOCAB_45       = yarp::os::createVocab('o','4','5');
-const int32_t COMMAND_VOCAB_P45      = yarp::os::createVocab('p','4','5');
-const int32_t COMMAND_VOCAB_N45      = yarp::os::createVocab('n','4','5');
-const int32_t COMMAND_VOCAB_M45      = yarp::os::createVocab('M','4','5');
-const int32_t COMMAND_VOCAB_P90      = yarp::os::createVocab('p','9','0');
-const int32_t COMMAND_VOCAB_ORI      = yarp::os::createVocab('o','r','i');
-const int32_t COMMAND_VOCAB_CHR      = yarp::os::createVocab('c','h','r');
-const int32_t COMMAND_VOCAB_BRIGHT   = yarp::os::createVocab('b','r','t');
+const int32_t COMMAND_VOCAB_SET      = yarp::os::createVocab32('s','e','t');
+const int32_t COMMAND_VOCAB_GET      = yarp::os::createVocab32('g','e','t');
+const int32_t COMMAND_VOCAB_SUSPEND  = yarp::os::createVocab32('s','u','s');
+const int32_t COMMAND_VOCAB_RESUME   = yarp::os::createVocab32('r','e','s');
+const int32_t COMMAND_VOCAB_HOR      = yarp::os::createVocab32('h','o','r');
+const int32_t COMMAND_VOCAB_VER      = yarp::os::createVocab32('v','e','r');
+const int32_t COMMAND_VOCAB_45       = yarp::os::createVocab32('o','4','5');
+const int32_t COMMAND_VOCAB_P45      = yarp::os::createVocab32('p','4','5');
+const int32_t COMMAND_VOCAB_N45      = yarp::os::createVocab32('n','4','5');
+const int32_t COMMAND_VOCAB_M45      = yarp::os::createVocab32('M','4','5');
+const int32_t COMMAND_VOCAB_P90      = yarp::os::createVocab32('p','9','0');
+const int32_t COMMAND_VOCAB_ORI      = yarp::os::createVocab32('o','r','i');
+const int32_t COMMAND_VOCAB_CHR      = yarp::os::createVocab32('c','h','r');
+const int32_t COMMAND_VOCAB_BRIGHT   = yarp::os::createVocab32('b','r','t');
 
-const int32_t COMMAND_VOCAB_WEIGHT  = yarp::os::createVocab('w');
+const int32_t COMMAND_VOCAB_WEIGHT  = yarp::os::createVocab32('w');
 
 
 
-const int32_t COMMAND_VOCAB_CHROME_THREAD  = yarp::os::createVocab('c','h','r');
-const int32_t COMMAND_VOCAB_EDGES_THREAD   = yarp::os::createVocab('e','d','g');
+const int32_t COMMAND_VOCAB_CHROME_THREAD  = yarp::os::createVocab32('c','h','r');
+const int32_t COMMAND_VOCAB_EDGES_THREAD   = yarp::os::createVocab32('e','d','g');
 #endif
 
 

@@ -117,8 +117,8 @@ bool visualFilterModule::respond(const Bottle& command, Bottle& reply)
         reply.addString("ok");
     }
 	else if (command.get(0).asString()=="par") {
-		int p = command.get(1).asInt();
-		double v = command.get(2).asDouble();
+		int p = command.get(1).asInt16();
+		double v = command.get(2).asFloat32();
 		if(p>0 && p<8 && v>=0){
 			vfThread->setPar(p,v);
 			reply.addString("New kernel generated with updated parameters.");

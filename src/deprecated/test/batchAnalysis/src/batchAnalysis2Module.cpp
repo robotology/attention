@@ -83,21 +83,21 @@ bool batchAnalysis2Module::configure(yarp::os::ResourceFinder &rf) {
 	*/ 
 	double th1Level = rf.check("threshold1Level", 
                            Value(0.5), 
-                           "threshold 1 level for the segmentation (float)").asDouble();
+                           "threshold 1 level for the segmentation (float)").asFloat32();
 
     /**
 	*  reading the threshold2 value
 	*/ 
 	double th2Level = rf.check("threshold2Level", 
                            Value(0.5), 
-                           "threshold 2 level for the segmentation (float)").asDouble();
+                           "threshold 2 level for the segmentation (float)").asFloat32();
 
     /**
 	*  reading the threshold3 value
 	*/ 
 	double th3Level = rf.check("threshold3Level", 
                            Value(0.5), 
-                           "threshold 3 level for the segmentation (float)").asDouble();
+                           "threshold 3 level for the segmentation (float)").asFloat32();
 
     if (rf.check("config")) {
         configFile=rf.findFile(rf.find("config").asString().c_str());
@@ -160,11 +160,11 @@ bool batchAnalysis2Module::respond(const Bottle& command, Bottle& reply)
     //}
 
     respondLock.wait();
-    switch (command.get(0).asVocab()) {
+    switch (command.get(0).asVocab32()) {
     case COMMAND_VOCAB_HELP:
         rec = true;
         {
-            reply.addVocab(Vocab::encode("many"));
+            reply.addVocab32(Vocab32::encode("many"));
             reply.addString("help");
             reply.addString("commands are:");
             reply.addString(" help    : to get help");
@@ -203,7 +203,7 @@ bool batchAnalysis2Module::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_VIS:
         {
             rec = true;
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_ON:
                 {
                     reply.addString("visualization ON");
@@ -225,15 +225,15 @@ bool batchAnalysis2Module::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_GET:
         {
             rec = true;
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_WEIGHT:
                 {
-                    switch(command.get(2).asVocab()){
+                    switch(command.get(2).asVocab32()){
                     case COMMAND_VOCAB_HOR:
                         
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_HOR); // ?? Needed
-                        //reply.addDouble(wt);
+                        reply.addVocab32(COMMAND_VOCAB_HOR); // ?? Needed
+                        //reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
@@ -254,40 +254,40 @@ bool batchAnalysis2Module::respond(const Bottle& command, Bottle& reply)
     case COMMAND_VOCAB_SET:
         {
             rec = true;
-            switch(command.get(1).asVocab()){
+            switch(command.get(1).asVocab32()){
             case COMMAND_VOCAB_ALGO:
                 {
-                    switch(command.get(2).asVocab()){
+                    switch(command.get(2).asVocab32()){
                     case COMMAND_VOCAB_FB:
                         
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_FB); 
+                        reply.addVocab32(COMMAND_VOCAB_FB);
 
 						rThread->setAlgorithm(ALGO_FB);
 
-                        //reply.addDouble(wt);
+                        //reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
 					case COMMAND_VOCAB_TV:
                         
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_TV); 
+                        reply.addVocab32(COMMAND_VOCAB_TV);
 
 						rThread->setAlgorithm(ALGO_TV);
 
-                        //reply.addDouble(wt);
+                        //reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
 					case COMMAND_VOCAB_LK:
                         
                         reply.clear();
-                        reply.addVocab(COMMAND_VOCAB_LK); 
+                        reply.addVocab32(COMMAND_VOCAB_LK);
 
 						rThread->setAlgorithm(ALGO_LK);
 
-                        //reply.addDouble(wt);
+                        //reply.addFloat32(wt);
                         rec = true;
                         ok = true;
                         break;
@@ -335,10 +335,10 @@ bool batchAnalysis2Module::respond(const Bottle& command, Bottle& reply)
     
     if (!ok) {
         reply.clear();
-        reply.addVocab(COMMAND_VOCAB_FAILED);
+        reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
     else
-        reply.addVocab(COMMAND_VOCAB_OK);
+        reply.addVocab32(COMMAND_VOCAB_OK);
     
     return true;
 }

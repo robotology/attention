@@ -355,10 +355,10 @@ void disparityProcessor::run(){
                     Bottle bot;
                     bot.clear();
                     bot.addString("VER_REL");
-                    bot.addDouble(-(180/M_PI)*atan(max1/(2*fpixel)));
-                    bot.addDouble(-(180/M_PI)*atan(max2/(2*fpixel)));
-                    //bot.addDouble(-(180/M_PI)*atan(max3/(2*fpixel)));
-                    bot.addDouble(value1);
+                    bot.addFloat32(-(180/M_PI)*atan(max1/(2*fpixel)));
+                    bot.addFloat32(-(180/M_PI)*atan(max2/(2*fpixel)));
+                    //bot.addFloat32(-(180/M_PI)*atan(max3/(2*fpixel)));
+                    bot.addFloat32(value1);
                     cmdOutput.write(bot);
                     bot.clear();
                 }
@@ -367,10 +367,10 @@ void disparityProcessor::run(){
                     Bottle bot;
                     bot.clear();
                     bot.addString("VER_ABS");
-                    bot.addDouble(_head[5]);                 
-                    bot.addDouble(relangle);
-                    bot.addDouble(relangle2);
-                    bot.addDouble(relangle3);
+                    bot.addFloat32(_head[5]);
+                    bot.addFloat32(relangle);
+                    bot.addFloat32(relangle2);
+                    bot.addFloat32(relangle3);
                     cmdAbsOutput.write(bot);
                     bot.clear();
                 }
@@ -386,7 +386,7 @@ void disparityProcessor::run(){
             if (shiftOutput.getOutputCount()>0){
                 Bottle bot;
                 bot.clear();
-                bot.addInt(pixels);
+                bot.addInt16(pixels);
                 shiftOutput.write(bot);
                 bot.clear();
             }

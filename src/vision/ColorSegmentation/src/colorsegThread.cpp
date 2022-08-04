@@ -20,8 +20,8 @@ bool colorsegThread::threadInit()
 {
 	// extract parameters from properties (ini-file)
 	
-	//height = rf.find("height").asInt();
-	//width = rf.find("width").asInt();
+	//height = rf.find("height").asInt16();
+	//width = rf.find("width").asInt16();
 	
 	string modelFile = rf.find("modelFile").asString().c_str();
 	int nDim;
@@ -49,9 +49,9 @@ bool colorsegThread::threadInit()
 	}
 	printf("Colormap loaded from file <%s>.\n",colormapFile.c_str());
 
-	smoothness = (float)rf.find("smoothness").asDouble();
-	niter = rf.find("niter").asInt();
-	minsize = (unsigned)rf.find("minsize").asInt();
+	smoothness = (float)rf.find("smoothness").asFloat32();
+	niter = rf.find("niter").asInt16();
+	minsize = (unsigned)rf.find("minsize").asInt16();
 	
 	q = NULL;
 
@@ -158,10 +158,10 @@ void colorsegThread::run()
         Bottle list_color_labels;
         list_color_labels.clear();
         Bottle bot;
-//        list_color_labels.addInt(ncomponents); // number of bounding boxes
+//        list_color_labels.addInt16(ncomponents); // number of bounding boxes
         for ( int i=0; i<ncomponents; i++ ){
             for (int j =0; j < 4; ++j){
-                bot.addInt(bbox[5*i + j]);
+                bot.addInt16(bbox[5*i + j]);
             }
 
             bot.addString(colorMapLabels->get(bbox[i * 5 + 4]).asString());

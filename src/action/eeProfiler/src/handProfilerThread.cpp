@@ -853,8 +853,8 @@ void handProfilerThread::printErr() {
     ts.update();
     Bottle& b = errPort.prepare();
     b.clear();
-    //b.addDouble(mp->getError());
-    b.addDouble(-1.0);
+    //b.addFloat32(mp->getError());
+    b.addFloat32(-1.0);
     errPort.setEnvelope(ts);
     errPort.write();
 }
@@ -864,10 +864,10 @@ void handProfilerThread::printVel() {
     ts.update();
     Bottle& b = velPort.prepare();
     b.clear();
-    b.addDouble(mp->getTanVelocity());
-    b.addDouble(mp->getCurvature());
-    b.addDouble(mp->getRadius());
-    b.addDouble(mp->getAngVelocity());
+    b.addFloat32(mp->getTanVelocity());
+    b.addFloat32(mp->getCurvature());
+    b.addFloat32(mp->getRadius());
+    b.addFloat32(mp->getAngVelocity());
     velPort.setEnvelope(ts);
     velPort.write();
 }
@@ -877,9 +877,9 @@ void handProfilerThread::printXd() {
     ts.update();
     Bottle& b = xdPort.prepare();
     b.clear();
-    b.addDouble(xd[0]);
-    b.addDouble(xd[1]);
-    b.addDouble(xd[2]);
+    b.addFloat32(xd[0]);
+    b.addFloat32(xd[1]);
+    b.addFloat32(xd[2]);
     xdPort.setEnvelope(ts);
     xdPort.write();
 }
@@ -1209,24 +1209,24 @@ void handProfilerThread::displayProfile() {
             obj.addString(objectName[i]);
             // object dimensions in millimiters
             // (it will be displayed as an ellipsoid with the tag "my_object_name")
-            obj.addDouble(5);
-            obj.addDouble(5);
-            obj.addDouble(5);
+            obj.addFloat32(5);
+            obj.addFloat32(5);
+            obj.addFloat32(5);
             // object position in millimiters
             // reference frame: X=fwd, Y=left, Z=up
-            obj.addDouble((vectorList[i])[0] * 1000);
-            obj.addDouble((vectorList[i])[1] * 1000);
-            obj.addDouble((vectorList[i])[2] * 1000);
+            obj.addFloat32((vectorList[i])[0] * 1000);
+            obj.addFloat32((vectorList[i])[1] * 1000);
+            obj.addFloat32((vectorList[i])[2] * 1000);
             // object orientation (roll, pitch, yaw) in degrees
-            obj.addDouble(0.0);
-            obj.addDouble(0.0);
-            obj.addDouble(0.0);
+            obj.addFloat32(0.0);
+            obj.addFloat32(0.0);
+            obj.addFloat32(0.0);
             // object color (0-255)
-            obj.addInt(r);
-            obj.addInt(g);
-            obj.addInt(b);
+            obj.addInt16(r);
+            obj.addInt16(g);
+            obj.addInt16(b);
             // transparency (0.0=invisible 1.0=solid)
-            obj.addDouble(1.0);
+            obj.addFloat32(1.0);
 
             guiPort.writeStrict();
         }
@@ -1252,24 +1252,24 @@ void handProfilerThread::displayTarget() {
         obj.addString(str.c_str());
         // object dimensions in millimiters
         // (it will be displayed as an ellipsoid with the tag "my_object_name")
-        obj.addDouble(5);
-        obj.addDouble(5);
-        obj.addDouble(5);
+        obj.addFloat32(5);
+        obj.addFloat32(5);
+        obj.addFloat32(5);
         // object position in millimiters
         // reference frame: X=fwd, Y=left, Z=up
-        obj.addDouble(xd[0] * 1000);
-        obj.addDouble(xd[1] * 1000);
-        obj.addDouble(xd[2] * 1000);
+        obj.addFloat32(xd[0] * 1000);
+        obj.addFloat32(xd[1] * 1000);
+        obj.addFloat32(xd[2] * 1000);
         // object orientation (roll, pitch, yaw) in degrees
-        obj.addDouble(0.0);
-        obj.addDouble(0.0);
-        obj.addDouble(0.0);
+        obj.addFloat32(0.0);
+        obj.addFloat32(0.0);
+        obj.addFloat32(0.0);
         // object color (0-255)
-        obj.addInt(r);
-        obj.addInt(g);
-        obj.addInt(b);
+        obj.addInt16(r);
+        obj.addInt16(g);
+        obj.addInt16(b);
         // transparency (0.0=invisible 1.0=solid)
-        obj.addDouble(1.0);
+        obj.addFloat32(1.0);
 
         guiPort.writeStrict();
     }

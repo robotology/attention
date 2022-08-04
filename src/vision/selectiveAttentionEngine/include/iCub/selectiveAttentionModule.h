@@ -39,56 +39,56 @@
 #include <iCub/selectiveAttentionProcessor.h>
 
 // general command vocab's
-const int32_t COMMAND_VOCAB_HELP                 = yarp::os::createVocab('h','e','l','p');
-const int32_t COMMAND_VOCAB_SET                  = yarp::os::createVocab('s','e','t');
-const int32_t COMMAND_VOCAB_GET                  = yarp::os::createVocab('g','e','t');
-const int32_t COMMAND_VOCAB_RUN                  = yarp::os::createVocab('r','u','n');
-const int32_t COMMAND_VOCAB_SUSPEND              = yarp::os::createVocab('s','u','s');
-const int32_t COMMAND_VOCAB_RESUME               = yarp::os::createVocab('r','e','s');
-const int32_t COMMAND_VOCAB_IS                   = yarp::os::createVocab('i','s');
-const int32_t COMMAND_VOCAB_FAILED               = yarp::os::createVocab('f','a','i','l');
-const int32_t COMMAND_VOCAB_OK                   = yarp::os::createVocab('o','k');
-const int32_t COMMAND_VOCAB_CHILD_COUNT          = yarp::os::createVocab('c','c');
-const int32_t COMMAND_VOCAB_WEIGHT               = yarp::os::createVocab('w');
-const int32_t COMMAND_VOCAB_CHILD_WEIGHT         = yarp::os::createVocab('c','w');
-const int32_t COMMAND_VOCAB_CHILD_WEIGHTS        = yarp::os::createVocab('c','w','s');
-const int32_t COMMAND_VOCAB_NAME                 = yarp::os::createVocab('s','1');
-const int32_t COMMAND_VOCAB_CHILD_NAME           = yarp::os::createVocab('c','n');
-const int32_t COMMAND_VOCAB_SALIENCE_THRESHOLD   = yarp::os::createVocab('t','h');
-const int32_t COMMAND_VOCAB_NUM_BLUR_PASSES      = yarp::os::createVocab('s','2');
+const int32_t COMMAND_VOCAB_HELP                 = yarp::os::createVocab32('h','e','l','p');
+const int32_t COMMAND_VOCAB_SET                  = yarp::os::createVocab32('s','e','t');
+const int32_t COMMAND_VOCAB_GET                  = yarp::os::createVocab32('g','e','t');
+const int32_t COMMAND_VOCAB_RUN                  = yarp::os::createVocab32('r','u','n');
+const int32_t COMMAND_VOCAB_SUSPEND              = yarp::os::createVocab32('s','u','s');
+const int32_t COMMAND_VOCAB_RESUME               = yarp::os::createVocab32('r','e','s');
+const int32_t COMMAND_VOCAB_IS                   = yarp::os::createVocab32('i','s');
+const int32_t COMMAND_VOCAB_FAILED               = yarp::os::createVocab32('f','a','i','l');
+const int32_t COMMAND_VOCAB_OK                   = yarp::os::createVocab32('o','k');
+const int32_t COMMAND_VOCAB_CHILD_COUNT          = yarp::os::createVocab32('c','c');
+const int32_t COMMAND_VOCAB_WEIGHT               = yarp::os::createVocab32('w');
+const int32_t COMMAND_VOCAB_CHILD_WEIGHT         = yarp::os::createVocab32('c','w');
+const int32_t COMMAND_VOCAB_CHILD_WEIGHTS        = yarp::os::createVocab32('c','w','s');
+const int32_t COMMAND_VOCAB_NAME                 = yarp::os::createVocab32('s','1');
+const int32_t COMMAND_VOCAB_CHILD_NAME           = yarp::os::createVocab32('c','n');
+const int32_t COMMAND_VOCAB_SALIENCE_THRESHOLD   = yarp::os::createVocab32('t','h');
+const int32_t COMMAND_VOCAB_NUM_BLUR_PASSES      = yarp::os::createVocab32('s','2');
 
-const int32_t COMMAND_VOCAB_KBU = yarp::os::createVocab('k','b','u');//weight of the bottom-up algorithm
-const int32_t COMMAND_VOCAB_KTD = yarp::os::createVocab('k','t','d'); //weight of top-down algorithm
-const int32_t COMMAND_VOCAB_RIN = yarp::os::createVocab('r','i','n'); //red intensity value
-const int32_t COMMAND_VOCAB_GIN = yarp::os::createVocab('g','i','n'); //green intensity value
-const int32_t COMMAND_VOCAB_BIN = yarp::os::createVocab('b','i','n'); //blue intensity value
+const int32_t COMMAND_VOCAB_KBU = yarp::os::createVocab32('k','b','u');//weight of the bottom-up algorithm
+const int32_t COMMAND_VOCAB_KTD = yarp::os::createVocab32('k','t','d'); //weight of top-down algorithm
+const int32_t COMMAND_VOCAB_RIN = yarp::os::createVocab32('r','i','n'); //red intensity value
+const int32_t COMMAND_VOCAB_GIN = yarp::os::createVocab32('g','i','n'); //green intensity value
+const int32_t COMMAND_VOCAB_BIN = yarp::os::createVocab32('b','i','n'); //blue intensity value
 
 // directional saliency filter vocab's
-const int32_t COMMAND_VOCAB_DIRECTIONAL_NUM_DIRECTIONS        = yarp::os::createVocab('d','n','d');
-const int32_t COMMAND_VOCAB_DIRECTIONAL_NUM_SCALES            = yarp::os::createVocab('d','n','s');
-const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_SCALE_INDEX       = yarp::os::createVocab('d','s','i');
-const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_DIRECTION_INDEX   = yarp::os::createVocab('d','d','i');
-const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_IMAGE_ARRAY_NAMES = yarp::os::createVocab('d','a','n','s');
-const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_IMAGE_ARRAY_NAME  = yarp::os::createVocab('d','a','n');
+const int32_t COMMAND_VOCAB_DIRECTIONAL_NUM_DIRECTIONS        = yarp::os::createVocab32('d','n','d');
+const int32_t COMMAND_VOCAB_DIRECTIONAL_NUM_SCALES            = yarp::os::createVocab32('d','n','s');
+const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_SCALE_INDEX       = yarp::os::createVocab32('d','s','i');
+const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_DIRECTION_INDEX   = yarp::os::createVocab32('d','d','i');
+const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_IMAGE_ARRAY_NAMES = yarp::os::createVocab32('d','a','n','s');
+const int32_t COMMAND_VOCAB_DIRECTIONAL_DBG_IMAGE_ARRAY_NAME  = yarp::os::createVocab32('d','a','n');
 //option for the set command
-const int32_t COMMAND_VOCAB_LHAND = yarp::os::createVocab('l','h','a','n');
-const int32_t COMMAND_VOCAB_TIME  = yarp::os::createVocab('t','i','m','e');
-const int32_t COMMAND_VOCAB_K1= yarp::os::createVocab('k','1');
-const int32_t COMMAND_VOCAB_K2    = yarp::os::createVocab('k','2');
-const int32_t COMMAND_VOCAB_K3    = yarp::os::createVocab('k','3');
-const int32_t COMMAND_VOCAB_K4    = yarp::os::createVocab('k','4');
-const int32_t COMMAND_VOCAB_K5    = yarp::os::createVocab('k','5');
-const int32_t COMMAND_VOCAB_K6    = yarp::os::createVocab('k','6');
-const int32_t COMMAND_VOCAB_BU    = yarp::os::createVocab('b','u');
-const int32_t COMMAND_VOCAB_TD    = yarp::os::createVocab('t','d');
-const int32_t COMMAND_VOCAB_KC1   = yarp::os::createVocab('k','c','1');
-const int32_t COMMAND_VOCAB_KC2   = yarp::os::createVocab('k','c','2');
-const int32_t COMMAND_VOCAB_KC3   = yarp::os::createVocab('k','c','3');
-const int32_t COMMAND_VOCAB_KMOT  = yarp::os::createVocab('k','m','o','t');
-const int32_t COMMAND_VOCAB_DEF   = yarp::os::createVocab('d','e','f');
-const int32_t COMMAND_VOCAB_MOT   = yarp::os::createVocab('m','o','t');
-const int32_t COMMAND_VOCAB_INH   = yarp::os::createVocab('i','n','h');
-const int32_t COMMAND_VOCAB_NINH  = yarp::os::createVocab('n','i','n','h');
+const int32_t COMMAND_VOCAB_LHAND = yarp::os::createVocab32('l','h','a','n');
+const int32_t COMMAND_VOCAB_TIME  = yarp::os::createVocab32('t','i','m','e');
+const int32_t COMMAND_VOCAB_K1= yarp::os::createVocab32('k','1');
+const int32_t COMMAND_VOCAB_K2    = yarp::os::createVocab32('k','2');
+const int32_t COMMAND_VOCAB_K3    = yarp::os::createVocab32('k','3');
+const int32_t COMMAND_VOCAB_K4    = yarp::os::createVocab32('k','4');
+const int32_t COMMAND_VOCAB_K5    = yarp::os::createVocab32('k','5');
+const int32_t COMMAND_VOCAB_K6    = yarp::os::createVocab32('k','6');
+const int32_t COMMAND_VOCAB_BU    = yarp::os::createVocab32('b','u');
+const int32_t COMMAND_VOCAB_TD    = yarp::os::createVocab32('t','d');
+const int32_t COMMAND_VOCAB_KC1   = yarp::os::createVocab32('k','c','1');
+const int32_t COMMAND_VOCAB_KC2   = yarp::os::createVocab32('k','c','2');
+const int32_t COMMAND_VOCAB_KC3   = yarp::os::createVocab32('k','c','3');
+const int32_t COMMAND_VOCAB_KMOT  = yarp::os::createVocab32('k','m','o','t');
+const int32_t COMMAND_VOCAB_DEF   = yarp::os::createVocab32('d','e','f');
+const int32_t COMMAND_VOCAB_MOT   = yarp::os::createVocab32('m','o','t');
+const int32_t COMMAND_VOCAB_INH   = yarp::os::createVocab32('i','n','h');
+const int32_t COMMAND_VOCAB_NINH  = yarp::os::createVocab32('n','i','n','h');
 
 /**
 *

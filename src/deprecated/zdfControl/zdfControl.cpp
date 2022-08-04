@@ -30,14 +30,14 @@
 #include <fstream>
 
 
-#define COMMAND_VOCAB_SET VOCAB3('s','e','t')
-#define COMMAND_VOCAB_GET VOCAB3('g','e','t')
-#define COMMAND_VOCAB_K1 VOCAB2('k','1') //data penalty
-#define COMMAND_VOCAB_K2 VOCAB2('k','2') //smoothness penalty base
-#define COMMAND_VOCAB_K3 VOCAB2('k','3') //smoothness penalty
-#define COMMAND_VOCAB_K4 VOCAB2('k','4') //radial penalty
-#define COMMAND_VOCAB_K5 VOCAB2('k','5') //smoothness 3sigmaon2
-#define COMMAND_VOCAB_K6 VOCAB2('k','6') //bland dog thresh
+const int32_t COMMAND_VOCAB_SET = yarp::os::createVocab32('s','e','t')
+const int32_t COMMAND_VOCAB_GET = yarp::os::createVocab32('g','e','t')
+const int32_t COMMAND_VOCAB_K1 = yarp::os::createVocab32('k','1') //data penalty
+const int32_t COMMAND_VOCAB_K2 = yarp::os::createVocab32('k','2') //smoothness penalty base
+const int32_t COMMAND_VOCAB_K3 = yarp::os::createVocab32('k','3') //smoothness penalty
+const int32_t COMMAND_VOCAB_K4 = yarp::os::createVocab32('k','4') //radial penalty
+const int32_t COMMAND_VOCAB_K5 = yarp::os::createVocab32('k','5') //smoothness 3sigmaon2
+const int32_t COMMAND_VOCAB_K6 = yarp::os::createVocab32('k','6') //bland dog thresh
 
 using namespace yarp::os;
 using namespace std;
@@ -138,9 +138,9 @@ static void cb_digits_scale( GtkAdjustment *adj ) {
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_K1);
-        bot.addDouble((double) adj->value);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_K1);
+        bot.addFloat32((double) adj->value);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write(bot);
     }
@@ -153,9 +153,9 @@ static void cb_digits_scale2( GtkAdjustment *adj ) {
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_K2);
-        bot.addDouble((double) adj->value);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_K2);
+        bot.addFloat32((double) adj->value);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write(bot);
     }
@@ -168,9 +168,9 @@ static void cb_digits_scale3( GtkAdjustment *adj ) {
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_K3);
-        bot.addDouble((double) adj->value);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_K3);
+        bot.addFloat32((double) adj->value);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write(bot);
     }
@@ -183,9 +183,9 @@ static void cb_digits_scale4( GtkAdjustment *adj ) {
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_K4);
-        bot.addDouble((double) adj->value);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_K4);
+        bot.addFloat32((double) adj->value);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write(bot);
     }
@@ -198,9 +198,9 @@ static void cb_digits_scale5( GtkAdjustment *adj ) {
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_K5);
-        bot.addDouble((double) adj->value);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_K5);
+        bot.addFloat32((double) adj->value);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write(bot);
     }
@@ -212,9 +212,9 @@ static void cb_digits_scale6( GtkAdjustment *adj ) {
     if (_pOutPort!=NULL) {
         yarp::os::Bottle bot; //= _pOutPort->prepare();
         bot.clear();
-        bot.addVocab(COMMAND_VOCAB_SET);
-        bot.addVocab(COMMAND_VOCAB_K6);
-        bot.addDouble((double) adj->value);
+        bot.addVocab32(COMMAND_VOCAB_SET);
+        bot.addVocab32(COMMAND_VOCAB_K6);
+        bot.addFloat32((double) adj->value);
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write(bot);
     }
@@ -246,12 +246,12 @@ gint timeout_CB (gpointer data) {
         case 1: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                     bot.addVocab(COMMAND_VOCAB_K1);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                     bot.addVocab32(COMMAND_VOCAB_K1);
                     //_pOutPort->Content() = _outBottle;
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj1),value);
                     _mutex.post();
@@ -259,12 +259,12 @@ gint timeout_CB (gpointer data) {
         case 2: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                    bot.addVocab(COMMAND_VOCAB_K2);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                    bot.addVocab32(COMMAND_VOCAB_K2);
                     //_pOutPort->Content() = _outBottle;
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj2),value);
                     _mutex.post();
@@ -272,12 +272,12 @@ gint timeout_CB (gpointer data) {
         case 3: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                     bot.addVocab(COMMAND_VOCAB_K3);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                     bot.addVocab32(COMMAND_VOCAB_K3);
                     //_pOutPort->Content() = _outBottle;
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj3),value);
                     _mutex.post();
@@ -285,12 +285,12 @@ gint timeout_CB (gpointer data) {
         case 4: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                     bot.addVocab(COMMAND_VOCAB_K4);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                     bot.addVocab32(COMMAND_VOCAB_K4);
                     //_pOutPort->Content() = _outBottle;
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj4),value);
                     _mutex.post();
@@ -298,12 +298,12 @@ gint timeout_CB (gpointer data) {
         case 5: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                     bot.addVocab(COMMAND_VOCAB_K5);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                     bot.addVocab32(COMMAND_VOCAB_K5);
                     //_pOutPort->Content() = _outBottle;
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj5),value);
                     _mutex.post();
@@ -311,12 +311,12 @@ gint timeout_CB (gpointer data) {
         case 6: {
                     yarp::os::Bottle bot; //= _pOutPort->prepare();
                     bot.clear();
-                    bot.addVocab(COMMAND_VOCAB_GET);
-                     bot.addVocab(COMMAND_VOCAB_K6);
+                    bot.addVocab32(COMMAND_VOCAB_GET);
+                     bot.addVocab32(COMMAND_VOCAB_K6);
                     //_pOutPort->Content() = _outBottle;
                     Bottle in;
                     _pOutPort->write(bot,in);
-                    double value=in.get(2).asDouble();
+                    double value=in.get(2).asFloat32();
                     _mutex.wait();
                     gtk_adjustment_set_value(GTK_ADJUSTMENT (adj6),value);
                     _mutex.post();
@@ -722,10 +722,10 @@ void configure(yarp::os::ResourceFinder rf){
 
     _options.posX      = rf.check("x",
                            Value(100),
-                           "module pos x (int)").asInt();
+                           "module pos x (int)").asInt16();
     _options.posY      = rf.check("y",
                            Value(100),
-                           "module pos y (int)").asInt();
+                           "module pos y (int)").asInt16();
 
 }
 
@@ -829,10 +829,10 @@ int myMain(int argc, char* argv[]) {
 
     _options.posX      = rf.check("x",
                            Value(100),
-                           "module pos x (int)").asInt();
+                           "module pos x (int)").asInt16();
     _options.posY      = rf.check("y",
                            Value(100),
-                           "module pos y (int)").asInt();
+                           "module pos y (int)").asInt16();
     //configure(rf);
 
     // Parse command line parameters, do this before

@@ -48,7 +48,7 @@ bool colorsegModule::configure(ResourceFinder &rf) {
     threadName = rf.check("threadName",
                           Value("colorSegmentation"),
                           "module name (string)").asString();
-    threadPeriod = rf.check("threadPeriod", Value(20), "Thread period in ms").asInt();
+    threadPeriod = rf.check("threadPeriod", Value(20), "Thread period in ms").asInt16();
 
 
     if (moduleName.empty() || threadName.empty() || threadPeriod == 0)

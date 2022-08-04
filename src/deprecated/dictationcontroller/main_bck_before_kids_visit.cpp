@@ -162,10 +162,10 @@ public:
             Bottle& face = faces.findGroup("face");
             mutgaze = face.findGroup("mutualgaze");
             Bottle& facerect = face.findGroup("facerect");
-            int facex = facerect.get(1).asInt();
-            int facey = facerect.get(2).asInt();
-            int faceheight = facerect.get(3).asInt();
-            int facewidth = facerect.get(4).asInt();
+            int facex = facerect.get(1).asInt16();
+            int facey = facerect.get(2).asInt16();
+            int faceheight = facerect.get(3).asInt16();
+            int facewidth = facerect.get(4).asInt16();
             int facecenterx = facex + facewidth+10;
             int facecentery = facey + faceheight;
 
@@ -357,7 +357,7 @@ public:
 
             if(out!=NULL)                   // if message received from gaze module
             {
-                int ismutualgaze = mutgaze.get(1).asInt();
+                int ismutualgaze = mutgaze.get(1).asInt16();
                 if(ismutualgaze==1 && prevgaze==0)
                 {
                     log(now, "glance on");
