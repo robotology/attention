@@ -27,7 +27,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/math/Math.h>
 
 #include <gsl/gsl_math.h>

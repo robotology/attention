@@ -56,7 +56,7 @@
 #endif
  
 
-class earlyVisionThread : public yarp::os::RateThread  {
+class earlyVisionThread : public yarp::os::PeriodicThread  {
 private:
     
     logpolarTransformVisual lpTrans;

@@ -27,7 +27,7 @@
 #ifndef _PLOTTER_THREAD_H_
 #define _PLOTTER_THREAD_H_
 
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Network.h>

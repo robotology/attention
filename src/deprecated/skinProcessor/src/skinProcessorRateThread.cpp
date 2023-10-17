@@ -53,11 +53,11 @@ const int32_t VOCAB_LEFTARM_HAND                = yarp::os::createVocab32('l','h
 
 #define THRATE 33 //ms
 
-skinProcessorRateThread::skinProcessorRateThread():RateThread(THRATE) {
+skinProcessorRateThread::skinProcessorRateThread():PeriodicThread(THRATE) {
     robot = "icub";
 }
 
-skinProcessorRateThread::skinProcessorRateThread(string _robot , string _configFile):RateThread(THRATE){
+skinProcessorRateThread::skinProcessorRateThread(string _robot , string _configFile):PeriodicThread(THRATE){
     robot = _robot;
     configFile = _configFile;
 }

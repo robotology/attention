@@ -53,7 +53,7 @@ const int THREAD_RATE=30;
  *This code groups together a series of useful functions that can be used for ImageProcessing
  */
 
-class selectiveAttentionProcessor:public yarp::os::RateThread,public observer {
+class selectiveAttentionProcessor:public yarp::os::PeriodicThread,public observer {
 private:
     int psb;                          //width step of 8u images
     int psb32;                        //width step of 32f images

@@ -30,7 +30,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <iCub/iKin/iKinInv.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/ctrl/pids.h>
@@ -43,7 +43,7 @@
 #define MAX_HEIGHT 480
 
 
-class mosaicThread : public yarp::os::RateThread {
+class mosaicThread : public yarp::os::PeriodicThread {
 private:
     int width_orig, height_orig;    // dimension of the input image (original)
     int width, height;              // dimension of the mosaic image 

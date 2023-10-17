@@ -128,7 +128,7 @@
 #include <yarp/os/all.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 //#include <iCub/attention/commandDictionary.h>
  
 //within project includes  

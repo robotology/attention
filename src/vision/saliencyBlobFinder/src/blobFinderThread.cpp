@@ -111,7 +111,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 
 /**********************************************************************************/
 
-blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string _configFile = "") : RateThread(rateThread){
+blobFinderThread::blobFinderThread(int rateThread = DEFAULT_THREAD_RATE, string _configFile = "") : PeriodicThread(rateThread){
     saddleThreshold = 10;
     reinit_flag = false;
     resized_flag = false;

@@ -122,7 +122,7 @@ YUVThread::~YUVThread()
     
 }
 
-YUVThread::YUVThread( int period, string moduleName, string imgType ):RateThread(period) 
+YUVThread::YUVThread( int period, string moduleName, string imgType ):PeriodicThread(period)
 {
     isYUV = true;
     //set up module name

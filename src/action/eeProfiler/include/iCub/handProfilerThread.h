@@ -27,7 +27,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/math/Math.h>
 
 #include <gsl/gsl_math.h>
@@ -41,7 +41,7 @@
 #include <iCub/MotionProfile.h>
 #include <iCub/FingerProfile.h>
 
-class handProfilerThread : public yarp::os::RateThread,  public yarp::dev::CartesianEvent{
+class handProfilerThread : public yarp::os::PeriodicThread,  public yarp::dev::CartesianEvent{
 protected:
 
     static yarp::sig::Vector xZero;

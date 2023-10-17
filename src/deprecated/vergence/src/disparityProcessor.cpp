@@ -28,7 +28,7 @@ using namespace iCub::iKin;
 using namespace yarp::math;
 const int THREAD_RATE = 10;
 
-disparityProcessor::disparityProcessor():RateThread(THREAD_RATE){
+disparityProcessor::disparityProcessor():PeriodicThread(THREAD_RATE){
     cout<< "initialisation process "<<endl;
 	ratio = 4.00;
 	
@@ -402,7 +402,7 @@ void disparityProcessor::suspend(){
     cout << "Vergence has been suspended!" << endl;
     cout << endl;
     igaze->stopControl();
-    RateThread::suspend();
+    PeriodicThread::suspend();
 }
 
 void disparityProcessor::release(){
@@ -411,7 +411,7 @@ void disparityProcessor::release(){
     cout << "Vergence has been resumed!" << endl;
     cout << endl;
     
-    RateThread::resume();
+    PeriodicThread::resume();
 }
 
 void disparityProcessor::computeRay(__kinType k, Vector& v, int x, int y){

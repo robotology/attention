@@ -30,7 +30,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <iCub/skinDynLib/skinContactList.h>
 #include <iCub/skinDynLib/skinContact.h>
 #include <iostream>

@@ -11,7 +11,7 @@ using namespace Darwin::colorseg;
 
 colorsegThread::colorsegThread(ResourceFinder & _rf, string name, int rate) : rf(_rf),
 																				 threadName(name),
-																				 RateThread(rate)
+																				 PeriodicThread(rate)
 {
 }
 

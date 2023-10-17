@@ -29,7 +29,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Log.h>
 #include <iostream>
 #include <fstream>
@@ -45,7 +45,7 @@
 
 class producer : public yarp::os::Thread {
 private:
-	int sharedResource;									  //tutti gli attributi sono privati, e tu ne dai  accesso A TUTTO CIO CHE É Esterno devo usare i metodi pubblici (per dare protezione all'attributo)
+	int sharedResource;									  //tutti gli attributi sono privati, e tu ne dai  accesso A TUTTO CIO CHE ï¿½ Esterno devo usare i metodi pubblici (per dare protezione all'attributo)
 	int* pSharedResource;
 	yarp::os::Semaphore sem;
 	yarp::os::Semaphore* pSem;

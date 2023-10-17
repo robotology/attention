@@ -29,7 +29,7 @@
 #define _OCULOMOTOR_CONTROLLER_H_
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/Random.h>
 #include <yarp/sig/all.h>
@@ -128,7 +128,7 @@ static const double rewardStateAction[135] = {
 */
 
 
-class outingThread : public yarp::os::RateThread {
+class outingThread : public yarp::os::PeriodicThread {
     
 private:
     double value;
@@ -138,7 +138,7 @@ private:
 
     
 public:
-    outingThread():yarp::os::RateThread(THRATE){
+    outingThread():yarp::os::PeriodicThread(THRATE){
         value = 0;
     };
 
@@ -196,7 +196,7 @@ public:
     void setValue(double v){/*mutex.wait(); value = v; mutex.post();*/};
 };
 
-class oculomotorController : public yarp::os::RateThread, public observer {
+class oculomotorController : public yarp::os::PeriodicThread, public observer {
 private:
     bool idle;                 // flag that regulates when the active part is executed
     bool firstCycle;           // flga that triggers the initialisation of active part

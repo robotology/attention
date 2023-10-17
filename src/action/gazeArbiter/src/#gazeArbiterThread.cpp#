@@ -120,7 +120,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 /**********************************************************************************/
 
 
-gazeArbiterThread::gazeArbiterThread(string _configFile) : RateThread(THRATE) {
+gazeArbiterThread::gazeArbiterThread(string _configFile) : PeriodicThread(THRATE) {
     numberState  = 4; //null, vergence, smooth pursuit, saccade
     countVerNull = 0;
     camSel       = 0;

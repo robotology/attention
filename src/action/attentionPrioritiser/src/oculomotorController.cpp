@@ -50,7 +50,7 @@ double Log2( double n )
 } 
 
 
-oculomotorController::oculomotorController() : RateThread(THRATE) {
+oculomotorController::oculomotorController() : PeriodicThread(THRATE) {
     j             = 0.99999;     // discount factor  default 0.9
     alfa          = 0.6;      // learning rate : how fast learns default 0.5
     countSucc     = 0;
@@ -71,7 +71,7 @@ oculomotorController::oculomotorController() : RateThread(THRATE) {
     forceWait       = false;
 }
 
-oculomotorController::oculomotorController(attPrioritiserThread *apt) : RateThread(THRATE){
+oculomotorController::oculomotorController(attPrioritiserThread *apt) : PeriodicThread(THRATE){
     j            = 0.9;
     alfa         = 0.5;
     ap           = apt;

@@ -147,7 +147,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 /**********************************************************************************/
 
 
-attPrioritiserThread::attPrioritiserThread(string _configFile) : RateThread(THRATE) {
+attPrioritiserThread::attPrioritiserThread(string _configFile) : PeriodicThread(THRATE) {
 
     eQueue = new evalQueue();
 

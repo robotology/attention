@@ -120,7 +120,7 @@ MotionProfile* factoryTwoThirdMotionProfile(const Bottle &param){
 }
 //*************************************************************************************************//
 
-handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
+handProfilerThread::handProfilerThread(): PeriodicThread(RATETHREAD) {
     robot = "icub";
     icart = 0;
     count = 0;
@@ -146,7 +146,7 @@ handProfilerThread::handProfilerThread(): RateThread(RATETHREAD) {
 }
 
 
-handProfilerThread::handProfilerThread(string _robot, string _configFile, ResourceFinder rf): RateThread(RATETHREAD){
+handProfilerThread::handProfilerThread(string _robot, string _configFile, ResourceFinder rf): PeriodicThread(RATETHREAD){
     robot = _robot;
     configFile = _configFile;
     icart = 0;

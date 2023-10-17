@@ -107,7 +107,7 @@ inline void  copyImage(ImageOf<PixelMono>* src,ImageOf<PixelMono>* dest) {
 
 
 
-plotterThread::plotterThread():RateThread(RATE_OF_PLOTTER_THREAD) {
+plotterThread::plotterThread():PeriodicThread(RATE_OF_PLOTTER_THREAD) {
     printf("plotterThread::RateThread() \n");
     count = 0;
 

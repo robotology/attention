@@ -29,7 +29,7 @@
 #define _VELOCITY_CONTROLLER_H_
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/sig/all.h>
@@ -50,7 +50,7 @@
 
 //within project includes
 
-class velocityController : public yarp::os::RateThread {
+class velocityController : public yarp::os::PeriodicThread {
 private:
     std::string name;                       // rootname of all the ports opened by this thread
     std::string robot;                      // name of the robot read by the ResourceFinder

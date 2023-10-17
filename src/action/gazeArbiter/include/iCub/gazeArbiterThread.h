@@ -29,7 +29,7 @@
 #define _GAZE_ARBITER_THREAD_H_
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/RpcClient.h>
 #include <yarp/os/Vocab.h>
@@ -61,7 +61,7 @@
 * the correct interface function of the iKinGazeCtrl.
 */
 
-class gazeArbiterThread : public yarp::os::RateThread, public observer{
+class gazeArbiterThread : public yarp::os::PeriodicThread, public observer{
 private:
     std::string name;                       // rootname of all the ports opened by this thread
     std::string robot;                      // name of the robot read by the ResourceFinder

@@ -48,7 +48,7 @@
  * Finally it builds a feature map of the proto-objects defined and sends it
  * to the output image
  */
-class blobFinderThread : public yarp::os::RateThread {
+class blobFinderThread : public yarp::os::PeriodicThread {
 private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>  > inputPort;        // port where the input image is read from
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > edgesPort;        // port where the edges image is read

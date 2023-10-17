@@ -34,11 +34,11 @@ using namespace cv;
 
 #define THRATE 100 //ms
 
-imageSenderRatethread::imageSenderRatethread():RateThread(THRATE) {
+imageSenderRatethread::imageSenderRatethread():PeriodicThread(THRATE) {
     robot = "icub";        
 }
 
-imageSenderRatethread::imageSenderRatethread(string _robot, string _configFile):RateThread(THRATE){
+imageSenderRatethread::imageSenderRatethread(string _robot, string _configFile):PeriodicThread(THRATE){
     robot = _robot;
     configFile = _configFile;
 }

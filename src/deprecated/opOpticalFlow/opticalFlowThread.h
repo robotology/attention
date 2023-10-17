@@ -30,7 +30,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 
 #include "Openvis3d.h"
 #include "OpenCVImageAdapter.h"

@@ -29,7 +29,7 @@
 
 #include <yarp/os/Port.h>
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/RpcClient.h>
 #include <yarp/os/Time.h>

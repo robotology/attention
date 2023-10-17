@@ -27,7 +27,7 @@
 #define _ATT_PRIORITISER_THREAD_H_
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/sig/all.h>
@@ -113,7 +113,7 @@ const int32_t COMMAND_VOCAB_MINDB              = yarp::os::createVocab32('m','d'
 * // state 0 = null
 */
 
-class attPrioritiserThread : public yarp::os::RateThread, public observer, public observable {
+class attPrioritiserThread : public yarp::os::PeriodicThread, public observer, public observable {
 private:
     static const int numIter    = 10;       // number of iteractions
     

@@ -60,7 +60,7 @@
 #define YARP_IMAGE_ALIGN 8
 #endif
 
-class chrominanceThread : public yarp::os::RateThread{ 
+class chrominanceThread : public yarp::os::PeriodicThread{
 
 private:
    
@@ -209,12 +209,12 @@ public:
     */
     void suspend(){
         printf("suspending chrome thread\n");
-        RateThread::suspend();      // LATER: some sanity checks
+        PeriodicThread::suspend();      // LATER: some sanity checks
     }
 
     void resume(){
         printf("resuming chrome thread\n");
-        RateThread::resume();
+        PeriodicThread::resume();
     }   
    
     

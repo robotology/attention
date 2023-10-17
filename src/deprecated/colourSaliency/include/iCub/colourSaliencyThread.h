@@ -28,7 +28,7 @@
 #define _COLOUR_SALIENCY_THREAD_H_
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/sig/all.h>
 #include <iostream>
 

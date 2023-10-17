@@ -32,11 +32,11 @@ using namespace std;
 
 #define THRATE 100 //ms
 
-audioInterfaceRatethread::audioInterfaceRatethread():RateThread(THRATE) {
+audioInterfaceRatethread::audioInterfaceRatethread():PeriodicThread(THRATE) {
     robot = "icub";        
 }
 
-audioInterfaceRatethread::audioInterfaceRatethread(string _robot, string _configFile):RateThread(THRATE){
+audioInterfaceRatethread::audioInterfaceRatethread(string _robot, string _configFile):PeriodicThread(THRATE){
     robot = _robot;
     configFile = _configFile;
 }

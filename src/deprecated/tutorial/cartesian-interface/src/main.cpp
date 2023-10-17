@@ -11,7 +11,7 @@
 
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/math/Math.h>

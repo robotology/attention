@@ -29,7 +29,7 @@ using namespace cv;
 
 #define THRATE 33 //ms
 
-Detector::Detector():RateThread(THRATE) {
+Detector::Detector():PeriodicThread(THRATE) {
 }
 
 Detector::~Detector(){

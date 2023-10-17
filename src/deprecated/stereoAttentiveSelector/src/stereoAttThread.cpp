@@ -35,14 +35,14 @@ using namespace std;
 const int maxKernelSize = 5;
 #define THRATE 100
 
-stereoAttThread::stereoAttThread():RateThread(THRATE){
+stereoAttThread::stereoAttThread():PeriodicThread(THRATE){
     resized=false;
     inputLeft=0;
     inputRight=0;
     shiftvalue=0;
 }
 
-stereoAttThread::stereoAttThread(int delay):RateThread(delay){
+stereoAttThread::stereoAttThread(int delay):PeriodicThread(delay){
     resized=false;
     inputLeft=0;
     inputRight=0;

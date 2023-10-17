@@ -53,7 +53,7 @@ int pow(int base, int power){
         return powTailRecurse(base,power,base);
 }
 
-chrominanceThread::chrominanceThread():RateThread(RATE_OF_CHROME_THREAD) {    
+chrominanceThread::chrominanceThread():PeriodicThread(RATE_OF_CHROME_THREAD) {
     
     chromeThreadProcessing      = false;
     dataReadyForChromeThread    = false;

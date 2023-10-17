@@ -91,7 +91,7 @@ bool getCamPrj(const string &configFile, const string &type, Matrix **Prj)
 }
 
 /**************************************************************************/
-mosaicThread::mosaicThread(): RateThread(THRATE) {
+mosaicThread::mosaicThread(): PeriodicThread(THRATE) {
     inputImageLeft = new ImageOf<PixelRgb>;
     inputImageRight = new ImageOf<PixelRgb>;
     outputImageMosaic = new ImageOf<PixelRgb>;
@@ -110,7 +110,7 @@ mosaicThread::mosaicThread(): RateThread(THRATE) {
     forgettingFactor = false;
 }
 
-mosaicThread::mosaicThread(string _robot, string _configFile): RateThread(THRATE) {
+mosaicThread::mosaicThread(string _robot, string _configFile): PeriodicThread(THRATE) {
     //initialisation of variables
     countMemory = 0;
     elevation = 0.0;

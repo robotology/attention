@@ -32,7 +32,7 @@ using namespace std;
 
 #define THRATE 100 //ms
 
-topDownRateThread::topDownRateThread(yarp::os::ResourceFinder &rf):RateThread(THRATE) {
+topDownRateThread::topDownRateThread(yarp::os::ResourceFinder &rf):PeriodicThread(THRATE) {
     robot = "icub";
 
     outputPortBiologicalMotion =  rf.check("outputBiologicalMotion",
@@ -44,7 +44,7 @@ topDownRateThread::topDownRateThread(yarp::os::ResourceFinder &rf):RateThread(TH
                                            "module name (string)").asString();
 }
 
-topDownRateThread::topDownRateThread(yarp::os::ResourceFinder &rf, string _robot, string _configFile):RateThread(THRATE){
+topDownRateThread::topDownRateThread(yarp::os::ResourceFinder &rf, string _robot, string _configFile):PeriodicThread(THRATE){
     robot = _robot;
     configFile = _configFile;
 

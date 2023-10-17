@@ -45,13 +45,13 @@ using namespace iCub::iKin;
 #define INHIB_HEIGHT 240
  
 
-velocityController::velocityController() : RateThread(THRATE) { 
+velocityController::velocityController() : PeriodicThread(THRATE) {
     u = 0;
     v = 0;
 }
 
 
-velocityController::velocityController(string _configFile) : RateThread(THRATE) {
+velocityController::velocityController(string _configFile) : PeriodicThread(THRATE) {
     numberState  = 4; //null, vergence, smooth pursuit, saccade
     countVerNull = 0; 
     configFile = _configFile;

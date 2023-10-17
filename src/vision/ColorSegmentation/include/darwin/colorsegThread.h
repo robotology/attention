@@ -6,7 +6,7 @@
 
 #include <yarp/sig/all.h>
 #include <yarp/os/Semaphore.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Property.h>
@@ -25,7 +25,7 @@ namespace Darwin{
 namespace colorseg{
 
 // friend class of PMP class
-class colorsegThread : public RateThread
+class colorsegThread : public PeriodicThread
 {
 public:
 	colorsegThread(ResourceFinder &_rf, string name, int rate);

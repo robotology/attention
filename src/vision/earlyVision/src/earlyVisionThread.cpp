@@ -39,7 +39,7 @@ inline T max(T a, T b, T c) {
     return a;
 }
 
-earlyVisionThread::earlyVisionThread():RateThread(RATE_OF_INTEN_THREAD) {
+earlyVisionThread::earlyVisionThread():PeriodicThread(RATE_OF_INTEN_THREAD) {
     
     inputImage          = new ImageOf<PixelRgb>;
     filteredInputImage  = new ImageOf<PixelRgb>;

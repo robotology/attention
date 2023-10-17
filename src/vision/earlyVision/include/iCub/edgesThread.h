@@ -62,7 +62,7 @@
 #endif
 
 
-class edgesThread : public yarp::os::RateThread{ 
+class edgesThread : public yarp::os::PeriodicThread{
 
 private:
     
@@ -152,12 +152,12 @@ public:
     */
     void suspend(){
         printf("suspending edges thread\n");
-        RateThread::suspend();      // LATER: some sanity checks
+        PeriodicThread::suspend();      // LATER: some sanity checks
     }
 
     void resume(){
         printf("resuming edges thread\n");
-        RateThread::resume();
+        PeriodicThread::resume();
     } 
 
     

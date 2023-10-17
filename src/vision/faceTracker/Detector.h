@@ -17,7 +17,7 @@
 */
 #include <string>
 #include <vector>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Image.h>
@@ -44,7 +44,7 @@ typedef struct __circle_t {
 
 //YARP_DECLARE_DEVICES(icubmod)
 
-class Detector: public yarp::os::RateThread {
+class Detector: public yarp::os::PeriodicThread {
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePort;  // make a port for reading images
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > outPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > saliencyPort;

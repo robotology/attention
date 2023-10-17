@@ -19,7 +19,7 @@
 
 #include <iCub/disparityTool.h>
 // yarp
-#include <yarp/os/RateThread.h>
+#include <yarp/os/PeriodicThread.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/GazeControl.h>

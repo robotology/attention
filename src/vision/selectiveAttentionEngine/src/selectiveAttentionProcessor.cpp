@@ -114,7 +114,7 @@ void selectiveAttentionProcessor::copy_C1R(ImageOf<PixelMono>* src, ImageOf<Pixe
     
 }
 
-selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):RateThread(rateThread) {
+selectiveAttentionProcessor::selectiveAttentionProcessor(int rateThread):PeriodicThread(rateThread) {
     this->inImage = new ImageOf<PixelRgb>;
     earlystage    = false;
     secondstage   = false;
@@ -194,7 +194,7 @@ selectiveAttentionProcessor::~selectiveAttentionProcessor(){
     delete linearCombinationPrev;
 }
 
-selectiveAttentionProcessor::selectiveAttentionProcessor(ImageOf<PixelRgb>* inputImage):RateThread(THREAD_RATE) {
+selectiveAttentionProcessor::selectiveAttentionProcessor(ImageOf<PixelRgb>* inputImage):PeriodicThread(THREAD_RATE) {
     this->inImage=inputImage;
     tmp=new ImageOf<PixelMono>;
 }
@@ -1804,12 +1804,12 @@ void selectiveAttentionProcessor::suspend() {
 	//if(igaze!=0) {
     //    igaze->stopControl();
     //}
-    RateThread::suspend();
+    PeriodicThread::suspend();
 }
 
 void selectiveAttentionProcessor::resume() {
     printf("resuming processor.... \n");
-    RateThread::resume();
+    PeriodicThread::resume();
 }
 
 void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
