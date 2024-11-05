@@ -53,7 +53,7 @@ int pow(int base, int power){
         return powTailRecurse(base,power,base);
 }
 
-chrominanceThread::chrominanceThread():PeriodicThread(RATE_OF_CHROME_THREAD) {
+chrominanceThread::chrominanceThread():PeriodicThread(1.0/RATE_OF_CHROME_THREAD) {
     
     chromeThreadProcessing      = false;
     dataReadyForChromeThread    = false;
@@ -87,8 +87,7 @@ chrominanceThread::chrominanceThread():PeriodicThread(RATE_OF_CHROME_THREAD) {
     double* gabsDouble[4] = {Gab0D,Gab45D,Gab90D,GabM45D};
     float* gabsfloat[4] = {Gab0,Gab45,Gab90,GabM45};
     for(int i=0 ; i<GABOR_ORIS; ++i){
-        gaborKernels[i] = cvCreateMat( 5,5, CV_64FC1 );
-        *gaborKernels[i] = cvMat( 5, 5, CV_64FC1, gabsDouble[i] );
+        gaborKernels[i] = new cv::Mat( 5,5, CV_64FC1 , gabsDouble[i]);
         wtForEachOrientation[i] = 1.0/(float)GABOR_ORIS;
     }
             
@@ -346,39 +345,47 @@ void chrominanceThread::copyRelevantPlanes(ImageOf<PixelMono> *I){
 
 }
 
-void chrominanceThread::copyScalesOfImages(ImageOf<PixelMono> *I, CvMat **toBeCopiedGauss){
+void chrominanceThread::copyScalesOfImages(ImageOf<PixelMono> *I, cv::Mat **toBeCopiedGauss){
     if(!getFlagForThreadProcessing() && resized){ 
         setFlagForDataReady(false);
         lpMono.logpolarToCart(*cartIntensImg,*I);
-        IplImage* floatImage = cvCreateImage(cvSize(cartIntensImg->width(),cartIntensImg->height()),32,1);
-        cvConvertScale((IplImage*)cartIntensImg->getIplImage(),floatImage,1.0/255.0,0.0);
+        cv::Mat floatImage(cv::Size(cartIntensImg->width(),cartIntensImg->height()),CV_32FC1);
+        cv::Mat cartIntensImgMat = yarp::cv::toCvMat(*cartIntensImg);
+        cartIntensImgMat.convertTo(floatImage,CV_32FC1,1.0/255.0,0.0);
+
         for(int i=0; i<GABOR_SCALES; ++i){
+            cv::Mat gaussUpScaledTempMat = yarp::cv::toCvMat(*gaussUpScaled[i]);
+            cv::Mat imageAtScaleTempMat = yarp::cv::toCvMat(*imageAtScale[i]);
 
-            cvResize(toBeCopiedGauss[i],(IplImage*)gaussUpScaled[i]->getIplImage());
-            cvResize(floatImage,(IplImage*)imageAtScale[i]->getIplImage());
+            cv::resize(*toBeCopiedGauss[i],gaussUpScaledTempMat,gaussUpScaledTempMat.size());
+            cv::resize(floatImage,imageAtScaleTempMat,imageAtScaleTempMat.size());
 
+            *gaussUpScaled[i] = yarp::cv::fromCvMat<yarp::sig::PixelFloat>(gaussUpScaledTempMat);
+            *imageAtScale[i] = yarp::cv::fromCvMat<yarp::sig::PixelFloat>(imageAtScaleTempMat);
         }
-        cvReleaseImage(&floatImage);
-        setFlagForDataReady(true); 
+        setFlagForDataReady(true);
    } 
 
 }
 
 void chrominanceThread::orientation() {
  
-        
+    cout << "||||||| Orientation Chrome Thread " << endl;
     //----------------------------------------------------------------------------------------------------------//
     if(getFlagForDataReady()){
         //Checking!
         ImageOf<PixelFloat>  *temp2 = new ImageOf<PixelFloat>;                
-        ImageOf<PixelFloat>* imageInCart = new ImageOf<PixelFloat>;
-        
-        ImageOf<PixelMono>* imageInCartMonoLogP = new ImageOf<PixelMono>;
-        
-        imageInCart->resize(CART_ROW_SIZE,CART_COL_SIZE);
+
+
         imageInCartMono->resize(CART_ROW_SIZE,CART_COL_SIZE);
-        imageInCartMonoLogP->resize(ROW_SIZE,COL_SIZE);
+
+        ImageOf<PixelFloat>* imageInCart = new ImageOf<PixelFloat>;
+        imageInCart->resize(CART_ROW_SIZE,CART_COL_SIZE);
         imageInCart->zero();
+
+        ImageOf<PixelMono>* imageInCartMonoLogP = new ImageOf<PixelMono>;
+        imageInCartMonoLogP->resize(ROW_SIZE,COL_SIZE);
+        imageInCartMonoLogP->zero();
         
         ImageOf<PixelMono>& totalImage = totalOrientCartImgPort.prepare();
         totalImage.resize(CART_ROW_SIZE,CART_COL_SIZE);
@@ -404,14 +411,45 @@ void chrominanceThread::orientation() {
                 }*/
                 temp2->resize(widthTemp,heightTemp);
                 temp2->zero();
+                cv::Mat temp2Mat = yarp::cv::toCvMat(*temp2);
+                cv::Mat imageForAScaleEachMat = yarp::cv::toCvMat(*imageForAScale[eachScale]);
+
                 
-                cvFilter2D((IplImage*)imageAtScale[eachScale]->getIplImage(),(IplImage*)temp2->getIplImage(),gaborKernels[eachOrient],anchor);
+                cv::filter2D(imageForAScaleEachMat,
+                    temp2Mat,
+                    CV_32FC1,
+                    *gaborKernels[eachOrient],
+                    anchor);
                 imageInCart->zero();
                 imageInCartMono->zero();
-                cvResize((IplImage*)temp2->getIplImage(),(IplImage*)imageInCart->getIplImage(),CV_INTER_CUBIC);
-                cvConvertScale((IplImage*)imageInCart->getIplImage(),(IplImage*)imageInCartMono->getIplImage(),255*255,0);
+
+                cv::Mat imageInCartMat = yarp::cv::toCvMat(*imageInCart);
+                cv::Mat imageInCartMonoMat = yarp::cv::toCvMat(*imageInCartMono);
+
+                cv::resize(temp2Mat,
+                    imageInCartMat,
+                    imageInCartMat.size(),
+                    0,
+                    0,
+                    cv::INTER_CUBIC);
+
+                imageInCartMat.convertTo(imageInCartMonoMat,
+                    CV_8UC1,
+                    255*255,
+                    0);
+                *imageInCartMono = yarp::cv::fromCvMat<yarp::sig::PixelMono>(imageInCartMonoMat);
+
                 lpMono.cartToLogpolar(*imageInCartMonoLogP,*imageInCartMono);
-                cvConvertScale((IplImage*)imageInCartMonoLogP->getIplImage(),(IplImage*)imageForAScale[eachScale]->getIplImage(),1.0/255.0,0.0);                            
+
+
+                cv::Mat imageInCartMonoLogPMat = yarp::cv::toCvMat(*imageInCartMonoLogP);
+                imageInCartMonoLogPMat.convertTo(imageInCartMonoLogPMat,
+                    CV_32FC1,
+                    1.0/255.0,
+                    0);
+
+                *imageForAScale[eachScale] = yarp::cv::fromCvMat<yarp::sig::PixelFloat>(imageInCartMonoLogPMat);
+
                 
             }
             
@@ -478,10 +516,17 @@ void chrominanceThread::orientation() {
             // we have now result for this orientation
             imageInCartMono->zero();
             imageInCartMonoLogP->zero();
-            
-            cvConvertScale((IplImage*)tempCSScaleOne->getIplImage(),(IplImage*)imageInCartMonoLogP->getIplImage(),255,0);
+
+            cv::Mat tempCSScaleOneMat = yarp::cv::toCvMat(*tempCSScaleOne);
+            cv::Mat imageInCartMonoLogPMat = yarp::cv::toCvMat(*imageInCartMonoLogP);
+            tempCSScaleOneMat.convertTo(imageInCartMonoLogPMat,
+                    CV_8UC1,
+                    255.0,
+                    0);
+
+            *imageInCartMonoLogP = yarp::cv::fromCvMat<yarp::sig::PixelMono>(imageInCartMonoLogPMat);
             lpMono.logpolarToCart(*imageInCartMono,*imageInCartMonoLogP);
-            cvWaitKey(2);
+            cv::waitKey(2);
             
             if(eachOrient == 0){
                 lpMono.logpolarToCart(*cartOri0,*imageInCartMonoLogP);

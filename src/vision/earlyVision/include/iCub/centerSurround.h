@@ -68,37 +68,37 @@ public:
     /**
      * convert image to 32f precision
      */
-	void proc_im_8u(IplImage* im_8u, IplImage* output8u);
+	void proc_im_8u(cv::Mat* im_8u, cv::Mat* output8u);
 
     /**
      * process 32f image creating gauss pyramids:
      */
-	void proc_im_32f(IplImage* im_32f, IplImage* output8u);
+	void proc_im_32f(cv::Mat* im_32f, cv::Mat* output8u);
     
     /**
      * returns gaussians
      */
-	CvMat* get_gauss(int s){return gauss[s];}
+	cv::Mat* get_gauss(int s){return gauss[s];}
 
     /**
      * returns pyramids
      */
-	CvMat* get_pyramid(int s){return pyramid[s];}
+	cv::Mat* get_pyramid(int s){return pyramid[s];}
 	
 	/**
      * returns Gaussian smoothened pyramids
      */
-	CvMat* get_pyramid_gauss(int s){return pyramid_gauss[s];}
+	cv::Mat* get_pyramid_gauss(int s){return pyramid_gauss[s];}
 
     /**
      * get center surround image in 32f precision
      */
-	IplImage* get_centsur_32f(){return cs_tot_32f;} 
+	cv::Mat* get_centsur_32f(){return cs_tot_32f;}
 
     /**
      * get center surround image in 8u precision
      */
-	IplImage*  get_centsur_norm8u(){return cs_tot_8u;}
+	cv::Mat*  get_centsur_norm8u(){return cs_tot_8u;}
 
 
 
@@ -107,12 +107,18 @@ private:
     /**
      * creates pyramids
      */
-	void make_pyramid(IplImage* im_in);
+	void make_pyramid(cv::Mat* im_in);
 
     
 	// Store IplImages for each level of pyramid
-	CvMat *pyramid[ngs],*pyramid_gauss[ngs],*gauss[ngs];
-	IplImage *cs_tot_32f,*cs_tot_8u,*im_in_32f,*tmp_im_32f;
+	cv::Mat *pyramid[ngs];
+	cv::Mat *pyramid_gauss[ngs];
+	cv::Mat *gauss[ngs];
+	cv::Mat *cs_tot_32f ;
+	cv::Mat *cs_tot_8u ;
+	cv::Mat *im_in_32f ;
+	cv::Mat *tmp_im_32f;
+
 	
 
 	int ngauss;

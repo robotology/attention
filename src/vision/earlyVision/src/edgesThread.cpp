@@ -35,7 +35,7 @@ using namespace yarp::sig;
 using namespace std;
 
 
-edgesThread::edgesThread():PeriodicThread(RATE_OF_EDGES_THREAD) {
+edgesThread::edgesThread():PeriodicThread(1.0/RATE_OF_EDGES_THREAD) {
     
     edgesThreadIsProcessing = false;
     dataReadyForEdgesThread = false;

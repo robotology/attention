@@ -46,85 +46,96 @@ CenterSurround::CenterSurround(int width,int height, double sigma_)
     ngauss = ngs;
     sigma = sigma_;
 
-    
+
     for (int ng=0;ng<ngauss;ng++){
         psizeWidth[ng]   = (int)ceil( ( (double)srcsizeWidth )/double(1<< ng) );//pow(2.0f, ng));
         psizeHeight[ng]  = (int)ceil( ( ((double)srcsizeHeight)/ ( (double)srcsizeWidth) ) * psizeWidth[ng] );
-        pyramid[ng]         = cvCreateMat(psizeHeight[ng],psizeWidth[ng],CV_32FC1);
-        pyramid_gauss[ng]   = cvCreateMat(psizeHeight[ng],psizeWidth[ng],CV_32FC1);
-        gauss[ng]           = cvCreateMat(srcsizeHeight,srcsizeWidth,CV_32FC1);
-        
+        pyramid[ng]         = new cv::Mat(psizeHeight[ng],psizeWidth[ng],CV_32FC1);
+        pyramid_gauss[ng]   = new cv::Mat(psizeHeight[ng],psizeWidth[ng],CV_32FC1);
+        gauss[ng]           = new cv::Mat(srcsizeHeight,srcsizeWidth,CV_32FC1);
     }
 
-    
-    im_in_32f  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1); 
-    tmp_im_32f = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);
-    cs_tot_32f = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_32F,1);
-    cs_tot_8u  = cvCreateImage(cvSize(srcsizeWidth,srcsizeHeight),IPL_DEPTH_8U,1);
+
+    im_in_32f = new cv::Mat(srcsizeHeight, srcsizeWidth, CV_32FC1);
+    tmp_im_32f = new cv::Mat(srcsizeHeight, srcsizeWidth, CV_32FC1);
+    cs_tot_32f = new cv::Mat(srcsizeHeight, srcsizeWidth, CV_32FC1);
+    cs_tot_8u = new cv::Mat(srcsizeHeight, srcsizeWidth, CV_32FC1);
 
 /*    // initialize LANCZOS window for filtering in spatial domain
 
-    float ONE_BY_N_1 = 1/(N_LANCZOS -1);        
+    float ONE_BY_N_1 = 1/(N_LANCZOS -1);
     for(int i=0; i<N_LANCZOS; ++i){
 
         float _x = PI*(2*i*ONE_BY_N_1 -1);
         LANCZOS_VECTOR[i]= sin(_x)/_x;
 
-    }  
-    
+    }
+
     LanczosHorConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short > (N_LANCZOS,LANCZOS_VECTOR,0,.5,0);
     LanczosVerConvolution = new convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,short > (N_LANCZOS,LANCZOS_VECTOR,1,.5,0);
 
 */
-    
+
 
 }
 
 CenterSurround::~CenterSurround() {
 
-    cvReleaseImage(&im_in_32f);
-    cvReleaseImage(&tmp_im_32f);
-    cvReleaseImage(&cs_tot_32f);
-    cvReleaseImage(&cs_tot_8u);
+    delete im_in_32f;
+    delete tmp_im_32f;
+    delete cs_tot_32f;
+    delete cs_tot_8u;
+
+    im_in_32f = nullptr;
+    tmp_im_32f = nullptr;
+    cs_tot_32f = nullptr;
+    cs_tot_8u = nullptr;
+
+
     
     for (int ng=0;ng<ngauss;ng++) {
-        cvReleaseMat(&pyramid[ng]);
-        cvReleaseMat(&pyramid_gauss[ng]);
-        cvReleaseMat(&gauss[ng]);
+        delete pyramid[ng];
+        delete pyramid_gauss[ng];
+        delete pyramid[ng];
+
+        pyramid[ng] = nullptr;
+        pyramid_gauss[ng] = nullptr;
+        gauss[ng] = nullptr;
     }
+
     //delete LanczosHorConvolution;
     //delete LanczosVerConvolution;
 }
 
-void CenterSurround::proc_im_8u(IplImage* input_8u, IplImage* output8u)
+void CenterSurround::proc_im_8u(cv::Mat* input_8u, cv::Mat* output8u)
 {
     //convert im precision to 32f and process as normal:
-    cvConvertScale(input_8u,im_in_32f,0.003922,0);  //  0.003922 = 1/255.0     
+    input_8u->convertTo(*im_in_32f,CV_32F,0.003922,0);
     proc_im_32f(im_in_32f,output8u);
 }
 
-void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
+void CenterSurround::proc_im_32f(cv::Mat* im_32f, cv::Mat* output8u)
 {
     //make image & gauss pyramids:
     make_pyramid(im_32f);
 
     //reset tot cs_tot_tmp:
-    cvSet(cs_tot_32f,cvScalar(0));
+    cs_tot_32f->setTo(cv::Scalar(0));
 	
     //subtractions (ABSDIFF) to make DOG pyramid:
     //add to create the final response
     // TODO : try not linear operation rather than addition
   	//1st neighbours:  
     for (int nd=0;nd<ngauss-1;nd++){
-        cvAbsDiff(gauss[nd],gauss[nd+1],tmp_im_32f);        
-        cvAdd(tmp_im_32f,cs_tot_32f,cs_tot_32f);
+        cv::absdiff(*gauss[nd],*gauss[nd+1],*tmp_im_32f);
+        cv::add(*tmp_im_32f,*cs_tot_32f,*cs_tot_32f);
         
     }
 
   	//2nd neighbours:
   	for (int ndd=0;ndd<ngauss-2;ndd++){
-    	cvAbsDiff(gauss[ndd],gauss[ndd+2],tmp_im_32f);
-        cvAdd(tmp_im_32f,cs_tot_32f,cs_tot_32f);
+    	cv::absdiff(*gauss[ndd],*gauss[ndd+2],*tmp_im_32f);
+        cv::add(*tmp_im_32f,*cs_tot_32f,*cs_tot_32f);
   	}
 
     
@@ -144,45 +155,41 @@ void CenterSurround::proc_im_32f(IplImage* im_32f, IplImage* output8u)
 
   	//if (maxPixelVal == minPixelVal)
     //maxPixelVal=255.0f;minPixelVal=0.0f;
-  	                
-    cvConvertScale(cs_tot_32f,output8u,255,0);
-     
+    cs_tot_32f->convertTo(*output8u,CV_8UC1,255,0);
+
 }
 
-void CenterSurround::make_pyramid( IplImage* im_32f) {
+void CenterSurround::make_pyramid(cv::Mat* im_32f) {
 #ifdef WITH_CUDA   
 
 
 #else
     //copy im to pyramid[0]:
-    cvCopy(im_32f,pyramid[0],NULL);
+    *pyramid[0] = im_32f->clone();
+
 
     //filter first pyramid:
-    cvSmooth(pyramid[0],pyramid_gauss[0],CV_GAUSSIAN,KERNSIZE,KERNSIZE,sigma);
-    
+    cv::GaussianBlur(*pyramid[0], *pyramid_gauss[0], cv::Size(KERNSIZE, KERNSIZE), sigma);
+
     //copy filter output (within padding) to gauss:
-    cvCopy(pyramid_gauss[0],gauss[0]);
-  
+    *pyramid[0] = pyramid_gauss[0]->clone();
+
     //others:
     sd = 0.5;
     su = 2.0;
-    int interpolation = CV_INTER_CUBIC;// IPPI_INTER_LANCZOS is not available in openCV, CV_INTER_AREA is rough
+    int interpolation = cv::INTER_CUBIC;// IPPI_INTER_LANCZOS is not available in openCV, CV_INTER_AREA is rough
+
     for (int sg=1;sg<ngauss;sg++){
         //Downsize previous pyramid image by half:
-        
-        
-        cvResize(pyramid[sg-1],pyramid[sg],interpolation);
-        
-        //filter:
-        cvSmooth(pyramid[sg],pyramid_gauss[sg],CV_GAUSSIAN,KERNSIZE,KERNSIZE,sigma);
-        
-    
+        cv::resize(*pyramid[sg - 1], *pyramid[sg], pyramid[sg]->size(), 0, 0, interpolation);
+
+        cv::GaussianBlur(*pyramid[sg], *pyramid_gauss[sg], cv::Size(KERNSIZE, KERNSIZE), sigma);
+
         //Upsize and store to gauss:
         //su = pow( 2.0f, sg );
         su = double(1<< sg); // a bit faster....
-        
-        
-        cvResize(pyramid_gauss[sg],gauss[sg],interpolation);
+
+        cv::resize(*pyramid_gauss[sg], *gauss[sg], gauss[sg]->size(), 0, 0, interpolation);
             
     }
 #endif

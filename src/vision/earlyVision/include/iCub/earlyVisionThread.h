@@ -123,12 +123,12 @@ private:
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
     yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
 
-    IplImage *cs_tot_32f;  // extended
-    IplImage *cs_tot_8u;
-    IplImage *ycs_out;     // final extended intensity center surround image
-    IplImage *scs_out;     // final extended intensity center surround image
-    IplImage *vcs_out;     // final extended intensity center surround image
-    IplImage *colcs_out;   // final extended coulour center surround image
+    cv::Mat *cs_tot_32f;  // extended
+    cv::Mat *cs_tot_8u;
+    cv::Mat *ycs_out;     // final extended intensity center surround image
+    cv::Mat *scs_out;     // final extended intensity center surround image
+    cv::Mat *vcs_out;     // final extended intensity center surround image
+    cv::Mat *colcs_out;   // final extended coulour center surround image
     
     
     CenterSurround *centerSurr;    
@@ -273,7 +273,7 @@ public:
     * @param multFactor factor of multiplication
     * @param shiftFactor value added to each pixel
     */
-    void addFloatImage(IplImage* sourceImage, CvMat* toBeAddedImage, double multFactor, double shiftFactor);
+    void addFloatImage(cv::Mat* sourceImage, cv::Mat* toBeAddedImage, double multFactor, double shiftFactor);
       
     
     edgesThread *edThread;                 // thread that extract edges

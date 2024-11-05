@@ -7,13 +7,19 @@ cmake_minimum_required(VERSION 3.12)
 project (attention)
 find_package(YARP REQUIRED COMPONENTS sig cv)
 find_package(ICUBcontrib REQUIRED)
-FIND_PACKAGE(GTK2)
-IF(GTK2_FOUND)
-    message("GTK FOUND ")
-ELSE(GTK2_FOUND)
-    message("GTK not found")
-ENDIF(GTK2_FOUND)
-message("GTK BEFORE  THIS LINE ")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK REQUIRED gtk4)
+
+# Check if GTK was found and log it
+if (GTK_FOUND)
+    message(STATUS "GTK found: ${GTK_VERSION}")
+    message(STATUS "GTK include dirs: ${GTK_INCLUDE_DIRS}")
+    message(STATUS "GTK libraries: ${GTK_LIBRARIES}")
+else()
+    message(FATAL_ERROR "GTK not found. Please install GTK and try again.")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
 
 include(ICUBcontribHelpers)
@@ -28,7 +34,7 @@ SET(ATTENTIONLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/attentionLib/include)
 
 add_subdirectory(attentionLib)
 add_subdirectory(src)
-add_subdirectory(app)
+#add_subdirectory(app)
 
 icubcontrib_finalize_export(attention)
 icubcontrib_set_default_prefix()

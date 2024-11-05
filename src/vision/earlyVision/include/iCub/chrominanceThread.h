@@ -43,6 +43,7 @@
 #include <iCub/convolve.h>
 #include <iCub/config.h>
 #include <iCub/centerSurround.h>
+#include <yarp/cv/Cv.h>
 
 #ifndef PI
 #define PI 3.1415926535897932384626433832795
@@ -76,8 +77,8 @@ private:
     int weightIntensityAtScale[GABOR_SCALES];
     int weightGaborAtScale[GABOR_SCALES];
         
-    CvMat* gaborKernels[GABOR_ORIS];
-    CvPoint anchor;
+    cv::Mat* gaborKernels[GABOR_ORIS];
+    cv::Point anchor;
    
     // Ports to output different orientation images    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > orientPort0;
@@ -174,7 +175,7 @@ public:
     * function that copies the images from the main thread
     * @param I intensity image
     */
-    void copyScalesOfImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *I, CvMat **toBeCopiedGauss);
+    void copyScalesOfImages(yarp::sig::ImageOf<yarp::sig::PixelMono> *I, cv::Mat **toBeCopiedGauss);
 
     /**
     * function that set the value for the weight horizontal orientation in linear combination
