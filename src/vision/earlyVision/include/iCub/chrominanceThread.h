@@ -56,6 +56,7 @@
 #define CART_ROW_SIZE 320
 #define CART_COL_SIZE 240
 
+
 // patches for now
 #ifndef YARP_IMAGE_ALIGN
 #define YARP_IMAGE_ALIGN 8

@@ -426,6 +426,9 @@ void chrominanceThread::orientation() {
                 cv::Mat imageInCartMat = yarp::cv::toCvMat(*imageInCart);
                 cv::Mat imageInCartMonoMat = yarp::cv::toCvMat(*imageInCartMono);
 
+                std::cout << "temp2Mat size: " << temp2Mat.size() << std::endl;
+                std::cout << "imageInCartMat size: " << imageInCartMat.size() << std::endl;
+
                 cv::resize(temp2Mat,
                     imageInCartMat,
                     imageInCartMat.size(),

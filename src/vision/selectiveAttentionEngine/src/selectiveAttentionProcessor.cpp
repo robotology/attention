@@ -32,6 +32,8 @@
 #include <cstdio>
 #include "../include/iCub/selectiveAttentionProcessor.h"
 
+#include <yarp/cv/Cv.h>
+
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -1828,9 +1830,11 @@ void selectiveAttentionProcessor::update(observable* o, Bottle * arg) {
                 ym = (double) arg->get(2).asInt16();
                 timing = 0.1;
                 printf("------------------------->xm %f ym %f \n", xm, ym);
-                
-                cvCircle(linearCombinationImage->getIplImage(), cvPoint(10,10), 100, cvScalar(255),-1);
-                
+
+                cv::Mat linearCombinationImageMat = yarp::cv::toCvMat(*linearCombinationImage);
+                cv::circle(linearCombinationImageMat,cv::Point(10,10),100,cv::Scalar(255),-1);
+                *linearCombinationImage = yarp::cv::fromCvMat<yarp::sig::PixelMono>(linearCombinationImageMat);
+
                 mutexInter.wait();
                 interruptJump = true;
                 mutexInter.post();
