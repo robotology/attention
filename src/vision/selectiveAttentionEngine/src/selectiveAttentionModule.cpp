@@ -745,8 +745,8 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
     case COMMAND_VOCAB_GET:
         rec = true;
         {
-            reply.addVocab32(COMMAND_VOCAB_IS);
-            reply.add(command.get(1));
+            //reply.addVocab32(COMMAND_VOCAB_IS);
+            //reply.add(command.get(1));
             switch(command.get(1).asVocab32()) {
             case COMMAND_VOCAB_SALIENCE_THRESHOLD:{
                 double thr=0.0;
@@ -904,8 +904,7 @@ bool selectiveAttentionModule::respond(const Bottle &command,Bottle &reply){
         reply.clear();
         reply.addVocab32(COMMAND_VOCAB_FAILED);
     }
-    else
-        reply.addVocab32(COMMAND_VOCAB_OK);
+
 
     return ok;
 }

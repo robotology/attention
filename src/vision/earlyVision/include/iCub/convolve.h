@@ -65,7 +65,8 @@ class convolve {
             this->kernelIsDefined = false;
             this->counter       = 0;
             this->flicker       = -1;
-            this->limits        = NULL; 
+            this->limits[0]     = -10000;       // max
+            this->limits[1]     = 10000;        // min
         };
 
     /**

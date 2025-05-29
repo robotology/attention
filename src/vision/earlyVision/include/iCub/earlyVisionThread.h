@@ -55,7 +55,7 @@
 #define YARP_IMAGE_ALIGN 8
 #endif
  
-
+using namespace yarp::sig;
 class earlyVisionThread : public yarp::os::PeriodicThread  {
 private:
     
@@ -69,59 +69,59 @@ private:
     double w45Degrees;                  // value of the weight of 45 degrees orientation
     double wM45Degrees;                 // value of the weight of minus 45 degrees orientation    
 
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* inputImage;
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* filteredInputImage;
-    yarp::sig::ImageOf<yarp::sig::PixelRgb>* extendedInputImage;
+    ImageOf<PixelRgb>* inputImage;
+    ImageOf<PixelRgb>* filteredInputImage;
+    ImageOf<PixelRgb>* extendedInputImage;
     
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Rplus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Rminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Gplus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Gminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Bplus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Bminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Yminus;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *YofYUV;
+    ImageOf<PixelMono> *Rplus;
+    ImageOf<PixelMono> *Rminus;
+    ImageOf<PixelMono> *Gplus;
+    ImageOf<PixelMono> *Gminus;
+    ImageOf<PixelMono> *Bplus;
+    ImageOf<PixelMono> *Bminus;
+    ImageOf<PixelMono> *Yminus;
+    ImageOf<PixelMono> *YofYUV;
     
     // these RGB planes are calculated via YUV, hence as float images rounded to uchar in last step
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* YofYUVpy;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* UofYUVpy;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* VofYUVpy;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* RplusUnex;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* GplusUnex;
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* BplusUnex;
+    ImageOf<PixelMono>* YofYUVpy;
+    ImageOf<PixelMono>* UofYUVpy;
+    ImageOf<PixelMono>* VofYUVpy;
+    ImageOf<PixelMono>* RplusUnex;
+    ImageOf<PixelMono>* GplusUnex;
+    ImageOf<PixelMono>* BplusUnex;
     
     // a set of LUT for YUV to RGB conversion (on stack)
     //float YUV2RGB[3][256];
     //bool setYUV2RGB;
 
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *tmpMonoLPImage;
-    yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage;
-    yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage1;
-    yarp::sig::ImageOf<yarp::sig::PixelMono16> *tmpMono16LPImage2;
+    ImageOf<PixelMono> *tmpMonoLPImage;
+    ImageOf<PixelMono16> *tmpMono16LPImage;
+    ImageOf<PixelMono16> *tmpMono16LPImage1;
+    ImageOf<PixelMono16> *tmpMono16LPImage2;
     
     
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosHorConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborPosVerConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegHorConvolution;
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelMono>,uchar,yarp::sig::ImageOf<yarp::sig::PixelMono> ,uchar >* gaborNegVerConvolution;
+    convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono> ,uchar >* gaborPosHorConvolution;
+    convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono> ,uchar >* gaborPosVerConvolution;
+    convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono> ,uchar >* gaborNegHorConvolution;
+    convolve<ImageOf<PixelMono>,uchar,ImageOf<PixelMono> ,uchar >* gaborNegVerConvolution;
         
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* intensImg;              //yarp intensity image
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* unXtnIntensImg;              //yarp intensity image
-    convolve<yarp::sig::ImageOf<yarp::sig::PixelFloat>,float,yarp::sig::ImageOf<yarp::sig::PixelFloat> ,float >* gaborFiveByFive[4];
+    ImageOf<PixelMono>* intensImg;              //yarp intensity image
+    ImageOf<PixelMono>* unXtnIntensImg;              //yarp intensity image
+    convolve<ImageOf<PixelFloat>,float,ImageOf<PixelFloat> ,float >* gaborFiveByFive[4];
     cv::Mat *gaborizedImg[GABOR_ORIS*GABOR_SCALES];                                        // assuming 4 orientations with 4 scales each
-    yarp::sig::ImageOf<yarp::sig::PixelMono>* visualizingImage;
+    ImageOf<PixelMono>* visualizingImage;
     
   
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *redPlane;             // image of the red channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *greenPlane;           // image of the green channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *bluePlane;            // image of the blue channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *yellowPlane;          // image of the yellow channel
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Yplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Uplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *Vplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnYplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnUplane;
-    yarp::sig::ImageOf<yarp::sig::PixelMono> *unXtnVplane;
+    ImageOf<PixelMono> *redPlane;             // image of the red channel
+    ImageOf<PixelMono> *greenPlane;           // image of the green channel
+    ImageOf<PixelMono> *bluePlane;            // image of the blue channel
+    ImageOf<PixelMono> *yellowPlane;          // image of the yellow channel
+    ImageOf<PixelMono> *Yplane;
+    ImageOf<PixelMono> *Uplane;
+    ImageOf<PixelMono> *Vplane;
+    ImageOf<PixelMono> *unXtnYplane;
+    ImageOf<PixelMono> *unXtnUplane;
+    ImageOf<PixelMono> *unXtnVplane;
 
     cv::Mat *cs_tot_32f;  // extended
     cv::Mat *cs_tot_8u;
@@ -134,16 +134,16 @@ private:
     CenterSurround *centerSurr;    
 
 
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intenPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > intensityCSPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > chromPort;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > VofHSVPort;  
+    yarp::os::BufferedPort<ImageOf<PixelRgb> > imagePortIn;
+    yarp::os::BufferedPort<ImageOf<PixelRgb> > imagePortOut;
+    yarp::os::BufferedPort<ImageOf<PixelMono> > intenPort;
+    yarp::os::BufferedPort<ImageOf<PixelMono> > intensityCSPort;
+    yarp::os::BufferedPort<ImageOf<PixelMono> > chromPort;
+    yarp::os::BufferedPort<ImageOf<PixelMono> > VofHSVPort;
         
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp1Port;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp2Port;
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > colorOpp3Port;   
+    yarp::os::BufferedPort<ImageOf<PixelMono> > colorOpp1Port;
+    yarp::os::BufferedPort<ImageOf<PixelMono> > colorOpp2Port;
+    yarp::os::BufferedPort<ImageOf<PixelMono> > colorOpp3Port;
         
     bool isYUV;   
     
@@ -231,7 +231,7 @@ public:
     * @param origImage originalImage
     * @param extDimension dimension of the extention on each of the sides of the image
     */
-    void extender(yarp::sig::ImageOf<yarp::sig::PixelMono>* origImage,int extDimension);
+    void extender(ImageOf<PixelMono>* origImage,int extDimension);
 
     /**
     * Center-surrounding
@@ -243,7 +243,7 @@ public:
     * @param cartesianImage cartesian image to remap
     * @param logpolarImage  result of the remapping
     */
-    void cartremap(yarp::sig::ImageOf<yarp::sig::PixelRgb>* cartesianImage,yarp::sig::ImageOf<yarp::sig::PixelRgb>* logpolarImage);
+    void cartremap(ImageOf<PixelRgb>* cartesianImage,ImageOf<PixelRgb>* logpolarImage);
 
     /**
     * function that filters the input image in time 

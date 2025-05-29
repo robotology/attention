@@ -17,7 +17,7 @@ INCLUDE_DIRECTORIES(
     ${OpenCV_INCLUDE_DIRS}
     ${IPP_INCLUDE_DIRS}	 
     ${GtkPlus_INCLUDE_DIRS}
-    ${GTK2_INCLUDE_DIRS}
+    ${GTK_INCLUDE_DIRS}
 )
 
 # Search for source code.
@@ -37,7 +37,7 @@ IF (folder_source)
       ${IPP_LIBRARIES}
       ${GTKPLUS_LINK_FLAGS}
       ${GtkPlus_LIBRARIES}
-      ${GTK2_LIBRARIES}
+      ${GTK_LIBRARIES}
     )	
     INSTALL_TARGETS(/bin ${KEYWORD})
 	

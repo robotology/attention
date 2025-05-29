@@ -52,14 +52,15 @@ class convolve {
         convolve(){
             this->kernelWidth   = 0;
             this->kernelHeight  = 0;
-            this->kernel        = NULL;
+            this->kernel        = nullptr;
             this->direction     = -1;
             this->factor        = 0;
             this->shift         = 0;
             this->kernelIsDefined = false;
             this->counter       = 0;
             this->flicker       = -1;
-            this->limits        = NULL; 
+            this->limits[0]     = -10000;       // max
+            this->limits[1]     = 10000;        // min
         };
 
     /**

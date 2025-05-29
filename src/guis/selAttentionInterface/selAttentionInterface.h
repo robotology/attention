@@ -49,6 +49,7 @@
 //-------------------------------------------------
 // Callbacks
 //-------------------------------------------------
+
 gboolean forceDraw(gpointer data);
 // Timeout CB
 gint timeout_CB (gpointer data);
@@ -105,9 +106,9 @@ void printHelp();
 // Global Variables
 //-------------------------------------------------
 // main window
-GtkObject *adj1, *adj2,*adj3, *adj4,*adj5, *adj6;
-GtkObject *adj11, *adj12,*adj13, *adj14,*adj15, *adj16;
-GtkObject *adjMotion;
+GObject *adj1, *adj2,*adj3, *adj4,*adj5, *adj6;
+GObject *adj11, *adj12,*adj13, *adj14,*adj15, *adj16;
+GObject *adjMotion;
 yarp::os::Semaphore _mutex;
 int c=0;
 

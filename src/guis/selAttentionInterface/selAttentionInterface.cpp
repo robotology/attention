@@ -149,7 +149,7 @@ static void cb_digits_scale( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_K1);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         _pOutPort->write(bot,in);
     }
@@ -162,7 +162,7 @@ static void cb_digits_scale2( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_K2);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -176,7 +176,7 @@ static void cb_digits_scale3( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_K3);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -190,7 +190,7 @@ static void cb_digits_scale4( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_K4);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -204,7 +204,7 @@ static void cb_digits_scale5( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_K5);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -218,7 +218,7 @@ static void cb_digits_scale6( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_K6);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -232,7 +232,7 @@ static void cb_digits_scale11( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_KC1);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -246,7 +246,7 @@ static void cb_digits_scale12( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_KC2);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -260,7 +260,7 @@ static void cb_digits_scale13( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_KC3);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -274,7 +274,7 @@ static void cb_digits_scaleMotion( GtkAdjustment *adj ) {
         bot.clear();
         bot.addVocab32(COMMAND_VOCAB_SET);
         bot.addVocab32(COMMAND_VOCAB_KMOT);
-        bot.addFloat32((double) adj->value);
+        bot.addFloat32((double) gtk_adjustment_get_value(adj));
         //_pOutPort->Content() = _outBottle;
         Bottle in;
         _pOutPort->write(bot,in);
@@ -756,14 +756,15 @@ GtkWidget* createMainWindow(void) {
 
     GtkRequisition actualSize;
     GtkWidget* window;
+    GtkWidget *box *box2, *box3, *box4, *box5, *box6;
 
     //gtk_init (&argc, &argv);
-    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    window = gtk_window_new();
     gtk_window_set_title (GTK_WINDOW (window), "selectiveAttentionInterface");
     gtk_window_set_default_size(GTK_WINDOW (window), 205, 300);
     gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
-    g_signal_connect (G_OBJECT (window), "destroy",
-                      G_CALLBACK (gtk_main_quit),
+    g_signal_connect (window, "destroy",
+                      G_CALLBACK(quit_cb),
                       NULL);
 
     // When the window is given the "delete_event" signal (this is given
@@ -773,8 +774,8 @@ GtkWidget* createMainWindow(void) {
     // function is NULL and is ignored in the callback function.
     //g_signal_connect (G_OBJECT (window), "delete_event", G_CALLBACK (delete_event), NULL);
     // Box for main window
-    GtkWidget *box;
-    GtkWidget *box2, *box3, *box4, *box5, *box6;
+
+
     box = gtk_vbox_new (FALSE, 0); // parameters (gboolean homogeneous_space, gint spacing);
     gtk_container_add (GTK_CONTAINER (window), box);
     // MenuBar for main window
